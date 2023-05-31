@@ -571,9 +571,18 @@ module.exports = [
         model: 'WISZB-121',
         vendor: 'Develco',
         description: 'Window sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low()],
+        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint35 = device.getEndpoint(35);
+            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint35);
+
+            await develco.configure.read_sw_hw_version(device, logger);
+        },
     },
     {
         zigbeeModel: ['WISZB-137'],

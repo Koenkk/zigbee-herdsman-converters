@@ -1,6 +1,6 @@
 const index = require('../index');
-const exposes = require('../src/lib/exposes');
-const tuya = require('../src/lib/tuya');
+const exposes = require('../lib/exposes');
+const tuya = require('../lib/tuya');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
 const fs = require('fs');

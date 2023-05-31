@@ -745,3 +745,4 @@ module.exports.numeric = (name: string, access: number) => new Numeric(name, acc
 module.exports.switch = () => new Switch();
 module.exports.text = (name: string, access: number) => new Text(name, access);
 module.exports.list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
+module.exports.lock = () => new Lock();
