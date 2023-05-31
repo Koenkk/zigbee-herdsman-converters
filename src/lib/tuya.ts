@@ -36,10 +36,6 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-function isMetaTuyaDataPointsSingle(meta: tuya.MetaTuyaDataPointsSingle | tuya.MetaTuyaDataPointsMulti): meta is tuya.MetaTuyaDataPointsSingle {
-    return typeof meta[1] === 'string';
-}
-
 function getDataValue(dpValue: tuya.DpValue) {
     let dataString = '';
     switch (dpValue.datatype) {
@@ -202,27 +198,27 @@ function dpValueFromBitmap(dp: number, bitmapBuffer: number) {
     return {dp, datatype: dataTypes.bitmap, data: [bitmapBuffer]};
 }
 
-async function sendDataPointValue(entity: zh.Group | zh.Endpoint, dp: number, value: number, cmd: string, seq?: number) {
+async function sendDataPointValue(entity: zh.Group | zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromNumberValue(dp, value)], cmd, seq);
 }
 
-async function sendDataPointBool(entity: zh.Group | zh.Endpoint, dp: number, value: boolean, cmd: string, seq?: number) {
+async function sendDataPointBool(entity: zh.Group | zh.Endpoint, dp: number, value: boolean, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromBool(dp, value)], cmd, seq);
 }
 
-export async function sendDataPointEnum(entity: zh.Group | zh.Endpoint, dp: number, value: number, cmd: string, seq?: number) {
+export async function sendDataPointEnum(entity: zh.Group | zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
 }
 
-async function sendDataPointRaw(entity: zh.Group | zh.Endpoint, dp: number, value: number[], cmd: string, seq?: number) {
+async function sendDataPointRaw(entity: zh.Group | zh.Endpoint, dp: number, value: number[], cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
 }
 
-async function sendDataPointBitmap(entity: zh.Group | zh.Endpoint, dp: number, value: number, cmd: string, seq?: number) {
+async function sendDataPointBitmap(entity: zh.Group | zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromBitmap(dp, value)], cmd, seq);
 }
 
-async function sendDataPointStringBuffer(entity: zh.Group | zh.Endpoint, dp: number, value: string, cmd: string, seq?: number) {
+async function sendDataPointStringBuffer(entity: zh.Group | zh.Endpoint, dp: number, value: string, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromString(dp, value)], cmd, seq);
 }
 
@@ -795,7 +791,7 @@ const tuyaTz = {
                 const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
                     `${attr}_${meta.endpoint_name}` : attr;
                 const dpEntry = datapoints.find((d) => d[1] === convertedKey);
-                if (!dpEntry || !dpEntry[1]) {
+                if (!dpEntry?.[1] || !dpEntry?.[2].to) {
                     throw new Error(`No datapoint defined for '${attr}'`);
                 }
                 if (dpEntry[3] && dpEntry[3].skip && dpEntry[3].skip(meta)) continue;
@@ -968,7 +964,7 @@ const tuyaFz = {
             return result;
         },
         convert: (model, msg, publish, options, meta) => {
-            let result: KeyValue = {};
+            const result: KeyValue = {};
             if (!model.meta || !model.meta.tuyaDatapoints) throw new Error('No datapoints map defined');
             const datapoints = model.meta.tuyaDatapoints;
             for (const dpValue of msg.data.dpValues) {
@@ -976,10 +972,10 @@ const tuyaFz = {
                 const dpEntry = datapoints.find((d) => d[0] === dpId);
                 if (dpEntry?.[2].from) {
                     const value = getDataValue(dpValue);
-                    if (isMetaTuyaDataPointsSingle(dpEntry)) {
+                    if (dpEntry[1]) {
                         result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish);
                     } else {
-                        result = {...result, ...dpEntry[2].from(value, meta, options, publish)};
+                        Object.assign(result, dpEntry[2].from(value, meta, options, publish));
                     }
                 } else {
                     meta.logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' ` +
@@ -1095,7 +1091,7 @@ const tuyaExtend = {
     },
     light_onoff_brightness: (options:{
         endpoints?: string[], disablePowerOnBehavior?: boolean, minBrightness?: boolean,
-        toZigbee?:tz.Converter[], exposes?: Expose[],
+        toZigbee?:tz.Converter[], exposes?: Expose[], noConfigure?: boolean,
     }={}) => {
         options = {
             disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb], exposes: [tuyaExposes.doNotDisturb()],

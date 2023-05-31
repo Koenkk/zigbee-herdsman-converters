@@ -275,7 +275,7 @@ const thermostatSystemModes3: KeyValueAny = {
     2: 'off',
 };
 
-const thermostatSystemModes4: KeyValueAny = {
+const thermostatSystemModes4: KeyValueNumberString = {
     0: 'off',
     1: 'auto',
     2: 'heat',
@@ -293,7 +293,7 @@ const thermostatForceMode: KeyValueAny = {
     2: 'close',
 };
 
-const thermostatPresets: KeyValueAny = {
+const thermostatPresets: KeyValueNumberString = {
     0: 'away',
     1: 'schedule',
     2: 'manual',

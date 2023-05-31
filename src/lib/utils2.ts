@@ -8,8 +8,7 @@ export function assertNumber(value: unknown, property: string): asserts value is
 
 export function getFromLookup<V>(value: unknown, lookup: {[s: string | number]: V}): V {
     assertString(value, `Expected string got: '${value}' (${typeof(value)})`);
-    value = value.toLowerCase();
-    const result = lookup[value];
+    const result = lookup[value.toLowerCase()];
     if (!result) throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
     return result;
 }

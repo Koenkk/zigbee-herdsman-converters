@@ -16,6 +16,7 @@ declare global {
 
     interface KeyValue {[s: string]: unknown}
     interface KeyValueString {[s: string]: string}
+    interface KeyValueNumberString {[s: string]: string}
     // eslint-disable-next-line
     interface KeyValueAny {[s: string]: any}
     type Publish = (payload: KeyValue) => void;
@@ -25,10 +26,14 @@ declare global {
     type Expose = exposes.Numeric | exposes.Binary | exposes.Enum | exposes.Composite | exposes.List | exposes.Light | exposes.Switch |
         exposes.Lock | exposes.Cover | exposes.Climate | exposes.Text;
     type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum;
-    interface Fingerprint {modelID?: string, manufacturerName?: string;}
+    interface Fingerprint {
+        modelID?: string, manufacturerName?: string, type?: 'EndDevice' | 'Router', manufacturerID?: number, applicationVersion?: number,
+        endpoints?: {ID?: number, profileID?: number, deviceID?: number, inputClusters?: number[], outputClusters?: number[]}[],
+    }
     type WhiteLabel =
         {vendor: string, model: string, description: string, fingerprint: Fingerprint[]} |
         {vendor: string, model: string, description?: string};
+    interface OtaUpdateAvailableResult {available: boolean, currentFileVersion: number, otaFileVersion: number}
 
     interface DefinitionMeta {
         separateWhite?: boolean,
@@ -39,7 +44,7 @@ declare global {
         coverInverted?: boolean,
         timeout?: number,
         multiEndpointSkip?: string[],
-        tuyaSendCommand?: 'dataRequest',
+        tuyaSendCommand?: 'sendData' | 'dataRequest',
         thermostat?: {
             weeklyScheduleMaxTransitions: number,
             weeklyScheduleSupportedModes: number[],
@@ -64,6 +69,12 @@ declare global {
         options?: Option[],
         meta?: DefinitionMeta,
         onEvent?: (type: OnEventType, data: KeyValue, device: zh.Device, options: KeyValue, state: KeyValue) => Promise<void>,
+        ota?: {
+            isUpdateAvailable: (device: zh.Device, logger: Logger, data?: KeyValue)
+                => Promise<OtaUpdateAvailableResult>;
+            updateToLatest: (device: zh.Device, logger: Logger,
+                onProgress: (progress: number, remaining: number) => void) => Promise<number>;
+        }
     } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
       & ({ extend: Extend } |
         { fromZigbee: fz.Converter[], toZigbee: tz.Converter[], exposes: (Expose[] | ((device: zh.Device, options: KeyValue) => Expose[])) });
@@ -109,7 +120,7 @@ declare global {
         interface DpValue {dp: number, datatype: number, data: Buffer | number[]}
         interface ValueConverterSingle {
             to?: (value: unknown, meta?: tz.Meta) => unknown,
-            from?: (value: unknown, meta?: fz.Meta, options?: KeyValue, publish?: Publish) => number|string|boolean,
+            from?: (value: unknown, meta?: fz.Meta, options?: KeyValue, publish?: Publish) => number|string|boolean|KeyValue,
         }
         interface ValueConverterMulti {
             to?: (value: unknown, meta?: tz.Meta) => unknown,
@@ -117,8 +128,7 @@ declare global {
         }
         interface MetaTuyaDataPointsMeta {skip: (meta: tz.Meta) => boolean, optimistic?: boolean}
         type MetaTuyaDataPointsSingle = [number, string, tuya.ValueConverterSingle, MetaTuyaDataPointsMeta?];
-        type MetaTuyaDataPointsMulti = [number, null, tuya.ValueConverterMulti, MetaTuyaDataPointsMeta?];
-        type MetaTuyaDataPoints = (MetaTuyaDataPointsSingle|MetaTuyaDataPointsMulti)[];
+        type MetaTuyaDataPoints = MetaTuyaDataPointsSingle[];
     }
 }
 

@@ -12,7 +12,7 @@ import globalStore from '../lib/store';
 import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {assertString, assertNumber, getFromLookup} from 'src/lib/utils2';
+import {assertString, assertNumber, getFromLookup} from '../lib/utils2';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -2598,8 +2598,9 @@ const definitions: Definition[] = [
                 [1, null,
                     {
                         from: (v) => {
-                            const presetLookup = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
-                            const systemModeLookup = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
+                            assertNumber(v, 'system_mode');
+                            const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
+                            const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
                             return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
                         },
                     },
@@ -2670,7 +2671,7 @@ const definitions: Definition[] = [
             e.energy(), e.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
             e.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off']).withDescription('LED indicator mode')],
-        onEvent: tuya.onEventMeasurementPoll,
+        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
     },
     {
         fingerprint: [{modelID: 'TS0111', manufacturerName: '_TYZB01_ymcdbl3u'}],
@@ -2914,7 +2915,7 @@ const definitions: Definition[] = [
             e.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'),
             e.binary('alarm', ea.STATE_SET, true, false).withDescription('Enable the alarm'),
             e.binary('silence_siren', ea.STATE_SET, true, false).withDescription('Silence the siren')],
-        onEvent: tuya.onEventsetTime,
+        onEvent: tuya.onEventSetTime,
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_cjbofhxw']),
@@ -3098,6 +3099,7 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            // @ts-expect-error
             await tuya.extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -3731,7 +3733,7 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.sendDataPointEnum(endpoint, legacy.dataPoints.trsfTumbleSwitch, false);
+            await tuya.sendDataPointEnum(endpoint, legacy.dataPoints.trsfTumbleSwitch, 0);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
         },
         exposes: [
@@ -4227,6 +4229,7 @@ const definitions: Definition[] = [
         exposes: [e.light_brightness().withMinBrightness().withMaxBrightness(), e.power_on_behavior(), tuya.exposes.switchType()],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            // @ts-expect-error
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
@@ -4272,6 +4275,7 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            // @ts-expect-error
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -4683,7 +4687,7 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.cover_position(),
+            e.cover_position().setAccess('position', ea.STATE_SET),
             tuya.exposes.switch().withEndpoint('l1'),
             tuya.exposes.switch().withEndpoint('l2'),
             e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),

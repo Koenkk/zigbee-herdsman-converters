@@ -1,4 +1,4 @@
-const index = require('../src/index');
+const index = require('../index');
 const exposes = require('../src/lib/exposes');
 const tuya = require('../src/lib/tuya');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));

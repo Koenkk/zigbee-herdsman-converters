@@ -555,18 +555,6 @@ export const access = {
 
 const a = access;
 
-// TODO: remove this once TS refactor is completed
-module.exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
-module.exports.climate = () => new Climate();
-module.exports.composite = (name: string, property: string, access: number) => new Composite(name, property, access);
-module.exports.cover = () => new Cover();
-module.exports.enum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
-module.exports.light = () => new Light();
-module.exports.numeric = (name: string, access: number) => new Numeric(name, access);
-module.exports.switch = () => new Switch();
-module.exports.text = (name: string, access: number) => new Text(name, access);
-module.exports.list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
-
 export const options = {
     calibration: (name: string, type='absolute') => new Numeric(`${name}_calibration`, access.SET).withDescription(`Calibrates the ${name} value (${type} offset), takes into effect on next report of device.`),
     precision: (name: string) => new Numeric(`${name}_precision`, access.SET).withValueMin(0).withValueMax(3).withDescription(`Number of digits after decimal point for ${name}, takes into effect on next report of device.`),
@@ -745,3 +733,15 @@ export const presets = {
         .withFeature(new Enum('level', access.SET, ['low', 'medium', 'high', 'very_high']).withDescription('Sound level'))
         .withFeature(new Binary('strobe', access.SET, true, false).withDescription('Turn on/off the strobe (light) for Squawk')),
 };
+
+// TODO: remove this once TS refactor is completed
+module.exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
+module.exports.climate = () => new Climate();
+module.exports.composite = (name: string, property: string, access: number) => new Composite(name, property, access);
+module.exports.cover = () => new Cover();
+module.exports.enum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
+module.exports.light = () => new Light();
+module.exports.numeric = (name: string, access: number) => new Numeric(name, access);
+module.exports.switch = () => new Switch();
+module.exports.text = (name: string, access: number) => new Text(name, access);
+module.exports.list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
