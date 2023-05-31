@@ -6067,17 +6067,6 @@ const converters = {
             }
         },
     },
-    thirdreality_acceleration: {
-        cluster: 'seMetering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {};
-            if (msg.data['65280']) payload.x_axis = msg.data['65280'];
-            if (msg.data['65281']) payload.y_axis = msg.data['65281'];
-            if (msg.data['65282']) payload.z_axis = msg.data['65282'];
-            return payload;
-        },
-    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
