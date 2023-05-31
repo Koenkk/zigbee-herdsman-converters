@@ -2391,6 +2391,7 @@ module.exports = [
         extend: tuya.extend.switch(),
         whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'}, {vendor: 'Lonsonho', model: 'X701'},
             {vendor: 'Bandi', model: 'BDS03G1'},
+            tuya.whitelabel('Adaprox', 'TS0001_1', 'White Zigbee fingbot plus', ['_TZ3210_dse8ogfy']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
