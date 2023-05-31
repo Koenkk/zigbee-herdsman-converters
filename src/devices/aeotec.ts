@@ -1,4 +1,4 @@
-const fz = require('../converters/fromZigbee');
+import fz from '../converters/fromZigbee';
 
 module.exports = [
     {
@@ -10,4 +10,4 @@ module.exports = [
         toZigbee: [],
         exposes: [],
     },
-];
+] as Definition[];

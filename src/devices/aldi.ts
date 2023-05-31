@@ -1,5 +1,5 @@
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
 const e = exposes.presets;
 
 module.exports = [
@@ -13,4 +13,4 @@ module.exports = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
         toZigbee: [],
     },
-];
+] as Definition[];

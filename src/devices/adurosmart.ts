@@ -1,8 +1,9 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as legacy from '../lib/legacy';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 
 module.exports = [
@@ -71,7 +72,7 @@ module.exports = [
         model: '81825',
         vendor: 'AduroSmart',
         description: 'ERIA smart wireless dimming switch',
-        fromZigbee: [fz.command_on, fz.command_off, fz.legacy.eria_81825_updown],
+        fromZigbee: [fz.command_on, fz.command_off, legacy.fz.eria_81825_updown],
         exposes: [e.action(['on', 'off', 'up', 'down'])],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -127,4 +128,4 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true},
     },
-];
+] as Definition[];

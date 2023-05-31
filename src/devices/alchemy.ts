@@ -1,4 +1,4 @@
-const extend = require('../lib/extend');
+import extend from '../lib/extend';
 
 module.exports = [
     {
@@ -15,4 +15,4 @@ module.exports = [
         description: 'Downlight RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
-];
+] as Definition[];

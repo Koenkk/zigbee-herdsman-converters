@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import type {
     Device as ZHDevice,
     Endpoint as ZHEndpoint,
@@ -50,6 +51,7 @@ declare global {
             weeklyScheduleSupportedModes: number[],
             weeklyScheduleFirstDayDpId: number,
         },
+        battery?: {voltageToPercentage?: string},
         applyRedFix?: boolean,
         turnsOffAtBrightness1?: boolean;
         tuyaThermostatPreset?: {[s: number]: string},

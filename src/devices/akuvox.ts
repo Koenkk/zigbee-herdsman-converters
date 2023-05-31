@@ -1,6 +1,6 @@
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
-const reporting = require('../lib/reporting');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import reporting from '../lib/reporting';
 const e = exposes.presets;
 
 module.exports = [
@@ -25,4 +25,4 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint1);
         },
     },
-];
+] as Definition[];

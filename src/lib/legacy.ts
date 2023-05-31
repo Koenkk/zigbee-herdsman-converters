@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import fs from 'fs';
 import globalStore from './store';
 import * as utils from './utils';
@@ -250,16 +247,6 @@ function logDataPoint(where: string, msg: KeyValueAny, dpValue: any, meta: any) 
         msg.type}', datatype='${getTypeName(dpValue)}', value='${
         getDataValue(dpValue)}', known DP# usage: ${JSON.stringify(getDataPointNames(dpValue))}`);
 }
-
-const thermostatSystemModes1: KeyValueAny = {
-    0: 'off',
-    1: 'auto',
-    2: 'manual',
-    3: 'comfort',
-    4: 'eco',
-    5: 'boost',
-    6: 'complex',
-};
 
 const thermostatSystemModes2: KeyValueAny = {
     0: 'auto',
@@ -8660,6 +8647,7 @@ const toZigbee = {...toZigbee1, ...toZigbee2};
 
 
 export {
+    fromZigbee as fz,
     fromZigbee,
     toZigbee,
     thermostatControlSequenceOfOperations,
