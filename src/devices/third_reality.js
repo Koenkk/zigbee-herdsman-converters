@@ -6,6 +6,20 @@ const extend = require('../lib/extend');
 const ota = require('../lib/ota');
 const e = exposes.presets;
 
+const fzLocal = {
+    thirdreality_acceleration: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            if (msg.data['65280']) payload.x_axis = msg.data['65280'];
+            if (msg.data['65281']) payload.y_axis = msg.data['65281'];
+            if (msg.data['65282']) payload.z_axis = msg.data['65282'];
+            return payload;
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['3RSS009Z'],
@@ -197,7 +211,7 @@ module.exports = [
         model: '3RVS01031Z',
         vendor: 'Third Reality',
         description: 'Zigbee vibration sensor',
-        fromZigbee: [fz.ias_vibration_alarm_1, fz.battery, fz.thirdreality_acceleration],
+        fromZigbee: [fz.ias_vibration_alarm_1, fz.battery, fzLocal.thirdreality_acceleration],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         exposes: [e.vibration(), e.battery_low(), e.battery(), e.battery_voltage(), e.x_axis(), e.y_axis(), e.z_axis()],
