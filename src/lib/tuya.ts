@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/no-unused-vars: 0 */
 import constants from './constants';
 import globalStore from './store';
 import * as exposes from './exposes';
@@ -74,7 +73,7 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
     return [chunk1, chunk2].map((hexVal) => parseInt(hexVal, 16));
 }
 
-export async function onEventMeasurementPoll(type: OnEventType, data: KeyValue, device: zh.Device, options: KeyValue,
+export async function onEventMeasurementPoll(type: OnEventType, data: OnEventData, device: zh.Device, options: KeyValue,
     electricalMeasurement=true, metering=false) {
     const endpoint = device.getEndpoint(1);
     if (type === 'stop') {

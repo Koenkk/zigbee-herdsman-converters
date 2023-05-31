@@ -1,8 +1,8 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
-const tz = require('../converters/toZigbee');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import tz from '../converters/toZigbee';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -18,7 +18,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    },
+    } as fz.Converter,
 };
 
 module.exports = [
@@ -268,4 +268,4 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
         },
     },
-];
+] as Definition[];

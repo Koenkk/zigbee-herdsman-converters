@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/no-unused-vars: 0 */
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as tuya from '../lib/tuya';
@@ -497,7 +496,7 @@ const fzLocal = {
     } as fz.Converter,
 };
 
-const definitions: Definition[] = [
+module.exports = [
     {
         zigbeeModel: ['TS0204'],
         model: 'TS0204',
@@ -1615,7 +1614,6 @@ const definitions: Definition[] = [
         model: 'TS0505A_led',
         vendor: 'TuYa',
         description: 'RGB+CCT LED',
-        // @ts-expect-error
         toZigbee: [tz.on_off, tz.tuya_led_control],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
         exposes: [e.light_brightness_colortemp_colorhs([153, 500]).removeFeature('color_temp_startup')],
@@ -4861,6 +4859,4 @@ const definitions: Definition[] = [
             tuya.whitelabel('Marmitek', 'SM0202_1', 'Motion sensor', ['_TYZB01_yr95mpib']),
         ],
     },
-];
-
-module.exports = definitions;
+] as Definition[];
