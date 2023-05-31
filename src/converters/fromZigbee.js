@@ -6068,8 +6068,8 @@ const converters = {
         },
     },
     thirdreality_acceleration: {
-        cluster: 'ssIasZone',
-        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
             if (msg.data['65280']) payload.x_axis = msg.data['65280'];
