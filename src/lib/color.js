@@ -464,14 +464,6 @@ class ColorHSV {
     }
 
     /**
-     * Returns color after sRGB gamma correction
-     * @return {ColorHSV} corrected color in HSV space
-     */
-    gammaCorrected() {
-        return this.toRGB().gammaCorrected().toHSV();
-    }
-
-    /**
      * Interpolates hue value based on correction map through ranged linear interpolation
      * @param {Nnmber} hue hue to be corrected
      * @param {Array} correctionMap array of hueIn -> hueOut mappings; example: [ {"in": 20, "out": 25}, {"in": 109, "out": 104}]
@@ -527,7 +519,7 @@ class ColorHSV {
      * @return {ColorHSV} corrected color in HSV space
      */
     colorCorrected(meta) {
-        return this.hueCorrected(meta).gammaCorrected();
+        return this.hueCorrected(meta);
     }
 }
 
