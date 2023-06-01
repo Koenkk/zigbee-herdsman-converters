@@ -1272,7 +1272,7 @@ module.exports = [
                 [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
                 [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
                 [4, 'light_type', tuya.valueConverter.lightType],
-                [21, 'indicator_mode', tuya.valueConverterBasic.lookup({0: 'none', 1: 'relay', 2: 'pos'})],
+                [21, 'indicator_mode', tuya.valueConverterBasic.lookup({'none': 0, 'relay': 1, 'pos': 2})],
             ],
         },
         whiteLabel: [
