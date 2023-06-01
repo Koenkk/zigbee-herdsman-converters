@@ -141,8 +141,9 @@ const ikea = {
                 }
 
                 if (msg.data.hasOwnProperty('filterRunTime')) {
-                // Filter needs to be replaced after 6 months
+                    // Filter needs to be replaced after 6 months
                     state['replace_filter'] = (parseInt(msg.data['filterRunTime']) >= 259200);
+                    state['filter_age'] = parseInt(msg.data['filterRunTime']);
                 }
 
                 if (msg.data.hasOwnProperty('controlPanelLight')) {
@@ -353,7 +354,7 @@ const ikea = {
             },
         },
         air_purifier_replace_filter: {
-            key: ['replace_filter'],
+            key: ['replace_filter', 'filter_age'],
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
             },
@@ -1030,6 +1031,7 @@ module.exports = [
             exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
             exposes.binary('replace_filter', ea.STATE_GET, true, false)
                 .withDescription('Filter is older than 6 months and needs replacing'),
+            exposes.numeric('filter_age', ea.STATE_GET).withDescription('Time the filter has been used in minutes'),
         ],
         meta: {fanStateOn: 'auto'},
         fromZigbee: [ikea.fz.air_purifier],
