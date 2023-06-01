@@ -1,23 +1,25 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
-const utils = require('../lib/utils');
+import utils from '../lib/utils';
+import {assertString} from '../lib/utils2';
 const ea = exposes.access;
 
 const tzLocal = {
     aOneBacklight: {
         key: ['backlight_led'],
         convertSet: async (entity, key, value, meta) => {
+            assertString(value, 'backlight_led');
             const state = value.toLowerCase();
             utils.validateValue(state, ['toggle', 'off', 'on']);
             const endpoint = meta.device.getEndpoint(3);
             await endpoint.command('genOnOff', state, {});
             return {state: {backlight_led: state.toUpperCase()}};
         },
-    },
+    } as tz.Converter,
     backlight_brightness: {
         key: ['brightness'],
         options: [exposes.options.transition()],
@@ -28,10 +30,10 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', ['currentLevel']);
         },
-    },
+    } as tz.Converter,
 };
 
-const disableBatteryRotaryDimmerReporting = async (endpoint) => {
+const disableBatteryRotaryDimmerReporting = async (endpoint: zh.Endpoint) => {
     // The default is for the device to also report the on/off and
     // brightness at the same time as sending on/off and step commands.
     // Disable the reporting by setting the max interval to 0xFFFF.
@@ -39,12 +41,12 @@ const disableBatteryRotaryDimmerReporting = async (endpoint) => {
     await reporting.onOff(endpoint, {max: 0xFFFF});
 };
 
-const batteryRotaryDimmer = (...endpointsIds) => ({
-    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
-    toZigbee: [],
+const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
+    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature] as fz.Converter[],
+    toZigbee: [] as tz.Converter[],
     exposes: [e.battery(), e.action([
         'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
-    configure: async (device, coordinatorEndpoint, logger) => {
+    configure: (async (device, coordinatorEndpoint, logger) => {
         const endpoints = endpointsIds.map((endpoint) => device.getEndpoint(endpoint));
 
         // Battery level is only reported on first endpoint
@@ -56,8 +58,8 @@ const batteryRotaryDimmer = (...endpointsIds) => ({
 
             await disableBatteryRotaryDimmerReporting(endpoint);
         }
-    },
-    onEvent: async (type, data, device) => {
+    }) as Configure,
+    onEvent: (async (type, data, device) => {
         // The rotary dimmer devices appear to lose the configured reportings when they
         // re-announce themselves which they do roughly every 6 hours.
         if (type === 'deviceAnnounce') {
@@ -75,7 +77,7 @@ const batteryRotaryDimmer = (...endpointsIds) => ({
                 }
             }
         }
-    },
+    }) as OnEvent,
 });
 
 module.exports = [
@@ -206,7 +208,7 @@ module.exports = [
         vendor: 'Aurora Lighting',
         description: 'AOne 250W smart rotary dimmer module',
         exposes: [...extend.light_onoff_brightness({noConfigure: true}).exposes,
-            exposes.binary('backlight_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the blue backlight LED')],
+            e.binary('backlight_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the blue backlight LED')],
         toZigbee: [...extend.light_onoff_brightness({noConfigure: true}).toZigbee, tzLocal.aOneBacklight],
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -223,7 +225,7 @@ module.exports = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.brightness],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
             e.power().withEndpoint('left'), e.power().withEndpoint('right'),
-            exposes.numeric('brightness', ea.ALL).withValueMin(0).withValueMax(254)
+            e.numeric('brightness', ea.ALL).withValueMin(0).withValueMax(254)
                 .withDescription('Brightness of this backlight LED')],
         toZigbee: [tzLocal.backlight_brightness, tz.on_off],
         meta: {multiEndpoint: true},
@@ -289,4 +291,4 @@ module.exports = [
         // Two gang battery rotary dimmer with endpoint IDs 1 and 2
         ...batteryRotaryDimmer(1, 2),
     },
-];
+] as Definition[];

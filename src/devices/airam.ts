@@ -1,8 +1,9 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const constants = require('../lib/constants');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import constants from '../lib/constants';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 
 module.exports = [
@@ -29,9 +30,9 @@ module.exports = [
         description: 'CTR.U remote',
         exposes: [e.action(['on', 'off', 'brightness_down_click', 'brightness_up_click', 'brightness_down_hold', 'brightness_up_hold',
             'brightness_down_release', 'brightness_up_release'])],
-        fromZigbee: [fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off, fz.legacy.genOnOff_cmdOff,
-            fz.legacy.CTR_U_brightness_updown_click, fz.ignore_basic_report,
-            fz.legacy.CTR_U_brightness_updown_hold, fz.legacy.CTR_U_brightness_updown_release, fz.command_recall, fz.legacy.CTR_U_scene],
+        fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff,
+            legacy.fz.CTR_U_brightness_updown_click, fz.ignore_basic_report,
+            legacy.fz.CTR_U_brightness_updown_hold, legacy.fz.CTR_U_brightness_updown_release, fz.command_recall, legacy.fz.CTR_U_scene],
         toZigbee: [],
     },
     {
@@ -56,4 +57,4 @@ module.exports = [
         description: 'GU10 spot 4.8W 2700K 385lm',
         extend: extend.light_onoff_brightness(),
     },
-];
+] as Definition[];

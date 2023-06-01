@@ -1,54 +1,50 @@
-'use strict';
-
-const constants = require('./constants');
-const globalStore = require('./store');
-const exposes = require('./exposes');
-const utils = require('./utils');
+import constants from './constants';
+import globalStore from './store';
+import * as exposes from './exposes';
+import {getFromLookup, assertNumber, assertString} from './utils2';
+import tz from '../converters/toZigbee';
+import fz from '../converters/fromZigbee';
+import utils from './utils';
+import extend from './extend';
 const e = exposes.presets;
 const ea = exposes.access;
 
 const dataTypes = {
     raw: 0, // [ bytes ]
     bool: 1, // [0/1]
-    value: 2, // [ 4 byte value ]
+    number: 2, // [ 4 byte value ]
     string: 3, // [ N byte string ]
     enum: 4, // [ 0-255 ]
     bitmap: 5, // [ 1,2,4 bytes ] as bits
 };
 
-const convertMultiByteNumberPayloadToSingleDecimalNumber = (chunks) => {
-    // Destructuring "chunks" is needed because it's a Buffer
-    // and we need a simple array.
+function convertBufferToNumber(chunks: Buffer | number[]) {
     let value = 0;
     for (let i = 0; i < chunks.length; i++) {
         value = value << 8;
         value += chunks[i];
     }
     return value;
-};
-
-function firstDpValue(msg, meta, converterName) {
-    const dpValues = msg.data.dpValues;
-    for (let index = 1; index < dpValues.length; index++) {
-        meta.logger.debug(`zigbee-herdsman-converters:${converterName}: Additional DP #${
-            dpValues[index].dp} with data ${JSON.stringify(dpValues[index])} will be ignored! ` +
-            'Use a for loop in the fromZigbee converter (see ' +
-            'https://www.zigbee2mqtt.io/advanced/support-new-devices/02_support_new_tuya_devices.html)');
-    }
-    return dpValues[0];
 }
 
-function getDataValue(dpValue) {
+function convertStringToHexArray(value: string) {
+    const asciiKeys = [];
+    for (let i = 0; i < value.length; i ++) {
+        asciiKeys.push(value[i].charCodeAt(0));
+    }
+    return asciiKeys;
+}
+
+function getDataValue(dpValue: tuya.DpValue) {
+    let dataString = '';
     switch (dpValue.datatype) {
     case dataTypes.raw:
         return dpValue.data;
     case dataTypes.bool:
         return dpValue.data[0] === 1;
-    case dataTypes.value:
-        return convertMultiByteNumberPayloadToSingleDecimalNumber(dpValue.data);
+    case dataTypes.number:
+        return convertBufferToNumber(dpValue.data);
     case dataTypes.string:
-        // eslint-disable-next-line
-        let dataString = '';
         // Don't use .map here, doesn't work: https://github.com/Koenkk/zigbee-herdsman-converters/pull/1799/files#r530377091
         for (let i = 0; i < dpValue.data.length; ++i) {
             dataString += String.fromCharCode(dpValue.data[i]);
@@ -57,43 +53,35 @@ function getDataValue(dpValue) {
     case dataTypes.enum:
         return dpValue.data[0];
     case dataTypes.bitmap:
-        return convertMultiByteNumberPayloadToSingleDecimalNumber(dpValue.data);
+        return convertBufferToNumber(dpValue.data);
     }
 }
 
-function getTypeName(dpValue) {
-    const entry = Object.entries(dataTypes).find(([typeName, typeId]) => typeId === dpValue.datatype);
-    return (entry ? entry[0] : 'unknown');
-}
-
-function getDataPointNames(dpValue) {
-    const entries = Object.entries(dataPoints).filter(([dpName, dpId]) => dpId === dpValue.dp);
-    return entries.map(([dpName, dpId]) => dpName);
-}
-
-function convertDecimalValueTo4ByteHexArray(value) {
+function convertDecimalValueTo4ByteHexArray(value: number) {
     const hexValue = Number(value).toString(16).padStart(8, '0');
-    const chunk1 = hexValue.substr(0, 2);
-    const chunk2 = hexValue.substr(2, 2);
-    const chunk3 = hexValue.substr(4, 2);
-    const chunk4 = hexValue.substr(6);
+    const chunk1 = hexValue.substring(0, 2);
+    const chunk2 = hexValue.substring(2, 2);
+    const chunk3 = hexValue.substring(4, 2);
+    const chunk4 = hexValue.substring(6);
     return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => parseInt(hexVal, 16));
 }
 
-function convertDecimalValueTo2ByteHexArray(value) {
+function convertDecimalValueTo2ByteHexArray(value: number) {
     const hexValue = Number(value).toString(16).padStart(4, '0');
-    const chunk1 = hexValue.substr(0, 2);
-    const chunk2 = hexValue.substr(2);
+    const chunk1 = hexValue.substring(0, 2);
+    const chunk2 = hexValue.substring(2);
     return [chunk1, chunk2].map((hexVal) => parseInt(hexVal, 16));
 }
 
-async function onEventMeasurementPoll(type, data, device, options, electricalMeasurement=true, metering=false) {
+export async function onEventMeasurementPoll(type: OnEventType, data: OnEventData, device: zh.Device, options: KeyValue,
+    electricalMeasurement=true, metering=false) {
     const endpoint = device.getEndpoint(1);
     if (type === 'stop') {
         clearTimeout(globalStore.getValue(device, 'measurement_poll'));
         globalStore.clearValue(device, 'measurement_poll');
     } else if (!globalStore.hasValue(device, 'measurement_poll')) {
         const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
+        assertNumber(seconds, 'measurement_poll_interval');
         if (seconds === -1) return;
         const setTimer = () => {
             const timer = setTimeout(async () => {
@@ -113,7 +101,7 @@ async function onEventMeasurementPoll(type, data, device, options, electricalMea
     }
 }
 
-async function onEventSetTime(type, data, device) {
+export async function onEventSetTime(type: OnEventType, data: KeyValue, device: zh.Device) {
     // FIXME: Need to join onEventSetTime/onEventSetLocalTime to one command
 
     if (data.type === 'commandMcuSyncTime' && data.cluster === 'manuSpecificTuya') {
@@ -140,7 +128,7 @@ async function onEventSetTime(type, data, device) {
 
 // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
 // force to update every device time every hour due to very poor clock
-async function onEventSetLocalTime(type, data, device) {
+export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, device: zh.Device) {
     // FIXME: What actually nextLocalTimeUpdate/forceTimeUpdate do?
     //  I did not find any timers or something else where it was used.
     //  Actually, there are two ways to set time on TuYa MCU devices:
@@ -174,690 +162,67 @@ async function onEventSetLocalTime(type, data, device) {
     }
 }
 
-function convertStringToHexArray(value) {
-    const asciiKeys = [];
-    for (let i = 0; i < value.length; i ++) {
-        asciiKeys.push(value[i].charCodeAt(0));
-    }
-    return asciiKeys;
-}
-
-// Contains all covers which need their position inverted by default
-// Default is 100 = open, 0 = closed; Devices listed here will use 0 = open, 100 = closed instead
-// Use manufacturerName to identify device!
-// Dont' invert _TZE200_cowvfni3: https://github.com/Koenkk/zigbee2mqtt/issues/6043
-const coverPositionInvert = ['_TZE200_wmcdj3aq', '_TZE200_nogaemzt', '_TZE200_xuzcvlku', '_TZE200_xaabybja', '_TZE200_rmymn92d',
-    '_TZE200_gubdgai2', '_TZE200_r0jdjrvi'];
-
-// Gets a boolean indicating whether the cover by this manufacturerName needs reversed positions
-function isCoverInverted(manufacturerName) {
-    // Return true if cover is listed in coverPositionInvert
-    // Return false by default, not inverted
-    return coverPositionInvert.includes(manufacturerName);
-}
-
-const coverStateOverride = {
-    // Contains all covers which differentiate from the default enum states
-    // Use manufacturerName to identify device!
-    // https://github.com/Koenkk/zigbee2mqtt/issues/5596#issuecomment-759408189
-    '_TZE200_rddyvrci': {close: 1, open: 2, stop: 0},
-    '_TZE200_wmcdj3aq': {close: 0, open: 2, stop: 1},
-    '_TZE200_cowvfni3': {close: 0, open: 2, stop: 1},
-    '_TYST11_cowvfni3': {close: 0, open: 2, stop: 1},
-};
-
-// Gets an array containing which enums have to be used in order for the correct close/open/stop commands to be sent
-function getCoverStateEnums(manufacturerName) {
-    if (manufacturerName in coverStateOverride) {
-        return coverStateOverride[manufacturerName];
-    } else {
-        return {close: 2, open: 0, stop: 1}; // defaults
-    }
-}
-
-const thermostatSystemModes = {
-    0: 'off',
-    1: 'auto',
-    2: 'manual',
-    3: 'comfort',
-    4: 'eco',
-    5: 'boost',
-    6: 'complex',
-};
-
-const thermostatSystemModes2 = {
-    0: 'auto',
-    1: 'cool',
-    2: 'heat',
-    3: 'dry',
-    4: 'fan',
-};
-
-const thermostatSystemModes3 = {
-    0: 'auto',
-    1: 'heat',
-    2: 'off',
-};
-
-const dataPoints = {
-    // Common data points
-    // Below data points are usually shared between devices
-    state: 1,
-    heatingSetpoint: 2,
-    coverPosition: 2,
-    dimmerLevel: 3,
-    dimmerMinLevel: 3,
-    localTemp: 3,
-    coverArrived: 3,
-    occupancy: 3,
-    mode: 4,
-    fanMode: 5,
-    dimmerMaxLevel: 5,
-    motorDirection: 5,
-    config: 5,
-    childLock: 7,
-    coverChange: 7,
-    runningState: 14,
-    valveDetection: 20,
-    battery: 21,
-    tempCalibration: 44,
-    // Data points above 100 are usually custom function data points
-    waterLeak: 101,
-    minTemp: 102,
-    maxTemp: 103,
-    windowDetection: 104,
-    boostTime: 105,
-    coverSpeed: 105,
-    forceMode: 106,
-    comfortTemp: 107,
-    ecoTemp: 108,
-    valvePos: 109,
-    batteryLow: 110,
-    weekFormat: 111,
-    scheduleWorkday: 112,
-    scheduleHoliday: 113,
-    awayTemp: 114,
-    windowOpen: 115,
-    autoLock: 116,
-    awayDays: 117,
-    // Manufacturer specific
-    // Earda
-    eardaDimmerLevel: 2,
-    // Siterwell Thermostat
-    siterwellWindowDetection: 18,
-    // Moes Thermostat
-    moesHold: 2,
-    moesScheduleEnable: 3,
-    moesHeatingSetpoint: 16,
-    moesMaxTempLimit: 18,
-    moesMaxTemp: 19,
-    moesDeadZoneTemp: 20,
-    moesLocalTemp: 24,
-    moesMinTempLimit: 26,
-    moesTempCalibration: 27,
-    moesValve: 36,
-    moesChildLock: 40,
-    moesSensor: 43,
-    moesSchedule: 101,
-    etopErrorStatus: 13,
-    // MoesS Thermostat
-    moesSsystemMode: 1,
-    moesSheatingSetpoint: 2,
-    moesSlocalTemp: 3,
-    moesSboostHeating: 4,
-    moesSboostHeatingCountdown: 5,
-    moesSreset: 7,
-    moesSwindowDetectionFunktion_A2: 8,
-    moesSwindowDetection: 9,
-    moesSchildLock: 13,
-    moesSbattery: 14,
-    moesSschedule: 101,
-    moesSvalvePosition: 104,
-    moesSboostHeatingCountdownTimeSet: 103,
-    moesScompensationTempSet: 105,
-    moesSecoMode: 106,
-    moesSecoModeTempSet: 107,
-    moesSmaxTempSet: 108,
-    moesSminTempSet: 109,
-    moesCoverCalibration: 3,
-    moesCoverBacklight: 7,
-    moesCoverMotorReversal: 8,
-    // Neo T&H
-    neoOccupancy: 101,
-    neoPowerType: 101,
-    neoMelody: 102,
-    neoDuration: 103,
-    neoTamper: 103,
-    neoAlarm: 104,
-    neoTemp: 105,
-    neoTempScale: 106,
-    neoHumidity: 106,
-    neoMinTemp: 107,
-    neoMaxTemp: 108,
-    neoMinHumidity: 109,
-    neoMaxHumidity: 110,
-    neoUnknown2: 112,
-    neoTempAlarm: 113,
-    neoTempHumidityAlarm: 113,
-    neoHumidityAlarm: 114,
-    neoUnknown3: 115,
-    neoVolume: 116,
-    // Neo AlarmOnly
-    neoAOBattPerc: 15,
-    neoAOMelody: 21,
-    neoAODuration: 7,
-    neoAOAlarm: 13,
-    neoAOVolume: 5,
-    // Saswell TRV
-    saswellHeating: 3,
-    saswellWindowDetection: 8,
-    saswellFrostDetection: 10,
-    saswellTempCalibration: 27,
-    saswellChildLock: 40,
-    saswellState: 101,
-    saswellLocalTemp: 102,
-    saswellHeatingSetpoint: 103,
-    saswellValvePos: 104,
-    saswellBatteryLow: 105,
-    saswellAwayMode: 106,
-    saswellScheduleMode: 107,
-    saswellScheduleEnable: 108,
-    saswellScheduleSet: 109,
-    saswellSetpointHistoryDay: 110,
-    saswellTimeSync: 111,
-    saswellSetpointHistoryWeek: 112,
-    saswellSetpointHistoryMonth: 113,
-    saswellSetpointHistoryYear: 114,
-    saswellLocalHistoryDay: 115,
-    saswellLocalHistoryWeek: 116,
-    saswellLocalHistoryMonth: 117,
-    saswellLocalHistoryYear: 118,
-    saswellMotorHistoryDay: 119,
-    saswellMotorHistoryWeek: 120,
-    saswellMotorHistoryMonth: 121,
-    saswellMotorHistoryYear: 122,
-    saswellScheduleSunday: 123,
-    saswellScheduleMonday: 124,
-    saswellScheduleTuesday: 125,
-    saswellScheduleWednesday: 126,
-    saswellScheduleThursday: 127,
-    saswellScheduleFriday: 128,
-    saswellScheduleSaturday: 129,
-    saswellAntiScaling: 130,
-    // HY thermostat
-    hyHeating: 102,
-    hyExternalTemp: 103,
-    hyAwayDays: 104,
-    hyAwayTemp: 105,
-    hyMaxTempProtection: 106,
-    hyMinTempProtection: 107,
-    hyTempCalibration: 109,
-    hyHysteresis: 110,
-    hyProtectionHysteresis: 111,
-    hyProtectionMaxTemp: 112,
-    hyProtectionMinTemp: 113,
-    hyMaxTemp: 114,
-    hyMinTemp: 115,
-    hySensor: 116,
-    hyPowerOnBehavior: 117,
-    hyWeekFormat: 118,
-    hyWorkdaySchedule1: 119,
-    hyWorkdaySchedule2: 120,
-    hyHolidaySchedule1: 121,
-    hyHolidaySchedule2: 122,
-    hyState: 125,
-    hyHeatingSetpoint: 126,
-    hyLocalTemp: 127,
-    hyMode: 128,
-    hyChildLock: 129,
-    hyAlarm: 130,
-    // Silvercrest
-    silvercrestChangeMode: 2,
-    silvercrestSetBrightness: 3,
-    silvercrestSetColorTemp: 4,
-    silvercrestSetColor: 5,
-    silvercrestSetEffect: 6,
-    // Fantem
-    fantemPowerSupplyMode: 101,
-    fantemReportingTime: 102,
-    fantemExtSwitchType: 103,
-    fantemTempCalibration: 104,
-    fantemHumidityCalibration: 105,
-    fantemLoadDetectionMode: 105,
-    fantemLuxCalibration: 106,
-    fantemExtSwitchStatus: 106,
-    fantemTemp: 107,
-    fantemHumidity: 108,
-    fantemMotionEnable: 109,
-    fantemControlMode: 109,
-    fantemBattery: 110,
-    fantemLedEnable: 111,
-    fantemReportingEnable: 112,
-    fantemLoadType: 112,
-    fantemLoadDimmable: 113,
-    // Woox
-    wooxSwitch: 102,
-    wooxBattery: 14,
-    wooxSmokeTest: 8,
-    // FrankEver
-    frankEverTimer: 9,
-    frankEverTreshold: 101,
-    // Dinrail power meter switch
-    dinrailPowerMeterTotalEnergy: 17,
-    dinrailPowerMeterCurrent: 18,
-    dinrailPowerMeterPower: 19,
-    dinrailPowerMeterVoltage: 20,
-    dinrailPowerMeterTotalEnergy2: 101,
-    dinrailPowerMeterPower2: 103,
-    // tuya smart air box
-    tuyaSabCO2: 2,
-    tuyaSabTemp: 18,
-    tuyaSabHumidity: 19,
-    tuyaSabVOC: 21,
-    tuyaSabFormaldehyd: 22,
-    // tuya Smart Air House Keeper, Multifunctionale air quality detector.
-    // CO2, Temp, Humidity, VOC and Formaldehyd same as Smart Air Box
-    tuyaSahkMP25: 2,
-    tuyaSahkCO2: 22,
-    tuyaSahkFormaldehyd: 20,
-    // Tuya CO (carbon monoxide) smart air box
-    tuyaSabCOalarm: 1,
-    tuyaSabCO: 2,
-    // Moes MS-105 Dimmer
-    moes105DimmerState1: 1,
-    moes105DimmerLevel1: 2,
-    moes105DimmerState2: 7,
-    moes105DimmerLevel2: 8,
-    // TuYa Radar Sensor
-    trsPresenceState: 1,
-    trsSensitivity: 2,
-    trsMotionState: 102,
-    trsIlluminanceLux: 103,
-    trsDetectionData: 104,
-    trsScene: 112,
-    trsMotionDirection: 114,
-    trsMotionSpeed: 115,
-    // TuYa Radar Sensor with fall function
-    trsfPresenceState: 1,
-    trsfSensitivity: 2,
-    trsfMotionState: 102,
-    trsfIlluminanceLux: 103,
-    trsfTumbleSwitch: 105,
-    trsfTumbleAlarmTime: 106,
-    trsfScene: 112,
-    trsfMotionDirection: 114,
-    trsfMotionSpeed: 115,
-    trsfFallDownStatus: 116,
-    trsfStaticDwellAlarm: 117,
-    trsfFallSensitivity: 118,
-    // Human Presence Sensor AIR
-    msVSensitivity: 101,
-    msOSensitivity: 102,
-    msVacancyDelay: 103,
-    msMode: 104,
-    msVacantConfirmTime: 105,
-    msReferenceLuminance: 106,
-    msLightOnLuminancePrefer: 107,
-    msLightOffLuminancePrefer: 108,
-    msLuminanceLevel: 109,
-    msLedStatus: 110,
-    // TV01 Moes Thermostat
-    tvMode: 2,
-    tvWindowDetection: 8,
-    tvFrostDetection: 10,
-    tvHeatingSetpoint: 16,
-    tvLocalTemp: 24,
-    tvTempCalibration: 27,
-    tvWorkingDay: 31,
-    tvHolidayTemp: 32,
-    tvBattery: 35,
-    tvChildLock: 40,
-    tvErrorStatus: 45,
-    tvHolidayMode: 46,
-    tvBoostTime: 101,
-    tvOpenWindowTemp: 102,
-    tvComfortTemp: 104,
-    tvEcoTemp: 105,
-    tvWeekSchedule: 106,
-    tvHeatingStop: 107,
-    tvMondaySchedule: 108,
-    tvWednesdaySchedule: 109,
-    tvFridaySchedule: 110,
-    tvSundaySchedule: 111,
-    tvTuesdaySchedule: 112,
-    tvThursdaySchedule: 113,
-    tvSaturdaySchedule: 114,
-    tvBoostMode: 115,
-    // HOCH / WDYK DIN Rail
-    hochCountdownTimer: 9,
-    hochFaultCode: 26,
-    hochRelayStatus: 27,
-    hochChildLock: 29,
-    hochVoltage: 101,
-    hochCurrent: 102,
-    hochActivePower: 103,
-    hochLeakageCurrent: 104,
-    hochTemperature: 105,
-    hochRemainingEnergy: 106,
-    hochRechargeEnergy: 107,
-    hochCostParameters: 108,
-    hochLeakageParameters: 109,
-    hochVoltageThreshold: 110,
-    hochCurrentThreshold: 111,
-    hochTemperatureThreshold: 112,
-    hochTotalActivePower: 113,
-    hochEquipmentNumberType: 114,
-    hochClearEnergy: 115,
-    hochLocking: 116,
-    hochTotalReverseActivePower: 117,
-    hochHistoricalVoltage: 118,
-    hochHistoricalCurrent: 119,
-    // NOUS SMart LCD Temperature and Humidity Sensor E6
-    nousTemperature: 1,
-    nousHumidity: 2,
-    nousBattery: 4,
-    nousTempUnitConvert: 9,
-    nousMaxTemp: 10,
-    nousMinTemp: 11,
-    nousMaxHumi: 12,
-    nousMinHumi: 13,
-    nousTempAlarm: 14,
-    nousHumiAlarm: 15,
-    nousHumiSensitivity: 20,
-    nousTempSensitivity: 19,
-    nousTempReportInterval: 17,
-    nousHumiReportInterval: 18,
-    // TUYA Temperature and Humidity Sensor
-    tthTemperature: 1,
-    tthHumidity: 2,
-    tthBatteryLevel: 3,
-    tthBattery: 4,
-    // TUYA / HUMIDITY/ILLUMINANCE/TEMPERATURE SENSOR
-    thitBatteryPercentage: 3,
-    thitIlluminanceLux: 7,
-    tIlluminanceLux: 2,
-    thitHumidity: 9,
-    thitTemperature: 8,
-    // TUYA SMART VIBRATION SENSOR
-    tuyaVibration: 10,
-    // TUYA WLS-100z Water Leak Sensor
-    wlsWaterLeak: 1,
-    wlsBatteryPercentage: 4,
-    // Evanell
-    evanellMode: 2,
-    evanellHeatingSetpoint: 4,
-    evanellLocalTemp: 5,
-    evanellBattery: 6,
-    evanellChildLock: 8,
-    // ZMAM02 Zemismart RF Courtain Converter
-    AM02Control: 1,
-    AM02PercentControl: 2,
-    AM02PercentState: 3,
-    AM02Mode: 4,
-    AM02Direction: 5,
-    AM02WorkState: 7,
-    AM02CountdownLeft: 9,
-    AM02TimeTotal: 10,
-    AM02SituationSet: 11,
-    AM02Fault: 12,
-    AM02Border: 16,
-    AM02MotorWorkingMode: 20,
-    AM02AddRemoter: 101,
-    // Matsee Tuya Garage Door Opener
-    garageDoorTrigger: 1,
-    garageDoorContact: 3,
-    garageDoorStatus: 12,
-    // Moes switch with optional neutral
-    moesSwitchPowerOnBehavior: 14,
-    moesSwitchIndicateLight: 15,
-    // X5H thermostat
-    x5hState: 1,
-    x5hMode: 2,
-    x5hWorkingStatus: 3,
-    x5hSound: 7,
-    x5hFrostProtection: 10,
-    x5hSetTemp: 16,
-    x5hSetTempCeiling: 19,
-    x5hCurrentTemp: 24,
-    x5hTempCorrection: 27,
-    x5hWeeklyProcedure: 30,
-    x5hWorkingDaySetting: 31,
-    x5hFactoryReset: 39,
-    x5hChildLock: 40,
-    x5hSensorSelection: 43,
-    x5hFaultAlarm: 45,
-    x5hTempDiff: 101,
-    x5hProtectionTempLimit: 102,
-    x5hOutputReverse: 103,
-    x5hBackplaneBrightness: 104,
-    // Connecte thermostat
-    connecteState: 1,
-    connecteMode: 2,
-    connecteHeatingSetpoint: 16,
-    connecteLocalTemp: 24,
-    connecteTempCalibration: 28,
-    connecteChildLock: 30,
-    connecteTempFloor: 101,
-    connecteSensorType: 102,
-    connecteHysteresis: 103,
-    connecteRunningState: 104,
-    connecteTempProgram: 105,
-    connecteOpenWindow: 106,
-    connecteMaxProtectTemp: 107,
-    // TuYa Smart Human Presense Sensor
-    tshpsPresenceState: 1,
-    tshpscSensitivity: 2,
-    tshpsMinimumRange: 3,
-    tshpsMaximumRange: 4,
-    tshpsTargetDistance: 9,
-    tshpsDetectionDelay: 101,
-    tshpsFadingTime: 102,
-    tshpsIlluminanceLux: 104,
-    tshpsCLI: 103, // not recognize
-    tshpsSelfTest: 6, // not recognize
-    // TuYa Luminance Motion sensor
-    lmsState: 1,
-    lmsBattery: 4,
-    lmsSensitivity: 9,
-    lmsKeepTime: 10,
-    lmsIlluminance: 12,
-    // Alecto SMART-SMOKE10
-    alectoSmokeState: 1,
-    alectoSmokeValue: 2,
-    alectoSelfChecking: 8,
-    alectoCheckingResult: 9,
-    alectoSmokeTest: 11,
-    alectoLifecycle: 12,
-    alectoBatteryState: 14,
-    alectoBatteryPercentage: 15,
-    alectoSilence: 16,
-    // BAC-002-ALZB - Moes like thermostat with Fan control
-    bacFanMode: 28,
-    // Human Presence Sensor Zigbee Radiowave Tuya
-    HPSZInductionState: 1,
-    HPSZPresenceTime: 101,
-    HPSZLeavingTime: 102,
-    HPSZLEDState: 103,
-};
-
-const thermostatWeekFormat = {
-    0: '5+2',
-    1: '6+1',
-    2: '7',
-};
-
-const thermostatPresets = {
-    0: 'away',
-    1: 'schedule',
-    2: 'manual',
-    3: 'comfort',
-    4: 'eco',
-    5: 'boost',
-    6: 'complex',
-};
-
-const thermostatScheduleMode = {
-    1: 'single', // One schedule for all days
-    2: 'weekday/weekend', // Weekdays(2-5) and Holidays(6-1)
-    3: 'weekday/sat/sun', // Weekdays(2-6), Saturday(7), Sunday(1)
-    4: '7day', // 7 day schedule
-};
-
-const fanModes = {
-    0: 'low',
-    1: 'medium',
-    2: 'high',
-    3: 'auto',
-};
-
-// Motion sensor lookups
-const msLookups = {
-    OSensitivity: {
-        0: 'sensitive',
-        1: 'normal',
-        2: 'cautious',
-    },
-    VSensitivity: {
-        0: 'speed_priority',
-        1: 'normal_priority',
-        2: 'accuracy_priority',
-    },
-    Mode: {
-        0: 'general_model',
-        1: 'temporaty_stay',
-        2: 'basic_detection',
-        3: 'sensor_test',
-    },
-};
-
-// Zemismart ZM_AM02 Roller Shade Converter
-const ZMLookups = {
-    AM02Mode: {
-        0: 'morning',
-        1: 'night',
-    },
-    AM02Control: {
-        0: 'open',
-        1: 'stop',
-        2: 'close',
-        3: 'continue',
-    },
-    AM02Direction: {
-        0: 'forward',
-        1: 'back',
-    },
-    AM02WorkState: {
-        0: 'opening',
-        1: 'closing',
-    },
-    AM02Border: {
-        0: 'up',
-        1: 'down',
-        2: 'down_delete',
-    },
-    AM02Situation: {
-        0: 'fully_open',
-        1: 'fully_close',
-    },
-    AM02MotorWorkingMode: {
-        0: 'continuous',
-        1: 'intermittently',
-    },
-};
-
-const moesSwitch = {
-    powerOnBehavior: {
-        0: 'off',
-        1: 'on',
-        2: 'previous',
-    },
-    indicateLight: {
-        0: 'off',
-        1: 'switch',
-        2: 'position',
-        3: 'freeze',
-    },
-};
-
 // Return `seq` - transaction ID for handling concrete response
-async function sendDataPoints(entity, dpValues, cmd, seq=undefined) {
+async function sendDataPoints(entity: zh.Endpoint | zh.Group, dpValues: tuya.DpValue[], cmd='dataRequest', seq?:number) {
     if (seq === undefined) {
-        if (sendDataPoints.seq === undefined) {
-            sendDataPoints.seq = 0;
-        } else {
-            sendDataPoints.seq++;
-            sendDataPoints.seq %= 0xFFFF;
-        }
-        seq = sendDataPoints.seq;
+        seq = globalStore.getValue(entity, 'sequence', 0);
+        globalStore.putValue(entity, 'sequence', (seq + 1) % 0xFFFF);
     }
 
-    await entity.command(
-        'manuSpecificTuya',
-        cmd || 'dataRequest',
-        {
-            seq,
-            dpValues,
-        },
-        {disableDefaultResponse: true},
-    );
+    await entity.command('manuSpecificTuya', cmd, {seq, dpValues}, {disableDefaultResponse: true});
     return seq;
 }
 
-function dpValueFromIntValue(dp, value) {
-    return {dp, datatype: dataTypes.value, data: convertDecimalValueTo4ByteHexArray(value)};
+function dpValueFromNumberValue(dp: number, value: number) {
+    return {dp, datatype: dataTypes.number, data: convertDecimalValueTo4ByteHexArray(value)};
 }
 
-function dpValueFromBool(dp, value) {
+function dpValueFromBool(dp: number, value: boolean) {
     return {dp, datatype: dataTypes.bool, data: [value ? 1 : 0]};
 }
 
-function dpValueFromEnum(dp, value) {
+function dpValueFromEnum(dp: number, value: number) {
     return {dp, datatype: dataTypes.enum, data: [value]};
 }
 
-function dpValueFromStringBuffer(dp, stringBuffer) {
-    return {dp, datatype: dataTypes.string, data: stringBuffer};
+function dpValueFromString(dp: number, string: string) {
+    return {dp, datatype: dataTypes.string, data: convertStringToHexArray(string)};
 }
 
-function dpValueFromRaw(dp, rawBuffer) {
+function dpValueFromRaw(dp: number, rawBuffer: number[]) {
     return {dp, datatype: dataTypes.raw, data: rawBuffer};
 }
 
-function dpValueFromBitmap(dp, bitmapBuffer) {
-    return {dp, datatype: dataTypes.bitmap, data: bitmapBuffer};
+function dpValueFromBitmap(dp: number, bitmapBuffer: number) {
+    return {dp, datatype: dataTypes.bitmap, data: [bitmapBuffer]};
 }
 
-// Return `seq` - transaction ID for handling concrete response
-async function sendDataPoint(entity, dpValue, cmd, seq=undefined) {
-    return await sendDataPoints(entity, [dpValue], cmd, seq);
+async function sendDataPointValue(entity: zh.Group | zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
+    return await sendDataPoints(entity, [dpValueFromNumberValue(dp, value)], cmd, seq);
 }
 
-async function sendDataPointValue(entity, dp, value, cmd, seq=undefined) {
-    return await sendDataPoints(entity, [dpValueFromIntValue(dp, value)], cmd, seq);
-}
-
-async function sendDataPointBool(entity, dp, value, cmd, seq=undefined) {
+async function sendDataPointBool(entity: zh.Group | zh.Endpoint, dp: number, value: boolean, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromBool(dp, value)], cmd, seq);
 }
 
-async function sendDataPointEnum(entity, dp, value, cmd, seq=undefined) {
+export async function sendDataPointEnum(entity: zh.Group | zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
 }
 
-async function sendDataPointRaw(entity, dp, value, cmd, seq=undefined) {
+async function sendDataPointRaw(entity: zh.Group | zh.Endpoint, dp: number, value: number[], cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
 }
 
-async function sendDataPointBitmap(entity, dp, value, cmd, seq=undefined) {
+async function sendDataPointBitmap(entity: zh.Group | zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromBitmap(dp, value)], cmd, seq);
 }
 
-async function sendDataPointStringBuffer(entity, dp, value, cmd, seq=undefined) {
-    return await sendDataPoints(entity, [dpValueFromStringBuffer(dp, value)], cmd, seq);
+async function sendDataPointStringBuffer(entity: zh.Group | zh.Endpoint, dp: number, value: string, cmd?: string, seq?: number) {
+    return await sendDataPoints(entity, [dpValueFromString(dp, value)], cmd, seq);
 }
 
 const tuyaExposes = {
-    lightType: () => exposes.enum('light_type', ea.STATE_SET, ['led', 'incandescent', 'halogen'])
+    lightType: () => e.enum('light_type', ea.STATE_SET, ['led', 'incandescent', 'halogen'])
         .withDescription('Type of light attached to the device'),
     lightBrightnessWithMinMax: () => e.light_brightness().withMinBrightness().withMaxBrightness()
         .setAccess('state', ea.STATE_SET)
@@ -867,64 +232,66 @@ const tuyaExposes = {
     lightBrightness: () => e.light_brightness()
         .setAccess('state', ea.STATE_SET)
         .setAccess('brightness', ea.STATE_SET),
-    countdown: () => exposes.numeric('countdown', ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit('s')
+    countdown: () => e.numeric('countdown', ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit('s')
         .withDescription('Countdown to turn device off after a certain time'),
     switch: () => e.switch().setAccess('state', ea.STATE_SET),
-    selfTest: () => exposes.binary('self_test', ea.STATE_SET, true, false)
+    selfTest: () => e.binary('self_test', ea.STATE_SET, true, false)
         .withDescription('Indicates whether the device is being self-tested'),
-    selfTestResult: () => exposes.enum('self_test_result', ea.STATE, ['checking', 'success', 'failure', 'others'])
+    selfTestResult: () => e.enum('self_test_result', ea.STATE, ['checking', 'success', 'failure', 'others'])
         .withDescription('Result of the self-test'),
-    faultAlarm: () => exposes.binary('fault_alarm', ea.STATE, true, false).withDescription('Indicates whether a fault was detected'),
-    silence: () => exposes.binary('silence', ea.STATE_SET, true, false).withDescription('Silence the alarm'),
-    frostProtection: (extraNote='') => exposes.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription(
+    faultAlarm: () => e.binary('fault_alarm', ea.STATE, true, false).withDescription('Indicates whether a fault was detected'),
+    silence: () => e.binary('silence', ea.STATE_SET, true, false).withDescription('Silence the alarm'),
+    frostProtection: (extraNote='') => e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription(
         `When Anti-Freezing function is activated, the temperature in the house is kept at 8 °C.${extraNote}`),
-    errorStatus: () => exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
-    scheduleAllDays: (access, format) => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-        .map((day) => exposes.text(`schedule_${day}`, access).withDescription(`Schedule for ${day}, format: "${format}"`)),
-    temperatureUnit: () => exposes.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Temperature unit'),
-    temperatureCalibration: () => exposes.numeric('temperature_calibration', ea.STATE_SET).withValueMin(-2.0).withValueMax(2.0)
+    errorStatus: () => e.numeric('error_status', ea.STATE).withDescription('Error status'),
+    scheduleAllDays: (access: Access, format: string) => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        .map((day) => e.text(`schedule_${day}`, access).withDescription(`Schedule for ${day}, format: "${format}"`)),
+    temperatureUnit: () => e.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Temperature unit'),
+    temperatureCalibration: () => e.numeric('temperature_calibration', ea.STATE_SET).withValueMin(-2.0).withValueMax(2.0)
         .withValueStep(0.1).withUnit('°C').withDescription('Temperature calibration'),
-    humidityCalibration: () => exposes.numeric('humidity_calibration', ea.STATE_SET).withValueMin(-30).withValueMax(30)
+    humidityCalibration: () => e.numeric('humidity_calibration', ea.STATE_SET).withValueMin(-30).withValueMax(30)
         .withValueStep(1).withUnit('%').withDescription('Humidity calibration'),
-    gasValue: () => exposes.numeric('gas_value', ea.STATE).withDescription('Measured gas concentration'),
-    energyWithPhase: (phase) => exposes.numeric(`energy_${phase}`, ea.STATE).withUnit('kWh')
+    gasValue: () => e.numeric('gas_value', ea.STATE).withDescription('Measured gas concentration'),
+    energyWithPhase: (phase: string) => e.numeric(`energy_${phase}`, ea.STATE).withUnit('kWh')
         .withDescription(`Sum of consumed energy (phase ${phase.toUpperCase()})`),
-    voltageWithPhase: (phase) => exposes.numeric(`voltage_${phase}`, ea.STATE).withUnit('V')
+    voltageWithPhase: (phase: string) => e.numeric(`voltage_${phase}`, ea.STATE).withUnit('V')
         .withDescription(`Measured electrical potential value (phase ${phase.toUpperCase()})`),
-    powerWithPhase: (phase) => exposes.numeric(`power_${phase}`, ea.STATE).withUnit('W')
+    powerWithPhase: (phase: string) => e.numeric(`power_${phase}`, ea.STATE).withUnit('W')
         .withDescription(`Instantaneous measured power (phase ${phase.toUpperCase()})`),
-    currentWithPhase: (phase) => exposes.numeric(`current_${phase}`, ea.STATE).withUnit('A')
+    currentWithPhase: (phase: string) => e.numeric(`current_${phase}`, ea.STATE).withUnit('A')
         .withDescription(`Instantaneous measured electrical current (phase ${phase.toUpperCase()})`),
-    powerFactorWithPhase: (phase) => exposes.numeric(`power_factor_${phase}`, ea.STATE).withUnit('%')
+    powerFactorWithPhase: (phase: string) => e.numeric(`power_factor_${phase}`, ea.STATE).withUnit('%')
         .withDescription(`Instantaneous measured power factor (phase ${phase.toUpperCase()})`),
-    switchType: () => exposes.enum('switch_type', ea.ALL, ['toggle', 'state', 'momentary']).withDescription('Type of the switch'),
-    backlightModeLowMediumHigh: () => exposes.enum('backlight_mode', ea.ALL, ['low', 'medium', 'high'])
+    switchType: () => e.enum('switch_type', ea.ALL, ['toggle', 'state', 'momentary']).withDescription('Type of the switch'),
+    backlightModeLowMediumHigh: () => e.enum('backlight_mode', ea.ALL, ['low', 'medium', 'high'])
         .withDescription('Intensity of the backlight'),
-    backlightModeOffNormalInverted: () => exposes.enum('backlight_mode', ea.ALL, ['off', 'normal', 'inverted'])
+    backlightModeOffNormalInverted: () => e.enum('backlight_mode', ea.ALL, ['off', 'normal', 'inverted'])
         .withDescription('Mode of the backlight'),
-    backlightModeOffOn: () => exposes.binary('backlight_mode', ea.ALL, 'ON', 'OFF').withDescription(`Mode of the backlight`),
-    indicatorMode: () => exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on']).withDescription('LED indicator mode'),
-    indicatorModeNoneRelayPos: () => exposes.enum('indicator_mode', ea.ALL, ['none', 'relay', 'pos'])
+    backlightModeOffOn: () => e.binary('backlight_mode', ea.ALL, 'ON', 'OFF').withDescription(`Mode of the backlight`),
+    indicatorMode: () => e.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on']).withDescription('LED indicator mode'),
+    indicatorModeNoneRelayPos: () => e.enum('indicator_mode', ea.ALL, ['none', 'relay', 'pos'])
         .withDescription('Mode of the indicator light'),
-    powerOutageMemory: () => exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
+    powerOutageMemory: () => e.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
         .withDescription('Recover state after power outage'),
-    batteryState: () => exposes.enum('battery_state', ea.STATE, ['low', 'medium', 'high']).withDescription('State of the battery'),
-    doNotDisturb: () => exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
+    batteryState: () => e.enum('battery_state', ea.STATE, ['low', 'medium', 'high']).withDescription('State of the battery'),
+    doNotDisturb: () => e.binary('do_not_disturb', ea.STATE_SET, true, false)
         .withDescription('Do not disturb mode, when enabled this function will keep the light OFF after a power outage'),
-    colorPowerOnBehavior: () => exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
+    colorPowerOnBehavior: () => e.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
         .withDescription('Power on behavior state'),
 };
+export {tuyaExposes as exposes};
 
-const skip = {
+export const skip = {
     // Prevent state from being published when already ON and brightness is also published.
     // This prevents 100% -> X% brightness jumps when the switch is already on
     // https://github.com/Koenkk/zigbee2mqtt/issues/13800#issuecomment-1263592783
-    stateOnAndBrightnessPresent: (meta) => meta.message.hasOwnProperty('brightness') && meta.state.state === 'ON',
+    stateOnAndBrightnessPresent: (meta: tz.Meta) => meta.message.hasOwnProperty('brightness') && meta.state.state === 'ON',
 };
 
-const configureMagicPacket = async (device, coordinatorEndpoint, logger) => {
+export const configureMagicPacket = async (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => {
     try {
         const endpoint = device.endpoints[0];
+        // @ts-expect-error
         await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
     } catch (e) {
         // Fails for some TuYa devices with UNSUPPORTED_ATTRIBUTE, ignore that.
@@ -937,13 +304,13 @@ const configureMagicPacket = async (device, coordinatorEndpoint, logger) => {
     }
 };
 
-const fingerprint = (modelID, manufacturerNames) => {
+export const fingerprint = (modelID: string, manufacturerNames: string[]) => {
     return manufacturerNames.map((manufacturerName) => {
         return {modelID, manufacturerName};
     });
 };
 
-const whitelabel = (vendor, model, description, manufacturerNames) => {
+export const whitelabel = (vendor: string, model: string, description: string, manufacturerNames: string[]) => {
     const fingerprint = manufacturerNames.map((manufacturerName) => {
         return {manufacturerName};
     });
@@ -951,7 +318,9 @@ const whitelabel = (vendor, model, description, manufacturerNames) => {
 };
 
 class Base {
-    constructor(value) {
+    value: number;
+
+    constructor(value: number) {
         this.value = value;
     }
 
@@ -960,52 +329,57 @@ class Base {
     }
 }
 
-class Enum extends Base {
-    constructor(value) {
+export class Enum extends Base {
+    constructor(value: number) {
+        super(value);
+    }
+}
+const enumConstructor = (value: number) => new Enum(value);
+export {enumConstructor as enum};
+
+export class Bitmap extends Base {
+    constructor(value: number) {
         super(value);
     }
 }
 
-class Bitmap extends Base {
-    constructor(value) {
-        super(value);
-    }
-}
-
-const valueConverterBasic = {
-    lookup: (map) => {
+export const valueConverterBasic = {
+    lookup: (map: {[s: (string)]: number | boolean | Enum | string}) => {
         return {
-            to: (v) => {
+            to: (v: string) => {
                 if (map[v] === undefined) throw new Error(`Value '${v}' is not allowed, expected one of ${Object.keys(map)}`);
                 return map[v];
             },
-            from: (v) => {
+            from: (v: number) => {
                 const value = Object.entries(map).find((i) => i[1].valueOf() === v);
                 if (!value) throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(map)}`);
                 return value[0];
             },
         };
     },
-    scale: (min1, max1, min2, max2) => {
-        return {to: (v) => utils.mapNumberRange(v, min1, max1, min2, max2), from: (v) => utils.mapNumberRange(v, min2, max2, min1, max1)};
+    scale: (min1: number, max1: number, min2: number, max2: number) => {
+        return {
+            to: (v: number) => utils.mapNumberRange(v, min1, max1, min2, max2),
+            from: (v: number) => utils.mapNumberRange(v, min2, max2, min1, max1),
+        };
     },
     raw: () => {
-        return {to: (v) => v, from: (v) => v};
+        return {to: (v: string|number|boolean) => v, from: (v: string|number|boolean) => v};
     },
-    divideBy: (value) => {
-        return {to: (v) => v * value, from: (v) => v / value};
+    divideBy: (value: number) => {
+        return {to: (v: number) => v * value, from: (v: number) => v / value};
     },
-    trueFalse: (valueTrue) => {
-        return {from: (v) => v === valueTrue};
+    trueFalse: (valueTrue: number | Enum) => {
+        return {from: (v: number) => v === valueTrue};
     },
 };
 
-const valueConverter = {
+export const valueConverter = {
     trueFalse0: valueConverterBasic.trueFalse(0),
     trueFalse1: valueConverterBasic.trueFalse(1),
     trueFalseInvert: {
-        to: (v) => !v,
-        from: (v) => !v,
+        to: (v: boolean) => !v,
+        from: (v: boolean) => !v,
     },
     trueFalseEnum0: valueConverterBasic.trueFalse(new Enum(0)),
     onOff: valueConverterBasic.lookup({'ON': true, 'OFF': false}),
@@ -1021,46 +395,46 @@ const valueConverter = {
     divideBy1000: valueConverterBasic.divideBy(1000),
     raw: valueConverterBasic.raw(),
     setLimit: {
-        to: (v) => {
+        to: (v: number) => {
             if (!v) throw new Error('Limit cannot be unset, use factory_reset');
             return v;
         },
-        from: (v) => v,
+        from: (v: number) => v,
     },
     coverPosition: {
-        to: async (v, meta) => {
+        to: async (v: number, meta: tz.Meta) => {
             return meta.options.invert_cover ? 100 - v : v;
         },
-        from: (v, meta, options) => {
+        from: (v: number, meta: fz.Meta, options: KeyValue) => {
             return options.invert_cover ? 100 - v : v;
         },
     },
     plus1: {
-        from: (v) => v + 1,
-        to: (v) => v - 1,
+        from: (v: number) => v + 1,
+        to: (v: number) => v - 1,
     },
-    static: (value) => {
+    static: (value: number) => {
         return {
-            from: (v) => {
+            from: (v: number) => {
                 return value;
             },
         };
     },
     phaseVariant1: {
-        from: (v) => {
+        from: (v: string) => {
             const buffer = Buffer.from(v, 'base64');
             return {voltage: (buffer[14] | buffer[13] << 8) / 10, current: (buffer[12] | buffer[11] << 8) / 1000};
         },
     },
     phaseVariant2: {
-        from: (v) => {
+        from: (v: string) => {
             const buf = Buffer.from(v, 'base64');
             return {voltage: (buf[1] | buf[0] << 8) / 10, current: (buf[4] | buf[3] << 8) / 1000, power: (buf[7] | buf[6] << 8)};
         },
     },
-    phaseVariant2WithPhase: (phase) => {
+    phaseVariant2WithPhase: (phase: string) => {
         return {
-            from: (v) => {
+            from: (v: string) => {
                 const buf = Buffer.from(v, 'base64');
                 return {
                     [`voltage_${phase}`]: (buf[1] | buf[0] << 8) / 10,
@@ -1070,10 +444,10 @@ const valueConverter = {
         };
     },
     threshold: {
-        from: (v) => {
+        from: (v: string) => {
             const buffer = Buffer.from(v, 'base64');
-            const stateLookup = {0: 'not_set', 1: 'over_current_threshold', 3: 'over_voltage_threshold'};
-            const protectionLookup = {0: 'OFF', 1: 'ON'};
+            const stateLookup: KeyValue = {0: 'not_set', 1: 'over_current_threshold', 3: 'over_voltage_threshold'};
+            const protectionLookup: KeyValue = {0: 'OFF', 1: 'ON'};
             return {
                 threshold_1_protection: protectionLookup[buffer[1]],
                 threshold_1: stateLookup[buffer[0]],
@@ -1087,25 +461,25 @@ const valueConverter = {
     selfTestResult: valueConverterBasic.lookup({'checking': 0, 'success': 1, 'failure': 2, 'others': 3}),
     lockUnlock: valueConverterBasic.lookup({'LOCK': true, 'UNLOCK': false}),
     localTempCalibration1: {
-        from: (v) => {
+        from: (v: number) => {
             if (v > 55) v -= 0x100000000;
             return v / 10;
         },
-        to: (v) => {
+        to: (v: number) => {
             if (v > 0) return v * 10;
             if (v < 0) return v * 10 + 0x100000000;
             return v;
         },
     },
     localTempCalibration2: {
-        from: (v) => v,
-        to: (v) => {
+        from: (v: number) => v,
+        to: (v: number) => {
             if (v < 0) return v + 0x100000000;
             return v;
         },
     },
     thermostatHolidayStartStop: {
-        from: (v) => {
+        from: (v: string) => {
             const start = {
                 year: v.slice(0, 4), month: v.slice(4, 6), day: v.slice(6, 8),
                 hours: v.slice(8, 10), minutes: v.slice(10, 12),
@@ -1118,13 +492,14 @@ const valueConverter = {
             const endStr = `${end.year}/${end.month}/${end.day} ${end.hours}:${end.minutes}`;
             return `${startStr} | ${endStr}`;
         },
-        to: (v) => {
+        to: (v: string) => {
             const numberPattern = /\d+/g;
+            // @ts-ignore
             return v.match(numberPattern).join([]).toString();
         },
     },
     thermostatScheduleDaySingleDP: {
-        from: (v) => {
+        from: (v: number[]) => {
             // day splitted to 10 min segments = total 144 segments
             const maxPeriodsInDay = 10;
             const periodSize = 3;
@@ -1148,12 +523,13 @@ const valueConverter = {
 
             return schedule.join(' ');
         },
-        to: (v, meta) => {
-            const dayByte = {
+        to: (v: KeyValue, meta: tz.Meta) => {
+            const dayByte: KeyValue = {
                 monday: 1, tuesday: 2, wednesday: 4, thursday: 8,
                 friday: 16, saturday: 32, sunday: 64,
             };
             const weekDay = v.week_day;
+            assertString(weekDay, 'week_day');
             if (Object.keys(dayByte).indexOf(weekDay) === -1) {
                 throw new Error('Invalid "week_day" property value: ' + weekDay);
             }
@@ -1181,6 +557,7 @@ const valueConverter = {
 
             // day splitted to 10 min segments = total 144 segments
             const maxPeriodsInDay = 10;
+            assertString(v.schedule, 'schedule');
             const schedule = v.schedule.split(' ');
             const schedulePeriods = schedule.length;
             if (schedulePeriods > 10) throw new Error('There cannot be more than 10 periods in the schedule: ' + v);
@@ -1214,18 +591,19 @@ const valueConverter = {
         },
     },
     thermostatScheduleDayMultiDP: {
-        from: (v) => {
+        from: (v: string) => {
             const schedule = [];
             for (let index = 1; index < 17; index = index + 4) {
                 schedule.push(
                     String(parseInt(v[index+0])).padStart(2, '0') + ':' +
                     String(parseInt(v[index+1])).padStart(2, '0') + '/' +
+                    // @ts-ignore
                     (parseFloat((v[index+2] << 8) + v[index+3]) / 10.0).toFixed(1),
                 );
             }
             return schedule.join(' ');
         },
-        to: (v) => {
+        to: (v: string) => {
             const payload = [0];
             const transitions = v.split(' ');
             if (transitions.length != 4) {
@@ -1237,9 +615,9 @@ const valueConverter = {
                     throw new Error('Invalid schedule: wrong transition format: ' + transition);
                 }
                 const hourMin = timeTemp[0].split(':');
-                const hour = hourMin[0];
-                const min = hourMin[1];
-                const temperature = Math.floor(timeTemp[1] *10);
+                const hour = parseInt(hourMin[0]);
+                const min = parseInt(hourMin[1]);
+                const temperature = Math.floor(parseFloat(timeTemp[1]) * 10);
                 if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
                     throw new Error('Invalid hour, minute or temperature of: ' + transition);
                 }
@@ -1253,10 +631,10 @@ const valueConverter = {
             return payload;
         },
     },
-    thermostatScheduleDayMultiDPWithDayNumber: (dayNum) => {
+    thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number) => {
         return {
-            from: (v) => valueConverter.thermostatScheduleDayMultiDP.from(v),
-            to: (v) => {
+            from: (v: string) => valueConverter.thermostatScheduleDayMultiDP.from(v),
+            to: (v: string) => {
                 const data = valueConverter.thermostatScheduleDayMultiDP.to(v);
                 data[0] = dayNum;
                 return data;
@@ -1264,7 +642,7 @@ const valueConverter = {
         };
     },
     TV02SystemMode: {
-        to: async (v, meta) => {
+        to: async (v: number, meta: tz.Meta) => {
             const entity = meta.device.endpoints[0];
             if (meta.message.system_mode) {
                 if (meta.message.system_mode === 'off') {
@@ -1280,12 +658,12 @@ const valueConverter = {
                 }
             }
         },
-        from: (v) => {
+        from: (v: boolean) => {
             return {system_mode: v === false ? 'heat' : 'off', heating_stop: v === false ? 'OFF' : 'ON'};
         },
     },
     TV02FrostProtection: {
-        to: async (v, meta) => {
+        to: async (v: unknown, meta: tz.Meta) => {
             const entity = meta.device.endpoints[0];
             if (v === 'ON') {
                 await sendDataPointBool(entity, 10, true, 'dataRequest', 1);
@@ -1293,14 +671,14 @@ const valueConverter = {
                 await sendDataPointEnum(entity, 2, 1, 'dataRequest', 1); // manual
             }
         },
-        from: (v) => {
+        from: (v: unknown) => {
             return {frost_protection: v === false ? 'OFF' : 'ON'};
         },
     },
-    inverse: {to: (v) => !v, from: (v) => !v},
-    onOffNotStrict: {from: (v) => v ? 'ON' : 'OFF', to: (v) => v === 'ON'},
+    inverse: {to: (v: boolean) => !v, from: (v: boolean) => !v},
+    onOffNotStrict: {from: (v: string) => v ? 'ON' : 'OFF', to: (v: string) => v === 'ON'},
     errorOrBatteryLow: {
-        from: (v) => {
+        from: (v: number) => {
             if (v === 0) return {'battery_low': false};
             if (v === 1) return {'battery_low': true};
             return {'error': v};
@@ -1312,81 +690,63 @@ const tuyaTz = {
     power_on_behavior_1: {
         key: ['power_on_behavior', 'power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            // Legacy: remove power_outage_memory
-            const lookup = key === 'power_on_behavior' ? {'off': 0, 'on': 1, 'previous': 2} : {'off': 0x00, 'on': 0x01, 'restore': 0x02};
-            value = value.toLowerCase();
-            utils.validateValue(value, Object.keys(lookup));
-            const pState = lookup[value];
-            await entity.write('genOnOff', {moesStartUpOnOff: pState});
+            // Deprecated: remove power_outage_memory
+            const moesStartUpOnOff = getFromLookup(value, key === 'power_on_behavior' ?
+                {'off': 0, 'on': 1, 'previous': 2} : {'off': 0, 'on': 1, 'restore': 2});
+            await entity.write('genOnOff', {moesStartUpOnOff});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['moesStartUpOnOff']);
-        },
-    },
+        convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['moesStartUpOnOff']),
+    } as tz.Converter,
     power_on_behavior_2: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'off': 0, 'on': 1, 'previous': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            const pState = lookup[value];
-            await entity.write('manuSpecificTuya_3', {'powerOnBehavior': pState});
-            return {state: {power_on_behavior: value}};
+            const powerOnBehavior = getFromLookup(value, {'off': 0, 'on': 1, 'previous': 2});
+            await entity.write('manuSpecificTuya_3', {powerOnBehavior});
+            return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificTuya_3', ['powerOnBehavior']);
-        },
-    },
+        convertGet: async (entity, key, meta) => await entity.read('manuSpecificTuya_3', ['powerOnBehavior']),
+    } as tz.Converter,
     switch_type: {
         key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'toggle': 0, 'state': 1, 'momentary': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            await entity.write('manuSpecificTuya_3', {'switchType': lookup[value]}, {disableDefaultResponse: true});
-            return {state: {switch_type: value}};
+            const switchType = getFromLookup(value, {'toggle': 0, 'state': 1, 'momentary': 2});
+            await entity.write('manuSpecificTuya_3', {switchType}, {disableDefaultResponse: true});
+            return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificTuya_3', ['switchType']);
-        },
-    },
+        convertGet: async (entity, key, meta) => await entity.read('manuSpecificTuya_3', ['switchType']),
+    } as tz.Converter,
     backlight_indicator_mode_1: {
         key: ['backlight_mode', 'indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = key === 'backlight_mode' ? {'low': 0, 'medium': 1, 'high': 2, 'off': 0, 'normal': 1, 'inverted': 2} :
-                {'off': 0, 'off/on': 1, 'on/off': 2, 'on': 3};
-            value = value.toLowerCase();
-            utils.validateValue(value, Object.keys(lookup));
-            await entity.write('genOnOff', {tuyaBacklightMode: lookup[value]});
+            const tuyaBacklightMode = getFromLookup(value, key === 'backlight_mode' ?
+                {'low': 0, 'medium': 1, 'high': 2, 'off': 0, 'normal': 1, 'inverted': 2} :
+                {'off': 0, 'off/on': 1, 'on/off': 2, 'on': 3});
+            await entity.write('genOnOff', {tuyaBacklightMode});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightMode']);
-        },
-    },
+        convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['tuyaBacklightMode']),
+    } as tz.Converter,
     backlight_indicator_mode_2: {
         key: ['backlight_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'off': 0, 'on': 1};
-            value = value.toLowerCase();
-            utils.validateValue(value, Object.keys(lookup));
-            await entity.write('genOnOff', {tuyaBacklightSwitch: lookup[value]});
+            const tuyaBacklightSwitch = getFromLookup(value, {'off': 0, 'on': 1});
+            await entity.write('genOnOff', {tuyaBacklightSwitch});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightSwitch']);
-        },
-    },
+        convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['tuyaBacklightSwitch']),
+    } as tz.Converter,
     child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('genOnOff', {0x8000: {value: value === 'LOCK', type: 0x10}});
+            const v = getFromLookup(value, {'lock': true, 'unlock': false});
+            await entity.write('genOnOff', {0x8000: {value: v, type: 0x10}});
         },
-    },
+    } as tz.Converter,
     min_brightness: {
         key: ['min_brightness'],
         convertSet: async (entity, key, value, meta) => {
+            assertNumber(value, `min_brightness`);
             const minValueHex = value.toString(16);
             const maxValueHex = 'ff';
             const minMaxValue = parseInt(`${minValueHex}${maxValueHex}`, 16);
@@ -1397,17 +757,15 @@ const tuyaTz = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', [0xfc00]);
         },
-    },
+    } as tz.Converter,
     color_power_on_behavior: {
         key: ['color_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'initial': 0, 'previous': 1, 'cutomized': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {
-                mode: lookup[value]*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
+            const v = getFromLookup(value, {'initial': 0, 'previous': 1, 'cutomized': 2});
+            await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {mode: v*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
             return {state: {color_power_on_behavior: value}};
         },
-    },
+    } as tz.Converter,
     datapoints: {
         key: [
             'temperature_unit', 'temperature_calibration', 'humidity_calibration', 'alarm_switch',
@@ -1425,14 +783,14 @@ const tuyaTz = {
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
-            const state = {};
-            const datapoints = utils.getMetaValue(entity, meta.mapped, 'tuyaDatapoints', undefined, undefined);
+            const state: KeyValue = {};
+            const datapoints = meta.mapped.meta?.tuyaDatapoints;
             if (!datapoints) throw new Error('No datapoints map defined');
             for (const [attr, value] of Object.entries(meta.message)) {
                 const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
                     `${attr}_${meta.endpoint_name}` : attr;
                 const dpEntry = datapoints.find((d) => d[1] === convertedKey);
-                if (!dpEntry || !dpEntry[1]) {
+                if (!dpEntry?.[1] || !dpEntry?.[2].to) {
                     throw new Error(`No datapoint defined for '${attr}'`);
                 }
                 if (dpEntry[3] && dpEntry[3].skip && dpEntry[3].skip(meta)) continue;
@@ -1463,15 +821,16 @@ const tuyaTz = {
             }
             return {state};
         },
-    },
+    } as tz.Converter,
     do_not_disturb: {
         key: ['do_not_disturb'],
         convertSet: async (entity, key, value, meta) => {
             await entity.command('lightingColorCtrl', 'tuyaDoNotDisturb', {enable: value ? 1 : 0});
             return {state: {do_not_disturb: value}};
         },
-    },
+    } as tz.Converter,
 };
+export {tuyaTz as tz};
 
 const tuyaFz = {
     gateway_connection_status: {
@@ -1485,97 +844,89 @@ const tuyaFz = {
             const payload = {payloadSize: 1, payload: 1};
             await msg.endpoint.command('manuSpecificTuya', 'mcuGatewayConnectionStatus', payload, {});
         },
-    },
+    } as fz.Converter,
     power_on_behavior_1: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
-                const lookup = {0: 'off', 1: 'on', 2: 'previous'};
+                const lookup: KeyValue = {0: 'off', 1: 'on', 2: 'previous'};
                 const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
             }
         },
-    },
+    } as fz.Converter,
     power_on_behavior_2: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const attribute = 'powerOnBehavior';
-            const lookup = {0: 'off', 1: 'on', 2: 'previous'};
+            const lookup: KeyValue = {0: 'off', 1: 'on', 2: 'previous'};
             if (msg.data.hasOwnProperty(attribute)) {
                 const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
-    },
+    } as fz.Converter,
     power_outage_memory: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
-                const lookup = {0x00: 'off', 0x01: 'on', 0x02: 'restore'};
+                const lookup: KeyValue = {0x00: 'off', 0x01: 'on', 0x02: 'restore'};
                 const property = utils.postfixWithEndpointName('power_outage_memory', msg, model, meta);
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
             }
         },
-    },
+    } as fz.Converter,
     switch_type: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('switchType')) {
-                const lookup = {0: 'toggle', 1: 'state', 2: 'momentary'};
+                const lookup: KeyValue = {0: 'toggle', 1: 'state', 2: 'momentary'};
                 return {switch_type: lookup[msg.data['switchType']]};
             }
         },
-    },
+    } as fz.Converter,
     backlight_mode_low_medium_high: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
                 const value = msg.data['tuyaBacklightMode'];
-                const backlightLookup = {0: 'low', 1: 'medium', 2: 'high'};
+                const backlightLookup: KeyValue = {0: 'low', 1: 'medium', 2: 'high'};
                 return {backlight_mode: backlightLookup[value]};
             }
         },
-    },
+    } as fz.Converter,
     backlight_mode_off_normal_inverted: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
-                const value = msg.data['tuyaBacklightMode'];
-                const backlightLookup = {0: 'off', 1: 'normal', 2: 'inverted'};
-                return {backlight_mode: backlightLookup[value]};
+                return {backlight_mode: getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'normal', 2: 'inverted'})};
             }
         },
-    },
+    } as fz.Converter,
     backlight_mode_off_on: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('tuyaBacklightSwitch')) {
-                const value = msg.data['tuyaBacklightSwitch'];
-                const backlightLookup = {0: 'OFF', 1: 'ON'};
-                return {backlight_mode: backlightLookup[value]};
+                return {backlight_mode: getFromLookup(msg.data['tuyaBacklightSwitch'], {0: 'OFF', 1: 'ON'})};
             }
         },
-    },
+    } as fz.Converter,
     indicator_mode: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
-                const value = msg.data['tuyaBacklightMode'];
-                const lookup = {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'};
-                if (lookup.hasOwnProperty(value)) {
-                    return {indicator_mode: lookup[value]};
-                }
+                return {indicator_mode: getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'})};
             }
         },
-    },
+    } as fz.Converter,
     child_lock: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1585,7 +936,7 @@ const tuyaFz = {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             }
         },
-    },
+    } as fz.Converter,
     min_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -1596,7 +947,7 @@ const tuyaFz = {
                 return {[property]: value};
             }
         },
-    },
+    } as fz.Converter,
     datapoints: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
@@ -1612,18 +963,18 @@ const tuyaFz = {
             return result;
         },
         convert: (model, msg, publish, options, meta) => {
-            let result = {};
+            const result: KeyValue = {};
             if (!model.meta || !model.meta.tuyaDatapoints) throw new Error('No datapoints map defined');
             const datapoints = model.meta.tuyaDatapoints;
             for (const dpValue of msg.data.dpValues) {
                 const dpId = dpValue.dp;
                 const dpEntry = datapoints.find((d) => d[0] === dpId);
-                if (dpEntry) {
+                if (dpEntry?.[2].from) {
                     const value = getDataValue(dpValue);
                     if (dpEntry[1]) {
                         result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish);
-                    } else if (dpEntry[2]) {
-                        result = {...result, ...dpEntry[2].from(value, meta, options, publish)};
+                    } else {
+                        Object.assign(result, dpEntry[2].from(value, meta, options, publish));
                     }
                 } else {
                     meta.logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' ` +
@@ -1640,16 +991,20 @@ const tuyaFz = {
             }
             return result;
         },
-    },
+    } as fz.Converter,
 };
+export {tuyaFz as fz};
 
 const tuyaExtend = {
-    switch: (options={}) => {
-        const tz = require('../converters/toZigbee');
-        const fz = require('../converters/fromZigbee');
-        const exposes = options.endpoints ? options.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
-        const fromZigbee = [fz.on_off, fz.ignore_basic_report];
-        const toZigbee = [tz.on_off];
+    switch: (options:{
+        endpoints?: string[], powerOutageMemory?: boolean, powerOnBehavior2?: boolean, switchType?: boolean, backlightModeLowMediumHigh?: boolean,
+        indicatorMode?: boolean, backlightModeOffNormalInverted?: boolean, backlightModeOffOn?: boolean, electricalMeasurements?: boolean,
+        electricalMeasurementsFzConverter?: fz.Converter, childLock?: boolean, fromZigbee?: fz.Converter[], toZigbee?: tz.Converter[],
+        exposes?: Expose[],
+    }={}) => {
+        const exposes: Expose[] = options.endpoints ? options.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
+        const fromZigbee: fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
+        const toZigbee: tz.Converter[] = [tz.on_off];
         if (options.powerOutageMemory) {
             // Legacy, powerOnBehavior is preferred
             fromZigbee.push(tuyaFz.power_outage_memory);
@@ -1711,7 +1066,6 @@ const tuyaExtend = {
         return {exposes, fromZigbee, toZigbee};
     },
     light_onoff_brightness_colortemp_color: (options={}) => {
-        const extend = require('./extend');
         options = {
             disableColorTempStartup: true, disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb, tuyaTz.color_power_on_behavior],
             exposes: [tuyaExposes.doNotDisturb(), tuyaExposes.colorPowerOnBehavior()], ...options,
@@ -1720,7 +1074,6 @@ const tuyaExtend = {
         return {...extend.light_onoff_brightness_colortemp_color(options), meta};
     },
     light_onoff_brightness_colortemp: (options={}) => {
-        const extend = require('./extend');
         options = {
             disableColorTempStartup: true, disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb],
             exposes: [tuyaExposes.doNotDisturb()], ...options,
@@ -1728,7 +1081,6 @@ const tuyaExtend = {
         return extend.light_onoff_brightness_colortemp(options);
     },
     light_onoff_brightness_color: (options={}) => {
-        const extend = require('./extend');
         options = {
             disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb, tuyaTz.color_power_on_behavior],
             exposes: [tuyaExposes.doNotDisturb(), tuyaExposes.colorPowerOnBehavior()], ...options,
@@ -1736,8 +1088,10 @@ const tuyaExtend = {
         const meta = {applyRedFix: true, supportsEnhancedHue: false};
         return {...extend.light_onoff_brightness_color(options), meta};
     },
-    light_onoff_brightness: (options={}) => {
-        const extend = require('./extend');
+    light_onoff_brightness: (options:{
+        endpoints?: string[], disablePowerOnBehavior?: boolean, minBrightness?: boolean,
+        toZigbee?:tz.Converter[], exposes?: Expose[], noConfigure?: boolean,
+    }={}) => {
         options = {
             disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb], exposes: [tuyaExposes.doNotDisturb()],
             minBrightness: false, ...options,
@@ -1755,6 +1109,7 @@ const tuyaExtend = {
         return result;
     },
 };
+export {tuyaExtend as extend};
 
 module.exports = {
     exposes: tuyaExposes,
@@ -1765,48 +1120,13 @@ module.exports = {
     configureMagicPacket,
     fingerprint,
     whitelabel,
-    enum: (value) => new Enum(value),
-    bitmap: (value) => new Bitmap(value),
+    enum: (value: number) => new Enum(value),
+    bitmap: (value: number) => new Bitmap(value),
     valueConverter,
     valueConverterBasic,
-    tzDataPoints: tuyaTz.datapoints,
-    fzDataPoints: tuyaFz.datapoints,
-    sendDataPoint,
-    sendDataPoints,
-    sendDataPointValue,
     sendDataPointBool,
     sendDataPointEnum,
-    sendDataPointBitmap,
-    sendDataPointRaw,
-    sendDataPointStringBuffer,
-    firstDpValue,
-    getDataValue,
-    getTypeName,
-    getDataPointNames,
-    dataTypes,
-    dataPoints,
-    dpValueFromIntValue,
-    dpValueFromBool,
-    dpValueFromEnum,
-    dpValueFromStringBuffer,
-    dpValueFromRaw,
-    dpValueFromBitmap,
-    convertDecimalValueTo4ByteHexArray,
-    convertDecimalValueTo2ByteHexArray,
     onEventSetTime,
     onEventSetLocalTime,
     onEventMeasurementPoll,
-    convertStringToHexArray,
-    isCoverInverted,
-    getCoverStateEnums,
-    thermostatSystemModes3,
-    thermostatSystemModes2,
-    thermostatSystemModes,
-    thermostatWeekFormat,
-    thermostatPresets,
-    thermostatScheduleMode,
-    fanModes,
-    msLookups,
-    ZMLookups,
-    moesSwitch,
 };

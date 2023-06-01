@@ -1,7 +1,7 @@
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const exposes = require('../lib/exposes');
+import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 const e = exposes.presets;
-const reporting = require('../lib/reporting');
+import reporting from '../lib/reporting';
 
 module.exports = [
     {
@@ -34,4 +34,4 @@ module.exports = [
             });
         },
     },
-];
+] as Definition[];

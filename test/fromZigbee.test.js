@@ -1,6 +1,4 @@
-const fz = require('../src/converters/fromZigbee');
-const fzLegacy = require('../src/lib/legacy').fromZigbee;
-const tuya = require('../src/lib/tuya');
+const legacy = require('../src/lib/legacy');
 
 jest.mock('fs');
 const fs = require('fs');
@@ -12,59 +10,59 @@ describe('converters/fromZigbee', () => {
             it.each([
                 [
                     'water_leak',
-                    [tuya.dpValueFromEnum(tuya.dataPoints.wlsWaterLeak, 0)],
+                    [legacy.dpValueFromEnum(legacy.dataPoints.wlsWaterLeak, 0)],
                     {water_leak: true},
                 ],
                 [
                     'no water_leak',
-                    [tuya.dpValueFromEnum(tuya.dataPoints.wlsWaterLeak, 1)],
+                    [legacy.dpValueFromEnum(legacy.dataPoints.wlsWaterLeak, 1)],
                     {water_leak: false},
                 ],
                 [
                     'water leak & battery',
                     [
-                        tuya.dpValueFromEnum(tuya.dataPoints.wlsWaterLeak, 0),
-                        tuya.dpValueFromIntValue(tuya.dataPoints.wlsBatteryPercentage, 75),
+                        legacy.dpValueFromEnum(legacy.dataPoints.wlsWaterLeak, 0),
+                        legacy.dpValueFromIntValue(legacy.dataPoints.wlsBatteryPercentage, 75),
                     ],
                     {water_leak: true, battery: 75},
                 ],
                 [
                     'battery & unknown DP',
                     [
-                        tuya.dpValueFromBool(255, false),
-                        tuya.dpValueFromIntValue(tuya.dataPoints.wlsBatteryPercentage, 75),
+                        legacy.dpValueFromBool(255, false),
+                        legacy.dpValueFromIntValue(legacy.dataPoints.wlsBatteryPercentage, 75),
                     ],
                     {battery: 75},
                 ],
             ])
             ("Receives '%s' indication", (_name, dpValues, result) => {
-                expect(fzLegacy.wls100z_water_leak.convert(null, {data: {dpValues}}, null, null, meta)).toEqual(result);
+                expect(legacy.fromZigbee.wls100z_water_leak.convert(null, {data: {dpValues}}, null, null, meta)).toEqual(result);
             });
         });
         describe('tuya_smart_vibration_sensor', () => {
             it.each([
                 [
                     'no contact',
-                    [tuya.dpValueFromBool(tuya.dataPoints.state, false)],
+                    [legacy.dpValueFromBool(legacy.dataPoints.state, false)],
                     {contact: true},
                 ],
                 [
                     'no vibration',
-                    [tuya.dpValueFromEnum(tuya.dataPoints.tuyaVibration, 0)],
+                    [legacy.dpValueFromEnum(legacy.dataPoints.tuyaVibration, 0)],
                     {vibration: false},
                 ],
                 [
                     'contact & vibration & battery',
                     [
-                        tuya.dpValueFromBool(tuya.dataPoints.state, true),
-                        tuya.dpValueFromEnum(tuya.dataPoints.tuyaVibration, 1),
-                        tuya.dpValueFromIntValue(tuya.dataPoints.thitBatteryPercentage, 97),
+                        legacy.dpValueFromBool(legacy.dataPoints.state, true),
+                        legacy.dpValueFromEnum(legacy.dataPoints.tuyaVibration, 1),
+                        legacy.dpValueFromIntValue(legacy.dataPoints.thitBatteryPercentage, 97),
                     ],
                     {contact: false, battery: 97, vibration: true},
                 ],
             ])
             ("Receives '%s' indication", (_name, dpValues, result) => {
-                expect(fzLegacy.tuya_smart_vibration_sensor.convert(null, {data: {dpValues}}, null, null, meta)).toEqual(result);
+                expect(legacy.fromZigbee.tuya_smart_vibration_sensor.convert(null, {data: {dpValues}}, null, null, meta)).toEqual(result);
             });
         });
     });

@@ -111,7 +111,7 @@ module.exports = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
+                weeklyScheduleFirstDayDpId: 101,
             },
         },
         exposes: [e.battery_low(), e.child_lock(), e.away_mode(), exposes.climate()

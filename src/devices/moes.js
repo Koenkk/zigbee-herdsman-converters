@@ -1,4 +1,5 @@
 const exposes = require('../lib/exposes');
+const legacy = require('../lib/legacy');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const ota = require('../lib/ota');
@@ -160,9 +161,9 @@ module.exports = [
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
         exposes: [e.switch().setAccess('state', ea.STATE_SET),
-            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(legacy.moesSwitch.indicateLight))
                 .withDescription('Indicator light status'),
-            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(legacy.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
         fromZigbee: [fz.legacy.tuya_switch, fz.legacy.moes_switch],
         toZigbee: [tz.legacy.tuya_switch_state, tz.legacy.moes_switch],
@@ -181,9 +182,9 @@ module.exports = [
         description: 'Wall touch light switch (2 gang)',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
-            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(legacy.moesSwitch.indicateLight))
                 .withDescription('Indicator light status'),
-            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(legacy.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
         fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch, fz.legacy.moes_switch],
         toZigbee: [tz.legacy.tuya_switch_state, tz.legacy.moes_switch],
@@ -209,9 +210,9 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
-            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(legacy.moesSwitch.indicateLight))
                 .withDescription('Indicator light status'),
-            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(legacy.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
         fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch, fz.legacy.moes_switch],
         toZigbee: [tz.legacy.tuya_switch_state, tz.legacy.moes_switch],
@@ -239,9 +240,9 @@ module.exports = [
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET),
-            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(legacy.moesSwitch.indicateLight))
                 .withDescription('Indicator light status'),
-            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(legacy.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
         fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch, fz.legacy.moes_switch],
         toZigbee: [tz.legacy.tuya_switch_state, tz.legacy.moes_switch],

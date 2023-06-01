@@ -1,4 +1,5 @@
 const exposes = require('../lib/exposes');
+const legacy = require('../lib/legacy');
 const reporting = require('../lib/reporting');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
@@ -6,102 +7,13 @@ const tuya = require('../lib/tuya');
 const e = exposes.presets;
 const ea = exposes.access;
 
-const fzLocal = {
-    R7049_status: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            for (const dpValue of msg.data.dpValues) {
-                const dp = dpValue.dp; // First we get the data point ID
-                const value = tuya.getDataValue(dpValue); // This function will take care of converting the data to proper JS type
-                switch (dp) {
-                case 1:
-                    result.smoke = Boolean(!value);
-                    break;
-                case 8:
-                    result.test_alarm = value;
-                    break;
-                case 9: {
-                    const testAlarmResult = {0: 'checking', 1: 'check_success', 2: 'check_failure', 3: 'others'};
-                    result.test_alarm_result = testAlarmResult[value];
-                    break;
-                }
-                case 11:
-                    result.fault_alarm = Boolean(value);
-                    break;
-                case 14: {
-                    const batteryLevels = {0: 'low', 1: 'middle', 2: 'high'};
-                    result.battery_level = batteryLevels[value];
-                    result.battery_low = value === 0;
-                    break;
-                }
-                case 16:
-                    result.silence_siren = value;
-                    break;
-                case 20: {
-                    const alarm = {0: true, 1: false};
-                    result.alarm = alarm[value];
-                    break;
-                }
-                default:
-                    meta.logger.debug(`zigbee-herdsman-converters:Woox Smoke Detector: NOT RECOGNIZED DP #${
-                        dp} with data ${JSON.stringify(dpValue)}`);
-                }
-            }
-            return result;
-        },
-    },
-    woox_R7060: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandActiveStatusReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'woox_R7060');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-
-            switch (dp) {
-            case tuya.dataPoints.wooxSwitch:
-                return {state: value === 2 ? 'OFF' : 'ON'};
-            case 101:
-                return {battery: value};
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:WooxR7060: Unrecognized DP #${
-                    dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
-};
-
-const tzLocal = {
-    R7049_silenceSiren: {
-        key: ['silence_siren'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, 16, value);
-        },
-    },
-    R7049_testAlarm: {
-        key: ['test_alarm'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, 8, value);
-        },
-    },
-    R7049_alarm: {
-        key: ['alarm'],
-        convertSet: async (entity, key, value, meta) => {
-            const linkAlarm = {true: 0, false: 1};
-            await tuya.sendDataPointEnum(entity, 20, linkAlarm[value]);
-        },
-    },
-};
-
 module.exports = [
     {
         fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3210_eymunffl'}],
         model: 'R7060',
         vendor: 'Woox',
         description: 'Smart garden irrigation control',
-        fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, fz.ignore_basic_report, fzLocal.woox_R7060],
+        fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, fz.ignore_basic_report, legacy.fromZigbee.woox_R7060],
         toZigbee: [tz.on_off],
         onEvent: tuya.onEventSetTime,
         exposes: [e.switch(), e.battery()],
@@ -140,8 +52,8 @@ module.exports = [
         vendor: 'Woox',
         description: 'Smart smoke alarm',
         meta: {timeout: 30000, disableDefaultResponse: true},
-        fromZigbee: [fzLocal.R7049_status, fz.ignore_tuya_set_time, fz.ignore_time_read],
-        toZigbee: [tzLocal.R7049_silenceSiren, tzLocal.R7049_testAlarm, tzLocal.R7049_alarm],
+        fromZigbee: [legacy.fromZigbee.R7049_status, fz.ignore_tuya_set_time, fz.ignore_time_read],
+        toZigbee: [legacy.toZigbee.R7049_silenceSiren, legacy.toZigbee.R7049_testAlarm, legacy.toZigbee.R7049_alarm],
         exposes: [e.battery_low(),
             exposes.binary('smoke', ea.STATE, true, false).withDescription('Smoke alarm status'),
             exposes.binary('test_alarm', ea.STATE_SET, true, false).withDescription('Test alarm'),

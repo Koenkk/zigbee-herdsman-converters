@@ -1,7 +1,7 @@
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import reporting from '../lib/reporting';
 const e = exposes.presets;
 
 module.exports = [
@@ -20,7 +20,7 @@ module.exports = [
             tz.thermostat_running_state,
         ],
         exposes: [
-            exposes.climate()
+            e.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 28, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 7, 28, 0.5)
                 .withLocalTemperature()
@@ -51,7 +51,7 @@ module.exports = [
             tz.thermostat_running_state,
         ],
         exposes: [
-            exposes.climate()
+            e.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 28, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 7, 28, 0.5)
                 .withLocalTemperature()
@@ -83,13 +83,13 @@ module.exports = [
             tz.thermostat_local_temperature_calibration,
         ],
         exposes: [
-            exposes.climate()
+            e.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 28, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 7, 28, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withRunningState(['idle', 'heat'])
-                .withLocalTemperatureCalibration('local_temperature_calibration'),
+                .withLocalTemperatureCalibration(),
             e.occupancy(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -105,4 +105,4 @@ module.exports = [
             await reporting.occupancy(endpoint2);
         },
     },
-];
+] as Definition[];

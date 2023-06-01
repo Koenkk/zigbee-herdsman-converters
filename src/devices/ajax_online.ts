@@ -1,5 +1,5 @@
-const extend = require('../lib/extend');
-const tuya = require('../lib/tuya');
+import extend from '../lib/extend';
+import * as tuya from '../lib/tuya';
 
 module.exports = [
     {
@@ -46,4 +46,4 @@ module.exports = [
         description: 'Zigbee LED filament light dimmable E27, edison ST64, flame 2200K',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
-];
+] as Definition[];
