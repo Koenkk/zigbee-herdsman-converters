@@ -26,6 +26,6 @@ module.exports = [
         model: 'ZB24100VS',
         vendor: 'EVN',
         description: 'Zigbee multicolor controller with power supply',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true, colorTempRange: [160, 450]}),
+        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [160, 450]}),
     },
 ];

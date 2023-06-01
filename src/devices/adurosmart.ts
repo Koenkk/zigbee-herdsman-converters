@@ -50,7 +50,7 @@ module.exports = [
         model: '81809FBA',
         vendor: 'AduroSmart',
         description: 'ERIA colors and white shades smart light bulb A19/BR30',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true, colorTempRange: [153, 500]}),
+        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true},
     },
     {
@@ -125,7 +125,7 @@ module.exports = [
         model: '81863',
         vendor: 'AduroSmart',
         description: 'Eria color LED strip',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true, colorTempRange: [153, 500]}),
+        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true},
     },
 ] as Definition[];

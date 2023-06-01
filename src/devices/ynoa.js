@@ -39,7 +39,7 @@ module.exports = [
         model: 'LA-GU10-RGBW',
         vendor: 'Ynoa',
         description: 'Smart LED GU10 RGB CCT',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526], supportsHS: true}),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526], supportsHueAndSaturation: true}),
     },
     {
         zigbeeModel: ['ZBT-RGBWSwitch-D0800'],

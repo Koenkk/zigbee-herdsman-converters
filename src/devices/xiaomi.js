@@ -2581,7 +2581,7 @@ module.exports = [
         model: 'ZNTGMK11LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart RGBW light controller',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true}),
+        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true}),
         ota: ota.zigbeeOTA,
     },
     {

@@ -12,7 +12,7 @@ function readColorAttributes(entity, meta, additionalAttributes=[]) {
     /**
       * Not all bulbs support the same features, we need to take care we read what is supported.
       * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation
-      * `enhancedHue` indicates support for enhancedCurrentHue
+      * `supportsEnhancedHue` indicates support for enhancedCurrentHue
       *
       * e.g. IKEA Tådfri LED1624G9 only supports XY (https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340)
       *
@@ -29,7 +29,7 @@ function readColorAttributes(entity, meta, additionalAttributes=[]) {
 
         if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
             if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('hue'))) {
-                if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
+                if (utils.getMetaValue(entity, meta.mapped, 'supportsEnhancedHue', 'allEqual', true)) {
                     attributes.push('enhancedCurrentHue');
                 } else {
                     attributes.push('currentHue');

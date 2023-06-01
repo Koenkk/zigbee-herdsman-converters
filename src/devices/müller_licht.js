@@ -69,12 +69,12 @@ module.exports = [
         model: '404000/404005/404012/404019',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], supportsHS: true}),
-        toZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], supportsHS: true}).toZigbee
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], supportsHueAndSaturation: true}),
+        toZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], supportsHueAndSaturation: true}).toZigbee
             .concat([tz.tint_scene]),
-        // GU10 bulb does not support enhancedHue,
+        // GU10 bulb does not support supportsEnhancedHue,
         // we can identify these based on the presense of haDiagnostic input cluster
-        meta: {enhancedHue: (entity) => !entity.getDevice().getEndpoint(1).inputClusters.includes(2821)},
+        meta: {supportsEnhancedHue: (entity) => !entity.getDevice().getEndpoint(1).inputClusters.includes(2821)},
     },
     {
         zigbeeModel: ['ZBT-ColorTemperature'],
