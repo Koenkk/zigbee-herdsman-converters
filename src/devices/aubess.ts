@@ -1,4 +1,4 @@
-const zosung = require('../lib/zosung');
+import zosung from '../lib/zosung';
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -18,4 +18,4 @@ module.exports = [
         ],
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
     },
-];
+] as Definition[];

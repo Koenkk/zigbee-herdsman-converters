@@ -1,5 +1,5 @@
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 
 module.exports = [
     {
@@ -14,4 +14,4 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
-];
+] as Definition[];
