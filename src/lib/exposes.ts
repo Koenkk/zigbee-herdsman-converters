@@ -8,7 +8,7 @@ type Range = [number, number];
 
 export class Base {
     name: string;
-    access: number;
+    access: Access;
     type: 'switch' | 'lock' | 'binary' | 'list' | 'numeric' | 'enum' | 'text' | 'composite' | 'light' | 'cover' | 'fan' | 'climate';
     endpoint?: string;
     property?: string;
@@ -34,7 +34,7 @@ export class Base {
         return this;
     }
 
-    withAccess(a: number) {
+    withAccess(a: Access) {
         assert(this.hasOwnProperty('access'), 'Cannot add access if not defined yet');
         this.access = a;
         return this;
@@ -58,7 +58,7 @@ export class Base {
         return this;
     }
 
-    setAccess(feature: string, a: number) {
+    setAccess(feature: string, a: Access) {
         assert(this.features, 'Does not have any features');
         const f = this.features.find((f) => f.name === feature);
         assert(f.access !== a, `Access mode not changed for '${f.name}'`);
@@ -111,7 +111,7 @@ export class Binary extends Base {
     value_off: string|boolean;
     value_toggle?: string;
 
-    constructor(name: string, access: number, valueOn: string|boolean, valueOff: string|boolean) {
+    constructor(name: string, access: Access, valueOn: string|boolean, valueOff: string|boolean) {
         super();
         this.type = 'binary';
         this.name = name;
@@ -132,7 +132,7 @@ export class List extends Base {
     length_min?: number;
     length_max?: number;
 
-    constructor(name: string, access: number, itemType: Numeric | Binary | Composite | Text) {
+    constructor(name: string, access: Access, itemType: Numeric | Binary | Composite | Text) {
         super();
         this.type = 'list';
         this.name = name;
@@ -160,7 +160,7 @@ export class Numeric extends Base {
     value_step?: number;
     presets?:{name: string, value: number, description: string}[];
 
-    constructor(name: string, access: number) {
+    constructor(name: string, access: Access) {
         super();
         this.type = 'numeric';
         this.name = name;
@@ -198,7 +198,7 @@ export class Numeric extends Base {
 export class Enum extends Base {
     values: (string|number)[];
 
-    constructor(name: string, access: number, values: (string|number)[]) {
+    constructor(name: string, access: Access, values: (string|number)[]) {
         super();
         this.type = 'enum';
         this.name = name;
@@ -209,7 +209,7 @@ export class Enum extends Base {
 }
 
 export class Text extends Base {
-    constructor(name: string, access: number) {
+    constructor(name: string, access: Access) {
         super();
         this.type = 'text';
         this.name = name;
@@ -219,7 +219,7 @@ export class Text extends Base {
 }
 
 export class Composite extends Base {
-    constructor(name: string, property: string, access: number) {
+    constructor(name: string, property: string, access: Access) {
         super();
         this.type = 'composite';
         this.property = property;
@@ -582,15 +582,15 @@ export const options = {
 
 export const presets = {
     // Generic
-    binary: (name: string, access: number, valueOn: string | boolean, valueOff: string | boolean) => new Binary(name, access, valueOn, valueOff),
+    binary: (name: string, access: Access, valueOn: string | boolean, valueOff: string | boolean) => new Binary(name, access, valueOn, valueOff),
     climate: () => new Climate(),
-    composite: (name: string, property: string, access: number) => new Composite(name, property, access),
+    composite: (name: string, property: string, access: Access) => new Composite(name, property, access),
     cover: () => new Cover(),
-    enum: (name: string, access: number, values: (string|number)[]) => new Enum(name, access, values),
+    enum: (name: string, access: Access, values: (string|number)[]) => new Enum(name, access, values),
     light: () => new Light(),
-    numeric: (name: string, access: number) => new Numeric(name, access),
-    text: (name: string, access: number) => new Text(name, access),
-    list: (name: string, access: number, itemType: Feature) => new List(name, access, itemType),
+    numeric: (name: string, access: Access) => new Numeric(name, access),
+    text: (name: string, access: Access) => new Text(name, access),
+    list: (name: string, access: Access, itemType: Feature) => new List(name, access, itemType),
     // Specific
     ac_frequency: () => new Numeric('ac_frequency', access.STATE).withUnit('Hz').withDescription('Measured electrical AC frequency'),
     action: (values: string[]) => new Enum('action', access.STATE, values).withDescription('Triggered action (e.g. a button click)'),
@@ -734,14 +734,14 @@ export const presets = {
         .withFeature(new Binary('strobe', access.SET, true, false).withDescription('Turn on/off the strobe (light) for Squawk')),
 };
 
-exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
+exports.binary = (name: string, access: Access, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
 exports.climate = () => new Climate();
-exports.composite = (name: string, property: string, access: number) => new Composite(name, property, access);
+exports.composite = (name: string, property: string, access: Access) => new Composite(name, property, access);
 exports.cover = () => new Cover();
-exports.enum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
+exports.enum = (name: string, access: Access, values: string[]) => new Enum(name, access, values);
 exports.light = () => new Light();
-exports.numeric = (name: string, access: number) => new Numeric(name, access);
+exports.numeric = (name: string, access: Access) => new Numeric(name, access);
 exports.switch = () => new Switch();
-exports.text = (name: string, access: number) => new Text(name, access);
-exports.list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
+exports.text = (name: string, access: Access) => new Text(name, access);
+exports.list = (name: string, access: Access, itemType: Feature) => new List(name, access, itemType);
 exports.lock = () => new Lock();
