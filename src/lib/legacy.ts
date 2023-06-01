@@ -8649,6 +8649,7 @@ const toZigbee = {...toZigbee1, ...toZigbee2};
 export {
     fromZigbee as fz,
     fromZigbee,
+    toZigbee as tz,
     toZigbee,
     thermostatControlSequenceOfOperations,
     thermostatSystemModes,

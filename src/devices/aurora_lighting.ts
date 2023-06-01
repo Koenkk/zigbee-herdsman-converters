@@ -46,7 +46,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
     toZigbee: [] as tz.Converter[],
     exposes: [e.battery(), e.action([
         'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
-    configure: async (device, coordinatorEndpoint, logger) => {
+    configure: (async (device, coordinatorEndpoint, logger) => {
         const endpoints = endpointsIds.map((endpoint) => device.getEndpoint(endpoint));
 
         // Battery level is only reported on first endpoint
@@ -58,8 +58,8 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
 
             await disableBatteryRotaryDimmerReporting(endpoint);
         }
-    },
-    onEvent: async (type, data, device) => {
+    }) as Configure,
+    onEvent: (async (type, data, device) => {
         // The rotary dimmer devices appear to lose the configured reportings when they
         // re-announce themselves which they do roughly every 6 hours.
         if (type === 'deviceAnnounce') {
@@ -77,7 +77,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
                 }
             }
         }
-    },
+    }) as OnEvent,
 });
 
 module.exports = [

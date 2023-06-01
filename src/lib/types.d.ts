@@ -59,6 +59,7 @@ declare global {
     }
 
     type Configure = (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => Promise<void>;
+    type OnEvent = (type: OnEventType, data: OnEventData, device: zh.Device, settings: KeyValue, state: KeyValue) => Promise<void>;
     interface Extend {fromZigbee: fz.Converter[], toZigbee: tz.Converter[], exposes: Expose[], configure?: Configure}
 
     interface OnEventData {
@@ -77,7 +78,7 @@ declare global {
         configure?: Configure,
         options?: Option[],
         meta?: DefinitionMeta,
-        onEvent?: (type: OnEventType, data: OnEventData, device: zh.Device, options: KeyValue, state: KeyValue) => Promise<void>,
+        onEvent?: OnEvent,
         ota?: {
             isUpdateAvailable: (device: zh.Device, logger: Logger, data?: KeyValue)
                 => Promise<OtaUpdateAvailableResult>;

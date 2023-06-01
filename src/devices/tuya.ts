@@ -978,6 +978,7 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TZ3000_hgu1dlak'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_h4wnrtck'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_sr0vaafi'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3040_bb6xaihh'},
             {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'},
             {modelID: 'TS0202', manufacturerName: '_TZ3040_wqmtjsyk'},
         ],
@@ -2344,7 +2345,7 @@ module.exports = [
                     ' by switching the heating off. To achieve this, the valve is closed fully. To activate the '+
                     'heating stop, the device display "HS", press the pair button to cancel.'),
             tuya.exposes.frostProtection('When Anti-Freezing function is activated, the temperature in the house is kept '+
-                    'at 8 Â°C, the device display "AF".press the pair button to cancel.'),
+                    'at 8 °C, the device display "AF".press the pair button to cancel.'),
             e.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
                     'minimum 0 - maximum 465 seconds boost time. The boost (â¨) function is activated. The remaining '+
                     'time for the function will be counted down in seconds ( 465 to 0 ).').withValueMin(0).withValueMax(465),
@@ -2483,7 +2484,7 @@ module.exports = [
                 'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
                 'again.'),
             e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('When the room temperature is lower than ' +
-                '5 Â°C, the valve opens; when the temperature rises to 8 Â°C, the valve closes.'),
+                '5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.'),
             e.numeric('error', ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
         ],
         meta: {
@@ -2861,8 +2862,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['5p1vj8r'],
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t5p1vj8r', '_TZE200_uebojraa', '_TZE200_vzekyi4c', '_TZE200_yh7aoahi',
-            '_TZE200_dnz6yvl2', '_TZE200_dq1mfjug']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t5p1vj8r', '_TZE200_uebojraa', '_TZE200_vzekyi4c', '_TZE200_yh7aoahi', '_TZE200_dq1mfjug']),
         model: 'TS0601_smoke_4',
         vendor: 'TuYa',
         description: 'Smoke sensor',
@@ -2895,6 +2895,29 @@ module.exports = [
                 [15, 'battery', tuya.valueConverter.raw],
                 [16, 'silence', tuya.valueConverter.raw],
                 [17, 'alarm', tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_e2bedvo9', '_TZE200_dnz6yvl2']),
+        model: 'ZSS-QY-SSD-A-EN',
+        vendor: 'TuYa',
+        description: 'Smart smoke alarm',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [e.smoke(), tuya.exposes.faultAlarm(), tuya.exposes.batteryState(), e.battery(), tuya.exposes.silence(), tuya.exposes.selfTest(),
+            e.numeric('smoke_concentration', ea.STATE).withUnit('ppm').withDescription('Parts per million of smoke detected')],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'smoke', tuya.valueConverter.trueFalse0],
+                [2, 'smoke_concentration', tuya.valueConverter.divideBy10],
+                [11, 'fault_alarm', tuya.valueConverter.trueFalse1],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
+                [15, 'battery', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.raw],
+                [17, 'self_test', tuya.valueConverter.raw],
             ],
         },
     },
@@ -3363,7 +3386,6 @@ module.exports = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'ZY-M100-S', 'Human presence sensor', ['_TZE204_ztc6ggyl']),
             tuya.whitelabel('TuYa', 'DS-111', 'Smart light switch - 4 gang with neutral wire', ['_TZ3000_mdj7kra9']),
         ],
         meta: {multiEndpoint: true},
@@ -3538,13 +3560,13 @@ module.exports = [
                 .withDescription('Antifreeze function'),
             e.binary('factory_reset', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Resets all settings to default. Doesn\'t unpair device.'),
-            e.numeric('heating_temp_limit', ea.STATE_SET).withUnit('Â°C').withValueMax(60)
+            e.numeric('heating_temp_limit', ea.STATE_SET).withUnit('°C').withValueMax(60)
                 .withValueMin(5).withValueStep(1).withPreset('default', 35, 'Default value')
                 .withDescription('Heating temperature limit'),
-            e.numeric('deadzone_temperature', ea.STATE_SET).withUnit('Â°C').withValueMax(9.5)
+            e.numeric('deadzone_temperature', ea.STATE_SET).withUnit('°C').withValueMax(9.5)
                 .withValueMin(0.5).withValueStep(0.5).withPreset('default', 1, 'Default value')
                 .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
-            e.numeric('upper_temp', ea.STATE_SET).withUnit('Â°C').withValueMax(95)
+            e.numeric('upper_temp', ea.STATE_SET).withUnit('°C').withValueMax(95)
                 .withValueMin(35).withValueStep(1).withPreset('default', 60, 'Default value'),
         ],
         onEvent: tuya.onEventSetTime,
@@ -3681,9 +3703,9 @@ module.exports = [
                 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity', 'manuSpecificTuya_2']);
         },
         exposes: [e.temperature(), e.humidity(), e.battery(), e.illuminance(), e.illuminance_lux(),
-            e.numeric('alarm_temperature_max', ea.STATE_SET).withUnit('Â°C').withDescription('Alarm temperature max')
+            e.numeric('alarm_temperature_max', ea.STATE_SET).withUnit('°C').withDescription('Alarm temperature max')
                 .withValueMin(-20).withValueMax(80),
-            e.numeric('alarm_temperature_min', ea.STATE_SET).withUnit('Â°C').withDescription('Alarm temperature min')
+            e.numeric('alarm_temperature_min', ea.STATE_SET).withUnit('°C').withDescription('Alarm temperature min')
                 .withValueMin(-20).withValueMax(80),
             e.numeric('alarm_humidity_max', ea.STATE_SET).withUnit('%').withDescription('Alarm humidity max')
                 .withValueMin(0).withValueMax(100),
@@ -3946,8 +3968,11 @@ module.exports = [
         model: 'TS0601_smart_human_presence_sensor_1',
         vendor: 'TuYa',
         description: 'Smart Human presence sensor',
-        fromZigbee: [legacy.fromZigbee.tuya_smart_human_presense_sensor],
-        toZigbee: [legacy.toZigbee.tuya_smart_human_presense_sensor],
+        fromZigbee: [legacy.fz.tuya_smart_human_presense_sensor],
+        toZigbee: [legacy.tz.tuya_smart_human_presense_sensor],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'ZY-M100-S', 'Human presence sensor', ['_TZE204_ztc6ggyl']),
+        ],
         exposes: [
             e.illuminance_lux(), e.presence(),
             e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
@@ -4019,9 +4044,9 @@ module.exports = [
             e.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
             e.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
                 .withDescription('Temperature alarm status'),
-            e.numeric('max_temperature', ea.STATE_SET).withUnit('Â°C').withValueMin(-20).withValueMax(60)
+            e.numeric('max_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
                 .withDescription('Alarm temperature max'),
-            e.numeric('min_temperature', ea.STATE_SET).withUnit('Â°C').withValueMin(-20).withValueMax(60)
+            e.numeric('min_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
                 .withDescription('Alarm temperature min'),
             e.enum('humidity_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
                 .withDescription('Humidity alarm status'),
