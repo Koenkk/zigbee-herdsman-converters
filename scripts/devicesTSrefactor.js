@@ -1,9 +1,9 @@
 const fs = require('fs');
 
 let cnt = 0;
-for (const file of fs.readdirSync('./src/devices').sort()) {
+for (const file of fs.readdirSync('../src/devices').sort()) {
     if (file.endsWith('.js')) {
-        const f = `./src/devices/${file}`;
+        const f = `../src/devices/${file}`;
         const newContent = [];
         const lines = fs.readFileSync(f, 'utf-8').trim().split('\n');
         lines[lines.length - 1] = `] as Definition[];\n`;
@@ -22,7 +22,7 @@ for (const file of fs.readdirSync('./src/devices').sort()) {
         }
 
         console.log(file);
-        fs.writeFileSync(`./src/devices/${file.split('.')[0]}.ts`, newContent.join('\n'));
+        fs.writeFileSync(`../src/devices/${file.split('.')[0]}.ts`, newContent.join('\n'));
         const del = true;
         if (del) {
             fs.rmSync(f);
