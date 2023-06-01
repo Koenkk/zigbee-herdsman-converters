@@ -77,4 +77,20 @@ module.exports = [
         },
         exposes: [],
     },
+    {
+        zigbeeModel: ['GW02-001-MP-1.0'],
+        model: 'GW02',
+        description: 'Signal repeater',
+        vendor: 'Keen Home',
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400}];
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+            await endpoint.configureReporting('genBasic', payload);
+            device.powerSource = 'Mains (single phase)';
+        },
+        exposes: [],
+    },
 ];

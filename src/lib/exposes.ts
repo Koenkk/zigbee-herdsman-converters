@@ -555,16 +555,17 @@ export const access = {
 
 const a = access;
 
-module.exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
-module.exports.climate = () => new Climate();
-module.exports.composite = (name: string, property: string, access: number) => new Composite(name, property, access);
-module.exports.cover = () => new Cover();
-module.exports.enum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
-module.exports.light = () => new Light();
-module.exports.numeric = (name: string, access: number) => new Numeric(name, access);
-module.exports.switch = () => new Switch();
-module.exports.text = (name: string, access: number) => new Text(name, access);
-module.exports.list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
+exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
+exports.climate = () => new Climate();
+exports.composite = (name: string, property: string, access: number) => new Composite(name, property, access);
+exports.cover = () => new Cover();
+exports.enum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
+exports.light = () => new Light();
+exports.numeric = (name: string, access: number) => new Numeric(name, access);
+exports.switch = () => new Switch();
+exports.text = (name: string, access: number) => new Text(name, access);
+exports.list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
+exports.lock = () => new Lock();
 
 export const options = {
     calibration: (name: string, type='absolute') => new Numeric(`${name}_calibration`, access.SET).withDescription(`Calibrates the ${name} value (${type} offset), takes into effect on next report of device.`),

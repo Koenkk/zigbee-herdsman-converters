@@ -2627,6 +2627,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
             await reporting.deviceTemperature(endpoint);
+            utils.attachOutputCluster(device, 'genOta');
             device.powerSource = 'Mains (single phase)';
             device.type = 'Router';
             device.save();
