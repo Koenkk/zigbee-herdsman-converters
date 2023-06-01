@@ -244,7 +244,7 @@ const tuyaExposes = {
     frostProtection: (extraNote='') => e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription(
         `When Anti-Freezing function is activated, the temperature in the house is kept at 8 °C.${extraNote}`),
     errorStatus: () => e.numeric('error_status', ea.STATE).withDescription('Error status'),
-    scheduleAllDays: (access: Access, format: string) => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+    scheduleAllDays: (access: number, format: string) => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
         .map((day) => e.text(`schedule_${day}`, access).withDescription(`Schedule for ${day}, format: "${format}"`)),
     temperatureUnit: () => e.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Temperature unit'),
     temperatureCalibration: () => e.numeric('temperature_calibration', ea.STATE_SET).withValueMin(-2.0).withValueMax(2.0)
