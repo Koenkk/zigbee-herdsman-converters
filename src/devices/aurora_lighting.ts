@@ -5,7 +5,7 @@ import reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 import utils from '../lib/utils';
-import {assertString} from 'src/lib/utils2';
+import {assertString} from '../lib/utils2';
 const ea = exposes.access;
 
 const tzLocal = {
