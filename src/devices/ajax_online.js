@@ -37,7 +37,7 @@ module.exports = [
         vendor: 'Ajax Online',
         description: 'Smart Zigbee LED strip RGB+CCT',
         extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
-        meta: {applyRedFix: true, enhancedHue: false},
+        meta: {applyRedFix: true, supportsEnhancedHue: false},
     },
     {
         fingerprint: [{modelID: 'CCT Light', manufacturerName: 'ZB/Ajax Online', manufacturerID: 4137}],

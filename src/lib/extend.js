@@ -79,15 +79,16 @@ const extend = {
     },
     light_onoff_brightness_color: (options={}) => {
         options = {
-            disableEffect: false, supportsHS: false, preferHS: false, disablePowerOnBehavior: false,
+            disableEffect: false, supportsHueAndSaturation: false, preferHueAndSaturation: false, disablePowerOnBehavior: false,
             toZigbee: [], fromZigbee: [], exposes: [], ...options,
         };
-        const exposes = [(options.supportsHS ? e.light_brightness_color(options.preferHS) : e.light_brightness_colorxy()),
+        const exposes = [(options.supportsHueAndSaturation ? e.light_brightness_color(options.preferHueAndSaturation) : e.light_brightness_colorxy()),
             ...(!options.disableEffect ? [e.effect()] : []), ...options.exposes];
         const fromZigbee = [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report, ...options.fromZigbee];
         const toZigbee = [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
             tz.light_brightness_step, tz.level_config, tz.light_hue_saturation_move, ...options.toZigbee,
             tz.light_hue_saturation_step, tz.light_color_options, tz.light_color_mode, ...(!options.disableEffect ? [tz.effect] : [])];
+        const meta = {supportsHueAndSaturation: options.supportsHueAndSaturation};
 
         if (!options.disablePowerOnBehavior) {
             exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
@@ -95,7 +96,7 @@ const extend = {
             toZigbee.push(tz.power_on_behavior);
         }
 
-        const result = {exposes, fromZigbee, toZigbee};
+        const result = {exposes, fromZigbee, toZigbee, meta};
         if (!options.noConfigure) {
             result.configure = async (device, coordinatorEndpoint, logger) => {
                 await light.configure(device, coordinatorEndpoint, logger, false);
@@ -106,11 +107,11 @@ const extend = {
     },
     light_onoff_brightness_colortemp_color: (options={}) => {
         options = {
-            disableEffect: false, supportsHS: false, disableColorTempStartup: false, preferHS: false, disablePowerOnBehavior: false,
-            toZigbee: [], fromZigbee: [], exposes: [], ...options,
+            disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
+            disablePowerOnBehavior: false, toZigbee: [], fromZigbee: [], exposes: [], ...options,
         };
         const exposes = [
-            (options.supportsHS ? e.light_brightness_colortemp_color(options.colorTempRange, options.preferHS) :
+            (options.supportsHueAndSaturation ? e.light_brightness_colortemp_color(options.colorTempRange, options.preferHueAndSaturation) :
                 e.light_brightness_colortemp_colorxy(options.colorTempRange)), ...(!options.disableEffect ? [e.effect()] : []),
             ...options.exposes,
         ];
@@ -120,6 +121,7 @@ const extend = {
             tz.light_colortemp_move, tz.light_brightness_step, tz.light_colortemp_step, tz.light_hue_saturation_move,
             tz.light_hue_saturation_step, tz.light_colortemp_startup, tz.level_config, tz.light_color_options,
             tz.light_color_mode, ...(!options.disableEffect ? [tz.effect] : []), ...options.toZigbee];
+        const meta = {supportsHueAndSaturation: options.supportsHueAndSaturation};
 
         if (options.disableColorTempStartup) {
             exposes[0].removeFeature('color_temp_startup');
@@ -132,7 +134,7 @@ const extend = {
             toZigbee.push(tz.power_on_behavior);
         }
 
-        const result = {exposes, fromZigbee, toZigbee};
+        const result = {exposes, fromZigbee, toZigbee, meta};
         if (!options.noConfigure) {
             result.configure = async (device, coordinatorEndpoint, logger) => {
                 await light.configure(device, coordinatorEndpoint, logger, true);
@@ -162,15 +164,15 @@ const extend = {
         light_onoff_brightness_color: (options={}) => {
             options = {disablePowerOnBehavior: true, ...options};
             return {
-                ...extend.light_onoff_brightness_color({supportsHS: true, ...options}),
-                toZigbee: extend.light_onoff_brightness_color({supportsHS: true, ...options}).toZigbee.concat([tz.ledvance_commands]),
+                ...extend.light_onoff_brightness_color({supportsHueAndSaturation: true, ...options}),
+                toZigbee: extend.light_onoff_brightness_color({supportsHueAndSaturation: true, ...options}).toZigbee.concat([tz.ledvance_commands]),
             };
         },
         light_onoff_brightness_colortemp_color: (options={}) => {
             options = {disablePowerOnBehavior: true, ...options};
             return {
-                ...extend.light_onoff_brightness_colortemp_color({supportsHS: true, disableColorTempStartup: true, ...options}),
-                toZigbee: extend.light_onoff_brightness_colortemp_color({supportsHS: true, disableColorTempStartup: true, ...options})
+                ...extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, disableColorTempStartup: true, ...options}),
+                toZigbee: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, disableColorTempStartup: true, ...options})
                     .toZigbee.concat([tz.ledvance_commands]),
             };
         },
