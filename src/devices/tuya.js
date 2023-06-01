@@ -3832,7 +3832,6 @@ module.exports = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'ZY-M100-S', 'Human presence sensor', ['_TZE204_ztc6ggyl']),
             tuya.whitelabel('TuYa', 'DS-111', 'Smart light switch - 4 gang with neutral wire', ['_TZ3000_mdj7kra9']),
         ],
         meta: {multiEndpoint: true},
@@ -4417,6 +4416,9 @@ module.exports = [
         description: 'Smart Human presence sensor',
         fromZigbee: [fz.legacy.tuya_smart_human_presense_sensor],
         toZigbee: [tz.legacy.tuya_smart_human_presense_sensor],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'ZY-M100-S', 'Human presence sensor', ['_TZE204_ztc6ggyl']),
+        ],
         exposes: [
             e.illuminance_lux(), e.presence(),
             exposes.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
