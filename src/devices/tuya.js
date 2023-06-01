@@ -3367,34 +3367,17 @@ module.exports = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE200_e2bedvo9'
-            },
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE200_dnz6yvl2'
-            },
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_e2bedvo9', '_TZE200_dnz6yvl2']),
         model: 'ZSS-QY-SSD-A-EN',
         vendor: 'TuYa',
         description: 'Smart smoke alarm',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
-        exposes: [
-            e.smoke(),
-            exposes.numeric('smoke_concentration', ea.STATE).withUnit('ppm').withDescription('Parts per million of smoke detected'), 
-            tuya.exposes.faultAlarm(), 
-            tuya.exposes.batteryState(), 
-            e.battery(),
-            tuya.exposes.silence(),
-            tuya.exposes.selfTest(),
-        ],
+        exposes: [e.smoke(), tuya.exposes.faultAlarm(), tuya.exposes.batteryState(), e.battery(), tuya.exposes.silence(), tuya.exposes.selfTest(),
+            exposes.numeric('smoke_concentration', ea.STATE).withUnit('ppm').withDescription('Parts per million of smoke detected')],
         meta: {
-            // All datapoints go in here
             tuyaDatapoints: [
                 [1, 'smoke', tuya.valueConverter.trueFalse0],
                 [2, 'smoke_concentration', tuya.valueConverter.divideBy10],
@@ -3404,7 +3387,7 @@ module.exports = [
                 [16, 'silence', tuya.valueConverter.raw],
                 [17, 'self_test', tuya.valueConverter.raw],
             ],
-        }
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_5d3vhjro'}],
