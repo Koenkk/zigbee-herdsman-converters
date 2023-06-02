@@ -1,6 +1,7 @@
 const exposes = require('../lib/exposes');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const ota = require('../lib/ota');
 const e = exposes.presets;
 const tz = require('../converters/toZigbee');
 const fz = require('../converters/fromZigbee');
@@ -20,6 +21,7 @@ module.exports = [
             await reporting.currentPositionTiltPercentage(endpoint);
         },
         exposes: [e.cover_position()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SIN-4-RS-20_PRO'],
