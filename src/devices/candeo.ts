@@ -1,10 +1,10 @@
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['HK-DIM-A', 'Candeo Zigbee Dimmer'],
         model: 'HK-DIM-A',
@@ -47,3 +47,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

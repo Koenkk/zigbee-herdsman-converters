@@ -1,11 +1,11 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const reporting = require('../lib/reporting');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import reporting from '../lib/reporting';
 const e = exposes.presets;
-const tz = require('../converters/toZigbee');
-const extend = require('../lib/extend');
+import tz from '../converters/toZigbee';
+import extend from '../lib/extend';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['CSLC601-D-E'],
         model: 'CSLC601-D-E',
@@ -50,3 +50,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

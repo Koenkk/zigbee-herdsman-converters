@@ -3,7 +3,7 @@ import fz from '../converters/fromZigbee';
 import reporting from '../lib/reporting';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TYZB01_ujfk3xd9'}],
         model: 'M423-9E',
@@ -25,4 +25,6 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint1);
         },
     },
-] as Definition[];
+];
+
+module.exports = definitions;

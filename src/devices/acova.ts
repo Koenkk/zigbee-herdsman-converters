@@ -4,7 +4,7 @@ import tz from '../converters/toZigbee';
 import reporting from '../lib/reporting';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['PERCALE2 D1.00P1.01Z1.00', 'PERCALE2 D1.00P1.02Z1.00', 'PERCALE2 D1.00P1.03Z1.00'],
         model: 'PERCALE2',
@@ -105,4 +105,6 @@ module.exports = [
             await reporting.occupancy(endpoint2);
         },
     },
-] as Definition[];
+];
+
+module.exports = definitions;

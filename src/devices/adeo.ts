@@ -21,7 +21,7 @@ const fzLocal = {
     } as fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['LDSENK08'],
         model: 'LDSENK08',
@@ -268,4 +268,6 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
         },
     },
-] as Definition[];
+];
+
+module.exports = definitions;

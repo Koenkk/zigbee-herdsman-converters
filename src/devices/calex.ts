@@ -1,9 +1,9 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import extend from '../lib/extend';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['EC-Z3.0-CCT'],
         model: '421786',
@@ -35,3 +35,5 @@ module.exports = [
         meta: {disableActionGroup: true},
     },
 ];
+
+module.exports = definitions;

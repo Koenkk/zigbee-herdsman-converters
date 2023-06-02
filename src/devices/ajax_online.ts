@@ -1,7 +1,7 @@
 import extend from '../lib/extend';
 import * as tuya from '../lib/tuya';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['AJ-RGBCCT 5 in 1'],
         model: 'Aj_Zigbee_Led_Strip',
@@ -46,4 +46,6 @@ module.exports = [
         description: 'Zigbee LED filament light dimmable E27, edison ST64, flame 2200K',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
-] as Definition[];
+];
+
+module.exports = definitions;

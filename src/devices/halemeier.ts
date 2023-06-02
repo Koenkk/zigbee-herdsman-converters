@@ -1,6 +1,6 @@
 import extend from '../lib/extend';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['HA-ZGMW2-E'],
         model: 'HA-ZGMW2-E',
@@ -8,4 +8,6 @@ module.exports = [
         description: 'LED driver',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
     },
-] as Definition[];
+];
+
+module.exports = definitions;

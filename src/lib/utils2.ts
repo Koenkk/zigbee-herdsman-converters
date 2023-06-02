@@ -12,3 +12,7 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: string | number]: 
     if (!result) throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
     return result;
 }
+
+export function assertEndpoint(obj: unknown): asserts obj is zh.Endpoint {
+    if (obj?.constructor?.name?.toLowerCase() !== 'endpoint') throw new Error('Not an endpoint');
+}

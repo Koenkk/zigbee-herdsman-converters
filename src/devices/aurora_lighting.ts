@@ -80,7 +80,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
     }) as OnEvent,
 });
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['TWBulb51AU'],
         model: 'AU-A1GSZ9CX',
@@ -291,4 +291,6 @@ module.exports = [
         // Two gang battery rotary dimmer with endpoint IDs 1 and 2
         ...batteryRotaryDimmer(1, 2),
     },
-] as Definition[];
+];
+
+module.exports = definitions;

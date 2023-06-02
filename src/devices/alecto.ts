@@ -5,7 +5,7 @@ const tz = {...require('../converters/toZigbee'), legacy: legacy.toZigbee};
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'daqwrsj\u0000', manufacturerName: '_TYST11_8daqwrsj'},
@@ -42,4 +42,6 @@ module.exports = [
             e.binary('self_checking', ea.STATE_SET, true, false),
             e.binary('silence', ea.STATE_SET, true, false)],
     },
-] as Definition[];
+];
+
+module.exports = definitions;

@@ -1,9 +1,9 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import reporting from '../lib/reporting';
 const e = exposes.presets;
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['Gear'],
         model: 'GR-ZB01-W',
@@ -20,3 +20,5 @@ module.exports = [
         exposes: [e.cover_position(), e.battery()],
     },
 ];
+
+module.exports = definitions;

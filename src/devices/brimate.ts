@@ -1,8 +1,8 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['FB56-BOT02HM1A5'],
         model: 'FZB8708HD-S1',
@@ -13,3 +13,5 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low()],
     },
 ];
+
+module.exports = definitions;

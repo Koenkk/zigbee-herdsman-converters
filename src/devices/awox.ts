@@ -1,10 +1,10 @@
-const extend = require('../lib/extend');
-const fz = require('../converters/fromZigbee');
-const exposes = require('../lib/exposes');
+import extend from '../lib/extend';
+import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
 const e = exposes.presets;
 
 const awoxRemoteHelper = {
-    convertToColorName: (buffer) => {
+    convertToColorName: (buffer: Buffer) => {
         const commonForColors = buffer[0] === 17 && buffer[2] === 48 && buffer[3] === 0 && buffer[5] === 8 && buffer[6] === 0;
 
         if (commonForColors && buffer[4] === 255) {
@@ -18,7 +18,7 @@ const awoxRemoteHelper = {
         }
         return null;
     },
-    isRefresh: (buffer) => {
+    isRefresh: (buffer: Buffer) => {
         return buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 1;
     },
 };
@@ -35,7 +35,7 @@ const fzLocal = {
                 };
             }
         },
-    },
+    } as fz.Converter,
     refreshColored: {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveHue'],
@@ -46,7 +46,7 @@ const fzLocal = {
                 };
             }
         },
-    },
+    } as fz.Converter,
     refresh: {
         cluster: 'genLevelCtrl',
         type: ['raw'],
@@ -57,10 +57,10 @@ const fzLocal = {
                 };
             }
         },
-    },
+    } as fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['TLSR82xx'],
         model: '33951/33948',
@@ -183,3 +183,5 @@ module.exports = [
         whiteLabel: [{vendor: 'EGLO', model: '900316'}, {vendor: 'EGLO', model: '900317'}, {vendor: 'EGLO', model: '900053'}],
     },
 ];
+
+module.exports = definitions;

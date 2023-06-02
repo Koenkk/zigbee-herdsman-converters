@@ -1,8 +1,8 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['Windows switch  '],
         model: 'M415-6C',
@@ -22,3 +22,5 @@ module.exports = [
         exposes: [e.gas()],
     },
 ];
+
+module.exports = definitions;

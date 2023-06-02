@@ -1,7 +1,7 @@
-const reporting = require('../lib/reporting');
-const tuya = require('../lib/tuya');
+import reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_j0ktmul1']),
         model: 'AUT000069',
@@ -24,3 +24,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

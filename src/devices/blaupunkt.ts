@@ -1,11 +1,11 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['SCM-2_00.00.03.15', 'SCM-R_00.00.03.15TC', 'SCM_00.00.03.14TC', 'SCM_00.00.03.05TC'],
         model: 'SCM-S1',
@@ -25,3 +25,5 @@ module.exports = [
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
 ];
+
+module.exports = definitions;

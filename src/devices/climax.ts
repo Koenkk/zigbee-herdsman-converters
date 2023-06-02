@@ -1,12 +1,12 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['PSS_00.00.00.15TC'],
         model: 'PSS-23ZBS',
@@ -90,8 +90,8 @@ module.exports = [
             await endpoint.read('ssIasWd', ['maxDuration']);
         },
         exposes: [e.battery_low(), e.tamper(), e.warning(), e.squawk(),
-            exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
-            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual start of siren')],
+            e.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
+            e.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual start of siren')],
     },
     {
         zigbeeModel: ['WS15_00.00.00.14TC'],
@@ -136,3 +136,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

@@ -1,13 +1,14 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
-const herdsman = require('zigbee-herdsman');
+import {Zcl} from 'zigbee-herdsman';
 
-const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode._4_NOKS};
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode._4_NOKS};
 
 const bitron = {
     fz: {
@@ -15,7 +16,7 @@ const bitron = {
             cluster: 'hvacThermostat',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const result = {};
+                const result: KeyValueAny = {};
 
                 if (msg.data.hasOwnProperty('fourNoksHysteresisHigh')) {
                     if (!result.hasOwnProperty('hysteresis')) result.hysteresis = {};
@@ -29,13 +30,13 @@ const bitron = {
 
                 return result;
             },
-        },
+        } as fz.Converter,
     },
     tz: {
         thermostat_hysteresis: {
             key: ['hysteresis', 'hysteresis'],
-            convertSet: async (entity, key, value, meta) => {
-                const result = {state: {hysteresis: {}}};
+            convertSet: async (entity, key, value: KeyValueAny, meta) => {
+                const result: KeyValueAny = {state: {hysteresis: {}}};
                 if (value.hasOwnProperty('high')) {
                     await entity.write('hvacThermostat', {'fourNoksHysteresisHigh': value.high}, manufacturerOptions);
                     result.state.hysteresis.high = value.high;
@@ -51,11 +52,11 @@ const bitron = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('hvacThermostat', ['fourNoksHysteresisHigh', 'fourNoksHysteresisLow'], manufacturerOptions);
             },
-        },
+        } as tz.Converter,
     },
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['AV2010/14', '902010/14'],
         model: 'AV2010/14',
@@ -239,7 +240,7 @@ module.exports = [
         model: 'AV2010/32',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless wall thermostat with relay',
-        fromZigbee: [fz.legacy.thermostat_att_report, fz.battery, fz.hvac_user_interface, bitron.fz.thermostat_hysteresis],
+        fromZigbee: [legacy.fz.thermostat_att_report, fz.battery, fz.hvac_user_interface, bitron.fz.thermostat_hysteresis],
         toZigbee: [
             tz.thermostat_control_sequence_of_operation, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature_calibration,
@@ -248,7 +249,7 @@ module.exports = [
         ],
         exposes: (device, options) => {
             const dynExposes = [];
-            let ctrlSeqeOfOper = device ? device.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') : null;
+            let ctrlSeqeOfOper = (device?.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') ?? null) as number;
             const modes = [];
 
             // NOTE: ctrlSeqeOfOper defaults to 2 for this device (according to the manual)
@@ -263,12 +264,12 @@ module.exports = [
                 modes.push('cool');
             }
 
-            const hysteresisExposes = exposes.composite('hysteresis', 'hysteresis', ea.ALL)
-                .withFeature(exposes.numeric('low', ea.SET))
-                .withFeature(exposes.numeric('high', ea.SET))
+            const hysteresisExposes = e.composite('hysteresis', 'hysteresis', ea.ALL)
+                .withFeature(e.numeric('low', ea.SET))
+                .withFeature(e.numeric('high', ea.SET))
                 .withDescription('Set thermostat hysteresis low and high trigger values. (1 = 0.01ºC)');
 
-            dynExposes.push(exposes.climate()
+            dynExposes.push(e.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off'].concat(modes))
@@ -332,3 +333,5 @@ module.exports = [
         exposes: [e.water_leak(), e.battery_low()],
     },
 ];
+
+module.exports = definitions;

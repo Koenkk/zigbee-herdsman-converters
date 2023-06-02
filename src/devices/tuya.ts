@@ -496,7 +496,7 @@ const fzLocal = {
     } as fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['TS0204'],
         model: 'TS0204',
@@ -1615,6 +1615,7 @@ module.exports = [
         model: 'TS0505A_led',
         vendor: 'TuYa',
         description: 'RGB+CCT LED',
+        // @ts-expect-error
         toZigbee: [tz.on_off, tz.tuya_led_control],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
         exposes: [e.light_brightness_colortemp_colorhs([153, 500]).removeFeature('color_temp_startup')],
@@ -4881,4 +4882,6 @@ module.exports = [
             tuya.whitelabel('Marmitek', 'SM0202_1', 'Motion sensor', ['_TYZB01_yr95mpib']),
         ],
     },
-] as Definition[];
+];
+
+module.exports = definitions;

@@ -1,12 +1,12 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: [' Light switch with neutral\u0000\u0000\u0000\u0000\u0000'],
         model: 'K4003C/L4003C/N4003C/NT4003C',
@@ -16,10 +16,10 @@ module.exports = [
         toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn, tz.legrand_identify],
         exposes: [
             e.switch(), e.action(['identify', 'on', 'off']),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing ` +
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing ` +
                 `to see the switch in the dark`),
-            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
-            exposes.enum('identify', ea.SET, ['blink']).withDescription(`Blinks the built-in LED to make it easier to find the device`),
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
+            e.enum('identify', ea.SET, ['blink']).withDescription(`Blinks the built-in LED to make it easier to find the device`),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -37,15 +37,15 @@ module.exports = [
             tz.legrand_deviceMode, tz.legrand_identify, tz.ballast_config],
         exposes: [
             e.light_brightness(),
-            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
-            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum brightness value'),
-            exposes.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing ` +
+            e.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing ` +
                 `to see the switch in the dark`),
-            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
-            exposes.enum('identify', ea.SET, ['blink']).withDescription(`Blinks the built-in LED to make it easier to find the device`),
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
+            e.enum('identify', ea.SET, ['blink']).withDescription(`Blinks the built-in LED to make it easier to find the device`),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
@@ -71,9 +71,9 @@ module.exports = [
             tz.legrand_settingEnableLedInDark],
         exposes: [
             e.cover_position(), e.action(['moving', 'identify', '']),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing ` +
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing ` +
                 `to see the switch in the dark`),
-            exposes.enum('identify', ea.SET, ['blink']).withDescription(`Blinks the built-in LED to make it easier to find the device`),
+            e.enum('identify', ea.SET, ['blink']).withDescription(`Blinks the built-in LED to make it easier to find the device`),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -89,8 +89,8 @@ module.exports = [
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
-        exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
-            e.power().withAccess(ea.STATE_GET), exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
+        exposes: [e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
+            e.power().withAccess(ea.STATE_GET), e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -117,3 +117,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

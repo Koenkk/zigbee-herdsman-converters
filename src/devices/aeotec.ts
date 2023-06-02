@@ -1,6 +1,6 @@
 import fz from '../converters/fromZigbee';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['WG001-Z01'],
         model: 'WG001',
@@ -10,4 +10,6 @@ module.exports = [
         toZigbee: [],
         exposes: [],
     },
-] as Definition[];
+];
+
+module.exports = definitions;

@@ -1,7 +1,7 @@
 import reporting from '../lib/reporting';
 import extend from '../lib/extend';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['FB56-SKT17AC1.4'],
         model: '67200BL',
@@ -14,4 +14,6 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
-] as Definition[];
+];
+
+module.exports = definitions;

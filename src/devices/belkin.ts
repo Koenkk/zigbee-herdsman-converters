@@ -1,6 +1,6 @@
-const extend = require('../lib/extend');
+import extend from '../lib/extend';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['MZ100'],
         model: 'F7C033',
@@ -9,3 +9,5 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
 ];
+
+module.exports = definitions;

@@ -1,6 +1,6 @@
-const extend = require('../lib/extend');
+import extend from '../lib/extend';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['Zigbee CCT Downlight'],
         model: '53170161',
@@ -14,3 +14,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

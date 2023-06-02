@@ -1,7 +1,7 @@
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['Bouffalolab'],
         model: 'RMC002',
@@ -18,3 +18,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

@@ -1,6 +1,6 @@
 import extend from '../lib/extend';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['AL8TC13W-AP'],
         model: 'AL8TC13W-AP',
@@ -15,4 +15,6 @@ module.exports = [
         description: 'Downlight RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
-] as Definition[];
+];
+
+module.exports = definitions;

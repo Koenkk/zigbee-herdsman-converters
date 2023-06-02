@@ -64,7 +64,7 @@ const tzLocal = {
     } as tz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['Adapter Zigbee FUJITSU'],
         model: 'GW003-AS-IN-TE-FC',
@@ -112,4 +112,6 @@ module.exports = [
             await reporting.bind(endpoint232, coordinatorEndpoint, ['haDiagnostic']);
         },
     },
-] as Definition[];
+];
+
+module.exports = definitions;

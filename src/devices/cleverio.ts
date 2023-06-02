@@ -1,12 +1,12 @@
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const tuya = require('../lib/tuya');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS0219', manufacturerName: '_TZ3000_vdfwjopk'}],
         model: 'SA100',
@@ -14,8 +14,8 @@ module.exports = [
         description: 'Smart siren',
         fromZigbee: [fz.ts0216_siren, fz.ias_alarm_only_alarm_1, fz.power_source],
         toZigbee: [tz.warning, tz.ts0216_volume],
-        exposes: [e.warning(), exposes.binary('alarm', ea.STATE, true, false),
-            exposes.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren')],
+        exposes: [e.warning(), e.binary('alarm', ea.STATE, true, false),
+            e.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren')],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -34,3 +34,5 @@ module.exports = [
         configure: tuya.configureMagicPacket,
     },
 ];
+
+module.exports = definitions;

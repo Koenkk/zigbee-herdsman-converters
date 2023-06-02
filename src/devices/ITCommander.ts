@@ -3,7 +3,7 @@ import * as exposes from '../lib/exposes';
 const e = exposes.presets;
 import reporting from '../lib/reporting';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['ITCMDR_Contact'],
         model: 'ITCMDR_Contact',
@@ -34,4 +34,6 @@ module.exports = [
             });
         },
     },
-] as Definition[];
+];
+
+module.exports = definitions;

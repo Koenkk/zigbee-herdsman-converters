@@ -2,7 +2,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS1001', manufacturerName: '_TZ3000_ztrfrcsu'}],
         model: '141L100RC',
@@ -13,4 +13,6 @@ module.exports = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
         toZigbee: [],
     },
-] as Definition[];
+];
+
+module.exports = definitions;

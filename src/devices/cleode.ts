@@ -1,9 +1,9 @@
-const exposes = require('../lib/exposes');
-const reporting = require('../lib/reporting');
+import * as exposes from '../lib/exposes';
+import reporting from '../lib/reporting';
 const e = exposes.presets;
-const extend = require('../lib/extend');
+import extend from '../lib/extend';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['ZPLUG'],
         model: 'ZPLUG_Boost',
@@ -18,3 +18,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

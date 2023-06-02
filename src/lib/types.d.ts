@@ -29,6 +29,7 @@ declare global {
     type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum;
     interface Fingerprint {
         modelID?: string, manufacturerName?: string, type?: 'EndDevice' | 'Router', manufacturerID?: number, applicationVersion?: number,
+        powerSource?: 'Battery' | 'Mains (single phase)',
         endpoints?: {ID?: number, profileID?: number, deviceID?: number, inputClusters?: number[], outputClusters?: number[]}[],
     }
     type WhiteLabel =
@@ -56,6 +57,9 @@ declare global {
         turnsOffAtBrightness1?: boolean;
         tuyaThermostatPreset?: {[s: number]: string},
         tuyaThermostatSystemMode?: {[s: number]: string},
+        tuyaThermostatPresetToSystemMode?: {[s: number]: string},
+        supportsEnhancedHue?: boolean,
+        disableActionGroup?: boolean,
     }
 
     type Configure = (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => Promise<void>;
@@ -91,10 +95,12 @@ declare global {
 
     namespace fz {
         interface Message {
-            data: KeyValueAny, endpoint: zh.Endpoint, device: zh.Device, meta: {zclTransactionSequenceNumber: number}, groupID: number, type: string}
+            // eslint-disable-next-line
+            data: any, 
+            endpoint: zh.Endpoint, device: zh.Device, meta: {zclTransactionSequenceNumber: number}, groupID: number, type: string, cluster: string}
         interface Meta {state: KeyValue, logger: Logger, device: zh.Device}
         interface Converter {
-            cluster: string,
+            cluster: string | number,
             type: string[] | string,
             options?: Option[] | ((definition: Definition) => Option[]);
             convert: (model: Definition, msg: Message, publish: Publish, options: KeyValue, meta: fz.Meta) => KeyValueAny | void | Promise<void>;

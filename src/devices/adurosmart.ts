@@ -6,7 +6,7 @@ import reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['ADUROLIGHT_CSC'],
         model: '15090054',
@@ -128,4 +128,6 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true},
     },
-] as Definition[];
+];
+
+module.exports = definitions;

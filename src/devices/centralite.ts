@@ -1,12 +1,12 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const globalStore = require('../lib/store');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import globalStore from '../lib/store';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
-const constants = require('../lib/constants');
+import constants from '../lib/constants';
 
 const fzLocal = {
     thermostat_3156105: {
@@ -31,10 +31,10 @@ const fzLocal = {
             }
             return fz.thermostat.convert(model, msg, publish, options, meta);
         },
-    },
+    } as fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['4256251-RZHAC'],
         model: '4256251-RZHAC',
@@ -174,9 +174,9 @@ module.exports = [
         fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery, fz.ias_ace_occupancy_with_timeout],
         toZigbee: [tz.arm_mode],
         exposes: [e.battery(), e.temperature(), e.occupancy(),
-            exposes.numeric('action_code', ea.STATE).withDescription('Pin code introduced.'),
-            exposes.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
-            exposes.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 0'),
+            e.numeric('action_code', ea.STATE).withDescription('Pin code introduced.'),
+            e.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
+            e.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 0'),
             e.action([
                 'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -218,9 +218,9 @@ module.exports = [
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
             tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state, tz.thermostat_temperature_setpoint_hold],
         exposes: [e.battery(),
-            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
                 .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
                 .withSetpoint('occupied_cooling_setpoint', 7, 30, 1)
@@ -248,9 +248,9 @@ module.exports = [
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
             tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state, tz.thermostat_temperature_setpoint_hold],
         exposes: [e.battery(),
-            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
                 .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
                 .withSetpoint('occupied_cooling_setpoint', 7, 30, 1)],
@@ -357,3 +357,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

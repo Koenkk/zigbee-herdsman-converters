@@ -1,11 +1,12 @@
-const herdsman = require('zigbee-herdsman');
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const utils = require('../lib/utils');
-const constants = require('../lib/constants');
-const ota = require('../lib/ota');
+import herdsman from 'zigbee-herdsman';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import reporting from '../lib/reporting';
+import utils from '../lib/utils';
+import constants from '../lib/constants';
+import ota from '../lib/ota';
+import {assertEndpoint, assertNumber, assertString, getFromLookup} from '../lib/utils2';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -84,6 +85,7 @@ const tzLocal = {
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state') {
+                assertString(value, 'state');
                 const state = value.toLowerCase();
                 utils.validateValue(state, ['toggle', 'off', 'on', 'open', 'close', 'stop']);
                 if ( state === 'on' || state === 'off' || state === 'toggle') {
@@ -96,32 +98,32 @@ const tzLocal = {
                     }
                 } else if ( state === 'open' || state === 'close' || state === 'stop') {
                     const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
-                    value = value.toLowerCase();
-                    utils.validateValue(value, Object.keys(lookup));
-                    await entity.command('closuresWindowCovering', lookup[value], {}, utils.getOptions(meta.mapped, entity));
+                    await entity.command('closuresWindowCovering', getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
                 }
             }
             if (key === 'device_type') {
-                const index = stateDeviceType[value];
+                const index = getFromLookup(value, stateDeviceType);
                 await entity.write(0xFCA0, {0x0000: {value: index, type: 0x30}}, boschManufacturer);
                 return {state: {device_type: value}};
             }
             if (key === 'switch_type') {
-                const index = stateSwitchType[value];
+                const index = getFromLookup(value, stateSwitchType);
                 await entity.write(0xFCA0, {0x0001: {value: index, type: 0x30}}, boschManufacturer);
                 return {state: {switch_type: value}};
             }
             if (key === 'child_lock') {
-                const index = stateOffOn[value];
+                const index = getFromLookup(value, stateOffOn);
                 await entity.write(0xFCA0, {0x0008: {value: index, type: 0x10}}, boschManufacturer);
                 return {state: {child_lock: value}};
             }
             if (key === 'calibration_closing_time') {
+                assertNumber(value, 'calibration_closing_time');
                 const index = value *10;
                 await entity.write(0xFCA0, {0x0002: {value: index, type: 0x23}}, boschManufacturer);
                 return {state: {calibration_closing_time: value}};
             }
             if (key === 'calibration_opening_time') {
+                assertNumber(value, 'calibration_opening_time');
                 const index = value *10;
                 await entity.write(0xFCA0, {0x0003: {value: index, type: 0x23}}, boschManufacturer);
                 return {state: {calibration_opening_time: value}};
@@ -151,13 +153,12 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bcmt.convertGet ${key}`);
             }
         },
-    },
+    } as tz.Converter,
     bwa1: {
         key: ['alarm_on_motion', 'test'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'alarm_on_motion') {
-                value = value.toUpperCase();
-                const index = stateOffOn[value];
+                const index = getFromLookup(value, stateOffOn);
                 await entity.write(0xFCAC, {0x0003: {value: index, type: 0x10}}, boschManufacturer);
                 return {state: {alarm_on_motion: value}};
             }
@@ -171,26 +172,23 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
             }
         },
-    },
+    } as tz.Converter,
     bosch_thermostat: {
         key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'window_open') {
-                value = value.toUpperCase();
-                utils.validateValue(value, Object.keys(stateOffOn));
-                const index = stateOffOn[value];
+                const index = getFromLookup(value, stateOffOn);
                 await entity.write('hvacThermostat', {0x4042: {value: index, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {window_open: value}};
             }
             if (key === 'boost') {
-                value = value.toUpperCase();
-                utils.validateValue(value, Object.keys(stateOffOn));
-                const index = stateOffOn[value];
+                const index = getFromLookup(value, stateOffOn);
                 await entity.write('hvacThermostat', {0x4043: {value: index, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {boost: value}};
             }
             if (key === 'system_mode') {
                 // Map system_mode (Off/Auto/Heat) to Bosch operating mode
+                assertString(value, 'system_mode');
                 value = value.toLowerCase();
 
                 let opMode = operatingModes.manual; // OperatingMode 1 = Manual (Default)
@@ -210,7 +208,8 @@ const tzLocal = {
                 return {state: {pi_heating_demand: value}};
             }
             if (key === 'remote_temperature') {
-                const remoteTemperature = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+                assertNumber(value, 'remote_temperature');
+                const remoteTemperature = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
                 await entity.write('hvacThermostat',
                     {0x4040: {value: remoteTemperature, type: herdsman.Zcl.DataType.int16}}, boschManufacturer);
                 return {state: {remote_temperature: value}};
@@ -238,12 +237,12 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_thermostat.convertGet ${key}`);
             }
         },
-    },
+    } as tz.Converter,
     bosch_userInterface: {
         key: ['display_orientation', 'display_ontime', 'display_brightness', 'child_lock', 'displayed_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'display_orientation') {
-                const index = displayOrientation[value];
+                const index = getFromLookup(value, displayOrientation);
                 await entity.write('hvacUserInterfaceCfg', {0x400b: {value: index, type: herdsman.Zcl.DataType.uint8}}, boschManufacturer);
                 return {state: {display_orientation: value}};
             }
@@ -261,7 +260,7 @@ const tzLocal = {
                 return {state: {child_lock: value}};
             }
             if (key === 'displayed_temperature') {
-                const index = displayedTemperature[value];
+                const index = getFromLookup(value, displayedTemperature);
                 await entity.write('hvacUserInterfaceCfg', {0x4039: {value: index, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {displayed_temperature: value}};
             }
@@ -287,26 +286,23 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_userInterface.convertGet ${key}`);
             }
         },
-    },
+    } as tz.Converter,
     bosch_twinguard: {
         key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'sensitivity') {
-                value = value.toUpperCase();
-                const index = smokeSensitivity[value];
+                const index = getFromLookup(value, smokeSensitivity);
                 await entity.write('manuSpecificBosch', {0x4003: {value: index, type: 0x21}}, boschManufacturer);
                 return {state: {sensitivity: value}};
             }
             if (key === 'pre_alarm') {
-                value = value.toUpperCase();
-                const index = stateOffOn[value];
+                const index = getFromLookup(value, stateOffOn);
                 await entity.write('manuSpecificBosch5', {0x4001: {value: index, type: 0x18}}, boschManufacturer);
                 return {state: {pre_alarm: value}};
             }
             if (key === 'heartbeat') {
                 const endpoint = meta.device.getEndpoint(12);
-                value = value.toUpperCase();
-                const index = stateOffOn[value];
+                const index = getFromLookup(value, stateOffOn);
                 await endpoint.write('manuSpecificBosch7', {0x5005: {value: index, type: 0x18}}, boschManufacturer);
                 return {state: {heartbeat: value}};
             }
@@ -317,7 +313,8 @@ const tzLocal = {
             }
             if (key === 'alarm') {
                 const endpoint = meta.device.getEndpoint(12);
-                const index = sirenState[value];
+                const index = getFromLookup(value, sirenState);
+                assertEndpoint(entity);
                 if (index == 0) {
                     await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x16, clusterid: 0xe000}, {direction: 1});
                     await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x14, clusterid: 0xe000}, {direction: 1});
@@ -348,7 +345,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
             }
         },
-    },
+    } as tz.Converter,
 };
 
 
@@ -358,7 +355,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         options: [],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x0000)) {
                 result.device_type = (Object.keys(stateDeviceType)[msg.data[0x0000]]);
@@ -373,26 +370,26 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as fz.Converter,
     bwa1_alarm_on_motion: {
         cluster: '64684',
         type: ['attributeReport', 'readResponse'],
         options: [],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x0003)) {
                 result.alarm_on_motion = (Object.keys(stateOffOn)[msg.data[0x0003]]);
             }
             return result;
         },
-    },
+    } as fz.Converter,
     bosch_contact: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-            const lookup = {0: 'none', 1: 'single', 2: 'long'};
+            const lookup: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
             const result = {
                 contact: !((zoneStatus & 1) > 0),
                 battery_low: (zoneStatus & 1<<3) > 0,
@@ -401,7 +398,7 @@ const fzLocal = {
             if (result.action === 'none') delete result.action;
             return result;
         },
-    },
+    } as fz.Converter,
     bosch_ignore_dst: {
         cluster: 'genTime',
         type: 'read',
@@ -416,12 +413,12 @@ const fzLocal = {
                 await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
             }
         },
-    },
+    } as fz.Converter,
     bosch_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x4040)) {
                 result.remote_temperature = utils.precisionRound(data[0x4040], 2) / 100;
@@ -433,22 +430,23 @@ const fzLocal = {
                 result.boost = (Object.keys(stateOffOn)[data[0x4043]]);
             }
             if (data.hasOwnProperty(0x4007)) {
-                const opModes = {0: 'auto', 1: 'heat', 2: 'unknown_2', 3: 'unknown_3', 4: 'unknown_4', 5: 'off'};
+                const opModes: KeyValue = {0: 'auto', 1: 'heat', 2: 'unknown_2', 3: 'unknown_3', 4: 'unknown_4', 5: 'off'};
                 result.system_mode = opModes[data[0x4007]];
             }
             if (data.hasOwnProperty(0x4020)) {
-                result.pi_heating_demand = data[0x4020];
-                result.running_state = result.pi_heating_demand >= 10 ? 'heat' : 'idle';
+                const demand = data[0x4020] as number;
+                result.pi_heating_demand = demand;
+                result.running_state = demand >= 10 ? 'heat' : 'idle';
             }
 
             return result;
         },
-    },
+    } as fz.Converter,
     bosch_userInterface: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x400b)) {
                 result.display_orientation = (Object.keys(displayOrientation)[data[0x400b]]);
@@ -468,19 +466,19 @@ const fzLocal = {
 
             return result;
         },
-    },
+    } as fz.Converter,
     bosch_twinguard_sensitivity: {
         cluster: 'manuSpecificBosch',
         type: ['attributeReport', 'readResponse'],
         options: [],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty(0x4003)) {
                 result.sensitivity = (Object.keys(smokeSensitivity)[msg.data[0x4003]]);
             }
             return result;
         },
-    },
+    } as fz.Converter,
     bosch_twinguard_measurements: {
         cluster: 'manuSpecificBosch3',
         type: ['attributeReport', 'readResponse'],
@@ -488,7 +486,7 @@ const fzLocal = {
             exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
             exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty('humidity')) {
                 result.humidity = utils.calibrateAndPrecisionRoundOptions(msg.data['humidity'] / 100.0, options, 'humidity');
             }
@@ -507,38 +505,38 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as fz.Converter,
     bosch_twinguard_pre_alarm: {
         cluster: 'manuSpecificBosch5',
         type: ['attributeReport', 'readResponse'],
         options: [],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty('pre_alarm')) {
                 result.pre_alarm = (Object.keys(stateOffOn)[msg.data['pre_alarm']]);
             }
             return result;
         },
-    },
+    } as fz.Converter,
     bosch_twinguard_heartbeat: {
         cluster: 'manuSpecificBosch7',
         type: ['attributeReport', 'readResponse'],
         options: [],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty('heartbeat')) {
                 result.heartbeat = (Object.keys(stateOffOn)[msg.data['heartbeat']]);
             }
             return result;
         },
-    },
+    } as fz.Converter,
     bosch_twinguard_alarm_state: {
         cluster: 'manuSpecificBosch8',
         type: ['attributeReport', 'readResponse'],
         options: [],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            const lookup = {
+            const result: KeyValue = {};
+            const lookup: KeyValue = {
                 0x00200020: 'clear',
                 0x01200020: 'self_test',
                 0x02200020: 'burglar',
@@ -554,14 +552,14 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as fz.Converter,
     bosch_twinguard_smoke_alarm_state: {
         cluster: 'genAlarms',
         type: ['commandAlarm', 'readResponse'],
         options: [],
         convert: async (model, msg, publish, options, meta) => {
-            const result = {};
-            const lookup = {
+            const result: KeyValue = {};
+            const lookup: KeyValue = {
                 0x10: 'fire',
                 0x11: 'pre-alarm',
                 0x14: 'clear',
@@ -574,10 +572,10 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as fz.Converter,
 };
 
-const definition = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['RBSH-WS-ZB-EU'],
         model: 'BWA-1',
@@ -592,7 +590,7 @@ const definition = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
             await endpoint.configureReporting(0xFCAC, [{
-                attribute: {ID: 0x0003, type: herdsman.Zcl.DataType.bool},
+                attribute: {ID: 0x0003, type: herdsman.Zcl.DataType.boolean},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
@@ -600,7 +598,7 @@ const definition = [
         },
         exposes: [
             e.water_leak(), e.battery(), e.tamper(),
-            exposes.binary('alarm_on_motion', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable sound alarm on motion'),
+            e.binary('alarm_on_motion', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable sound alarm on motion'),
         ],
     },
     {
@@ -673,35 +671,35 @@ const definition = [
             tzLocal.bosch_userInterface,
         ],
         exposes: [
-            exposes.climate()
+            e.climate()
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withPiHeatingDemand(ea.ALL)
                 .withRunningState(['idle', 'heat'], ea.STATE),
-            exposes.binary('boost', ea.ALL, 'ON', 'OFF')
+            e.binary('boost', ea.ALL, 'ON', 'OFF')
                 .withDescription('Activate Boost heating'),
-            exposes.binary('window_open', ea.ALL, 'ON', 'OFF')
+            e.binary('window_open', ea.ALL, 'ON', 'OFF')
                 .withDescription('Window open'),
-            exposes.enum('display_orientation', ea.ALL, Object.keys(displayOrientation))
+            e.enum('display_orientation', ea.ALL, Object.keys(displayOrientation))
                 .withDescription('Display orientation'),
-            exposes.numeric('remote_temperature', ea.ALL)
+            e.numeric('remote_temperature', ea.ALL)
                 .withValueMin(0)
                 .withValueMax(30)
                 .withValueStep(0.1)
                 .withUnit('°C')
                 .withDescription('Input for remote temperature sensor. ' +
                     'Setting this will disable the internal temperature sensor until batteries are removed!'),
-            exposes.numeric('display_ontime', ea.ALL)
+            e.numeric('display_ontime', ea.ALL)
                 .withValueMin(5)
                 .withValueMax(30)
                 .withDescription('Specifies the diplay On-time'),
-            exposes.numeric('display_brightness', ea.ALL)
+            e.numeric('display_brightness', ea.ALL)
                 .withValueMin(0)
                 .withValueMax(10)
                 .withDescription('Specifies the brightness value of the display'),
-            exposes.enum('displayed_temperature', ea.ALL, Object.keys(displayedTemperature))
+            e.enum('displayed_temperature', ea.ALL, Object.keys(displayedTemperature))
                 .withDescription('Temperature displayed on the thermostat'),
             e.child_lock().setAccess('state', ea.ALL),
             e.battery(),
@@ -783,12 +781,12 @@ const definition = [
         },
         exposes: [
             e.smoke(), e.temperature(), e.humidity(), e.co2(), e.illuminance_lux(), e.battery(),
-            exposes.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
-            exposes.text('siren_state', ea.STATE).withDescription('Siren state'),
-            exposes.binary('self_test', ea.ALL, true, false).withDescription('Initiate self-test'),
-            exposes.enum('sensitivity', ea.ALL, Object.keys(smokeSensitivity)).withDescription('Sensitivity of the smoke alarm'),
-            exposes.enum('pre_alarm', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable pre-alarm'),
-            exposes.enum('heartbeat', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable heartbeat'),
+            e.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
+            e.text('siren_state', ea.STATE).withDescription('Siren state'),
+            e.binary('self_test', ea.ALL, true, false).withDescription('Initiate self-test'),
+            e.enum('sensitivity', ea.ALL, Object.keys(smokeSensitivity)).withDescription('Sensitivity of the smoke alarm'),
+            e.enum('pre_alarm', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable pre-alarm'),
+            e.enum('heartbeat', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable heartbeat'),
         ],
     },
     {
@@ -884,29 +882,29 @@ const definition = [
         },
         exposes: [
             // light
-            exposes.enum('device_type', ea.ALL, Object.keys(stateDeviceType))
+            e.enum('device_type', ea.ALL, Object.keys(stateDeviceType))
                 .withDescription('Device type: '),
-            exposes.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
+            e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
                 .withDescription('Module controlled by a rocker switch or a button'),
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
             e.power_on_behavior().withEndpoint('right'),
             e.power_on_behavior().withEndpoint('left'),
-            exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left')
+            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left')
                 .withDescription('Enable/Disable child lock'),
-            exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
+            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
                 .withDescription('Enable/Disable child lock'),
             // cover
             e.cover_position().setAccess('state', ea.ALL),
-            exposes.enum('motor_state', ea.STATE, Object.keys(stateMotor))
+            e.enum('motor_state', ea.STATE, Object.keys(stateMotor))
                 .withDescription('Shutter motor actual state '),
-            exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
-            exposes.numeric('calibration_closing_time', ea.ALL).withUnit('S')
+            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
+            e.numeric('calibration_closing_time', ea.ALL).withUnit('S')
                 .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
-            exposes.numeric('calibration_opening_time', ea.ALL).withUnit('S')
+            e.numeric('calibration_opening_time', ea.ALL).withUnit('S')
                 .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
         ],
     },
 ];
 
-module.exports = definition;
+module.exports = definitions;

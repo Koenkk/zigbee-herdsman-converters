@@ -1,6 +1,6 @@
 import extend from '../lib/extend';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['ABL-LIGHT-Z-001'],
         model: 'WF4C_WF6C',
@@ -8,4 +8,6 @@ module.exports = [
         description: 'Juno 4" and 6" LED smart wafer downlight',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 370], disableColorTempStartup: true}),
     },
-] as Definition[];
+];
+
+module.exports = definitions;

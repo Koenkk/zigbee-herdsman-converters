@@ -3,7 +3,7 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_acv1iuslxi3shaaj'}],
         model: 'ZXZIR-02',
@@ -18,4 +18,6 @@ module.exports = [
         ],
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
     },
-] as Definition[];
+];
+
+module.exports = definitions;

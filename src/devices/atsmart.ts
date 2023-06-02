@@ -3,7 +3,7 @@ import reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['Z601', 'Z602', 'Z603', 'Z604'],
         model: 'Z6',
@@ -25,4 +25,6 @@ module.exports = [
             }
         },
     },
-] as Definition[];
+];
+
+module.exports = definitions;

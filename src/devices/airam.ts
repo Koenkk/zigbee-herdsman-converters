@@ -6,7 +6,7 @@ import reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['ZBT-DimmableLight'],
         model: '4713407',
@@ -57,4 +57,6 @@ module.exports = [
         description: 'GU10 spot 4.8W 2700K 385lm',
         extend: extend.light_onoff_brightness(),
     },
-] as Definition[];
+];
+
+module.exports = definitions;

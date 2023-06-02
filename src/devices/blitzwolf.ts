@@ -1,17 +1,17 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['5j6ifxj', '5j6ifxj\u0000'],
         model: 'BW-IS3',
         vendor: 'BlitzWolf',
         description: 'Rechargeable Zigbee PIR motion sensor',
-        fromZigbee: [fz.legacy.blitzwolf_occupancy_with_timeout],
+        fromZigbee: [legacy.fz.blitzwolf_occupancy_with_timeout],
         toZigbee: [],
         exposes: [e.occupancy()],
     },
@@ -45,3 +45,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

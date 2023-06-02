@@ -1,12 +1,13 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const globalStore = require('../lib/store');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import globalStore from '../lib/store';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['PU01'],
         model: '6717-84',
@@ -110,8 +111,8 @@ module.exports = [
                 await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
             }
         },
-        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.legacy.RM01_on_click, fz.legacy.RM01_off_click,
-            fz.legacy.RM01_up_hold, fz.legacy.RM01_down_hold, fz.legacy.RM01_stop],
+        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, legacy.fz.RM01_on_click, legacy.fz.RM01_off_click,
+            legacy.fz.RM01_up_hold, legacy.fz.RM01_down_hold, legacy.fz.RM01_stop],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
         onEvent: async (type, data, device) => {
             const switchEndpoint = device.getEndpoint(0x12);
@@ -138,3 +139,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

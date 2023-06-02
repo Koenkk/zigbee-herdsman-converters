@@ -1,6 +1,6 @@
-const extend = require('../lib/extend');
+import extend from '../lib/extend';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [
             {type: 'Router', manufacturerName: 'BEGA Gantenbrink-Leuchten KG', modelID: '', endpoints: [
@@ -20,3 +20,5 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556]}),
     },
 ];
+
+module.exports = definitions;
