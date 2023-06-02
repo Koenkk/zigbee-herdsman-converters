@@ -3,7 +3,7 @@ export function assertString(value: unknown, property: string): asserts value is
 }
 
 export function assertNumber(value: unknown, property: string): asserts value is number {
-    if (typeof value === 'number') throw new Error(`'${property}' is not a number, got ${typeof value} (${value.toString()})`);
+    if (typeof value !== 'number') throw new Error(`'${property}' is not a number, got ${typeof value} (${value.toString()})`);
 }
 
 export function getFromLookup<V>(value: unknown, lookup: {[s: string | number]: V}): V {
