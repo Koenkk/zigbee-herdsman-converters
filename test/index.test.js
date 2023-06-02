@@ -1,5 +1,6 @@
 const index = require('../index');
 const exposes = require('../lib/exposes');
+const utils2 = require('../lib/utils2');
 const tuya = require('../lib/tuya');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
@@ -556,6 +557,13 @@ describe('index.js', () => {
         const TS0601_soil = index.definitions.find((d) => d.model == 'TS0601_soil');
         expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(
             ['temperature_precision', 'temperature_calibration']);
+    });
+
+    it('Check getFromLookup', () => {
+        expect(utils2.getFromLookup('OFF', {'off': 0, 'on': 1, 'previous': 2})).toStrictEqual(0);
+        expect(utils2.getFromLookup('On', {'off': 0, 'on': 1, 'previous': 2})).toStrictEqual(1);
+        expect(utils2.getFromLookup('previous', {'OFF': 0, 'ON': 1, 'PREVIOUS': 2})).toStrictEqual(2);
+        expect(utils2.getFromLookup(1, {0: 'OFF', 1: 'on'})).toStrictEqual('on');
     });
 
     it('List expose number', () => {

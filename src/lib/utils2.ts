@@ -6,10 +6,14 @@ export function assertNumber(value: unknown, property: string): asserts value is
     if (typeof value !== 'number') throw new Error(`'${property}' is not a number, got ${typeof value} (${value.toString()})`);
 }
 
-export function getFromLookup<V>(value: unknown, lookup: {[s: string | number]: V}): V {
-    assertString(value, `Expected string got: '${value}' (${typeof(value)})`);
-    const result = lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
-    if (!result) throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
+export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}): V {
+    let result = undefined;
+    if (typeof value === 'string') {
+        result = lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
+    } else if (typeof value === 'number') {
+        result = lookup[value];
+    }
+    if (result === undefined) throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
     return result;
 }
 
