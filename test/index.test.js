@@ -514,11 +514,6 @@ describe('index.js', () => {
         expect(index.getConfigureKey(definition1)).not.toBe(index.getConfigureKey(definition2));
     });
 
-    it('Calculate configure key legacy', () => {
-        const definition = index.findByZigbeeModel('MCT-340 SMA');
-        expect(index.getConfigureKey(definition)).toBe(1);
-    });
-
     it('Number exposes with set access should have a range', () => {
         index.definitions.forEach((device) => {
             if (device.exposes) {

@@ -41,7 +41,7 @@ for (const file of fs.readdirSync('./src/devices').sort()) {
 
         cnt++;
 
-        if (cnt == 10) {
+        if (cnt == 1000) {
             break;
         }
     }

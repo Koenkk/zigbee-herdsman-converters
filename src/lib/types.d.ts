@@ -29,7 +29,7 @@ declare global {
     type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum;
     interface Fingerprint {
         modelID?: string, manufacturerName?: string, type?: 'EndDevice' | 'Router', manufacturerID?: number, applicationVersion?: number,
-        powerSource?: 'Battery' | 'Mains (single phase)',
+        powerSource?: 'Battery' | 'Mains (single phase)', softwareBuildID?: string, ieeeAddr?: RegExp,
         endpoints?: {ID?: number, profileID?: number, deviceID?: number, inputClusters?: number[], outputClusters?: number[]}[],
     }
     type WhiteLabel =
@@ -43,16 +43,19 @@ declare global {
         publishDuplicateTransaction?: boolean,
         tuyaDatapoints?: tuya.MetaTuyaDataPoints,
         disableDefaultResponse?: boolean,
+        pinCodeCount?: number,
         coverInverted?: boolean,
         timeout?: number,
         multiEndpointSkip?: string[],
         tuyaSendCommand?: 'sendData' | 'dataRequest',
+        coverStateFromTilt?: boolean,
         thermostat?: {
-            weeklyScheduleMaxTransitions: number,
-            weeklyScheduleSupportedModes: number[],
-            weeklyScheduleFirstDayDpId: number,
+            weeklyScheduleMaxTransitions?: number,
+            weeklyScheduleSupportedModes?: number[],
+            weeklyScheduleFirstDayDpId?: number,
+            dontMapPIHeatingDemand?: boolean
         },
-        battery?: {voltageToPercentage?: string},
+        battery?: {voltageToPercentage?: string, dontDividePercentage?: boolean},
         applyRedFix?: boolean,
         turnsOffAtBrightness1?: boolean;
         tuyaThermostatPreset?: {[s: number]: string},

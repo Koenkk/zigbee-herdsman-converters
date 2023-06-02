@@ -134,7 +134,7 @@ const extend = {
             toZigbee.push(tz.power_on_behavior);
         }
 
-        const result = {exposes, fromZigbee, toZigbee, meta};
+        const result = {exposes, fromZigbee, toZigbee, meta, configure: undefined};
         if (!options.noConfigure) {
             result.configure = async (device, coordinatorEndpoint, logger) => {
                 await light.configure(device, coordinatorEndpoint, logger, true);

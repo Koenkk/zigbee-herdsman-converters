@@ -410,9 +410,9 @@ export const valueConverter = {
         from: (v: number) => v + 1,
         to: (v: number) => v - 1,
     },
-    static: (value: number) => {
+    static: (value: string | number) => {
         return {
-            from: (v: number) => {
+            from: (v: string | number) => {
                 return value;
             },
         };
@@ -1087,7 +1087,8 @@ const tuyaExtend = {
     },
     light_onoff_brightness: (options:{
         endpoints?: string[], disablePowerOnBehavior?: boolean, minBrightness?: boolean,
-        toZigbee?:tz.Converter[], exposes?: Expose[], noConfigure?: boolean,
+        toZigbee?:tz.Converter[], exposes?: Expose[], noConfigure?: boolean, disableMoveStep?: boolean,
+        disableTransition?: boolean,
     }={}) => {
         options = {
             disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb], exposes: [tuyaExposes.doNotDisturb()],
