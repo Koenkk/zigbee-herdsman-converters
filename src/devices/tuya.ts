@@ -2095,6 +2095,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_n1aauwb4'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xu4a5rhj'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_r0jdjrvi'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nw1r9hp6'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'TuYa',
@@ -2116,7 +2117,7 @@ const definitions: Definition[] = [
             {vendor: 'A-OK', model: 'AM25', description: 'Tubular motor'},
             {vendor: 'Alutech', model: 'AM/R-Sm', description: 'Tubular motor'},
             tuya.whitelabel('Shenzhen Golden Security Technology', 'GM46', 'Curtain motor', ['_TZE204_guvc7pdy']),
-            tuya.whitelabel('Zemismart', 'ZM85EL-2Z', 'Roman Rod I type U curtains track', ['_TZE200_cf1sl3tj']),
+            tuya.whitelabel('Zemismart', 'ZM85EL-2Z', 'Roman Rod I type U curtains track', ['_TZE200_cf1sl3tj', '_TZE200_nw1r9hp6']),
         ],
         fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.tuya_cover_control, legacy.toZigbee.tuya_cover_options],
@@ -4812,7 +4813,7 @@ const definitions: Definition[] = [
 
     // TS011F
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_8fdayfch', '_TZ3000_1hwjutgo', '_TZ3000_lnggrqqi', '_TZ3000_tvuarksa']),
+        fingerprint: tuya.fingerprint('TS01FF', ['_TZ3000_8fdayfch', '_TZ3000_1hwjutgo', '_TZ3000_lnggrqqi', '_TZ3000_tvuarksa']),
         model: 'TS011F_1',
         vendor: 'TuYa',
         description: 'Switch',
@@ -4824,7 +4825,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_rqbjepe8']),
+        fingerprint: tuya.fingerprint('TS01FF', ['_TZ3000_rqbjepe8']),
         model: 'TS011F_4',
         description: '2 gang plug',
         vendor: 'TuYa',
