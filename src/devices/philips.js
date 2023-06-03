@@ -403,6 +403,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003128701'],
+        model: '929003128701',
+        vendor: 'Philips',
+        description: 'Hue Go portable table lamp',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['7602031K6'],
         model: '7602031K6',
         vendor: 'Philips',
