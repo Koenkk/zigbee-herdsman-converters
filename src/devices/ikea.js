@@ -931,7 +931,7 @@ module.exports = [
         model: 'E2103',
         vendor: 'IKEA',
         description: 'TREDANSEN cellular blind',
-        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        fromZigbee: [fz.cover_position_tilt, ikea.fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
