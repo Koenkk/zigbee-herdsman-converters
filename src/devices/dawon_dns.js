@@ -335,4 +335,24 @@ module.exports = [
         },
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET)],
     },
+    {
+        zigbeeModel: ['ZB30C2'],
+        model: 'TH-110-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IoT SMART Temperature and Humidity Sensor',
+        fromZigbee: [fz.humidity, fz.temperature, fz.battery],
+        toZigbee: [],
+        meta: {battery: {dontDividePercentage: true}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await endpoint.read('msTemperatureMeasurement', ['measuredValue']);
+            await reporting.humidity(endpoint);
+            await endpoint.read('msRelativeHumidity', ['measuredValue']);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint, {min: 30, max: 21600, change: 1});
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+    },
 ];
