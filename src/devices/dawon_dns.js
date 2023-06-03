@@ -339,7 +339,7 @@ module.exports = [
         zigbeeModel: ['ZB30C2'],
         model: 'TH-110-ZB',
         vendor: 'Dawon DNS',
-        description: 'IoT SMART Temperature and Humidity Sensor',
+        description: 'IoT SMART temperature and humidity sensor',
         fromZigbee: [fz.humidity, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
