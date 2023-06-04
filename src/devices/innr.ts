@@ -59,7 +59,7 @@ const definitions: Definition[] = [
         model: 'FL 130 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
