@@ -891,6 +891,14 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
+
+            // NOTE: Firmware 24.4.11 introduce genPollCtrl
+            //       after OTA update the checkinInterval is 4 which spams the network a lot
+            //       removing + factory resetting has it set to 172800, we set the same value here
+            //       so people do not need to update.
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 24) {
+                await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
+            }
         },
         exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
@@ -907,6 +915,14 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
+
+            // NOTE: Firmware 24.4.11 introduce genPollCtrl
+            //       after OTA update the checkinInterval is 4 which spams the network a lot
+            //       removing + factory resetting has it set to 172800, we set the same value here
+            //       so people do not need to update.
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 24) {
+                await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
+            }
         },
         exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
@@ -923,6 +939,14 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
+
+            // NOTE: Firmware 24.4.11 introduce genPollCtrl
+            //       after OTA update the checkinInterval is 4 which spams the network a lot
+            //       removing + factory resetting has it set to 172800, we set the same value here
+            //       so people do not need to update.
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 24) {
+                await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
+            }
         },
         exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
@@ -940,6 +964,14 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
+
+            // NOTE: Firmware 24.4.11 introduce genPollCtrl
+            //       after OTA update the checkinInterval is 4 which spams the network a lot
+            //       removing + factory resetting has it set to 172800, we set the same value here
+            //       so people do not need to update.
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 24) {
+                await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
+            }
         },
         exposes: [e.cover_position(), e.battery()],
     },
