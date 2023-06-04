@@ -2357,13 +2357,13 @@ const converters = {
             if (hasAlreadyProcessedMessage(msg, model, msg.data[1])) return;
             const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
             let buttonMapping = null;
-            if (msg.device.modelID === 'TS0042') {
+            if (meta.device.modelID === 'TS0042') {
                 buttonMapping = {1: '1', 2: '2'};
-            } else if (msg.device.modelID === 'TS0043') {
+            } else if (meta.device.modelID === 'TS0043') {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
-            } else if (['TS0044', 'TS004F'].includes(msg.device.modelID)) {
+            } else if (['TS0044', 'TS004F'].includes(meta.device.modelID)) {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
-            } else if (['TS0046'].includes(msg.device.modelID)) {
+            } else if (['TS0046'].includes(meta.device.modelID)) {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
