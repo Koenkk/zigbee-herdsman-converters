@@ -1095,11 +1095,11 @@ const tuyaExtend = {
             minBrightness: false, ...options,
         };
         const result = extend.light_onoff_brightness(options);
-        result.exposes = options.endpoints ? options.endpoints.map((ee) => e.light_brightness()) : [e.light_brightness()];
+        const exposes_ = options.endpoints ? options.endpoints.map((ee) => e.light_brightness()) : [e.light_brightness()];
         if (options.minBrightness) {
             result.fromZigbee.push(tuyaFz.min_brightness);
             result.toZigbee.push(tuyaTz.min_brightness);
-            result.exposes = result.exposes.map((e) => e.withMinBrightness());
+            result.exposes = exposes_.map((e) => e.withMinBrightness());
         }
         if (options.endpoints) {
             result.exposes = result.exposes.map((e, i) => e.withEndpoint(options.endpoints[i]));

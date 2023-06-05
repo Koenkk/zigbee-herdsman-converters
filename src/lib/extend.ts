@@ -1,11 +1,11 @@
-const exposes = require('./exposes');
+import * as exposes from './exposes';
+import tz from '../converters/toZigbee';
+import fz from '../converters/fromZigbee';
+import light from './light';
 const e = exposes.presets;
-const fz = {...require('../converters/fromZigbee'), legacy: require('./legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const light = require('./light');
 
 const extend = {
-    switch: (options={}) => {
+    switch: (options: extend.options_switch={}): Extend => {
         options = {disablePowerOnBehavior: false, toZigbee: [], fromZigbee: [], exposes: [], ...options};
         const exposes = [e.switch(), ...options.exposes];
         const fromZigbee = [fz.on_off, fz.ignore_basic_report, ...options.fromZigbee];
@@ -17,7 +17,7 @@ const extend = {
         }
         return {exposes, fromZigbee, toZigbee};
     },
-    light_onoff_brightness: (options={}) => {
+    light_onoff_brightness: (options: extend.options_light_onoff_brightness={}): Extend => {
         options = {
             disableEffect: false, disablePowerOnBehavior: false, disableMoveStep: false, disableTransition: false,
             toZigbee: [], fromZigbee: [], exposes: [], ...options,
@@ -35,7 +35,7 @@ const extend = {
             toZigbee.push(tz.power_on_behavior);
         }
 
-        const result = {exposes, fromZigbee, toZigbee, configure: undefined};
+        const result: Extend = {exposes, fromZigbee, toZigbee};
         if (!options.noConfigure) {
             result.configure = async (device, coordinatorEndpoint, logger) => {
                 await light.configure(device, coordinatorEndpoint, logger, true);
@@ -44,7 +44,7 @@ const extend = {
 
         return result;
     },
-    light_onoff_brightness_colortemp: (options={}) => {
+    light_onoff_brightness_colortemp: (options: extend.options_light_onoff_brightness_colortemp={}) => {
         options = {
             disableEffect: false, disableColorTempStartup: false, disablePowerOnBehavior: false,
             toZigbee: [], fromZigbee: [], exposes: [], ...options,
@@ -68,7 +68,7 @@ const extend = {
             toZigbee.push(tz.power_on_behavior);
         }
 
-        const result = {exposes, fromZigbee, toZigbee, configure: undefined};
+        const result: Extend = {exposes, fromZigbee, toZigbee};
         if (!options.noConfigure) {
             result.configure = async (device, coordinatorEndpoint, logger) => {
                 await light.configure(device, coordinatorEndpoint, logger, true);
@@ -77,7 +77,7 @@ const extend = {
 
         return result;
     },
-    light_onoff_brightness_color: (options={}) => {
+    light_onoff_brightness_color: (options: extend.options_light_onoff_brightness_color={}) => {
         options = {
             disableEffect: false, supportsHueAndSaturation: false, preferHueAndSaturation: false, disablePowerOnBehavior: false,
             toZigbee: [], fromZigbee: [], exposes: [], ...options,
@@ -96,7 +96,7 @@ const extend = {
             toZigbee.push(tz.power_on_behavior);
         }
 
-        const result = {exposes, fromZigbee, toZigbee, meta};
+        const result: Extend = {exposes, fromZigbee, toZigbee, meta};
         if (!options.noConfigure) {
             result.configure = async (device, coordinatorEndpoint, logger) => {
                 await light.configure(device, coordinatorEndpoint, logger, false);
@@ -105,7 +105,7 @@ const extend = {
 
         return result;
     },
-    light_onoff_brightness_colortemp_color: (options={}) => {
+    light_onoff_brightness_colortemp_color: (options: extend.options_light_onoff_brightness_colortemp_color={}) => {
         options = {
             disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
             disablePowerOnBehavior: false, toZigbee: [], fromZigbee: [], exposes: [], ...options,
@@ -134,7 +134,7 @@ const extend = {
             toZigbee.push(tz.power_on_behavior);
         }
 
-        const result = {exposes, fromZigbee, toZigbee, meta, configure: undefined};
+        const result: Extend = {exposes, fromZigbee, toZigbee, meta};
         if (!options.noConfigure) {
             result.configure = async (device, coordinatorEndpoint, logger) => {
                 await light.configure(device, coordinatorEndpoint, logger, true);
@@ -144,39 +144,6 @@ const extend = {
         return result;
     },
 };
-{
-    extend.ledvance = {
-        light_onoff_brightness: (options={}) => {
-            options = {disablePowerOnBehavior: true, ...options};
-            return {
-                ...extend.light_onoff_brightness(options),
-                toZigbee: extend.light_onoff_brightness(options).toZigbee.concat([tz.ledvance_commands]),
-            };
-        },
-        light_onoff_brightness_colortemp: (options={}) => {
-            options = {disablePowerOnBehavior: true, ...options};
-            return {
-                ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, ...options}),
-                toZigbee: extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, ...options})
-                    .toZigbee.concat([tz.ledvance_commands]),
-            };
-        },
-        light_onoff_brightness_color: (options={}) => {
-            options = {disablePowerOnBehavior: true, ...options};
-            return {
-                ...extend.light_onoff_brightness_color({supportsHueAndSaturation: true, ...options}),
-                toZigbee: extend.light_onoff_brightness_color({supportsHueAndSaturation: true, ...options}).toZigbee.concat([tz.ledvance_commands]),
-            };
-        },
-        light_onoff_brightness_colortemp_color: (options={}) => {
-            options = {disablePowerOnBehavior: true, ...options};
-            return {
-                ...extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, disableColorTempStartup: true, ...options}),
-                toZigbee: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, disableColorTempStartup: true, ...options})
-                    .toZigbee.concat([tz.ledvance_commands]),
-            };
-        },
-    };
-}
 
+export default extend;
 module.exports = extend;

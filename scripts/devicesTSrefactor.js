@@ -1,8 +1,7 @@
 const fs = require('fs');
 
-let cnt = 0;
 for (const file of fs.readdirSync('./src/devices').sort()) {
-    if (file.endsWith('.js')) {
+    if (file.endsWith('sylvania.js')) {
         const f = `./src/devices/${file}`;
         const newContent = [];
         const lines = fs.readFileSync(f, 'utf-8').trim().split('\n');
@@ -37,12 +36,6 @@ for (const file of fs.readdirSync('./src/devices').sort()) {
         const del = true;
         if (del) {
             fs.rmSync(f);
-        }
-
-        cnt++;
-
-        if (cnt == 1000) {
-            break;
         }
     }
 }

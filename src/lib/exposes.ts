@@ -4,7 +4,6 @@
 import assert from 'assert';
 
 type Feature = Numeric | Binary | Enum | Composite | List | Text;
-type Range = [number, number];
 
 export class Base {
     name: string;

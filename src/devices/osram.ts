@@ -1,9 +1,11 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const ota = require('../lib/ota');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
-const utils = require('../lib/utils');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import ota from '../lib/ota';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import utils from '../lib/utils';
+import * as ledvance from '../lib/ledvance';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -12,22 +14,22 @@ const fzLocal = {
         type: ['commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop', 'commandMoveToLevelWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-            const lookup = {
+            const lookup: KeyValue = {
                 commandMoveWithOnOff: 'hold', commandMove: 'hold', commandStopWithOnOff: 'release',
                 commandStop: 'release', commandMoveToLevelWithOnOff: 'toggle',
             };
             return {[utils.postfixWithEndpointName('action', msg, model, meta)]: lookup[msg.type]};
         },
-    },
+    } as fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['Gardenspot RGB'],
         model: '73699',
         vendor: 'OSRAM',
         description: ' Gardenspot LED mini RGB',
-        extend: extend.ledvance.light_onoff_brightness_color(),
+        extend: ledvance.extend.light_onoff_brightness_color(),
         ota: ota.ledvance,
     },
     {
@@ -35,7 +37,7 @@ module.exports = [
         model: '4058075816718',
         vendor: 'OSRAM',
         description: 'SMART+ outdoor wall lantern RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color(),
         ota: ota.ledvance,
     },
     {
@@ -43,7 +45,7 @@ module.exports = [
         model: '4058075816732',
         vendor: 'OSRAM',
         description: 'SMART+ outdoor lantern RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color(),
         ota: ota.ledvance,
     },
     {
@@ -51,7 +53,7 @@ module.exports = [
         model: '73741_LIGHTIFY',
         vendor: 'OSRAM',
         description: 'LIGHTIFY RT5/6 LED',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color(),
         ota: ota.ledvance,
     },
     {
@@ -59,7 +61,7 @@ module.exports = [
         model: 'AA69697',
         vendor: 'OSRAM',
         description: 'Classic A60 RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color(),
         ota: ota.ledvance,
     },
     {
@@ -67,7 +69,7 @@ module.exports = [
         model: 'AC25704',
         vendor: 'LEDVANCE',
         description: 'Classic E14 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp(),
         ota: ota.ledvance,
     },
     {
@@ -75,7 +77,7 @@ module.exports = [
         model: 'AC10787',
         vendor: 'OSRAM',
         description: 'SMART+ classic E27 TW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -83,7 +85,7 @@ module.exports = [
         model: 'AC25702',
         vendor: 'LEDVANCE',
         description: 'Classic E27 Tunable White',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp(),
         ota: ota.ledvance,
     },
     {
@@ -91,7 +93,7 @@ module.exports = [
         model: 'AC03645',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED CLA60 E27 RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
         ota: ota.ledvance,
     },
     {
@@ -99,7 +101,7 @@ module.exports = [
         model: 'AC03642',
         vendor: 'OSRAM',
         description: 'SMART+ CLASSIC A 60 TW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -107,7 +109,7 @@ module.exports = [
         model: 'AC08560-DIM',
         vendor: 'OSRAM',
         description: 'SMART+ LED PAR16 GU10',
-        extend: extend.ledvance.light_onoff_brightness(),
+        extend: ledvance.extend.light_onoff_brightness(),
         ota: ota.ledvance,
     },
     {
@@ -115,7 +117,7 @@ module.exports = [
         model: 'AC10786-DIM',
         vendor: 'OSRAM',
         description: 'SMART+ classic E27 dimmable',
-        extend: extend.ledvance.light_onoff_brightness(),
+        extend: ledvance.extend.light_onoff_brightness(),
         ota: ota.ledvance,
     },
     {
@@ -123,7 +125,7 @@ module.exports = [
         model: 'AC03647',
         vendor: 'OSRAM',
         description: 'SMART+ LED CLASSIC E27 RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
         ota: ota.ledvance,
         exposes: [e.light_brightness_colortemp_colorhs([153, 526]).removeFeature('color_temp_startup'), e.effect()],
     },
@@ -132,7 +134,7 @@ module.exports = [
         model: 'AC16381',
         vendor: 'OSRAM',
         description: 'SMART+ LED CLASSIC E27 RGBW V2',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color(),
         ota: ota.ledvance,
     },
     {
@@ -141,7 +143,7 @@ module.exports = [
         model: 'AA70155',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED A19 tunable white / Classic A60 TW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -149,7 +151,7 @@ module.exports = [
         model: 'AA68199',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED PAR16 50 GU10 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -157,7 +159,7 @@ module.exports = [
         model: '4058075148338',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED PAR16 50 GU10 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -165,7 +167,7 @@ module.exports = [
         model: 'AB32840',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED Classic B40 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [150, 370]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp({colorTempRange: [150, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -173,7 +175,7 @@ module.exports = [
         model: '4058075816794',
         vendor: 'OSRAM',
         description: 'Smart+ Ceiling TW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp(),
         ota: ota.ledvance,
     },
     {
@@ -181,7 +183,7 @@ module.exports = [
         model: 'AC03641',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED Classic A60 clear',
-        extend: extend.ledvance.light_onoff_brightness(),
+        extend: ledvance.extend.light_onoff_brightness(),
         ota: ota.ledvance,
     },
     {
@@ -189,7 +191,7 @@ module.exports = [
         model: '4052899926158',
         vendor: 'OSRAM',
         description: 'LIGHTIFY Surface Light TW',
-        extend: extend.ledvance.light_onoff_brightness(),
+        extend: ledvance.extend.light_onoff_brightness(),
         ota: ota.ledvance,
     },
     {
@@ -197,7 +199,7 @@ module.exports = [
         model: 'AB401130055',
         vendor: 'OSRAM',
         description: 'LIGHTIFY Surface Light LED Tunable White',
-        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -219,7 +221,7 @@ module.exports = [
         model: '73889',
         vendor: 'OSRAM',
         description: 'Smart home soft white PAR38 outdoor bulb',
-        extend: extend.ledvance.light_onoff_brightness(),
+        extend: ledvance.extend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['Plug Z3'],
@@ -243,7 +245,7 @@ module.exports = [
         model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [125, 666], supportsHueAndSaturation: true}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color({colorTempRange: [125, 666], supportsHueAndSaturation: true}),
         ota: ota.ledvance,
     },
     {
@@ -251,7 +253,7 @@ module.exports = [
         model: '4058075036185',
         vendor: 'OSRAM',
         description: 'Outdoor Flex RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color(),
         ota: ota.ledvance,
     },
     {
@@ -259,7 +261,7 @@ module.exports = [
         model: '4058075036147',
         vendor: 'OSRAM',
         description: 'Smart+ gardenpole 8.7W RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color(),
         ota: ota.ledvance,
     },
     {
@@ -267,7 +269,7 @@ module.exports = [
         model: '4058075047853',
         vendor: 'OSRAM',
         description: 'Smart+ gardenpole 4W RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, preferHueAndSaturation: true}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, preferHueAndSaturation: true}),
         meta: {disableDefaultResponse: true},
         ota: ota.ledvance,
     },
@@ -276,7 +278,7 @@ module.exports = [
         model: 'AC0363900NJ',
         vendor: 'OSRAM',
         description: 'Smart+ mini gardenpole RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
         exposes: [e.light_brightness_colortemp_colorhs([153, 370]).removeFeature('color_temp_startup'), e.effect()],
         ota: ota.ledvance,
     },
@@ -285,7 +287,7 @@ module.exports = [
         model: '4052899926127',
         vendor: 'OSRAM',
         description: 'Lightify mini gardenspot WT',
-        extend: extend.ledvance.light_onoff_brightness(),
+        extend: ledvance.extend.light_onoff_brightness(),
         ota: ota.ledvance,
     },
     {
@@ -293,7 +295,7 @@ module.exports = [
         model: 'AB35996',
         vendor: 'OSRAM',
         description: 'Smart+ Spot GU10 Multicolor',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [125, 666]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color({colorTempRange: [125, 666]}),
         ota: ota.ledvance,
     },
     {
@@ -301,7 +303,7 @@ module.exports = [
         model: 'AC08559',
         vendor: 'OSRAM',
         description: 'SMART+ Spot GU10 Multicolor',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
         exposes: [e.light_brightness_colortemp_colorhs([153, 526]).removeFeature('color_temp_startup'), e.effect()],
         ota: ota.ledvance,
     },
@@ -310,7 +312,7 @@ module.exports = [
         model: 'AC08562',
         vendor: 'OSRAM',
         description: 'SMART+ Candle E14 Dimmable White',
-        extend: extend.ledvance.light_onoff_brightness(),
+        extend: ledvance.extend.light_onoff_brightness(),
         ota: ota.ledvance,
     },
     {
@@ -335,7 +337,7 @@ module.exports = [
         model: 'AC03648',
         vendor: 'OSRAM',
         description: 'SMART+ spot GU5.3 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -343,11 +345,11 @@ module.exports = [
         model: 'AC0251100NJ/AC0251600NJ/AC0251700NJ',
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
-        fromZigbee: [fz.legacy.osram_lightify_switch_cmdOn, fz.legacy.osram_lightify_switch_cmdMoveWithOnOff,
-            fz.legacy.osram_lightify_switch_AC0251100NJ_cmdStop, fz.legacy.osram_lightify_switch_cmdMoveToColorTemp,
-            fz.legacy.osram_lightify_switch_cmdMoveHue, fz.legacy.osram_lightify_switch_cmdMoveToSaturation,
-            fz.legacy.osram_lightify_switch_cmdOff, fz.legacy.osram_lightify_switch_cmdMove, fz.battery,
-            fz.legacy.osram_lightify_switch_cmdMoveToLevelWithOnOff],
+        fromZigbee: [legacy.fz.osram_lightify_switch_cmdOn, legacy.fz.osram_lightify_switch_cmdMoveWithOnOff,
+            legacy.fz.osram_lightify_switch_AC0251100NJ_cmdStop, legacy.fz.osram_lightify_switch_cmdMoveToColorTemp,
+            legacy.fz.osram_lightify_switch_cmdMoveHue, legacy.fz.osram_lightify_switch_cmdMoveToSaturation,
+            legacy.fz.osram_lightify_switch_cmdOff, legacy.fz.osram_lightify_switch_cmdMove, fz.battery,
+            legacy.fz.osram_lightify_switch_cmdMoveToLevelWithOnOff],
         exposes: [e.battery(), e.action([
             'on', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'color_temperature_move', 'hue_move', 'hue_stop',
             'move_to_saturation', 'off', 'brightness_move_to_level'])],
@@ -372,10 +374,10 @@ module.exports = [
         exposes: [e.battery(), e.action(['left_top_click', 'left_bottom_click', 'right_top_click', 'right_bottom_click', 'left_top_hold',
             'left_bottom_hold', 'left_top_release', 'left_bottom_release', 'right_top_release', 'right_top_hold',
             'right_bottom_release', 'right_bottom_hold'])],
-        fromZigbee: [fz.battery, fz.legacy.osram_lightify_switch_AB371860355_cmdOn, fz.legacy.osram_lightify_switch_AB371860355_cmdOff,
-            fz.legacy.osram_lightify_switch_AB371860355_cmdStepColorTemp, fz.legacy.osram_lightify_switch_AB371860355_cmdMoveWithOnOff,
-            fz.legacy.osram_lightify_switch_AB371860355_cmdMove, fz.legacy.osram_lightify_switch_AB371860355_cmdStop,
-            fz.legacy.osram_lightify_switch_AB371860355_cmdMoveHue, fz.legacy.osram_lightify_switch_AB371860355_cmdMoveSat],
+        fromZigbee: [fz.battery, legacy.fz.osram_lightify_switch_AB371860355_cmdOn, legacy.fz.osram_lightify_switch_AB371860355_cmdOff,
+            legacy.fz.osram_lightify_switch_AB371860355_cmdStepColorTemp, legacy.fz.osram_lightify_switch_AB371860355_cmdMoveWithOnOff,
+            legacy.fz.osram_lightify_switch_AB371860355_cmdMove, legacy.fz.osram_lightify_switch_AB371860355_cmdStop,
+            legacy.fz.osram_lightify_switch_AB371860355_cmdMoveHue, legacy.fz.osram_lightify_switch_AB371860355_cmdMoveSat],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
@@ -396,7 +398,7 @@ module.exports = [
         model: 'ST8AU-CON',
         vendor: 'OSRAM',
         description: 'OSRAM SubstiTUBE T8 Advanced UO Connected',
-        extend: extend.ledvance.light_onoff_brightness(),
+        extend: ledvance.extend.light_onoff_brightness(),
         ota: ota.ledvance,
     },
     {
@@ -404,7 +406,7 @@ module.exports = [
         model: '595UGR22',
         vendor: 'OSRAM',
         description: 'OSRAM LED panel TW 595 UGR22',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp(),
         ota: ota.ledvance,
     },
     {
@@ -412,7 +414,7 @@ module.exports = [
         model: '4062172044776_1',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (only one device)',
-        extend: extend.ledvance.light_onoff_brightness(),
+        extend: ledvance.extend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -421,11 +423,11 @@ module.exports = [
         model: '4062172044776_2',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one device and pushbutton)',
-        fromZigbee: [...extend.ledvance.light_onoff_brightness({noConfigure: true}).fromZigbee,
+        fromZigbee: [...ledvance.extend.light_onoff_brightness({noConfigure: true}).fromZigbee,
             fz.command_toggle, fz.command_move, fz.command_stop],
-        extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
+        extend: ledvance.extend.light_onoff_brightness({noConfigure: true}),
         exposes: [e.action(['toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
-            ...extend.ledvance.light_onoff_brightness({noConfigure: true}).exposes],
+            ...ledvance.extend.light_onoff_brightness({noConfigure: true}).exposes],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
@@ -444,7 +446,7 @@ module.exports = [
         model: '4062172044776_3',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices)',
-        extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
+        extend: ledvance.extend.light_onoff_brightness({noConfigure: true}),
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         ota: ota.zigbeeOTA,
         endpoint: (device) => {
@@ -462,9 +464,9 @@ module.exports = [
         model: '4062172044776_4',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
-        fromZigbee: [...extend.ledvance.light_onoff_brightness({noConfigure: true}).fromZigbee,
+        fromZigbee: [...ledvance.extend.light_onoff_brightness({noConfigure: true}).fromZigbee,
             fz.command_toggle, fz.command_move, fz.command_stop],
-        extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
+        extend: ledvance.extend.light_onoff_brightness({noConfigure: true}),
         exposes: [e.action(['toggle_s1', 'brightness_move_up_s1', 'brightness_move_down_s1', 'brightness_stop_s1']),
             e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         ota: ota.zigbeeOTA,
@@ -489,7 +491,7 @@ module.exports = [
         model: '71150',
         vendor: 'OSRAM',
         description: 'Lightify under cabinet tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: ledvance.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -517,3 +519,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

@@ -15,6 +15,7 @@ declare global {
         debug: (message: string) => void;
     }
 
+    type Range = [number, number];
     interface KeyValue {[s: string]: unknown}
     interface KeyValueString {[s: string]: string}
     interface KeyValueNumberString {[s: string]: string}
@@ -55,7 +56,7 @@ declare global {
             weeklyScheduleFirstDayDpId?: number,
             dontMapPIHeatingDemand?: boolean
         },
-        battery?: {voltageToPercentage?: string, dontDividePercentage?: boolean},
+        battery?: {voltageToPercentage?: string | {min: number, max: number}, dontDividePercentage?: boolean},
         applyRedFix?: boolean,
         turnsOffAtBrightness1?: boolean;
         tuyaThermostatPreset?: {[s: number]: string},
@@ -63,11 +64,12 @@ declare global {
         tuyaThermostatPresetToSystemMode?: {[s: number]: string},
         supportsEnhancedHue?: boolean,
         disableActionGroup?: boolean,
+        supportsHueAndSaturation?: boolean,
     }
 
     type Configure = (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => Promise<void>;
     type OnEvent = (type: OnEventType, data: OnEventData, device: zh.Device, settings: KeyValue, state: KeyValue) => Promise<void>;
-    interface Extend {fromZigbee: fz.Converter[], toZigbee: tz.Converter[], exposes: Expose[], configure?: Configure}
+    interface Extend {fromZigbee: fz.Converter[], toZigbee: tz.Converter[], exposes: Expose[], configure?: Configure, meta?: DefinitionMeta}
 
     interface OnEventData {
         endpoint?: zh.Endpoint,
@@ -149,5 +151,28 @@ declare global {
         type MetaTuyaDataPointsSingle = [number, string, tuya.ValueConverterSingle, MetaTuyaDataPointsMeta?];
         type MetaTuyaDataPoints = MetaTuyaDataPointsSingle[];
     }
-}
 
+    namespace extend {
+        interface options_switch {
+            disablePowerOnBehavior?: boolean, toZigbee?: tz.Converter[], fromZigbee?: fz.Converter[], exposes?: Expose[]
+        }
+        interface options_light_onoff_brightness {
+            disablePowerOnBehavior?: boolean, toZigbee?: tz.Converter[], fromZigbee?: fz.Converter[], exposes?: Expose[], disableEffect?: boolean,
+            disableMoveStep?: boolean, disableTransition?: boolean, noConfigure?: boolean
+        }
+        interface options_light_onoff_brightness_colortemp {
+            disablePowerOnBehavior?: boolean, toZigbee?: tz.Converter[], fromZigbee?: fz.Converter[], exposes?: Expose[], disableEffect?: boolean,
+            disableMoveStep?: boolean, disableTransition?: boolean, noConfigure?: boolean, disableColorTempStartup?: boolean, colorTempRange?: Range,
+        }
+        interface options_light_onoff_brightness_color {
+            disablePowerOnBehavior?: boolean, toZigbee?: tz.Converter[], fromZigbee?: fz.Converter[], exposes?: Expose[], disableEffect?: boolean,
+            disableMoveStep?: boolean, disableTransition?: boolean, noConfigure?: boolean, disableColorTempStartup?: boolean, colorTempRange?: Range,
+            preferHueAndSaturation?: boolean, supportsHueAndSaturation?: boolean,
+        }
+        interface options_light_onoff_brightness_colortemp_color {
+            disablePowerOnBehavior?: boolean, toZigbee?: tz.Converter[], fromZigbee?: fz.Converter[], exposes?: Expose[], disableEffect?: boolean,
+            disableMoveStep?: boolean, disableTransition?: boolean, noConfigure?: boolean, disableColorTempStartup?: boolean, colorTempRange?: Range,
+            preferHueAndSaturation?: boolean, supportsHueAndSaturation?: boolean,
+        }
+    }
+}
