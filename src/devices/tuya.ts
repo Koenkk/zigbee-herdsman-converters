@@ -802,8 +802,8 @@ const definitions: Definition[] = [
         model: 'TS0505B_1',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
-        whiteLabel: [{vendor: 'Mercator IkuÃ¼', model: 'SMD4106W-RGB-ZB'},
-            {vendor: 'TuYa', model: 'A5C-21F7-01'}, {vendor: 'Mercator IkuÃ¼', model: 'S9E27LED9W-RGB-Z'},
+        whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMD4106W-RGB-ZB'},
+            {vendor: 'TuYa', model: 'A5C-21F7-01'}, {vendor: 'Mercator Ikuü', model: 'S9E27LED9W-RGB-Z'},
             {vendor: 'Aldi', model: 'L122CB63H11A9.0W', description: 'LIGHTWAY smart home LED-lamp - bulb'},
             {vendor: 'Lidl', model: '14153706L', description: 'Livarno smart LED ceiling light'},
             {vendor: 'Zemismart', model: 'LXZB-ZB-09A', description: 'Zemismart LED Surface Mounted Downlight 9W RGBW'},
@@ -985,7 +985,7 @@ const definitions: Definition[] = [
         model: 'TS0202',
         vendor: 'TuYa',
         description: 'Motion sensor',
-        whiteLabel: [{vendor: 'Mercator IkuÃ¼', model: 'SMA02P'},
+        whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'},
             {vendor: 'TuYa', model: 'TY-ZPR06'},
             {vendor: 'Tesla Smart', model: 'TS0202'},
             tuya.whitelabel('MiBoxer', 'PIR1-ZB', 'PIR sensor', ['_TZ3040_wqmtjsyk']),
@@ -1120,6 +1120,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ojzhk75b'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3p5ydos3'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_9cxuhakf'},
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
@@ -1139,9 +1140,10 @@ const definitions: Definition[] = [
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
             {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
-            {vendor: 'Mercator IkuÃ¼', model: 'SSWD01'},
+            {vendor: 'Mercator Ikuü', model: 'SSWD01'},
             {vendor: 'Moes', model: 'ZS-USD'},
             {vendor: 'Moes', model: 'EDM-1ZBB-EU'},
+            tuya.whitelabel('Mercator Ikuü', 'SSWM-DIMZ', 'Switch Mechanism', ['_TZE200_9cxuhakf']),
         ],
     },
     {
@@ -1592,8 +1594,8 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Light controller',
         whiteLabel: [
-            {vendor: 'Mercator IkuÃ¼', model: 'SMI7040', description: 'Ford Batten Light'},
-            {vendor: 'Mercator IkuÃ¼', model: 'SMD9300', description: 'Donovan Panel Light'},
+            {vendor: 'Mercator Ikuü', model: 'SMI7040', description: 'Ford Batten Light'},
+            {vendor: 'Mercator Ikuü', model: 'SMD9300', description: 'Donovan Panel Light'},
             tuya.whitelabel('Aldi', 'F122SB62H22A4.5W', 'LIGHTWAY smart home LED-lamp - filament', ['_TZ3000_g1glzzfk']),
             tuya.whitelabel('Miboxer', 'FUT035Z', 'Dual white LED controller', ['_TZ3210_frm6149r', '_TZ3210_jtifm80b', '_TZ3210_xwqng7ol']),
             tuya.whitelabel('Lidl', '14156408L', 'Livarno Lux smart LED ceiling light', ['_TZ3210_c2iwpxf1']),
@@ -3200,7 +3202,7 @@ const definitions: Definition[] = [
             {vendor: 'Vrey', model: 'VR-X712U-0013'},
             {vendor: 'TUYATEC', model: 'GDKES-01TZXD'},
             {vendor: 'Lonsonho', model: 'QS-Zigbee-S05-L', description: '1 gang smart switch module without neutral wire'},
-            {vendor: 'Mercator IkuÃ¼', model: 'SSW01'},
+            {vendor: 'Mercator Ikuü', model: 'SSW01'},
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -3328,7 +3330,7 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-04TZXD'}, {vendor: 'Vizo', model: 'VZ-222S'},
-            {vendor: 'MakeGood', model: 'MG-ZG04W/B/G'}, {vendor: 'Mercator IkuÃ¼', model: 'SSW04'}],
+            {vendor: 'MakeGood', model: 'MG-ZG04W/B/G'}, {vendor: 'Mercator Ikuü', model: 'SSW04'}],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
