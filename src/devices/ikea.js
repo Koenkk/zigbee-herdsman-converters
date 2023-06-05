@@ -1185,7 +1185,7 @@ module.exports = [
         model: 'E2123',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote gen2',
-        fromZigbee: [ikea.fz.battery, fz.legacy.E1744_play_pause, ikea.fz.ikea_track_click, ikea.fz.ikea_volume_click,
+        fromZigbee: [fz.battery, fz.legacy.E1744_play_pause, ikea.fz.ikea_track_click, ikea.fz.ikea_volume_click,
             ikea.fz.ikea_volume_hold, ikea.fz.ikea_dots_click_v1, ikea.fz.ikea_dots_click_v2],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['toggle', 'track_previous', 'track_next', 'volume_up',
             'volume_down', 'volume_up_hold', 'volume_down_hold', 'dots_1_initial_press', 'dots_2_initial_press',
