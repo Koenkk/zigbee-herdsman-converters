@@ -5255,7 +5255,7 @@ module.exports = [
 
     // TS011F
     {
-        fingerprint: tuya.fingerprint('TS01FF', ['_TZ3000_8fdayfch', '_TZ3000_1hwjutgo', '_TZ3000_lnggrqqi', '_TZ3000_tvuarksa']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_8fdayfch', '_TZ3000_1hwjutgo', '_TZ3000_lnggrqqi', '_TZ3000_tvuarksa']),
         model: 'TS011F_1',
         vendor: 'TuYa',
         description: 'Switch',
@@ -5267,7 +5267,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS01FF', ['_TZ3000_rqbjepe8']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_rqbjepe8']),
         model: 'TS011F_4',
         description: '2 gang plug',
         vendor: 'TuYa',
