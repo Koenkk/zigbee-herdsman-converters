@@ -1,7 +1,7 @@
 import * as exposes from './exposes';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
-import light from './light';
+import * as light from './light';
 const e = exposes.presets;
 
 const extend = {

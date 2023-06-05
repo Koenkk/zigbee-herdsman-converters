@@ -6,7 +6,7 @@ import fromZigbeeConverters from '../converters/fromZigbee';
 const fromZigbeeStore: KeyValueAny = {};
 import * as exposes from './exposes';
 import constants from './constants';
-import light from './light';
+import * as light from './light';
 
 interface KeyValueAny {[s: string]: any}
 

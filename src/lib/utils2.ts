@@ -20,3 +20,11 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
 export function assertEndpoint(obj: unknown): asserts obj is zh.Endpoint {
     if (obj?.constructor?.name?.toLowerCase() !== 'endpoint') throw new Error('Not an endpoint');
 }
+
+export function isEndpoint(obj: zh.Endpoint | zh.Group): obj is zh.Endpoint {
+    return obj.constructor.name.toLowerCase() === 'endpoint';
+}
+
+export function isGroup(obj: zh.Endpoint | zh.Group): obj is zh.Group {
+    return obj.constructor.name.toLowerCase() === 'group';
+}
