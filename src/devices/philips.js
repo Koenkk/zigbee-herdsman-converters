@@ -1931,7 +1931,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['ROM001'],
+        zigbeeModel: ['ROM001', 'RDM003'],
         model: '8718699693985',
         vendor: 'Philips',
         description: 'Hue smart button',
