@@ -2102,7 +2102,7 @@ const definitions: Definition[] = [
         description: 'Curtain motor/roller blind motor/window pusher/tubular motor',
         whiteLabel: [
             {vendor: 'Yushun', model: 'YS-MT750'},
-            {vendor: 'Yushun', model: 'YS-MT750L'},
+            tuya.whitelabel('Yushun', 'YS-MT750L', 'Curtain motor', ['_TZE200_cf1sl3tj', '_TZE200_bqcqqjpb']),
             {vendor: 'Zemismart', model: 'ZM79E-DT'},
             {vendor: 'Binthen', model: 'BCM100D'},
             {vendor: 'Binthen', model: 'CV01A'},
