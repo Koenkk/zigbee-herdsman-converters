@@ -642,7 +642,7 @@ const definitions: Definition[] = [
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dwcarsat'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dwcarsat', '_TZE200_mja3fuja']),
         model: 'TS0601_smart_air_house_keeper',
         vendor: 'TuYa',
         description: 'Smart air house keeper',
