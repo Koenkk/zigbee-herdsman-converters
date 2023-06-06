@@ -4,15 +4,14 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
-import utils from '../lib/utils';
-import {assertString} from '../lib/utils2';
+import * as utils from '../lib/utils';
 const ea = exposes.access;
 
 const tzLocal = {
     aOneBacklight: {
         key: ['backlight_led'],
         convertSet: async (entity, key, value, meta) => {
-            assertString(value, 'backlight_led');
+            utils.assertString(value, 'backlight_led');
             const state = value.toLowerCase();
             utils.validateValue(state, ['toggle', 'off', 'on']);
             const endpoint = meta.device.getEndpoint(3);

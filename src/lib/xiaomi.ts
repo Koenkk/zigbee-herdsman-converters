@@ -5,11 +5,12 @@ import {
     postfixWithEndpointName,
     precisionRound,
     getKey,
+    assertNumber,
+    getFromLookup,
 } from './utils';
 
 import * as exposes from './exposes';
 import * as globalStore from './store';
-import {assertNumber, getFromLookup} from './utils2';
 
 declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -166,6 +167,7 @@ const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: 
         case '1':
             payload.voltage = value;
             if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                assertNumber(value);
                 payload.battery = batteryVoltageToPercentage(value, model.meta.battery.voltageToPercentage);
             }
             break;
@@ -182,6 +184,7 @@ const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: 
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3585
                 // https://github.com/Koenkk/zigbee2mqtt/issues/13253
             } else {
+                assertNumber(value);
                 payload.device_temperature = calibrateAndPrecisionRoundOptions(value, options, 'device_temperature'); // 0x03
             }
             break;
@@ -211,6 +214,7 @@ const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: 
             break;
         case '11':
             if (['RTCGQ11LM'].includes(model.model)) {
+                assertNumber(value);
                 payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
                 // DEPRECATED: remove illuminance_lux here.
                 payload.illuminance_lux = calibrateAndPrecisionRoundOptions(value, options, 'illuminance_lux');
@@ -267,6 +271,7 @@ const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: 
                 payload.smoke_density = value;
             } else if (['GZCGQ01LM'].includes(model.model)) {
                 // DEPRECATED: change illuminance_lux -> illuminance
+                assertNumber(value);
                 payload.illuminance_lux = calibrateAndPrecisionRoundOptions(value, options, 'illuminance_lux');
             } else {
                 payload.state = value === 1 ? 'ON' : 'OFF';
@@ -363,6 +368,7 @@ const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: 
             }
             break;
         case '149':
+            assertNumber(value);
             payload.energy = calibrateAndPrecisionRoundOptions(value, options, 'energy'); // 0x95
             // Consumption is deprecated
             payload.consumption = payload.energy;
@@ -375,6 +381,7 @@ const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: 
             break;
         case '151':
             if (['LLKZMK11LM'].includes(model.model)) {
+                assertNumber(value);
                 payload.current = calibrateAndPrecisionRoundOptions(value, options, 'current');
             } else {
                 assertNumber(value);
@@ -385,6 +392,7 @@ const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: 
             if (['DJT11LM'].includes(model.model)) {
                 // We don't know what implies for this device, it contains values like 30, 50,... that don't seem to change
             } else {
+                assertNumber(value);
                 payload.power = calibrateAndPrecisionRoundOptions(value, options, 'power'); // 0x98
             }
             break;
@@ -604,6 +612,7 @@ const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: 
             payload.consumer_connected = value === 1;
             break;
         case '523':
+            assertNumber(value);
             payload.overload_protection = precisionRound(value, 2);
             break;
         case '550':
@@ -705,6 +714,7 @@ const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: 
             // @ts-expect-error
             payload.voltage = value[1].elmVal;
             if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                assertNumber(payload.voltage);
                 payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
             }
             // @ts-expect-error

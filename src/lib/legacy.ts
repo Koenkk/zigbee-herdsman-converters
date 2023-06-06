@@ -4388,6 +4388,7 @@ const fromZigbee1 = {
                     ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
                     const presetToSystemMode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPresetToSystemMode', null, {});
                     if (value in presetToSystemMode) {
+                        // @ts-expect-error
                         ret.system_mode = presetToSystemMode[value];
                     }
                 } else {
@@ -6911,6 +6912,7 @@ const toZigbee2 = {
                 await sendDataPointEnum(
                     entity,
                     dataPoints.moesSwitchPowerOnBehavior,
+                    // @ts-expect-error
                     utils.getKey(moesSwitch.powerOnBehavior, value),
                 );
                 break;
@@ -6918,6 +6920,7 @@ const toZigbee2 = {
                 await sendDataPointEnum(
                     entity,
                     dataPoints.moesSwitchIndicateLight,
+                    // @ts-expect-error
                     utils.getKey(moesSwitch.indicateLight, value),
                 );
                 break;
@@ -7209,11 +7212,15 @@ const toZigbee2 = {
         key: ['weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {
             const thermostatMeta = utils.getMetaValue(entity, meta.mapped, 'thermostat');
+            // @ts-expect-error
             const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
+            // @ts-expect-error
             const supportedModes = thermostatMeta.weeklyScheduleSupportedModes;
+            // @ts-expect-error
             const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
             let conversion = 'generic';
             if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
+                // @ts-expect-error
                 conversion = thermostatMeta.weeklyScheduleConversion;
             }
 
@@ -7330,6 +7337,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
             if (modeId !== null) {
+                // @ts-expect-error
                 await sendDataPointEnum(entity, dataPoints.mode, parseInt(modeId));
             } else {
                 throw new Error(`TRV system mode ${value} is not recognized.`);
@@ -7341,6 +7349,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const presetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null, Number);
             if (presetId !== null) {
+                // @ts-expect-error
                 await sendDataPointEnum(entity, dataPoints.mode, parseInt(presetId));
             } else {
                 throw new Error(`TRV preset ${value} is not recognized.`);
@@ -7351,8 +7360,10 @@ const toZigbee2 = {
         key: ['away_mode'],
         convertSet: async (entity, key, value, meta) => {
             // HA has special behavior for the away mode
+            // @ts-expect-error
             const awayPresetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null, Number);
             const schedulePresetId = utils.getKey(
+                // @ts-expect-error
                 utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'schedule', null, Number,
             );
             if (awayPresetId !== null) {
@@ -7372,6 +7383,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(fanModes, value, null, Number);
             if (modeId !== null) {
+                // @ts-expect-error
                 await sendDataPointEnum(entity, dataPoints.fanMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV fan mode ${value} is not recognized.`);
@@ -7383,6 +7395,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(fanModes, value, null, Number);
             if (modeId !== null) {
+                // @ts-expect-error
                 await sendDataPointEnum(entity, dataPoints.bacFanMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV fan mode ${value} is not recognized.`);
@@ -7440,6 +7453,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(thermostatForceMode, value, null, Number);
             if (modeId !== null) {
+                // @ts-expect-error
                 await sendDataPointEnum(entity, dataPoints.forceMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV force mode ${value} is not recognized.`);
@@ -7451,6 +7465,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
             if (modeId !== null) {
+                // @ts-expect-error
                 await sendDataPointEnum(entity, dataPoints.forceMode, parseInt(modeId));
             } else {
                 throw new Error(`TRV system mode ${value} is not recognized.`);

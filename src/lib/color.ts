@@ -1,6 +1,6 @@
-const kelvinToXyLookup = require('./kelvinToXy');
-const {precisionRound} = require('./utils');
-const {findColorTempRange, clampColorTemp} = require('./light');
+import kelvinToXyLookup from './kelvinToXy';
+import {precisionRound} from './utils';
+import {findColorTempRange, clampColorTemp} from './light';
 
 /**
  * Color represented in HSV space
@@ -38,7 +38,7 @@ const {findColorTempRange, clampColorTemp} = require('./light');
  * @param {number} mireds color temp in mireds
  * @return {number} color temp in Kelvins
  */
-function miredsToKelvin(mireds) {
+function miredsToKelvin(mireds: number) {
     return 1000000 / mireds;
 }
 
@@ -47,18 +47,22 @@ function miredsToKelvin(mireds) {
  * @param {number} kelvin color temp in Kelvins
  * @return {number} color temp in mireds
  */
-function kelvinToMireds(kelvin) {
+function kelvinToMireds(kelvin: number) {
     return 1000000 / kelvin;
 }
 
 class ColorRGB {
+    red: number;
+    green: number;
+    blue: number;
+
     /**
      * Create RGB color
      * @param {number} red
      * @param {number} green
      * @param {number} blue
      */
-    constructor(red, green, blue) {
+    constructor(red: number, green: number, blue: number) {
         /** red component (0..1) */
         this.red = red;
         /** green component (0..1) */
@@ -72,7 +76,7 @@ class ColorRGB {
      * @param {ColorRGBT} rgb object with properties red, green and blue
      * @return {ColorRGB} new ColoRGB object
      */
-    static fromObject(rgb) {
+    static fromObject(rgb: {red: number, green: number, blue: number}) {
         if (!rgb.hasOwnProperty('red') || !rgb.hasOwnProperty('green') || !rgb.hasOwnProperty('blue')) {
             throw new Error('One or more required properties missing. Required properties: "red", "green", "blue"');
         }
@@ -84,7 +88,7 @@ class ColorRGB {
      * @param {string} hex hex encoded RGB color
      * @return {ColorRGB} new ColoRGB object
      */
-    static fromHex(hex) {
+    static fromHex(hex: string) {
         hex = hex.replace('#', '');
         const bigint = parseInt(hex, 16);
         return new ColorRGB(((bigint >> 16) & 255) / 255, ((bigint >> 8) & 255) / 255, (bigint & 255) / 255);
@@ -95,7 +99,7 @@ class ColorRGB {
      * @param {number} precision decimal places to round to
      * @return {ColorRGB}
      */
-    rounded(precision) {
+    rounded(precision: number) {
         return new ColorRGB(
             precisionRound(this.red, precision),
             precisionRound(this.green, precision),
@@ -164,7 +168,7 @@ class ColorRGB {
      * @return {ColorRGB} corrected RGB
      */
     gammaCorrected() {
-        function transform(v) {
+        function transform(v: number) {
             return (v > 0.04045) ? Math.pow((v + 0.055) / (1.0 + 0.055), 2.4) : (v / 12.92);
         }
         return new ColorRGB(transform(this.red), transform(this.green), transform(this.blue));
@@ -175,7 +179,7 @@ class ColorRGB {
      * @return {ColorRGB} raw RGB
      */
     gammaUncorrected() {
-        function transform(v) {
+        function transform(v: number) {
             return v <= 0.0031308 ? 12.92 * v : (1.0 + 0.055) * Math.pow(v, (1.0 / 2.4)) - 0.055;
         }
         return new ColorRGB(transform(this.red), transform(this.green), transform(this.blue));
@@ -197,12 +201,15 @@ class ColorRGB {
  *  Class representing color in CIE space
  */
 class ColorXY {
+    x: number;
+    y: number;
+
     /**
      * Create CIE color
      * @param {number} x
      * @param {number} y
      */
-    constructor(x, y) {
+    constructor(x: number, y: number) {
         /** x component (0..1) */
         this.x = x;
         /** y component (0..1) */
@@ -214,7 +221,7 @@ class ColorXY {
      * @param {ColorXYT} xy object with properties x and y
      * @return {ColorXY} new ColorXY object
      */
-    static fromObject(xy) {
+    static fromObject(xy: {x: number, y: number}) {
         if (!xy.hasOwnProperty('x') || !xy.hasOwnProperty('y')) {
             throw new Error('One or more required properties missing. Required properties: "x", "y"');
         }
@@ -226,7 +233,7 @@ class ColorXY {
      * @param {number} mireds color temp in mireds
      * @return {ColorXY} color in XY space
      */
-    static fromMireds(mireds) {
+    static fromMireds(mireds: number) {
         const kelvin = miredsToKelvin(mireds);
         return ColorXY.fromObject(kelvinToXyLookup[Math.round(kelvin)]);
     }
@@ -251,7 +258,7 @@ class ColorXY {
         const brightness = 254;
 
         const z = 1.0 - this.x - this.y;
-        const Y = (brightness / 254).toFixed(2);
+        const Y = Number((brightness / 254).toFixed(2));
         const X = (Y / this.y) * this.x;
         const Z = (Y / this.y) * z;
 
@@ -296,7 +303,7 @@ class ColorXY {
      * @param {number} precision decimal places to round to
      * @return {ColorXY}
      */
-    rounded(precision) {
+    rounded(precision: number) {
         return new ColorXY(
             precisionRound(this.x, precision),
             precisionRound(this.y, precision),
@@ -319,13 +326,18 @@ class ColorXY {
  * Class representing color in HSV space
  */
 class ColorHSV {
+    hue: number;
+    saturation: number;
+    value: number;
+    brightness: number;
+
     /**
      * Create color in HSV space
      * @param {?number} hue
      * @param {?number} [saturation=null]
      * @param {?number} [value=null]
      */
-    constructor(hue, saturation=null, value=null) {
+    constructor(hue: number, saturation: number=null, value: number=null) {
         /** hue component (0..360) */
         this.hue = (hue === null) ? null : hue % 360;
         /** saturation component (0..100) */
@@ -342,7 +354,7 @@ class ColorHSV {
      * @param {number} [hsv.value]
      * @return {ColorHSV}
      */
-    static fromObject(hsv) {
+    static fromObject(hsv: {hue?: number, saturation?: number, value: number}) {
         if (!hsv.hasOwnProperty('hue') && !hsv.hasOwnProperty('saturation')) {
             throw new Error('HSV color must specify at least hue or saturation.');
         }
@@ -354,7 +366,7 @@ class ColorHSV {
      * @param {ColorHSL} hsl color in HSL space
      * @return {ColorHSV} color in HSV space
      */
-    static fromHSL(hsl) {
+    static fromHSL(hsl: {hue: number, saturation: number, lightness: number}) {
         if (!hsl.hasOwnProperty('hue') || !hsl.hasOwnProperty('saturation') || !hsl.hasOwnProperty('lightness')) {
             throw new Error('One or more required properties missing. Required properties: "hue", "saturation", "lightness"');
         }
@@ -369,7 +381,7 @@ class ColorHSV {
      * @param {number} precision decimal places to round to
      * @return {ColorHSV}
      */
-    rounded(precision) {
+    rounded(precision: number) {
         return new ColorHSV(
             this.hue === null ? null : precisionRound(this.hue, precision),
             this.saturation === null ? null : precisionRound(this.saturation, precision),
@@ -384,7 +396,7 @@ class ColorHSV {
      * @return {ColorHSVT}
      */
     toObject(short=false, includeValue=true) {
-        const ret = {};
+        const ret: {h?: number, hue?: number, s?: number, saturation?: number, v?:number, value?: number} = {};
         if (this.hue !== null) {
             if (short) {
                 ret.h = this.hue;
@@ -469,7 +481,7 @@ class ColorHSV {
      * @param {Array} correctionMap array of hueIn -> hueOut mappings; example: [ {"in": 20, "out": 25}, {"in": 109, "out": 104}]
      * @return {number} corrected hue value
      */
-    static interpolateHue(hue, correctionMap) {
+    static interpolateHue(hue: number, correctionMap: KeyValueAny[]) {
         if (correctionMap.length < 2) return hue;
 
         // retain immutablity
@@ -495,9 +507,10 @@ class ColorHSV {
      * @param {Object} [meta.options.hue_correction] hue correction data
      * @return {number} corrected hue component of HSV color
      */
-    static correctHue(hue, meta) {
+    static correctHue(hue: number, meta: tz.Meta) {
         const {options} = meta;
         if (options.hasOwnProperty('hue_correction')) {
+            // @ts-expect-error
             return this.interpolateHue(hue, options.hue_correction);
         } else {
             return hue;
@@ -509,7 +522,7 @@ class ColorHSV {
      * @param {Object} meta entity meta object
      * @return {ColorHSV} hue corrected color
      */
-    hueCorrected(meta) {
+    hueCorrected(meta: tz.Meta) {
         return new ColorHSV(ColorHSV.correctHue(this.hue, meta), this.saturation, this.brightness);
     }
 
@@ -518,19 +531,24 @@ class ColorHSV {
      * @param {Object} meta entity meta object
      * @return {ColorHSV} corrected color in HSV space
      */
-    colorCorrected(meta) {
+    colorCorrected(meta: tz.Meta) {
         return this.hueCorrected(meta);
     }
 }
 
-class Color {
+export class Color {
+    hsv: ColorHSV;
+    xy: ColorXY;
+    rgb: ColorRGB;
+
     /**
      * Create Color object
      * @param {?ColorHSV} hsv ColorHSV instance
      * @param {?ColorRGB} rgb ColorRGB instance
      * @param {?ColorXY} xy ColorXY instance
      */
-    constructor(hsv, rgb, xy) {
+    constructor(hsv: ColorHSV, rgb: ColorRGB, xy: ColorXY) {
+        // @ts-expect-error
         if ((hsv !== null) + (rgb !== null) + (xy !== null) != 1) {
             throw new Error('Color object should have exactly only one of hsv, rgb or xy properties');
         } else if (hsv !== null) {
@@ -556,7 +574,8 @@ class Color {
      * @param {Object} value converter value argument
      * @return {Color} Color object
      */
-    static fromConverterArg(value) {
+    // eslint-disable-next-line
+    static fromConverterArg(value: any) {
         if (value.hasOwnProperty('x') && value.hasOwnProperty('y')) {
             const xy = ColorXY.fromObject(value);
             return new Color(null, null, xy);
@@ -564,7 +583,7 @@ class Color {
             const rgb = new ColorRGB(value.r / 255, value.g / 255, value.b / 255);
             return new Color(null, rgb, null);
         } else if (value.hasOwnProperty('rgb')) {
-            const [r, g, b] = value.rgb.split(',').map((i) => parseInt(i));
+            const [r, g, b] = value.rgb.split(',').map((i: string) => parseInt(i));
             const rgb = new ColorRGB(r / 255, g / 255, b / 255);
             return new Color(null, rgb, null);
         } else if (value.hasOwnProperty('hex')) {
@@ -577,21 +596,21 @@ class Color {
             const hsv = ColorHSV.fromHSL({hue: value.h, saturation: value.s, lightness: value.l});
             return new Color(hsv, null, null);
         } else if (value.hasOwnProperty('hsl')) {
-            const [h, s, l] = value.hsl.split(',').map((i) => parseInt(i));
+            const [h, s, l] = value.hsl.split(',').map((i: string) => parseInt(i));
             const hsv = ColorHSV.fromHSL({hue: h, saturation: s, lightness: l});
             return new Color(hsv, null, null);
         } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('b')) {
             const hsv = new ColorHSV(value.h, value.s, value.b);
             return new Color(hsv, null, null);
         } else if (value.hasOwnProperty('hsb')) {
-            const [h, s, b] = value.hsb.split(',').map((i) => parseInt(i));
+            const [h, s, b] = value.hsb.split(',').map((i: string) => parseInt(i));
             const hsv = new ColorHSV(h, s, b);
             return new Color(hsv, null, null);
         } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('v')) {
             const hsv = new ColorHSV(value.h, value.s, value.v);
             return new Color(hsv, null, null);
         } else if (value.hasOwnProperty('hsv')) {
-            const [h, s, v] = value.hsv.split(',').map((i) => parseInt(i));
+            const [h, s, v] = value.hsv.split(',').map((i: string) => parseInt(i));
             const hsv = new ColorHSV(h, s, v);
             return new Color(hsv, null, null);
         } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s')) {
@@ -647,10 +666,10 @@ class Color {
  * @return {Object} state with color, color_temp, and color_mode set and syncronized from newState's attributes
  *                  (other attributes are not included make sure to merge yourself)
  */
-function syncColorState(newState, oldState, endpoint, options, logger) {
+export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, endpoint: zh.Endpoint | zh.Group, options: KeyValue, logger: Logger) {
     const colorTargets = [];
     const colorSync = (options && options.hasOwnProperty('color_sync')) ? options.color_sync : true;
-    const result = {};
+    const result: KeyValueAny = {};
     const [colorTempMin, colorTempMax] = findColorTempRange(endpoint, logger);
 
     // check if color sync is enabled

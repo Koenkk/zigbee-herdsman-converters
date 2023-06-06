@@ -4,7 +4,6 @@ const tz = require('../converters/toZigbee');
 const globalStore = require('../lib/store');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
-const {extendDevice} = require('../lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -157,12 +156,6 @@ module.exports = [
             }
         },
     },
-    extendDevice(require('./danfoss'), '014G2461', {
-        zigbeeModel: ['TRV001', 'TRV003'],
-        model: 'UK7004240',
-        vendor: 'Hive',
-        description: 'Radiator valve based on Danfoss Ally (014G2461)',
-    }),
     {
         zigbeeModel: ['SLR1'],
         model: 'SLR1',

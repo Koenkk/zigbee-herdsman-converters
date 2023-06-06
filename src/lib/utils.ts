@@ -1,13 +1,11 @@
-'use strict';
+import * as globalStore from './store';
+import herdsman from 'zigbee-herdsman';
 
-const globalStore = require('./store');
-const herdsman = require('zigbee-herdsman');
-
-function isLegacyEnabled(options) {
+export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
 }
 
-function precisionRound(number, precision) {
+export function precisionRound(number: number, precision: number): number {
     if (typeof precision === 'number') {
         const factor = Math.pow(10, precision);
         return Math.round(number * factor) / factor;
@@ -22,10 +20,10 @@ function precisionRound(number, precision) {
     return number;
 }
 
-function toLocalISOString(dDate) {
+export function toLocalISOString(dDate: Date) {
     const tzOffset = -dDate.getTimezoneOffset();
     const plusOrMinus = tzOffset >= 0 ? '+' : '-';
-    const pad = function(num) {
+    const pad = function(num: number) {
         const norm = Math.floor(Math.abs(num));
         return (norm < 10 ? '0' : '') + norm;
     };
@@ -40,7 +38,7 @@ function toLocalISOString(dDate) {
         ':' + pad(tzOffset % 60);
 }
 
-function numberWithinRange(number, min, max) {
+export function numberWithinRange(number: number, min: number, max: number) {
     if (number > max) {
         return max;
     } else if (number < min) {
@@ -61,13 +59,13 @@ function numberWithinRange(number, min, max) {
  * @param {number} [precision=0] number of decimal places to which result should be rounded
  * @return {number} value mapped to new range
  */
-function mapNumberRange(value, fromLow, fromHigh, toLow, toHigh, precision=0) {
+export function mapNumberRange(value: number, fromLow: number, fromHigh: number, toLow: number, toHigh: number, precision=0) {
     const mappedValue = toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
     return precisionRound(mappedValue, precision);
 }
 
-const transactionStore = {};
-function hasAlreadyProcessedMessage(msg, model, ID=null, key=null) {
+const transactionStore: {[s: string]: number} = {};
+export function hasAlreadyProcessedMessage(msg: fz.Message, model: Definition, ID: number=null, key: string=null) {
     if (model.meta && model.meta.publishDuplicateTransaction) return false;
     const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
     key = key || msg.device.ieeeAddr;
@@ -76,33 +74,36 @@ function hasAlreadyProcessedMessage(msg, model, ID=null, key=null) {
     return false;
 }
 
-const calibrateAndPrecisionRoundOptionsDefaultPrecision = {
+export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
     temperature: 2, humidity: 2, pressure: 1, pm25: 0, power: 2, current: 2, current_phase_b: 2, current_phase_c: 2,
     voltage: 2, voltage_phase_b: 2, voltage_phase_c: 2, power_phase_b: 2, power_phase_c: 2, energy: 2,
 };
-function calibrateAndPrecisionRoundOptionsIsPercentual(type) {
+export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
     return type.startsWith('current') || type.startsWith('energy') || type.startsWith('voltage') || type.startsWith('power') ||
         type.startsWith('illuminance');
 }
-function calibrateAndPrecisionRoundOptions(number, options, type) {
+export function calibrateAndPrecisionRoundOptions(number: number, options: KeyValue, type: string) {
     // Calibrate
     const calibrateKey = `${type}_calibration`;
     let calibrationOffset = options && options.hasOwnProperty(calibrateKey) ? options[calibrateKey] : 0;
+    assertNumber(calibrationOffset, calibrateKey);
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
         calibrationOffset = Math.round(number * calibrationOffset / 100);
     }
+    assertNumber(calibrationOffset, calibrateKey);
     number = number + calibrationOffset;
 
     // Precision round
     const precisionKey = `${type}_precision`;
     const defaultValue = calibrateAndPrecisionRoundOptionsDefaultPrecision[type] || 0;
     const precision = options && options.hasOwnProperty(precisionKey) ? options[precisionKey] : defaultValue;
+    assertNumber(precision, precisionKey);
     return precisionRound(number, precision);
 }
 
-function toPercentage(value, min, max, log=false) {
+export function toPercentage(value: number, min: number, max: number, log=false) {
     if (value > max) {
         value = max;
     } else if (value < min) {
@@ -113,17 +114,18 @@ function toPercentage(value, min, max, log=false) {
     return Math.round(normalised * 100);
 }
 
-function addActionGroup(payload, msg, definition) {
+export function addActionGroup(payload: KeyValue, msg: fz.Message, definition: Definition) {
     const disableActionGroup = definition.meta && definition.meta.disableActionGroup;
     if (!disableActionGroup && msg.groupID) {
         payload.action_group = msg.groupID;
     }
 }
 
-function postfixWithEndpointName(value, msg, definition, meta) {
+export function postfixWithEndpointName(value: string, msg: fz.Message, definition: Definition, meta: fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
         meta.logger.warn(`No meta passed to postfixWithEndpointName, update your external converter!`);
+        // @ts-expect-error
         meta = {device: null};
     }
 
@@ -139,16 +141,17 @@ function postfixWithEndpointName(value, msg, definition, meta) {
     return value;
 }
 
-function enforceEndpoint(entity, key, meta) {
+export function enforceEndpoint(entity: zh.Endpoint, key: string, meta: tz.Meta) {
     const multiEndpointEnforce = getMetaValue(entity, meta.mapped, 'multiEndpointEnforce', 'allEqual', []);
     if (multiEndpointEnforce && multiEndpointEnforce.hasOwnProperty(key)) {
+        // @ts-expect-error
         const endpoint = entity.getDevice().getEndpoint(multiEndpointEnforce[key]);
         if (endpoint) return endpoint;
     }
     return entity;
 }
 
-function getKey(object, value, fallback, convertTo) {
+export function getKey<T>(object: {[s: string]: T}, value: T, fallback?: T, convertTo?: (v: unknown) => T) {
     for (const key in object) {
         if (object[key]===value) {
             return convertTo ? convertTo(key) : key;
@@ -158,7 +161,7 @@ function getKey(object, value, fallback, convertTo) {
     return fallback;
 }
 
-function batteryVoltageToPercentage(voltage, option) {
+export function batteryVoltageToPercentage(voltage: number, option: string | {min: number, max: number}) {
     let percentage = null;
     if (option === '3V_2100') {
         if (voltage < 2100) {
@@ -210,13 +213,16 @@ function batteryVoltageToPercentage(voltage, option) {
 
 // groupStrategy: allEqual: return only if all members in the groups have the same meta property value.
 //                first: return the first property
-function getMetaValue(entity, definition, key, groupStrategy='first', defaultValue=undefined) {
-    if (entity.constructor.name === 'Group' && entity.members.length > 0) {
+export function getMetaValue<T>(entity: zh.Group | zh.Endpoint, definition: Definition | Definition[], key: string,
+    groupStrategy='first', defaultValue: T=undefined): T {
+    if (isGroup(entity) && entity.members.length > 0) {
         const values = [];
         for (let i = 0; i < entity.members.length; i++) {
+            // @ts-expect-error
             const memberMetaMeta = getMetaValues(definition[i], entity.members[i]);
             if (memberMetaMeta && memberMetaMeta.hasOwnProperty(key)) {
                 if (groupStrategy === 'first') {
+                    // @ts-expect-error
                     return memberMetaMeta[key];
                 }
 
@@ -227,11 +233,14 @@ function getMetaValue(entity, definition, key, groupStrategy='first', defaultVal
         }
 
         if (groupStrategy === 'allEqual' && (new Set(values)).size === 1) {
+            // @ts-expect-error
             return values[0];
         }
     } else {
+        // @ts-expect-error
         const definitionMeta = getMetaValues(definition, entity);
         if (definitionMeta && definitionMeta.hasOwnProperty(key)) {
+            // @ts-expect-error
             return definitionMeta[key];
         }
     }
@@ -239,7 +248,7 @@ function getMetaValue(entity, definition, key, groupStrategy='first', defaultVal
     return defaultValue;
 }
 
-function hasEndpoints(device, endpoints) {
+export function hasEndpoints(device: zh.Device, endpoints: number[]) {
     const eps = device.endpoints.map((e) => e.ID);
     for (const endpoint of endpoints) {
         if (!eps.includes(endpoint)) {
@@ -249,11 +258,11 @@ function hasEndpoints(device, endpoints) {
     return true;
 }
 
-function isInRange(min, max, value) {
+export function isInRange(min: number, max: number, value: number) {
     return value >= min && value <= max;
 }
 
-function replaceInArray(arr, oldElements, newElements) {
+export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[]) {
     const clone = [...arr];
     for (let i = 0; i < oldElements.length; i++) {
         const index = clone.indexOf(oldElements[i]);
@@ -268,8 +277,8 @@ function replaceInArray(arr, oldElements, newElements) {
     return clone;
 }
 
-function filterObject(obj, keys) {
-    const result = {};
+export function filterObject(obj: KeyValue, keys: string[]) {
+    const result: KeyValue = {};
     for (const [key, value] of Object.entries(obj)) {
         if (keys.includes(key)) {
             result[key] = value;
@@ -278,15 +287,16 @@ function filterObject(obj, keys) {
     return result;
 }
 
-async function sleep(ms) {
+export async function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function toSnakeCase(value) {
+export function toSnakeCase(value: string | KeyValueAny) {
     if (typeof value === 'object') {
         for (const key of Object.keys(value)) {
             const keySnakeCase = toSnakeCase(key);
             if (key !== keySnakeCase) {
+                // @ts-expect-error
                 value[keySnakeCase] = value[key];
                 delete value[key];
             }
@@ -297,11 +307,12 @@ function toSnakeCase(value) {
     }
 }
 
-function toCamelCase(value) {
+export function toCamelCase(value: KeyValueAny | string) {
     if (typeof value === 'object') {
         for (const key of Object.keys(value)) {
             const keyCamelCase = toCamelCase(key);
             if (key !== keyCamelCase) {
+                // @ts-expect-error
                 value[keyCamelCase] = value[key];
                 delete value[key];
             }
@@ -312,7 +323,7 @@ function toCamelCase(value) {
     }
 }
 
-function saveSceneState(entity, sceneID, groupID, state, name) {
+export function saveSceneState(entity: zh.Endpoint, sceneID: number, groupID: number, state: KeyValue, name: string) {
     const attributes = ['state', 'brightness', 'color', 'color_temp', 'color_mode'];
     if (!entity.meta.hasOwnProperty('scenes')) entity.meta.scenes = {};
     const metaKey = `${sceneID}_${groupID}`;
@@ -320,7 +331,7 @@ function saveSceneState(entity, sceneID, groupID, state, name) {
     entity.save();
 }
 
-function deleteSceneState(entity, sceneID=null, groupID=null) {
+export function deleteSceneState(entity: zh.Endpoint, sceneID: number=null, groupID: number=null) {
     if (entity.meta.scenes) {
         if (sceneID == null && groupID == null) {
             entity.meta.scenes = {};
@@ -334,7 +345,7 @@ function deleteSceneState(entity, sceneID=null, groupID=null) {
     }
 }
 
-function getSceneState(entity, sceneID, groupID) {
+export function getSceneState(entity: zh.Group | zh.Endpoint, sceneID: number, groupID: number) {
     const metaKey = `${sceneID}_${groupID}`;
     if (entity.meta.hasOwnProperty('scenes') && entity.meta.scenes.hasOwnProperty(metaKey)) {
         return entity.meta.scenes[metaKey].state;
@@ -343,21 +354,21 @@ function getSceneState(entity, sceneID, groupID) {
     return null;
 }
 
-function getEntityOrFirstGroupMember(entity) {
-    if (entity.constructor.name === 'Group') {
+export function getEntityOrFirstGroupMember(entity: zh.Group | zh.Endpoint) {
+    if (isGroup(entity)) {
         return entity.members.length > 0 ? entity.members[0] : null;
     } else {
         return entity;
     }
 }
 
-function getTransition(entity, key, meta) {
+export function getTransition(entity: zh.Endpoint | zh.Group, key: string, meta: tz.Meta) {
     const {options, message} = meta;
 
-    let manufacturerIDs = [];
-    if (entity.constructor.name === 'Group') {
+    let manufacturerIDs: number[] = [];
+    if (isGroup(entity)) {
         manufacturerIDs = entity.members.map((m) => m.getDevice().manufacturerID);
-    } else if (entity.constructor.name === 'Endpoint') {
+    } else if (isEndpoint(entity)) {
         manufacturerIDs = [entity.getDevice().manufacturerID];
     }
 
@@ -374,24 +385,27 @@ function getTransition(entity, key, meta) {
     }
 
     if (message.hasOwnProperty('transition')) {
+        assertNumber(message.transition, 'transition');
         return {time: message.transition * 10, specified: true};
     } else if (options.hasOwnProperty('transition')) {
+        assertNumber(options.transition, 'transition');
         return {time: options.transition * 10, specified: true};
     } else {
         return {time: 0, specified: false};
     }
 }
 
-function getOptions(definition, entity, options={}) {
+export function getOptions(definition: Definition, entity: zh.Endpoint | zh.Group, options={}) {
     const allowed = ['disableDefaultResponse', 'timeout'];
     return getMetaValues(definition, entity, allowed, options);
 }
 
-function getMetaValues(definition, entity, allowed, options={}) {
-    const result = {...options};
+export function getMetaValues(definition: Definition, entity: zh.Endpoint | zh.Group, allowed?: string[], options={}) {
+    const result: KeyValue = {...options};
     if (definition && definition.meta) {
         for (const key of Object.keys(definition.meta)) {
             if (allowed == null || allowed.includes(key)) {
+                // @ts-expect-error
                 const value = definition.meta[key];
                 result[key] = typeof value === 'function' ? value(entity) : value;
             }
@@ -401,50 +415,42 @@ function getMetaValues(definition, entity, allowed, options={}) {
     return result;
 }
 
-function getObjectProperty(object, key, defaultValue) {
+export function getObjectProperty(object: KeyValue, key: string, defaultValue: unknown) {
     return object && object.hasOwnProperty(key) ? object[key] : defaultValue;
 }
 
-function validateValue(value, allowed) {
+export function validateValue(value: unknown, allowed: unknown[]) {
     if (!allowed.includes(value)) {
         throw new Error(`'${value}' not allowed, choose between: ${allowed}`);
     }
 }
 
-function normalizeCelsiusVersionOfFahrenheit(value) {
+export function normalizeCelsiusVersionOfFahrenheit(value: number) {
     const fahrenheit = (value * 1.8) + 32;
-    const roundedFahrenheit = (Math.round((fahrenheit * 2).toFixed(1)) / 2).toFixed(1);
+    const roundedFahrenheit = Number((Math.round(Number((fahrenheit * 2).toFixed(1))) / 2).toFixed(1));
     return ((roundedFahrenheit - 32)/1.8).toFixed(2);
 }
 
-function extendDevice(deviceConfigs, modelName, adjustments) {
-    const baseDevice = deviceConfigs.find((device) => device.model === modelName);
-    if (typeof baseDevice !== 'object') {
-        throw Error(`Could not find model ${modelName} in provided device list`);
-    }
-    return {...baseDevice, ...adjustments};
-}
-
-function noOccupancySince(endpoint, options, publish, action) {
+export function noOccupancySince(endpoint: zh.Endpoint, options: KeyValueAny, publish: Publish, action: 'start' | 'stop') {
     if (options && options.no_occupancy_since) {
         if (action == 'start') {
-            globalStore.getValue(endpoint, 'no_occupancy_since_timers', []).forEach((t) => clearTimeout(t));
+            globalStore.getValue(endpoint, 'no_occupancy_since_timers', []).forEach((t: NodeJS.Timer) => clearTimeout(t));
             globalStore.putValue(endpoint, 'no_occupancy_since_timers', []);
 
-            options.no_occupancy_since.forEach((since) => {
+            options.no_occupancy_since.forEach((since: number) => {
                 const timer = setTimeout(() => {
                     publish({no_occupancy_since: since});
                 }, since * 1000);
                 globalStore.getValue(endpoint, 'no_occupancy_since_timers').push(timer);
             });
         } else if (action === 'stop') {
-            globalStore.getValue(endpoint, 'no_occupancy_since_timers', []).forEach((t) => clearTimeout(t));
+            globalStore.getValue(endpoint, 'no_occupancy_since_timers', []).forEach((t: NodeJS.Timer) => clearTimeout(t));
             globalStore.putValue(endpoint, 'no_occupancy_since_timers', []);
         }
     }
 }
 
-function attachOutputCluster(device, clusterKey) {
+export function attachOutputCluster(device: zh.Device, clusterKey: string) {
     const clusterId = herdsman.Zcl.Utils.getCluster(clusterKey).ID;
     const endpoint = device.getEndpoint(1);
 
@@ -459,7 +465,7 @@ function attachOutputCluster(device, clusterKey) {
  * @param {number} hexLength
  * @return {string}
  */
-function printNumberAsHex(value, hexLength) {
+export function printNumberAsHex(value: number, hexLength: number) {
     const hexValue = value.toString(16).padStart(hexLength, '0');
     return `0x${hexValue}`;
 }
@@ -469,7 +475,7 @@ function printNumberAsHex(value, hexLength) {
  * @param {number} hexLength
  * @return {string}
  */
-function printNumbersAsHexSequence(numbers, hexLength) {
+export function printNumbersAsHexSequence(numbers: number[], hexLength: number) {
     return numbers.map((v) => v.toString(16).padStart(hexLength, '0')).join(':');
 }
 
@@ -481,9 +487,46 @@ function printNumbersAsHexSequence(numbers, hexLength) {
  * @param {key} key
  * @returns {(level: string, message: string) => void}
  */
-const createLogger = (logger, vendor, key) => (level, message) => {
+const createLogger = (logger: Logger, vendor: string, key: string) => (level: 'debug' | 'info' | 'warn' | 'error', message: string) => {
     logger[level](`zigbee-herdsman-converters:${vendor}:${key}: ${message}`);
 };
+
+export function assertString(value: unknown, property?: string): asserts value is string {
+    property = property ? `'${property}'` : 'Value';
+    if (typeof value !== 'string') throw new Error(`${property} is not a string, got ${typeof value} (${value.toString()})`);
+}
+
+export function assertNumber(value: unknown, property?: string): asserts value is number {
+    property = property ? `'${property}'` : 'Value';
+    if (typeof value !== 'number') throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
+}
+
+export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}): V {
+    let result = undefined;
+    if (typeof value === 'string') {
+        result = lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
+    } else if (typeof value === 'number') {
+        result = lookup[value];
+    }
+    if (result === undefined) throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
+    return result;
+}
+
+export function assertEndpoint(obj: unknown): asserts obj is zh.Endpoint {
+    if (obj?.constructor?.name?.toLowerCase() !== 'endpoint') throw new Error('Not an endpoint');
+}
+
+export function isEndpoint(obj: zh.Endpoint | zh.Group | zh.Device): obj is zh.Endpoint {
+    return obj.constructor.name.toLowerCase() === 'endpoint';
+}
+
+export function isDevice(obj: zh.Endpoint | zh.Group | zh.Device): obj is zh.Device {
+    return obj.constructor.name.toLowerCase() === 'device';
+}
+
+export function isGroup(obj: zh.Endpoint | zh.Group | zh.Device): obj is zh.Group {
+    return obj.constructor.name.toLowerCase() === 'group';
+}
 
 module.exports = {
     noOccupancySince,
@@ -519,9 +562,14 @@ module.exports = {
     normalizeCelsiusVersionOfFahrenheit,
     deleteSceneState,
     getSceneState,
-    extendDevice,
     attachOutputCluster,
     printNumberAsHex,
     printNumbersAsHexSequence,
     createLogger,
+    getFromLookup,
+    assertNumber,
+    assertString,
+    assertEndpoint,
+    isGroup,
+    isEndpoint,
 };

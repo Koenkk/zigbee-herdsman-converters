@@ -3,10 +3,9 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import utils from '../lib/utils';
+import * as utils from '../lib/utils';
 import * as constants from '../lib/constants';
 import ota from '../lib/ota';
-import {assertEndpoint, assertNumber, assertString, getFromLookup} from '../lib/utils2';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -85,7 +84,7 @@ const tzLocal = {
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state') {
-                assertString(value, 'state');
+                utils.assertString(value, 'state');
                 const state = value.toLowerCase();
                 utils.validateValue(state, ['toggle', 'off', 'on', 'open', 'close', 'stop']);
                 if ( state === 'on' || state === 'off' || state === 'toggle') {
@@ -98,32 +97,32 @@ const tzLocal = {
                     }
                 } else if ( state === 'open' || state === 'close' || state === 'stop') {
                     const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
-                    await entity.command('closuresWindowCovering', getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
+                    await entity.command('closuresWindowCovering', utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
                 }
             }
             if (key === 'device_type') {
-                const index = getFromLookup(value, stateDeviceType);
+                const index = utils.getFromLookup(value, stateDeviceType);
                 await entity.write(0xFCA0, {0x0000: {value: index, type: 0x30}}, boschManufacturer);
                 return {state: {device_type: value}};
             }
             if (key === 'switch_type') {
-                const index = getFromLookup(value, stateSwitchType);
+                const index = utils.getFromLookup(value, stateSwitchType);
                 await entity.write(0xFCA0, {0x0001: {value: index, type: 0x30}}, boschManufacturer);
                 return {state: {switch_type: value}};
             }
             if (key === 'child_lock') {
-                const index = getFromLookup(value, stateOffOn);
+                const index = utils.getFromLookup(value, stateOffOn);
                 await entity.write(0xFCA0, {0x0008: {value: index, type: 0x10}}, boschManufacturer);
                 return {state: {child_lock: value}};
             }
             if (key === 'calibration_closing_time') {
-                assertNumber(value, 'calibration_closing_time');
+                utils.assertNumber(value, 'calibration_closing_time');
                 const index = value *10;
                 await entity.write(0xFCA0, {0x0002: {value: index, type: 0x23}}, boschManufacturer);
                 return {state: {calibration_closing_time: value}};
             }
             if (key === 'calibration_opening_time') {
-                assertNumber(value, 'calibration_opening_time');
+                utils.assertNumber(value, 'calibration_opening_time');
                 const index = value *10;
                 await entity.write(0xFCA0, {0x0003: {value: index, type: 0x23}}, boschManufacturer);
                 return {state: {calibration_opening_time: value}};
@@ -158,7 +157,7 @@ const tzLocal = {
         key: ['alarm_on_motion', 'test'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'alarm_on_motion') {
-                const index = getFromLookup(value, stateOffOn);
+                const index = utils.getFromLookup(value, stateOffOn);
                 await entity.write(0xFCAC, {0x0003: {value: index, type: 0x10}}, boschManufacturer);
                 return {state: {alarm_on_motion: value}};
             }
@@ -177,18 +176,18 @@ const tzLocal = {
         key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'window_open') {
-                const index = getFromLookup(value, stateOffOn);
+                const index = utils.getFromLookup(value, stateOffOn);
                 await entity.write('hvacThermostat', {0x4042: {value: index, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {window_open: value}};
             }
             if (key === 'boost') {
-                const index = getFromLookup(value, stateOffOn);
+                const index = utils.getFromLookup(value, stateOffOn);
                 await entity.write('hvacThermostat', {0x4043: {value: index, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {boost: value}};
             }
             if (key === 'system_mode') {
                 // Map system_mode (Off/Auto/Heat) to Bosch operating mode
-                assertString(value, 'system_mode');
+                utils.assertString(value, 'system_mode');
                 value = value.toLowerCase();
 
                 let opMode = operatingModes.manual; // OperatingMode 1 = Manual (Default)
@@ -208,7 +207,7 @@ const tzLocal = {
                 return {state: {pi_heating_demand: value}};
             }
             if (key === 'remote_temperature') {
-                assertNumber(value, 'remote_temperature');
+                utils.assertNumber(value, 'remote_temperature');
                 const remoteTemperature = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
                 await entity.write('hvacThermostat',
                     {0x4040: {value: remoteTemperature, type: herdsman.Zcl.DataType.int16}}, boschManufacturer);
@@ -242,7 +241,7 @@ const tzLocal = {
         key: ['display_orientation', 'display_ontime', 'display_brightness', 'child_lock', 'displayed_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'display_orientation') {
-                const index = getFromLookup(value, displayOrientation);
+                const index = utils.getFromLookup(value, displayOrientation);
                 await entity.write('hvacUserInterfaceCfg', {0x400b: {value: index, type: herdsman.Zcl.DataType.uint8}}, boschManufacturer);
                 return {state: {display_orientation: value}};
             }
@@ -260,7 +259,7 @@ const tzLocal = {
                 return {state: {child_lock: value}};
             }
             if (key === 'displayed_temperature') {
-                const index = getFromLookup(value, displayedTemperature);
+                const index = utils.getFromLookup(value, displayedTemperature);
                 await entity.write('hvacUserInterfaceCfg', {0x4039: {value: index, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {displayed_temperature: value}};
             }
@@ -291,18 +290,18 @@ const tzLocal = {
         key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'sensitivity') {
-                const index = getFromLookup(value, smokeSensitivity);
+                const index = utils.getFromLookup(value, smokeSensitivity);
                 await entity.write('manuSpecificBosch', {0x4003: {value: index, type: 0x21}}, boschManufacturer);
                 return {state: {sensitivity: value}};
             }
             if (key === 'pre_alarm') {
-                const index = getFromLookup(value, stateOffOn);
+                const index = utils.getFromLookup(value, stateOffOn);
                 await entity.write('manuSpecificBosch5', {0x4001: {value: index, type: 0x18}}, boschManufacturer);
                 return {state: {pre_alarm: value}};
             }
             if (key === 'heartbeat') {
                 const endpoint = meta.device.getEndpoint(12);
-                const index = getFromLookup(value, stateOffOn);
+                const index = utils.getFromLookup(value, stateOffOn);
                 await endpoint.write('manuSpecificBosch7', {0x5005: {value: index, type: 0x18}}, boschManufacturer);
                 return {state: {heartbeat: value}};
             }
@@ -313,8 +312,8 @@ const tzLocal = {
             }
             if (key === 'alarm') {
                 const endpoint = meta.device.getEndpoint(12);
-                const index = getFromLookup(value, sirenState);
-                assertEndpoint(entity);
+                const index = utils.getFromLookup(value, sirenState);
+                utils.assertEndpoint(entity);
                 if (index == 0) {
                     await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x16, clusterid: 0xe000}, {direction: 1});
                     await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x14, clusterid: 0xe000}, {direction: 1});

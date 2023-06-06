@@ -1,10 +1,9 @@
 import * as constants from './constants';
 import * as globalStore from './store';
 import * as exposes from './exposes';
-import {getFromLookup, assertNumber, assertString} from './utils2';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
-import utils from './utils';
+import * as utils from './utils';
 import extend from './extend';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -81,7 +80,7 @@ export async function onEventMeasurementPoll(type: OnEventType, data: OnEventDat
         globalStore.clearValue(device, 'measurement_poll');
     } else if (!globalStore.hasValue(device, 'measurement_poll')) {
         const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
-        assertNumber(seconds, 'measurement_poll_interval');
+        utils.assertNumber(seconds, 'measurement_poll_interval');
         if (seconds === -1) return;
         const setTimer = () => {
             const timer = setTimeout(async () => {
@@ -346,7 +345,7 @@ export class Bitmap extends Base {
 export const valueConverterBasic = {
     lookup: (map: {[s: (string)]: number | boolean | Enum | string}) => {
         return {
-            to: (v: string) => getFromLookup(v, map),
+            to: (v: string) => utils.getFromLookup(v, map),
             from: (v: number) => {
                 const value = Object.entries(map).find((i) => i[1].valueOf() === v);
                 if (!value) throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(map)}`);
@@ -526,7 +525,7 @@ export const valueConverter = {
                 friday: 16, saturday: 32, sunday: 64,
             };
             const weekDay = v.week_day;
-            assertString(weekDay, 'week_day');
+            utils.assertString(weekDay, 'week_day');
             if (Object.keys(dayByte).indexOf(weekDay) === -1) {
                 throw new Error('Invalid "week_day" property value: ' + weekDay);
             }
@@ -554,7 +553,7 @@ export const valueConverter = {
 
             // day splitted to 10 min segments = total 144 segments
             const maxPeriodsInDay = 10;
-            assertString(v.schedule, 'schedule');
+            utils.assertString(v.schedule, 'schedule');
             const schedule = v.schedule.split(' ');
             const schedulePeriods = schedule.length;
             if (schedulePeriods > 10) throw new Error('There cannot be more than 10 periods in the schedule: ' + v);
@@ -688,7 +687,7 @@ const tuyaTz = {
         key: ['power_on_behavior', 'power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
             // Deprecated: remove power_outage_memory
-            const moesStartUpOnOff = getFromLookup(value, key === 'power_on_behavior' ?
+            const moesStartUpOnOff = utils.getFromLookup(value, key === 'power_on_behavior' ?
                 {'off': 0, 'on': 1, 'previous': 2} : {'off': 0, 'on': 1, 'restore': 2});
             await entity.write('genOnOff', {moesStartUpOnOff});
             return {state: {[key]: value}};
@@ -698,7 +697,7 @@ const tuyaTz = {
     power_on_behavior_2: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
-            const powerOnBehavior = getFromLookup(value, {'off': 0, 'on': 1, 'previous': 2});
+            const powerOnBehavior = utils.getFromLookup(value, {'off': 0, 'on': 1, 'previous': 2});
             await entity.write('manuSpecificTuya_3', {powerOnBehavior});
             return {state: {[key]: value}};
         },
@@ -707,7 +706,7 @@ const tuyaTz = {
     switch_type: {
         key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {
-            const switchType = getFromLookup(value, {'toggle': 0, 'state': 1, 'momentary': 2});
+            const switchType = utils.getFromLookup(value, {'toggle': 0, 'state': 1, 'momentary': 2});
             await entity.write('manuSpecificTuya_3', {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
@@ -716,7 +715,7 @@ const tuyaTz = {
     backlight_indicator_mode_1: {
         key: ['backlight_mode', 'indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const tuyaBacklightMode = getFromLookup(value, key === 'backlight_mode' ?
+            const tuyaBacklightMode = utils.getFromLookup(value, key === 'backlight_mode' ?
                 {'low': 0, 'medium': 1, 'high': 2, 'off': 0, 'normal': 1, 'inverted': 2} :
                 {'off': 0, 'off/on': 1, 'on/off': 2, 'on': 3});
             await entity.write('genOnOff', {tuyaBacklightMode});
@@ -727,7 +726,7 @@ const tuyaTz = {
     backlight_indicator_mode_2: {
         key: ['backlight_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const tuyaBacklightSwitch = getFromLookup(value, {'off': 0, 'on': 1});
+            const tuyaBacklightSwitch = utils.getFromLookup(value, {'off': 0, 'on': 1});
             await entity.write('genOnOff', {tuyaBacklightSwitch});
             return {state: {[key]: value}};
         },
@@ -736,14 +735,14 @@ const tuyaTz = {
     child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
-            const v = getFromLookup(value, {'lock': true, 'unlock': false});
+            const v = utils.getFromLookup(value, {'lock': true, 'unlock': false});
             await entity.write('genOnOff', {0x8000: {value: v, type: 0x10}});
         },
     } as tz.Converter,
     min_brightness: {
         key: ['min_brightness'],
         convertSet: async (entity, key, value, meta) => {
-            assertNumber(value, `min_brightness`);
+            utils.assertNumber(value, `min_brightness`);
             const minValueHex = value.toString(16);
             const maxValueHex = 'ff';
             const minMaxValue = parseInt(`${minValueHex}${maxValueHex}`, 16);
@@ -758,7 +757,7 @@ const tuyaTz = {
     color_power_on_behavior: {
         key: ['color_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
-            const v = getFromLookup(value, {'initial': 0, 'previous': 1, 'cutomized': 2});
+            const v = utils.getFromLookup(value, {'initial': 0, 'previous': 1, 'cutomized': 2});
             await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {mode: v*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
             return {state: {color_power_on_behavior: value}};
         },
@@ -902,7 +901,7 @@ const tuyaFz = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
-                return {backlight_mode: getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'normal', 2: 'inverted'})};
+                return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'normal', 2: 'inverted'})};
             }
         },
     } as fz.Converter,
@@ -911,7 +910,7 @@ const tuyaFz = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('tuyaBacklightSwitch')) {
-                return {backlight_mode: getFromLookup(msg.data['tuyaBacklightSwitch'], {0: 'OFF', 1: 'ON'})};
+                return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightSwitch'], {0: 'OFF', 1: 'ON'})};
             }
         },
     } as fz.Converter,
@@ -920,7 +919,7 @@ const tuyaFz = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
-                return {indicator_mode: getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'})};
+                return {indicator_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'})};
             }
         },
     } as fz.Converter,
@@ -983,6 +982,7 @@ const tuyaFz = {
             const keys = Object.keys(utils.calibrateAndPrecisionRoundOptionsDefaultPrecision);
             for (const entry of Object.entries(result)) {
                 if (keys.includes(entry[0])) {
+                    utils.assertNumber(entry[1], entry[0]);
                     result[entry[0]] = utils.calibrateAndPrecisionRoundOptions(entry[1], options, entry[0]);
                 }
             }

@@ -1,5 +1,4 @@
-import utils from './utils';
-import {isGroup} from './utils2';
+import * as utils from './utils';
 
 async function readColorCapabilities(endpoint: zh.Endpoint) {
     await endpoint.read('lightingColorCtrl', ['colorCapabilities']);
@@ -45,10 +44,10 @@ function readColorAttributes(entity: zh.Endpoint | zh.Group, meta: tz.Meta, addi
     return [...attributes, ...additionalAttributes];
 }
 
-function findColorTempRange(entity: zh.Endpoint | zh.Group, logger: Logger) {
+export function findColorTempRange(entity: zh.Endpoint | zh.Group, logger: Logger) {
     let colorTempMin;
     let colorTempMax;
-    if (isGroup(entity)) {
+    if (utils.isGroup(entity)) {
         const minCandidates = entity.members.map(
             (m) => Number(m.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMin')),
         ).filter((v) => v != null);
@@ -62,12 +61,12 @@ function findColorTempRange(entity: zh.Endpoint | zh.Group, logger: Logger) {
             colorTempMax = Math.min(...maxCandidates);
         }
     } else {
-        colorTempMin = entity.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMin');
-        colorTempMax = entity.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMax');
+        colorTempMin = entity.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMin') as number;
+        colorTempMax = entity.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMax') as number;
     }
     if ((colorTempMin == null) || (colorTempMax == null)) {
-        const entityId = isGroup(entity) ? entity.groupID : entity.deviceIeeeAddress;
-        logger.debug(`Missing colorTempPhysicalMin and/or colorTempPhysicalMax for ${isGroup(entity) ? 'group' : 'endpoint'} ${entityId}!`);
+        const entityId = utils.isGroup(entity) ? entity.groupID : entity.deviceIeeeAddress;
+        logger.debug(`Missing colorTempPhysicalMin and/or colorTempPhysicalMax for ${utils.isGroup(entity) ? 'group' : 'endpoint'} ${entityId}!`);
     }
     return [colorTempMin, colorTempMax];
 }

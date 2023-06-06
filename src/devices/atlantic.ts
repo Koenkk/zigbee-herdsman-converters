@@ -1,9 +1,8 @@
-import {assertString} from '../lib/utils2';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import utils from '../lib/utils';
+import * as utils from '../lib/utils';
 import assert from 'assert';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -28,7 +27,7 @@ const tzLocal = {
     ac_louver_position: {
         key: ['ac_louver_position'],
         convertSet: async (entity, key, value, meta) => {
-            assertString(value, 'ac_louver_position');
+            utils.assertString(value, 'ac_louver_position');
             utils.validateValue(value, Object.keys(thermostatPositions));
             const index = thermostatPositions[value.toLowerCase()];
             await entity.write('hvacThermostat', {0x4273: {value: index, type: 0x30}}, {manufacturerCode: 0x125b});
@@ -38,7 +37,7 @@ const tzLocal = {
     preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
-            assertString(value, 'preset');
+            utils.assertString(value, 'preset');
             value = value.toLowerCase();
             utils.validateValue(value, ['activity', 'boost', 'eco', 'none']);
             const activity = value === 'activity' ? 1 : 0;
@@ -55,7 +54,7 @@ const tzLocal = {
     swingMode: {
         key: ['swing_mode'],
         convertSet: async (entity, key, value, meta) => {
-            assertString(value, 'swing_mode');
+            utils.assertString(value, 'swing_mode');
             value = value.toLowerCase();
             utils.validateValue(value, ['on', 'off']);
             await entity.write('hvacThermostat', {0x4274: {value: value === 'on' ? 1 : 0, type: 0x10}}, {manufacturerCode: 0x125b});

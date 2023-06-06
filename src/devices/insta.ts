@@ -4,7 +4,7 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import utils from '../lib/utils';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 
 const definitions: Definition[] = [

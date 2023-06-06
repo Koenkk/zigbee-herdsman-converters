@@ -4,7 +4,7 @@ import * as legacy from '../lib/legacy';
 import ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import utils from '../lib/utils';
+import * as utils from '../lib/utils';
 import * as ledvance from '../lib/ledvance';
 const e = exposes.presets;
 

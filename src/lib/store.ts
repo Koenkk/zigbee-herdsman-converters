@@ -1,4 +1,4 @@
-import {isGroup, isEndpoint, isDevice} from './utils2';
+import {isGroup, isEndpoint, isDevice} from './utils';
 
 let store = new Map();
 
