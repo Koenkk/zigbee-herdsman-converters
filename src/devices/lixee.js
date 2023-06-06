@@ -137,6 +137,7 @@ const fzLocal = {
                 /* 0x0006 */ 'warnDIR1',
                 /* 0x0007 */ 'warnDIR2',
                 /* 0x0008 */ 'warnDIR3',
+                /* 0x0009 */ 'motDEtat',
                 /* 0x0200 */ 'currentPrice',
                 /* 0x0201 */ 'currentIndexTarif',
                 /* 0x0202 */ 'currentDate',
@@ -563,6 +564,7 @@ const exposedData = [
     {cluster: clustersDef._0xFF66, att: 'daysNumberNextCalendar', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('NJOURF+1', ea.STATE).withProperty('days_number_next_calendar').withDescription('Next day number supplier calendar')},
     {cluster: clustersDef._0xFF66, att: 'daysProfileCurrentCalendar', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('PJOURF+1', ea.STATE).withProperty('days_profile_current_calendar').withDescription('Profile of the next supplier calendar day')},
     {cluster: clustersDef._0xFF66, att: 'daysProfileNextCalendar', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('PPOINTE1', ea.STATE).withProperty('days_profile_next_calendar').withDescription('Profile of the next check-in day')},
+    {cluster: clustersDef._0xFF66, att: 'motDEtat', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.text('MOTDETAT', ea.STATE).withProperty('MOTDETAT').withDescription('Meter Status Word')},
 ];
 
 function getCurrentConfig(device, options, logger=console) {
