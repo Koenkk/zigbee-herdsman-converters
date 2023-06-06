@@ -1,5 +1,5 @@
 import * as exposes from '../lib/exposes';
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import ota from '../lib/ota';
 const e = exposes.presets;

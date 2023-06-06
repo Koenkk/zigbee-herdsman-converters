@@ -2,7 +2,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as tuya from '../lib/tuya';
 const e = exposes.presets;

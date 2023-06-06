@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'fs';
-import globalStore from './store';
+import * as globalStore from './store';
 import * as utils from './utils';
 import fromZigbeeConverters from '../converters/fromZigbee';
 const fromZigbeeStore: KeyValueAny = {};
 import * as exposes from './exposes';
-import constants from './constants';
+import * as constants from './constants';
 import * as light from './light';
 
 interface KeyValueAny {[s: string]: any}

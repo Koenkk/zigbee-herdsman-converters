@@ -1,7 +1,7 @@
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 import ota from '../lib/ota';
 
@@ -57,7 +57,7 @@ const definitions: Definition[] = [
             await reporting.rmsVoltage(endpoint, {change: 2});
             await reporting.rmsCurrent(endpoint, {change: 5});
             await reporting.activePower(endpoint, {change: 2});
-            await reporting.currentSummDelivered(endpoint, 2);
+            await reporting.currentSummDelivered(endpoint, {change: 2});
             await reporting.onOff(endpoint);
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
             await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);

@@ -2,9 +2,9 @@ import herdsman from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 import utils from '../lib/utils';
-import constants from '../lib/constants';
+import * as constants from '../lib/constants';
 import ota from '../lib/ota';
 import {assertEndpoint, assertNumber, assertString, getFromLookup} from '../lib/utils2';
 const e = exposes.presets;
@@ -819,6 +819,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
+            // @ts-expect-error
             await reporting.currentSummDelivered(endpoint, {change: [0, 1]});
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
@@ -848,6 +849,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
+            // @ts-expect-error
             await reporting.currentSummDelivered(endpoint, {change: [0, 1]});
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);

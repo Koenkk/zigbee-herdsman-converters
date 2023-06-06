@@ -1,4 +1,4 @@
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 
 const definitions: Definition[] = [

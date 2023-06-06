@@ -1,4 +1,4 @@
-import zosung from '../lib/zosung';
+import * as zosung from '../lib/zosung';
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;

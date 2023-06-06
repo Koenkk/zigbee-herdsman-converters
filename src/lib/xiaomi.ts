@@ -1,19 +1,31 @@
-'use strict';
-
-const {
+import {
     batteryVoltageToPercentage,
     calibrateAndPrecisionRoundOptions,
     calibrateAndPrecisionRoundOptionsIsPercentual,
     postfixWithEndpointName,
     precisionRound,
     getKey,
-} = require('./utils');
+} from './utils';
 
-const exposes = require('../lib/exposes');
-const globalStore = require('../lib/store');
+import * as exposes from './exposes';
+import * as globalStore from './store';
+import {assertNumber, getFromLookup} from './utils2';
 
-const buffer2DataObject = (meta, model, buffer) => {
-    const dataObject = {};
+declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+
+export interface TrvScheduleConfigEvent {
+    time: number;
+    temperature: number;
+}
+
+export interface TrvScheduleConfig {
+    days: Day[];
+    events: TrvScheduleConfigEvent[];
+}
+
+
+const buffer2DataObject = (meta: fz.Meta, model: Definition, buffer: Buffer) => {
+    const dataObject: KeyValue = {};
 
     if (buffer !== null && Buffer.isBuffer(buffer)) {
         // Xiaomi struct parsing
@@ -116,16 +128,16 @@ const buffer2DataObject = (meta, model, buffer) => {
                 break;
             case 66:
                 // 0x42 unknown, length taken from what seems correct in the logs, maybe is wrong
-                if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown vtype=${buffer[i+1]}, pos=${i+1}, moving length 1`);
+                if (meta.logger) meta.logger.debug(`${model.model}: unknown vtype=${buffer[i+1]}, pos=${i+1}, moving length 1`);
                 i += 2;
                 break;
             case 95:
                 // 0x5f unknown, length taken from what seems correct in the logs, maybe is wrong
-                if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown vtype=${buffer[i+1]}, pos=${i+1}, moving length 4`);
+                if (meta.logger) meta.logger.debug(`${model.model}: unknown vtype=${buffer[i+1]}, pos=${i+1}, moving length 4`);
                 i += 5;
                 break;
             default:
-                if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown vtype=${buffer[i + 1]}, pos=${i + 1}`);
+                if (meta.logger) meta.logger.debug(`${model.model}: unknown vtype=${buffer[i + 1]}, pos=${i + 1}`);
             }
 
             if (value != null) {
@@ -135,7 +147,7 @@ const buffer2DataObject = (meta, model, buffer) => {
     }
 
     if (meta.logger) {
-        meta.logger.debug(`${model.zigbeeModel}: Processed buffer into data ${JSON.stringify(dataObject,
+        meta.logger.debug(`${model.model}: Processed buffer into data ${JSON.stringify(dataObject,
             (key, value) => typeof value === 'bigint' ? value.toString() : value)}`);
     }
 
@@ -143,8 +155,8 @@ const buffer2DataObject = (meta, model, buffer) => {
     return dataObject;
 };
 
-const numericAttributes2Payload = async (msg, meta, model, options, dataObject) => {
-    let payload = {};
+const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: Definition, options: KeyValue, dataObject: KeyValue) => {
+    let payload: KeyValue = {};
 
     for (const [key, value] of Object.entries(dataObject)) {
         switch (key) {
@@ -159,6 +171,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             break;
         case '2':
             if (['JT-BZ-01AQ/A'].includes(model.model)) {
+                assertNumber(value);
                 payload.power_outage_count = value - 1;
             }
             break;
@@ -173,9 +186,10 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             }
             break;
         case '4':
-            payload.mode_switch = {4: 'anti_flicker_mode', 1: 'quick_mode'}[value];
+            payload.mode_switch = getFromLookup(value, {4: 'anti_flicker_mode', 1: 'quick_mode'});
             break;
         case '5':
+            assertNumber(value);
             payload.power_outage_count = value - 1;
             break;
         case '8':
@@ -192,7 +206,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             if (['ZNLDP13LM', 'CTP-R01'].includes(model.model)) {
                 // We don't know what the value means for these devices.
             } else {
-                payload.switch_type = {1: 'toggle', 2: 'momentary'}[value];
+                payload.switch_type = getFromLookup(value, {1: 'toggle', 2: 'momentary'});
             }
             break;
         case '11':
@@ -223,7 +237,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
                 }
                 payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
             } else if (['WXKG14LM', 'WXKG16LM', 'WXKG17LM'].includes(model.model)) {
-                payload.click_mode = {1: 'fast', 2: 'multi'}[value];
+                payload.click_mode = getFromLookup(value, {1: 'fast', 2: 'multi'});
             } else if (['WXCJKG11LM', 'WXCJKG12LM', 'WXCJKG13LM', 'ZNMS12LM', 'ZNCLBL01LM', 'RTCGQ12LM', 'RTCGQ13LM',
                 'RTCGQ14LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
@@ -234,6 +248,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             } else if (['WSDCGQ01LM', 'WSDCGQ11LM', 'WSDCGQ12LM', 'VOCKQJK11LM'].includes(model.model)) {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/798
                 // Sometimes the sensor publishes non-realistic vales, filter these
+                // @ts-expect-error
                 const temperature = parseFloat(value) / 100.0;
                 if (temperature > -65 && temperature < 65) {
                     payload.temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
@@ -279,11 +294,13 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             } else if (['RTCGQ12LM', 'RTCGQ14LM', 'RTCGQ15LM'].includes(model.model)) {
                 // Sometimes RTCGQ14LM reports high illuminance values in the dark
                 // https://github.com/Koenkk/zigbee2mqtt/issues/12596
+                assertNumber(value);
                 const illuminance = value > 65000 ? 0 : value;
                 payload.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
             } else if (['WSDCGQ01LM', 'WSDCGQ11LM', 'WSDCGQ12LM', 'VOCKQJK11LM'].includes(model.model)) {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/798
                 // Sometimes the sensor publishes non-realistic vales, filter these
+                // @ts-expect-error
                 const humidity = parseFloat(value) / 100.0;
                 if (humidity >= 0 && humidity <= 100) {
                     payload.humidity = calibrateAndPrecisionRoundOptions(humidity, options, 'humidity');
@@ -291,52 +308,55 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             } else if (['ZNJLBL01LM', 'ZNCLDJ12LM'].includes(model.model)) {
                 payload.battery = value;
             } else if (['ZNCLBL01LM'].includes(model.model)) {
+                assertNumber(value);
                 const battery = value / 2;
                 payload.battery = precisionRound(battery, 2);
             } else if (['RTCZCGQ11LM'].includes(model.model)) {
-                payload.presence = {0: false, 1: true, 255: null}[value];
+                payload.presence = getFromLookup(value, {0: false, 1: true, 255: null});
             }
             break;
         case '102':
             if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
                 payload.state_right = value === 1 ? 'ON' : 'OFF';
             } else if (['WSDCGQ01LM', 'WSDCGQ11LM'].includes(model.model)) {
+                assertNumber(value);
                 payload.pressure = calibrateAndPrecisionRoundOptions(value/100.0, options, 'pressure');
             } else if (['WSDCGQ12LM'].includes(model.model)) {
                 // This pressure value is ignored because it is less accurate than reported in the 'scaledValue' attribute
                 // of the 'msPressureMeasurement' cluster
             } else if (['RTCZCGQ11LM'].includes(model.model)) {
                 if (meta.device.applicationVersion < 50) {
-                    payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
-                        5: 'left_leave', 6: 'approach', 7: 'away', 255: null}[value];
+                    payload.presence_event = getFromLookup(value, {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
+                        5: 'left_leave', 6: 'approach', 7: 'away', 255: null});
                 } else {
-                    payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value];
+                    payload.motion_sensitivity = getFromLookup(value, {1: 'low', 2: 'medium', 3: 'high'});
                 }
             }
             break;
         case '103':
             if (['RTCZCGQ11LM'].includes(model.model)) {
-                payload.monitoring_mode = {0: 'undirected', 1: 'left_right'}[value];
+                payload.monitoring_mode = getFromLookup(value, {0: 'undirected', 1: 'left_right'});
             }
             break;
         case '105':
             if (['RTCGQ13LM'].includes(model.model)) {
-                payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value];
+                payload.motion_sensitivity = getFromLookup(value, {1: 'low', 2: 'medium', 3: 'high'});
             } else if (['RTCZCGQ11LM'].includes(model.model)) {
-                payload.approach_distance = {0: 'far', 1: 'medium', 2: 'near'}[value];
+                payload.approach_distance = getFromLookup(value, {0: 'far', 1: 'medium', 2: 'near'});
             } else if (['RTCGQ14LM'].includes(model.model)) {
                 payload.detection_interval = value;
             }
             break;
         case '106':
             if (['RTCGQ14LM'].includes(model.model)) {
-                payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value];
+                payload.motion_sensitivity = getFromLookup(value, {1: 'low', 2: 'medium', 3: 'high'});
             }
             break;
         case '107':
             if (['RTCGQ14LM'].includes(model.model)) {
                 payload.trigger_indicator = value === 1;
             } else if (['ZNCLBL01LM'].includes(model.model)) {
+                assertNumber(value);
                 const position = options.invert_cover ? 100 - value : value;
                 payload.position = position;
                 payload.state = options.invert_cover ? (position > 0 ? 'CLOSE' : 'OPEN') : (position > 0 ? 'OPEN' : 'CLOSE');
@@ -349,6 +369,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             break;
         case '150':
             if (!['JTYJ-GD-01LM/BW'].includes(model.model)) {
+                assertNumber(value);
                 payload.voltage = calibrateAndPrecisionRoundOptions(value * 0.1, options, 'voltage'); // 0x96
             }
             break;
@@ -356,6 +377,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             if (['LLKZMK11LM'].includes(model.model)) {
                 payload.current = calibrateAndPrecisionRoundOptions(value, options, 'current');
             } else {
+                assertNumber(value);
                 payload.current = calibrateAndPrecisionRoundOptions(value * 0.001, options, 'current');
             }
             break;
@@ -373,9 +395,9 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             break;
         case '159':
             if (['JT-BZ-01AQ/A'].includes(model.model)) {
-                payload.gas_sensitivity = {1: '15%LEL', 2: '10%LEL'}[value];
+                payload.gas_sensitivity = getFromLookup(value, {1: '15%LEL', 2: '10%LEL'});
             } else if (['MCCGQ13LM'].includes(model.model)) {
-                payload.detection_distance = {1: '10mm', 2: '20mm', 3: '30mm'}[value];
+                payload.detection_distance = getFromLookup(value, {1: '10mm', 2: '20mm', 3: '30mm'});
             }
             break;
         case '160':
@@ -390,8 +412,8 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
                 payload.gas_density = value;
             } else if (['JY-GZ-01AQ'].includes(model.model)) {
                 payload.smoke_density = value;
-                payload.smoke_density_dbm = {0: 0, 1: 0.085, 2: 0.088, 3: 0.093, 4: 0.095, 5: 0.100, 6: 0.105, 7: 0.110,
-                    8: 0.115, 9: 0.120, 10: 0.125}[value];
+                payload.smoke_density_dbm = getFromLookup(value, {0: 0, 1: 0.085, 2: 0.088, 3: 0.093, 4: 0.095, 5: 0.100, 6: 0.105, 7: 0.110,
+                    8: 0.115, 9: 0.120, 10: 0.125});
             }
             break;
         case '162':
@@ -406,7 +428,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             break;
         case '164':
             if (['JT-BZ-01AQ/A'].includes(model.model)) {
-                payload.state = {0: 'work', 1: 'preparation'}[value];
+                payload.state = getFromLookup(value, {0: 'work', 1: 'preparation'});
             } else if (['JY-GZ-01AQ'].includes(model.model)) {
                 payload.heartbeat_indicator = value === 1;
             }
@@ -426,6 +448,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             break;
         case '247':
             {
+                // @ts-expect-error
                 const dataObject247 = buffer2DataObject(meta, model, value);
                 if (['CTP-R01'].includes(model.model)) {
                     // execute pending soft switch of operation_mode, if exists
@@ -440,7 +463,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
                             // do nothing when callback fails
                         }
                     } else {
-                        payload.operation_mode = {0: 'action_mode', 1: 'scene_mode'}[dataObject247[155]];
+                        payload.operation_mode = getFromLookup(dataObject247[155], {0: 'action_mode', 1: 'scene_mode'});
                     }
                 }
                 const payload247 = await numericAttributes2Payload(msg, meta, model, options, dataObject247);
@@ -452,9 +475,9 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             break;
         case '268':
             if (['RTCGQ13LM', 'RTCGQ14LM', 'RTCZCGQ11LM'].includes(model.model)) {
-                payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value];
+                payload.motion_sensitivity = getFromLookup(value, {1: 'low', 2: 'medium', 3: 'high'});
             } else if (['JT-BZ-01AQ/A'].includes(model.model)) {
-                payload.gas_sensitivity = {1: '15%LEL', 2: '10%LEL'}[value];
+                payload.gas_sensitivity = getFromLookup(value, {1: '15%LEL', 2: '10%LEL'});
             }
             break;
         case '276':
@@ -463,7 +486,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             }
             break;
         case '293':
-            payload.click_mode = {1: 'fast', 2: 'multi'}[value];
+            payload.click_mode = getFromLookup(value, {1: 'fast', 2: 'multi'});
             break;
         case '294':
             if (['JT-BZ-01AQ/A', 'JY-GZ-01AQ'].includes(model.model)) {
@@ -477,7 +500,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             break;
         case '313':
             if (['JT-BZ-01AQ/A'].includes(model.model)) {
-                payload.state = {0: 'work', 1: 'preparation'}[value];
+                payload.state = getFromLookup(value, {0: 'work', 1: 'preparation'});
             }
             break;
         case '314':
@@ -492,8 +515,8 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
                 payload.gas_density = value;
             } else if (['JY-GZ-01AQ'].includes(model.model)) {
                 payload.smoke_density = value;
-                payload.smoke_density_dbm = {0: 0, 1: 0.085, 2: 0.088, 3: 0.093, 4: 0.095, 5: 0.100, 6: 0.105, 7: 0.110,
-                    8: 0.115, 9: 0.120, 10: 0.125}[value];
+                payload.smoke_density_dbm = getFromLookup(value, {0: 0, 1: 0.085, 2: 0.088, 3: 0.093, 4: 0.095, 5: 0.100, 6: 0.105, 7: 0.110,
+                    8: 0.115, 9: 0.120, 10: 0.125});
             }
             break;
         case '316':
@@ -508,34 +531,34 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             break;
         case '320':
             if (['MCCGQ13LM'].includes(model.model)) {
-                payload.battery_cover = {0: 'CLOSE', 1: 'OPEN'}[value];
+                payload.battery_cover = getFromLookup(value, {0: 'CLOSE', 1: 'OPEN'});
             }
             break;
         case '322':
             if (['RTCZCGQ11LM'].includes(model.model)) {
-                payload.presence = {0: false, 1: true, 255: null}[value];
+                payload.presence = getFromLookup(value, {0: false, 1: true, 255: null});
             }
             break;
         case '323':
             if (['RTCZCGQ11LM'].includes(model.model)) {
-                payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
-                    5: 'left_leave', 6: 'approach', 7: 'away'}[value];
+                payload.presence_event = getFromLookup(value, {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
+                    5: 'left_leave', 6: 'approach', 7: 'away'});
             }
             break;
         case '324':
             if (['RTCZCGQ11LM'].includes(model.model)) {
-                payload.monitoring_mode = {0: 'undirected', 1: 'left_right'}[value];
+                payload.monitoring_mode = getFromLookup(value, {0: 'undirected', 1: 'left_right'});
             }
             break;
         case '326':
             if (['RTCZCGQ11LM'].includes(model.model)) {
-                payload.approach_distance = {0: 'far', 1: 'medium', 2: 'near'}[value];
+                payload.approach_distance = getFromLookup(value, {0: 'far', 1: 'medium', 2: 'near'});
             }
             break;
         case '328':
             if (['CTP-R01'].includes(model.model)) {
                 // detected hard switch of operation_mode (attribute 0x148[328])
-                payload.operation_mode = {0: 'action_mode', 1: 'scene_mode'}[msg.data[328]];
+                payload.operation_mode = getFromLookup(msg.data[328], {0: 'action_mode', 1: 'scene_mode'});
             }
             break;
         case '329':
@@ -564,7 +587,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SP-EUC01'].includes(model.model)) {
                 payload.button_lock = value === 1 ? 'OFF' : 'ON';
             } else {
-                const mode = {0x01: 'control_relay', 0x00: 'decoupled'}[value];
+                const mode = getFromLookup(value, {0x01: 'control_relay', 0x00: 'decoupled'});
                 payload[postfixWithEndpointName('operation_mode', msg, model, meta)] = mode;
             }
             break;
@@ -591,16 +614,14 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
                 payload.hand_open = !value;
             } else {
                 // next values update only when curtain finished initial setup and knows current position
-                payload.options = {...payload.options,
-                    reverse_direction: value[2] == '\u0001',
-                    hand_open: value[5] == '\u0000',
-                };
+                // @ts-expect-error
+                payload.options = {...payload.options, reverse_direction: value[2] == '\u0001', hand_open: value[5] == '\u0000'};
             }
             break;
         case '1028':
             payload = {...payload,
-                motor_state: (options.invert_cover ? {0: 'stopped', 1: 'closing', 2: 'opening'} :
-                    {0: 'stopped', 1: 'opening', 2: 'closing'})[value],
+                motor_state: getFromLookup(value, (options.invert_cover ? {0: 'stopped', 1: 'closing', 2: 'opening'} :
+                    {0: 'stopped', 1: 'opening', 2: 'closing'})),
                 running: !!value,
             };
             break;
@@ -621,6 +642,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             break;
         case '1055':
             if (['ZNCLBL01LM'].includes(model.model)) {
+                assertNumber(value);
                 payload.target_position = options.invert_cover ? 100 - value : value;
             }
             break;
@@ -633,38 +655,41 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             break;
         case '1057':
             if (['ZNCLBL01LM'].includes(model.model)) {
-                payload.motor_state = (options.invert_cover ? {0: 'opening', 1: 'closing', 2: 'stopped'} :
-                    {0: 'closing', 1: 'opening', 2: 'stopped'})[value];
+                payload.motor_state = getFromLookup(value, (options.invert_cover ? {0: 'opening', 1: 'closing', 2: 'stopped'} :
+                    {0: 'closing', 1: 'opening', 2: 'stopped'}));
+                assertNumber(value);
                 payload.running = value < 2 ? true : false;
             }
             break;
         case '1061':
             if (['ZNCLBL01LM'].includes(model.model)) {
-                payload.action = (options.invert_cover ? {1: 'manual_close', 2: 'manual_open'} :
-                    {1: 'manual_open', 2: 'manual_close'})[value];
+                payload.action = getFromLookup(value, (options.invert_cover ? {1: 'manual_close', 2: 'manual_open'} :
+                    {1: 'manual_open', 2: 'manual_close'}));
             }
             break;
         case '1063':
             if (['ZNCLBL01LM'].includes(model.model)) {
-                payload.hooks_lock = {0: 'UNLOCK', 1: 'LOCK'}[value];
+                getFromLookup(value, {0: 'UNLOCK', 1: 'LOCK'});
             }
             break;
         case '1064':
             if (['ZNCLBL01LM'].includes(model.model)) {
-                payload.hooks_state = {0: 'unlocked', 1: 'locked', 2: 'locking', 3: 'unlocking'}[value];
-                payload.hooks_lock = {0: 'UNLOCK', 1: 'LOCK', 2: 'UNLOCK', 3: 'LOCK'}[value];
+                payload.hooks_state = getFromLookup(value, {0: 'unlocked', 1: 'locked', 2: 'locking', 3: 'unlocking'});
+                payload.hooks_lock = getFromLookup(value, {0: 'UNLOCK', 1: 'LOCK', 2: 'UNLOCK', 3: 'LOCK'});
             }
             break;
         case '1065':
             if (['ZNCLBL01LM'].includes(model.model)) {
+                assertNumber(value);
                 payload.illuminance_lux = value * 50;
             }
             break;
         case '1289':
-            payload.dimmer_mode = {3: 'rgbw', 1: 'dual_ct'}[value];
+            payload.dimmer_mode = getFromLookup(value, {3: 'rgbw', 1: 'dual_ct'});
             break;
         case '65281':
             {
+                // @ts-expect-error
                 const payload65281 = await numericAttributes2Payload(msg, meta, model, options, value);
                 payload = {...payload, ...payload65281};
             }
@@ -674,15 +699,19 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             // At this moment we only extract what we are sure, for example, position 0 seems to be always 1 for a
             // occupancy sensor, so we ignore it at this moment
             if (['MCCGQ01LM'].includes(model.model)) {
+                // @ts-expect-error
                 payload.contact = value[0].elmVal === 0;
             }
+            // @ts-expect-error
             payload.voltage = value[1].elmVal;
             if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
                 payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
             }
+            // @ts-expect-error
             payload.power_outage_count = value[4].elmVal - 1;
             break;
         case 'mode':
+            assertNumber(value);
             payload.operation_mode = ['command', 'event'][value];
             break;
         case 'modelId':
@@ -692,11 +721,11 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             // It contains the illuminance and occupancy, but in z2m we use a custom timer to do it, so we ignore it
             break;
         default:
-            if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown key ${key} with value ${value}`);
+            if (meta.logger) meta.logger.debug(`${model.model}: unknown key ${key} with value ${value}`);
         }
     }
 
-    if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: Processed data into payload ${JSON.stringify(payload)}`);
+    if (meta.logger) meta.logger.debug(`${model.model}: Processed data into payload ${JSON.stringify(payload)}`);
 
     return payload;
 };
@@ -708,11 +737,12 @@ const VOCKQJK11LMDisplayUnit = {
     'ppb_fahrenheit': 0x11, // ppb, °F
 };
 
-const numericAttributes2Options = (definition) => {
+const numericAttributes2Options = (definition: Definition) => {
     const supported = ['temperature', 'device_temperature', 'illuminance', 'illuminance_lux',
         'pressure', 'power', 'current', 'voltage', 'energy', 'power'];
     const precisionSupported = ['temperature', 'humidity', 'pressure', 'power', 'current', 'voltage', 'energy', 'power'];
     const result = [];
+    // @ts-expect-error
     for (const expose of definition.exposes) {
         // only eletrical measurement voltage is supported, not battery
         const isBatteryVoltage = expose.name === 'voltage' && definition.meta && definition.meta.battery;
@@ -789,7 +819,8 @@ const fp1 = {
      * @param {undefined | Set<number>} xCells
      * @return {number}
      */
-    encodeXCellsDefinition: (xCells) => {
+    encodeXCellsDefinition: (xCells: number[]) => {
+        // @ts-expect-error
         if (!xCells || !xCells.size) {
             return 0;
         }
@@ -799,7 +830,7 @@ const fp1 = {
      * @param {number} cellXIdx
      * @return {number}
      */
-    encodeXCellIdx: (cellXIdx) => {
+    encodeXCellIdx: (cellXIdx: number) => {
         return 2 ** (cellXIdx - 1);
     },
     // Note: let TypeScript infer the return type to enable union discrimination
@@ -807,7 +838,7 @@ const fp1 = {
     /**
      * @param {unknown} input
      */
-    parseAqaraFp1RegionDeleteInput: (input) => {
+    parseAqaraFp1RegionDeleteInput: (input: KeyValueAny) => {
         if (!input || typeof input !== 'object') {
             return fp1.failure({reason: 'NOT_OBJECT'});
         }
@@ -831,7 +862,7 @@ const fp1 = {
     /**
      * @param {unknown} input
      */
-    parseAqaraFp1RegionUpsertInput: (input) => {
+    parseAqaraFp1RegionUpsertInput: (input: KeyValueAny) => {
         if (!input || typeof input !== 'object') {
             return fp1.failure({reason: 'NOT_OBJECT'});
         }
@@ -865,7 +896,7 @@ const fp1 = {
      * @param {unknown} value
      * @returns {value is number}
      */
-    isAqaraFp1RegionId: (value) => {
+    isAqaraFp1RegionId: (value: number) => {
         return (
             typeof value === 'number' &&
             value >= fp1.constants.region_config_regionId_min &&
@@ -878,7 +909,7 @@ const fp1 = {
      * @param {unknown} value
      * @returns {value is AqaraFP1RegionZone}
      */
-    isAqaraFp1RegionZoneDefinition: (value) => {
+    isAqaraFp1RegionZoneDefinition: (value: KeyValueAny) => {
         return (
             value &&
             typeof value === 'object' &&
@@ -897,7 +928,7 @@ const fp1 = {
      * @param {ErrorType} error
      * @return { { isSuccess: false, error: ErrorType } }
      */
-    failure: (error) => {
+    failure: (error: {reason: string}) => {
         return {
             isSuccess: false,
             error,
@@ -910,7 +941,7 @@ const fp1 = {
  * @param {number} offset
  * @return {number}
  */
-function readTemperature(buffer, offset) {
+function readTemperature(buffer: Buffer, offset: number) {
     return buffer.readUint16BE(offset) / 100;
 }
 
@@ -920,22 +951,14 @@ function readTemperature(buffer, offset) {
  * @param {number} temperature
  * @return {void}
  */
-function writeTemperature(buffer, offset, temperature) {
+function writeTemperature(buffer: Buffer, offset: number, temperature: number) {
     buffer.writeUint16BE(temperature * 100, offset);
 }
 
-/**
- * @type {Day[]}
- */
-const dayNames = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const dayNames: Day[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
-/**
- * @param {Buffer} buffer
- * @param {number} offset
- * @return {Day[]}
- */
-function readDaySelection(buffer, offset) {
-    const selectedDays = [];
+function readDaySelection(buffer: Buffer, offset: number): Day[] {
+    const selectedDays: Day[] = [];
 
     dayNames.forEach((day, index) => {
         if ((buffer[offset] >> index + 1) % 2 !== 0) {
@@ -946,25 +969,18 @@ function readDaySelection(buffer, offset) {
     return selectedDays;
 }
 
-/**
- * @param {Day[]} selectedDays
- */
-function validateDaySelection(selectedDays) {
+function validateDaySelection(selectedDays: Day[]) {
     selectedDays.filter((selectedDay) => !dayNames.includes(selectedDay)).forEach((invalidValue) => {
         throw new Error(`The value "${invalidValue}" is not a valid day (available values: ${dayNames.join(', ')})`);
     });
 }
 
-/**
- * @param {Buffer} buffer
- * @param {number} offset
- * @param {Day[]} selectedDays
- */
-function writeDaySelection(buffer, offset, selectedDays) {
+function writeDaySelection(buffer: Buffer, offset: number, selectedDays: Day[]) {
     validateDaySelection(selectedDays);
 
     const bitMap = dayNames.reduce((repeat, dayName, index) => {
         const isDaySelected = selectedDays.includes(dayName);
+        // @ts-expect-error
         return repeat | isDaySelected << index + 1;
     }, 0);
 
@@ -978,7 +994,7 @@ const timeNextDayFlag = 1 << 15;
  * @param {number} offset
  * @return {number}
  */
-function readTime(buffer, offset) {
+function readTime(buffer: Buffer, offset: number) {
     const minutesWithDayFlag = buffer.readUint16BE(offset);
     return minutesWithDayFlag & ~timeNextDayFlag;
 }
@@ -987,8 +1003,8 @@ function readTime(buffer, offset) {
  * @param {number} time
  * @return {void}
  */
-function validateTime(time) {
-    const isPositiveInteger = (value) => typeof value === 'number' && Number.isInteger(value) && value >= 0;
+function validateTime(time: number) {
+    const isPositiveInteger = (value: number) => typeof value === 'number' && Number.isInteger(value) && value >= 0;
 
     if (!isPositiveInteger(time)) {
         throw new Error(`Time must be a positive integer number`);
@@ -1006,7 +1022,7 @@ function validateTime(time) {
  * @param {boolean} isNextDay
  * @return {void}
  */
-function writeTime(buffer, offset, time, isNextDay) {
+function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: boolean) {
     validateTime(time);
 
     let minutesWithDayFlag = time;
@@ -1023,7 +1039,7 @@ function writeTime(buffer, offset, time, isNextDay) {
  * @param {number} timeMinutes
  * @return {string}
  */
-function formatTime(timeMinutes) {
+function formatTime(timeMinutes: number) {
     const hours = Math.floor(timeMinutes / 60);
     const minutes = timeMinutes % 60;
     return `${hours}:${String(minutes).padStart(2, '0')}`;
@@ -1034,7 +1050,7 @@ function formatTime(timeMinutes) {
  * @param {string} timeString
  * @return {number}
  */
-function parseTime(timeString) {
+function parseTime(timeString: string) {
     const parts = timeString.split(':');
 
     if (parts.length !== 2) {
@@ -1051,7 +1067,7 @@ const stringifiedScheduleFragmentSeparator = '|';
 const stringifiedScheduleValueSeparator = ',';
 
 const trv = {
-    decodeFirmwareVersionString(value) {
+    decodeFirmwareVersionString(value: number) {
         // Add prefix to follow Aqara's versioning schema: https://www.aqara.com/en/version/radiator-thermostat-e1
         const firmwareVersionPrefix = '0.0.0_';
 
@@ -1063,7 +1079,7 @@ const trv = {
         return firmwareVersionPrefix + firmwareVersionNumber;
     },
 
-    decodePreset(value) {
+    decodePreset(value: number) {
         // Setup mode is the initial device state after powering it ("F11" on display) and not a real preset that can be deliberately
         // set by users, therefore it is exposed as a separate flag.
         return {
@@ -1072,9 +1088,9 @@ const trv = {
         };
     },
 
-    decodeHeartbeat(meta, model, messageBuffer) {
+    decodeHeartbeat(meta: fz.Meta, model: Definition, messageBuffer: Buffer) {
         const data = buffer2DataObject(meta, model, messageBuffer);
-        const payload = {};
+        const payload: KeyValue = {};
 
         Object.entries(data).forEach(([key, value]) => {
             switch (parseInt(key)) {
@@ -1082,21 +1098,25 @@ const trv = {
                 payload.device_temperature = value;
                 break;
             case 5:
+                assertNumber(value);
                 payload.power_outage_count = value - 1;
                 break;
             case 10:
                 // unidentified number, e.g. 32274, 3847
                 break;
             case 13:
+                assertNumber(value);
                 payload.firmware_version = trv.decodeFirmwareVersionString(value);
                 break;
             case 17:
                 // unidentified flag/enum, e.g. 1
                 break;
             case 101:
+                assertNumber(value);
                 Object.assign(payload, trv.decodePreset(value));
                 break;
             case 102:
+                assertNumber(value);
                 payload.local_temperature = value / 100;
                 break;
             case 103:
@@ -1107,6 +1127,7 @@ const trv = {
                 // It thus behaves similar to `occupied_heating_setpoint` except in `off` mode. Due to this difference,
                 // this value is written to another property to avoid an inconsistency of the `occupied_heating_setpoint`.
                 // TODO How to handle this value? Find better name?
+                assertNumber(value);
                 payload.internal_heating_setpoint = value / 100;
                 break;
             case 104:
@@ -1129,7 +1150,7 @@ const trv = {
      * @param {Buffer} buffer
      * @return {TrvScheduleConfig}
      */
-    decodeSchedule(buffer) {
+    decodeSchedule(buffer: Buffer): TrvScheduleConfig {
         return {
             days: readDaySelection(buffer, 1),
             events: [
@@ -1145,7 +1166,7 @@ const trv = {
      * @param {TrvScheduleConfig} schedule
      * @return {void}
      */
-    validateSchedule(schedule) {
+    validateSchedule(schedule: TrvScheduleConfig) {
         const eventCount = 4;
 
         if (typeof schedule !== 'object') {
@@ -1220,13 +1241,13 @@ const trv = {
      * @param {TrvScheduleConfig} schedule
      * @return {Buffer}
      */
-    encodeSchedule(schedule) {
+    encodeSchedule(schedule: KeyValueAny) {
         const buffer = Buffer.alloc(26);
         buffer.writeUInt8(0x04);
 
         writeDaySelection(buffer, 1, schedule.days);
 
-        schedule.events.forEach((event, index, events) => {
+        schedule.events.forEach((event: KeyValueAny, index: number, events: KeyValueAny) => {
             const offset = 2 + index * 6;
             const isNextDay = index > 0 && event.time < events[index - 1].time;
 
@@ -1237,12 +1258,7 @@ const trv = {
         return buffer;
     },
 
-    /**
-     * Converts a schedule config object into a configuration string.
-     * @param {TrvScheduleConfig} schedule
-     * @return {string}
-     */
-    stringifySchedule(schedule) {
+    stringifySchedule(schedule: TrvScheduleConfig) {
         const stringifiedScheduleFragments = [schedule.days.join(stringifiedScheduleValueSeparator)];
 
         for (const event of schedule.events) {
@@ -1258,13 +1274,9 @@ const trv = {
         return stringifiedScheduleFragments.join(stringifiedScheduleFragmentSeparator);
     },
 
-    /**
-     * Parses a schedule configuration string into a configuration object.
-     * @param {string} stringifiedSchedule
-     * @return {TrvScheduleConfig}
-     */
-    parseSchedule(stringifiedSchedule) {
-        const schedule = {days: [], events: []};
+    // Parses a schedule configuration string into a configuration object.
+    parseSchedule(stringifiedSchedule: string): TrvScheduleConfig {
+        const schedule: TrvScheduleConfig = {days: [], events: []};
 
         if (!stringifiedSchedule) {
             return schedule;
@@ -1274,6 +1286,7 @@ const trv = {
 
         stringifiedScheduleFragments.forEach((fragment, index) => {
             if (index === 0) {
+                // @ts-expect-error
                 schedule.days.push(...fragment.split(stringifiedScheduleValueSeparator));
             } else {
                 const entryFragments = fragment.split(stringifiedScheduleValueSeparator);

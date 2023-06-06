@@ -3,7 +3,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 const e = exposes.presets;
 const ea = exposes.access;
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 
 const definitions: Definition[] = [
     {

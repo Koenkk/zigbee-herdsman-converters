@@ -1,5 +1,5 @@
-import constants from './constants';
-import globalStore from './store';
+import * as constants from './constants';
+import * as globalStore from './store';
 import * as exposes from './exposes';
 import {getFromLookup, assertNumber, assertString} from './utils2';
 import tz from '../converters/toZigbee';

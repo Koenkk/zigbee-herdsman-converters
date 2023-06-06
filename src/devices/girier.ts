@@ -1,5 +1,5 @@
 import * as tuya from '../lib/tuya';
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 
 const definitions: Definition[] = [
     {

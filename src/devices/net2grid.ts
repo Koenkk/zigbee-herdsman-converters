@@ -2,7 +2,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 
 const definitions: Definition[] = [

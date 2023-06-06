@@ -1,25 +1,25 @@
-'use strict';
+import {isGroup, isEndpoint, isDevice} from './utils2';
 
 let store = new Map();
 
-function getEntityKey(entity) {
-    if (entity.constructor.name === 'Group') {
+function getEntityKey(entity: zh.Endpoint | zh.Group | zh.Device) {
+    if (isGroup(entity)) {
         return entity.groupID;
-    } else if (entity.constructor.name === 'Endpoint') {
+    } else if (isEndpoint(entity)) {
         return `${entity.deviceIeeeAddress}_${entity.ID}`;
-    } else if (entity.constructor.name === 'Device') {
+    } else if (isDevice(entity)) {
         return `${entity.ieeeAddr}`;
     } else {
-        throw new Error(`Invalid entity type: '${entity.constructor.name }'`);
+        throw new Error(`Invalid entity type`);
     }
 }
 
-function hasValue(entity, key) {
+export function hasValue(entity: zh.Endpoint | zh.Group | zh.Device, key: string) {
     const entityKey = getEntityKey(entity);
     return store.has(entityKey) && store.get(entityKey).hasOwnProperty(key);
 }
 
-function getValue(entity, key, default_=undefined) {
+export function getValue(entity: zh.Endpoint | zh.Group | zh.Device, key: string, default_:unknown=undefined) {
     const entityKey = getEntityKey(entity);
     if (store.has(entityKey) && store.get(entityKey).hasOwnProperty(key)) {
         return store.get(entityKey)[key];
@@ -28,7 +28,7 @@ function getValue(entity, key, default_=undefined) {
     return default_;
 }
 
-function putValue(entity, key, value) {
+export function putValue(entity: zh.Endpoint | zh.Group | zh.Device, key: string, value: unknown) {
     const entityKey = getEntityKey(entity);
     if (!store.has(entityKey)) {
         store.set(entityKey, {});
@@ -37,7 +37,7 @@ function putValue(entity, key, value) {
     store.get(entityKey)[key] = value;
 }
 
-function clearValue(entity, key) {
+export function clearValue(entity: zh.Endpoint | zh.Group | zh.Device, key: string) {
     if (hasValue(entity, key)) {
         const entityKey = getEntityKey(entity);
         delete store.get(entityKey)[key];

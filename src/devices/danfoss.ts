@@ -2,8 +2,8 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import ota from '../lib/ota';
-import constants from '../lib/constants';
-import reporting from '../lib/reporting';
+import * as constants from '../lib/constants';
+import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 

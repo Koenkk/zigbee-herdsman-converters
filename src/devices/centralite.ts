@@ -1,12 +1,12 @@
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import globalStore from '../lib/store';
-import reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
-import constants from '../lib/constants';
+import * as constants from '../lib/constants';
 
 const fzLocal = {
     thermostat_3156105: {

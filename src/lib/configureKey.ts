@@ -1,8 +1,6 @@
-'use strict';
+const lookup: {[s: string]: number} = {};
 
-const lookup = {};
-
-function hashCode(str) {
+function hashCode(str: string) {
     let hash = 0;
     if (str.length == 0) {
         return hash;
@@ -15,15 +13,14 @@ function hashCode(str) {
     return hash;
 }
 
-function getConfigureKey(definition) {
+export function getConfigureKey(definition: Definition) {
     if (!definition.configure) {
         throw new Error(`'${definition.model}' has no configure`);
     }
 
     // Prevent unecessary recalculation of the hash
-    if (definition.configure in lookup) {
-        return lookup[definition.configure];
-    }
+    // @ts-expect-error
+    if (definition.configure in lookup) return lookup[definition.configure];
 
     const body = definition.configure.toString().replace(/\s/g, '');
     const hash = hashCode(body);
@@ -38,11 +35,12 @@ function getConfigureKey(definition) {
      * if the hash dind't change.
      */
     const configureKey = legacyKey in legacyKeys ? legacyKeys[legacyKey] : hash;
+    // @ts-expect-error
     lookup[definition.configure] = configureKey;
     return configureKey;
 }
 
-const legacyKeys = {
+const legacyKeys: {[s: string]: number} = {
     'HR-C99C-Z-C045_-148006960': 1,
     '9CZA-A806ST-Q1A_88764544': 2,
     '9CZA-M350ST-Q1A_88764544': 2,

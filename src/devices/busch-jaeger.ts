@@ -2,8 +2,8 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import globalStore from '../lib/store';
-import reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 

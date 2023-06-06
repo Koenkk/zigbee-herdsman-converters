@@ -1,44 +1,43 @@
-'use strict';
-
-const exposes = require('./exposes');
+import * as exposes from './exposes';
+import * as globalStore from './store';
 const ea = exposes.access;
+const e = exposes.presets;
 
-function nextSeq(entity) {
-    entity.seq = ((entity.seq || -1)+1) % 0x10000;
-    return entity.seq;
+function nextSeq(entity: zh.Endpoint | zh.Group) {
+    return (globalStore.getValue(entity, 'seq', -1) + 1) % 0x10000;
 }
 
-function messagesGet(entity, seq) {
-    const info = entity.irMessageInfo;
+function messagesGet(entity: zh.Endpoint | zh.Group, seq: number) {
+    const info = globalStore.getValue(entity, 'irMessageInfo');
     const expected = (info&&info.seq) || 0;
     if (expected!==seq) {
         throw new Error(`Unexpected sequence value (expected: ${expected} current: ${seq}).`);
     }
     return info.data;
 }
-function messagesSet(entity, seq, data) {
-    entity.irMessageInfo={seq: seq, data: data};
+function messagesSet(entity: zh.Endpoint | zh.Group, seq: number, data: unknown) {
+    globalStore.putValue(entity, 'irMessageInfo', {seq: seq, data: data});
 }
 
-function messagesClear(entity, seq) {
-    const info = entity.irMessageInfo;
+function messagesClear(entity: zh.Endpoint | zh.Group, seq: number) {
+    const info = globalStore.getValue(entity, 'irMessageInfo');
     const expected = (info&&info.seq) || 0;
     if (expected!==seq) {
         throw new Error(`Unexpected sequence value (expected: ${expected} current: ${seq}).`);
     }
-    delete entity.irMessageInfo;
+    globalStore.clearValue(entity, 'irMessageInfo');
 }
 
-function calcArrayCrc(values) {
+function calcArrayCrc(values: number[]) {
     return Array.from(values.values()).reduce((a, b)=>a+b, 0)%0x100;
 }
 
-function calcStringCrc(str) {
+function calcStringCrc(str: string) {
     return str.split('').map((x)=>x.charCodeAt(0)).reduce((a, b)=>a+b, 0)%0x100;
 }
 
 
-const fzZosung = {
+export const fzZosung = {
     zosung_send_ir_code_01: {
         cluster: 'zosungIRTransmit',
         type: ['commandZosungSendIRCode01'],
@@ -48,7 +47,7 @@ const fzZosung = {
             const irMsg = messagesGet(msg.endpoint, seq);
             meta.logger.debug(`IRCode to send: ${JSON.stringify(irMsg)} (seq:${seq})`);
         },
-    },
+    } as fz.Converter,
     zosung_send_ir_code_02: {
         cluster: 'zosungIRTransmit',
         type: ['commandZosungSendIRCode02'],
@@ -70,7 +69,7 @@ const fzZosung = {
                 {disableDefaultResponse: true});
             meta.logger.debug(`Sent IRCode part: ${part} (sum: ${sum}, seq:${seq})`);
         },
-    },
+    } as fz.Converter,
     zosung_send_ir_code_04: {
         cluster: 'zosungIRTransmit',
         type: ['commandZosungSendIRCode04'],
@@ -86,7 +85,7 @@ const fzZosung = {
             messagesClear(msg.endpoint, seq);
             meta.logger.debug(`IRCode has been successfuly sent. (seq:${seq})`);
         },
-    },
+    } as fz.Converter,
     zosung_send_ir_code_00: {
         cluster: 'zosungIRTransmit',
         type: ['commandZosungSendIRCode00'],
@@ -117,7 +116,7 @@ const fzZosung = {
                 {disableDefaultResponse: true});
             meta.logger.debug(`"IR-Message-Code00" transfer started.`);
         },
-    },
+    } as fz.Converter,
     zosung_send_ir_code_03: {
         cluster: 'zosungIRTransmit',
         type: ['zosungSendIRCode03Resp'],
@@ -157,7 +156,7 @@ const fzZosung = {
                 meta.logger.error(`Unexpected IR code position: ${JSON.stringify(msg.data)}, expecting: ${rcv.position}.`);
             }
         },
-    },
+    } as fz.Converter,
     zosung_send_ir_code_05: {
         cluster: 'zosungIRTransmit',
         type: ['zosungSendIRCode05Resp'],
@@ -177,10 +176,10 @@ const fzZosung = {
                 learned_ir_code: learnedIRCode,
             };
         },
-    },
+    } as fz.Converter,
 };
 
-const tzZosung = {
+export const tzZosung = {
     zosung_ir_code_to_send: {
         key: ['ir_code_to_send'],
         convertSet: async (entity, key, value, meta) => {
@@ -214,7 +213,7 @@ const tzZosung = {
                 {disableDefaultResponse: true});
             meta.logger.debug(`Sending IR code initiated.`);
         },
-    },
+    } as tz.Converter,
     zosung_learn_ir_code: {
         key: ['learn_ir_code'],
         convertSet: async (entity, key, value, meta) => {
@@ -226,14 +225,14 @@ const tzZosung = {
                 {disableDefaultResponse: true});
             meta.logger.debug(`IR Code Learning started.`);
         },
-    },
+    } as tz.Converter,
 };
 
 
-const presetsZosung = {
-    learn_ir_code: () => exposes.switch().withState('learn_ir_code', false, 'Turn on to learn new IR code', ea.SET),
-    learned_ir_code: () => exposes.text('learned_ir_code', ea.STATE).withDescription('The IR code learned by device'),
-    ir_code_to_send: () => exposes.text('ir_code_to_send', ea.SET).withDescription('The IR code to send by device'),
+export const presetsZosung = {
+    learn_ir_code: () => e.switch_().withState('learn_ir_code', false, 'Turn on to learn new IR code', ea.SET),
+    learned_ir_code: () => e.text('learned_ir_code', ea.STATE).withDescription('The IR code learned by device'),
+    ir_code_to_send: () => e.text('ir_code_to_send', ea.SET).withDescription('The IR code to send by device'),
 };
 
 module.exports = {

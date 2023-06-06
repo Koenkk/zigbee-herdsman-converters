@@ -1,7 +1,7 @@
 import ota from '../lib/ota';
 import extend from '../lib/extend';
 import * as ledvance from '../lib/ledvance';
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 
 const definitions: Definition[] = [
     {

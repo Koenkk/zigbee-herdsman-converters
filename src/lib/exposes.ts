@@ -590,6 +590,7 @@ export const presets = {
     numeric: (name: string, access: number) => new Numeric(name, access),
     text: (name: string, access: number) => new Text(name, access),
     list: (name: string, access: number, itemType: Feature) => new List(name, access, itemType),
+    switch_: () => new Switch(),
     // Specific
     ac_frequency: () => new Numeric('ac_frequency', access.STATE).withUnit('Hz').withDescription('Measured electrical AC frequency'),
     action: (values: string[]) => new Enum('action', access.STATE, values).withDescription('Triggered action (e.g. a button click)'),

@@ -1,7 +1,7 @@
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 

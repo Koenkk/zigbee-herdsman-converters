@@ -1,7 +1,7 @@
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 const e = exposes.presets;
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import ota from '../lib/ota';
 import * as tuya from '../lib/tuya';

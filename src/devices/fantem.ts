@@ -4,7 +4,7 @@ import * as legacy from '../lib/legacy';
 const e = exposes.presets;
 const ea = exposes.access;
 import extend from '../lib/extend';
-import reporting from '../lib/reporting';
+import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 
 const definitions: Definition[] = [
