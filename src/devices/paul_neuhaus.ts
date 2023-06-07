@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import extend from '../lib/extend';

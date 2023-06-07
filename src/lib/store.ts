@@ -1,8 +1,9 @@
+import {Zh} from './types';
 import {isGroup, isEndpoint, isDevice} from './utils';
 
 let store = new Map();
 
-function getEntityKey(entity: zh.Endpoint | zh.Group | zh.Device) {
+function getEntityKey(entity: Zh.Endpoint | Zh.Group | Zh.Device) {
     if (isGroup(entity)) {
         return entity.groupID;
     } else if (isEndpoint(entity)) {
@@ -14,12 +15,12 @@ function getEntityKey(entity: zh.Endpoint | zh.Group | zh.Device) {
     }
 }
 
-export function hasValue(entity: zh.Endpoint | zh.Group | zh.Device, key: string) {
+export function hasValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string) {
     const entityKey = getEntityKey(entity);
     return store.has(entityKey) && store.get(entityKey).hasOwnProperty(key);
 }
 
-export function getValue(entity: zh.Endpoint | zh.Group | zh.Device, key: string, default_:unknown=undefined) {
+export function getValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string, default_:unknown=undefined) {
     const entityKey = getEntityKey(entity);
     if (store.has(entityKey) && store.get(entityKey).hasOwnProperty(key)) {
         return store.get(entityKey)[key];
@@ -28,7 +29,7 @@ export function getValue(entity: zh.Endpoint | zh.Group | zh.Device, key: string
     return default_;
 }
 
-export function putValue(entity: zh.Endpoint | zh.Group | zh.Device, key: string, value: unknown) {
+export function putValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string, value: unknown) {
     const entityKey = getEntityKey(entity);
     if (!store.has(entityKey)) {
         store.set(entityKey, {});
@@ -37,7 +38,7 @@ export function putValue(entity: zh.Endpoint | zh.Group | zh.Device, key: string
     store.get(entityKey)[key] = value;
 }
 
-export function clearValue(entity: zh.Endpoint | zh.Group | zh.Device, key: string) {
+export function clearValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string) {
     if (hasValue(entity, key)) {
         const entityKey = getEntityKey(entity);
         delete store.get(entityKey)[key];

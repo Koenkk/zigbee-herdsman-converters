@@ -11,6 +11,7 @@ import {
 
 import * as exposes from './exposes';
 import * as globalStore from './store';
+import {Fz, Definition, KeyValue, KeyValueAny} from './types';
 
 declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -25,7 +26,7 @@ export interface TrvScheduleConfig {
 }
 
 
-const buffer2DataObject = (meta: fz.Meta, model: Definition, buffer: Buffer) => {
+const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buffer) => {
     const dataObject: KeyValue = {};
 
     if (buffer !== null && Buffer.isBuffer(buffer)) {
@@ -156,7 +157,7 @@ const buffer2DataObject = (meta: fz.Meta, model: Definition, buffer: Buffer) => 
     return dataObject;
 };
 
-const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: Definition, options: KeyValue, dataObject: KeyValue) => {
+const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, model: Definition, options: KeyValue, dataObject: KeyValue) => {
     let payload: KeyValue = {};
 
     for (const [key, value] of Object.entries(dataObject)) {
@@ -1098,7 +1099,7 @@ const trv = {
         };
     },
 
-    decodeHeartbeat(meta: fz.Meta, model: Definition, messageBuffer: Buffer) {
+    decodeHeartbeat(meta: Fz.Meta, model: Definition, messageBuffer: Buffer) {
         const data = buffer2DataObject(meta, model, messageBuffer);
         const payload: KeyValue = {};
 

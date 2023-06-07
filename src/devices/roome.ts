@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 const e = exposes.presets;

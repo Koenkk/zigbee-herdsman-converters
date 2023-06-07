@@ -1,3 +1,4 @@
+import {Definition, Fz} from '../lib/types';
 import extend from '../lib/extend';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
@@ -35,7 +36,7 @@ const fzLocal = {
                 };
             }
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     refreshColored: {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveHue'],
@@ -46,7 +47,7 @@ const fzLocal = {
                 };
             }
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     refresh: {
         cluster: 'genLevelCtrl',
         type: ['raw'],
@@ -57,7 +58,7 @@ const fzLocal = {
                 };
             }
         },
-    } as fz.Converter,
+    } as Fz.Converter,
 };
 
 const definitions: Definition[] = [

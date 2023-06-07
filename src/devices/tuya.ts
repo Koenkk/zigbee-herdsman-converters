@@ -11,6 +11,7 @@ import * as globalStore from '../lib/store';
 import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueNumberString, KeyValueString} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -122,7 +123,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation', 'currentLevel', 'tuyaRgbMode', 'colorTemperature']);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS110E_options: {
         key: ['min_brightness', 'max_brightness', 'light_type', 'switch_type'],
         convertSet: async (entity, key, value, meta) => {
@@ -146,7 +147,7 @@ const tzLocal = {
             if (key === 'light_type' || key === 'switch_type') id = 64514;
             await entity.read('genLevelCtrl', [id]);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS110E_onoff_brightness: {
         key: ['state', 'brightness'],
         options: [],
@@ -170,7 +171,7 @@ const tzLocal = {
             if (key === 'state') await tz.on_off.convertGet(entity, key, meta);
             if (key === 'brightness') await entity.read('genLevelCtrl', [61440]);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS110E_light_onoff_brightness: {
         ...tz.light_onoff_brightness,
         convertSet: async (entity, key, value, meta) => {
@@ -182,7 +183,7 @@ const tzLocal = {
             }
             return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS0504B_color: {
         key: ['color'],
         convertSet: async (entity, key, value, meta) => {
@@ -207,7 +208,7 @@ const tzLocal = {
                 return await tz.light_color.convertSet(entity, key, value, meta);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS0224: {
         key: ['light', 'duration', 'volume'],
         convertSet: async (entity, key, value, meta) => {
@@ -226,7 +227,7 @@ const tzLocal = {
             }
             return {state: {[key]: value}};
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     temperature_unit: {
         key: ['temperature_unit'],
         convertSet: async (entity, key, value, meta) => {
@@ -240,7 +241,7 @@ const tzLocal = {
                 meta.logger.warn(`Unhandled key ${key}`);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS011F_threshold: {
         key: [
             'temperature_threshold', 'temperature_breaker', 'power_threshold', 'power_breaker',
@@ -324,7 +325,7 @@ const tzLocal = {
                 meta.logger.warn(`Unhandled key ${key}`);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
 };
 
 const fzLocal = {
@@ -335,7 +336,7 @@ const fzLocal = {
             result.humidity *= 10;
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS110E: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -352,7 +353,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS110E_light_type: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -364,7 +365,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS110E_switch_type: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -377,7 +378,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     scenes_recall_scene_65029: {
         cluster: '65029',
         type: ['raw', 'attributeReport'],
@@ -385,7 +386,7 @@ const fzLocal = {
             const id = meta.device.modelID === '005f0c3b' ? msg.data[0] : msg.data[msg.data.length - 1];
             return {action: `scene_${id}`};
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS0201_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -394,7 +395,7 @@ const fzLocal = {
             if (msg.data.batteryPercentageRemaining == 200 && msg.data.batteryVoltage < 30) return;
             return fz.battery.convert(model, msg, publish, options, meta);
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS0201_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
@@ -403,7 +404,7 @@ const fzLocal = {
             }
             return fz.humidity.convert(model, msg, publish, options, meta);
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     humidity10: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -414,7 +415,7 @@ const fzLocal = {
                 return {humidity: utils.calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
             }
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     temperature_unit: {
         cluster: 'manuSpecificTuya_2',
         type: ['attributeReport', 'readResponse'],
@@ -425,7 +426,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
         convert: (model, msg, publish, options, meta) => {
@@ -451,7 +452,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS011F_threshold: {
         cluster: 'manuSpecificTuya_3',
         type: 'raw',
@@ -491,7 +492,7 @@ const fzLocal = {
                 };
             }
         },
-    } as fz.Converter,
+    } as Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -872,7 +873,7 @@ const definitions: Definition[] = [
         extend: tuya.extend.light_onoff_brightness_color(),
         exposes: [e.light_brightness_color(false)
             .setAccess('color_xy', ea.STATE_SET).setAccess('color_hs', ea.STATE_SET)],
-        toZigbee: utils.replaceInArray<tz.Converter>(tuya.extend.light_onoff_brightness_color().toZigbee, [tz.light_color], [tzLocal.TS0504B_color]),
+        toZigbee: utils.replaceInArray<Tz.Converter>(tuya.extend.light_onoff_brightness_color().toZigbee, [tz.light_color], [tzLocal.TS0504B_color]),
         meta: {applyRedFix: true},
     },
     {

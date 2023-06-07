@@ -7,6 +7,7 @@ import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import {Zcl} from 'zigbee-herdsman';
+import {KeyValueAny, Fz, Tz, Definition} from '../lib/types';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode._4_NOKS};
 
@@ -30,7 +31,7 @@ const bitron = {
 
                 return result;
             },
-        } as fz.Converter,
+        } as Fz.Converter,
     },
     tz: {
         thermostat_hysteresis: {
@@ -52,7 +53,7 @@ const bitron = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('hvacThermostat', ['fourNoksHysteresisHigh', 'fourNoksHysteresisLow'], manufacturerOptions);
             },
-        } as tz.Converter,
+        } as Tz.Converter,
     },
 };
 

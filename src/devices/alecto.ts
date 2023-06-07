@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 const fz = {...require('../converters/fromZigbee'), legacy: legacy.fromZigbee};

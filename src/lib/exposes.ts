@@ -2,6 +2,7 @@
 /* eslint camelcase: 0 */
 
 import assert from 'assert';
+import {Range} from './types';
 
 type Feature = Numeric | Binary | Enum | Composite | List | Text;
 

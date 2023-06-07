@@ -1,3 +1,5 @@
+import {Definition} from './types';
+
 const lookup: {[s: string]: number} = {};
 
 function hashCode(str: string) {

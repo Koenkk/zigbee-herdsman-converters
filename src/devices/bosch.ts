@@ -6,6 +6,7 @@ import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import * as constants from '../lib/constants';
 import ota from '../lib/ota';
+import {Tz, Fz, Definition, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -152,7 +153,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bcmt.convertGet ${key}`);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     bwa1: {
         key: ['alarm_on_motion', 'test'],
         convertSet: async (entity, key, value, meta) => {
@@ -171,7 +172,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     bosch_thermostat: {
         key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature'],
         convertSet: async (entity, key, value, meta) => {
@@ -236,7 +237,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_thermostat.convertGet ${key}`);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     bosch_userInterface: {
         key: ['display_orientation', 'display_ontime', 'display_brightness', 'child_lock', 'displayed_temperature'],
         convertSet: async (entity, key, value, meta) => {
@@ -285,7 +286,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_userInterface.convertGet ${key}`);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     bosch_twinguard: {
         key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
         convertSet: async (entity, key, value, meta) => {
@@ -344,7 +345,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
 };
 
 
@@ -369,7 +370,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     bwa1_alarm_on_motion: {
         cluster: '64684',
         type: ['attributeReport', 'readResponse'],
@@ -382,7 +383,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     bosch_contact: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -397,7 +398,7 @@ const fzLocal = {
             if (result.action === 'none') delete result.action;
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     bosch_ignore_dst: {
         cluster: 'genTime',
         type: 'read',
@@ -412,7 +413,7 @@ const fzLocal = {
                 await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
             }
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     bosch_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -440,7 +441,7 @@ const fzLocal = {
 
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     bosch_userInterface: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],
@@ -465,7 +466,7 @@ const fzLocal = {
 
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     bosch_twinguard_sensitivity: {
         cluster: 'manuSpecificBosch',
         type: ['attributeReport', 'readResponse'],
@@ -477,7 +478,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     bosch_twinguard_measurements: {
         cluster: 'manuSpecificBosch3',
         type: ['attributeReport', 'readResponse'],
@@ -504,7 +505,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     bosch_twinguard_pre_alarm: {
         cluster: 'manuSpecificBosch5',
         type: ['attributeReport', 'readResponse'],
@@ -516,7 +517,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     bosch_twinguard_heartbeat: {
         cluster: 'manuSpecificBosch7',
         type: ['attributeReport', 'readResponse'],
@@ -528,7 +529,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     bosch_twinguard_alarm_state: {
         cluster: 'manuSpecificBosch8',
         type: ['attributeReport', 'readResponse'],
@@ -551,7 +552,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     bosch_twinguard_smoke_alarm_state: {
         cluster: 'genAlarms',
         type: ['commandAlarm', 'readResponse'],
@@ -571,7 +572,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
 };
 
 const definitions: Definition[] = [

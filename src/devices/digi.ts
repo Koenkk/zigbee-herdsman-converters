@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 const definitions: Definition[] = [
     {
         fingerprint: [{type: 'Router', manufacturerID: 4126, endpoints: [

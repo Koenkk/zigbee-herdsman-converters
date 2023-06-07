@@ -1,3 +1,4 @@
+import {Definition, KeyValue, Tz} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
@@ -23,7 +24,7 @@ const tzLocal = {
             await entity.write('hvacFanCtrl', {0x1000: {value: value ? 1 : 0, type: 0x10}}, {manufacturerCode: 0x125b});
             return {state: {quiet_fan: value}};
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     ac_louver_position: {
         key: ['ac_louver_position'],
         convertSet: async (entity, key, value, meta) => {
@@ -33,7 +34,7 @@ const tzLocal = {
             await entity.write('hvacThermostat', {0x4273: {value: index, type: 0x30}}, {manufacturerCode: 0x125b});
             return {state: {ac_louver_position: value}};
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
@@ -50,7 +51,7 @@ const tzLocal = {
 
             return {state: {preset: value}};
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     swingMode: {
         key: ['swing_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -60,7 +61,7 @@ const tzLocal = {
             await entity.write('hvacThermostat', {0x4274: {value: value === 'on' ? 1 : 0, type: 0x10}}, {manufacturerCode: 0x125b});
             return {state: {swing_mode: value}};
         },
-    } as tz.Converter,
+    } as Tz.Converter,
 };
 
 const definitions: Definition[] = [

@@ -6,6 +6,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import * as ledvance from '../lib/ledvance';
+import {Fz, Definition, KeyValue} from '../lib/types';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -20,7 +21,7 @@ const fzLocal = {
             };
             return {[utils.postfixWithEndpointName('action', msg, model, meta)]: lookup[msg.type]};
         },
-    } as fz.Converter,
+    } as Fz.Converter,
 };
 
 const definitions: Definition[] = [

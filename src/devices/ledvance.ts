@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 import ota from '../lib/ota';
 import extend from '../lib/extend';
 import * as ledvance from '../lib/ledvance';

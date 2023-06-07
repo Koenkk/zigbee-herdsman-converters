@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 import extend from '../lib/extend';
 
 const definitions: Definition[] = [
