@@ -51,7 +51,7 @@ function kelvinToMireds(kelvin: number) {
     return 1000000 / kelvin;
 }
 
-class ColorRGB {
+export class ColorRGB {
     red: number;
     green: number;
     blue: number;
@@ -200,7 +200,7 @@ class ColorRGB {
 /**
  *  Class representing color in CIE space
  */
-class ColorXY {
+export class ColorXY {
     x: number;
     y: number;
 
