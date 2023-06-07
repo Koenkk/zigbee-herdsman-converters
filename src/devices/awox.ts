@@ -20,7 +20,10 @@ const awoxRemoteHelper = {
         return null;
     },
     isRefresh: (buffer: Buffer) => {
-        return buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 1;
+        return buffer[0] === 17 && buffer[2] === 16 && (buffer[3] === 1 || buffer[3] === 0) && buffer[4] === 1;
+    },
+    isRefreshLong: (buffer: Buffer) => {
+        return buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 2;
     },
 };
 
@@ -55,6 +58,10 @@ const fzLocal = {
             if (awoxRemoteHelper.isRefresh(msg.data)) {
                 return {
                     action: 'refresh',
+                };
+            } else if (awoxRemoteHelper.isRefreshLong(msg.data)) {
+                return {
+                    action: 'refresh_long',
                 };
             }
         },
@@ -92,6 +99,19 @@ const definitions: Definition[] = [
         description: 'Remote controller',
         fromZigbee: [fz.command_on, fzLocal.colors, fzLocal.refresh, fzLocal.refreshColored, fz.command_off,
             fz.command_step, fz.command_move, fz.command_stop, fz.command_recall, fz.command_step_color_temperature],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'red', 'refresh', 'refresh_colored', 'blue', 'yellow',
+            'green', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
+            'recall_1', 'color_temperature_step_up', 'color_temperature_step_down'])],
+    },
+    {
+        zigbeeModel: ['ERCU_3groups_Zm'],
+        model: '99099',
+        vendor: 'AwoX',
+        description: '3 groups remote controller',
+        fromZigbee: [fz.command_on, fzLocal.colors, fzLocal.refresh, fzLocal.refreshColored, fz.command_off,
+            fz.command_step, fz.command_move, fz.command_move_to_level, fz.command_move_to_color_temp,
+            fz.command_stop, fz.command_recall, fz.command_step_color_temperature],
         toZigbee: [],
         exposes: [e.action(['on', 'off', 'red', 'refresh', 'refresh_colored', 'blue', 'yellow',
             'green', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
