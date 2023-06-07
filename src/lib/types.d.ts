@@ -89,10 +89,8 @@ declare global {
         meta?: DefinitionMeta,
         onEvent?: OnEvent,
         ota?: {
-            isUpdateAvailable: (device: zh.Device, logger: Logger, data?: KeyValue)
-                => Promise<OtaUpdateAvailableResult>;
-            updateToLatest: (device: zh.Device, logger: Logger,
-                onProgress: (progress: number, remaining: number) => void) => Promise<number>;
+            isUpdateAvailable: (device: zh.Device, logger: Logger, data?: KeyValue) => Promise<OtaUpdateAvailableResult>;
+            updateToLatest: (device: zh.Device, logger: Logger, onProgress: ota.OnProgress) => Promise<number>;
         }
     } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
       & ({ extend: Extend } |
@@ -110,6 +108,39 @@ declare global {
             options?: Option[] | ((definition: Definition) => Option[]);
             convert: (model: Definition, msg: Message, publish: Publish, options: KeyValue, meta: fz.Meta) => KeyValueAny | void | Promise<void>;
         }
+    }
+
+    namespace ota {
+        type OnProgress = (progress: number, remaining: number) => void;
+        interface Version {imageType: number, manufacturerCode: number, fileVersion: number}
+        interface ImageHeader {
+            otaUpgradeFileIdentifier: Buffer,
+            otaHeaderVersion: number,
+            otaHeaderLength: number,
+            otaHeaderFieldControl: number,
+            manufacturerCode: number,
+            imageType: number,
+            fileVersion: number,
+            zigbeeStackVersion: number,
+            otaHeaderString: string,
+            totalImageSize: number,
+            securityCredentialVersion?: number,
+            upgradeFileDestination?: Buffer
+            minimumHardwareVersion?: number,
+            maximumHardwareVersion?: number,
+        }
+        interface ImageElement {
+            tagID: number,
+            length: number,
+            data: Buffer,
+        }
+        interface Image {
+            header: ImageHeader,
+            elements: ImageElement[],
+            raw: Buffer,
+        }
+        type GetImageMeta = (current: ota.Version, logger: Logger, device: zh.Device) =>
+            {fileVersion: number, fileSize: number, url: string, sha256: string, force: boolean, sha512: string};
     }
 
     namespace tz {

@@ -1,6 +1,6 @@
 const productionURL = 'http://fw.ota.homesmart.ikea.net/feed/version_info.json';
 const testURL = 'http://fw.test.ota.homesmart.ikea.net/feed/version_info.json';
-const common = require('./common');
+import common from './common';
 const axios = common.getAxios();
 let useTestURL = false;
 
@@ -8,11 +8,11 @@ let useTestURL = false;
  * Helper functions
  */
 
-async function getImageMeta(current, logger, device) {
+async function getImageMeta(current: ota.Version, logger: Logger, device: zh.Device) {
     const url = useTestURL ? testURL : productionURL;
     const imageType = current.imageType;
     const images = (await axios.get(url)).data;
-    const image = images.find((i) => i.fw_image_type === imageType);
+    const image = images.find((i: KeyValue) => i.fw_image_type === imageType);
 
     if (!image) {
         throw new Error(`No image available for imageType '${imageType}'`);
@@ -28,11 +28,11 @@ async function getImageMeta(current, logger, device) {
  * Interface implementation
  */
 
-async function isUpdateAvailable(device, logger, requestPayload=null) {
+async function isUpdateAvailable(device: zh.Device, logger: Logger, requestPayload:KeyValue=null) {
     return common.isUpdateAvailable(device, logger, common.isNewImageAvailable, requestPayload, getImageMeta);
 }
 
-async function updateToLatest(device, logger, onProgress) {
+async function updateToLatest(device: zh.Device, logger: Logger, onProgress: ota.OnProgress) {
     return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta);
 }
 

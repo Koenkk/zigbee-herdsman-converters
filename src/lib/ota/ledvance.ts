@@ -1,14 +1,14 @@
 const updateCheckUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/newer';
 const updateDownloadUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/download';
-const assert = require('assert');
-const common = require('./common');
+import assert from 'assert';
+import common from './common';
 const axios = common.getAxios();
 
 /**
  * Helper functions
  */
 
-async function getImageMeta(current, logger, device) {
+export async function getImageMeta(current: ota.Version, logger: Logger, device: zh.Device) {
     const manufacturerCode = current.manufacturerCode;
     const imageType = current.imageType;
     const {data} = await axios.get(updateCheckUrl +
@@ -38,11 +38,11 @@ async function getImageMeta(current, logger, device) {
  * Interface implementation
  */
 
-async function isUpdateAvailable(device, logger, requestPayload=null) {
+async function isUpdateAvailable(device: zh.Device, logger: Logger, requestPayload:KeyValue=null) {
     return common.isUpdateAvailable(device, logger, common.isNewImageAvailable, requestPayload, getImageMeta);
 }
 
-async function updateToLatest(device, logger, onProgress) {
+async function updateToLatest(device: zh.Device, logger: Logger, onProgress: ota.OnProgress) {
     return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta);
 }
 

@@ -1,15 +1,15 @@
 const firmwareHtmlPageUrl = 'http://fwu.ubisys.de/smarthome/OTA/release/index';
 const imageRegex = /10F2-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{8})\S*ota1?\.zigbee/gi;
-const assert = require('assert');
-const url = require('url');
-const common = require('./common');
+import assert from 'assert';
+import url from 'url';
+import common from './common';
 const axios = common.getAxios();
 
 /**
  * Helper functions
  */
 
-async function getImageMeta(current, logger, device) {
+async function getImageMeta(current: ota.Version, logger: Logger, device: zh.Device) {
     const imageType = current.imageType;
     const hardwareVersion = device.hardwareVersion;
 
@@ -47,11 +47,11 @@ async function getImageMeta(current, logger, device) {
  * Interface implementation
  */
 
-async function isUpdateAvailable(device, logger, requestPayload=null) {
+async function isUpdateAvailable(device: zh.Device, logger: Logger, requestPayload:KeyValue=null) {
     return common.isUpdateAvailable(device, logger, common.isNewImageAvailable, requestPayload, getImageMeta);
 }
 
-async function updateToLatest(device, logger, onProgress) {
+async function updateToLatest(device: zh.Device, logger: Logger, onProgress: ota.OnProgress) {
     return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta);
 }
 
