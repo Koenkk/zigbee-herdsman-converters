@@ -99,11 +99,9 @@ export async function configure(device: zh.Device, coordinatorEndpoint: zh.Endpo
     }
 }
 
-module.exports = {
-    readColorCapabilities,
-    readColorTempMinMax,
-    readColorAttributes,
-    findColorTempRange,
-    clampColorTemp,
-    configure,
-};
+exports.readColorCapabilities = readColorCapabilities;
+exports.readColorTempMinMax = readColorTempMinMax;
+exports.readColorAttributes = readColorAttributes;
+exports.findColorTempRange = findColorTempRange;
+exports.clampColorTemp = clampColorTemp;
+exports.configure = configure;

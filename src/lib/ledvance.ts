@@ -35,4 +35,4 @@ const ledvanceExtend = {
 };
 
 export {ledvanceExtend as extend};
-module.exports = {extend: ledvanceExtend};
+exports.extend = ledvanceExtend;

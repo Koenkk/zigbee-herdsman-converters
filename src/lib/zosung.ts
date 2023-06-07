@@ -235,8 +235,6 @@ export const presetsZosung = {
     ir_code_to_send: () => e.text('ir_code_to_send', ea.SET).withDescription('The IR code to send by device'),
 };
 
-module.exports = {
-    fzZosung,
-    tzZosung,
-    presetsZosung,
-};
+exports.fzZosung = fzZosung;
+exports.tzZosung = tzZosung;
+exports.presetsZosung = presetsZosung;

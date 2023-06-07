@@ -786,10 +786,8 @@ export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, end
     return result;
 }
 
-module.exports = {
-    ColorRGB,
-    ColorXY,
-    ColorHSV,
-    Color,
-    syncColorState,
-};
+exports.ColorRGB = ColorRGB;
+exports.ColorXY = ColorXY;
+exports.ColorHSV = ColorHSV;
+exports.Color = Color;
+exports.syncColorState = syncColorState;

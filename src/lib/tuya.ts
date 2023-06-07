@@ -1109,22 +1109,20 @@ const tuyaExtend = {
 };
 export {tuyaExtend as extend};
 
-module.exports = {
-    exposes: tuyaExposes,
-    extend: tuyaExtend,
-    tz: tuyaTz,
-    fz: tuyaFz,
-    skip,
-    configureMagicPacket,
-    fingerprint,
-    whitelabel,
-    enum: (value: number) => new Enum(value),
-    bitmap: (value: number) => new Bitmap(value),
-    valueConverter,
-    valueConverterBasic,
-    sendDataPointBool,
-    sendDataPointEnum,
-    onEventSetTime,
-    onEventSetLocalTime,
-    onEventMeasurementPoll,
-};
+exports.exposes = tuyaExposes;
+exports.extend = tuyaExtend;
+exports.tz = tuyaTz;
+exports.fz = tuyaFz;
+exports.enum = (value: number) => new Enum(value);
+exports.bitmap = (value: number) => new Bitmap(value);
+exports.valueConverter = valueConverter;
+exports.valueConverterBasic = valueConverterBasic;
+exports.sendDataPointBool = sendDataPointBool;
+exports.sendDataPointEnum = sendDataPointEnum;
+exports.onEventSetTime = onEventSetTime;
+exports.onEventSetLocalTime = onEventSetLocalTime;
+exports.onEventMeasurementPoll = onEventMeasurementPoll;
+exports.skip = skip;
+exports.configureMagicPacket = configureMagicPacket;
+exports.fingerprint = fingerprint;
+exports.whitelabel = whitelabel;

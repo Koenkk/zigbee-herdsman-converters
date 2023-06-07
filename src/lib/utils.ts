@@ -528,48 +528,41 @@ export function isGroup(obj: zh.Endpoint | zh.Group | zh.Device): obj is zh.Grou
     return obj.constructor.name.toLowerCase() === 'group';
 }
 
-module.exports = {
-    noOccupancySince,
-    getOptions,
-    isLegacyEnabled,
-    precisionRound,
-    toLocalISOString,
-    numberWithinRange,
-    mapNumberRange,
-    hasAlreadyProcessedMessage,
-    calibrateAndPrecisionRoundOptions,
-    calibrateAndPrecisionRoundOptionsIsPercentual,
-    calibrateAndPrecisionRoundOptionsDefaultPrecision,
-    toPercentage,
-    addActionGroup,
-    postfixWithEndpointName,
-    enforceEndpoint,
-    getKey,
-    getObjectProperty,
-    batteryVoltageToPercentage,
-    getEntityOrFirstGroupMember,
-    getTransition,
-    getMetaValue,
-    validateValue,
-    hasEndpoints,
-    isInRange,
-    replaceInArray,
-    filterObject,
-    saveSceneState,
-    sleep,
-    toSnakeCase,
-    toCamelCase,
-    normalizeCelsiusVersionOfFahrenheit,
-    deleteSceneState,
-    getSceneState,
-    attachOutputCluster,
-    printNumberAsHex,
-    printNumbersAsHexSequence,
-    createLogger,
-    getFromLookup,
-    assertNumber,
-    assertString,
-    assertEndpoint,
-    isGroup,
-    isEndpoint,
-};
+exports.noOccupancySince = noOccupancySince;
+exports.getOptions = getOptions;
+exports.isLegacyEnabled = isLegacyEnabled;
+exports.precisionRound = precisionRound;
+exports.toLocalISOString = toLocalISOString;
+exports.numberWithinRange = numberWithinRange;
+exports.mapNumberRange = mapNumberRange;
+exports.hasAlreadyProcessedMessage = hasAlreadyProcessedMessage;
+exports.calibrateAndPrecisionRoundOptions = calibrateAndPrecisionRoundOptions;
+exports.calibrateAndPrecisionRoundOptionsIsPercentual = calibrateAndPrecisionRoundOptionsIsPercentual;
+exports.calibrateAndPrecisionRoundOptionsDefaultPrecision = calibrateAndPrecisionRoundOptionsDefaultPrecision;
+exports.toPercentage = toPercentage;
+exports.addActionGroup = addActionGroup;
+exports.postfixWithEndpointName = postfixWithEndpointName;
+exports.enforceEndpoint = enforceEndpoint;
+exports.getKey = getKey;
+exports.getObjectProperty = getObjectProperty;
+exports.batteryVoltageToPercentage = batteryVoltageToPercentage;
+exports.getEntityOrFirstGroupMember = getEntityOrFirstGroupMember;
+exports.getTransition = getTransition;
+exports.getMetaValue = getMetaValue;
+exports.validateValue = validateValue;
+exports.hasEndpoints = hasEndpoints;
+exports.isInRange = isInRange;
+exports.replaceInArray = replaceInArray;
+exports.filterObject = filterObject;
+exports.saveSceneState = saveSceneState;
+exports.sleep = sleep;
+exports.toSnakeCase = toSnakeCase;
+exports.toCamelCase = toCamelCase;
+exports.normalizeCelsiusVersionOfFahrenheit = normalizeCelsiusVersionOfFahrenheit;
+exports.deleteSceneState = deleteSceneState;
+exports.getSceneState = getSceneState;
+exports.attachOutputCluster = attachOutputCluster;
+exports.printNumberAsHex = printNumberAsHex;
+exports.printNumbersAsHexSequence = printNumbersAsHexSequence;
+exports.createLogger = createLogger;
+exports.getFromLookup = getFromLookup;

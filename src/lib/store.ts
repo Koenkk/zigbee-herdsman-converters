@@ -48,10 +48,8 @@ function clear() {
     store = new Map();
 }
 
-module.exports = {
-    hasValue,
-    getValue,
-    putValue,
-    clearValue,
-    clear,
-};
+exports.hasValue = hasValue;
+exports.getValue = getValue;
+exports.putValue = putValue;
+exports.clearValue = clearValue;
+exports.clear = clear;

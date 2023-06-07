@@ -937,6 +937,4 @@ const legacyKeys: {[s: string]: number} = {
     'rgbw2.zbee27_88764544': 2,
 };
 
-module.exports = {
-    getConfigureKey,
-};
+exports.getConfigureKey = getConfigureKey;

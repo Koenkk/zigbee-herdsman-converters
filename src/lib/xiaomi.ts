@@ -1309,12 +1309,10 @@ const trv = {
     },
 };
 
-module.exports = {
-    buffer2DataObject,
-    numericAttributes2Payload,
-    numericAttributes2Options,
-    VOCKQJK11LMDisplayUnit,
-    fp1,
-    manufacturerCode: 0x115f,
-    trv,
-};
+exports.buffer2DataObject = buffer2DataObject;
+exports.numericAttributes2Payload = numericAttributes2Payload;
+exports.numericAttributes2Options = numericAttributes2Options;
+exports.VOCKQJK11LMDisplayUnit = VOCKQJK11LMDisplayUnit;
+exports.fp1 = fp1;
+exports.trv = trv;
+exports.manufacturerCode = 0x115f;

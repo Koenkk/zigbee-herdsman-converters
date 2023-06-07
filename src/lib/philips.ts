@@ -313,7 +313,7 @@ const philipsTz = {
         },
     } as tz.Converter,
 };
-
+export {philipsTz as tz};
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.PHILIPS};
 
@@ -668,12 +668,10 @@ function encodeGradientColors(value: string[], opts: KeyValueAny) {
     return scene;
 }
 
-module.exports = {
-    decodeGradientColors,
-    encodeGradientColors,
-    extend,
-    tz: philipsTz,
-    fz: philipsFz,
-    gradientScenes,
-    knownEffects,
-};
+exports.tz = philipsTz;
+exports.fz = philipsFz;
+exports.decodeGradientColors = decodeGradientColors;
+exports.encodeGradientColors = encodeGradientColors;
+exports.extend = extend;
+exports.gradientScenes = gradientScenes;
+exports.knownEffects = knownEffects;

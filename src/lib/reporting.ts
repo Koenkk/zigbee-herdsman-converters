@@ -240,55 +240,53 @@ export const acFrequency = async (endpoint: zh.Endpoint, overrides?: Override) =
     await endpoint.configureReporting('haElectricalMeasurement', p);
 };
 
-module.exports = {
-    payload,
-    bind,
-    readEletricalMeasurementMultiplierDivisors,
-    readMeteringMultiplierDivisor,
-    currentPositionLiftPercentage,
-    currentPositionTiltPercentage,
-    batteryPercentageRemaining,
-    batteryVoltage,
-    batteryAlarmState,
-    onOff,
-    lockState,
-    doorState,
-    brightness,
-    colorTemperature,
-    occupancy,
-    temperature,
-    co2,
-    deviceTemperature,
-    pressure,
-    pressureExtended,
-    illuminance,
-    instantaneousDemand,
-    currentSummDelivered,
-    currentSummReceived,
-    thermostatSystemMode,
-    humidity,
-    thermostatKeypadLockMode,
-    thermostatTemperature,
-    thermostatTemperatureCalibration,
-    thermostatOccupiedHeatingSetpoint,
-    thermostatUnoccupiedHeatingSetpoint,
-    thermostatOccupiedCoolingSetpoint,
-    thermostatUnoccupiedCoolingSetpoint,
-    thermostatPIHeatingDemand,
-    thermostatRunningState,
-    thermostatRunningMode,
-    thermostatOccupancy,
-    thermostatTemperatureSetpointHold,
-    thermostatTemperatureSetpointHoldDuration,
-    thermostatAcLouverPosition,
-    presentValue,
-    activePower,
-    reactivePower,
-    apparentPower,
-    rmsCurrent,
-    rmsVoltage,
-    powerFactor,
-    fanMode,
-    soil_moisture,
-    acFrequency,
-};
+exports.payload = payload;
+exports.bind = bind;
+exports.readEletricalMeasurementMultiplierDivisors = readEletricalMeasurementMultiplierDivisors;
+exports.readMeteringMultiplierDivisor = readMeteringMultiplierDivisor;
+exports.currentPositionLiftPercentage = currentPositionLiftPercentage;
+exports.currentPositionTiltPercentage = currentPositionTiltPercentage;
+exports.batteryPercentageRemaining = batteryPercentageRemaining;
+exports.batteryVoltage = batteryVoltage;
+exports.batteryAlarmState = batteryAlarmState;
+exports.onOff = onOff;
+exports.lockState = lockState;
+exports.doorState = doorState;
+exports.brightness = brightness;
+exports.colorTemperature = colorTemperature;
+exports.occupancy = occupancy;
+exports.temperature = temperature;
+exports.co2 = co2;
+exports.deviceTemperature = deviceTemperature;
+exports.pressure = pressure;
+exports.pressureExtended = pressureExtended;
+exports.illuminance = illuminance;
+exports.instantaneousDemand = instantaneousDemand;
+exports.currentSummDelivered = currentSummDelivered;
+exports.currentSummReceived = currentSummReceived;
+exports.thermostatSystemMode = thermostatSystemMode;
+exports.humidity = humidity;
+exports.thermostatKeypadLockMode = thermostatKeypadLockMode;
+exports.thermostatTemperature = thermostatTemperature;
+exports.thermostatTemperatureCalibration = thermostatTemperatureCalibration;
+exports.thermostatOccupiedHeatingSetpoint = thermostatOccupiedHeatingSetpoint;
+exports.thermostatUnoccupiedHeatingSetpoint = thermostatUnoccupiedHeatingSetpoint;
+exports.thermostatOccupiedCoolingSetpoint = thermostatOccupiedCoolingSetpoint;
+exports.thermostatUnoccupiedCoolingSetpoint = thermostatUnoccupiedCoolingSetpoint;
+exports.thermostatPIHeatingDemand = thermostatPIHeatingDemand;
+exports.thermostatRunningState = thermostatRunningState;
+exports.thermostatRunningMode = thermostatRunningMode;
+exports.thermostatOccupancy = thermostatOccupancy;
+exports.thermostatTemperatureSetpointHold = thermostatTemperatureSetpointHold;
+exports.thermostatTemperatureSetpointHoldDuration = thermostatTemperatureSetpointHoldDuration;
+exports.thermostatAcLouverPosition = thermostatAcLouverPosition;
+exports.presentValue = presentValue;
+exports.activePower = activePower;
+exports.reactivePower = reactivePower;
+exports.apparentPower = apparentPower;
+exports.rmsCurrent = rmsCurrent;
+exports.rmsVoltage = rmsVoltage;
+exports.powerFactor = powerFactor;
+exports.fanMode = fanMode;
+exports.soil_moisture = soil_moisture;
+exports.acFrequency = acFrequency;
