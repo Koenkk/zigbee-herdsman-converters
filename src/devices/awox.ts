@@ -59,8 +59,7 @@ const fzLocal = {
                 return {
                     action: 'refresh',
                 };
-            }
-            else if (awoxRemoteHelper.isRefreshLong(msg.data)) {
+            } else if (awoxRemoteHelper.isRefreshLong(msg.data)) {
                 return {
                     action: 'refresh_long',
                 };
@@ -119,7 +118,8 @@ const definitions: Definition[] = [
         vendor: 'AwoX',
         description: '3 Groups Remote Controller',
         fromZigbee: [fz.command_on, fzLocal.colors, fzLocal.refresh, fzLocal.refreshColored, fz.command_off,
-            fz.command_step, fz.command_move, fz.command_move_to_level, fz.command_move_to_color_temp, fz.command_stop, fz.command_recall, fz.command_step_color_temperature],
+            fz.command_step, fz.command_move, fz.command_move_to_level, fz.command_move_to_color_temp,
+            fz.command_stop, fz.command_recall, fz.command_step_color_temperature],
         toZigbee: [],
         exposes: [e.action(['on', 'off', 'red', 'refresh', 'refresh_colored', 'blue', 'yellow',
             'green', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
