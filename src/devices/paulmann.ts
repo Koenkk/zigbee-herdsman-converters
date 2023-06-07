@@ -17,7 +17,6 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht GmbH'}],
-        zigbeeModel: ['RGBW'],
         model: '948.47',
         vendor: 'Paulmann',
         description: 'RGBW wall light',
