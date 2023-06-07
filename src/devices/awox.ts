@@ -108,7 +108,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['ERCU_3groups_Zm'],
         model: '99099',
         vendor: 'AwoX',
-        description: '3 Groups Remote Controller',
+        description: '3 groups remote controller',
         fromZigbee: [fz.command_on, fzLocal.colors, fzLocal.refresh, fzLocal.refreshColored, fz.command_off,
             fz.command_step, fz.command_move, fz.command_move_to_level, fz.command_move_to_color_temp,
             fz.command_stop, fz.command_recall, fz.command_step_color_temperature],
