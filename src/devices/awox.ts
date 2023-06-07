@@ -19,10 +19,10 @@ const awoxRemoteHelper = {
         }
         return null;
     },
-    isRefresh: (buffer) => {
+    isRefresh: (buffer: Buffer) => {
         return buffer[0] === 17 && buffer[2] === 16 && (buffer[3] === 1 || buffer[3] === 0) && buffer[4] === 1;
     },
-    isRefreshLong: (buffer) => {
+    isRefreshLong: (buffer: Buffer) => {
         return buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 2;
     },
 };
