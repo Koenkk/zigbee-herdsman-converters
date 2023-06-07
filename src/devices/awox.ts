@@ -106,14 +106,6 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['ERCU_3groups_Zm'],
-        fingerprint: [
-            {
-                type: 'EndDevice', manufacturerName: 'AwoX', modelID: 'ERCU_3groups_Zm', powerSource: 'Battery', endpoints: [
-                    {ID: 1, profileID: 260, deviceID: 2048, inputClusters: [0, 3, 4, 4096], outputClusters: [0, 3, 4, 5, 6, 8, 768, 4096]},
-                    {ID: 3, profileID: 4751, deviceID: 2048, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
-                ],
-            },
-        ],
         model: '99099',
         vendor: 'AwoX',
         description: '3 Groups Remote Controller',
