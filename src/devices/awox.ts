@@ -62,6 +62,13 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['ESMLFzm_w6_Dimm'],
+        model: '12226',
+        vendor: 'AwoX',
+        description: 'Dimmable filament lamp',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['TLSR82xx'],
         model: '33951/33948',
         vendor: 'AwoX',
