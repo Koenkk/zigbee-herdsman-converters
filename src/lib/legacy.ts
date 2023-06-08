@@ -4676,6 +4676,15 @@ const fromZigbee1 = {
             }
             if (dp === dataPoints.hochActivePower) {
                 result.power = (value[2] | value[1] << 8) / 10;
+                if (value.length > 3) {
+                    result.power_l1 = (value[5] | value[4] << 8) / 10;
+                }
+                if (value.length > 6) {
+                    result.power_l2 = (value[8] | value[7] << 8) / 10;
+                }
+                if (value.length > 9) {
+                    result.power_l3 = (value[11] | value[10] << 8) / 10;
+                }
             }
             if (dp === dataPoints.hochTotalActivePower) {
                 result.energy_consumed = value / 100;
