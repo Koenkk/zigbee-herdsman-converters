@@ -8,13 +8,13 @@ const e = exposes.presets;
 
 const fzLocal = {
     thirdreality_acceleration: {
-        cluster: 'seMetering',
+        cluster: '65521',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
-            if (msg.data['65280']) payload.x_axis = msg.data['65280'];
-            if (msg.data['65281']) payload.y_axis = msg.data['65281'];
-            if (msg.data['65282']) payload.z_axis = msg.data['65282'];
+            if (msg.data['1']) payload.x_axis = msg.data['1'];
+            if (msg.data['2']) payload.y_axis = msg.data['2'];
+            if (msg.data['3']) payload.z_axis = msg.data['3'];
             return payload;
         },
     },
