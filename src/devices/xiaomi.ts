@@ -3284,13 +3284,32 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.switch.acn029'],
+        model: 'ZNQBKG24LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch H1M (with neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.aqara_opple],
+        toZigbee: [
+            tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light,
+        ],
+        exposes: [
+            e.switch(), e.power(), e.energy(), e.voltage(), e.device_temperature(),
+            e.action(['single', 'double']),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode'),
+            e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
+        ],
+        onEvent: preventReset,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.switch.acn031'],
         model: 'ZNQBKG26LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch H1M (with neutral, triple rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple, fz.xiaomi_power],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.aqara_switch_mode_switch,
-            tz.xiaomi_flip_indicator_light],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_flip_indicator_light],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
