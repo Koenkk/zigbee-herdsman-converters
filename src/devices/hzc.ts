@@ -2,6 +2,7 @@ import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -27,6 +28,20 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.illuminance],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.battery(), e.illuminance(), e.tamper()],
+    },
+    {
+        fingerprint: [{type: 'Router', manufacturerName: 'Shyugj', modelID: 'Dimmer-Switch-ZB3.0'}],
+        model: 'D077-ZG',
+        vendor: 'HZC',
+        description: 'Zigbee dimmer',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
     },
 ];
 
