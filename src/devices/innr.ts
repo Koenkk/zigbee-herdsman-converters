@@ -671,6 +671,14 @@ const definitions: Definition[] = [
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['OFL 122 C'],
+        model: 'OFL 122 C',
+        vendor: 'Innr',
+        description: 'Outdoor flex light colour LED strip 2m, 1440lm, RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [100, 350], supportsHueAndSaturation: true}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['OSL 130 C'],
         model: 'OSL 130 C',
         vendor: 'Innr',
