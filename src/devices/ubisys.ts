@@ -1,11 +1,13 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const ota = require('../lib/ota');
-const utils = require('../lib/utils');
-const reporting = require('../lib/reporting');
-const constants = require('../lib/constants');
-const herdsman = require('zigbee-herdsman');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as ota from '../lib/ota';
+import * as utils from '../lib/utils';
+import * as reporting from '../lib/reporting';
+import * as constants from '../lib/constants';
+import {Zcl} from 'zigbee-herdsman';
+import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -15,11 +17,12 @@ const manufacturerOptions = {
      * This bug has been reported, but it has not been fixed:
      * https://github.com/Koenkk/zigbee-herdsman/issues/52
      */
-    ubisys: {manufacturerCode: herdsman.Zcl.ManufacturerCode.UBISYS},
+    ubisys: {manufacturerCode: Zcl.ManufacturerCode.UBISYS},
+    // @ts-expect-error
     ubisysNull: {manufacturerCode: null},
 };
 
-const ubisysOnEventReadCurrentSummDelivered = async function(type, data, devic) {
+const ubisysOnEventReadCurrentSummDelivered = async function(type: OnEventType, data: OnEventData, devic: Zh.Device) {
     if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
         try {
             await data.endpoint.read('seMetering', ['currentSummDelivered']);
@@ -68,11 +71,11 @@ const ubisys = {
                     const phaseControl = mode & 3;
                     const phaseControlValues = {0: 'automatic', 1: 'forward', 2: 'reverse'};
                     return {
-                        mode_phase_control: phaseControlValues[phaseControl],
+                        mode_phase_control: utils.getFromLookup(phaseControl, phaseControlValues),
                     };
                 }
             },
-        },
+        } as Fz.Converter,
         dimmer_setup_genLevelCtrl: {
             cluster: 'genLevelCtrl',
             type: ['attributeReport', 'readResponse'],
@@ -81,23 +84,23 @@ const ubisys = {
                     return {minimum_on_level: msg.data.ubisysMinimumOnLevel};
                 }
             },
-        },
+        } as Fz.Converter,
         configure_device_setup: {
             cluster: 'manuSpecificUbisysDeviceSetup',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const result = meta.state.hasOwnProperty('configure_device_setup') ? meta.state.configure_device_setup : {};
+                const result = (meta.state.hasOwnProperty('configure_device_setup') ? meta.state.configure_device_setup : {}) as KeyValue;
                 if (msg.data['inputConfigurations'] != null) {
                     result['input_configurations'] = msg.data['inputConfigurations'];
                 }
                 if (msg.data['inputActions'] != null) {
-                    result['input_actions'] = msg.data['inputActions'].map(function(el) {
+                    result['input_actions'] = msg.data['inputActions'].map(function(el: KeyValue) {
                         return Object.values(el);
                     });
                 }
                 return {configure_device_setup: result};
             },
-        },
+        } as Fz.Converter,
         thermostat_vacation_mode: {
             cluster: 'hvacThermostat',
             type: ['attributeReport', 'readResponse'],
@@ -106,16 +109,16 @@ const ubisys = {
                     return {vacation_mode: msg.data.occupancy === 0};
                 }
             },
-        },
+        } as Fz.Converter,
     },
     tz: {
         configure_j1: {
             key: ['configure_j1'],
-            convertSet: async (entity, key, value, meta) => {
-                const log = (message) => {
+            convertSet: async (entity, key, value: KeyValueAny, meta) => {
+                const log = (message: string) => {
                     meta.logger.warn(`ubisys: ${message}`);
                 };
-                const sleepSeconds = async (s) => {
+                const sleepSeconds = async (s: number) => {
                     return new Promise((resolve) => setTimeout(resolve, s * 1000));
                 };
                 const waitUntilStopped = async () => {
@@ -123,11 +126,14 @@ const ubisys = {
                     do {
                         await sleepSeconds(2);
                         operationalStatus = (await entity.read('closuresWindowCovering',
+                            // @ts-expect-error
                             ['operationalStatus'])).operationalStatus;
                     } while (operationalStatus != 0);
                     await sleepSeconds(2);
                 };
-                const writeAttrFromJson = async (attr, jsonAttr = attr, converterFunc, delaySecondsAfter) => {
+                const writeAttrFromJson = async (attr: string, jsonAttr?: string, converterFunc?: (v: unknown) => unknown,
+                    delaySecondsAfter?: number) => {
+                    if (!jsonAttr) jsonAttr = attr;
                     if (jsonAttr.startsWith('ubisys')) {
                         jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
                     }
@@ -136,7 +142,7 @@ const ubisys = {
                         if (converterFunc) {
                             attrValue = converterFunc(attrValue);
                         }
-                        const attributes = {};
+                        const attributes: KeyValue = {};
                         attributes[attr] = attrValue;
                         await entity.write('closuresWindowCovering', attributes, manufacturerOptions.ubisys);
                         if (delaySecondsAfter) {
@@ -147,6 +153,7 @@ const ubisys = {
                 const stepsPerSecond = value.steps_per_second || 50;
                 const hasCalibrate = value.hasOwnProperty('calibrate');
                 // cancel any running calibration
+                // @ts-expect-error
                 let mode = (await entity.read('closuresWindowCovering', ['windowCoveringMode'])).windowCoveringMode;
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {
@@ -156,6 +163,7 @@ const ubisys = {
                 // delay a bit if reconfiguring basic configuration attributes
                 await writeAttrFromJson('windowCoveringType', undefined, undefined, 2);
                 await writeAttrFromJson('configStatus', undefined, undefined, 2);
+                // @ts-expect-error
                 if (await writeAttrFromJson('windowCoveringMode', undefined, undefined, 2)) {
                     mode = value['windowCoveringMode'];
                 }
@@ -163,7 +171,7 @@ const ubisys = {
                     log('Cover calibration starting...');
                     // first of all, move to top position to not confuse calibration later
                     log('  Moving cover to top position to get a good starting point...');
-                    await entity.command('closuresWindowCovering', 'upOpen');
+                    await entity.command('closuresWindowCovering', 'upOpen', {});
                     await waitUntilStopped();
                     log('  Settings some attributes...');
                     // reset attributes
@@ -183,18 +191,18 @@ const ubisys = {
                     await sleepSeconds(2);
                     // move down a bit and back up to detect upper limit
                     log('  Moving cover down a bit...');
-                    await entity.command('closuresWindowCovering', 'downClose');
+                    await entity.command('closuresWindowCovering', 'downClose', {});
                     await sleepSeconds(5);
-                    await entity.command('closuresWindowCovering', 'stop');
+                    await entity.command('closuresWindowCovering', 'stop', {});
                     await sleepSeconds(2);
                     log('  Moving up again to detect upper limit...');
-                    await entity.command('closuresWindowCovering', 'upOpen');
+                    await entity.command('closuresWindowCovering', 'upOpen', {});
                     await waitUntilStopped();
                     log('  Moving down to count steps from open to closed...');
-                    await entity.command('closuresWindowCovering', 'downClose');
+                    await entity.command('closuresWindowCovering', 'downClose', {});
                     await waitUntilStopped();
                     log('  Moving up to count steps from closed to open...');
-                    await entity.command('closuresWindowCovering', 'upOpen');
+                    await entity.command('closuresWindowCovering', 'upOpen', {});
                     await waitUntilStopped();
                 }
                 // now write any attribute values present in JSON
@@ -211,12 +219,12 @@ const ubisys = {
                 await writeAttrFromJson('ubisysInactivePowerThreshold');
                 await writeAttrFromJson('ubisysStartupSteps');
                 // some convenience functions to not have to calculate
-                await writeAttrFromJson('ubisysTotalSteps', 'open_to_closed_s', (s) => s * stepsPerSecond);
-                await writeAttrFromJson('ubisysTotalSteps2', 'closed_to_open_s', (s) => s * stepsPerSecond);
+                await writeAttrFromJson('ubisysTotalSteps', 'open_to_closed_s', (s: number) => s * stepsPerSecond);
+                await writeAttrFromJson('ubisysTotalSteps2', 'closed_to_open_s', (s: number) => s * stepsPerSecond);
                 await writeAttrFromJson('ubisysLiftToTiltTransitionSteps', 'lift_to_tilt_transition_ms',
-                    (s) => s * stepsPerSecond / 1000);
+                    (s: number) => s * stepsPerSecond / 1000);
                 await writeAttrFromJson('ubisysLiftToTiltTransitionSteps2', 'lift_to_tilt_transition_ms',
-                    (s) => s * stepsPerSecond / 1000);
+                    (s: number) => s * stepsPerSecond / 1000);
                 if (hasCalibrate) {
                     log('  Finalizing calibration...');
                     // disable calibration mode again
@@ -229,7 +237,7 @@ const ubisys = {
                 }
             },
             convertGet: async (entity, key, meta) => {
-                const log = (json) => {
+                const log = (json: unknown) => {
                     meta.logger.warn(`ubisys: Cover configuration read: ${JSON.stringify(json)}`);
                 };
                 log(await entity.read('closuresWindowCovering', [
@@ -261,7 +269,7 @@ const ubisys = {
                     'ubisysStartupSteps',
                 ], manufacturerOptions.ubisys));
             },
-        },
+        } as Tz.Converter,
         dimmer_setup: {
             key: ['capabilities_forward_phase_control',
                 'capabilities_reverse_phase_control',
@@ -276,11 +284,12 @@ const ubisys = {
                 'mode_phase_control'],
             convertSet: async (entity, key, value, meta) => {
                 if (key === 'mode_phase_control') {
+                    utils.assertString(value, 'mode_phase_control');
                     const phaseControl = value.toLowerCase();
                     const phaseControlValues = {'automatic': 0, 'forward': 1, 'reverse': 2};
                     utils.validateValue(phaseControl, Object.keys(phaseControlValues));
                     await entity.write('manuSpecificUbisysDimmerSetup',
-                        {'mode': phaseControlValues[phaseControl]}, manufacturerOptions.ubisysNull);
+                        {'mode': utils.getFromLookup(phaseControl, phaseControlValues)}, manufacturerOptions.ubisysNull);
                 }
                 ubisys.tz.dimmer_setup.convertGet(entity, key, meta);
             },
@@ -289,7 +298,7 @@ const ubisys = {
                 await entity.read('manuSpecificUbisysDimmerSetup', ['status'], manufacturerOptions.ubisysNull);
                 await entity.read('manuSpecificUbisysDimmerSetup', ['mode'], manufacturerOptions.ubisysNull);
             },
-        },
+        } as Tz.Converter,
         dimmer_setup_genLevelCtrl: {
             key: ['minimum_on_level'],
             convertSet: async (entity, key, value, meta) => {
@@ -301,10 +310,10 @@ const ubisys = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('genLevelCtrl', ['ubisysMinimumOnLevel'], manufacturerOptions.ubisys);
             },
-        },
+        } as Tz.Converter,
         configure_device_setup: {
             key: ['configure_device_setup'],
-            convertSet: async (entity, key, value, meta) => {
+            convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const devMgmtEp = meta.device.getEndpoint(232);
 
                 if (value.hasOwnProperty('input_configurations')) {
@@ -330,34 +339,34 @@ const ubisys = {
                         // source: "ZigBee Device Physical Input Configurations Integrator’s Guide"
                         // (can be obtained directly from ubisys upon request)
                         'toggle': {
-                            getInputActions: (input, endpoint) => [
+                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [
                                 [input, 0x0D, endpoint, 0x06, 0x00, 0x02],
                             ],
                         },
                         'toggle_switch': {
-                            getInputActions: (input, endpoint) => [
+                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [
                                 [input, 0x0D, endpoint, 0x06, 0x00, 0x02],
                                 [input, 0x03, endpoint, 0x06, 0x00, 0x02],
                             ],
                         },
                         'on_off_switch': {
-                            getInputActions: (input, endpoint) => [
+                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [
                                 [input, 0x0D, endpoint, 0x06, 0x00, 0x01],
                                 [input, 0x03, endpoint, 0x06, 0x00, 0x00],
                             ],
                         },
                         'on': {
-                            getInputActions: (input, endpoint) => [
+                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [
                                 [input, 0x0D, endpoint, 0x06, 0x00, 0x01],
                             ],
                         },
                         'off': {
-                            getInputActions: (input, endpoint) => [
+                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [
                                 [input, 0x0D, endpoint, 0x06, 0x00, 0x00],
                             ],
                         },
                         'dimmer_single': {
-                            getInputActions: (input, endpoint, template) => {
+                            getInputActions: (input: unknown, endpoint: Zh.Endpoint, template: KeyValue) => {
                                 const moveUpCmd = template.no_onoff || template.no_onoff_up ? 0x01 : 0x05;
                                 const moveDownCmd = template.no_onoff || template.no_onoff_down ? 0x01 : 0x05;
                                 const moveRate = template.rate || 50;
@@ -371,7 +380,7 @@ const ubisys = {
                         },
                         'dimmer_double': {
                             doubleInputs: true,
-                            getInputActions: (inputs, endpoint, template) => {
+                            getInputActions: (inputs: unknown[], endpoint: Zh.Endpoint, template: KeyValue) => {
                                 const moveUpCmd = template.no_onoff || template.no_onoff_up ? 0x01 : 0x05;
                                 const moveDownCmd = template.no_onoff || template.no_onoff_down ? 0x01 : 0x05;
                                 const moveRate = template.rate || 50;
@@ -388,7 +397,7 @@ const ubisys = {
                         'cover': {
                             cover: true,
                             doubleInputs: true,
-                            getInputActions: (inputs, endpoint) => [
+                            getInputActions: (inputs: unknown[], endpoint: Zh.Endpoint) => [
                                 [inputs[0], 0x0D, endpoint, 0x02, 0x01, 0x00],
                                 [inputs[0], 0x07, endpoint, 0x02, 0x01, 0x02],
                                 [inputs[1], 0x0D, endpoint, 0x02, 0x01, 0x01],
@@ -398,7 +407,7 @@ const ubisys = {
                         'cover_switch': {
                             cover: true,
                             doubleInputs: true,
-                            getInputActions: (inputs, endpoint) => [
+                            getInputActions: (inputs: unknown[], endpoint: Zh.Endpoint) => [
                                 [inputs[0], 0x0D, endpoint, 0x02, 0x01, 0x00],
                                 [inputs[0], 0x03, endpoint, 0x02, 0x01, 0x02],
                                 [inputs[1], 0x0D, endpoint, 0x02, 0x01, 0x01],
@@ -407,31 +416,31 @@ const ubisys = {
                         },
                         'cover_up': {
                             cover: true,
-                            getInputActions: (input, endpoint) => [
+                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [
                                 [input, 0x0D, endpoint, 0x02, 0x01, 0x00],
                             ],
                         },
                         'cover_down': {
                             cover: true,
-                            getInputActions: (input, endpoint) => [
+                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [
                                 [input, 0x0D, endpoint, 0x02, 0x01, 0x01],
                             ],
                         },
                         'scene': {
                             scene: true,
-                            getInputActions: (input, endpoint, groupId, sceneId) => [
+                            getInputActions: (input: unknown, endpoint: Zh.Endpoint, groupId: number, sceneId: number) => [
                                 [input, 0x07, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
                             ],
-                            getInputActions2: (input, endpoint, groupId, sceneId) => [
+                            getInputActions2: (input: unknown, endpoint: Zh.Endpoint, groupId: number, sceneId: number) => [
                                 [input, 0x06, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
                             ],
                         },
                         'scene_switch': {
                             scene: true,
-                            getInputActions: (input, endpoint, groupId, sceneId) => [
+                            getInputActions: (input: unknown, endpoint: Zh.Endpoint, groupId: number, sceneId: number) => [
                                 [input, 0x0D, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
                             ],
-                            getInputActions2: (input, endpoint, groupId, sceneId) => [
+                            getInputActions2: (input: unknown, endpoint: Zh.Endpoint, groupId: number, sceneId: number) => [
                                 [input, 0x03, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
                             ],
                         },
@@ -446,8 +455,9 @@ const ubisys = {
 
                     const templates = Array.isArray(value.input_action_templates) ? value.input_action_templates :
                         [value.input_action_templates];
-                    let resultingInputActions = [];
+                    let resultingInputActions: unknown[] = [];
                     for (const template of templates) {
+                        // @ts-expect-error
                         const templateType = templateTypes[template.type];
                         if (!templateType) {
                             throw new Error(`input_action_templates: Template type '${template.type}' is not valid ` +
@@ -521,17 +531,17 @@ const ubisys = {
                 await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions'],
                     manufacturerOptions.ubisysNull);
             },
-        },
+        } as Tz.Converter,
         thermostat_vacation_mode: {
             key: ['vacation_mode'],
             convertGet: async (entity, key, meta) => {
                 await entity.read('hvacThermostat', ['occupancy']);
             },
-        },
+        } as Tz.Converter,
     },
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['S1 (5501)'],
         model: 'S1',
@@ -704,27 +714,27 @@ module.exports = [
                 'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
                 'brightness_stop_s2']),
             e.light_brightness(),
-            exposes.composite('level_config', 'level_config', ea.ALL)
-                .withFeature(exposes.numeric('on_off_transition_time', ea.ALL)
+            e.composite('level_config', 'level_config', ea.ALL)
+                .withFeature(e.numeric('on_off_transition_time', ea.ALL)
                     .withDescription('Specifies the amount of time, in units of 0.1 seconds, which will be used during a transition to ' +
                     'either the on or off state, when an on/off/toggle command of the on/off cluster is used to turn the light on or off'))
-                .withFeature(exposes.numeric('on_level', ea.ALL)
+                .withFeature(e.numeric('on_level', ea.ALL)
                     .withValueMin(1).withValueMax(254)
                     .withPreset('previous', 255, 'Use previous value')
                     .withDescription('Specifies the level that shall be applied, when an on/toggle command causes the light to turn on.'))
-                .withFeature(exposes.binary('execute_if_off', ea.ALL, true, false)
+                .withFeature(e.binary('execute_if_off', ea.ALL, true, false)
                     .withDescription('Defines if you can send a brightness change without to turn on the light'))
-                .withFeature(exposes.numeric('current_level_startup', ea.ALL)
+                .withFeature(e.numeric('current_level_startup', ea.ALL)
                     .withValueMin(1).withValueMax(254)
                     .withPreset('previous', 255, 'Use previous value')
                     .withDescription('Specifies the initial level to be applied after the device is supplied with power')),
             e.power().withAccess(ea.STATE_GET),
             e.energy().withAccess(ea.STATE_GET),
-            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
-            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast'),
-            exposes.numeric('minimum_on_level', ea.ALL).withValueMin(0).withValueMax(255)
+            e.numeric('minimum_on_level', ea.ALL).withValueMin(0).withValueMax(255)
                 .withDescription('Specifies the minimum level that shall be applied, when an on/toggle command causes the ' +
                 'light to turn on. When this attribute is set to the invalid value (255) this feature is disabled ' +
                 'and standard rules apply: The light will either return to the previously active level (before it ' +
@@ -735,27 +745,27 @@ module.exports = [
                 'value. For example, if the previous level was 30 and the MinimumOnLevel was 40 then ' +
                 'the light would turn on and move to level 40. Conversely, if the previous level was 50, ' +
                 'and the MinimumOnLevel was 40, then the light would turn on and move to level 50.'),
-            exposes.binary('capabilities_forward_phase_control', ea.ALL, true, false)
+            e.binary('capabilities_forward_phase_control', ea.ALL, true, false)
                 .withDescription('The dimmer supports AC forward phase control.'),
-            exposes.binary('capabilities_reverse_phase_control', ea.ALL, true, false)
+            e.binary('capabilities_reverse_phase_control', ea.ALL, true, false)
                 .withDescription('The dimmer supports AC reverse phase control.'),
-            exposes.binary('capabilities_reactance_discriminator', ea.ALL, true, false)
+            e.binary('capabilities_reactance_discriminator', ea.ALL, true, false)
                 .withDescription('The dimmer is capable of measuring the reactanceto distinguish inductive and capacitive loads.'),
-            exposes.binary('capabilities_configurable_curve', ea.ALL, true, false)
+            e.binary('capabilities_configurable_curve', ea.ALL, true, false)
                 .withDescription('The dimmer is capable of replacing the built-in, default dimming curve.'),
-            exposes.binary('capabilities_overload_detection', ea.ALL, true, false)
+            e.binary('capabilities_overload_detection', ea.ALL, true, false)
                 .withDescription('The dimmer is capable of detecting an output overload and shutting the output off.'),
-            exposes.binary('status_forward_phase_control', ea.ALL, true, false)
+            e.binary('status_forward_phase_control', ea.ALL, true, false)
                 .withDescription('The dimmer is currently operating in AC forward phase control mode.'),
-            exposes.binary('status_reverse_phase_control', ea.ALL, true, false)
+            e.binary('status_reverse_phase_control', ea.ALL, true, false)
                 .withDescription('The dimmer is currently operating in AC reverse phase control mode.'),
-            exposes.binary('status_overload', ea.ALL, true, false)
+            e.binary('status_overload', ea.ALL, true, false)
                 .withDescription('The output is currently turned off, because the dimmer has detected an overload.'),
-            exposes.binary('status_capacitive_load', ea.ALL, true, false)
+            e.binary('status_capacitive_load', ea.ALL, true, false)
                 .withDescription('The dimmer\'s reactance discriminator had detected a capacitive load.'),
-            exposes.binary('status_inductive_load', ea.ALL, true, false)
+            e.binary('status_inductive_load', ea.ALL, true, false)
                 .withDescription('The dimmer\'s reactance discriminator had detected an inductive load.'),
-            exposes.enum('mode_phase_control', ea.ALL, ['automatic', 'forward', 'reverse'])
+            e.enum('mode_phase_control', ea.ALL, ['automatic', 'forward', 'reverse'])
                 .withDescription('Configures the dimming technique.')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(4);
@@ -834,7 +844,7 @@ module.exports = [
         model: 'C4',
         vendor: 'Ubisys',
         description: 'Control unit C4',
-        fromZigbee: [fz.legacy.ubisys_c4_scenes, fz.legacy.ubisys_c4_onoff, fz.legacy.ubisys_c4_level, fz.legacy.ubisys_c4_cover,
+        fromZigbee: [legacy.fz.ubisys_c4_scenes, legacy.fz.ubisys_c4_onoff, legacy.fz.ubisys_c4_level, legacy.fz.ubisys_c4_cover,
             ubisys.fz.configure_device_setup],
         toZigbee: [ubisys.tz.configure_device_setup],
         exposes: [
@@ -878,14 +888,14 @@ module.exports = [
         ],
         exposes: [
             e.battery().withAccess(ea.STATE_GET),
-            exposes.climate()
+            e.climate()
                 .withSystemMode(['off', 'heat'], ea.ALL)
                 .withRunningMode(['off', 'heat'])
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET)
                 .withWeeklySchedule(['heat']),
-            exposes.binary('vacation_mode', ea.STATE_GET, true, false)
+            e.binary('vacation_mode', ea.STATE_GET, true, false)
                 .withDescription('When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -937,3 +947,5 @@ module.exports = [
         ota: ota.ubisys,
     },
 ];
+
+module.exports = definitions;

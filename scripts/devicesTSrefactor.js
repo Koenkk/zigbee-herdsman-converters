@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 for (const file of fs.readdirSync('./src/devices').sort()) {
-    if (file.endsWith('sylvania.js')) {
+    if (file.endsWith('.js')) {
         const f = `./src/devices/${file}`;
         const newContent = [];
         const lines = fs.readFileSync(f, 'utf-8').trim().split('\n');

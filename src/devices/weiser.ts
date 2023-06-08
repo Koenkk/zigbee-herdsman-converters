@@ -1,11 +1,12 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const constants = require('../lib/constants');
-const reporting = require('../lib/reporting');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as constants from '../lib/constants';
+import * as reporting from '../lib/reporting';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_10'],
         model: '9GED18000-009',
@@ -28,6 +29,7 @@ module.exports = [
                 data.data &&
                 data.data.userid !== undefined &&
                 // Don't read RF events, we can do this with retrieve_state
+                // @ts-expect-error
                 (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] != 'rf')
             ) {
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});
@@ -57,6 +59,7 @@ module.exports = [
                 data.data &&
                 data.data.userid !== undefined &&
                 // Don't read RF events, we can do this with retrieve_state
+                // @ts-expect-error
                 (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] != 'rf')
             ) {
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});
@@ -65,3 +68,5 @@ module.exports = [
         exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user()],
     },
 ];
+
+module.exports = definitions;

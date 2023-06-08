@@ -1,4 +1,4 @@
-import herdsman from 'zigbee-herdsman';
+import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -178,12 +178,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'window_open') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('hvacThermostat', {0x4042: {value: index, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
+                await entity.write('hvacThermostat', {0x4042: {value: index, type: Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {window_open: value}};
             }
             if (key === 'boost') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('hvacThermostat', {0x4043: {value: index, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
+                await entity.write('hvacThermostat', {0x4043: {value: index, type: Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {boost: value}};
             }
             if (key === 'system_mode') {
@@ -198,12 +198,12 @@ const tzLocal = {
                 } else if (value == 'auto') {
                     opMode = operatingModes.automatic; // OperatingMode 0 = Automatic
                 }
-                await entity.write('hvacThermostat', {0x4007: {value: opMode, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
+                await entity.write('hvacThermostat', {0x4007: {value: opMode, type: Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {system_mode: value}};
             }
             if (key === 'pi_heating_demand') {
                 await entity.write('hvacThermostat',
-                    {0x4020: {value: value, type: herdsman.Zcl.DataType.enum8}},
+                    {0x4020: {value: value, type: Zcl.DataType.enum8}},
                     boschManufacturer);
                 return {state: {pi_heating_demand: value}};
             }
@@ -211,7 +211,7 @@ const tzLocal = {
                 utils.assertNumber(value, 'remote_temperature');
                 const remoteTemperature = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
                 await entity.write('hvacThermostat',
-                    {0x4040: {value: remoteTemperature, type: herdsman.Zcl.DataType.int16}}, boschManufacturer);
+                    {0x4040: {value: remoteTemperature, type: Zcl.DataType.int16}}, boschManufacturer);
                 return {state: {remote_temperature: value}};
             }
         },
@@ -243,15 +243,15 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'display_orientation') {
                 const index = utils.getFromLookup(value, displayOrientation);
-                await entity.write('hvacUserInterfaceCfg', {0x400b: {value: index, type: herdsman.Zcl.DataType.uint8}}, boschManufacturer);
+                await entity.write('hvacUserInterfaceCfg', {0x400b: {value: index, type: Zcl.DataType.uint8}}, boschManufacturer);
                 return {state: {display_orientation: value}};
             }
             if (key === 'display_ontime') {
-                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: value, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
+                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: value, type: Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {display_onTime: value}};
             }
             if (key === 'display_brightness') {
-                await entity.write('hvacUserInterfaceCfg', {0x403b: {value: value, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
+                await entity.write('hvacUserInterfaceCfg', {0x403b: {value: value, type: Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {display_brightness: value}};
             }
             if (key === 'child_lock') {
@@ -261,7 +261,7 @@ const tzLocal = {
             }
             if (key === 'displayed_temperature') {
                 const index = utils.getFromLookup(value, displayedTemperature);
-                await entity.write('hvacUserInterfaceCfg', {0x4039: {value: index, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
+                await entity.write('hvacUserInterfaceCfg', {0x4039: {value: index, type: Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {displayed_temperature: value}};
             }
         },
@@ -405,9 +405,9 @@ const fzLocal = {
         convert: async (model, msg, publish, options, meta) => {
             if (msg.data.includes('dstStart', 'dstEnd', 'dstShift')) {
                 const response = {
-                    'dstStart': {attribute: 0x0003, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
-                    'dstEnd': {attribute: 0x0004, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
-                    'dstShift': {attribute: 0x0005, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
+                    'dstStart': {attribute: 0x0003, status: Zcl.Status.SUCCESS, value: 0x00},
+                    'dstEnd': {attribute: 0x0004, status: Zcl.Status.SUCCESS, value: 0x00},
+                    'dstShift': {attribute: 0x0005, status: Zcl.Status.SUCCESS, value: 0x00},
                 };
 
                 await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
@@ -590,7 +590,7 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
             await endpoint.configureReporting(0xFCAC, [{
-                attribute: {ID: 0x0003, type: herdsman.Zcl.DataType.boolean},
+                attribute: {ID: 0x0003, type: Zcl.DataType.boolean},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
@@ -714,28 +714,28 @@ const definitions: Definition[] = [
 
             // report operating_mode (system_mode)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4007, type: herdsman.Zcl.DataType.enum8},
+                attribute: {ID: 0x4007, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], boschManufacturer);
             // report pi_heating_demand (valve opening)
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4020, type: herdsman.Zcl.DataType.enum8},
+                attribute: {ID: 0x4020, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], boschManufacturer);
             // report window_open
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4042, type: herdsman.Zcl.DataType.enum8},
+                attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], boschManufacturer);
             // report boost as it's disabled by thermostat after 5 minutes
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4043, type: herdsman.Zcl.DataType.enum8},
+                attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
@@ -819,7 +819,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            // @ts-expect-error
             await reporting.currentSummDelivered(endpoint, {change: [0, 1]});
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
@@ -849,7 +848,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            // @ts-expect-error
             await reporting.currentSummDelivered(endpoint, {change: [0, 1]});
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);

@@ -27,7 +27,7 @@ export type OnEventType = 'start' | 'stop' | 'message' | 'deviceJoined' | 'devic
 export type Access = 0b001 | 0b010 | 0b100 | 0b011 | 0b101 | 0b111;
 export type Expose = exposes.Numeric | exposes.Binary | exposes.Enum | exposes.Composite | exposes.List | exposes.Light | exposes.Switch |
     exposes.Lock | exposes.Cover | exposes.Climate | exposes.Text;
-export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum;
+export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum | exposes.List;
 export interface Fingerprint {
     modelID?: string, manufacturerName?: string, type?: 'EndDevice' | 'Router', manufacturerID?: number, applicationVersion?: number,
     powerSource?: 'Battery' | 'Mains (single phase)', softwareBuildID?: string, ieeeAddr?: RegExp,
@@ -41,6 +41,7 @@ export interface OtaUpdateAvailableResult {available: boolean, currentFileVersio
 export interface DefinitionMeta {
     separateWhite?: boolean,
     multiEndpoint?: boolean,
+    multiEndpointEnforce?: {[s: string]: number},
     publishDuplicateTransaction?: boolean,
     tuyaDatapoints?: Tuya.MetaTuyaDataPoints,
     disableDefaultResponse?: boolean,
@@ -76,6 +77,7 @@ export interface OnEventData {
     meta?: {zclTransactionSequenceNumber?: number},
     cluster?: string,
     type?: string,
+    data?: KeyValueAny,
 }
 
 export type Definition = {
@@ -219,4 +221,11 @@ export namespace Ota {
         hardwareVersionMax?: number,
     }
     export type GetImageMeta = (current: ImageInfo, logger: Logger, device: Zh.Device) => Promise<ImageMeta>;
+}
+export namespace Reporting {
+    export interface Override {
+        min?: number,
+        max?: number,
+        change?: number | [number, number],
+    }
 }

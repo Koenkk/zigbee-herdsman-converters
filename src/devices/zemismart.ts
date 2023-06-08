@@ -1,14 +1,15 @@
-const exposes = require('../lib/exposes');
-const legacy = require('../lib/legacy');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
-const tuya = require('../lib/tuya');
+import * as tuya from '../lib/tuya';
 const ea = exposes.access;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['NUET56-DL27LX1.1'],
         model: 'LXZB-12A',
@@ -128,25 +129,25 @@ module.exports = [
         model: 'ZM-AM02_cover',
         vendor: 'Zemismart',
         description: 'Zigbee/RF curtain converter',
-        fromZigbee: [fz.legacy.ZMAM02_cover],
-        toZigbee: [tz.legacy.ZMAM02_cover],
+        fromZigbee: [legacy.fz.ZMAM02_cover],
+        toZigbee: [legacy.tz.ZMAM02_cover],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.composite('options', 'options', ea.STATE)
-                .withFeature(exposes.numeric('motor_speed', ea.STATE)
+            e.composite('options', 'options', ea.STATE)
+                .withFeature(e.numeric('motor_speed', ea.STATE)
                     .withValueMin(0)
                     .withValueMax(255)
                     .withDescription('Motor speed')),
-            exposes.enum('motor_working_mode', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02MotorWorkingMode)),
-            exposes.numeric('percent_state', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
-            exposes.enum('mode', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Mode)),
-            exposes.enum('motor_direction', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Direction)),
-            exposes.enum('border', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Border)),
+            e.enum('motor_working_mode', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02MotorWorkingMode)),
+            e.numeric('percent_state', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
+            e.enum('mode', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Mode)),
+            e.enum('motor_direction', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Direction)),
+            e.enum('border', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Border)),
         // ---------------------------------------------------------------------------------
         // DP exists, but not used at the moment
-        // exposes.numeric('percent_control', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
+        // e.numeric('percent_control', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
         // exposes.enum('work_state', ea.STATE, Object.values(tuya.ZMAM02.AM02WorkState)),
-        // exposes.numeric('countdown_left', ea.STATE).withUnit('s'),
-        // exposes.numeric('time_total', ea.STATE).withUnit('ms'),
+        // e.numeric('countdown_left', ea.STATE).withUnit('s'),
+        // e.numeric('time_total', ea.STATE).withUnit('ms'),
         // exposes.enum('situation_set', ea.STATE, Object.values(tuya.ZMAM02.AM02Situation)),
         ],
     },
@@ -155,11 +156,11 @@ module.exports = [
         model: 'M515EGBZTN',
         vendor: 'Zemismart',
         description: 'Roller shade driver',
-        fromZigbee: [fz.legacy.ZMAM02_cover],
-        toZigbee: [tz.legacy.ZMAM02_cover],
+        fromZigbee: [legacy.fz.ZMAM02_cover],
+        toZigbee: [legacy.tz.ZMAM02_cover],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.enum('motor_direction', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Direction)),
-            exposes.enum('border', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Border)),
+            e.enum('motor_direction', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Direction)),
+            e.enum('border', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Border)),
         ],
     },
     {
@@ -167,8 +168,8 @@ module.exports = [
         model: 'ZM25TQ',
         vendor: 'Zemismart',
         description: 'Tubular motor',
-        fromZigbee: [fz.legacy.tuya_cover, fz.ignore_basic_report],
-        toZigbee: [tz.legacy.tuya_cover_control, tz.legacy.tuya_cover_options, tz.legacy.tuya_data_point_test],
+        fromZigbee: [legacy.fz.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options, legacy.tz.tuya_data_point_test],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
@@ -176,8 +177,8 @@ module.exports = [
         model: 'ZM25RX-08/30',
         vendor: 'Zemismart',
         description: 'Tubular motor',
-        fromZigbee: [fz.legacy.tuya_cover, fz.ignore_basic_report],
-        toZigbee: [tz.legacy.tuya_cover_control, tz.legacy.tuya_cover_options],
+        fromZigbee: [legacy.fz.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
@@ -189,8 +190,8 @@ module.exports = [
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
-        toZigbee: [tz.legacy.tuya_switch_state],
+        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
@@ -215,8 +216,8 @@ module.exports = [
             e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l5').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l6').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
-        toZigbee: [tz.legacy.tuya_switch_state],
+        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
@@ -234,3 +235,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

@@ -1,10 +1,13 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import {Extend, Definition, Fz, Reporting} from 'src/lib/types';
+import {getFromLookup} from '../lib/utils';
+import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
 const e = exposes.presets;
 
-const lockExtend = (meta, lockStateOptions=null, binds=['closuresDoorLock', 'genPowerCfg']) => {
+const lockExtend = (meta={}, lockStateOptions: Reporting.Override=null, binds=['closuresDoorLock', 'genPowerCfg']): Extend => {
     return {
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response,
             fz.lock_user_status_response],
@@ -31,7 +34,7 @@ const fzLocal = {
         cluster: 'genAlarms',
         type: ['commandAlarm'],
         convert: async (model, msg, publish, options, meta) => {
-            let result = {};
+            let result: KeyValue = {};
             if (msg.data.clusterid == 64512) {
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
@@ -42,7 +45,7 @@ const fzLocal = {
                     25: {action: 'unlock', state: 'UNLOCK', lock_state: 'unlocked'},
                     27: {action: 'auto_lock', state: 'LOCK', lock_state: 'locked'},
                 };
-                if (!lookup[alarmcode]) {
+                if (!getFromLookup(alarmcode, lookup)) {
                     result.action = 'unknown';
                     meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: Unrecognized Operation Event (${alarmcode})`);
                     // We need to read the lock state as the alarm code is unknown
@@ -52,15 +55,15 @@ const fzLocal = {
                         meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: failed to read lock state`);
                     }
                 } else {
-                    result = lookup[alarmcode];
+                    result = getFromLookup(alarmcode, lookup);
                 }
             }
             return result;
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['YRD446 BLE TSDB'],
         model: 'YRD426NRSC',
@@ -94,8 +97,7 @@ module.exports = [
         model: 'YMF40/YDM4109+/YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290 for YDM4109+
-        extend: lockExtend({battery: {dontDividePercentage: true}}, {timeout: 20000}),
+        extend: lockExtend({battery: {dontDividePercentage: true}}),
     },
     {
         zigbeeModel: ['YRD210 PB DB'],
@@ -225,3 +227,5 @@ module.exports = [
         exposes: [e.lock(), e.lock_action()],
     },
 ];
+
+module.exports = definitions;

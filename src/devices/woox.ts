@@ -1,13 +1,14 @@
-const exposes = require('../lib/exposes');
-const legacy = require('../lib/legacy');
-const reporting = require('../lib/reporting');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const tuya = require('../lib/tuya');
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
+import * as reporting from '../lib/reporting';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as tuya from '../lib/tuya';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3210_eymunffl'}],
         model: 'R7060',
@@ -55,15 +56,14 @@ module.exports = [
         fromZigbee: [legacy.fromZigbee.R7049_status, fz.ignore_tuya_set_time, fz.ignore_time_read],
         toZigbee: [legacy.toZigbee.R7049_silenceSiren, legacy.toZigbee.R7049_testAlarm, legacy.toZigbee.R7049_alarm],
         exposes: [e.battery_low(),
-            exposes.binary('smoke', ea.STATE, true, false).withDescription('Smoke alarm status'),
-            exposes.binary('test_alarm', ea.STATE_SET, true, false).withDescription('Test alarm'),
-            exposes.enum('test_alarm_result', ea.STATE, ['checking', 'check_success', 'check_failure', 'others'])
+            e.binary('smoke', ea.STATE, true, false).withDescription('Smoke alarm status'),
+            e.binary('test_alarm', ea.STATE_SET, true, false).withDescription('Test alarm'),
+            e.enum('test_alarm_result', ea.STATE, ['checking', 'check_success', 'check_failure', 'others'])
                 .withDescription('Test alarm result'),
-            exposes.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'),
-            exposes.binary('alarm', ea.STATE_SET, true, false).withDescription('Alarm enable'),
-            exposes.binary('fault_alarm', ea.STATE, true, false).withDescription('Fault alarm status'),
-            exposes.binary('silence_siren', ea.STATE_SET, true, false).withDescription('Silence siren')],
-        onEvent: tuya.onEventsetTime,
+            e.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'),
+            e.binary('alarm', ea.STATE_SET, true, false).withDescription('Alarm enable'),
+            e.binary('fault_alarm', ea.STATE, true, false).withDescription('Fault alarm status'),
+            e.binary('silence_siren', ea.STATE_SET, true, false).withDescription('Silence siren')],
     },
     {
         fingerprint: [{modelID: 'TS0219', manufacturerName: '_TYZB01_ynsiasng'}, {modelID: 'TS0219', manufacturerName: '_TYZB01_bwsijaty'},
@@ -73,10 +73,10 @@ module.exports = [
         description: 'Smart siren',
         fromZigbee: [fz.battery, fz.ts0216_siren, fz.ias_alarm_only_alarm_1, fz.power_source],
         toZigbee: [tz.warning, tz.ts0216_volume, tz.ts0216_duration],
-        exposes: [e.battery(), e.battery_voltage(), e.warning(), exposes.binary('alarm', ea.STATE, true, false),
-            exposes.binary('ac_connected', ea.STATE, true, false).withDescription('Is the device plugged in'),
-            exposes.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren'),
-            exposes.numeric('duration', ea.ALL).withValueMin(0).withValueMax(3600).withDescription('Duration of siren')],
+        exposes: [e.battery(), e.battery_voltage(), e.warning(), e.binary('alarm', ea.STATE, true, false),
+            e.binary('ac_connected', ea.STATE, true, false).withDescription('Is the device plugged in'),
+            e.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren'),
+            e.numeric('duration', ea.ALL).withValueMin(0).withValueMax(3600).withDescription('Duration of siren')],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -87,3 +87,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

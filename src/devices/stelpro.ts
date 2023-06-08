@@ -1,9 +1,11 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import {Definition, Fz} from '../lib/types';
 const e = exposes.presets;
-const constants = require('../lib/constants');
+import * as constants from '../lib/constants';
 
 const fzLocal = {
     power: {
@@ -14,7 +16,7 @@ const fzLocal = {
                 return {power: msg.data['16392']};
             }
         },
-    },
+    } as Fz.Converter,
     energy: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -23,10 +25,10 @@ const fzLocal = {
                 return {energy: parseFloat(msg.data['16393']) / 1000};
             }
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['HT402'],
         model: 'HT402',
@@ -37,7 +39,7 @@ module.exports = [
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
             tz.thermostat_running_state, tz.stelpro_thermostat_outdoor_temperature],
         exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.energy(),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(25);
@@ -58,12 +60,12 @@ module.exports = [
         model: 'ST218',
         vendor: 'Stelpro',
         description: 'Ki convector, line-voltage thermostat',
-        fromZigbee: [fz.legacy.stelpro_thermostat, fz.legacy.hvac_user_interface],
+        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature],
         exposes: [e.local_temperature(), e.keypad_lockout(),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(25);
@@ -90,12 +92,12 @@ module.exports = [
         model: 'STZB402',
         vendor: 'Stelpro',
         description: 'Ki, line-voltage thermostat',
-        fromZigbee: [fz.legacy.stelpro_thermostat, fz.legacy.hvac_user_interface, fz.humidity],
+        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
             tz.thermostat_running_state, tz.stelpro_thermostat_outdoor_temperature],
         exposes: [e.local_temperature(), e.keypad_lockout(), e.humidity(),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(25);
@@ -122,12 +124,12 @@ module.exports = [
         model: 'SMT402',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
-        fromZigbee: [fz.legacy.stelpro_thermostat, fz.legacy.hvac_user_interface, fz.humidity],
+        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature],
         exposes: [e.local_temperature(), e.keypad_lockout(), e.humidity(),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(25);
@@ -159,7 +161,7 @@ module.exports = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state],
         exposes: [e.local_temperature(), e.keypad_lockout(),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(25);
@@ -185,12 +187,12 @@ module.exports = [
         model: 'SMT402AD',
         vendor: 'Stelpro',
         description: 'Maestro, line-voltage thermostat',
-        fromZigbee: [fz.legacy.stelpro_thermostat, fz.legacy.hvac_user_interface, fz.humidity],
+        fromZigbee: [legacy.fz.stelpro_thermostat, legacy.fz.hvac_user_interface, fz.humidity],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.stelpro_thermostat_outdoor_temperature],
         exposes: [e.local_temperature(), e.keypad_lockout(), e.humidity(),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(25);
@@ -214,3 +216,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

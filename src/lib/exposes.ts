@@ -158,7 +158,7 @@ export class Numeric extends Base {
     value_max?: number;
     value_min?: number;
     value_step?: number;
-    presets?:{name: string, value: number, description: string}[];
+    presets?:{name: string, value: number | string, description: string}[];
 
     constructor(name: string, access: number) {
         super();
@@ -188,7 +188,7 @@ export class Numeric extends Base {
         return this;
     }
 
-    withPreset(name: string, value: number, description: string) {
+    withPreset(name: string, value: number | string, description: string) {
         if (!this.presets) this.presets = [];
         this.presets.push({name, value, description});
         return this;

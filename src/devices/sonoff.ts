@@ -1,27 +1,28 @@
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const constants = require('../lib/constants');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as constants from '../lib/constants';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import {Definition, Fz, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
-const ota = require('../lib/ota');
+import * as ota from '../lib/ota';
 
 const fzLocal = {
     router_config: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty('currentLevel')) {
                 result.light_indicator_level = msg.data['currentLevel'];
             }
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['BASICZBR3'],
         model: 'BASICZBR3',
@@ -233,7 +234,7 @@ module.exports = [
         description: 'Sonoff Zigbee 3.0 USB Dongle Plus (EFR32MG21) with router firmware',
         fromZigbee: [fz.linkquality_from_basic, fzLocal.router_config],
         toZigbee: [],
-        exposes: [exposes.numeric('light_indicator_level').withDescription('Brightness of the indicator light').withAccess(ea.STATE)],
+        exposes: [e.numeric('light_indicator_level', ea.STATE).withDescription('Brightness of the indicator light').withAccess(ea.STATE)],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -314,3 +315,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

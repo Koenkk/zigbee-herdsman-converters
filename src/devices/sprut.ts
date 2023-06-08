@@ -1,14 +1,14 @@
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const ota = require('../lib/ota');
-const constants = require('../lib/constants');
-const e = exposes;
-const ep = exposes.presets;
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import * as ota from '../lib/ota';
+import * as constants from '../lib/constants';
+import {Definition, Fz, KeyValueAny, Tz} from '../lib/types';
+const e = exposes.presets;
 const eo = exposes.options;
 const ea = exposes.access;
-const {calibrateAndPrecisionRoundOptions, getOptions} = require('../lib/utils');
+import {assertNumber, assertString, calibrateAndPrecisionRoundOptions, getFromLookup, getOptions} from '../lib/utils';
 
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -27,7 +27,7 @@ const fzLocal = {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
             return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
-    },
+    } as Fz.Converter,
     occupancy_level: {
         cluster: 'msOccupancySensing',
         type: ['readResponse', 'attributeReport'],
@@ -36,7 +36,7 @@ const fzLocal = {
                 return {occupancy_level: msg.data['sprutOccupancyLevel']};
             }
         },
-    },
+    } as Fz.Converter,
     voc: {
         cluster: 'sprutVoc',
         type: ['readResponse', 'attributeReport'],
@@ -45,7 +45,7 @@ const fzLocal = {
                 return {voc: msg.data['voc']};
             }
         },
-    },
+    } as Fz.Converter,
     noise: {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
@@ -54,7 +54,7 @@ const fzLocal = {
                 return {noise: msg.data['noise'].toFixed(2)};
             }
         },
-    },
+    } as Fz.Converter,
     noise_detected: {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
@@ -63,35 +63,35 @@ const fzLocal = {
                 return {noise_detected: msg.data['noiseDetected'] === 1};
             }
         },
-    },
+    } as Fz.Converter,
     occupancy_timeout: {
         cluster: 'msOccupancySensing',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             return {occupancy_timeout: msg.data['pirOToUDelay']};
         },
-    },
+    } as Fz.Converter,
     noise_timeout: {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             return {noise_timeout: msg.data['noiseAfterDetectDelay']};
         },
-    },
+    } as Fz.Converter,
     occupancy_sensitivity: {
         cluster: 'msOccupancySensing',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             return {occupancy_sensitivity: msg.data['sprutOccupancySensitivity']};
         },
-    },
+    } as Fz.Converter,
     noise_detect_level: {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             return {noise_detect_level: msg.data['noiseDetectLevel']};
         },
-    },
+    } as Fz.Converter,
     co2_config: {
         key: ['co2_autocalibration', 'co2_manual_calibration'],
         cluster: 'msCO2',
@@ -104,7 +104,7 @@ const fzLocal = {
                 return {co2_manual_calibration: switchActionValues[msg.data['sprutCO2Calibration']]};
             }
         },
-    },
+    } as Fz.Converter,
     th_heater: {
         key: ['th_heater'],
         cluster: 'msRelativeHumidity',
@@ -114,16 +114,17 @@ const fzLocal = {
                 return {th_heater: switchActionValues[msg.data['sprutHeater']]};
             }
         },
-    },
+    } as Fz.Converter,
 };
 
 const tzLocal = {
     sprut_ir_remote: {
         key: ['play_store', 'learn_start', 'learn_stop', 'clear_store', 'play_ram', 'learn_ram_start', 'learn_ram_stop'],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: async (entity, key, value: KeyValueAny, meta) => {
             const options = {
                 frameType: 0, manufacturerCode: sprutCode, disableDefaultResponse: true,
                 disableResponse: true, reservedBits: 0, direction: 0, writeUndiv: false,
+                // @ts-expect-error
                 transactionSequenceNumber: null,
             };
 
@@ -158,10 +159,11 @@ const tzLocal = {
                 break;
             }
         },
-    },
+    } as Tz.Converter,
     occupancy_timeout: {
         key: ['occupancy_timeout'],
         convertSet: async (entity, key, value, meta) => {
+            assertNumber(value, 'occupancy_timeout');
             value *= 1;
             await entity.write('msOccupancySensing', {pirOToUDelay: value}, getOptions(meta.mapped, entity));
             return {state: {[key]: value}};
@@ -169,10 +171,11 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
         },
-    },
+    } as Tz.Converter,
     noise_timeout: {
         key: ['noise_timeout'],
         convertSet: async (entity, key, value, meta) => {
+            assertNumber(value, 'noise_timeout');
             value *= 1;
             await entity.write('sprutNoise', {noiseAfterDetectDelay: value}, getOptions(meta.mapped, entity));
             return {state: {[key]: value}};
@@ -180,10 +183,11 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('sprutNoise', ['noiseAfterDetectDelay']);
         },
-    },
+    } as Tz.Converter,
     occupancy_sensitivity: {
         key: ['occupancy_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
+            assertNumber(value, 'occupancy_sensitivity');
             value *= 1;
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write('msOccupancySensing', {'sprutOccupancySensitivity': value}, options);
@@ -192,10 +196,11 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['sprutOccupancySensitivity'], manufacturerOptions);
         },
-    },
+    } as Tz.Converter,
     noise_detect_level: {
         key: ['noise_detect_level'],
         convertSet: async (entity, key, value, meta) => {
+            assertNumber(value, 'noise_detect_level');
             value *= 1;
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write('sprutNoise', {'noiseDetectLevel': value}, options);
@@ -204,36 +209,39 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('sprutNoise', ['noiseDetectLevel'], manufacturerOptions);
         },
-    },
+    } as Tz.Converter,
     temperature_offset: {
         key: ['temperature_offset'],
         convertSet: async (entity, key, value, meta) => {
+            assertNumber(value, 'temperature_offset');
             value *= 1;
-            const newValue = parseFloat(value) * 100.0;
+            const newValue = value * 100.0;
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write('msTemperatureMeasurement', {'sprutTemperatureOffset': newValue}, options);
             return {state: {[key]: value}};
         },
-    },
+    } as Tz.Converter,
     co2_config: {
         key: ['co2_autocalibration', 'co2_manual_calibration'],
         convertSet: async (entity, key, value, meta) => {
             let newValue = value;
+            assertString(value, 'co2_autocalibration/co2_manual_calibration');
             newValue = switchActionValues.indexOf(value);
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
-            await entity.write('msCO2', {[co2Lookup[key]]: newValue}, options);
+            await entity.write('msCO2', {[getFromLookup(key, co2Lookup)]: newValue}, options);
 
 
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('msCO2', [co2Lookup[key]], manufacturerOptions);
+            await entity.read('msCO2', [getFromLookup(key, co2Lookup)], manufacturerOptions);
         },
-    },
+    } as Tz.Converter,
     th_heater: {
         key: ['th_heater'],
         convertSet: async (entity, key, value, meta) => {
             let newValue = value;
+            assertString(value, 'th_heater');
             newValue = switchActionValues.indexOf(value);
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write('msRelativeHumidity', {'sprutHeater': newValue}, options);
@@ -243,10 +251,10 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('msRelativeHumidity', ['sprutHeater'], manufacturerOptions);
         },
-    },
+    } as Tz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['WBMSW3'],
         model: 'WB-MSW-ZIGBEE v.3',
@@ -257,9 +265,9 @@ module.exports = [
             fzLocal.th_heater, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level],
         toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout, tzLocal.co2_config,
             tzLocal.th_heater, tzLocal.temperature_offset, tzLocal.occupancy_sensitivity, tzLocal.noise_detect_level],
-        exposes: [ep.temperature(), ep.illuminance(), ep.illuminance_lux(), ep.humidity(), ep.occupancy(), ep.occupancy_level(), ep.co2(),
-            ep.voc(), ep.noise(), ep.noise_detected(ea.STATE_GET), ep.switch().withEndpoint('l1'), ep.switch().withEndpoint('l2'),
-            ep.switch().withEndpoint('l3'),
+        exposes: [e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity(), e.occupancy(), e.occupancy_level(), e.co2(),
+            e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'),
             e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s')
                 .withDescription('Time in seconds after which noise is cleared after detecting it (default: 60)'),
             e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s')
@@ -315,3 +323,5 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
 ];
+
+module.exports = definitions;

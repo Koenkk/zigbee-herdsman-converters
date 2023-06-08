@@ -20,7 +20,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
             await reporting.instantaneousDemand(endpoint, {min: 5, change: 10});
-            // @ts-expect-error
             await reporting.currentSummDelivered(endpoint, {min: 5, change: [0, 10]});
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
@@ -40,7 +39,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
             await reporting.instantaneousDemand(endpoint, {min: 5, change: 10});
-            // @ts-expect-error
             await reporting.currentSummDelivered(endpoint, {min: 5, change: [0, 10]});
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },
@@ -58,7 +56,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
             await reporting.instantaneousDemand(endpoint, {min: 5, change: 10});
-            // @ts-expect-error
             await reporting.currentSummDelivered(endpoint, {min: 5, change: [0, 10]});
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
         },

@@ -741,7 +741,7 @@ const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, model: 
     return payload;
 };
 
-const VOCKQJK11LMDisplayUnit = {
+export const VOCKQJK11LMDisplayUnit = {
     'mgm3_celsius': 0x00, // mg/m³, °C (default)
     'ppb_celsius': 0x01, // ppb, °C
     'mgm3_fahrenheit': 0x10, // mg/m³, °F
@@ -823,7 +823,7 @@ const fp1Mappers = {
         },
     },
 };
-const fp1 = {
+export const fp1 = {
     constants: fp1Constants,
     mappers: fp1Mappers,
     /**
@@ -1077,7 +1077,7 @@ function parseTime(timeString: string) {
 const stringifiedScheduleFragmentSeparator = '|';
 const stringifiedScheduleValueSeparator = ',';
 
-const trv = {
+export const trv = {
     decodeFirmwareVersionString(value: number) {
         // Add prefix to follow Aqara's versioning schema: https://www.aqara.com/en/version/radiator-thermostat-e1
         const firmwareVersionPrefix = '0.0.0_';
@@ -1310,10 +1310,12 @@ const trv = {
     },
 };
 
+export const manufacturerCode = 0x115f;
+
 exports.buffer2DataObject = buffer2DataObject;
 exports.numericAttributes2Payload = numericAttributes2Payload;
 exports.numericAttributes2Options = numericAttributes2Options;
 exports.VOCKQJK11LMDisplayUnit = VOCKQJK11LMDisplayUnit;
 exports.fp1 = fp1;
 exports.trv = trv;
-exports.manufacturerCode = 0x115f;
+exports.manufacturerCode = manufacturerCode;

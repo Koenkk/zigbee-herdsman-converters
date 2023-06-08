@@ -1,11 +1,13 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const globalStore = require('../lib/store');
-const constants = require('../lib/constants');
-const extend = require('../lib/extend');
-const utils = require('../lib/utils');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import * as constants from '../lib/constants';
+import extend from '../lib/extend';
+import * as utils from '../lib/utils';
+import {Definition, Fz, Zh} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -35,13 +37,13 @@ const fzLocal = {
             if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`Sunricher: missing command '0x${commandID.toString(16)}'`);
             } else {
-                return {action: lookup[commandID]};
+                return {action: utils.getFromLookup(commandID, lookup)};
             }
         },
-    },
+    } as Fz.Converter,
 };
 
-async function syncTime(endpoint) {
+async function syncTime(endpoint: Zh.Endpoint) {
     try {
         const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date()).getTimezoneOffset() * -1) * 60);
         const values = {time: time};
@@ -49,7 +51,7 @@ async function syncTime(endpoint) {
     } catch (error) {/* Do nothing*/}
 }
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['SR-ZG9023A-EU'],
         model: 'SR-ZG9023A-EU',
@@ -154,9 +156,9 @@ module.exports = [
         model: 'SR-ZG9001K12-DIM-Z4',
         vendor: 'Sunricher',
         description: '4 zone remote and dimmer',
-        fromZigbee: [fz.battery, fz.command_move, fz.legacy.ZGRC013_brightness_onoff,
-            fz.legacy.ZGRC013_brightness, fz.command_stop, fz.legacy.ZGRC013_brightness_stop, fz.command_on,
-            fz.legacy.ZGRC013_cmdOn, fz.command_off, fz.legacy.ZGRC013_cmdOff, fz.command_recall],
+        fromZigbee: [fz.battery, fz.command_move, legacy.fz.ZGRC013_brightness_onoff,
+            legacy.fz.ZGRC013_brightness, fz.command_stop, legacy.fz.ZGRC013_brightness_stop, fz.command_on,
+            legacy.fz.ZGRC013_cmdOn, fz.command_off, legacy.fz.ZGRC013_cmdOff, fz.command_recall],
         exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'on', 'off', 'recall_*'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'RGB Genie', model: 'ZGRC-KEY-013'}],
@@ -398,52 +400,52 @@ module.exports = [
             tz.thermostat_system_mode, tz.thermostat_control_sequence_of_operation, tz.thermostat_running_state,
             tz.namron_thermostat, tz.namron_thermostat_child_lock],
         exposes: [
-            exposes.numeric('outdoor_temperature', ea.STATE_GET).withUnit('°C')
+            e.numeric('outdoor_temperature', ea.STATE_GET).withUnit('°C')
                 .withDescription('Current temperature measured from the floor sensor'),
-            exposes.climate()
+            e.climate()
                 .withSetpoint('occupied_heating_setpoint', 0, 40, 0.1)
                 .withSetpoint('unoccupied_heating_setpoint', 0, 40, 0.1)
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
                 .withSystemMode(['off', 'auto', 'heat'])
                 .withRunningState(['idle', 'heat']),
-            exposes.binary('away_mode', ea.ALL, 'ON', 'OFF')
+            e.binary('away_mode', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enable/disable away mode'),
-            exposes.binary('child_lock', ea.ALL, 'UNLOCK', 'LOCK')
+            e.binary('child_lock', ea.ALL, 'UNLOCK', 'LOCK')
                 .withDescription('Enables/disables physical input on the device'),
             e.power(), e.current(), e.voltage(), e.energy(),
-            exposes.enum('lcd_brightness', ea.ALL, ['low', 'mid', 'high'])
+            e.enum('lcd_brightness', ea.ALL, ['low', 'mid', 'high'])
                 .withDescription('OLED brightness when operating the buttons.  Default: Medium.'),
-            exposes.enum('button_vibration_level', ea.ALL, ['off', 'low', 'high'])
+            e.enum('button_vibration_level', ea.ALL, ['off', 'low', 'high'])
                 .withDescription('Key beep volume and vibration level.  Default: Low.'),
-            exposes.enum('floor_sensor_type', ea.ALL, ['10k', '15k', '50k', '100k', '12k'])
+            e.enum('floor_sensor_type', ea.ALL, ['10k', '15k', '50k', '100k', '12k'])
                 .withDescription('Type of the external floor sensor.  Default: NTC 10K/25.'),
-            exposes.enum('sensor', ea.ALL, ['air', 'floor', 'both'])
+            e.enum('sensor', ea.ALL, ['air', 'floor', 'both'])
                 .withDescription('The sensor used for heat control.  Default: Room Sensor.'),
-            exposes.enum('powerup_status', ea.ALL, ['default', 'last_status'])
+            e.enum('powerup_status', ea.ALL, ['default', 'last_status'])
                 .withDescription('The mode after a power reset.  Default: Previous Mode.'),
-            exposes.numeric('floor_sensor_calibration', ea.ALL)
+            e.numeric('floor_sensor_calibration', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(-3).withValueMax(3).withValueStep(0.1)
                 .withDescription('The tempearatue calibration for the exernal floor sensor, between -3 and 3 in 0.1°C.  Default: 0.'),
-            exposes.numeric('dry_time', ea.ALL)
+            e.numeric('dry_time', ea.ALL)
                 .withUnit('min')
                 .withValueMin(5).withValueMax(100)
                 .withDescription('The duration of Dry Mode, between 5 and 100 minutes.  Default: 5.'),
-            exposes.enum('mode_after_dry', ea.ALL, ['off', 'manual', 'auto', 'away'])
+            e.enum('mode_after_dry', ea.ALL, ['off', 'manual', 'auto', 'away'])
                 .withDescription('The mode after Dry Mode.  Default: Auto.'),
-            exposes.enum('temperature_display', ea.ALL, ['room', 'floor'])
+            e.enum('temperature_display', ea.ALL, ['room', 'floor'])
                 .withDescription('The temperature on the display.  Default: Room Temperature.'),
-            exposes.numeric('window_open_check', ea.ALL)
+            e.numeric('window_open_check', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(0).withValueMax(8).withValueStep(0.5)
                 .withDescription('The threshold to detect window open, between 0.0 and 8.0 in 0.5 °C.  Default: 0 (disabled).'),
-            exposes.numeric('hysterersis', ea.ALL)
+            e.numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(0.5).withValueMax(2).withValueStep(0.1)
                 .withDescription('Hysteresis setting, between 0.5 and 2 in 0.1 °C.  Default: 0.5.'),
-            exposes.enum('display_auto_off_enabled', ea.ALL, ['disabled', 'enabled']),
-            exposes.numeric('alarm_airtemp_overvalue', ea.ALL)
+            e.enum('display_auto_off_enabled', ea.ALL, ['disabled', 'enabled']),
+            e.numeric('alarm_airtemp_overvalue', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(20).withValueMax(60)
                 .withDescription('Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45.'),
@@ -623,3 +625,5 @@ module.exports = [
         exposes: [e.contact(), e.battery()],
     },
 ];
+
+module.exports = definitions;

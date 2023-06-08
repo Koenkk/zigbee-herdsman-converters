@@ -1,20 +1,22 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const ota = require('../lib/ota');
-const constants = require('../lib/constants');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as ota from '../lib/ota';
+import * as constants from '../lib/constants';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
-const globalStore = require('../lib/store');
-const xiaomi = require('../lib/xiaomi');
-const utils = require('../lib/utils');
+import * as globalStore from '../lib/store';
+import * as xiaomi from '../lib/xiaomi';
+import * as utils from '../lib/utils';
+import {Definition, OnEvent, Fz, KeyValue, Tz, Extend} from '../lib/types';
 const {printNumbersAsHexSequence} = utils;
 const {fp1, manufacturerCode, trv} = xiaomi;
 
 const xiaomiExtend = {
-    light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
+    light_onoff_brightness_colortemp: (options:Extend.options_light_onoff_brightness_colortemp={disableColorTempStartup: true}): Extend => ({
         ...extend.light_onoff_brightness_colortemp(options),
         fromZigbee: extend.light_onoff_brightness_colortemp(options).fromZigbee.concat([
             fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
@@ -23,7 +25,7 @@ const xiaomiExtend = {
     }),
 };
 
-const preventReset = async (type, data, device) => {
+const preventReset: OnEvent = async (type, data, device) => {
     if (
         // options.allow_reset ||
         type !== 'message' ||
@@ -65,7 +67,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {co2: Math.floor(msg.data.measuredValue)};
         },
-    },
+    } as Fz.Converter,
     aqara_s1_pm25: {
         cluster: 'pm25Measurement',
         type: ['attributeReport', 'readResponse'],
@@ -74,51 +76,54 @@ const fzLocal = {
                 return {pm25: msg.data['measuredValue'] / 1000};
             }
         },
-    },
+    } as Fz.Converter,
     aqara_trv: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (parseInt(key)) {
                 case 0x0271:
-                    result['system_mode'] = {1: 'heat', 0: 'off'}[value];
+                    result['system_mode'] = utils.getFromLookup(value, {1: 'heat', 0: 'off'});
                     break;
                 case 0x0272:
+                    // @ts-expect-error
                     Object.assign(result, trv.decodePreset(value));
                     break;
                 case 0x0273:
-                    result['window_detection'] = {1: 'ON', 0: 'OFF'}[value];
+                    result['window_detection'] = utils.getFromLookup(value, {1: 'ON', 0: 'OFF'});
                     break;
                 case 0x0274:
-                    result['valve_detection'] = {1: 'ON', 0: 'OFF'}[value];
+                    result['valve_detection'] = utils.getFromLookup(value, {1: 'ON', 0: 'OFF'});
                     break;
                 case 0x0277:
-                    result['child_lock'] = {1: 'LOCK', 0: 'UNLOCK'}[value];
+                    result['child_lock'] = utils.getFromLookup(value, {1: 'LOCK', 0: 'UNLOCK'});
                     break;
                 case 0x0279:
+                    utils.assertNumber(value);
                     result['away_preset_temperature'] = (value / 100).toFixed(1);
                     break;
                 case 0x027b:
-                    result['calibrated'] = {1: true, 0: false}[value];
+                    result['calibrated'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x027e:
-                    result['sensor'] = {1: 'external', 0: 'internal'}[value];
+                    result['sensor'] = utils.getFromLookup(value, {1: 'external', 0: 'internal'});
                     break;
                 case 0x040a:
                     result['battery'] = value;
                     break;
                 case 0x027a:
-                    result['window_open'] = {1: true, 0: false}[value];
+                    result['window_open'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x0275:
-                    result['valve_alarm'] = {1: true, 0: false}[value];
+                    result['valve_alarm'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 247: {
+                    // @ts-expect-error
                     const heartbeat = trv.decodeHeartbeat(meta, model, value);
 
-                    meta.logger.debug(`${model.zigbeeModel}: Processed heartbeat message into payload ${JSON.stringify(heartbeat)}`);
+                    meta.logger.debug(`${model.model}: Processed heartbeat message into payload ${JSON.stringify(heartbeat)}`);
 
                     if (heartbeat.firmware_version) {
                         // Overwrite the "placeholder" version `0.0.0_0025` advertised by `genBasic`
@@ -126,6 +131,7 @@ const fzLocal = {
                         // This is not reflected in the frontend unless the device is reconfigured
                         // or the whole service restarted.
                         // See https://github.com/Koenkk/zigbee-herdsman-converters/pull/5363#discussion_r1081477047
+                        // @ts-expect-error
                         meta.device.softwareBuildID = heartbeat.firmware_version;
                         delete heartbeat.firmware_version;
                     }
@@ -134,9 +140,10 @@ const fzLocal = {
                     break;
                 }
                 case 0x027d:
-                    result['schedule'] = {1: 'ON', 0: 'OFF'}[value];
+                    result['schedule'] = utils.getFromLookup(value, {1: 'ON', 0: 'OFF'});
                     break;
                 case 0x0276: {
+                    // @ts-expect-error
                     const schedule = trv.decodeSchedule(value);
                     result['schedule_settings'] = trv.stringifySchedule(schedule);
                     break;
@@ -158,17 +165,20 @@ const fzLocal = {
             });
             return result;
         },
-    },
+    } as Fz.Converter,
     aqara_feeder: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (parseInt(key)) {
                 case 0xfff1: {
+                    // @ts-expect-error
                     const attr = value.slice(3, 7);
+                    // @ts-expect-error
                     const len = value.slice(7, 8).readUInt8();
+                    // @ts-expect-error
                     const val = value.slice(8, 8 + len);
                     switch (attr.readInt32BE()) {
                     case 0x04150055: // feeding
@@ -187,15 +197,15 @@ const fzLocal = {
                         result['weight_per_day'] = val.readUInt32BE();
                         break;
                     case 0x0d0b0055: // error ?
-                        result['error'] = {1: true, 0: false}[val.readUInt8()];
+                        result['error'] = utils.getFromLookup(val.readUInt8(), {1: true, 0: false});
                         break;
                     case 0x080008c8: { // schedule string
                         const schlist = val.toString().split(',');
-                        const schedule = [];
-                        schlist.forEach((str) => { // 7f13000100
+                        const schedule: unknown[] = [];
+                        schlist.forEach((str: string) => { // 7f13000100
                             const feedtime = Buffer.from(str, 'hex');
                             schedule.push({
-                                'days': daysLookup[feedtime[0]],
+                                'days': utils.getFromLookup(feedtime[0], daysLookup),
                                 'hour': feedtime[1],
                                 'minute': feedtime[2],
                                 'size': feedtime[3],
@@ -205,13 +215,13 @@ const fzLocal = {
                         break;
                     }
                     case 0x04170055: // indicator
-                        result['led_indicator'] = {1: 'ON', 0: 'OFF'}[val.readUInt8()];
+                        result['led_indicator'] = utils.getFromLookup(val.readUInt8(), {1: 'ON', 0: 'OFF'});
                         break;
                     case 0x04160055: // child lock
-                        result['child_lock'] = {1: 'LOCK', 0: 'UNLOCK'}[val.readUInt8()];
+                        result['child_lock'] = utils.getFromLookup(val.readUInt8(), {1: 'LOCK', 0: 'UNLOCK'});
                         break;
                     case 0x04180055: // mode
-                        result['mode'] = {1: 'schedule', 0: 'manual'}[val.readUInt8()];
+                        result['mode'] = utils.getFromLookup(val.readUInt8(), {1: 'schedule', 0: 'manual'});
                         break;
                     case 0x0e5c0055: // serving size
                         result['serving_size'] = val.readUInt8();
@@ -239,7 +249,7 @@ const fzLocal = {
             });
             return result;
         },
-    },
+    } as Fz.Converter,
     aqara_fp1_region_events: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -247,7 +257,7 @@ const fzLocal = {
             /**
              * @type {{ action?: string; }}
              */
-            const payload = {};
+            const payload: KeyValue = {};
             const log = utils.createLogger(meta.logger, 'xiaomi', 'aqara_fp1');
 
             Object.entries(msg.data).forEach(([key, value]) => {
@@ -268,7 +278,9 @@ const fzLocal = {
                      * @type {[ regionId: number | string, eventTypeCode: number | string ]}
                      */
                     const [regionIdRaw, eventTypeCodeRaw] = value;
+                    // @ts-expect-error
                     const regionId = parseInt(regionIdRaw, 10);
+                    // @ts-expect-error
                     const eventTypeCode = parseInt(eventTypeCodeRaw, 10);
 
                     if (Number.isNaN(regionId)) {
@@ -290,7 +302,7 @@ const fzLocal = {
 
             return payload;
         },
-    },
+    } as Fz.Converter,
     CTPR01_action_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -317,11 +329,11 @@ const fzLocal = {
                     action_from_side: Math.floor((value - 64) / 8) + 1,
                 };
             } else {
-                meta.logger.debug(`${model.zigbeeModel}: unknown action with value ${value}`);
+                meta.logger.debug(`${model.model}: unknown action with value ${value}`);
             }
             return payload;
         },
-    },
+    } as Fz.Converter,
     CTPR01_action_analog: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
@@ -333,27 +345,28 @@ const fzLocal = {
                 action_angle: Math.floor(value * 100) / 100,
             };
         },
-    },
+    } as Fz.Converter,
 };
 
 const tzLocal = {
     aqara_detection_distance: {
         key: ['detection_distance'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, 'detection_distance');
             value = value.toLowerCase();
             const lookup = {'10mm': 1, '20mm': 2, '30mm': 3};
-            await entity.write('aqaraOpple', {0x010C: {value: lookup[value], type: 0x20}}, {manufacturerCode});
+            await entity.write('aqaraOpple', {0x010C: {value: utils.getFromLookup(value, lookup), type: 0x20}}, {manufacturerCode});
             return {state: {detection_distance: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x010C], {manufacturerCode});
         },
-    },
+    } as Tz.Converter,
     aqara_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
             'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_settings'],
         convertSet: async (entity, key, value, meta) => {
-            const aqaraHeader = (counter, params, action) => {
+            const aqaraHeader = (counter: number, params: number[], action: number) => {
                 const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
                 const integrity = 512 - header.reduce((sum, elem) => sum + elem, 0);
                 return [...header, integrity, action, 0x41, params.length];
@@ -362,29 +375,31 @@ const tzLocal = {
 
             switch (key) {
             case 'system_mode':
-                await entity.write('aqaraOpple', {0x0271: {value: {'off': 0, 'heat': 1}[value], type: 0x20}},
+                await entity.write('aqaraOpple', {0x0271: {value: utils.getFromLookup(value, {'off': 0, 'heat': 1}), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'preset':
-                await entity.write('aqaraOpple', {0x0272: {value: {'manual': 0, 'auto': 1, 'away': 2}[value], type: 0x20}},
+                await entity.write('aqaraOpple', {0x0272: {value: utils.getFromLookup(value, {'manual': 0, 'auto': 1, 'away': 2}), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'window_detection':
-                await entity.write('aqaraOpple', {0x0273: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
+                await entity.write('aqaraOpple', {0x0273: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'valve_detection':
-                await entity.write('aqaraOpple', {0x0274: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
+                await entity.write('aqaraOpple', {0x0274: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'child_lock':
-                await entity.write('aqaraOpple', {0x0277: {value: {'UNLOCK': 0, 'LOCK': 1}[value], type: 0x20}},
+                await entity.write('aqaraOpple', {0x0277: {value: utils.getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'away_preset_temperature':
+                utils.assertNumber(value, 'away_preset_temperature');
                 await entity.write('aqaraOpple', {0x0279: {value: Math.round(value * 100), type: 0x23}}, {manufacturerCode: 0x115f});
                 break;
             case 'sensor': {
+                utils.assertEndpoint(entity);
                 const device = Buffer.from(entity.deviceIeeeAddress.substring(2), 'hex');
                 const timestamp = Buffer.alloc(4);
                 timestamp.writeUint32BE(Date.now()/1000);
@@ -445,6 +460,7 @@ const tzLocal = {
             case 'sensor_temp':
                 if (meta.state['sensor'] === 'external') {
                     const temperatureBuf = Buffer.alloc(4);
+                    utils.assertNumber(value);
                     temperatureBuf.writeFloatBE(Math.round(value * 100));
 
                     const params = [...sensor, 0x00, 0x01, 0x00, 0x55, ...temperatureBuf];
@@ -460,10 +476,11 @@ const tzLocal = {
                 await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
                 break;
             case 'schedule':
-                await entity.write('aqaraOpple', {0x027d: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
+                await entity.write('aqaraOpple', {0x027d: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'schedule_settings': {
+                // @ts-expect-error
                 const schedule = trv.parseSchedule(value);
                 trv.validateSchedule(schedule);
                 const buffer = trv.encodeSchedule(schedule);
@@ -480,27 +497,30 @@ const tzLocal = {
                 'schedule': 0x027d, 'schedule_settings': 0x0276};
 
             if (dict.hasOwnProperty(key)) {
-                await entity.read('aqaraOpple', [dict[key]], {manufacturerCode: 0x115F});
+                await entity.read('aqaraOpple', [utils.getFromLookup(key, dict)], {manufacturerCode: 0x115F});
             }
         },
-    },
+    } as Tz.Converter,
     VOCKQJK11LM_display_unit: {
         key: ['display_unit'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('aqaraOpple',
-                {0x0114: {value: xiaomi.VOCKQJK11LMDisplayUnit[value], type: 0x20}}, {manufacturerCode: 0x115F});
+                {0x0114: {value: utils.getFromLookup(value, xiaomi.VOCKQJK11LMDisplayUnit), type: 0x20}}, {manufacturerCode: 0x115F});
             return {state: {display_unit: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
         },
-    },
+    } as Tz.Converter,
     aqara_feeder: {
         key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
         convertSet: async (entity, key, value, meta) => {
-            const sendAttr = async (attrCode, value, length) => {
+            const sendAttr = async (attrCode: number, value: number, length: number) => {
+                // @ts-expect-error
                 entity.sendSeq = ((entity.sendSeq || 0)+1) % 256;
+                // @ts-expect-error
                 const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
+                // @ts-expect-error
                 entity.sendSeq += 1;
                 val.writeInt32BE(attrCode, 3);
                 val.writeUInt8(length, 7);
@@ -516,6 +536,7 @@ const tzLocal = {
                     v.writeUInt32BE(value);
                     break;
                 default:
+                    // @ts-expect-error
                     v = value;
                 }
                 await entity.write('aqaraOpple', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
@@ -526,7 +547,8 @@ const tzLocal = {
                 sendAttr(0x04150055, 1, 1);
                 break;
             case 'schedule': {
-                const schedule = [];
+                const schedule: string[] = [];
+                // @ts-expect-error
                 value.forEach((item) => {
                     const schedItem = Buffer.from([
                         utils.getKey(daysLookup, item.days, 0x7f),
@@ -538,22 +560,25 @@ const tzLocal = {
                     schedule.push(schedItem.toString('hex'));
                 });
                 const val = Buffer.concat([Buffer.from(schedule.join(',')), Buffer.from([0])]);
+                // @ts-expect-error
                 sendAttr(0x080008c8, val, val.length);
                 break;
             }
             case 'led_indicator':
-                sendAttr(0x04170055, {'OFF': 0, 'ON': 1}[value], 1);
+                sendAttr(0x04170055, utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), 1);
                 break;
             case 'child_lock':
-                sendAttr(0x04160055, {'UNLOCK': 0, 'LOCK': 1}[value], 1);
+                sendAttr(0x04160055, utils.getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), 1);
                 break;
             case 'mode':
-                sendAttr(0x04180055, {'manual': 0, 'schedule': 1}[value], 1);
+                sendAttr(0x04180055, utils.getFromLookup(value, {'manual': 0, 'schedule': 1}), 1);
                 break;
             case 'serving_size':
+                // @ts-expect-error
                 sendAttr(0x0e5c0055, value, 4);
                 break;
             case 'portion_weight':
+                // @ts-expect-error
                 sendAttr(0x0e5f0055, value, 4);
                 break;
             default: // Unknown key
@@ -561,7 +586,7 @@ const tzLocal = {
             }
             return {state: {[key]: value}};
         },
-    },
+    } as Tz.Converter,
     aqara_fp1_region_upsert: {
         key: ['region_upsert'],
         convertSet: async (entity, key, value, meta) => {
@@ -570,6 +595,7 @@ const tzLocal = {
 
             if (!commandWrapper.isSuccess) {
                 log('warn',
+                    // @ts-expect-error
                     `encountered an error (${commandWrapper.error.reason}) ` +
                     `while parsing configuration commands (input: ${JSON.stringify(value)})`,
                 );
@@ -577,6 +603,7 @@ const tzLocal = {
                 return;
             }
 
+            // @ts-expect-error
             const command = commandWrapper.payload.command;
 
             log('debug', `trying to create region ${command.region_id}`);
@@ -585,7 +612,7 @@ const tzLocal = {
             const sortedZonesAccumulator = {};
             const sortedZones = command.zones
                 .reduce(
-                    (accumulator, zone) => {
+                    (accumulator: {[s: number]: Set<number>}, zone: {x: number, y: number}) => {
                         if (!accumulator[zone.y]) {
                             accumulator[zone.y] = new Set();
                         }
@@ -623,7 +650,7 @@ const tzLocal = {
 
             await entity.write('aqaraOpple', payload, {manufacturerCode});
         },
-    },
+    } as Tz.Converter,
     aqara_fp1_region_delete: {
         key: ['region_delete'],
         convertSet: async (entity, key, value, meta) => {
@@ -632,12 +659,13 @@ const tzLocal = {
 
             if (!commandWrapper.isSuccess) {
                 log('warn',
+                    // @ts-expect-error
                     `encountered an error (${commandWrapper.error.reason}) ` +
                     `while parsing configuration commands (input: ${JSON.stringify(value)})`,
                 );
                 return;
             }
-
+            // @ts-expect-error
             const command = commandWrapper.payload.command;
 
             log('debug', `trying to delete region ${command.region_id}`);
@@ -668,7 +696,7 @@ const tzLocal = {
 
             await entity.write('aqaraOpple', payload, {manufacturerCode});
         },
-    },
+    } as Tz.Converter,
     CTPR01_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -679,7 +707,7 @@ const tzLocal = {
             const callback = async () => {
                 await entity.write(
                     'aqaraOpple',
-                    {0x0148: {value: lookup[value], type: 0x20}},
+                    {0x0148: {value: utils.getFromLookup(value, lookup), type: 0x20}},
                     {manufacturerCode: 0x115f, disableDefaultResponse: true},
                 );
                 meta.logger.info('operation_mode switch success!');
@@ -687,10 +715,10 @@ const tzLocal = {
             globalStore.putValue(meta.device, 'opModeSwitchTask', {callback, newMode: value});
             meta.logger.info('Now give your cube a forceful throw motion (Careful not to drop it)!');
         },
-    },
+    } as Tz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.flood.acn001'],
         model: 'SJCGQ13LM',
@@ -741,8 +769,8 @@ module.exports = [
         toZigbee: [tzLocal.aqara_detection_distance],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage(),
-            exposes.binary('battery_cover', ea.STATE, 'OPEN', 'CLOSE'),
-            exposes.enum('detection_distance', ea.ALL, ['10mm', '20mm', '30mm'])
+            e.binary('battery_cover', ea.STATE, 'OPEN', 'CLOSE'),
+            e.enum('detection_distance', ea.ALL, ['10mm', '20mm', '30mm'])
                 .withDescription('The sensor will be considered "off" within the set distance. Please press the device button before setting'),
         ],
     },
@@ -764,7 +792,7 @@ module.exports = [
             // Do not control l2 in rgbw mode
             e.light_brightness_colortemp_colorxy([153, 370]).removeFeature('color_temp_startup').withEndpoint('l1'),
             e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('l2'),
-            exposes.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct'])
+            e.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct'])
                 .withDescription('Switch between rgbw mode or dual color temperature mode')],
         ota: ota.zigbeeOTA,
     },
@@ -864,7 +892,7 @@ module.exports = [
             {vendor: 'Xiaomi', model: 'YTC4017CN'}, {vendor: 'Xiaomi', model: 'ZHTZ02LM'}],
         description: 'MiJia wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_WXKG01LM_action, fz.legacy.WXKG01LM_click],
+        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_WXKG01LM_action, legacy.fz.WXKG01LM_click],
         exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release', 'many']), e.battery_voltage(),
             e.power_outage_count(false)],
         toZigbee: [],
@@ -878,7 +906,7 @@ module.exports = [
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release']),
             e.device_temperature(), e.power_outage_count()],
         fromZigbee: [fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, fz.xiaomi_basic,
-            fz.legacy.WXKG11LM_click, fz.legacy.xiaomi_action_click_multistate],
+            legacy.fz.WXKG11LM_click, legacy.fz.xiaomi_action_click_multistate],
         toZigbee: [],
     },
     {
@@ -888,7 +916,7 @@ module.exports = [
         description: 'Aqara wireless switch (with gyroscope)',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release', 'shake']), e.battery_voltage()],
-        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_multistate_action, fz.legacy.WXKG12LM_action_click_multistate],
+        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_multistate_action, legacy.fz.WXKG12LM_action_click_multistate],
         toZigbee: [],
     },
     {
@@ -898,7 +926,7 @@ module.exports = [
         description: 'Aqara single key wireless wall switch (2016 model)',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.action(['single']), e.battery_voltage()],
-        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_basic, fz.legacy.WXKG03LM_click],
+        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_basic, legacy.fz.WXKG03LM_click],
         toZigbee: [],
         onEvent: preventReset,
     },
@@ -910,7 +938,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_basic,
-            fz.legacy.WXKG03LM_click, fz.legacy.xiaomi_action_click_multistate],
+            legacy.fz.WXKG03LM_click, legacy.fz.xiaomi_action_click_multistate],
         toZigbee: [],
         onEvent: preventReset,
     },
@@ -942,7 +970,7 @@ module.exports = [
         description: 'Aqara double key wireless wall switch (2016 model)',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both']), e.battery_voltage(), e.power_outage_count(false)],
-        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_basic, fz.legacy.WXKG02LM_click],
+        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_basic, legacy.fz.WXKG02LM_click],
         toZigbee: [],
         onEvent: preventReset,
     },
@@ -955,7 +983,7 @@ module.exports = [
         exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
             'hold_left', 'hold_right', 'hold_both']), e.battery_voltage()],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_basic,
-            fz.legacy.WXKG02LM_click, fz.legacy.WXKG02LM_click_multistate],
+            legacy.fz.WXKG02LM_click, legacy.fz.WXKG02LM_click_multistate],
         toZigbee: [],
         onEvent: preventReset,
     },
@@ -968,8 +996,8 @@ module.exports = [
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple,
             tz.xiaomi_flip_indicator_light, tz.aqara_switch_mode_switch],
         exposes: [e.switch(), e.action(['single', 'double']), e.flip_indicator_light(),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
-            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
             e.power_outage_count(), e.device_temperature().withAccess(ea.STATE)],
@@ -993,13 +1021,13 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('top'),
             e.switch().withEndpoint('bottom'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for top button')
                 .withEndpoint('top'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for bottom button')
                 .withEndpoint('bottom'),
-            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
                     'Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.',
@@ -1032,7 +1060,7 @@ module.exports = [
         exposes: [e.switch(), e.action(['single', 'double']), e.flip_indicator_light(), e.power_outage_count(),
             e.device_temperature().withAccess(ea.STATE),
             e.power().withAccess(ea.STATE_GET), e.energy(), e.voltage(), e.power_outage_memory(),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1054,10 +1082,10 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('top'),
             e.switch().withEndpoint('bottom'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for top button')
                 .withEndpoint('top'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for bottom button')
                 .withEndpoint('bottom'),
             e.power_outage_count(),
@@ -1093,9 +1121,9 @@ module.exports = [
             return {'left': 1, 'right': 2};
         },
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.device_temperature(),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button').withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button').withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
@@ -1122,9 +1150,9 @@ module.exports = [
             e.action([
                 'single_left', 'single_right', 'single_both',
                 'double_left', 'double_right', 'double_both']),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button').withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button').withEndpoint('right')],
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
@@ -1139,8 +1167,8 @@ module.exports = [
             tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night, tz.aqara_switch_mode_switch],
         exposes: [e.switch(), e.action(['single', 'double']), e.power_outage_memory(), e.flip_indicator_light(),
             e.led_disabled_night(), e.power_outage_count(), e.device_temperature().withAccess(ea.STATE),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
-            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.')],
         onEvent: preventReset,
@@ -1165,13 +1193,13 @@ module.exports = [
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power_outage_memory(),
             e.flip_indicator_light(), e.led_disabled_night(), e.power_outage_count(),
             e.device_temperature().withAccess(ea.STATE),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
-            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both'])],
@@ -1193,20 +1221,16 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night(), e.power_outage_count(),
-            exposes
-                .enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes
-                .enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for center button')
                 .withEndpoint('center'),
-            exposes
-                .enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
-            exposes
-                .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
                     'Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
@@ -1232,7 +1256,7 @@ module.exports = [
             tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
         exposes: [e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE_GET), e.energy(), e.flip_indicator_light(),
             e.power_outage_memory(), e.device_temperature().withAccess(ea.STATE), e.led_disabled_night(), e.power_outage_count(),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -1254,9 +1278,9 @@ module.exports = [
             return {'left': 1, 'right': 2};
         },
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power().withAccess(ea.STATE_GET), e.energy(),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode for left button')
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode for right button')
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
             e.device_temperature().withAccess(ea.STATE), e.power_outage_memory(), e.flip_indicator_light(),
@@ -1273,11 +1297,11 @@ module.exports = [
         model: 'QBKG04LM',
         vendor: 'Xiaomi',
         description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
-        fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG04LM_QBKG11LM_click,
+        fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, legacy.fz.QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic],
         exposes: [
             e.switch(), e.action(['release', 'hold', 'double', 'single', 'hold_release']),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.STATE_SET, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
         ],
         toZigbee: [tz.on_off, {...tz.xiaomi_switch_operation_mode_basic, convertGet: null}],
@@ -1298,12 +1322,12 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara single key wired wall switch',
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_on_off_ignore_endpoint_4_5_6,
-            fz.legacy.QBKG04LM_QBKG11LM_click, fz.xiaomi_basic, fz.xiaomi_operation_mode_basic,
-            fz.legacy.QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power],
+            legacy.fz.QBKG04LM_QBKG11LM_click, fz.xiaomi_basic, fz.xiaomi_operation_mode_basic,
+            legacy.fz.QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power],
         exposes: [
             e.switch(), e.power().withAccess(ea.STATE_GET), e.device_temperature(), e.energy(),
             e.action(['single', 'double', 'release', 'hold']),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
@@ -1322,18 +1346,18 @@ module.exports = [
         model: 'QBKG03LM',
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
-        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.legacy.QBKG03LM_QBKG12LM_click,
-            fz.legacy.QBKG03LM_buttons, fz.xiaomi_operation_mode_basic, fz.xiaomi_basic],
+        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_on_off_ignore_endpoint_4_5_6, legacy.fz.QBKG03LM_QBKG12LM_click,
+            legacy.fz.QBKG03LM_buttons, fz.xiaomi_operation_mode_basic, fz.xiaomi_basic],
         exposes: [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
             e.device_temperature(),
             e.action(['release_left', 'release_right', 'release_both', 'double_left', 'double_right',
                 'single_left', 'single_right', 'hold_release_left', 'hold_release_left']),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            e.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            e.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for right button')
                 .withEndpoint('right'),
         ],
@@ -1356,7 +1380,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara double key wired wall switch',
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_on_off_ignore_endpoint_4_5_6,
-            fz.legacy.QBKG03LM_QBKG12LM_click, fz.xiaomi_basic, fz.xiaomi_operation_mode_basic, fz.legacy.QBKG12LM_click,
+            legacy.fz.QBKG03LM_QBKG12LM_click, fz.xiaomi_basic, fz.xiaomi_operation_mode_basic, legacy.fz.QBKG12LM_click,
             fz.xiaomi_power],
         exposes: [
             e.switch().withEndpoint('left'),
@@ -1365,10 +1389,10 @@ module.exports = [
             e.power().withAccess(ea.STATE_GET),
             e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
                 'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both']),
-            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for right button')
                 .withEndpoint('right'),
         ],
@@ -1390,7 +1414,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 double key wireless wall switch',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [fz.xiaomi_basic, fz.legacy.xiaomi_on_off_action, fz.legacy.xiaomi_multistate_action],
+        fromZigbee: [fz.xiaomi_basic, legacy.fz.xiaomi_on_off_action, legacy.fz.xiaomi_multistate_action],
         toZigbee: [],
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
@@ -1406,11 +1430,11 @@ module.exports = [
         model: 'QBKG21LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 single gang smart wall switch (no neutral wire)',
-        fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG04LM_QBKG11LM_click,
+        fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, legacy.fz.QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic],
         exposes: [
             e.switch(), e.action(['release', 'hold', 'double', 'single', 'hold_release']),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
@@ -1429,17 +1453,17 @@ module.exports = [
         model: 'QBKG22LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 2 gang smart wall switch (no neutral wire)',
-        fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG03LM_QBKG12LM_click,
-            fz.legacy.QBKG03LM_buttons, fz.xiaomi_operation_mode_basic],
+        fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, legacy.fz.QBKG03LM_QBKG12LM_click,
+            legacy.fz.QBKG03LM_buttons, fz.xiaomi_operation_mode_basic],
         exposes: [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
             e.action(['release_left', 'release_right', 'release_both', 'double_left', 'double_right',
                 'single_left', 'single_right', 'hold_release_left', 'hold_release_left']),
-            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for right button')
                 .withEndpoint('right'),
         ],
@@ -1469,16 +1493,16 @@ module.exports = [
         },
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for center button')
                 .withEndpoint('center'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
-            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
             e.power_outage_memory(), e.led_disabled_night(), e.device_temperature().withAccess(ea.STATE), e.flip_indicator_light(),
@@ -1501,13 +1525,13 @@ module.exports = [
         description: 'Aqara D1 3 gang smart wall switch (with neutral wire)',
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for center button')
                 .withEndpoint('center'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             e.power().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(), e.voltage(),
@@ -1545,7 +1569,7 @@ module.exports = [
             e.switch(), e.power().withAccess(ea.STATE_GET),
             e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage(), e.action(['single', 'release']),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1573,10 +1597,10 @@ module.exports = [
             e.action([
                 'hold_left', 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both',
             ]),
-            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_left_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_right_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_right_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
         ],
@@ -1595,7 +1619,7 @@ module.exports = [
             e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE), e.energy(),
             e.voltage(), e.device_temperature().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button'),
         ],
         onEvent: preventReset,
@@ -1619,10 +1643,10 @@ module.exports = [
             e.power_outage_memory(), e.led_disabled_night(), e.device_temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
         ],
@@ -1650,13 +1674,13 @@ module.exports = [
                 'single_right', 'double_right', 'single_left_center', 'double_left_center',
                 'single_left_right', 'double_left_right', 'single_center_right', 'double_center_right',
                 'single_all', 'double_all']),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('center'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
         ],
@@ -1739,7 +1763,7 @@ module.exports = [
         toZigbee: [tz.aqara_detection_interval],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
-            exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
+            e.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
                 .withDescription('Time interval for detecting actions'),
             e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
@@ -1757,8 +1781,8 @@ module.exports = [
         description: 'Aqara high precision motion sensor',
         fromZigbee: [fz.RTCGQ13LM_occupancy, fz.aqara_opple, fz.battery],
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
-        exposes: [e.occupancy(), exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
-            exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
+        exposes: [e.occupancy(), e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            e.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
                 .withDescription('Time interval for detecting actions'),
             e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
@@ -1782,12 +1806,12 @@ module.exports = [
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity, tz.RTCGQ14LM_trigger_indicator],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
-            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high'])
+            e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high'])
                 .withDescription('. Press pairing button right before changing this otherwise it will fail.'),
-            exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
+            e.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
                 .withDescription('Time interval for detecting actions. ' +
                     'Press pairing button right before changing this otherwise it will fail.'),
-            exposes.binary('trigger_indicator', ea.ALL, true, false).withDescription('When this option is enabled then ' +
+            e.binary('trigger_indicator', ea.ALL, true, false).withDescription('When this option is enabled then ' +
                 'blue LED will blink once when motion is detected. ' +
                 'Press pairing button right before changing this otherwise it will fail.'),
             e.device_temperature(), e.battery(), e.battery_voltage()],
@@ -1810,7 +1834,7 @@ module.exports = [
         toZigbee: [tz.aqara_detection_interval],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
-            exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
+            e.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
                 .withDescription('Time interval for detecting actions'),
             e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
@@ -1833,21 +1857,21 @@ module.exports = [
         ],
         exposes: [
             e.presence().withAccess(ea.STATE_GET), e.device_temperature(), e.power_outage_count(),
-            exposes.enum('presence_event', ea.STATE, ['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave',
+            e.enum('presence_event', ea.STATE, ['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave',
                 'approach', 'away']).withDescription('Presence events: "enter", "leave", "left_enter", "right_leave", ' +
                 '"right_enter", "left_leave", "approach", "away"'),
-            exposes.enum('monitoring_mode', ea.ALL, ['undirected', 'left_right']).withDescription('Monitoring mode with or ' +
+            e.enum('monitoring_mode', ea.ALL, ['undirected', 'left_right']).withDescription('Monitoring mode with or ' +
                 'without considering right and left sides'),
-            exposes.enum('approach_distance', ea.ALL, ['far', 'medium', 'near']).withDescription('The distance at which the ' +
+            e.enum('approach_distance', ea.ALL, ['far', 'medium', 'near']).withDescription('The distance at which the ' +
                 'sensor detects approaching'),
-            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Different sensitivities ' +
+            e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Different sensitivities ' +
                 'means different static human body recognition rate and response speed of occupied'),
-            exposes.enum('reset_nopresence_status', ea.SET, ['']).withDescription('Reset the status of no presence'),
-            exposes.enum('action', ea.STATE, ['region_*_enter', 'region_*_leave', 'region_*_occupied',
+            e.enum('reset_nopresence_status', ea.SET, ['']).withDescription('Reset the status of no presence'),
+            e.enum('action', ea.STATE, ['region_*_enter', 'region_*_leave', 'region_*_occupied',
                 'region_*_unoccupied']).withDescription('Most recent region event. Event template is "region_<REGION_ID>_<EVENT_TYPE>", ' +
                 'where <REGION_ID> is region number (1-10), <EVENT_TYPE> is one of "enter", "leave", "occupied", "unoccupied". ' +
                 '"enter" / "leave" events are usually triggered first, followed by "occupied" / "unoccupied" after a couple of seconds.'),
-            exposes.composite('region_upsert', 'region_upsert', ea.SET)
+            e.composite('region_upsert', 'region_upsert', ea.SET)
                 .withDescription(
                     'Definition of a new region to be added (or replace existing one). ' +
                     'Creating or modifying a region requires you to define which zones of a 7x4 detection grid ' +
@@ -1856,24 +1880,24 @@ module.exports = [
                     '"Zone x = 1 & y = 1" is the nearest zone on the right (from sensor\'s perspective, along the detection path).',
                 )
                 .withFeature(
-                    exposes.numeric('region_id', ea.SET)
+                    e.numeric('region_id', ea.SET)
                         .withValueMin(fp1.constants.region_config_regionId_min)
                         .withValueMax(fp1.constants.region_config_regionId_max),
                 )
                 .withFeature(
-                    exposes.list('zones', ea.SET,
-                        exposes.composite('zone_position', ea.SET)
-                            .withFeature(exposes.numeric('x', ea.SET)
+                    e.list('zones', ea.SET,
+                        e.composite('Zone position', 'zone_position', ea.SET)
+                            .withFeature(e.numeric('x', ea.SET)
                                 .withValueMin(fp1.constants.region_config_zoneX_min)
                                 .withValueMax(fp1.constants.region_config_zoneX_max))
-                            .withFeature(exposes.numeric('y', ea.SET)
+                            .withFeature(e.numeric('y', ea.SET)
                                 .withValueMin(fp1.constants.region_config_zoneY_min)
                                 .withValueMax(fp1.constants.region_config_zoneY_max)),
                     ),
                 ),
-            exposes.composite('region_delete', 'region_delete', ea.SET)
+            e.composite('region_delete', 'region_delete', ea.SET)
                 .withDescription('Region definition to be deleted from the device.')
-                .withFeature(exposes.numeric('region_id', ea.SET)
+                .withFeature(e.numeric('region_id', ea.SET)
                     .withValueMin(fp1.constants.region_config_regionId_min)
                     .withValueMax(fp1.constants.region_config_regionId_max),
                 ),
@@ -2106,9 +2130,9 @@ module.exports = [
         fromZigbee: [fz.xiaomi_basic, fz.JTYJGD01LMBW_smoke],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
         exposes: [
-            e.smoke(), e.battery_low(), e.tamper(), e.battery(), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
-            exposes.numeric('smoke_density', ea.STATE), exposes.enum('selftest', ea.SET, ['']), e.battery_voltage(),
-            exposes.binary('test', ea.STATE, true, false).withDescription('Test mode activated'), e.device_temperature(),
+            e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
+            e.numeric('smoke_density', ea.STATE), e.enum('selftest', ea.SET, ['']), e.battery_voltage(),
+            e.binary('test', ea.STATE, true, false).withDescription('Test mode activated'), e.device_temperature(),
             e.power_outage_count(false),
         ],
     },
@@ -2121,8 +2145,8 @@ module.exports = [
         fromZigbee: [fz.ias_gas_alarm_1, fz.JTQJBF01LMBW_sensitivity, fz.JTQJBF01LMBW_gas_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
         exposes: [
-            e.gas(), e.battery_low(), e.tamper(), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
-            exposes.numeric('gas_density', ea.STATE), exposes.enum('selftest', ea.SET, ['']),
+            e.gas(), e.battery_low(), e.tamper(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
+            e.numeric('gas_density', ea.STATE), e.enum('selftest', ea.SET, ['']),
         ],
     },
     {
@@ -2134,24 +2158,24 @@ module.exports = [
         toZigbee: [tz.aqara_alarm, tz.aqara_density, tz.JTBZ01AQA_gas_sensitivity, tz.aqara_selftest, tz.aqara_buzzer,
             tz.aqara_buzzer_manual, tz.aqara_linkage_alarm, tz.JTBZ01AQA_state, tz.aqara_power_outage_count],
         exposes: [e.gas().withAccess(ea.STATE_GET),
-            exposes.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
-            exposes.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
+            e.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
+            e.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
                 'an alarm is triggered ("10%LEL" is more sensitive than "15%LEL")'),
-            exposes.enum('selftest', ea.SET, ['selftest']).withDescription('Starts the self-test process (checking the indicator ' +
+            e.enum('selftest', ea.SET, ['selftest']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
-            exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
-            exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
+            e.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
+            e.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
                 'During a gas alarm, the buzzer can be manually muted for 10 minutes ("mute"), but cannot be unmuted manually ' +
                 'before this timeout expires. The buzzer cannot be pre-muted, as this function only works during a gas alarm. ' +
                 'During the absence of a gas alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute"), ' +
                 'but for this "linkage_alarm" option must be enabled'),
-            exposes.binary('buzzer_manual_alarm', ea.STATE_GET, true, false).withDescription('Buzzer alarmed (manually)'),
-            exposes.binary('buzzer_manual_mute', ea.STATE_GET, true, false).withDescription('Buzzer muted (manually)'),
-            exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a gas ' +
+            e.binary('buzzer_manual_alarm', ea.STATE_GET, true, false).withDescription('Buzzer alarmed (manually)'),
+            e.binary('buzzer_manual_mute', ea.STATE_GET, true, false).withDescription('Buzzer muted (manually)'),
+            e.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a gas ' +
                 'alarm has occurred, then "linkage_alarm_state"=true, and when the gas alarm has ended or the buzzer has ' +
                 'been manually muted, then "linkage_alarm_state"=false'),
-            exposes.binary('linkage_alarm_state', ea.STATE, true, false).withDescription('"linkage_alarm" is triggered'),
-            exposes.binary('state', ea.STATE_GET, 'preparation', 'work').withDescription('"Preparation" or "work" ' +
+            e.binary('linkage_alarm_state', ea.STATE, true, false).withDescription('"linkage_alarm" is triggered'),
+            e.binary('state', ea.STATE_GET, 'preparation', 'work').withDescription('"Preparation" or "work" ' +
                 '(measurement of the gas concentration value and triggering of an alarm are only performed in the "work" state)'),
             e.power_outage_count().withAccess(ea.STATE_GET)],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2177,24 +2201,24 @@ module.exports = [
         toZigbee: [tz.aqara_alarm, tz.aqara_density, tz.aqara_selftest, tz.aqara_buzzer, tz.aqara_buzzer_manual,
             tz.JYGZ01AQ_heartbeat_indicator, tz.aqara_linkage_alarm],
         exposes: [e.smoke().withAccess(ea.STATE_GET),
-            exposes.numeric('smoke_density', ea.STATE_GET).withDescription('Value of smoke concentration'),
-            exposes.numeric('smoke_density_dbm', ea.STATE_GET).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
-            exposes.enum('selftest', ea.SET, ['selftest']).withDescription('Starts the self-test process (checking the indicator ' +
+            e.numeric('smoke_density', ea.STATE_GET).withDescription('Value of smoke concentration'),
+            e.numeric('smoke_density_dbm', ea.STATE_GET).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
+            e.enum('selftest', ea.SET, ['selftest']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
-            exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
-            exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
+            e.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
+            e.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
                 'During a smoke alarm, the buzzer can be manually muted for 80 seconds ("mute") and unmuted ("alarm"). ' +
                 'The buzzer cannot be pre-muted, as this function only works during a smoke alarm. ' +
                 'During the absence of a smoke alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute"), ' +
                 'but for this "linkage_alarm" option must be enabled'),
-            exposes.binary('buzzer_manual_alarm', ea.STATE_GET, true, false).withDescription('Buzzer alarmed (manually)'),
-            exposes.binary('buzzer_manual_mute', ea.STATE_GET, true, false).withDescription('Buzzer muted (manually)'),
-            exposes.binary('heartbeat_indicator', ea.ALL, true, false).withDescription('When this option is enabled then in ' +
+            e.binary('buzzer_manual_alarm', ea.STATE_GET, true, false).withDescription('Buzzer alarmed (manually)'),
+            e.binary('buzzer_manual_mute', ea.STATE_GET, true, false).withDescription('Buzzer muted (manually)'),
+            e.binary('heartbeat_indicator', ea.ALL, true, false).withDescription('When this option is enabled then in ' +
                 'the normal monitoring state, the green indicator light flashes every 60 seconds'),
-            exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a smoke ' +
+            e.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a smoke ' +
                 'alarm has occurred, then "linkage_alarm_state"=true, and when the smoke alarm has ended or the buzzer has ' +
                 'been manually muted, then "linkage_alarm_state"=false'),
-            exposes.binary('linkage_alarm_state', ea.STATE, true, false).withDescription('"linkage_alarm" is triggered'),
+            e.binary('linkage_alarm_state', ea.STATE, true, false).withDescription('"linkage_alarm" is triggered'),
             e.battery(), e.battery_voltage(), e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2216,7 +2240,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Vima Smart Lock',
         fromZigbee: [fz.xiaomi_lock_report],
-        exposes: [exposes.text('inserted', ea.STATE)],
+        exposes: [e.text('inserted', ea.STATE)],
         toZigbee: [],
     },
     {
@@ -2229,7 +2253,7 @@ module.exports = [
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [
             e.battery(), e.device_temperature(), e.vibration(), e.action(['vibration', 'tilt', 'drop']),
-            exposes.numeric('strength', ea.STATE), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
+            e.numeric('strength', ea.STATE), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             e.angle_axis('angle_x'), e.angle_axis('angle_y'), e.angle_axis('angle_z'), e.battery_voltage(), e.power_outage_count(false),
         ],
     },
@@ -2259,9 +2283,9 @@ module.exports = [
             }
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL),
-            exposes.binary('running', ea.STATE, true, false)
+            e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
-            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
+            e.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
                 .withDescription('Motor state')],
         ota: ota.zigbeeOTA,
     },
@@ -2274,7 +2298,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         exposes: [e.cover_position().setAccess('state', ea.ALL),
-            exposes.binary('running', ea.STATE, true, false)
+            e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not')],
         ota: ota.zigbeeOTA,
     },
@@ -2293,9 +2317,9 @@ module.exports = [
             }
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(),
-            exposes.binary('running', ea.STATE, true, false)
+            e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
-            exposes.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
+            e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
                 .withDescription('The current state of the motor.'), e.power_outage_count()],
         ota: ota.zigbeeOTA,
     },
@@ -2314,9 +2338,9 @@ module.exports = [
             }
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL),
-            exposes.binary('running', ea.STATE, true, false)
+            e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
-            exposes.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
+            e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
                 .withDescription('The current state of the motor.'), e.power_outage_count()],
         ota: ota.zigbeeOTA,
     },
@@ -2337,11 +2361,11 @@ module.exports = [
             }
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET), e.device_temperature(),
-            exposes.binary('charging_status', ea.STATE_GET, true, false)
+            e.binary('charging_status', ea.STATE_GET, true, false)
                 .withDescription('The current charging status.'),
-            exposes.enum('motor_state', ea.STATE, ['declining', 'rising', 'pause', 'blocked'])
+            e.enum('motor_state', ea.STATE, ['declining', 'rising', 'pause', 'blocked'])
                 .withDescription('The current state of the motor.'),
-            exposes.binary('running', ea.STATE, true, false)
+            e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not')],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
@@ -2376,20 +2400,20 @@ module.exports = [
         ],
         exposes: [
             e.cover_position().setAccess('state', ea.ALL),
-            exposes.binary('hand_open', ea.ALL, true, false).withDescription('Pulling curtains by hand starts the motor'),
-            exposes.enum('limits_calibration', ea.SET, ['start', 'end', 'reset']).withDescription('Calibrate the position limits'),
+            e.binary('hand_open', ea.ALL, true, false).withDescription('Pulling curtains by hand starts the motor'),
+            e.enum('limits_calibration', ea.SET, ['start', 'end', 'reset']).withDescription('Calibrate the position limits'),
             e.battery().withAccess(ea.STATE_GET),
             e.battery_voltage().withAccess(ea.STATE_GET),
             e.device_temperature(),
             e.illuminance_lux(),
             e.action(['manual_open', 'manual_close']),
-            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing', 'pause']).withDescription('Motor state'),
-            exposes.binary('running', ea.STATE, true, false).withDescription('Whether the motor is moving or not'),
-            exposes.enum('hooks_lock', ea.STATE_SET, ['LOCK', 'UNLOCK']).withDescription('Lock the curtain driver hooks'),
-            exposes.enum('hooks_state', ea.STATE_GET, ['unlocked', 'locked', 'locking', 'unlocking']).withDescription('Hooks state'),
-            exposes.numeric('target_position', ea.STATE).withUnit('%').withDescription('Target position'),
-            exposes.enum('power_source', ea.STATE_GET, ['battery', 'dc_source']).withDescription('The current power source'),
-            exposes.binary('charging', ea.STATE_GET, true, false).withDescription('The current charging state'),
+            e.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing', 'pause']).withDescription('Motor state'),
+            e.binary('running', ea.STATE, true, false).withDescription('Whether the motor is moving or not'),
+            e.enum('hooks_lock', ea.STATE_SET, ['LOCK', 'UNLOCK']).withDescription('Lock the curtain driver hooks'),
+            e.enum('hooks_state', ea.STATE_GET, ['unlocked', 'locked', 'locking', 'unlocking']).withDescription('Hooks state'),
+            e.numeric('target_position', ea.STATE).withUnit('%').withDescription('Target position'),
+            e.enum('power_source', ea.STATE_GET, ['battery', 'dc_source']).withDescription('The current power source'),
+            e.binary('charging', ea.STATE_GET, true, false).withDescription('The current charging state'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -2415,7 +2439,7 @@ module.exports = [
         exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature(), e.voltage(), e.current(),
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power_outage_count(false),
             e.power_outage_memory(),
-            exposes.binary('interlock', ea.STATE_SET, true, false)
+            e.binary('interlock', ea.STATE_SET, true, false)
                 .withDescription('Enabling prevents both relais being on at the same time'),
         ],
         ota: ota.zigbeeOTA,
@@ -2432,9 +2456,9 @@ module.exports = [
         fromZigbee: [fz.xiaomi_basic, fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ZNMS12LM_low_battery],
         toZigbee: [],
         exposes: [
-            e.battery(), e.battery_voltage(), e.battery_low(), exposes.binary('state', ea.STATE, 'UNLOCK', 'LOCK'),
-            exposes.binary('reverse', ea.STATE, 'UNLOCK', 'LOCK'),
-            exposes.enum('action', ea.STATE, [
+            e.battery(), e.battery_voltage(), e.battery_low(), e.binary('state', ea.STATE, 'UNLOCK', 'LOCK'),
+            e.binary('reverse', ea.STATE, 'UNLOCK', 'LOCK'),
+            e.enum('action', ea.STATE, [
                 'finger_not_match', 'password_not_match', 'reverse_lock', 'reverse_lock_cancel', 'locked', 'lock_opened',
                 'finger_add', 'finger_delete', 'password_add', 'password_delete', 'lock_opened_inside', 'lock_opened_outside',
                 'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
@@ -2456,9 +2480,9 @@ module.exports = [
         fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [
-            exposes.binary('state', ea.STATE, 'UNLOCK', 'LOCK'),
-            exposes.binary('reverse', ea.STATE, 'UNLOCK', 'LOCK'),
-            exposes.enum('action', ea.STATE, [
+            e.binary('state', ea.STATE, 'UNLOCK', 'LOCK'),
+            e.binary('reverse', ea.STATE, 'UNLOCK', 'LOCK'),
+            e.enum('action', ea.STATE, [
                 'finger_not_match', 'password_not_match', 'reverse_lock', 'reverse_lock_cancel', 'locked', 'lock_opened',
                 'finger_add', 'finger_delete', 'password_add', 'password_delete', 'lock_opened_inside', 'lock_opened_outside',
                 'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
@@ -2478,9 +2502,9 @@ module.exports = [
         fromZigbee: [fz.ZNMS11LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [
-            exposes.binary('state', ea.STATE, 'UNLOCK', 'LOCK'),
-            exposes.binary('reverse', ea.STATE, 'UNLOCK', 'LOCK'),
-            exposes.enum('action', ea.STATE, [
+            e.binary('state', ea.STATE, 'UNLOCK', 'LOCK'),
+            e.binary('reverse', ea.STATE, 'UNLOCK', 'LOCK'),
+            e.enum('action', ea.STATE, [
                 'finger_not_match', 'password_not_match', 'reverse_lock', 'reverse_lock_cancel', 'locked', 'lock_opened',
                 'finger_add', 'finger_delete', 'password_add', 'password_delete', 'lock_opened_inside', 'lock_opened_outside',
                 'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
@@ -2497,7 +2521,7 @@ module.exports = [
         exposes: [e.battery(), e.battery_voltage(), e.action([
             'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
-        ]), exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
+        ]), e.enum('operation_mode', ea.ALL, ['command', 'event'])
             .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)')],
         toZigbee: [tz.aqara_opple_operation_mode],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
@@ -2519,7 +2543,7 @@ module.exports = [
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
             'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
             'button_4_hold', 'button_4_release', 'button_4_single', 'button_4_double', 'button_4_triple',
-        ]), exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
+        ]), e.enum('operation_mode', ea.ALL, ['command', 'event'])
             .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)')],
         toZigbee: [tz.aqara_opple_operation_mode],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
@@ -2545,7 +2569,7 @@ module.exports = [
             'button_4_hold', 'button_4_release', 'button_4_single', 'button_4_double', 'button_4_triple',
             'button_5_hold', 'button_5_release', 'button_5_single', 'button_5_double', 'button_5_triple',
             'button_6_hold', 'button_6_release', 'button_6_single', 'button_6_double', 'button_6_triple',
-        ]), exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
+        ]), e.enum('operation_mode', ea.ALL, ['command', 'event'])
             .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
         e.power_outage_count(false)],
         toZigbee: [tz.aqara_opple_operation_mode],
@@ -2688,6 +2712,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara S1 smart touch panel',
         fromZigbee: [fz.on_off, fz.ZNCJMB14LM],
+        // @ts-expect-error
         toZigbee: [tz.on_off, tz.ZNCJMB14LM],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -2695,37 +2720,37 @@ module.exports = [
         },
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'),
             e.switch().withEndpoint('right'),
-            exposes.binary('standby_enabled', ea.STATE_SET, true, false).withDescription('Enable standby'),
-            exposes.enum('theme', ea.STATE_SET, ['classic', 'concise']).withDescription('Display theme'),
-            exposes.enum('beep_volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high']).withDescription('Beep volume'),
-            exposes.numeric('lcd_brightness', ea.STATE_SET).withValueMin(1).withValueMax(100).withUnit('%')
+            e.binary('standby_enabled', ea.STATE_SET, true, false).withDescription('Enable standby'),
+            e.enum('theme', ea.STATE_SET, ['classic', 'concise']).withDescription('Display theme'),
+            e.enum('beep_volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high']).withDescription('Beep volume'),
+            e.numeric('lcd_brightness', ea.STATE_SET).withValueMin(1).withValueMax(100).withUnit('%')
                 .withDescription('LCD brightness (will not persist if auto-brightness is enabled)'),
-            exposes.enum('language', ea.STATE_SET, ['chinese', 'english']).withDescription('Interface language'),
-            exposes.enum('screen_saver_style', ea.STATE_SET, ['classic', 'analog clock']).withDescription('Screen saver style'),
-            exposes.numeric('standby_time', ea.STATE_SET).withValueMin(0).withValueMax(65534).withUnit('s')
+            e.enum('language', ea.STATE_SET, ['chinese', 'english']).withDescription('Interface language'),
+            e.enum('screen_saver_style', ea.STATE_SET, ['classic', 'analog clock']).withDescription('Screen saver style'),
+            e.numeric('standby_time', ea.STATE_SET).withValueMin(0).withValueMax(65534).withUnit('s')
                 .withDescription('Display standby time'),
-            exposes.enum('font_size', ea.STATE_SET, ['small', 'medium', 'large']).withDescription('Display font size'),
-            exposes.binary('lcd_auto_brightness_enabled', ea.STATE_SET, true, false).withDescription('Enable LCD auto brightness'),
-            exposes.enum('homepage', ea.STATE_SET, ['scene', 'feel', 'thermostat', 'switch']).withDescription('Default display homepage'),
-            exposes.binary('screen_saver_enabled', ea.STATE_SET, true, false).withDescription('Enable screen saver'),
-            exposes.numeric('standby_lcd_brightness', ea.STATE_SET).withValueMin(1).withValueMax(100).withUnit('%')
+            e.enum('font_size', ea.STATE_SET, ['small', 'medium', 'large']).withDescription('Display font size'),
+            e.binary('lcd_auto_brightness_enabled', ea.STATE_SET, true, false).withDescription('Enable LCD auto brightness'),
+            e.enum('homepage', ea.STATE_SET, ['scene', 'feel', 'thermostat', 'switch']).withDescription('Default display homepage'),
+            e.binary('screen_saver_enabled', ea.STATE_SET, true, false).withDescription('Enable screen saver'),
+            e.numeric('standby_lcd_brightness', ea.STATE_SET).withValueMin(1).withValueMax(100).withUnit('%')
                 .withDescription('Standby LCD brightness'),
-            exposes.enum('available_switches', ea.STATE_SET, ['none', '1', '2', '3', '1 and 2', '1 and 3', '2 and 3', 'all'])
+            e.enum('available_switches', ea.STATE_SET, ['none', '1', '2', '3', '1 and 2', '1 and 3', '2 and 3', 'all'])
                 .withDescription('Control which switches are available in the switches screen (none disables switches screen)'),
-            exposes.composite('switch_1_text_icon', 'switch_1_text_icon', ea.STATE_SET).withDescription('Switch 1 text and icon')
-                .withFeature(exposes.enum('switch_1_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
+            e.composite('switch_1_text_icon', 'switch_1_text_icon', ea.STATE_SET).withDescription('Switch 1 text and icon')
+                .withFeature(e.enum('switch_1_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
-                .withFeature(exposes.text('switch_1_text', ea.STATE_SET)
+                .withFeature(e.text('switch_1_text', ea.STATE_SET)
                     .withDescription('Text')),
-            exposes.composite('switch_2_text_icon', 'switch_2_text_icon', ea.STATE_SET).withDescription('Switch 2 text and icon')
-                .withFeature(exposes.enum('switch_2_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
+            e.composite('switch_2_text_icon', 'switch_2_text_icon', ea.STATE_SET).withDescription('Switch 2 text and icon')
+                .withFeature(e.enum('switch_2_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
-                .withFeature(exposes.text('switch_2_text', ea.STATE_SET)
+                .withFeature(e.text('switch_2_text', ea.STATE_SET)
                     .withDescription('Text')),
-            exposes.composite('switch_3_text_icon', 'switch_3_text_icon', ea.STATE_SET).withDescription('Switch 3 text and icon')
-                .withFeature(exposes.enum('switch_3_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
+            e.composite('switch_3_text_icon', 'switch_3_text_icon', ea.STATE_SET).withDescription('Switch 3 text and icon')
+                .withFeature(e.enum('switch_3_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
-                .withFeature(exposes.text('switch_3_text', ea.STATE_SET)
+                .withFeature(e.text('switch_3_text', ea.STATE_SET)
                     .withDescription('Text'))],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -2752,10 +2777,10 @@ module.exports = [
                 'double_left', 'double_right', 'double_both',
                 'triple_left', 'triple_right', 'triple_both',
                 'hold_left', 'hold_right', 'hold_both']),
-            exposes.enum('click_mode', ea.ALL, ['fast', 'multi'])
+            e.enum('click_mode', ea.ALL, ['fast', 'multi'])
                 .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
                     'multi: supports more events like double and hold'),
-            exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
+            e.enum('operation_mode', ea.ALL, ['command', 'event'])
                 .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2783,9 +2808,9 @@ module.exports = [
             tz.aqara_switch_mode_switch, tz.xiaomi_flip_indicator_light],
         exposes: [e.switch(), e.power_outage_memory(), e.action(['single', 'double']),
             e.device_temperature(), e.flip_indicator_light(),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for button'),
-            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.')],
         onEvent: preventReset,
@@ -2808,13 +2833,13 @@ module.exports = [
         },
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.device_temperature(),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
-            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
@@ -2836,7 +2861,7 @@ module.exports = [
         toZigbee: [tzLocal.VOCKQJK11LM_display_unit],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.device_temperature(), e.battery(), e.battery_voltage(),
-            exposes.enum('display_unit', ea.ALL, ['mgm3_celsius', 'ppb_celsius', 'mgm3_fahrenheit', 'ppb_fahrenheit'])
+            e.enum('display_unit', ea.ALL, ['mgm3_celsius', 'ppb_celsius', 'mgm3_fahrenheit', 'ppb_fahrenheit'])
                 .withDescription('Units to show on the display')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -2864,10 +2889,10 @@ module.exports = [
         },
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
@@ -2902,7 +2927,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.xiaomi_flip_indicator_light],
         exposes: [e.switch(), e.action(['single', 'double']), e.power_outage_memory(), e.device_temperature(), e.flip_indicator_light(),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
@@ -2933,12 +2958,12 @@ module.exports = [
         toZigbee: [tz.GZCGQ11LM_detection_period],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux(),
-            exposes.numeric('detection_period', exposes.access.ALL).withValueMin(1).withValueMax(59).withUnit('s')
+            e.numeric('detection_period', exposes.access.ALL).withValueMin(1).withValueMax(59).withUnit('s')
                 .withDescription('Time interval in seconds to report after light changes')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-            await endpoint.read('aqaraOpple', [0x0000], {manufactureCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x0000], {manufacturerCode: 0x115f});
         },
         ota: ota.zigbeeOTA,
     },
@@ -2958,7 +2983,7 @@ module.exports = [
             e.switch().withEndpoint('relay'), e.switch().withEndpoint('usb'),
             e.power().withAccess(ea.STATE), e.energy(), e.device_temperature().withAccess(ea.STATE), e.voltage(),
             e.current(), e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
-            exposes.enum('button_switch_mode', exposes.access.ALL, ['relay', 'relay_and_usb'])
+            e.enum('button_switch_mode', exposes.access.ALL, ['relay', 'relay_and_usb'])
                 .withDescription('Control both relay and usb or only the relay with the physical switch button'),
             e.overload_protection(100, 2500)],
         ota: ota.zigbeeOTA,
@@ -2997,12 +3022,12 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(),
             e.action(['single', 'double', 'hold', 'release', 'start_rotating', 'rotation', 'stop_rotating']),
-            exposes.enum('operation_mode', ea.ALL, ['event', 'command']).withDescription('Button mode'),
-            exposes.numeric('action_rotation_angle', ea.STATE).withUnit('*').withDescription('Rotation angle'),
-            exposes.numeric('action_rotation_angle_speed', ea.STATE).withUnit('*').withDescription('Rotation angle speed'),
-            exposes.numeric('action_rotation_percent', ea.STATE).withUnit('%').withDescription('Rotation percent'),
-            exposes.numeric('action_rotation_percent_speed', ea.STATE).withUnit('%').withDescription('Rotation percent speed'),
-            exposes.numeric('action_rotation_time', ea.STATE).withUnit('ms').withDescription('Rotation time'),
+            e.enum('operation_mode', ea.ALL, ['event', 'command']).withDescription('Button mode'),
+            e.numeric('action_rotation_angle', ea.STATE).withUnit('*').withDescription('Rotation angle'),
+            e.numeric('action_rotation_angle_speed', ea.STATE).withUnit('*').withDescription('Rotation angle speed'),
+            e.numeric('action_rotation_percent', ea.STATE).withUnit('%').withDescription('Rotation percent'),
+            e.numeric('action_rotation_percent_speed', ea.STATE).withUnit('%').withDescription('Rotation percent speed'),
+            e.numeric('action_rotation_time', ea.STATE).withUnit('ms').withDescription('Rotation time'),
         ],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_basic, fz.aqara_opple, fz.aqara_knob_rotation],
         toZigbee: [tz.aqara_opple_operation_mode],
@@ -3021,7 +3046,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.xiaomi_switch_click_mode],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold']),
-            exposes.enum('click_mode', ea.ALL, ['fast', 'multi'])
+            e.enum('click_mode', ea.ALL, ['fast', 'multi'])
                 .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
                     'multi: supports more events like double and hold')],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -3037,7 +3062,7 @@ module.exports = [
         exposes: [e.battery(), e.battery_voltage(),
             e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'hold_left', 'hold_right']),
             // eslint-disable-next-line max-len
-            exposes.enum('click_mode', ea.ALL, ['fast', 'multi']).withDescription('Click mode, fast: only supports single click which will be send immediately after clicking, multi: supports more events like double and hold'),
+            e.enum('click_mode', ea.ALL, ['fast', 'multi']).withDescription('Click mode, fast: only supports single click which will be send immediately after clicking, multi: supports more events like double and hold'),
         ],
         fromZigbee: [fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.xiaomi_switch_click_mode],
@@ -3056,10 +3081,10 @@ module.exports = [
         fromZigbee: [fz.xiaomi_multistate_action, fz.aqara_opple, fz.command_toggle],
         toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'hold']),
-            exposes.enum('click_mode', ea.ALL, ['fast', 'multi'])
+            e.enum('click_mode', ea.ALL, ['fast', 'multi'])
                 .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
                     'multi: supports more events like double and hold'),
-            exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
+            e.enum('operation_mode', ea.ALL, ['command', 'event'])
                 .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)')],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -3076,22 +3101,22 @@ module.exports = [
         fromZigbee: [fzLocal.aqara_trv, fz.thermostat, fz.battery],
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
         exposes: [
-            exposes.binary('setup', ea.STATE, true, false)
+            e.binary('setup', ea.STATE, true, false)
                 .withDescription('Indicates if the device is in setup mode (E11)'),
-            exposes.climate()
+            e.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature(ea.STATE, 'Current temperature measured by the internal or external sensor')
                 .withSystemMode(['off', 'heat'], ea.ALL)
                 .withPreset(['manual', 'away', 'auto']).setAccess('preset', ea.ALL),
             e.temperature_sensor_select(['internal', 'external']).withAccess(ea.ALL),
-            exposes.binary('calibrated', ea.STATE, true, false)
+            e.binary('calibrated', ea.STATE, true, false)
                 .withDescription('Is the valve calibrated'),
             e.child_lock().setAccess('state', ea.ALL),
             e.window_detection().setAccess('state', ea.ALL),
-            exposes.binary('window_open', ea.STATE, true, false),
+            e.binary('window_open', ea.STATE, true, false),
             e.valve_detection().setAccess('state', ea.ALL)
                 .withDescription('Determines if temperature control abnormalities should be detected'),
-            exposes.binary('valve_alarm', ea.STATE, true, false)
+            e.binary('valve_alarm', ea.STATE, true, false)
                 .withDescription('Notifies of a temperature control abnormality if valve detection is enabled ' +
                     '(e.g., thermostat not installed correctly, valve failure or incorrect calibration, ' +
                     'incorrect link to external temperature sensor)'),
@@ -3100,10 +3125,10 @@ module.exports = [
             e.battery(),
             e.power_outage_count(),
             e.device_temperature(),
-            exposes.switch().withState('schedule', true,
+            e.switch_().withState('schedule', true,
                 'When being ON, the thermostat will change its state based on your settings',
                 ea.ALL, 'ON', 'OFF'),
-            exposes.text('schedule_settings', ea.ALL)
+            e.text('schedule_settings', ea.ALL)
                 .withDescription('Smart schedule configuration (default: mon,tue,wed,thu,fri|8:00,24.0|18:00,17.0|23:00,22.0|8:00,22.0)'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -3126,27 +3151,27 @@ module.exports = [
         fromZigbee: [fzLocal.aqara_feeder],
         toZigbee: [tzLocal.aqara_feeder],
         exposes: [
-            exposes.enum('feed', ea.STATE_SET, ['', 'START']).withDescription('Start feeding'),
-            exposes.enum('feeding_source', ea.STATE, ['schedule', 'manual', 'remote']).withDescription('Feeding source'),
-            exposes.numeric('feeding_size', ea.STATE).withDescription('Feeding size').withUnit('portion'),
-            exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
-            exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
-            exposes.binary('error', ea.STATE, true, false)
+            e.enum('feed', ea.STATE_SET, ['', 'START']).withDescription('Start feeding'),
+            e.enum('feeding_source', ea.STATE, ['schedule', 'manual', 'remote']).withDescription('Feeding source'),
+            e.numeric('feeding_size', ea.STATE).withDescription('Feeding size').withUnit('portion'),
+            e.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
+            e.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
+            e.binary('error', ea.STATE, true, false)
                 .withDescription('Indicates wether there is an error with the feeder'),
-            exposes.list('schedule', ea.STATE_SET, exposes.composite('dayTime', 'dayTime', exposes.access.STATE_SET)
-                .withFeature(exposes.enum('days', exposes.access.STATE_SET, [
+            e.list('schedule', ea.STATE_SET, e.composite('dayTime', 'dayTime', exposes.access.STATE_SET)
+                .withFeature(e.enum('days', exposes.access.STATE_SET, [
                     'everyday', 'workdays', 'weekend', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
                     'mon-wed-fri-sun', 'tue-thu-sat']))
-                .withFeature(exposes.numeric('hour', exposes.access.STATE_SET))
-                .withFeature(exposes.numeric('minute', exposes.access.STATE_SET))
-                .withFeature(exposes.numeric('size', exposes.access.STATE_SET)),
+                .withFeature(e.numeric('hour', exposes.access.STATE_SET))
+                .withFeature(e.numeric('minute', exposes.access.STATE_SET))
+                .withFeature(e.numeric('size', exposes.access.STATE_SET)),
             ).withDescription('Feeding schedule'),
-            exposes.switch().withState('led_indicator', true, 'Led indicator', ea.STATE_SET, 'ON', 'OFF'),
+            e.switch_().withState('led_indicator', true, 'Led indicator', ea.STATE_SET, 'ON', 'OFF'),
             e.child_lock(),
-            exposes.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
-            exposes.numeric('serving_size', ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription('One serving size')
+            e.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
+            e.numeric('serving_size', ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription('One serving size')
                 .withUnit('portion'),
-            exposes.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight')
+            e.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight')
                 .withUnit('g'),
         ],
         ota: ota.zigbeeOTA,
@@ -3200,8 +3225,7 @@ module.exports = [
             e.battery(),
             e.battery_voltage(),
             e.power_outage_count(false),
-            exposes
-                .enum('operation_mode', ea.SET, ['action_mode', 'scene_mode'])
+            e.enum('operation_mode', ea.SET, ['action_mode', 'scene_mode'])
                 .withDescription('[Soft Switch]: There is a configuration window, opens once an hour on itself, ' +
                     'only during which the cube will respond to mode switch. ' +
                     'Mode switch will be scheduled to take effect when the window becomes available. ' +
@@ -3239,13 +3263,13 @@ module.exports = [
         meta: {multiEndpoint: true},
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for center button')
                 .withEndpoint('center'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
@@ -3273,13 +3297,13 @@ module.exports = [
         meta: {multiEndpoint: true},
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for center button')
                 .withEndpoint('center'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
@@ -3294,3 +3318,5 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
 ];
+
+module.exports = definitions;

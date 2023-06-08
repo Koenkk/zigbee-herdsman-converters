@@ -1,9 +1,10 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
-const ota = require('../lib/ota');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import * as ota from '../lib/ota';
+import {Definition, Fz, KeyValue} from '../lib/types';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -11,16 +12,16 @@ const fzLocal = {
         cluster: '65521',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const payload = {};
+            const payload: KeyValue = {};
             if (msg.data['1']) payload.x_axis = msg.data['1'];
             if (msg.data['2']) payload.y_axis = msg.data['2'];
             if (msg.data['3']) payload.z_axis = msg.data['3'];
             return payload;
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['3RSS009Z'],
         model: '3RSS009Z',
@@ -223,3 +224,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

@@ -1,13 +1,15 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const ota = require('../lib/ota');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['DL001'],
         model: 'DL001',
@@ -30,7 +32,7 @@ module.exports = [
         model: 'TERNCY-PP01',
         vendor: 'TERNCY',
         description: 'Awareness switch',
-        fromZigbee: [fz.terncy_temperature, fz.occupancy_with_timeout, fz.illuminance, fz.terncy_raw, fz.legacy.terncy_raw, fz.battery],
+        fromZigbee: [fz.terncy_temperature, fz.occupancy_with_timeout, fz.illuminance, fz.terncy_raw, legacy.fz.terncy_raw, fz.battery],
         exposes: [e.temperature(), e.occupancy(), e.illuminance_lux(), e.illuminance(),
             e.action(['single', 'double', 'triple', 'quadruple'])],
         toZigbee: [],
@@ -41,12 +43,12 @@ module.exports = [
         model: 'TERNCY-SD01',
         vendor: 'TERNCY',
         description: 'Knob smart dimmer',
-        fromZigbee: [fz.terncy_raw, fz.legacy.terncy_raw, fz.legacy.terncy_knob, fz.battery],
+        fromZigbee: [fz.terncy_raw, legacy.fz.terncy_raw, legacy.fz.terncy_knob, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         meta: {battery: {dontDividePercentage: true}},
         exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'rotate']),
-            exposes.text('direction', ea.STATE)],
+            e.text('direction', ea.STATE)],
     },
     {
         zigbeeModel: ['TERNCY-LS01'],
@@ -62,3 +64,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

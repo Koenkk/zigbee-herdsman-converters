@@ -1,5 +1,5 @@
 import * as globalStore from './store';
-import herdsman from 'zigbee-herdsman';
+import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
 
 export function isLegacyEnabled(options: KeyValue) {
@@ -452,7 +452,7 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
 }
 
 export function attachOutputCluster(device: Zh.Device, clusterKey: string) {
-    const clusterId = herdsman.Zcl.Utils.getCluster(clusterKey).ID;
+    const clusterId = Zcl.Utils.getCluster(clusterKey).ID;
     const endpoint = device.getEndpoint(1);
 
     if (!endpoint.outputClusters.includes(clusterId)) {
@@ -488,7 +488,7 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number) 
  * @param {key} key
  * @returns {(level: string, message: string) => void}
  */
-const createLogger = (logger: Logger, vendor: string, key: string) => (level: 'debug' | 'info' | 'warn' | 'error', message: string) => {
+export const createLogger = (logger: Logger, vendor: string, key: string) => (level: 'debug' | 'info' | 'warn' | 'error', message: string) => {
     logger[level](`zigbee-herdsman-converters:${vendor}:${key}: ${message}`);
 };
 
