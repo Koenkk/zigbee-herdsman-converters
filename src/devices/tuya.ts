@@ -647,7 +647,7 @@ const definitions: Definition[] = [
         description: 'Smart air house keeper',
         fromZigbee: [legacy.fromZigbee.tuya_air_quality],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd().withUnit('Âµg/mÂ³'),
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd().withUnit('µg/m³'),
             e.pm25().withValueMin(0).withValueMax(999).withValueStep(1)],
     },
     {
@@ -2241,7 +2241,7 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature().withValueMin(16).withValueMax(70), e.min_temperature(), e.away_preset_temperature(),
-            e.composite('programming_mode', 'programming_mode', ea.STATE).withDescription('Schedule MODE â± - In this mode, ' +
+            e.composite('programming_mode', 'programming_mode', ea.STATE).withDescription('Schedule MODE ⏱ - In this mode, ' +
                     'the device executes a preset week programming temperature time and temperature.')
                 .withFeature(e.week())
                 .withFeature(e.text('workdays_schedule', ea.STATE_SET))
@@ -2585,9 +2585,9 @@ const definitions: Definition[] = [
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withPreset(['auto', 'manual', 'off', 'on'],
-                    'MANUAL MODE â - In this mode, the device executes manual temperature setting. ' +
+                    'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. ' +
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
-                'AUTO MODE â± - In this mode, the device executes a preset week programming temperature time and temperature. ' +
+                'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
                 'ON - In this mode, the thermostat stays open ' +
                 'OFF - In this mode, the thermostat stays closed')
                 .withSystemMode(['auto', 'heat', 'off'], ea.STATE)
@@ -2595,7 +2595,7 @@ const definitions: Definition[] = [
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
             e.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
-                'the device will enter the boost heating mode, and the â·âµâ will flash. The countdown will be displayed in the APP'),
+                'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
             e.numeric('boost_time', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(1000),
         ],
