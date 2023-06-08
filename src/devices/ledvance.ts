@@ -305,7 +305,7 @@ const definitions: Definition[] = [
         model: '4058075729322',
         vendor: 'LEDVANCE',
         description: 'SMART+ Compact Outdoor Plug EU',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
