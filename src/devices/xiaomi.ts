@@ -3298,7 +3298,7 @@ const definitions: Definition[] = [
             e.action(['single', 'double']),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
-            e.power_outage_memory(),  e.led_disabled_night(), e.flip_indicator_light(),
+            e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
         ],
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
