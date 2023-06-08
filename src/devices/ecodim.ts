@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 const e = exposes.presets;
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import ota from '../lib/ota';
+import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 
 const definitions: Definition[] = [

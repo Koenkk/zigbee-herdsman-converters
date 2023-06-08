@@ -1,7 +1,7 @@
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
-import ota from '../lib/ota';
+import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';

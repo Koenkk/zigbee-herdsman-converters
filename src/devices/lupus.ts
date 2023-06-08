@@ -6,7 +6,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
-import ota from '../lib/ota';
+import * as ota from '../lib/ota';
 
 const definitions: Definition[] = [
     {

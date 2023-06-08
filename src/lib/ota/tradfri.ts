@@ -1,6 +1,7 @@
 const productionURL = 'http://fw.ota.homesmart.ikea.net/feed/version_info.json';
 const testURL = 'http://fw.test.ota.homesmart.ikea.net/feed/version_info.json';
-import common from './common';
+import {Ota, Logger, Zh, KeyValue} from '../types';
+import * as common from './common';
 const axios = common.getAxios();
 let useTestURL = false;
 
@@ -8,7 +9,7 @@ let useTestURL = false;
  * Helper functions
  */
 
-async function getImageMeta(current: ota.Version, logger: Logger, device: zh.Device) {
+export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
     const url = useTestURL ? testURL : productionURL;
     const imageType = current.imageType;
     const images = (await axios.get(url)).data;
@@ -28,18 +29,16 @@ async function getImageMeta(current: ota.Version, logger: Logger, device: zh.Dev
  * Interface implementation
  */
 
-async function isUpdateAvailable(device: zh.Device, logger: Logger, requestPayload:KeyValue=null) {
+export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
     return common.isUpdateAvailable(device, logger, common.isNewImageAvailable, requestPayload, getImageMeta);
 }
 
-async function updateToLatest(device: zh.Device, logger: Logger, onProgress: ota.OnProgress) {
+async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
     return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta);
 }
 
-module.exports = {
-    isUpdateAvailable,
-    updateToLatest,
-    useTestURL: () => {
-        useTestURL = true;
-    },
+exports.isUpdateAvailable = isUpdateAvailable;
+exports.updateToLatest = updateToLatest;
+exports.useTestURL = () => {
+    useTestURL = true;
 };

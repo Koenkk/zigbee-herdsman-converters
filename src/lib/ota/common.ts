@@ -1,12 +1,12 @@
 import crypto from 'crypto';
-const upgradeFileIdentifier = Buffer.from([0x1E, 0xF1, 0xEE, 0x0B]);
 import {HttpsProxyAgent} from 'https-proxy-agent';
+import {Zh, Ota, Logger, KeyValueAny, KeyValue, KeyValueNumberString} from '../types';
 import assert from 'assert';
 import crc32 from 'buffer-crc32';
 import axios from 'axios';
 const maxTimeout = 2147483647; // +- 24 days
 const imageBlockResponseDelay = 250;
-const endRequestCodeLookup = {
+const endRequestCodeLookup: KeyValueNumberString = {
     0x00: 'success',
     0x95: 'aborted by device',
     0x7E: 'not authorized',
@@ -17,6 +17,15 @@ const endRequestCodeLookup = {
     0x81: 'unsupported cluster command',
     0x99: 'requires more image files',
 };
+export const upgradeFileIdentifier = Buffer.from([0x1E, 0xF1, 0xEE, 0x0B]);
+
+interface Request {cancel: () => void, promise: Promise<{header: KeyValue, payload: KeyValue}>}
+interface Waiters {imageBlockOrPageRequest?: Request, nextImageRequest?: Request, upgradeEndRequest?: Request}
+type IsNewImageAvailable = (current: Ota.ImageInfo, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta) =>
+    Promise<{available: number, currentFileVersion: number, otaFileVersion: number}>
+type DownloadImage = (meta: Ota.ImageMeta, logger: Logger) => Promise<{data: Buffer}>;
+type GetNewImage = (current: Ota.Version, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta, downloadImage: DownloadImage)
+    => Promise<Ota.Image>;
 
 const validSilabsCrc = 0x2144DF1C;
 
@@ -29,19 +38,19 @@ const eblImageSignature = 0xe350;
 const gblTagHeader = 0xeb17a603;
 const gblTagEnd = 0xfc0404fc;
 
-function getOTAEndpoint(device: zh.Device) {
+function getOTAEndpoint(device: Zh.Device) {
     return device.endpoints.find((e) => e.supportsOutputCluster('genOta'));
 }
 
-function parseSubElement(buffer: Buffer, position: number): ota.ImageElement {
+function parseSubElement(buffer: Buffer, position: number): Ota.ImageElement {
     const tagID = buffer.readUInt16LE(position);
     const length = buffer.readUInt32LE(position + 2);
     const data = buffer.slice(position + 6, position + 6 + length);
     return {tagID, length, data};
 }
 
-function parseImage(buffer: Buffer): ota.Image {
-    const header: ota.ImageHeader = {
+export function parseImage(buffer: Buffer): Ota.Image {
+    const header: Ota.ImageHeader = {
         otaUpgradeFileIdentifier: buffer.subarray(0, 4),
         otaHeaderVersion: buffer.readUInt16LE(4),
         otaHeaderLength: buffer.readUInt16LE(6),
@@ -85,7 +94,7 @@ function parseImage(buffer: Buffer): ota.Image {
     return {header, elements, raw};
 }
 
-function validateImageData(image: ota.Image) {
+function validateImageData(image: Ota.Image) {
     for (const element of image.elements) {
         const {data} = element;
 
@@ -155,7 +164,7 @@ function validateSilabsGbl(data: Buffer) {
     throw new Error(`Image is truncated: not long enough to contain a valid tag`);
 }
 
-function cancelWaiters(waiters: KeyValueAny) {
+function cancelWaiters(waiters: Waiters) {
     for (const waiter of Object.values(waiters)) {
         if (waiter) {
             waiter.cancel();
@@ -163,7 +172,7 @@ function cancelWaiters(waiters: KeyValueAny) {
     }
 }
 
-function sendQueryNextImageResponse(endpoint: zh.Endpoint, image: ota.Image, logger: Logger) {
+function sendQueryNextImageResponse(endpoint: Zh.Endpoint, image: Ota.Image, logger: Logger) {
     const payload = {
         status: 0,
         manufacturerCode: image.header.manufacturerCode,
@@ -177,15 +186,16 @@ function sendQueryNextImageResponse(endpoint: zh.Endpoint, image: ota.Image, log
     });
 }
 
-function imageNotify(endpoint: zh.Endpoint) {
+function imageNotify(endpoint: Zh.Endpoint) {
     return endpoint.commandResponse('genOta', 'imageNotify', {payloadType: 0, queryJitter: 100}, {sendWhen: 'immediate'});
 }
 
-async function requestOTA(endpoint: zh.Endpoint) {
+async function requestOTA(endpoint: Zh.Endpoint): Promise<{payload: Ota.ImageInfo}> {
     // Some devices (e.g. Insta) take very long trying to discover the correct coordinator EP for OTA.
     const queryNextImageRequest = endpoint.waitForCommand('genOta', 'queryNextImageRequest', null, 60000);
     try {
         await imageNotify(endpoint);
+        // @ts-expect-error
         return await queryNextImageRequest.promise;
     } catch (e) {
         queryNextImageRequest.cancel();
@@ -193,7 +203,7 @@ async function requestOTA(endpoint: zh.Endpoint) {
     }
 }
 
-function getImageBlockResponsePayload(image: ota.Image, imageBlockRequest: KeyValueAny, pageOffset: number, pageSize: number) {
+function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: KeyValueAny, pageOffset: number, pageSize: number) {
     const start = imageBlockRequest.payload.fileOffset + pageOffset;
     // When the data size is too big, OTA gets unstable, so default it to 50 bytes maximum.
     // For Insta devices, OTA only works for data sizes 40 and smaller (= manufacturerCode 4474).
@@ -219,7 +229,7 @@ function getImageBlockResponsePayload(image: ota.Image, imageBlockRequest: KeyVa
 }
 
 function callOnProgress(startTime: number, lastUpdate: number, imageBlockRequest: KeyValueAny,
-    image: ota.Image, logger: Logger, onProgress: ota.OnProgress) {
+    image: Ota.Image, logger: Logger, onProgress: Ota.OnProgress) {
     const now = Date.now();
 
     // Call on progress every +- 30 seconds
@@ -237,7 +247,8 @@ function callOnProgress(startTime: number, lastUpdate: number, imageBlockRequest
     }
 }
 
-async function isUpdateAvailable(device: zh.Device, logger: Logger, isNewImageAvailable, requestPayload: KeyValue, getImageMeta = null) {
+export async function isUpdateAvailable(device: Zh.Device, logger: Logger, isNewImageAvailable: IsNewImageAvailable, requestPayload: Ota.ImageInfo,
+    getImageMeta: Ota.GetImageMeta = null) {
     logger.debug(`Check if update available for '${device.ieeeAddr}' (${device.modelID})`);
 
     if (requestPayload === null) {
@@ -258,7 +269,7 @@ async function isUpdateAvailable(device: zh.Device, logger: Logger, isNewImageAv
     return {...availableResult, available: availableResult.available < 0};
 }
 
-async function isNewImageAvailable(current: ota.Version, logger: Logger, device: zh.Device, getImageMeta) {
+export async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta) {
     const meta = await getImageMeta(current, logger, device);
     const [currentS, metaS] = [JSON.stringify(current), JSON.stringify(meta)];
     logger.debug(`Is new image available for '${device.ieeeAddr}', current '${currentS}', latest meta '${metaS}'`);
@@ -271,7 +282,8 @@ async function isNewImageAvailable(current: ota.Version, logger: Logger, device:
     };
 }
 
-async function updateToLatest(device: zh.Device, logger: Logger, onProgress, getNewImage, getImageMeta: ota.GetImageMeta = null, downloadImage = null) {
+export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress, getNewImage: GetNewImage,
+    getImageMeta: Ota.GetImageMeta = null, downloadImage: DownloadImage = null): Promise<number> {
     logger.debug(`Updating to latest '${device.ieeeAddr}' (${device.modelID})`);
 
     const endpoint = getOTAEndpoint(device);
@@ -284,9 +296,9 @@ async function updateToLatest(device: zh.Device, logger: Logger, onProgress, get
     const image = await getNewImage(request.payload, logger, device, getImageMeta, downloadImage);
     logger.debug(`Got new image for '${device.ieeeAddr}'`);
 
-    const waiters = {};
-    let lastUpdate = null;
-    let lastImageBlockResponse = null;
+    const waiters: Waiters = {};
+    let lastUpdate: number = null;
+    let lastImageBlockResponse: number = null;
     const startTime = Date.now();
 
     return new Promise((resolve, reject) => {
@@ -306,7 +318,7 @@ async function updateToLatest(device: zh.Device, logger: Logger, onProgress, get
                     let pageOffset = 0;
                     let pageSize = 0;
 
-                    const sendImageBlockResponse = (imageBlockRequest, thenCallback, transactionSequenceNumber) => {
+                    const sendImageBlockResponse = (imageBlockRequest: KeyValueAny, thenCallback: () => void, transactionSequenceNumber: number) => {
                         const payload = getImageBlockResponsePayload(image, imageBlockRequest, pageOffset, pageSize);
                         const now = Date.now();
                         const timeSinceLastImageBlockResponse = now - lastImageBlockResponse;
@@ -337,11 +349,11 @@ async function updateToLatest(device: zh.Device, logger: Logger, onProgress, get
 
                     if ('pageSize' in imageBlockOrPageRequest.payload) {
                         // imagePageRequest
-                        pageSize = imageBlockOrPageRequest.payload.pageSize;
-                        const handleImagePageRequestBlocks = (imagePageRequest) => {
+                        pageSize = imageBlockOrPageRequest.payload.pageSize as number;
+                        const handleImagePageRequestBlocks = (imagePageRequest: KeyValueAny) => {
                             if (pageOffset < pageSize) {
                                 sendImageBlockResponse(imagePageRequest,
-                                    () => handleImagePageRequestBlocks(imagePageRequest));
+                                    () => handleImagePageRequestBlocks(imagePageRequest), imagePageRequest.header.transactionSequenceNumber);
                             } else {
                                 answerNextImageBlockOrPageRequest();
                             }
@@ -350,6 +362,7 @@ async function updateToLatest(device: zh.Device, logger: Logger, onProgress, get
                     } else {
                         // imageBlockRequest
                         sendImageBlockResponse(imageBlockOrPageRequest, answerNextImageBlockOrPageRequest,
+                            // @ts-expect-error
                             imageBlockOrPageRequest.header.transactionSequenceNumber);
                     }
                 },
@@ -386,7 +399,7 @@ async function updateToLatest(device: zh.Device, logger: Logger, onProgress, get
                         logger.debug(`Update succeeded, waiting for device announce`);
                         onProgress(100, null);
 
-                        let timer = null;
+                        let timer: NodeJS.Timer = null;
                         const cb = () => {
                             logger.debug('Got device announce or timed out, call resolve');
                             clearInterval(timer);
@@ -403,6 +416,7 @@ async function updateToLatest(device: zh.Device, logger: Logger, onProgress, get
                     },
                 );
             } else {
+                // @ts-expect-error
                 const error = `Update failed with reason: '${endRequestCodeLookup[data.payload.status]}'`;
                 logger.debug(error);
                 reject(new Error(error));
@@ -418,7 +432,8 @@ async function updateToLatest(device: zh.Device, logger: Logger, onProgress, get
     });
 }
 
-async function getNewImage(current: ota.Version, logger: Logger, device: zh.Device, getImageMeta: ota.GetImageMeta, downloadImage) {
+export async function getNewImage(current: Ota.ImageInfo, logger: Logger, device: Zh.Device,
+    getImageMeta: Ota.GetImageMeta, downloadImage: DownloadImage): Promise<Ota.Image> {
     const meta = await getImageMeta(current, logger, device);
     logger.debug(`getNewImage for '${device.ieeeAddr}', meta ${JSON.stringify(meta)}`);
     assert(meta.fileVersion > current.fileVersion || meta.force, 'No new image available');
@@ -449,7 +464,7 @@ async function getNewImage(current: ota.Version, logger: Logger, device: zh.Devi
     return image;
 }
 
-function getAxios() {
+export function getAxios() {
     let config = {};
     const proxy = process.env.HTTPS_PROXY;
     if (proxy) {
@@ -465,13 +480,11 @@ function getAxios() {
     return axios.create(config);
 }
 
-module.exports = {
-    upgradeFileIdentifier,
-    isUpdateAvailable,
-    parseImage,
-    validateImageData,
-    isNewImageAvailable,
-    updateToLatest,
-    getNewImage,
-    getAxios,
-};
+exports.upgradeFileIdentifier = upgradeFileIdentifier;
+exports.isUpdateAvailable = isUpdateAvailable;
+exports.parseImage = parseImage;
+exports.validateImageData = validateImageData;
+exports.isNewImageAvailable = isNewImageAvailable;
+exports.updateToLatest = updateToLatest;
+exports.getNewImage = getNewImage;
+exports.getAxios = getAxios;

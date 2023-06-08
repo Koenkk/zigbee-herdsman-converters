@@ -18,7 +18,7 @@ export interface Logger {
 export type Range = [number, number];
 export interface KeyValue {[s: string]: unknown}
 export interface KeyValueString {[s: string]: string}
-export interface KeyValueNumberString {[s: string]: string}
+export interface KeyValueNumberString {[s: number]: string}
 // eslint-disable-next-line
 export interface KeyValueAny {[s: string]: any}
 export type Publish = (payload: KeyValue) => void;
@@ -89,10 +89,8 @@ export type Definition = {
     meta?: DefinitionMeta,
     onEvent?: OnEvent,
     ota?: {
-        isUpdateAvailable: (device: Zh.Device, logger: Logger, data?: KeyValue)
-            => Promise<OtaUpdateAvailableResult>;
-        updateToLatest: (device: Zh.Device, logger: Logger,
-            onProgress: (progress: number, remaining: number) => void) => Promise<number>;
+        isUpdateAvailable: (device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo) => Promise<OtaUpdateAvailableResult>;
+        updateToLatest: (device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) => Promise<number>;
     }
 } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
     & ({ extend: Extend } |
@@ -174,4 +172,51 @@ export namespace Extend {
         disableMoveStep?: boolean, disableTransition?: boolean, noConfigure?: boolean, disableColorTempStartup?: boolean, colorTempRange?: Range,
         preferHueAndSaturation?: boolean, supportsHueAndSaturation?: boolean,
     }
+}
+
+export namespace Ota {
+    export type OnProgress = (progress: number, remaining: number) => void;
+    export interface Version {imageType: number, manufacturerCode: number, fileVersion: number}
+    export interface ImageHeader {
+        otaUpgradeFileIdentifier: Buffer,
+        otaHeaderVersion: number,
+        otaHeaderLength: number,
+        otaHeaderFieldControl: number,
+        manufacturerCode: number,
+        imageType: number,
+        fileVersion: number,
+        zigbeeStackVersion: number,
+        otaHeaderString: string,
+        totalImageSize: number,
+        securityCredentialVersion?: number,
+        upgradeFileDestination?: Buffer
+        minimumHardwareVersion?: number,
+        maximumHardwareVersion?: number,
+    }
+    export interface ImageElement {
+        tagID: number,
+        length: number,
+        data: Buffer,
+    }
+    export interface Image {
+        header: ImageHeader,
+        elements: ImageElement[],
+        raw: Buffer,
+    }
+    export interface ImageInfo {
+        imageType: number,
+        fileVersion: number,
+        manufacturerCode: number,
+    }
+    export interface ImageMeta {
+        fileVersion: number;
+        fileSize?: number;
+        url: string;
+        sha256?: string;
+        force?: boolean;
+        sha512?: string;
+        hardwareVersionMin?: number,
+        hardwareVersionMax?: number,
+    }
+    export type GetImageMeta = (current: ImageInfo, logger: Logger, device: Zh.Device) => Promise<ImageMeta>;
 }

@@ -1,10 +1,11 @@
 import * as common from './common';
+import {Zh, Logger, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
 /*
  * Helper functions
  */
 
-export async function getImageMeta(current: ota.Version, logger: Logger, device: zh.Device) {
+export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
     const images = (await axios.get('https://files.inovelli.com/firmware/firmware.json')).data;
 
     if (Object.keys(images).indexOf(device.modelID) === -1) {
@@ -14,7 +15,7 @@ export async function getImageMeta(current: ota.Version, logger: Logger, device:
     // Force for now.  There is only beta firmware at the moment.
     const useBetaChannel = true;
     const image = images[device.modelID]
-        .filter((i: KeyValue) => (useBetaChannel ? true : i.channel === 'production'))
+        .filter((i: KeyValueAny) => (useBetaChannel ? true : i.channel === 'production'))
         .sort((a: KeyValueAny, b: KeyValueAny) => {
             const aRadix = a.version.match(/[A-F]/) ? 16 : 10;
             const bRadix = b.version.match(/[A-F]/) ? 16 : 10;
@@ -49,7 +50,7 @@ export async function getImageMeta(current: ota.Version, logger: Logger, device:
  * Interface implementation
  */
 
-async function isUpdateAvailable(device: zh.Device, logger: Logger, requestPayload:KeyValue=null) {
+export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
     return common.isUpdateAvailable(
         device,
         logger,
@@ -59,7 +60,7 @@ async function isUpdateAvailable(device: zh.Device, logger: Logger, requestPaylo
     );
 }
 
-async function updateToLatest(device: zh.Device, logger: Logger, onProgress: ota.OnProgress) {
+export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
     return common.updateToLatest(
         device,
         logger,
@@ -69,7 +70,5 @@ async function updateToLatest(device: zh.Device, logger: Logger, onProgress: ota
     );
 }
 
-module.exports = {
-    isUpdateAvailable,
-    updateToLatest,
-};
+exports.isUpdateAvailable = isUpdateAvailable;
+exports.updateToLatest = updateToLatest;

@@ -1,5 +1,6 @@
 const url = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.json';
-import common from './common';
+import * as common from './common';
+import {Logger, Zh, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
 import fs from 'fs';
 import URI from 'uri-js';
@@ -94,7 +95,7 @@ async function getIndex(logger: Logger) {
     return index;
 }
 
-export async function getImageMeta(current: ota.Version, logger: Logger, device: zh.Device) {
+export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
     const modelId = device.modelID;
     const imageType = current.imageType;
     const manufacturerCode = current.manufacturerCode;
@@ -122,8 +123,7 @@ export async function getImageMeta(current: ota.Version, logger: Logger, device:
     };
 }
 
-async function isNewImageAvailable(current: ota.Version, logger: Logger, device: zh.Device,
-    getImageMeta: (current: ota.Version, logger: Logger, device: zh.Device) => KeyValue) {
+async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta) {
     if (device.modelID === 'lumi.airrtc.agl001') {
         // The current.fileVersion which comes from the device is wrong.
         // Use the `aqaraFileVersion` which comes from the aqaraOpple.attributeReport instead.
@@ -141,22 +141,20 @@ async function isNewImageAvailable(current: ota.Version, logger: Logger, device:
  * Interface implementation
  */
 
-async function isUpdateAvailable(device: zh.Device, logger: Logger, requestPayload:KeyValue=null) {
+export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
     return common.isUpdateAvailable(device, logger, isNewImageAvailable, requestPayload, getImageMeta);
 }
 
-async function updateToLatest(device: zh.Device, logger: Logger, onProgress: ota.OnProgress) {
+export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
     return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
 }
 
-module.exports = {
-    getImageMeta,
-    isUpdateAvailable,
-    updateToLatest,
-    useIndexOverride: (indexFileName: string) => {
-        overrideIndexFileName = indexFileName;
-    },
-    setDataDir: (dir: string) => {
-        dataDir = dir;
-    },
+exports.getImageMeta = getImageMeta;
+exports.isUpdateAvailable = isUpdateAvailable;
+exports.updateToLatest = updateToLatest;
+exports.useIndexOverride = (indexFileName: string) => {
+    overrideIndexFileName = indexFileName;
+},
+exports.setDataDir = (dir: string) => {
+    dataDir = dir;
 };

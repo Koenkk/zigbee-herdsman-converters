@@ -1,7 +1,8 @@
-import common from './common';
+import {Zh, Logger, Ota} from '../types';
+import * as common from './common';
 import * as zigbeeOTA from './zigbeeOTA';
 
-async function isUpdateAvailable(device: zh.Device, logger: Logger, requestPayload:KeyValue=null) {
+export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
     if (device.modelID === 'PP-WHT-US') {
         // see https://github.com/Koenkk/zigbee-OTA/pull/14
         const scenesEndpoint = device.endpoints.find((e) => e.supportsOutputCluster('genScenes'));
@@ -10,7 +11,7 @@ async function isUpdateAvailable(device: zh.Device, logger: Logger, requestPaylo
     return common.isUpdateAvailable(device, logger, common.isNewImageAvailable, requestPayload, zigbeeOTA.getImageMeta);
 }
 
-async function updateToLatest(device: zh.Device, logger: Logger, onProgress: ota.OnProgress) {
+export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
     if (device.modelID === 'PP-WHT-US') {
         // see https://github.com/Koenkk/zigbee-OTA/pull/14
         const scenesEndpoint = device.endpoints.find((e) => e.supportsOutputCluster('genScenes'));
@@ -19,7 +20,5 @@ async function updateToLatest(device: zh.Device, logger: Logger, onProgress: ota
     return common.updateToLatest(device, logger, onProgress, common.getNewImage, zigbeeOTA.getImageMeta);
 }
 
-module.exports = {
-    isUpdateAvailable,
-    updateToLatest,
-};
+exports.isUpdateAvailable = isUpdateAvailable;
+exports.updateToLatest = updateToLatest;
