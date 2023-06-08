@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 import * as tuya from '../lib/tuya';
 
 const definitions: Definition[] = [

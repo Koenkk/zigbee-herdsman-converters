@@ -1,3 +1,4 @@
+import {Configure, Definition, Fz, OnEvent, Tz, Zh} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -18,7 +19,7 @@ const tzLocal = {
             await endpoint.command('genOnOff', state, {});
             return {state: {backlight_led: state.toUpperCase()}};
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     backlight_brightness: {
         key: ['brightness'],
         options: [exposes.options.transition()],
@@ -29,10 +30,10 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', ['currentLevel']);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
 };
 
-const disableBatteryRotaryDimmerReporting = async (endpoint: zh.Endpoint) => {
+const disableBatteryRotaryDimmerReporting = async (endpoint: Zh.Endpoint) => {
     // The default is for the device to also report the on/off and
     // brightness at the same time as sending on/off and step commands.
     // Disable the reporting by setting the max interval to 0xFFFF.
@@ -41,8 +42,8 @@ const disableBatteryRotaryDimmerReporting = async (endpoint: zh.Endpoint) => {
 };
 
 const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
-    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature] as fz.Converter[],
-    toZigbee: [] as tz.Converter[],
+    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature] as Fz.Converter[],
+    toZigbee: [] as Tz.Converter[],
     exposes: [e.battery(), e.action([
         'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
     configure: (async (device, coordinatorEndpoint, logger) => {

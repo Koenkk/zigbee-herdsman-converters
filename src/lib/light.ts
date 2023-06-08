@@ -1,14 +1,15 @@
+import {Zh, Tz, Logger} from './types';
 import * as utils from './utils';
 
-async function readColorCapabilities(endpoint: zh.Endpoint) {
+async function readColorCapabilities(endpoint: Zh.Endpoint) {
     await endpoint.read('lightingColorCtrl', ['colorCapabilities']);
 }
 
-async function readColorTempMinMax(endpoint: zh.Endpoint) {
+async function readColorTempMinMax(endpoint: Zh.Endpoint) {
     await endpoint.read('lightingColorCtrl', ['colorTempPhysicalMin', 'colorTempPhysicalMax']);
 }
 
-function readColorAttributes(entity: zh.Endpoint | zh.Group, meta: tz.Meta, additionalAttributes: string[]=[]) {
+function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta, additionalAttributes: string[]=[]) {
     /**
       * Not all bulbs support the same features, we need to take care we read what is supported.
       * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation
@@ -44,7 +45,7 @@ function readColorAttributes(entity: zh.Endpoint | zh.Group, meta: tz.Meta, addi
     return [...attributes, ...additionalAttributes];
 }
 
-export function findColorTempRange(entity: zh.Endpoint | zh.Group, logger: Logger) {
+export function findColorTempRange(entity: Zh.Endpoint | Zh.Group, logger: Logger) {
     let colorTempMin;
     let colorTempMax;
     if (utils.isGroup(entity)) {
@@ -82,7 +83,7 @@ export function clampColorTemp(colorTemp: number, colorTempMin: number, colorTem
     }
     return colorTemp;
 }
-export async function configure(device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger, readColorTempMinMaxAttribute: boolean) {
+export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger, readColorTempMinMaxAttribute: boolean) {
     if (device.powerSource === 'Unknown') {
         device.powerSource = 'Mains (single phase)';
         device.save();
@@ -99,11 +100,9 @@ export async function configure(device: zh.Device, coordinatorEndpoint: zh.Endpo
     }
 }
 
-module.exports = {
-    readColorCapabilities,
-    readColorTempMinMax,
-    readColorAttributes,
-    findColorTempRange,
-    clampColorTemp,
-    configure,
-};
+exports.readColorCapabilities = readColorCapabilities;
+exports.readColorTempMinMax = readColorTempMinMax;
+exports.readColorAttributes = readColorAttributes;
+exports.findColorTempRange = findColorTempRange;
+exports.clampColorTemp = clampColorTemp;
+exports.configure = configure;

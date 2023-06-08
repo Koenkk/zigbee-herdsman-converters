@@ -1,3 +1,5 @@
+import {Definition} from './types';
+
 const lookup: {[s: string]: number} = {};
 
 function hashCode(str: string) {
@@ -937,6 +939,4 @@ const legacyKeys: {[s: string]: number} = {
     'rgbw2.zbee27_88764544': 2,
 };
 
-module.exports = {
-    getConfigureKey,
-};
+exports.getConfigureKey = getConfigureKey;

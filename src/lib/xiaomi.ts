@@ -11,6 +11,7 @@ import {
 
 import * as exposes from './exposes';
 import * as globalStore from './store';
+import {Fz, Definition, KeyValue, KeyValueAny} from './types';
 
 declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -25,7 +26,7 @@ export interface TrvScheduleConfig {
 }
 
 
-const buffer2DataObject = (meta: fz.Meta, model: Definition, buffer: Buffer) => {
+const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buffer) => {
     const dataObject: KeyValue = {};
 
     if (buffer !== null && Buffer.isBuffer(buffer)) {
@@ -156,7 +157,7 @@ const buffer2DataObject = (meta: fz.Meta, model: Definition, buffer: Buffer) => 
     return dataObject;
 };
 
-const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: Definition, options: KeyValue, dataObject: KeyValue) => {
+const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, model: Definition, options: KeyValue, dataObject: KeyValue) => {
     let payload: KeyValue = {};
 
     for (const [key, value] of Object.entries(dataObject)) {
@@ -189,7 +190,9 @@ const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: 
             }
             break;
         case '4':
-            payload.mode_switch = getFromLookup(value, {4: 'anti_flicker_mode', 1: 'quick_mode'});
+            if (['WS-USC01', 'WS-USC02', 'WS-EUK01', 'WS-EUK02', 'QBKG29LM', 'QBKG25LM', 'QBKG38LM', 'QBKG39LM'].includes(model.model)) {
+                payload.mode_switch = getFromLookup(value, {4: 'anti_flicker_mode', 1: 'quick_mode'});
+            }
             break;
         case '5':
             assertNumber(value);
@@ -206,9 +209,7 @@ const numericAttributes2Payload = async (msg: fz.Message, meta: fz.Meta, model: 
             }
             break;
         case '10':
-            if (['ZNLDP13LM', 'CTP-R01'].includes(model.model)) {
-                // We don't know what the value means for these devices.
-            } else {
+            if (['SSM-U01', 'DLKZMK11LM', 'SSM-U02', 'DLKZMK12LM'].includes(model.model)) {
                 payload.switch_type = getFromLookup(value, {1: 'toggle', 2: 'momentary'});
             }
             break;
@@ -1098,7 +1099,7 @@ const trv = {
         };
     },
 
-    decodeHeartbeat(meta: fz.Meta, model: Definition, messageBuffer: Buffer) {
+    decodeHeartbeat(meta: Fz.Meta, model: Definition, messageBuffer: Buffer) {
         const data = buffer2DataObject(meta, model, messageBuffer);
         const payload: KeyValue = {};
 
@@ -1309,12 +1310,10 @@ const trv = {
     },
 };
 
-module.exports = {
-    buffer2DataObject,
-    numericAttributes2Payload,
-    numericAttributes2Options,
-    VOCKQJK11LMDisplayUnit,
-    fp1,
-    manufacturerCode: 0x115f,
-    trv,
-};
+exports.buffer2DataObject = buffer2DataObject;
+exports.numericAttributes2Payload = numericAttributes2Payload;
+exports.numericAttributes2Options = numericAttributes2Options;
+exports.VOCKQJK11LMDisplayUnit = VOCKQJK11LMDisplayUnit;
+exports.fp1 = fp1;
+exports.trv = trv;
+exports.manufacturerCode = 0x115f;

@@ -1,3 +1,4 @@
+import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -31,7 +32,7 @@ const fzLocal = {
             }
             return fz.thermostat.convert(model, msg, publish, options, meta);
         },
-    } as fz.Converter,
+    } as Fz.Converter,
 };
 
 const definitions: Definition[] = [

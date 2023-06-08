@@ -7,6 +7,7 @@ import * as libColor from './color';
 import * as utils from './utils';
 import {Zcl} from 'zigbee-herdsman';
 import * as globalStore from './store';
+import {Extend, Fz, KeyValue, KeyValueAny, Tz} from './types';
 const ea = exposes.access;
 const e = exposes.presets;
 
@@ -49,7 +50,7 @@ const knownEffects = {
 };
 
 const extend = {
-    light_onoff_brightness: (options: extend.options_light_onoff_brightness & {disableHueEffects?: boolean}={}) => {
+    light_onoff_brightness: (options: Extend.options_light_onoff_brightness & {disableHueEffects?: boolean}={}) => {
         options = {disableHueEffects: false, ...options};
         if (!options.disableHueEffects) options.disableEffect = true;
         const result = {
@@ -65,7 +66,7 @@ const extend = {
         }
         return result;
     },
-    light_onoff_brightness_colortemp: (options: extend.options_light_onoff_brightness_colortemp & {disableHueEffects?: boolean}={}) => {
+    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp & {disableHueEffects?: boolean}={}) => {
         options = {disableHueEffects: false, ...options};
         if (!options.disableHueEffects) options.disableEffect = true;
         const result = {
@@ -81,7 +82,7 @@ const extend = {
         }
         return result;
     },
-    light_onoff_brightness_color: (options: extend.options_light_onoff_brightness_color & {disableHueEffects?: boolean}={}) => {
+    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color & {disableHueEffects?: boolean}={}) => {
         options = {disableHueEffects: false, ...options};
         if (!options.disableHueEffects) options.disableEffect = true;
         const result = {
@@ -100,7 +101,7 @@ const extend = {
         }
         return result;
     },
-    light_onoff_brightness_colortemp_color: (options: extend.options_light_onoff_brightness_colortemp_color & {disableHueEffects?: boolean}={}) => {
+    light_onoff_brightness_colortemp_color: (options: Extend.options_light_onoff_brightness_colortemp_color & {disableHueEffects?: boolean}={}) => {
         options = {disableHueEffects: false, ...options};
         if (!options.disableHueEffects) options.disableEffect = true;
         const result = {
@@ -119,7 +120,7 @@ const extend = {
         }
         return result;
     },
-    light_onoff_brightness_colortemp_color_gradient: (options: extend.options_light_onoff_brightness_colortemp_color &
+    light_onoff_brightness_colortemp_color_gradient: (options: Extend.options_light_onoff_brightness_colortemp_color &
             {disableHueEffects?: boolean, extraEffects?: string[]}={}) => {
         options = {supportsHueAndSaturation: true, disableEffect: true, extraEffects: [], ...options};
         const result = {
@@ -166,7 +167,7 @@ const philipsTz = {
             const payload = {data: Buffer.from(scene, 'hex')};
             await entity.command('manuSpecificPhilips2', 'multiColor', payload);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     gradient: (opts = {reverse: false}) => {
         return {
             key: ['gradient'],
@@ -179,7 +180,7 @@ const philipsTz = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificPhilips2', ['state']);
             },
-        } as tz.Converter;
+        } as Tz.Converter;
     },
     effect: {
         key: ['effect'],
@@ -191,7 +192,7 @@ const philipsTz = {
                 return await tz.effect.convertSet(entity, key, value, meta);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     hue_power_on_behavior: {
         key: ['hue_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -278,7 +279,7 @@ const philipsTz = {
 
             return {state: {hue_power_on_behavior: value}};
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     hue_power_on_error: {
         key: ['hue_power_on_brightness', 'hue_power_on_color_temperature', 'hue_power_on_color'],
         convertSet: async (entity, key, value, meta) => {
@@ -286,7 +287,7 @@ const philipsTz = {
                 throw new Error(`Provide a value for 'hue_power_on_behavior'`);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     hue_motion_sensitivity: {
         // motion detect sensitivity, philips specific
         key: ['motion_sensitivity'],
@@ -300,7 +301,7 @@ const philipsTz = {
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', [48], manufacturerOptions);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     hue_motion_led_indication: {
         key: ['led_indication'],
         convertSet: async (entity, key, value, meta) => {
@@ -311,9 +312,9 @@ const philipsTz = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genBasic', [0x0033], manufacturerOptions);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
 };
-
+export {philipsTz as tz};
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.PHILIPS};
 
@@ -444,7 +445,7 @@ const philipsFz = {
             }
             return payload;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     gradient: (opts = {reverse: false}) => {
         return {
             cluster: 'manuSpecificPhilips2',
@@ -459,7 +460,7 @@ const philipsFz = {
                 }
                 return {};
             },
-        } as fz.Converter;
+        } as Fz.Converter;
     },
 };
 
@@ -668,12 +669,10 @@ function encodeGradientColors(value: string[], opts: KeyValueAny) {
     return scene;
 }
 
-module.exports = {
-    decodeGradientColors,
-    encodeGradientColors,
-    extend,
-    tz: philipsTz,
-    fz: philipsFz,
-    gradientScenes,
-    knownEffects,
-};
+exports.tz = philipsTz;
+exports.fz = philipsFz;
+exports.decodeGradientColors = decodeGradientColors;
+exports.encodeGradientColors = encodeGradientColors;
+exports.extend = extend;
+exports.gradientScenes = gradientScenes;
+exports.knownEffects = knownEffects;

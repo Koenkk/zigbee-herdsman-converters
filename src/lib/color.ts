@@ -1,6 +1,7 @@
 import kelvinToXyLookup from './kelvinToXy';
 import {precisionRound} from './utils';
 import {findColorTempRange, clampColorTemp} from './light';
+import {KeyValueAny, Tz, Zh, KeyValue, Logger} from './types';
 
 /**
  * Color represented in HSV space
@@ -507,7 +508,7 @@ class ColorHSV {
      * @param {Object} [meta.options.hue_correction] hue correction data
      * @return {number} corrected hue component of HSV color
      */
-    static correctHue(hue: number, meta: tz.Meta) {
+    static correctHue(hue: number, meta: Tz.Meta) {
         const {options} = meta;
         if (options.hasOwnProperty('hue_correction')) {
             // @ts-expect-error
@@ -522,7 +523,7 @@ class ColorHSV {
      * @param {Object} meta entity meta object
      * @return {ColorHSV} hue corrected color
      */
-    hueCorrected(meta: tz.Meta) {
+    hueCorrected(meta: Tz.Meta) {
         return new ColorHSV(ColorHSV.correctHue(this.hue, meta), this.saturation, this.brightness);
     }
 
@@ -531,7 +532,7 @@ class ColorHSV {
      * @param {Object} meta entity meta object
      * @return {ColorHSV} corrected color in HSV space
      */
-    colorCorrected(meta: tz.Meta) {
+    colorCorrected(meta: Tz.Meta) {
         return this.hueCorrected(meta);
     }
 }
@@ -666,7 +667,7 @@ export class Color {
  * @return {Object} state with color, color_temp, and color_mode set and syncronized from newState's attributes
  *                  (other attributes are not included make sure to merge yourself)
  */
-export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, endpoint: zh.Endpoint | zh.Group, options: KeyValue, logger: Logger) {
+export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, endpoint: Zh.Endpoint | Zh.Group, options: KeyValue, logger: Logger) {
     const colorTargets = [];
     const colorSync = (options && options.hasOwnProperty('color_sync')) ? options.color_sync : true;
     const result: KeyValueAny = {};
@@ -786,10 +787,8 @@ export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, end
     return result;
 }
 
-module.exports = {
-    ColorRGB,
-    ColorXY,
-    ColorHSV,
-    Color,
-    syncColorState,
-};
+exports.ColorRGB = ColorRGB;
+exports.ColorXY = ColorXY;
+exports.ColorHSV = ColorHSV;
+exports.Color = Color;
+exports.syncColorState = syncColorState;

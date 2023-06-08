@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import extend from '../lib/extend';
 

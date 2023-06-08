@@ -6,6 +6,7 @@ import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as globalStore from '../lib/store';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {

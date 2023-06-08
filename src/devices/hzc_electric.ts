@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as exposes from '../lib/exposes';

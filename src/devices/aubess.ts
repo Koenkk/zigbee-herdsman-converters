@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 import * as zosung from '../lib/zosung';
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;

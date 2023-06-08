@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 import * as tuya from '../lib/tuya';
 import * as reporting from '../lib/reporting';
 

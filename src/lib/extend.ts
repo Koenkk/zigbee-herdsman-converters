@@ -2,10 +2,11 @@ import * as exposes from './exposes';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as light from './light';
+import {Extend} from './types';
 const e = exposes.presets;
 
 const extend = {
-    switch: (options: extend.options_switch={}): Extend => {
+    switch: (options: Extend.options_switch={}): Extend => {
         options = {disablePowerOnBehavior: false, toZigbee: [], fromZigbee: [], exposes: [], ...options};
         const exposes = [e.switch(), ...options.exposes];
         const fromZigbee = [fz.on_off, fz.ignore_basic_report, ...options.fromZigbee];
@@ -17,7 +18,7 @@ const extend = {
         }
         return {exposes, fromZigbee, toZigbee};
     },
-    light_onoff_brightness: (options: extend.options_light_onoff_brightness={}): Extend => {
+    light_onoff_brightness: (options: Extend.options_light_onoff_brightness={}): Extend => {
         options = {
             disableEffect: false, disablePowerOnBehavior: false, disableMoveStep: false, disableTransition: false,
             toZigbee: [], fromZigbee: [], exposes: [], ...options,
@@ -44,7 +45,7 @@ const extend = {
 
         return result;
     },
-    light_onoff_brightness_colortemp: (options: extend.options_light_onoff_brightness_colortemp={}) => {
+    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp={}) => {
         options = {
             disableEffect: false, disableColorTempStartup: false, disablePowerOnBehavior: false,
             toZigbee: [], fromZigbee: [], exposes: [], ...options,
@@ -77,7 +78,7 @@ const extend = {
 
         return result;
     },
-    light_onoff_brightness_color: (options: extend.options_light_onoff_brightness_color={}) => {
+    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color={}) => {
         options = {
             disableEffect: false, supportsHueAndSaturation: false, preferHueAndSaturation: false, disablePowerOnBehavior: false,
             toZigbee: [], fromZigbee: [], exposes: [], ...options,
@@ -105,7 +106,7 @@ const extend = {
 
         return result;
     },
-    light_onoff_brightness_colortemp_color: (options: extend.options_light_onoff_brightness_colortemp_color={}) => {
+    light_onoff_brightness_colortemp_color: (options: Extend.options_light_onoff_brightness_colortemp_color={}) => {
         options = {
             disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
             disablePowerOnBehavior: false, toZigbee: [], fromZigbee: [], exposes: [], ...options,

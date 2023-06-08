@@ -1,5 +1,6 @@
 import * as globalStore from './store';
 import herdsman from 'zigbee-herdsman';
+import {Definition, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
 
 export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
@@ -65,7 +66,7 @@ export function mapNumberRange(value: number, fromLow: number, fromHigh: number,
 }
 
 const transactionStore: {[s: string]: number} = {};
-export function hasAlreadyProcessedMessage(msg: fz.Message, model: Definition, ID: number=null, key: string=null) {
+export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number=null, key: string=null) {
     if (model.meta && model.meta.publishDuplicateTransaction) return false;
     const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
     key = key || msg.device.ieeeAddr;
@@ -114,14 +115,14 @@ export function toPercentage(value: number, min: number, max: number, log=false)
     return Math.round(normalised * 100);
 }
 
-export function addActionGroup(payload: KeyValue, msg: fz.Message, definition: Definition) {
+export function addActionGroup(payload: KeyValue, msg: Fz.Message, definition: Definition) {
     const disableActionGroup = definition.meta && definition.meta.disableActionGroup;
     if (!disableActionGroup && msg.groupID) {
         payload.action_group = msg.groupID;
     }
 }
 
-export function postfixWithEndpointName(value: string, msg: fz.Message, definition: Definition, meta: fz.Meta) {
+export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
         meta.logger.warn(`No meta passed to postfixWithEndpointName, update your external converter!`);
@@ -141,7 +142,7 @@ export function postfixWithEndpointName(value: string, msg: fz.Message, definiti
     return value;
 }
 
-export function enforceEndpoint(entity: zh.Endpoint, key: string, meta: tz.Meta) {
+export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta) {
     const multiEndpointEnforce = getMetaValue(entity, meta.mapped, 'multiEndpointEnforce', 'allEqual', []);
     if (multiEndpointEnforce && multiEndpointEnforce.hasOwnProperty(key)) {
         // @ts-expect-error
@@ -213,7 +214,7 @@ export function batteryVoltageToPercentage(voltage: number, option: string | {mi
 
 // groupStrategy: allEqual: return only if all members in the groups have the same meta property value.
 //                first: return the first property
-export function getMetaValue<T>(entity: zh.Group | zh.Endpoint, definition: Definition | Definition[], key: string,
+export function getMetaValue<T>(entity: Zh.Group | Zh.Endpoint, definition: Definition | Definition[], key: string,
     groupStrategy='first', defaultValue: T=undefined): T {
     if (isGroup(entity) && entity.members.length > 0) {
         const values = [];
@@ -248,7 +249,7 @@ export function getMetaValue<T>(entity: zh.Group | zh.Endpoint, definition: Defi
     return defaultValue;
 }
 
-export function hasEndpoints(device: zh.Device, endpoints: number[]) {
+export function hasEndpoints(device: Zh.Device, endpoints: number[]) {
     const eps = device.endpoints.map((e) => e.ID);
     for (const endpoint of endpoints) {
         if (!eps.includes(endpoint)) {
@@ -323,7 +324,7 @@ export function toCamelCase(value: KeyValueAny | string) {
     }
 }
 
-export function saveSceneState(entity: zh.Endpoint, sceneID: number, groupID: number, state: KeyValue, name: string) {
+export function saveSceneState(entity: Zh.Endpoint, sceneID: number, groupID: number, state: KeyValue, name: string) {
     const attributes = ['state', 'brightness', 'color', 'color_temp', 'color_mode'];
     if (!entity.meta.hasOwnProperty('scenes')) entity.meta.scenes = {};
     const metaKey = `${sceneID}_${groupID}`;
@@ -331,7 +332,7 @@ export function saveSceneState(entity: zh.Endpoint, sceneID: number, groupID: nu
     entity.save();
 }
 
-export function deleteSceneState(entity: zh.Endpoint, sceneID: number=null, groupID: number=null) {
+export function deleteSceneState(entity: Zh.Endpoint, sceneID: number=null, groupID: number=null) {
     if (entity.meta.scenes) {
         if (sceneID == null && groupID == null) {
             entity.meta.scenes = {};
@@ -345,7 +346,7 @@ export function deleteSceneState(entity: zh.Endpoint, sceneID: number=null, grou
     }
 }
 
-export function getSceneState(entity: zh.Group | zh.Endpoint, sceneID: number, groupID: number) {
+export function getSceneState(entity: Zh.Group | Zh.Endpoint, sceneID: number, groupID: number) {
     const metaKey = `${sceneID}_${groupID}`;
     if (entity.meta.hasOwnProperty('scenes') && entity.meta.scenes.hasOwnProperty(metaKey)) {
         return entity.meta.scenes[metaKey].state;
@@ -354,7 +355,7 @@ export function getSceneState(entity: zh.Group | zh.Endpoint, sceneID: number, g
     return null;
 }
 
-export function getEntityOrFirstGroupMember(entity: zh.Group | zh.Endpoint) {
+export function getEntityOrFirstGroupMember(entity: Zh.Group | Zh.Endpoint) {
     if (isGroup(entity)) {
         return entity.members.length > 0 ? entity.members[0] : null;
     } else {
@@ -362,7 +363,7 @@ export function getEntityOrFirstGroupMember(entity: zh.Group | zh.Endpoint) {
     }
 }
 
-export function getTransition(entity: zh.Endpoint | zh.Group, key: string, meta: tz.Meta) {
+export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) {
     const {options, message} = meta;
 
     let manufacturerIDs: number[] = [];
@@ -395,12 +396,12 @@ export function getTransition(entity: zh.Endpoint | zh.Group, key: string, meta:
     }
 }
 
-export function getOptions(definition: Definition, entity: zh.Endpoint | zh.Group, options={}) {
+export function getOptions(definition: Definition, entity: Zh.Endpoint | Zh.Group, options={}) {
     const allowed = ['disableDefaultResponse', 'timeout'];
     return getMetaValues(definition, entity, allowed, options);
 }
 
-export function getMetaValues(definition: Definition, entity: zh.Endpoint | zh.Group, allowed?: string[], options={}) {
+export function getMetaValues(definition: Definition, entity: Zh.Endpoint | Zh.Group, allowed?: string[], options={}) {
     const result: KeyValue = {...options};
     if (definition && definition.meta) {
         for (const key of Object.keys(definition.meta)) {
@@ -431,7 +432,7 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
     return ((roundedFahrenheit - 32)/1.8).toFixed(2);
 }
 
-export function noOccupancySince(endpoint: zh.Endpoint, options: KeyValueAny, publish: Publish, action: 'start' | 'stop') {
+export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: 'start' | 'stop') {
     if (options && options.no_occupancy_since) {
         if (action == 'start') {
             globalStore.getValue(endpoint, 'no_occupancy_since_timers', []).forEach((t: NodeJS.Timer) => clearTimeout(t));
@@ -450,7 +451,7 @@ export function noOccupancySince(endpoint: zh.Endpoint, options: KeyValueAny, pu
     }
 }
 
-export function attachOutputCluster(device: zh.Device, clusterKey: string) {
+export function attachOutputCluster(device: Zh.Device, clusterKey: string) {
     const clusterId = herdsman.Zcl.Utils.getCluster(clusterKey).ID;
     const endpoint = device.getEndpoint(1);
 
@@ -512,64 +513,57 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
     return result;
 }
 
-export function assertEndpoint(obj: unknown): asserts obj is zh.Endpoint {
+export function assertEndpoint(obj: unknown): asserts obj is Zh.Endpoint {
     if (obj?.constructor?.name?.toLowerCase() !== 'endpoint') throw new Error('Not an endpoint');
 }
 
-export function isEndpoint(obj: zh.Endpoint | zh.Group | zh.Device): obj is zh.Endpoint {
+export function isEndpoint(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Endpoint {
     return obj.constructor.name.toLowerCase() === 'endpoint';
 }
 
-export function isDevice(obj: zh.Endpoint | zh.Group | zh.Device): obj is zh.Device {
+export function isDevice(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Device {
     return obj.constructor.name.toLowerCase() === 'device';
 }
 
-export function isGroup(obj: zh.Endpoint | zh.Group | zh.Device): obj is zh.Group {
+export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Group {
     return obj.constructor.name.toLowerCase() === 'group';
 }
 
-module.exports = {
-    noOccupancySince,
-    getOptions,
-    isLegacyEnabled,
-    precisionRound,
-    toLocalISOString,
-    numberWithinRange,
-    mapNumberRange,
-    hasAlreadyProcessedMessage,
-    calibrateAndPrecisionRoundOptions,
-    calibrateAndPrecisionRoundOptionsIsPercentual,
-    calibrateAndPrecisionRoundOptionsDefaultPrecision,
-    toPercentage,
-    addActionGroup,
-    postfixWithEndpointName,
-    enforceEndpoint,
-    getKey,
-    getObjectProperty,
-    batteryVoltageToPercentage,
-    getEntityOrFirstGroupMember,
-    getTransition,
-    getMetaValue,
-    validateValue,
-    hasEndpoints,
-    isInRange,
-    replaceInArray,
-    filterObject,
-    saveSceneState,
-    sleep,
-    toSnakeCase,
-    toCamelCase,
-    normalizeCelsiusVersionOfFahrenheit,
-    deleteSceneState,
-    getSceneState,
-    attachOutputCluster,
-    printNumberAsHex,
-    printNumbersAsHexSequence,
-    createLogger,
-    getFromLookup,
-    assertNumber,
-    assertString,
-    assertEndpoint,
-    isGroup,
-    isEndpoint,
-};
+exports.noOccupancySince = noOccupancySince;
+exports.getOptions = getOptions;
+exports.isLegacyEnabled = isLegacyEnabled;
+exports.precisionRound = precisionRound;
+exports.toLocalISOString = toLocalISOString;
+exports.numberWithinRange = numberWithinRange;
+exports.mapNumberRange = mapNumberRange;
+exports.hasAlreadyProcessedMessage = hasAlreadyProcessedMessage;
+exports.calibrateAndPrecisionRoundOptions = calibrateAndPrecisionRoundOptions;
+exports.calibrateAndPrecisionRoundOptionsIsPercentual = calibrateAndPrecisionRoundOptionsIsPercentual;
+exports.calibrateAndPrecisionRoundOptionsDefaultPrecision = calibrateAndPrecisionRoundOptionsDefaultPrecision;
+exports.toPercentage = toPercentage;
+exports.addActionGroup = addActionGroup;
+exports.postfixWithEndpointName = postfixWithEndpointName;
+exports.enforceEndpoint = enforceEndpoint;
+exports.getKey = getKey;
+exports.getObjectProperty = getObjectProperty;
+exports.batteryVoltageToPercentage = batteryVoltageToPercentage;
+exports.getEntityOrFirstGroupMember = getEntityOrFirstGroupMember;
+exports.getTransition = getTransition;
+exports.getMetaValue = getMetaValue;
+exports.validateValue = validateValue;
+exports.hasEndpoints = hasEndpoints;
+exports.isInRange = isInRange;
+exports.replaceInArray = replaceInArray;
+exports.filterObject = filterObject;
+exports.saveSceneState = saveSceneState;
+exports.sleep = sleep;
+exports.toSnakeCase = toSnakeCase;
+exports.toCamelCase = toCamelCase;
+exports.normalizeCelsiusVersionOfFahrenheit = normalizeCelsiusVersionOfFahrenheit;
+exports.deleteSceneState = deleteSceneState;
+exports.getSceneState = getSceneState;
+exports.attachOutputCluster = attachOutputCluster;
+exports.printNumberAsHex = printNumberAsHex;
+exports.printNumbersAsHexSequence = printNumbersAsHexSequence;
+exports.createLogger = createLogger;
+exports.getFromLookup = getFromLookup;

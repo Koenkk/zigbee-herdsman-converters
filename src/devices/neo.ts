@@ -4,6 +4,7 @@ import * as legacy from '../lib/legacy';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
+import {Definition} from '../lib/types';
 
 const definitions: Definition[] = [
     {

@@ -1,3 +1,4 @@
+import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
@@ -93,6 +94,7 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['SM323'],
         fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'Samotech'}, {modelID: 'HK_DIM_A', manufacturerName: 'Samotech'}],
         model: 'SM323',
         vendor: 'Samotech',

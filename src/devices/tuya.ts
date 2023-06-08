@@ -11,6 +11,7 @@ import * as globalStore from '../lib/store';
 import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueNumberString, KeyValueString} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -122,7 +123,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation', 'currentLevel', 'tuyaRgbMode', 'colorTemperature']);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS110E_options: {
         key: ['min_brightness', 'max_brightness', 'light_type', 'switch_type'],
         convertSet: async (entity, key, value, meta) => {
@@ -146,7 +147,7 @@ const tzLocal = {
             if (key === 'light_type' || key === 'switch_type') id = 64514;
             await entity.read('genLevelCtrl', [id]);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS110E_onoff_brightness: {
         key: ['state', 'brightness'],
         options: [],
@@ -170,7 +171,7 @@ const tzLocal = {
             if (key === 'state') await tz.on_off.convertGet(entity, key, meta);
             if (key === 'brightness') await entity.read('genLevelCtrl', [61440]);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS110E_light_onoff_brightness: {
         ...tz.light_onoff_brightness,
         convertSet: async (entity, key, value, meta) => {
@@ -182,7 +183,7 @@ const tzLocal = {
             }
             return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS0504B_color: {
         key: ['color'],
         convertSet: async (entity, key, value, meta) => {
@@ -207,7 +208,7 @@ const tzLocal = {
                 return await tz.light_color.convertSet(entity, key, value, meta);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS0224: {
         key: ['light', 'duration', 'volume'],
         convertSet: async (entity, key, value, meta) => {
@@ -226,7 +227,7 @@ const tzLocal = {
             }
             return {state: {[key]: value}};
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     temperature_unit: {
         key: ['temperature_unit'],
         convertSet: async (entity, key, value, meta) => {
@@ -240,7 +241,7 @@ const tzLocal = {
                 meta.logger.warn(`Unhandled key ${key}`);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
     TS011F_threshold: {
         key: [
             'temperature_threshold', 'temperature_breaker', 'power_threshold', 'power_breaker',
@@ -324,7 +325,7 @@ const tzLocal = {
                 meta.logger.warn(`Unhandled key ${key}`);
             }
         },
-    } as tz.Converter,
+    } as Tz.Converter,
 };
 
 const fzLocal = {
@@ -335,7 +336,7 @@ const fzLocal = {
             result.humidity *= 10;
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS110E: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -352,7 +353,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS110E_light_type: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -364,7 +365,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS110E_switch_type: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -377,7 +378,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     scenes_recall_scene_65029: {
         cluster: '65029',
         type: ['raw', 'attributeReport'],
@@ -385,7 +386,7 @@ const fzLocal = {
             const id = meta.device.modelID === '005f0c3b' ? msg.data[0] : msg.data[msg.data.length - 1];
             return {action: `scene_${id}`};
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS0201_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -394,7 +395,7 @@ const fzLocal = {
             if (msg.data.batteryPercentageRemaining == 200 && msg.data.batteryVoltage < 30) return;
             return fz.battery.convert(model, msg, publish, options, meta);
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS0201_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
@@ -403,7 +404,7 @@ const fzLocal = {
             }
             return fz.humidity.convert(model, msg, publish, options, meta);
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     humidity10: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -414,7 +415,7 @@ const fzLocal = {
                 return {humidity: utils.calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
             }
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     temperature_unit: {
         cluster: 'manuSpecificTuya_2',
         type: ['attributeReport', 'readResponse'],
@@ -425,7 +426,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
         convert: (model, msg, publish, options, meta) => {
@@ -451,7 +452,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as fz.Converter,
+    } as Fz.Converter,
     TS011F_threshold: {
         cluster: 'manuSpecificTuya_3',
         type: 'raw',
@@ -491,7 +492,7 @@ const fzLocal = {
                 };
             }
         },
-    } as fz.Converter,
+    } as Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -646,7 +647,7 @@ const definitions: Definition[] = [
         description: 'Smart air house keeper',
         fromZigbee: [legacy.fromZigbee.tuya_air_quality],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd().withUnit('Âµg/mÂ³'),
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd().withUnit('µg/m³'),
             e.pm25().withValueMin(0).withValueMax(999).withValueStep(1)],
     },
     {
@@ -872,7 +873,7 @@ const definitions: Definition[] = [
         extend: tuya.extend.light_onoff_brightness_color(),
         exposes: [e.light_brightness_color(false)
             .setAccess('color_xy', ea.STATE_SET).setAccess('color_hs', ea.STATE_SET)],
-        toZigbee: utils.replaceInArray<tz.Converter>(tuya.extend.light_onoff_brightness_color().toZigbee, [tz.light_color], [tzLocal.TS0504B_color]),
+        toZigbee: utils.replaceInArray<Tz.Converter>(tuya.extend.light_onoff_brightness_color().toZigbee, [tz.light_color], [tzLocal.TS0504B_color]),
         meta: {applyRedFix: true},
     },
     {
@@ -2099,6 +2100,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_xu4a5rhj'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_r0jdjrvi'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_nw1r9hp6'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_bjzrowv2'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'TuYa',
@@ -2122,6 +2124,7 @@ const definitions: Definition[] = [
             {vendor: 'Alutech', model: 'AM/R-Sm', description: 'Tubular motor'},
             tuya.whitelabel('Shenzhen Golden Security Technology', 'GM46', 'Curtain motor', ['_TZE204_guvc7pdy']),
             tuya.whitelabel('Zemismart', 'ZM85EL-2Z', 'Roman Rod I type U curtains track', ['_TZE200_cf1sl3tj', '_TZE200_nw1r9hp6']),
+            {vendor: 'Quoya', model: 'AT8510-TY'},
         ],
         fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.tuya_cover_control, legacy.toZigbee.tuya_cover_options],
@@ -2238,7 +2241,7 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature().withValueMin(16).withValueMax(70), e.min_temperature(), e.away_preset_temperature(),
-            e.composite('programming_mode', 'programming_mode', ea.STATE).withDescription('Schedule MODE â± - In this mode, ' +
+            e.composite('programming_mode', 'programming_mode', ea.STATE).withDescription('Schedule MODE ⏱ - In this mode, ' +
                     'the device executes a preset week programming temperature time and temperature.')
                 .withFeature(e.week())
                 .withFeature(e.text('workdays_schedule', ea.STATE_SET))
@@ -2582,9 +2585,9 @@ const definitions: Definition[] = [
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withPreset(['auto', 'manual', 'off', 'on'],
-                    'MANUAL MODE â - In this mode, the device executes manual temperature setting. ' +
+                    'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. ' +
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
-                'AUTO MODE â± - In this mode, the device executes a preset week programming temperature time and temperature. ' +
+                'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
                 'ON - In this mode, the thermostat stays open ' +
                 'OFF - In this mode, the thermostat stays closed')
                 .withSystemMode(['auto', 'heat', 'off'], ea.STATE)
@@ -2592,7 +2595,7 @@ const definitions: Definition[] = [
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
             e.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
-                'the device will enter the boost heating mode, and the â·âµâ will flash. The countdown will be displayed in the APP'),
+                'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
             e.numeric('boost_time', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(1000),
         ],
@@ -3865,19 +3868,22 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fromZigbee.hoch_din],
         toZigbee: [legacy.toZigbee.hoch_din],
         exposes: [
-            e.text('meter_number', ea.STATE),
-            e.binary('state', ea.STATE_SET, 'ON', 'OFF'),
-            e.text('alarm', ea.STATE),
-            e.binary('trip', ea.STATE_SET, 'trip', 'clear'),
-            e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF'),
-            e.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous']),
-            e.numeric('countdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s'),
-            e.numeric('voltage_rms', ea.STATE).withUnit('V'),
-            e.numeric('current', ea.STATE).withUnit('A'),
-            e.numeric('current_average', ea.STATE).withUnit('A'),
+            e.text('meter_number', ea.STATE).withDescription('Meter number'),
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('State'),
+            e.text('alarm', ea.STATE).withDescription('Alarm text'),
+            e.binary('trip', ea.STATE_SET, 'trip', 'clear').withDescription('Trip'),
+            e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child lock'),
+            e.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous']).withDescription('Power on behavior'),
+            e.numeric('countdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s').withDescription('Countdown timer'),
+            e.numeric('voltage_rms', ea.STATE).withUnit('V').withDescription('Voltage RMS'),
+            e.numeric('current', ea.STATE).withUnit('A').withDescription('Current'),
+            e.numeric('current_average', ea.STATE).withUnit('A').withDescription('Current average'),
             e.power(), e.voltage(), e.energy(), e.temperature(),
-            e.numeric('energy_consumed', ea.STATE).withUnit('kWh'),
-            e.enum('clear_device_data', ea.SET, ['']),
+            e.numeric('power_l1', ea.STATE).withUnit('W').withDescription('Instantaneous measured power on phase 1'),
+            e.numeric('power_l2', ea.STATE).withUnit('W').withDescription('Instantaneous measured power on phase 2'),
+            e.numeric('power_l3', ea.STATE).withUnit('W').withDescription('Instantaneous measured power on phase 3'),
+            e.numeric('energy_consumed', ea.STATE).withUnit('kWh').withDescription('Consumed energy'),
+            e.enum('clear_device_data', ea.SET, ['']).withDescription('Clear device data'),
         ],
     },
     {
