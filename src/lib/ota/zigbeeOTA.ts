@@ -149,12 +149,15 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
     return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
 }
 
+export const useIndexOverride = (indexFileName: string) => {
+    overrideIndexFileName = indexFileName;
+};
+export const setDataDir = (dir: string) => {
+    dataDir = dir;
+};
+
 exports.getImageMeta = getImageMeta;
 exports.isUpdateAvailable = isUpdateAvailable;
 exports.updateToLatest = updateToLatest;
-exports.useIndexOverride = (indexFileName: string) => {
-    overrideIndexFileName = indexFileName;
-},
-exports.setDataDir = (dir: string) => {
-    dataDir = dir;
-};
+exports.useIndexOverride = useIndexOverride;
+exports.setDataDir = setDataDir;
