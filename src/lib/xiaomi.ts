@@ -190,7 +190,9 @@ const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, model: 
             }
             break;
         case '4':
-            payload.mode_switch = getFromLookup(value, {4: 'anti_flicker_mode', 1: 'quick_mode'});
+            if (['WS-USC01', 'WS-USC02', 'WS-EUK01', 'WS-EUK02', 'QBKG29LM', 'QBKG25LM', 'QBKG38LM', 'QBKG39LM'].includes(model.model)) {
+                payload.mode_switch = getFromLookup(value, {4: 'anti_flicker_mode', 1: 'quick_mode'});
+            }
             break;
         case '5':
             assertNumber(value);
@@ -207,9 +209,7 @@ const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, model: 
             }
             break;
         case '10':
-            if (['ZNLDP13LM', 'CTP-R01'].includes(model.model)) {
-                // We don't know what the value means for these devices.
-            } else {
+            if (['SSM-U01', 'DLKZMK11LM', 'SSM-U02', 'DLKZMK12LM'].includes(model.model)) {
                 payload.switch_type = getFromLookup(value, {1: 'toggle', 2: 'momentary'});
             }
             break;
