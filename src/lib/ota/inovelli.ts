@@ -1,10 +1,11 @@
-const common = require('./common');
+import * as common from './common';
+import {Zh, Logger, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
 /*
  * Helper functions
  */
 
-async function getImageMeta(current, logger, device) {
+export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
     const images = (await axios.get('https://files.inovelli.com/firmware/firmware.json')).data;
 
     if (Object.keys(images).indexOf(device.modelID) === -1) {
@@ -14,11 +15,13 @@ async function getImageMeta(current, logger, device) {
     // Force for now.  There is only beta firmware at the moment.
     const useBetaChannel = true;
     const image = images[device.modelID]
-        .filter((i) => (useBetaChannel ? true : i.channel === 'production'))
-        .sort((a, b) => {
+        .filter((i: KeyValueAny) => (useBetaChannel ? true : i.channel === 'production'))
+        .sort((a: KeyValueAny, b: KeyValueAny) => {
             const aRadix = a.version.match(/[A-F]/) ? 16 : 10;
             const bRadix = b.version.match(/[A-F]/) ? 16 : 10;
+            // @ts-expect-error
             const aVersion = parseFloat(a.version, aRadix);
+            // @ts-expect-error
             const bVersion = parseFloat(b.version, bRadix);
             // doesn't matter which order they are in
             if (aVersion < bVersion) {
@@ -37,6 +40,7 @@ async function getImageMeta(current, logger, device) {
     }
     // version in the firmare removes the zero padding and support hex versioning
     return {
+        // @ts-expect-error
         fileVersion: parseFloat(image.version, image.version.match(/[A-F]/) ? 16 : 10),
         url: image.firmware,
     };
@@ -46,7 +50,7 @@ async function getImageMeta(current, logger, device) {
  * Interface implementation
  */
 
-async function isUpdateAvailable(device, logger, requestPayload = null) {
+export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
     return common.isUpdateAvailable(
         device,
         logger,
@@ -56,7 +60,7 @@ async function isUpdateAvailable(device, logger, requestPayload = null) {
     );
 }
 
-async function updateToLatest(device, logger, onProgress) {
+export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
     return common.updateToLatest(
         device,
         logger,
@@ -66,7 +70,5 @@ async function updateToLatest(device, logger, onProgress) {
     );
 }
 
-module.exports = {
-    isUpdateAvailable,
-    updateToLatest,
-};
+exports.isUpdateAvailable = isUpdateAvailable;
+exports.updateToLatest = updateToLatest;

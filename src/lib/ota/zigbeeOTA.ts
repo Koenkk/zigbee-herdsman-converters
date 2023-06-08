@@ -1,19 +1,20 @@
 const url = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.json';
-const common = require('./common');
+import * as common from './common';
+import {Logger, Zh, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
-const fs = require('fs');
-const URI = require('uri-js');
-const path = require('path');
+import fs from 'fs';
+import URI from 'uri-js';
+import path from 'path';
 
-let overrideIndexFileName = null;
-let dataDir = null;
+let overrideIndexFileName: string = null;
+let dataDir: string = null;
 
 /**
  * Helper functions
  */
 
 
-function isValidUrl(url) {
+function isValidUrl(url: string) {
     let parsed;
     try {
         parsed = URI.parse(url);
@@ -23,15 +24,15 @@ function isValidUrl(url) {
     return parsed.scheme === 'http' || parsed.scheme === 'https';
 }
 
-async function getIndexFile(urlOrName) {
+async function getIndexFile(urlOrName: string) {
     if (isValidUrl(urlOrName)) {
         return (await axios.get(urlOrName)).data;
     }
 
-    return JSON.parse(fs.readFileSync(urlOrName));
+    return JSON.parse(fs.readFileSync(urlOrName, 'utf-8'));
 }
 
-function readLocalFile(fileName, logger) {
+function readLocalFile(fileName: string, logger: Logger) {
     // If the file name is not a full path, then treat it as a relative to the data directory
     if (!path.isAbsolute(fileName) && dataDir) {
         fileName = path.join(dataDir, fileName);
@@ -41,7 +42,7 @@ function readLocalFile(fileName, logger) {
     return fs.readFileSync(fileName);
 }
 
-async function getFirmwareFile(image, logger) {
+async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
     const urlOrName = image.url;
 
     // First try to download firmware file with the URL provided
@@ -53,7 +54,7 @@ async function getFirmwareFile(image, logger) {
     return {data: readLocalFile(urlOrName, logger)};
 }
 
-function fillImageInfo(meta, logger) {
+function fillImageInfo(meta: KeyValueAny, logger: Logger) {
     // Web-hosted images must come with all fields filled already
     if (isValidUrl(meta.url)) {
         return meta;
@@ -78,7 +79,7 @@ function fillImageInfo(meta, logger) {
     return meta;
 }
 
-async function getIndex(logger) {
+async function getIndex(logger: Logger) {
     const index = (await axios.get(url)).data;
 
     logger.debug(`ZigbeeOTA: downloaded main index`);
@@ -88,13 +89,13 @@ async function getIndex(logger) {
         const localIndex = await getIndexFile(overrideIndexFileName);
 
         // Resulting index will have overriden items first
-        return localIndex.concat(index).map((item) => isValidUrl(item.url) ? item : fillImageInfo(item, logger));
+        return localIndex.concat(index).map((item: KeyValueAny) => isValidUrl(item.url) ? item : fillImageInfo(item, logger));
     }
 
     return index;
 }
 
-async function getImageMeta(current, logger, device) {
+export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
     const modelId = device.modelID;
     const imageType = current.imageType;
     const manufacturerCode = current.manufacturerCode;
@@ -105,7 +106,7 @@ async function getImageMeta(current, logger, device) {
     // However Gledopto pro products use the same imageType (0) for every device while the image is different.
     // For this case additional identification through the modelId is done.
     // In the case of Tuya and Moes, additional identification is carried out through the manufacturerName.
-    const image = images.find((i) => i.imageType === imageType && i.manufacturerCode === manufacturerCode &&
+    const image = images.find((i: KeyValueAny) => i.imageType === imageType && i.manufacturerCode === manufacturerCode &&
         (!i.minFileVersion || current.fileVersion >= i.minFileVersion) && (!i.maxFileVersion || current.fileVersion <= i.maxFileVersion) &&
         (!i.modelId || i.modelId === modelId) && (!i.manufacturerName || i.manufacturerName.includes(manufacturerName)));
 
@@ -122,7 +123,7 @@ async function getImageMeta(current, logger, device) {
     };
 }
 
-async function isNewImageAvailable(current, logger, device, getImageMeta) {
+async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta) {
     if (device.modelID === 'lumi.airrtc.agl001') {
         // The current.fileVersion which comes from the device is wrong.
         // Use the `aqaraFileVersion` which comes from the aqaraOpple.attributeReport instead.
@@ -140,22 +141,20 @@ async function isNewImageAvailable(current, logger, device, getImageMeta) {
  * Interface implementation
  */
 
-async function isUpdateAvailable(device, logger, requestPayload=null) {
+export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
     return common.isUpdateAvailable(device, logger, isNewImageAvailable, requestPayload, getImageMeta);
 }
 
-async function updateToLatest(device, logger, onProgress) {
+export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
     return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
 }
 
-module.exports = {
-    getImageMeta,
-    isUpdateAvailable,
-    updateToLatest,
-    useIndexOverride: (indexFileName) => {
-        overrideIndexFileName = indexFileName;
-    },
-    setDataDir: (dir) => {
-        dataDir = dir;
-    },
+exports.getImageMeta = getImageMeta;
+exports.isUpdateAvailable = isUpdateAvailable;
+exports.updateToLatest = updateToLatest;
+exports.useIndexOverride = (indexFileName: string) => {
+    overrideIndexFileName = indexFileName;
+},
+exports.setDataDir = (dir: string) => {
+    dataDir = dir;
 };

@@ -5,7 +5,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
-import ota from '../lib/ota';
+import * as ota from '../lib/ota';
 
 const definitions: Definition[] = [
     {

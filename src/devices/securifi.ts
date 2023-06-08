@@ -2,7 +2,7 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import ota from '../lib/ota';
+import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 

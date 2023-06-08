@@ -5,7 +5,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import * as constants from '../lib/constants';
-import ota from '../lib/ota';
+import * as ota from '../lib/ota';
 import {Tz, Fz, Definition, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;

@@ -1,6 +1,6 @@
 import {ColorXY, ColorRGB} from './color';
 import extendDontUse from './extend';
-import ota from './ota';
+import * as ota from './ota';
 import * as exposes from './exposes';
 import tz from '../converters/toZigbee';
 import * as libColor from './color';

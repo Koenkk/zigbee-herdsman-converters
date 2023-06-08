@@ -45,8 +45,10 @@
     "zigbee-herdsman": "^0.14.117"
   },
   "devDependencies": {
+    "@types/buffer-crc32": "^0.2.2",
     "@types/jest": "^29.5.2",
     "@types/node": "^20.2.5",
+    "@types/tar-stream": "^2.2.2",
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
     "eslint": "^8.42.0",

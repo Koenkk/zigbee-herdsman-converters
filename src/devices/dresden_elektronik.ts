@@ -1,6 +1,6 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import ota from '../lib/ota';
+import * as ota from '../lib/ota';
 import extend from '../lib/extend';
 const e = exposes.presets;
 
