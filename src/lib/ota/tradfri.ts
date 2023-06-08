@@ -45,4 +45,4 @@ export {useTestURL_ as useTestURL};
 
 exports.isUpdateAvailable = isUpdateAvailable;
 exports.updateToLatest = updateToLatest;
-exports.useTestURL = useTestURL;
+exports.useTestURL = useTestURL_;
