@@ -55,6 +55,7 @@ export interface DefinitionMeta {
         weeklyScheduleMaxTransitions?: number,
         weeklyScheduleSupportedModes?: number[],
         weeklyScheduleFirstDayDpId?: number,
+        weeklyScheduleConversion?: string,
         dontMapPIHeatingDemand?: boolean
     },
     battery?: {voltageToPercentage?: string | {min: number, max: number}, dontDividePercentage?: boolean},
@@ -63,7 +64,7 @@ export interface DefinitionMeta {
     tuyaThermostatPreset?: {[s: number]: string},
     tuyaThermostatSystemMode?: {[s: number]: string},
     tuyaThermostatPresetToSystemMode?: {[s: number]: string},
-    supportsEnhancedHue?: boolean,
+    supportsEnhancedHue?: boolean | ((entity: Zh.Endpoint) => boolean),
     disableActionGroup?: boolean,
     supportsHueAndSaturation?: boolean,
 }
@@ -101,8 +102,10 @@ export type Definition = {
 export namespace Fz {
     export interface Message {
         // eslint-disable-next-line
-        data: any, 
-        endpoint: Zh.Endpoint, device: Zh.Device, meta: {zclTransactionSequenceNumber: number}, groupID: number, type: string, cluster: string}
+        data: any,
+        endpoint: Zh.Endpoint, device: Zh.Device, meta: {zclTransactionSequenceNumber: number}, groupID: number, type: string,
+        cluster: string, linkquality: number
+    }
     export interface Meta {state: KeyValue, logger: Logger, device: Zh.Device}
     export interface Converter {
         cluster: string | number,

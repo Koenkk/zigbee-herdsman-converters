@@ -1,8 +1,9 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import {Definition, Tz} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 
 const tzLocal = {
@@ -17,10 +18,10 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', ['currentLevel']);
         },
-    },
+    } as Tz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['ccb9f56837ab41dcad366fb1452096b6'],
         model: 'DD10Z',
@@ -513,3 +514,5 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
 ];
+
+module.exports = definitions;

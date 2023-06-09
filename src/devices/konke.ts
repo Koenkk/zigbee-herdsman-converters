@@ -1,6 +1,9 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const reporting = require('../lib/reporting');
+import {Definition, Fz} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import * as utils from '../lib/utils';
+import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -14,18 +17,18 @@ const fzLocal = {
                 243: 'triangle',
                 244: 'circle',
             };
-            return {action: payload[msg.data.sceneid]};
+            return {action: utils.getFromLookup(msg.data.sceneid, payload)};
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['3AFE170100510001', '3AFE280100510001'],
         model: '2AJZ4KPKEY',
         vendor: 'Konke',
         description: 'Multi-function button',
-        fromZigbee: [fz.konke_action, fz.battery, fz.legacy.konke_click],
+        fromZigbee: [fz.konke_action, fz.battery, legacy.fz.konke_click],
         toZigbee: [],
         exposes: [e.battery_low(), e.battery(), e.action(['single', 'double', 'hold'])],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
@@ -139,3 +142,5 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
 ];
+
+module.exports = definitions;

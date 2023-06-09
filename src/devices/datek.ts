@@ -1,14 +1,15 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const ota = require('../lib/ota');
-const reporting = require('../lib/reporting');
-const constants = require('../lib/constants');
-const {repInterval} = require('../lib/constants');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import * as constants from '../lib/constants';
+import {repInterval} from '../lib/constants';
+import {Definition} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['PoP'],
         model: 'HLU2909K',
@@ -104,14 +105,15 @@ module.exports = [
             const payload = [{
                 attribute: {ID: 0x4000, type: 0x10},
             }];
+            // @ts-expect-error
             await endpoint.configureReporting('ssIasZone', payload, options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('ssIasZone', [0x4000], options);
         },
         exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.illuminance_lux(), e.illuminance(),
-            exposes.binary('led_on_motion', ea.ALL, true, false).withDescription('Enable/disable LED on motion'),
-            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)],
+            e.binary('led_on_motion', ea.ALL, true, false).withDescription('Enable/disable LED on motion'),
+            e.numeric('occupancy_timeout', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)],
     },
     {
         zigbeeModel: ['ID Lock 150'],
@@ -171,6 +173,7 @@ module.exports = [
                 data.data &&
                 data.data.userid !== undefined &&
                 // Don't read RF events, we can do this with retrieve_state
+                // @ts-expect-error
                 (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] != 'rf')
             ) {
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});
@@ -178,13 +181,13 @@ module.exports = [
         },
         exposes: [e.lock(), e.battery(), e.pincode(),
             e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
-            exposes.enum('sound_volume', ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock'),
-            exposes.binary('master_pin_mode', ea.ALL, true, false).withDescription('Allow Master PIN Unlock'),
-            exposes.binary('rfid_enable', ea.ALL, true, false).withDescription('Allow RFID to Unlock'),
-            exposes.binary('relock_enabled', ea.ALL, true, false).withDescription( 'Allow Auto Re-Lock'),
-            exposes.enum('lock_mode', ea.ALL, ['auto_off_away_off', 'auto_on_away_off', 'auto_off_away_on',
+            e.enum('sound_volume', ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock'),
+            e.binary('master_pin_mode', ea.ALL, true, false).withDescription('Allow Master PIN Unlock'),
+            e.binary('rfid_enable', ea.ALL, true, false).withDescription('Allow RFID to Unlock'),
+            e.binary('relock_enabled', ea.ALL, true, false).withDescription( 'Allow Auto Re-Lock'),
+            e.enum('lock_mode', ea.ALL, ['auto_off_away_off', 'auto_on_away_off', 'auto_off_away_on',
                 'auto_on_away_on']).withDescription('Lock-Mode of the Lock'),
-            exposes.enum('service_mode', ea.ALL, ['deactivated', 'random_pin_1x_use',
+            e.enum('service_mode', ea.ALL, ['deactivated', 'random_pin_1x_use',
                 'random_pin_24_hours']).withDescription('Service Mode of the Lock')],
     },
     {
@@ -259,3 +262,5 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
     },
 ];
+
+module.exports = definitions;

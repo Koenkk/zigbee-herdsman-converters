@@ -1,13 +1,14 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
-const constants = require('../lib/constants');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import {Definition, Tz, Fz, KeyValueAny, KeyValue, Zh, Expose} from '../lib/types';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
-const {calibrateAndPrecisionRoundOptions, postfixWithEndpointName} = require('../lib/utils');
-
+import {calibrateAndPrecisionRoundOptions, postfixWithEndpointName} from '../lib/utils';
 
 const tzLocal = {
     tirouter: {
@@ -19,13 +20,14 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genBasic', [0x1337]);
         },
-    },
+    } as Tz.Converter,
     node_config: {
         key: ['report_delay'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
+            // @ts-expect-error
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
-            const payloads = {
+            const payloads: KeyValueAny = {
                 report_delay: ['genPowerCfg', {0x0201: {value, type: 0x21}}],
             };
             await entity.write(payloads[key][0], payloads[key][1]);
@@ -33,7 +35,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    },
+    } as Tz.Converter,
     local_time: {
         key: ['local_time'],
         convertSet: async (entity, key, value, meta) => {
@@ -43,14 +45,15 @@ const tzLocal = {
             await firstEndpoint.write('genTime', {time: time});
             return {state: {local_time: time}};
         },
-    },
+    } as Tz.Converter,
     co2_config: {
         key: ['auto_brightness', 'forced_recalibration', 'factory_reset_co2', 'long_chart_period', 'set_altitude',
             'manual_forced_recalibration', 'light_indicator', 'light_indicator_level'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
+            // @ts-expect-error
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
-            const payloads = {
+            const payloads: KeyValueAny = {
                 auto_brightness: ['msCO2', {0x0203: {value, type: 0x10}}],
                 forced_recalibration: ['msCO2', {0x0202: {value, type: 0x10}}],
                 factory_reset_co2: ['msCO2', {0x0206: {value, type: 0x10}}],
@@ -65,12 +68,13 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    },
+    } as Tz.Converter,
     temperature_config: {
         key: ['temperature_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
+            // @ts-expect-error
             const value = parseInt(rawValue, 10);
-            const payloads = {
+            const payloads: KeyValueAny = {
                 temperature_offset: ['msTemperatureMeasurement', {0x0210: {value, type: 0x29}}],
             };
             await entity.write(payloads[key][0], payloads[key][1]);
@@ -78,12 +82,13 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    },
+    } as Tz.Converter,
     humidity_config: {
         key: ['humidity_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
+            // @ts-expect-error
             const value = parseInt(rawValue, 10);
-            const payloads = {
+            const payloads: KeyValueAny = {
                 humidity_offset: ['msRelativeHumidity', {0x0210: {value, type: 0x29}}],
             };
             await entity.write(payloads[key][0], payloads[key][1]);
@@ -91,13 +96,14 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    },
+    } as Tz.Converter,
     termostat_config: {
         key: ['high_temperature', 'low_temperature', 'enable_temperature'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
+            // @ts-expect-error
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
-            const payloads = {
+            const payloads: KeyValueAny = {
                 high_temperature: ['msTemperatureMeasurement', {0x0221: {value, type: 0x29}}],
                 low_temperature: ['msTemperatureMeasurement', {0x0222: {value, type: 0x29}}],
                 enable_temperature: ['msTemperatureMeasurement', {0x0220: {value, type: 0x10}}],
@@ -107,13 +113,14 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    },
+    } as Tz.Converter,
     hydrostat_config: {
         key: ['high_humidity', 'low_humidity', 'enable_humidity'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
+            // @ts-expect-error
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
-            const payloads = {
+            const payloads: KeyValueAny = {
                 high_humidity: ['msRelativeHumidity', {0x0221: {value, type: 0x21}}],
                 low_humidity: ['msRelativeHumidity', {0x0222: {value, type: 0x21}}],
                 enable_humidity: ['msRelativeHumidity', {0x0220: {value, type: 0x10}}],
@@ -123,13 +130,14 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    },
+    } as Tz.Converter,
     co2_gasstat_config: {
         key: ['high_gas', 'low_gas', 'enable_gas'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
+            // @ts-expect-error
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
-            const payloads = {
+            const payloads: KeyValueAny = {
                 high_gas: ['msCO2', {0x0221: {value, type: 0x21}}],
                 low_gas: ['msCO2', {0x0222: {value, type: 0x21}}],
                 enable_gas: ['msCO2', {0x0220: {value, type: 0x10}}],
@@ -139,7 +147,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    },
+    } as Tz.Converter,
 };
 
 const fzLocal = {
@@ -147,22 +155,22 @@ const fzLocal = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {linkquality: msg.linkquality};
+            const result: KeyValue = {linkquality: msg.linkquality};
             if (msg.data['4919']) result['transmit_power'] = msg.data['4919'];
             return result;
         },
-    },
+    } as Fz.Converter,
     node_config: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty(0x0201)) {
                 result.report_delay = msg.data[0x0201];
             }
             return result;
         },
-    },
+    } as Fz.Converter,
     co2: {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
@@ -172,12 +180,12 @@ const fzLocal = {
                 return {co2: calibrateAndPrecisionRoundOptions(co2, options, 'co2')};
             }
         },
-    },
+    } as Fz.Converter,
     co2_config: {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty(0x0203)) {
                 result.auto_brightness = ['OFF', 'ON'][msg.data[0x0203]];
             }
@@ -204,34 +212,34 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as Fz.Converter,
     temperature_config: {
         cluster: 'msTemperatureMeasurement',
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty(0x0210)) {
                 result.temperature_offset = msg.data[0x0210];
             }
             return result;
         },
-    },
+    } as Fz.Converter,
     humidity_config: {
         cluster: 'msRelativeHumidity',
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty(0x0210)) {
                 result.humidity_offset = msg.data[0x0210];
             }
             return result;
         },
-    },
+    } as Fz.Converter,
     termostat_config: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty(0x0221)) {
                 result.high_temperature = msg.data[0x0221];
             }
@@ -243,12 +251,12 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as Fz.Converter,
     hydrostat_config: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty(0x0221)) {
                 result.high_humidity = msg.data[0x0221];
             }
@@ -260,12 +268,12 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as Fz.Converter,
     co2_gasstat_config: {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty(0x0221)) {
                 result.high_gas = msg.data[0x0221];
             }
@@ -277,7 +285,7 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as Fz.Converter,
     humidity2: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -295,7 +303,7 @@ const fzLocal = {
                 return {[property]: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
             }
         },
-    },
+    } as Fz.Converter,
     illuminance2: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -313,7 +321,7 @@ const fzLocal = {
                 [property2]: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
             };
         },
-    },
+    } as Fz.Converter,
     pressure2: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -322,7 +330,7 @@ const fzLocal = {
             // multi-endpoint version based on the stastard onverter 'fz.pressure'
             let pressure = 0;
             if (msg.data.hasOwnProperty('scaledValue')) {
-                const scale = msg.endpoint.getClusterAttributeValue('msPressureMeasurement', 'scale');
+                const scale = msg.endpoint.getClusterAttributeValue('msPressureMeasurement', 'scale') as number;
                 pressure = msg.data['scaledValue'] / Math.pow(10, scale) / 100.0; // convert to hPa
             } else {
                 pressure = parseFloat(msg.data['measuredValue']);
@@ -331,10 +339,10 @@ const fzLocal = {
             const property = (multiEndpoint)? postfixWithEndpointName('pressure', msg, model, meta): 'pressure';
             return {[property]: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
-    },
+    } as Fz.Converter,
 };
 
-function ptvoGetMetaOption(device, key, defaultValue) {
+function ptvoGetMetaOption(device: Zh.Device, key: string, defaultValue: unknown) {
     if (device != null) {
         const value = device.meta[key];
         if (value === undefined) {
@@ -347,13 +355,13 @@ function ptvoGetMetaOption(device, key, defaultValue) {
     return defaultValue;
 }
 
-function ptvoSetMetaOption(device, key, value) {
+function ptvoSetMetaOption(device: Zh.Device, key: string, value: unknown) {
     if (device != null && key != null) {
         device.meta[key] = value;
     }
 }
 
-function ptvoAddStandardExposes(endpoint, expose, options) {
+function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options: KeyValue) {
     const epId = endpoint.ID;
     const epName = `l${epId}`;
     if (endpoint.supportsInputCluster('lightingColorCtrl')) {
@@ -375,7 +383,7 @@ function ptvoAddStandardExposes(endpoint, expose, options) {
     if (endpoint.supportsInputCluster('genAnalogInput') || endpoint.supportsOutputCluster('genAnalogInput')) {
         if (!options['exposed_analog']) {
             options['exposed_analog'] = true;
-            expose.push(exposes.text(epName, ea.ALL).withEndpoint(epName)
+            expose.push(e.text(epName, ea.ALL).withEndpoint(epName)
                 .withProperty(epName).withDescription('State or sensor value'));
         }
     }
@@ -403,7 +411,7 @@ function ptvoAddStandardExposes(endpoint, expose, options) {
     }
 }
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['ti.router'],
         model: 'ti.router',
@@ -411,7 +419,7 @@ module.exports = [
         description: 'Texas Instruments router',
         fromZigbee: [fzLocal.tirouter],
         toZigbee: [tzLocal.tirouter],
-        exposes: [exposes.numeric('transmit_power', ea.ALL).withValueMin(-20).withValueMax(20).withValueStep(1).withUnit('dBm')
+        exposes: [e.numeric('transmit_power', ea.ALL).withValueMin(-20).withValueMax(20).withValueStep(1).withUnit('dBm')
             .withDescription('Transmit power, supported from firmware 20221102. The max for CC1352 is 20 dBm and 5 dBm for CC2652' +
                             ' (any higher value is converted to 5dBm)')],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -428,7 +436,7 @@ module.exports = [
         description: '[CC2530 router](http://ptvo.info/cc2530-based-zigbee-coordinator-and-router-112/)',
         fromZigbee: [fz.CC2530ROUTER_led, fz.CC2530ROUTER_meta, fz.ignore_basic_report],
         toZigbee: [tz.ptvo_switch_trigger],
-        exposes: [exposes.binary('led', ea.STATE, true, false)],
+        exposes: [e.binary('led', ea.STATE, true, false)],
     },
     {
         zigbeeModel: ['cc2538.router.v1'],
@@ -454,13 +462,13 @@ module.exports = [
         model: 'ptvo.switch',
         vendor: 'Custom devices (DiY)',
         description: '[Multi-channel relay switch](https://ptvo.info/zigbee-switch-configurable-firmware-router-199/)',
-        fromZigbee: [fz.on_off, fz.ptvo_multistate_action, fz.legacy.ptvo_switch_buttons, fz.ptvo_switch_uart,
+        fromZigbee: [fz.on_off, fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report, fz.temperature,
             fzLocal.humidity2, fzLocal.pressure2, fzLocal.illuminance2],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tz.on_off],
         exposes: (device, options) => {
-            const expose = [];
-            const exposeOptions = {};
+            const expose: Expose[] = [];
+            const exposeOptions: KeyValue = {};
             const deviceConfig = ptvoGetMetaOption(device, 'device_config', '');
 
             if (deviceConfig === '') {
@@ -472,7 +480,7 @@ module.exports = [
                     // fallback code
                     for (let epId = 1; epId <= 8; epId++) {
                         const epName = `l${epId}`;
-                        expose.push(exposes.text(epName, ea.ALL).withEndpoint(epName)
+                        expose.push(e.text(epName, ea.ALL).withEndpoint(epName)
                             .withProperty(epName).withDescription('State or sensor value'));
                         expose.push(e.switch().withEndpoint(epName));
                     }
@@ -497,11 +505,11 @@ module.exports = [
                     if ((epConfig & 0x04) != 0) {
                         // reportable analog value
                         exposeOptions['exposed_analog'] = true;
-                        expose.push(exposes.numeric(epName, ea.STATE).withDescription('State or sensor value'));
+                        expose.push(e.numeric(epName, ea.STATE).withDescription('State or sensor value'));
                     } else if ((epConfig & 0x08) != 0) {
                         // readable analog value
                         exposeOptions['exposed_analog'] = true;
-                        expose.push(exposes.numeric(epName, ea.STATE_SET)
+                        expose.push(e.numeric(epName, ea.STATE_SET)
                             .withValueMin(-9999999).withValueMax(9999999).withValueStep(1)
                             .withDescription('State or sensor value'));
                     }
@@ -521,9 +529,10 @@ module.exports = [
             expose.push(e.linkquality());
             return expose;
         },
-        meta: {multiEndpoint: true, tuyaThermostatPreset: fz.legacy /* for subclassed custom converters */},
+        meta: {multiEndpoint: true, tuyaThermostatPreset: legacy.fz /* for subclassed custom converters */},
         endpoint: (device) => {
-            const endpointList = [];
+            // eslint-disable-next-line
+            const endpointList: any = [];
             const deviceConfig = ptvoGetMetaOption(device, 'device_config', '');
             if (deviceConfig === '') {
                 if ( (device != null) && device.endpoints ) {
@@ -553,7 +562,7 @@ module.exports = [
             endpointList['action'] = 1;
             return endpointList;
         },
-        configure: async (device, coordinatorEndpoint, logger, options) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             if (device != null) {
                 const controlEp = device.getEndpoint(1);
                 if (controlEp != null) {
@@ -683,7 +692,7 @@ module.exports = [
             await firstEndpoint.configureReporting('genPowerCfg', payload1);
         },
         exposes: [e.soil_moisture(), e.battery(), e.temperature(),
-            exposes.numeric('report_delay', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(240)
+            e.numeric('report_delay', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(240)
                 .withDescription('Adjust Report Delay. Setting the time in minutes, by default 15 minutes')],
     },
     {
@@ -756,7 +765,7 @@ module.exports = [
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msSoilMoisture']);
         },
         exposes: [e.soil_moisture(), e.battery(),
-            exposes.numeric('report_delay', ea.STATE_SET).withUnit('min').withDescription('Adjust Report Delay, by default 60 minutes')
+            e.numeric('report_delay', ea.STATE_SET).withUnit('min').withDescription('Adjust Report Delay, by default 60 minutes')
                 .withValueMin(1).withValueMax(180)],
     },
     {
@@ -946,22 +955,22 @@ module.exports = [
             endpoint.write('genTime', values);
         },
         exposes: [e.co2(), e.temperature(), e.humidity(), e.illuminance(),
-            exposes.binary('auto_brightness', ea.STATE_SET, 'ON', 'OFF')
+            e.binary('auto_brightness', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Enable or Disable Auto Brightness of the Display'),
-            exposes.binary('long_chart_period', ea.STATE_SET, 'ON', 'OFF')
+            e.binary('long_chart_period', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('The period of plotting the CO2 level(OFF - 1H | ON - 24H)'),
-            exposes.numeric('set_altitude', ea.STATE_SET).withUnit('meters')
+            e.numeric('set_altitude', ea.STATE_SET).withUnit('meters')
                 .withDescription('Setting the altitude above sea level (for high accuracy of the CO2 sensor)')
                 .withValueMin(0).withValueMax(3000),
-            exposes.enum('local_time', ea.STATE_SET, ['set']).withDescription('Set date and time'),
-            exposes.numeric('temperature_offset', ea.STATE_SET).withUnit('°C').withDescription('Adjust temperature')
+            e.enum('local_time', ea.STATE_SET, ['set']).withDescription('Set date and time'),
+            e.numeric('temperature_offset', ea.STATE_SET).withUnit('°C').withDescription('Adjust temperature')
                 .withValueMin(-30).withValueMax(60),
-            exposes.numeric('humidity_offset', ea.STATE_SET).withUnit('%').withDescription('Adjust humidity')
+            e.numeric('humidity_offset', ea.STATE_SET).withUnit('%').withDescription('Adjust humidity')
                 .withValueMin(0).withValueMax(99),
-            exposes.binary('forced_recalibration', ea.STATE_SET, 'ON', 'OFF')
+            e.binary('forced_recalibration', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Start FRC (Perform Forced Recalibration of the CO2 Sensor)'),
-            exposes.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
-            exposes.numeric('manual_forced_recalibration', ea.STATE_SET).withUnit('ppm')
+            e.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
+            e.numeric('manual_forced_recalibration', ea.STATE_SET).withUnit('ppm')
                 .withDescription('Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)')
                 .withValueMin(0).withValueMax(5000)],
     },
@@ -985,36 +994,36 @@ module.exports = [
             }
         },
         exposes: [e.co2(), e.temperature(), e.humidity(),
-            exposes.binary('light_indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or Disable light_indicator'),
-            exposes.numeric('light_indicator_level', ea.STATE_SET).withUnit('%').withDescription('light_indicator_level')
+            e.binary('light_indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or Disable light_indicator'),
+            e.numeric('light_indicator_level', ea.STATE_SET).withUnit('%').withDescription('light_indicator_level')
                 .withValueMin(0).withValueMax(100),
-            exposes.numeric('set_altitude', ea.STATE_SET).withUnit('meters')
+            e.numeric('set_altitude', ea.STATE_SET).withUnit('meters')
                 .withDescription('Setting the altitude above sea level (for high accuracy of the CO2 sensor)')
                 .withValueMin(0).withValueMax(3000),
-            exposes.numeric('temperature_offset', ea.STATE_SET).withUnit('°C').withDescription('Adjust temperature')
+            e.numeric('temperature_offset', ea.STATE_SET).withUnit('°C').withDescription('Adjust temperature')
                 .withValueMin(-30).withValueMax(60),
-            exposes.numeric('humidity_offset', ea.STATE_SET).withUnit('%').withDescription('Adjust humidity')
+            e.numeric('humidity_offset', ea.STATE_SET).withUnit('%').withDescription('Adjust humidity')
                 .withValueMin(0).withValueMax(99),
-            exposes.binary('forced_recalibration', ea.STATE_SET, 'ON', 'OFF')
+            e.binary('forced_recalibration', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Start FRC (Perform Forced Recalibration of the CO2 Sensor)'),
-            exposes.numeric('manual_forced_recalibration', ea.STATE_SET)
+            e.numeric('manual_forced_recalibration', ea.STATE_SET)
                 .withUnit('ppm').withDescription('Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)')
                 .withValueMin(0).withValueMax(5000),
-            exposes.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
-            exposes.binary('enable_gas', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable CO2 Gas Control'),
-            exposes.numeric('high_gas', ea.STATE_SET).withUnit('ppm').withDescription('Setting High CO2 Gas Border')
+            e.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
+            e.binary('enable_gas', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable CO2 Gas Control'),
+            e.numeric('high_gas', ea.STATE_SET).withUnit('ppm').withDescription('Setting High CO2 Gas Border')
                 .withValueMin(400).withValueMax(2000),
-            exposes.numeric('low_gas', ea.STATE_SET).withUnit('ppm').withDescription('Setting Low CO2 Gas Border')
+            e.numeric('low_gas', ea.STATE_SET).withUnit('ppm').withDescription('Setting Low CO2 Gas Border')
                 .withValueMin(400).withValueMax(2000),
-            exposes.binary('enable_temperature', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
-            exposes.numeric('high_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
+            e.binary('enable_temperature', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
+            e.numeric('high_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
                 .withValueMin(-5).withValueMax(50),
-            exposes.numeric('low_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting Low Temperature Border')
+            e.numeric('low_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting Low Temperature Border')
                 .withValueMin(-5).withValueMax(50),
-            exposes.binary('enable_humidity', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Humidity Control'),
-            exposes.numeric('high_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting High Humidity Border')
+            e.binary('enable_humidity', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Humidity Control'),
+            e.numeric('high_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting High Humidity Border')
                 .withValueMin(0).withValueMax(99),
-            exposes.numeric('low_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
+            e.numeric('low_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
                 .withValueMin(0).withValueMax(99)],
     },
     {
@@ -1034,18 +1043,18 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint, overides);
         },
         exposes: [e.battery(), e.temperature(), e.humidity(),
-            exposes.numeric('report_delay', ea.STATE_SET).withUnit('min')
+            e.numeric('report_delay', ea.STATE_SET).withUnit('min')
                 .withDescription('Adjust Report Delay. Setting the time in minutes, by default 5 minutes')
                 .withValueMin(1).withValueMax(60),
-            exposes.binary('enable_temperature', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
-            exposes.numeric('high_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
+            e.binary('enable_temperature', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
+            e.numeric('high_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
                 .withValueMin(-5).withValueMax(50),
-            exposes.numeric('low_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting Low Temperature Border')
+            e.numeric('low_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting Low Temperature Border')
                 .withValueMin(-5).withValueMax(50),
-            exposes.binary('enable_humidity', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Humidity Control'),
-            exposes.numeric('high_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting High Humidity Border')
+            e.binary('enable_humidity', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Humidity Control'),
+            e.numeric('high_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting High Humidity Border')
                 .withValueMin(0).withValueMax(99),
-            exposes.numeric('low_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
+            e.numeric('low_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
                 .withValueMin(0).withValueMax(99)],
     },
     {
@@ -1077,3 +1086,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

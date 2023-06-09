@@ -1,9 +1,10 @@
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const tuya = require('../lib/tuya');
-const utils = require('../lib/utils');
+import {Definition, Fz} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import * as tuya from '../lib/tuya';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -18,10 +19,10 @@ const fzLocal = {
                 return {[`state_${endpointName}`]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_dd8wwzcy'}],
         model: 'MG-AUZG01',
@@ -49,3 +50,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

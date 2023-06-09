@@ -1,7 +1,8 @@
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
-const reporting = require('../lib/reporting');
-const utils = require('../lib/utils');
+import {Definition, Fz} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as reporting from '../lib/reporting';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 
 const jetHome = {
@@ -12,14 +13,14 @@ const jetHome = {
             convert: (model, msg, publish, options, meta) => {
                 const actionLookup = {0: 'release', 1: 'single', 2: 'double', 3: 'triple', 4: 'hold'};
                 const value = msg.data['presentValue'];
-                const action = actionLookup[value];
+                const action = utils.getFromLookup(value, actionLookup);
                 return {action: utils.postfixWithEndpointName(action, msg, model, meta)};
             },
-        },
+        } as Fz.Converter,
     },
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'WS7', manufacturerName: 'JetHome'}],
         model: 'WS7',
@@ -46,3 +47,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

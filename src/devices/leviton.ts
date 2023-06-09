@@ -1,9 +1,11 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
-const utils = require('../lib/utils');
+import {Definition, Fz} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -18,10 +20,10 @@ const fzLocal = {
                 return {[property]: currentLevel > 0 ? 'ON' : 'OFF'};
             }
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['DL15S'],
         model: 'DL15S-1BZ',
@@ -89,7 +91,7 @@ module.exports = [
         model: 'RC-2000WH',
         vendor: 'Leviton',
         description: 'Omnistat2 wireless thermostat',
-        fromZigbee: [fz.legacy.thermostat_att_report, fz.fan],
+        fromZigbee: [legacy.fz.thermostat_att_report, fz.fan],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupancy,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_unoccupied_cooling_setpoint, tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
@@ -108,7 +110,7 @@ module.exports = [
             await reporting.fanMode(endpoint);
         },
         exposes: [
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat', 'cool']).withFanMode(['auto', 'on', 'smart'])
                 .withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
                 .withLocalTemperatureCalibration().withPiHeatingDemand()],
@@ -126,9 +128,9 @@ module.exports = [
         exposes: [e.light_brightness(),
             // Note: ballast_power_on_level used to be here, but it does't appear to work properly with this device
             // If set, it's reset back to 0 when the device is turned off then back to 32 when turned on
-            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
-            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum brightness value')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -140,3 +142,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

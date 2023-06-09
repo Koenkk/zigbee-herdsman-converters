@@ -1,13 +1,14 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const globalStore = require('../lib/store');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import {Definition} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as globalStore from '../lib/store';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['FWGU10Bulb02UK'],
         model: 'FWGU10Bulb02UK',
@@ -133,9 +134,9 @@ module.exports = [
             fz.ias_contact_alarm_1, fz.ias_ace_occupancy_with_timeout],
         toZigbee: [tz.arm_mode],
         exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.occupancy(), e.tamper(), e.contact(),
-            exposes.numeric('action_code', ea.STATE).withDescription('Pin code introduced.'),
-            exposes.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
-            exposes.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 23'),
+            e.numeric('action_code', ea.STATE).withDescription('Pin code introduced.'),
+            e.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
+            e.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 23'),
             e.action([
                 'panic', 'disarm', 'arm_day_zones', 'arm_all_zones', 'exit_delay', 'entry_delay'])],
         configure: async (device, coordinatorEndpoint) => {
@@ -166,12 +167,12 @@ module.exports = [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         exposes: [
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
-            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat'),
-            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+            e.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display')],
         meta: {disableDefaultResponse: true},
@@ -197,12 +198,12 @@ module.exports = [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         exposes: [
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
-            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat'),
-            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+            e.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display')],
         meta: {disableDefaultResponse: true},
@@ -228,12 +229,12 @@ module.exports = [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         exposes: [
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
-            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat'),
-            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+            e.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display')],
         meta: {disableDefaultResponse: true},
@@ -284,20 +285,20 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint);
         },
         exposes: [
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('heat'),
-            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('heat'),
-            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+            e.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('heat'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat', 'emergency_heating']).withRunningState(['idle', 'heat']).withEndpoint('water'),
-            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('water'),
-            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+            e.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('water')],
     },
@@ -336,20 +337,20 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint);
         },
         exposes: [
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('heat'),
-            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('heat'),
-            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+            e.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('heat'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat', 'emergency_heating']).withRunningState(['idle', 'heat']).withEndpoint('water'),
-            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('water'),
-            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+            e.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('water')],
     },
@@ -388,20 +389,20 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint);
         },
         exposes: [
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('heat'),
-            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('heat'),
-            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+            e.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('heat'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
+            e.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat', 'emergency_heating']).withRunningState(['idle', 'heat']).withEndpoint('water'),
-            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+            e.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('water'),
-            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+            e.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('water')],
     },
@@ -515,3 +516,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

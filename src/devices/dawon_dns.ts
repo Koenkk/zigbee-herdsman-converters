@@ -1,8 +1,9 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import {Definition, Fz, Tz} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -17,7 +18,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    },
+    } as Fz.Converter,
 };
 
 
@@ -27,10 +28,10 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('ssIasZone', ['zoneState']);
         },
-    },
+    } as Tz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['PM-C140-ZB'],
         model: 'PM-C140-ZB',
@@ -315,7 +316,7 @@ module.exports = [
                 attribute: 'zoneState', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await endpoint.configureReporting('ssIasZone', payload);
         },
-        exposes: [exposes.binary('card', ea.STATE, true, false).withAccess(ea.STATE_GET)
+        exposes: [e.binary('card', ea.STATE, true, false).withAccess(ea.STATE_GET)
             .withDescription('Indicates if the card is inserted (= true) or not (= false)'), e.battery_low()],
     },
     {
@@ -356,3 +357,5 @@ module.exports = [
         exposes: [e.battery(), e.temperature(), e.humidity()],
     },
 ];
+
+module.exports = definitions;

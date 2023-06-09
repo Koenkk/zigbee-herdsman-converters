@@ -1,46 +1,47 @@
-const herdsman = require('zigbee-herdsman');
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const constants = require('../lib/constants');
-const reporting = require('../lib/reporting');
-const globalStore = require('../lib/store');
-const ota = require('../lib/ota');
-const utils = require('../lib/utils');
-const extend = require('../lib/extend');
+import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import {Zcl} from 'zigbee-herdsman';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as constants from '../lib/constants';
+import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import * as ota from '../lib/ota';
+import * as utils from '../lib/utils';
+import extend from '../lib/extend';
 const ea = exposes.access;
 const e = exposes.presets;
 
-const sunricherManufacturer = {manufacturerCode: herdsman.Zcl.ManufacturerCode.SHENZHEN_SUNRICH};
+const sunricherManufacturer = {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICH};
 
 const fzLocal = {
     namron_panelheater: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x1000)) { // OperateDisplayBrightnesss
                 result.display_brightnesss = data[0x1000];
             }
             if (data.hasOwnProperty(0x1001)) { // DisplayAutoOffActivation
                 const lookup = {0: 'deactivated', 1: 'activated'};
-                result.display_auto_off = lookup[data[0x1001]];
+                result.display_auto_off = utils.getFromLookup(data[0x1001], lookup);
             }
             if (data.hasOwnProperty(0x1004)) { // PowerUpStatus
                 const lookup = {0: 'manual', 1: 'last_state'};
-                result.power_up_status = lookup[data[0x1004]];
+                result.power_up_status = utils.getFromLookup(data[0x1004], lookup);
             }
             if (data.hasOwnProperty(0x1009)) { // WindowOpenCheck
                 const lookup = {0: 'enable', 1: 'disable'};
-                result.window_open_check = lookup[data[0x1009]];
+                result.window_open_check = utils.getFromLookup(data[0x1009], lookup);
             }
             if (data.hasOwnProperty(0x100A)) { // Hysterersis
                 result.hysterersis = utils.precisionRound(data[0x100A], 2) / 10;
             }
             return result;
         },
-    },
+    } as Fz.Converter,
 };
 
 const tzLocal = {
@@ -51,21 +52,22 @@ const tzLocal = {
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'display_brightnesss') {
-                const payload = {0x1000: {value: value, type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x1000: {value: value, type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             } else if (key === 'display_auto_off') {
                 const lookup = {'deactivated': 0, 'activated': 1};
-                const payload = {0x1001: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x1001: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             } else if (key === 'power_up_status') {
                 const lookup = {'manual': 0, 'last_state': 1};
-                const payload = {0x1004: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x1004: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             } else if (key==='window_open_check') {
                 const lookup = {'enable': 0, 'disable': 1};
-                const payload = {0x1009: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x1009: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             } else if (key==='hysterersis') {
+                utils.assertNumber(value, 'hysterersis');
                 const payload = {0x100A: {value: value * 10, type: 0x20}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             }
@@ -92,10 +94,10 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.namron_panelheater.convertGet ${key}`);
             }
         },
-    },
+    } as Tz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['3308431'],
         model: '3308431',
@@ -411,51 +413,51 @@ module.exports = [
             tz.namron_thermostat_child_lock, tz.namron_thermostat],
         exposes: [
             e.local_temperature(),
-            exposes.numeric('outdoor_temperature', ea.STATE_GET).withUnit('°C')
+            e.numeric('outdoor_temperature', ea.STATE_GET).withUnit('°C')
                 .withDescription('Current temperature measured from the floor sensor'),
-            exposes.climate()
+            e.climate()
                 .withSetpoint('occupied_heating_setpoint', 0, 40, 0.1)
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
                 .withSystemMode(['off', 'auto', 'dry', 'heat'])
                 .withRunningState(['idle', 'heat']),
-            exposes.binary('away_mode', ea.ALL, 'ON', 'OFF')
+            e.binary('away_mode', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enable/disable away mode'),
-            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK')
+            e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK')
                 .withDescription('Enables/disables physical input on the device'),
             e.power(), e.current(), e.voltage(), e.energy(),
-            exposes.enum('lcd_brightness', ea.ALL, ['low', 'mid', 'high'])
+            e.enum('lcd_brightness', ea.ALL, ['low', 'mid', 'high'])
                 .withDescription('OLED brightness when operating the buttons.  Default: Medium.'),
-            exposes.enum('button_vibration_level', ea.ALL, ['off', 'low', 'high'])
+            e.enum('button_vibration_level', ea.ALL, ['off', 'low', 'high'])
                 .withDescription('Key beep volume and vibration level.  Default: Low.'),
-            exposes.enum('floor_sensor_type', ea.ALL, ['10k', '15k', '50k', '100k', '12k'])
+            e.enum('floor_sensor_type', ea.ALL, ['10k', '15k', '50k', '100k', '12k'])
                 .withDescription('Type of the external floor sensor.  Default: NTC 10K/25.'),
-            exposes.enum('sensor', ea.ALL, ['air', 'floor', 'both'])
+            e.enum('sensor', ea.ALL, ['air', 'floor', 'both'])
                 .withDescription('The sensor used for heat control.  Default: Room Sensor.'),
-            exposes.enum('powerup_status', ea.ALL, ['default', 'last_status'])
+            e.enum('powerup_status', ea.ALL, ['default', 'last_status'])
                 .withDescription('The mode after a power reset.  Default: Previous Mode.'),
-            exposes.numeric('floor_sensor_calibration', ea.ALL)
+            e.numeric('floor_sensor_calibration', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(-3).withValueMax(3).withValueStep(0.1)
                 .withDescription('The tempearatue calibration for the exernal floor sensor, between -3 and 3 in 0.1°C.  Default: 0.'),
-            exposes.numeric('dry_time', ea.ALL)
+            e.numeric('dry_time', ea.ALL)
                 .withUnit('min')
                 .withValueMin(5).withValueMax(100)
                 .withDescription('The duration of Dry Mode, between 5 and 100 minutes.  Default: 5.'),
-            exposes.enum('mode_after_dry', ea.ALL, ['off', 'manual', 'auto', 'away'])
+            e.enum('mode_after_dry', ea.ALL, ['off', 'manual', 'auto', 'away'])
                 .withDescription('The mode after Dry Mode.  Default: Auto.'),
-            exposes.enum('temperature_display', ea.ALL, ['room', 'floor'])
+            e.enum('temperature_display', ea.ALL, ['room', 'floor'])
                 .withDescription('The temperature on the display.  Default: Room Temperature.'),
-            exposes.numeric('window_open_check', ea.ALL)
+            e.numeric('window_open_check', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(1.5).withValueMax(4).withValueStep(0.5)
                 .withDescription('The threshold to detect window open, between 1.5 and 4 in 0.5 °C.  Default: 0 (disabled).'),
-            exposes.numeric('hysterersis', ea.ALL)
+            e.numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(0.5).withValueMax(5).withValueStep(0.1)
                 .withDescription('Hysteresis setting, between 0.5 and 5 in 0.1 °C.  Default: 0.5.'),
-            exposes.enum('display_auto_off_enabled', ea.ALL, ['enabled', 'disabled']),
-            exposes.numeric('alarm_airtemp_overvalue', ea.ALL)
+            e.enum('display_auto_off_enabled', ea.ALL, ['enabled', 'disabled']),
+            e.numeric('alarm_airtemp_overvalue', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(0).withValueMax(35)
                 .withDescription('Floor temperature over heating threshold, range is 0-35, unit is 1ºC, ' +
@@ -647,7 +649,7 @@ module.exports = [
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_system_mode,
             tz.thermostat_running_state, tz.thermostat_local_temperature, tzLocal.namron_panelheater, tz.namron_thermostat_child_lock],
         exposes: [e.power(), e.current(), e.voltage(), e.energy(),
-            exposes.climate()
+            e.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
                 .withLocalTemperature()
                 // Unit also supports Auto, but i havent added support the scheduler yet
@@ -656,20 +658,20 @@ module.exports = [
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
                 .withRunningState(['idle', 'heat']),
             // Namron proprietary stuff
-            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK')
+            e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK')
                 .withDescription('Enables/disables physical input on the device'),
-            exposes.numeric('hysterersis', ea.ALL)
+            e.numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(0.5).withValueMax(2).withValueStep(0.1)
                 .withDescription('Hysteresis setting, default: 0.5'),
-            exposes.numeric('display_brightnesss', ea.ALL)
+            e.numeric('display_brightnesss', ea.ALL)
                 .withValueMin(1).withValueMax(7).withValueStep(1)
                 .withDescription('Adjust brightness of display values 1(Low)-7(High)'),
-            exposes.enum('display_auto_off', ea.ALL, ['deactivated', 'activated'])
+            e.enum('display_auto_off', ea.ALL, ['deactivated', 'activated'])
                 .withDescription('Enable / Disable display auto off'),
-            exposes.enum('power_up_status', ea.ALL, ['manual', 'last_state'])
+            e.enum('power_up_status', ea.ALL, ['manual', 'last_state'])
                 .withDescription('The mode after a power reset.  Default: Previous Mode. See instructions for information about manual'),
-            exposes.enum('window_open_check', ea.ALL, ['enable', 'disable'])
+            e.enum('window_open_check', ea.ALL, ['enable', 'disable'])
                 .withDescription('Turn on/off window check mode'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -796,3 +798,5 @@ module.exports = [
         exposes: [e.occupancy()],
     },
 ];
+
+module.exports = definitions;

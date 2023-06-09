@@ -1,12 +1,13 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
-const tuya = require('../lib/tuya');
-const reporting = require('../lib/reporting');
+import {Definition} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import * as tuya from '../lib/tuya';
+import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
             {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'},
@@ -31,10 +32,11 @@ module.exports = [
         description: 'Thermostatic radiator valve',
         whiteLabel: [{vendor: 'HiHome', model: 'WZB-TRVL'}, {vendor: 'Hama', model: '00176592'},
             {vendor: 'RTX', model: 'ZB-RT1'}, {vendor: 'SETTI+', model: 'TRV001'}],
-        fromZigbee: [fz.legacy.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.legacy.tuya_thermostat_weekly_schedule_1],
-        toZigbee: [tz.legacy.saswell_thermostat_current_heating_setpoint, tz.legacy.saswell_thermostat_mode, tz.legacy.saswell_thermostat_away,
-            tz.legacy.saswell_thermostat_child_lock, tz.legacy.saswell_thermostat_window_detection, tz.legacy.saswell_thermostat_frost_detection,
-            tz.legacy.saswell_thermostat_calibration, tz.legacy.saswell_thermostat_anti_scaling, tz.legacy.tuya_thermostat_weekly_schedule],
+        fromZigbee: [legacy.fz.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, legacy.fz.tuya_thermostat_weekly_schedule_1],
+        toZigbee: [legacy.tz.saswell_thermostat_current_heating_setpoint, legacy.tz.saswell_thermostat_mode, legacy.tz.saswell_thermostat_away,
+            legacy.tz.saswell_thermostat_child_lock, legacy.tz.saswell_thermostat_window_detection, legacy.tz.saswell_thermostat_frost_detection,
+            legacy.tz.saswell_thermostat_calibration, legacy.tz.saswell_thermostat_anti_scaling, legacy.tz.tuya_thermostat_weekly_schedule],
+        // @ts-expect-error
         onEvent: (type, data, device) => !['_TZE200_c88teujp'].includes(device.manufacturerName) && tuya.onEventSetTime(type, data, device),
         meta: {
             thermostat: {
@@ -48,11 +50,13 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [e.battery_low(), e.window_detection(), e.child_lock(), e.away_mode(),
-            exposes.binary('heating', ea.STATE, 'ON', 'OFF').withDescription('Device valve is open or closed (heating or not)'),
-            exposes.climate()
+            e.binary('heating', ea.STATE, 'ON', 'OFF').withDescription('Device valve is open or closed (heating or not)'),
+            e.climate()
                 .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
                 .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
                 // Range is -6 - 6 and step 1: https://github.com/Koenkk/zigbee2mqtt/issues/11777
                 .withLocalTemperatureCalibration(-6, 6, 1, ea.STATE_SET)],
     },
 ];
+
+module.exports = definitions;

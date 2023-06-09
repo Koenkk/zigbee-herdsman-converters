@@ -1,6 +1,7 @@
-const fz = require('../converters/fromZigbee');
-const exposes = require('../lib/exposes');
-const reporting = require('../lib/reporting');
+import {Definition, Fz} from '../lib/types';
+import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
+import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -16,10 +17,10 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['DCH-B112'],
         model: 'DCH-B112',
@@ -35,3 +36,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

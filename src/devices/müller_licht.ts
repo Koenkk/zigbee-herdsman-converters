@@ -1,12 +1,14 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
-const tuya = require('../lib/tuya');
+import {Definition, Zh} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import * as tuya from '../lib/tuya';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['tint-ExtendedColor'],
         model: '404036/45327/45317/45328',
@@ -74,7 +76,7 @@ module.exports = [
             .concat([tz.tint_scene]),
         // GU10 bulb does not support supportsEnhancedHue,
         // we can identify these based on the presense of haDiagnostic input cluster
-        meta: {supportsEnhancedHue: (entity) => !entity.getDevice().getEndpoint(1).inputClusters.includes(2821)},
+        meta: {supportsEnhancedHue: (entity: Zh.Endpoint) => !entity.getDevice().getEndpoint(1).inputClusters.includes(2821)},
     },
     {
         zigbeeModel: ['ZBT-ColorTemperature'],
@@ -123,9 +125,9 @@ module.exports = [
         model: 'MLI-404011/MLI-404049',
         description: 'Tint remote control',
         vendor: 'Müller Licht',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.tint404011_brightness_updown_click,
-            fz.legacy.tint404011_move_to_color_temp, fz.legacy.tint404011_move_to_color, fz.tint_scene,
-            fz.legacy.tint404011_brightness_updown_release, fz.legacy.tint404011_brightness_updown_hold],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, legacy.fz.tint404011_brightness_updown_click,
+            legacy.fz.tint404011_move_to_color_temp, legacy.fz.tint404011_move_to_color, fz.tint_scene,
+            legacy.fz.tint404011_brightness_updown_release, legacy.fz.tint404011_brightness_updown_hold],
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'color_temperature_move', 'color_move', 'scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         toZigbee: [],
@@ -218,3 +220,5 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
 ];
+
+module.exports = definitions;

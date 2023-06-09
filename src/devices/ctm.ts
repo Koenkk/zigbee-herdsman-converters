@@ -1,9 +1,10 @@
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const exposes = require('../lib/exposes');
-const reporting = require('../lib/reporting');
-const constants = require('../lib/constants');
-const utils = require('../lib/utils');
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import {KeyValue, Definition, Tz, Fz} from '../lib/types';
+import * as reporting from '../lib/reporting';
+import * as constants from '../lib/constants';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -23,7 +24,7 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty('onOff')) {
                 result.device_enabled = data['onOff'] ? 'ON' : 'OFF';
@@ -31,26 +32,26 @@ const fzLocal = {
 
             return result;
         },
-    },
+    } as Fz.Converter,
     ctm_device_mode: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x2200)) {
                 const deviceModeLookup = {0: 'astro_clock', 1: 'timer', 2: 'daily_timer', 3: 'weekly_timer'};
-                result.device_mode = deviceModeLookup[data[0x2200]];
+                result.device_mode = utils.getFromLookup(data[0x2200], deviceModeLookup);
             }
 
             return result;
         },
-    },
+    } as Fz.Converter,
     ctm_device_enabled: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x2201)) {
                 result.device_enabled = data[0x2201] ? 'ON' : 'OFF';
@@ -58,12 +59,12 @@ const fzLocal = {
 
             return result;
         },
-    },
+    } as Fz.Converter,
     ctm_child_lock: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x2202)) {
                 result.child_lock = data[0x2202] ? 'locked' : 'unlocked';
@@ -71,12 +72,12 @@ const fzLocal = {
 
             return result;
         },
-    },
+    } as Fz.Converter,
     ctm_current_flag: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x5000)) {
                 result.current_flag = data[0x5000];
@@ -84,12 +85,12 @@ const fzLocal = {
 
             return result;
         },
-    },
+    } as Fz.Converter,
     ctm_relay_state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x5001)) {
                 result.state = data[0x5001] ? 'ON' : 'OFF';
@@ -97,12 +98,12 @@ const fzLocal = {
 
             return result;
         },
-    },
+    } as Fz.Converter,
     ctm_temperature_offset: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x0400)) {
                 result.temperature_offset = data[0x0400];
@@ -110,12 +111,12 @@ const fzLocal = {
 
             return result;
         },
-    },
+    } as Fz.Converter,
     ctm_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x0401)) { // Load
                 result.load = data[0x0401];
@@ -126,7 +127,7 @@ const fzLocal = {
             if (data.hasOwnProperty(0x0403)) { // Sensor
                 const sensorModeLookup = {
                     0: 'air', 1: 'floor', 2: 'external', 3: 'regulator', 4: 'mv_air', 5: 'mv_external', 6: 'mv_regulator'};
-                result.sensor = sensorModeLookup[data[0x0403]];
+                result.sensor = utils.getFromLookup(data[0x0403], sensorModeLookup);
             }
             if (data.hasOwnProperty(0x0405)) { // Regulator mode
                 result.regulator_mode = data[0x0405] ? 'regulator' : 'thermostat';
@@ -160,13 +161,13 @@ const fzLocal = {
             }
             if (data.hasOwnProperty(0x0421)) { // Regulation mode
                 const regulationModeLookup = {0: 'thermostat', 1: 'regulator', 2: 'zzilent'};
-                result.regulation_mode= regulationModeLookup[data[0x0421]];
+                result.regulation_mode= utils.getFromLookup(data[0x0421], regulationModeLookup);
             }
             if (data.hasOwnProperty(0x0422)) { // Operation mode
                 const presetLookup = {0: 'off', 1: 'away', 2: 'sleep', 3: 'home'};
                 const systemModeLookup = {0: 'off', 1: 'off', 2: 'off', 3: 'heat'};
-                result.preset = presetLookup[data[0x0422]];
-                result.system_mode = systemModeLookup[data[0x0422]];
+                result.preset = utils.getFromLookup(data[0x0422], presetLookup);
+                result.system_mode = utils.getFromLookup(data[0x0422], systemModeLookup);
             }
             if (data.hasOwnProperty(0x0423)) { // Maximum floor temp guard
                 result.max_floor_guard = data[0x0423] ? 'ON' : 'OFF';
@@ -195,12 +196,12 @@ const fzLocal = {
 
             return result;
         },
-    },
+    } as Fz.Converter,
     ctm_group_config: {
         cluster: '65191', // 0xFEA7 ctmGroupConfig
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x0000)) {
                 result.group_id = data[0x0000];
@@ -208,17 +209,17 @@ const fzLocal = {
 
             return result;
         },
-    },
+    } as Fz.Converter,
     ctm_sove_guard: {
         cluster: '65481', // 0xFFC9 ctmSoveGuard
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x0001)) { // Alarm status
                 const alarmStatusLookup = {
                     0: 'ok', 1: 'tamper', 2: 'high_temperatur', 3: 'timer', 4: 'battery_alarm', 5: 'error', 0xFF: 'unknown'};
-                result.alarm_status = alarmStatusLookup[data[0x0001]];
+                result.alarm_status = utils.getFromLookup(data[0x0001], alarmStatusLookup);
             }
             if (data.hasOwnProperty(0x0002)) { // Change battery
                 result.battery_low = data[0x0002] ? true : false;
@@ -242,7 +243,7 @@ const fzLocal = {
                 const resetReasonLookup = {
                     0: 'unknown', 1: 'power_on', 2: 'external', 3: 'brown_out', 4: 'watchdog', 5: 'program_interface',
                     6: 'software', 0xFF: 'unknown'};
-                result.reset_reason = resetReasonLookup[data[0x0008]];
+                result.reset_reason = utils.getFromLookup(data[0x0008], resetReasonLookup);
             }
             if (data.hasOwnProperty(0x0009)) { // Dip switch
                 result.dip_switch = data[0x0009];
@@ -258,39 +259,39 @@ const fzLocal = {
             }
             if (data.hasOwnProperty(0x000D)) { // Model
                 const modelLookup = {0: 'unknown', 1: '1_8', 2: 'infinity', 3: 'hybrid', 4: 'tak', 0xFF: 'unknown'};
-                result.model = modelLookup[data[0x000D]];
+                result.model = utils.getFromLookup(data[0x000D], modelLookup);
             }
             if (data.hasOwnProperty(0x0010)) { // Relay address
                 result.relay_address = data[0x0010];
             }
             if (data.hasOwnProperty(0x0100)) { // Relay current flag
                 const currentFlagLookup = {0: 'false', 1: 'true', 0xFF: 'unknown'};
-                result.current_flag = currentFlagLookup[data[0x0100]];
+                result.current_flag = utils.getFromLookup(data[0x0100], currentFlagLookup);
             }
             if (data.hasOwnProperty(0x0101)) { // Relay current
                 result.relay_current = data[0x0101];
             }
             if (data.hasOwnProperty(0x0102)) { // Relay status
                 const relayStatusLookup = {0: 'off', 1: 'on', 2: 'not_present', 0xFF: 'unknown'};
-                result.relay_status = relayStatusLookup[data[0x0102]];
+                result.relay_status = utils.getFromLookup(data[0x0102], relayStatusLookup);
             }
             if (data.hasOwnProperty(0x0103)) { // Relay external button
                 const relayStatusLookup = {0: 'not_clicked', 1: 'clicked', 0xFF: 'unknown'};
-                result.external_button = relayStatusLookup[data[0x0103]];
+                result.external_button = utils.getFromLookup(data[0x0103], relayStatusLookup);
             }
             if (data.hasOwnProperty(0x0104)) { // Relay alarm
                 const relayAlarmLookup = {0: 'ok', 1: 'no_communication', 2: 'over_current', 3: 'over_temperature', 0xFF: 'unknown'};
-                result.relay_alarm = relayAlarmLookup[data[0x0104]];
+                result.relay_alarm = utils.getFromLookup(data[0x0104], relayAlarmLookup);
             }
             if (data.hasOwnProperty(0x0105)) { // Alarm status (from relay)
                 const relayAlarmStatusLookup = {
                     0: 'ok', 1: 'tamper', 2: 'high_temperatur', 3: 'timer', 4: 'battery_alarm', 5: 'error', 0xFF: 'unknown'};
-                result.relay_alarm_status = relayAlarmStatusLookup[data[0x0105]];
+                result.relay_alarm_status = utils.getFromLookup(data[0x0105], relayAlarmStatusLookup);
             }
 
             return result;
         },
-    },
+    } as Fz.Converter,
     ctm_water_leak_alarm: {
         cluster: 'ssIasZone',
         type: ['commandStatusChangeNotification', 'attributeReport'],
@@ -302,7 +303,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    },
+    } as Fz.Converter,
 };
 
 
@@ -310,49 +311,50 @@ const tzLocal = {
     ctm_mbd_device_enabled: {
         key: ['device_enabled'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, 'device_enabled');
             await entity.command('genOnOff', value.toLowerCase(), {}, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
         },
-    },
+    } as Tz.Converter,
     ctm_device_mode: {
         key: ['device_mode'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x2200]);
         },
-    },
+    } as Tz.Converter,
     ctm_device_enabled: {
         key: ['device_enabled'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('genOnOff', {0x2201: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
+            await entity.write('genOnOff', {0x2201: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x2201]);
         },
-    },
+    } as Tz.Converter,
     ctm_child_lock: {
         key: ['child_lock'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x2202]);
         },
-    },
+    } as Tz.Converter,
     ctm_current_flag: {
         key: ['current_flag'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x5000], {manufacturerCode: 0x1337});
         },
-    },
+    } as Tz.Converter,
     ctm_relay_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('genOnOff',
-                {0x5001: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}}, {manufacturerCode: 0x1337});
+                {0x5001: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}}, {manufacturerCode: 0x1337});
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x5001], {manufacturerCode: 0x1337});
         },
-    },
+    } as Tz.Converter,
     ctm_temperature_offset: {
         key: ['temperature_offset'],
         convertSet: async (entity, key, value, meta) => {
@@ -363,7 +365,7 @@ const tzLocal = {
             await entity.read('msTemperatureMeasurement', [0x0400], {manufacturerCode: 0x1337, sendWhen: 'active'});
             await entity.read('msTemperatureMeasurement', ['measuredValue'], {sendWhen: 'active'});
         },
-    },
+    } as Tz.Converter,
     ctm_thermostat: {
         key: ['load', 'display_text', 'sensor', 'regulator_mode', 'power_status', 'system_mode', 'night_switching', 'frost_guard',
             'max_floor_temp', 'regulator_setpoint', 'regulation_mode', 'max_floor_guard', 'weekly_timer', 'exteral_sensor_source',
@@ -378,14 +380,16 @@ const tzLocal = {
                 break;
             case 'sensor':
                 await entity.write('hvacThermostat', {0x0403: {
-                    value: {'air': 0, 'floor': 1, 'external': 2, 'regulator': 3, 'mv_air': 4, 'mv_external': 5, 'mv_regulator': 6}[value],
+                    value: utils.getFromLookup(value,
+                        {'air': 0, 'floor': 1, 'external': 2, 'regulator': 3, 'mv_air': 4, 'mv_external': 5, 'mv_regulator': 6}),
                     type: dataType.enum8}});
                 break;
             case 'regulator_mode':
-                await entity.write('hvacThermostat', {0x0405: {value: {'thermostat': 0, 'regulator': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0405:
+                    {value: utils.getFromLookup(value, {'thermostat': 0, 'regulator': 1}), type: dataType.boolean}});
                 break;
             case 'power_status':
-                await entity.write('hvacThermostat', {0x0406: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0406: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
                 break;
             case 'system_mode':
                 if (value === 'off') {
@@ -395,10 +399,10 @@ const tzLocal = {
                 }
                 break;
             case 'night_switching':
-                await entity.write('hvacThermostat', {0x0411: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0411: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
                 break;
             case 'frost_guard':
-                await entity.write('hvacThermostat', {0x0412: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0412: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
                 break;
             case 'max_floor_temp':
                 await entity.write('hvacThermostat', {0x0414: {value: value, type: dataType.uint8}});
@@ -408,14 +412,14 @@ const tzLocal = {
                 break;
             case 'regulation_mode':
                 await entity.write('hvacThermostat', {0x0421: {
-                    value: {'thermostat': 0, 'regulator': 1, 'zzilent': 2}[value],
+                    value: utils.getFromLookup(value, {'thermostat': 0, 'regulator': 1, 'zzilent': 2}),
                     type: dataType.uint8}});
                 break;
             case 'max_floor_guard':
-                await entity.write('hvacThermostat', {0x0423: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0423: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
                 break;
             case 'weekly_timer':
-                await entity.write('hvacThermostat', {0x0424: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0424: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: dataType.boolean}});
                 break;
             case 'exteral_sensor_source':
                 await entity.write('hvacThermostat', {0x0428: {value: value, type: dataType.uint16}});
@@ -474,20 +478,20 @@ const tzLocal = {
                 throw new Error(`Unhandled key tzLocal.ctm_thermostat.convertGet ${key}`);
             }
         },
-    },
+    } as Tz.Converter,
     ctm_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
             const presetLookup = {'off': 0, 'away': 1, 'sleep': 2, 'home': 3};
-            await entity.write('hvacThermostat', {0x0422: {value: presetLookup[value], type: dataType.uint8}});
+            await entity.write('hvacThermostat', {0x0422: {value: utils.getFromLookup(value, presetLookup), type: dataType.uint8}});
         },
-    },
+    } as Tz.Converter,
     ctm_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('hvacThermostat', {0x0413: {value: {'UNLOCK': 0, 'LOCK': 1}[value], type: dataType.boolean}});
+            await entity.write('hvacThermostat', {0x0413: {value: utils.getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), type: dataType.boolean}});
         },
-    },
+    } as Tz.Converter,
     ctm_thermostat_gets: {
         key: ['mean_power', 'floor_temp', 'heating', 'frost_guard_setpoint', 'external_temp',
             'air_temp', 'floor_sensor_error', 'exteral_sensor_error',
@@ -523,13 +527,13 @@ const tzLocal = {
                 throw new Error(`Unhandled key tzLocal.ctm_thermostat.convertGet ${key}`);
             }
         },
-    },
+    } as Tz.Converter,
     ctm_group_config: {
         key: ['group_id'],
         convertGet: async (entity, key, meta) => {
             await entity.read(0xFEA7, [0x0000], {manufacturerCode: 0x1337, sendWhen: 'active'});
         },
-    },
+    } as Tz.Converter,
     ctm_sove_guard: {
         key: [
             'alarm_status', 'change_battery', 'stove_temperature', 'ambient_temperature', 'active', 'runtime', 'runtime_timeout',
@@ -603,10 +607,10 @@ const tzLocal = {
                 throw new Error(`Unhandled key tzLocal.ctm_sove_guard.convertGet ${key}`);
             }
         },
-    },
+    } as Tz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['mTouch Dim'],
         model: 'mTouch_Dim',
@@ -640,11 +644,11 @@ module.exports = [
                 reportableChange: null}]);
         },
         exposes: [e.light_brightness(),
-            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(99)
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(99)
                 .withDescription('Specifies the minimum brightness value'),
-            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(99)
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(99)
                 .withDescription('Specifies the maximum brightness value'),
-            exposes.numeric('ballast_power_on_level', ea.ALL).withValueMin(1).withValueMax(99)
+            e.numeric('ballast_power_on_level', ea.ALL).withValueMin(1).withValueMax(99)
                 .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"')],
     },
     {
@@ -667,7 +671,7 @@ module.exports = [
         exposes: [e.battery(), e.temperature(),
             e.action(['recall_1', 'recall_2', 'recall_3', 'on', 'off', 'toggle',
                 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
-            exposes.numeric('group_id', ea.STATE)
+            e.numeric('group_id', ea.STATE)
                 .withDescription('The device sends commands with this group ID. Put dvices in this group to control them.')],
     },
     {
@@ -744,31 +748,31 @@ module.exports = [
                 reportableChange: 10}]);
         },
         exposes: [e.child_lock(),
-            exposes.climate()
+            e.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 40, 1)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'])
                 .withPreset(['off', 'away', 'sleep', 'home']),
-            exposes.numeric('load', ea.ALL).withUnit('W')
+            e.numeric('load', ea.ALL).withUnit('W')
                 .withDescription('Load in W when heating is on (between 0-3600 W). The thermostat uses the value as input to the ' +
                 'mean_power calculation.')
                 .withValueMin(0).withValueMax(3600),
-            exposes.text('display_text', ea.ALL)
+            e.text('display_text', ea.ALL)
                 .withDescription('Displayed text on thermostat display (zone). Max 19 characters'),
-            exposes.binary('regulator_mode', ea.ALL, 'regulator', 'thermostat')
+            e.binary('regulator_mode', ea.ALL, 'regulator', 'thermostat')
                 .withDescription('Device in regulator or thermostat mode.'),
-            exposes.numeric('mean_power', ea.STATE_GET).withUnit('W')
+            e.numeric('mean_power', ea.STATE_GET).withUnit('W')
                 .withDescription('Reports average power usage last 10 minutes'),
-            exposes.numeric('floor_temp', ea.STATE_GET).withUnit('°C')
+            e.numeric('floor_temp', ea.STATE_GET).withUnit('°C')
                 .withDescription('Current temperature measured from the floor sensor'),
-            exposes.binary('frost_guard', ea.ALL, 'ON', 'OFF')
+            e.binary('frost_guard', ea.ALL, 'ON', 'OFF')
                 .withDescription('When frost guard is ON, it is activated when the thermostat is switched OFF with the ON/OFF button.' +
                 'At the same time, the display will fade and the text "Frostsikring x °C" appears in the display and remains until the ' +
                 'thermostat is switched on again.'),
-            exposes.numeric('regulator_setpoint', ea.ALL).withUnit('%')
+            e.numeric('regulator_setpoint', ea.ALL).withUnit('%')
                 .withDescription('Setpoint in %, use only when the thermostat is in regulator mode.')
                 .withValueMin(1).withValueMax(99),
-            exposes.numeric('air_temp', ea.STATE_GET).withUnit('°C')
+            e.numeric('air_temp', ea.STATE_GET).withUnit('°C')
                 .withDescription('Current temperature measured from the air sensor'),
         ],
     },
@@ -831,9 +835,9 @@ module.exports = [
                 reportableChange: 0}], {manufacturerCode: 0x1337});
         },
         exposes: [e.battery(), e.battery_low(), e.temperature(),
-            exposes.enum('alarm_status', ea.STATE, ['ok', 'tamper', 'high_temperatur', 'timer', 'battery_alarm', 'error', 'unknown'])
+            e.enum('alarm_status', ea.STATE, ['ok', 'tamper', 'high_temperatur', 'timer', 'battery_alarm', 'error', 'unknown'])
                 .withDescription('Alarm status.'),
-            exposes.binary('active', ea.STATE, true, false)
+            e.binary('active', ea.STATE, true, false)
                 .withDescription('Stove guard active/inactive (Stove in use)')],
     },
     {
@@ -872,13 +876,13 @@ module.exports = [
             await endpoint.read(0xFEA7, [0x0000], {manufacturerCode: 0x1337});
         },
         exposes: [e.switch(), e.action(['on', 'off']),
-            exposes.enum('device_mode', ea.STATE, ['astro_clock', 'timer', 'daily_timer', 'weekly_timer'])
+            e.enum('device_mode', ea.STATE, ['astro_clock', 'timer', 'daily_timer', 'weekly_timer'])
                 .withDescription('Device mode.'),
-            exposes.binary('device_enabled', ea.ALL, 'ON', 'OFF')
+            e.binary('device_enabled', ea.ALL, 'ON', 'OFF')
                 .withDescription('Turn the device on or off'),
-            exposes.binary('child_lock', ea.STATE, 'locked', 'unlocked')
+            e.binary('child_lock', ea.STATE, 'locked', 'unlocked')
                 .withDescription('Physical input on the device enabled/disabled'),
-            exposes.numeric('group_id', ea.STATE)
+            e.numeric('group_id', ea.STATE)
                 .withDescription('The device sends commands with this group ID. Put devices in this group to control them.'),
         ],
     },
@@ -897,7 +901,7 @@ module.exports = [
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
         },
         exposes: [e.battery(), e.battery_low(), e.water_leak(),
-            exposes.binary('active_water_leak', ea.STATE, true, false)
+            e.binary('active_water_leak', ea.STATE, true, false)
                 .withDescription('Indicates whether there is an active water leak'),
         ],
     },
@@ -919,7 +923,7 @@ module.exports = [
             await endpoint2.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
         },
         exposes: [e.switch(), e.water_leak(),
-            exposes.binary('active_water_leak', ea.STATE, true, false)
+            e.binary('active_water_leak', ea.STATE, true, false)
                 .withDescription('Indicates whether there is an active water leak'),
         ],
     },
@@ -943,7 +947,7 @@ module.exports = [
         },
         exposes: [e.temperature(), e.battery(), e.battery_low(), e.smoke(),
             e.action(['on', 'off']),
-            exposes.numeric('group_id', ea.STATE)
+            e.numeric('group_id', ea.STATE)
                 .withDescription('The device sends commands with this group ID. Put devices in this group to control them.'),
         ],
     },
@@ -992,8 +996,10 @@ module.exports = [
                 reportableChange: 0}], {manufacturerCode: 0x1337});
         },
         exposes: [e.switch(), e.illuminance(), e.illuminance_lux(), e.occupancy(),
-            exposes.binary('device_enabled', ea.ALL, 'ON', 'OFF')
+            e.binary('device_enabled', ea.ALL, 'ON', 'OFF')
                 .withDescription('Turn the device on or off'),
         ],
     },
 ];
+
+module.exports = definitions;

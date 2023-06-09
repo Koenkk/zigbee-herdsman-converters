@@ -1,7 +1,8 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import {Definition, Fz} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -13,10 +14,10 @@ const fzLocal = {
             if (msg.endpoint.ID != 1) return;
             return {rain: (zoneStatus & 1) > 0};
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['SA-003-Zigbee'],
         model: 'SA-003-Zigbee',
@@ -182,3 +183,5 @@ module.exports = [
         exposes: [e.rain()],
     },
 ];
+
+module.exports = definitions;

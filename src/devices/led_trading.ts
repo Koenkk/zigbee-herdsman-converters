@@ -1,9 +1,10 @@
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
-const exposes = require('../lib/exposes');
-const utils = require('../lib/utils');
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
+import {Definition, Fz} from '../lib/types';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import * as exposes from '../lib/exposes';
+import * as utils from '../lib/utils';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -19,13 +20,13 @@ const fzLocal = {
             if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`led_trading_9133: missing command '${commandID}'`);
             } else {
-                return {action: lookup[commandID]};
+                return {action: utils.getFromLookup(commandID, lookup)};
             }
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000427.....$/}],
         model: '9133',
@@ -83,3 +84,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

@@ -1,14 +1,16 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const constants = require('../lib/constants');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import {Definition, Zh, Reporting} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as constants from '../lib/constants';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
-const tuya = require('../lib/tuya');
+import * as tuya from '../lib/tuya';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
         zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba', 'CO_CTPG'],
@@ -68,7 +70,7 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
         },
-        onEvent: tuya.onEventMeasurementPoll,
+        onEvent: (type, data, device, settings) => tuya.onEventMeasurementPoll(type, data, device, settings),
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
@@ -196,7 +198,7 @@ module.exports = [
         model: 'HS1RC-N',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [fz.battery, fz.legacy.heiman_smart_controller_armmode, fz.command_emergency],
+        fromZigbee: [fz.battery, legacy.fz.heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -233,7 +235,7 @@ module.exports = [
         model: 'HS1RC-EM',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [fz.battery, fz.legacy.heiman_smart_controller_armmode, fz.command_emergency],
+        fromZigbee: [fz.battery, legacy.fz.heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -422,7 +424,7 @@ module.exports = [
         model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
-        fromZigbee: [fz.command_status_change_notification_action, fz.legacy.st_button_state, fz.battery],
+        fromZigbee: [fz.command_status_change_notification_action, legacy.fz.st_button_state, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['off', 'single', 'double', 'hold'])],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -562,27 +564,27 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const heiman = {
                 configureReporting: {
-                    pm25MeasuredValue: async (endpoint, overrides) => {
+                    pm25MeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('pm25Measurement', payload);
                     },
-                    formAldehydeMeasuredValue: async (endpoint, overrides) => {
+                    formAldehydeMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('heimanSpecificFormaldehydeMeasurement', payload);
                     },
-                    batteryState: async (endpoint, overrides) => {
+                    batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('batteryState', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
-                    pm10measuredValue: async (endpoint, overrides) => {
+                    pm10measuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('pm10measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
-                    tvocMeasuredValue: async (endpoint, overrides) => {
+                    tvocMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('tvocMeasuredValue', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
-                    aqiMeasuredValue: async (endpoint, overrides) => {
+                    aqiMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
                         const payload = reporting.payload('aqiMeasuredValue', 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
@@ -615,7 +617,7 @@ module.exports = [
             endpoint.write('genTime', values);
         },
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pm25(), e.hcho(), e.voc(), e.aqi(), e.pm10(),
-            exposes.enum('battery_state', ea.STATE, ['not_charging', 'charging', 'charged'])],
+            e.enum('battery_state', ea.STATE, ['not_charging', 'charging', 'charged'])],
     },
     {
         fingerprint: [{modelID: 'IRControl-EM', manufacturerName: 'HEIMAN'}],
@@ -803,3 +805,5 @@ module.exports = [
         exposes: [e.switch(), e.battery()],
     },
 ];
+
+module.exports = definitions;

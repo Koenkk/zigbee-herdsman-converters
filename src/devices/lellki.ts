@@ -1,13 +1,14 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import {Definition} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
-const tuya = require('../lib/tuya');
+import * as tuya from '../lib/tuya';
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_air9m6af'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_9djocypn'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_bppxj3sf'}],
@@ -94,7 +95,7 @@ module.exports = [
             device.save();
         },
         options: [exposes.options.measurement_poll_interval()],
-        onEvent: tuya.onEventMeasurementPoll,
+        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options),
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_0yxeawjt'}],
@@ -111,7 +112,7 @@ module.exports = [
             device.save();
         },
         options: [exposes.options.measurement_poll_interval()],
-        onEvent: tuya.onEventMeasurementPoll,
+        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options),
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_c7nc9w3c'}],
@@ -136,11 +137,13 @@ module.exports = [
         options: [exposes.options.measurement_poll_interval()],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.switch().withEndpoint('l3'), e.power(), e.current(), e.voltage(),
-            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
+            e.energy(), e.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage')],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
-        onEvent: tuya.onEventMeasurementPoll,
+        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options),
     },
 ];
+
+module.exports = definitions;

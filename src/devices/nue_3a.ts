@@ -1,8 +1,11 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import {Definition, Fz, KeyValue} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import * as utils from '../lib/utils';
+import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -11,15 +14,15 @@ const fzLocal = {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty('tuyaMovingState')) {
                 const value = msg.data['tuyaMovingState'];
                 const movingLookup = {0: 'DOWN', 1: 'UP', 2: 'STOP'};
-                result.moving = movingLookup[value];
+                result.moving = utils.getFromLookup(value, movingLookup);
             }
             return result;
         },
-    },
+    } as Fz.Converter,
     LXN59_cover_state_via_onoff: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -28,10 +31,10 @@ const fzLocal = {
                 return {state: msg.data['onOff'] === 1 ? 'CLOSE' : 'OPEN'};
             }
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['LXN59-1S7LX1.0'],
         model: 'HGZB-01',
@@ -77,7 +80,7 @@ module.exports = [
         vendor: 'Nue / 3A',
         description: 'Smart 1 key scene wall switch',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.command_recall, fz.legacy.scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.ignore_power_report],
         exposes: [e.action(['recall_*']), e.switch()],
     },
     {
@@ -87,7 +90,7 @@ module.exports = [
         description: 'Smart 2 key scene wall switch',
         toZigbee: [tz.on_off],
         exposes: [e.action(['recall_*']), e.switch()],
-        fromZigbee: [fz.command_recall, fz.legacy.scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.ignore_power_report],
     },
     {
         zigbeeModel: ['FB56+ZSN08KJ2.3'],
@@ -95,7 +98,7 @@ module.exports = [
         vendor: 'Nue / 3A',
         description: 'Smart 4 key scene wall switch',
         toZigbee: [tz.on_off],
-        fromZigbee: [fz.command_recall, fz.legacy.scenes_recall_click, fz.ignore_power_report],
+        fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.ignore_power_report],
         exposes: [e.action(['recall_*']), e.switch()],
     },
     {
@@ -300,7 +303,7 @@ module.exports = [
         fromZigbee: [fz.cover_position_tilt, fzLocal.LXN59_cover_state_via_onoff, fzLocal.LXN59_cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {disableDefaultResponse: true},
-        exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN'])],
+        exposes: [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
@@ -415,3 +418,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

@@ -1,7 +1,8 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import extend from '../lib/extend';
+import {Definition, Fz} from '../lib/types';
 const ea = exposes.access;
 const e = exposes.presets;
 
@@ -17,10 +18,10 @@ const fzLocal = {
                 key_4: msg.data['41364'] === 1 ? 'ON' : 'OFF',
             };
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['DTB190502A1'],
         model: 'DTB190502A1',
@@ -28,8 +29,8 @@ module.exports = [
         description: 'CC2530 based IO Board',
         fromZigbee: [fz.DTB190502A1],
         toZigbee: [tz.DTB190502A1_LED],
-        exposes: [exposes.binary('led_state', ea.STATE, 'ON', 'OFF'),
-            exposes.enum('key_state', ea.STATE, ['KEY_SYS', 'KEY_UP', 'KEY_DOWN', 'KEY_NONE'])],
+        exposes: [e.binary('led_state', ea.STATE, 'ON', 'OFF'),
+            e.enum('key_state', ea.STATE, ['KEY_SYS', 'KEY_UP', 'KEY_DOWN', 'KEY_NONE'])],
     },
     {
         zigbeeModel: ['DTB-ED2004-012'],
@@ -46,10 +47,12 @@ module.exports = [
         fromZigbee: [fzLocal.DTB2011014, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.linkquality(),
-            exposes.binary('key_1', ea.STATE, 'ON', 'OFF'),
-            exposes.binary('key_2', ea.STATE, 'ON', 'OFF'),
-            exposes.binary('key_3', ea.STATE, 'ON', 'OFF'),
-            exposes.binary('key_4', ea.STATE, 'ON', 'OFF'),
+            e.binary('key_1', ea.STATE, 'ON', 'OFF'),
+            e.binary('key_2', ea.STATE, 'ON', 'OFF'),
+            e.binary('key_3', ea.STATE, 'ON', 'OFF'),
+            e.binary('key_4', ea.STATE, 'ON', 'OFF'),
         ],
     },
 ];
+
+module.exports = definitions;
