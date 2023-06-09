@@ -269,6 +269,21 @@ const definitions: Definition[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
         },
     },
+    {
+        zigbeeModel: ['SIN-4-1-20_LEX'],
+        model: 'SIN-4-1-20_LEX',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN 3680W single output relay',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(ep);
+        },
+        endpoint: (device) => {
+            return {default: 1};
+        },
+    },
 ];
 
 module.exports = definitions;
