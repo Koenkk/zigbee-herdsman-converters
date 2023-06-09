@@ -2064,7 +2064,8 @@ module.exports = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: 4107});
         },
-        ota: ota.zigbeeOTA,
+        // Temporary disable until OTA is available: https://github.com/Koenkk/zigbee2mqtt/issues/14923
+        // ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['LOM001'],
