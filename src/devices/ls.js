@@ -1,14 +1,13 @@
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
-const reporting = require('zigbee-herdsman-converters/lib/reporting');
-const extend = require('zigbee-herdsman-converters/lib/extend');
-const ota = require('zigbee-herdsman-converters/lib/ota');
-const tuya = require('zigbee-herdsman-converters/lib/tuya');
-const utils = require('zigbee-herdsman-converters/lib/utils');
-const globalStore = require('zigbee-herdsman-converters/lib/store');
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import * as ota from '../lib/ota';
+import {Definition, Fz, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
+
 
 const definition = {
     zigbeeModel: ['Emotion'],
