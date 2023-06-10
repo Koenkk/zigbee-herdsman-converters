@@ -1396,7 +1396,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_jwsjbxjs']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_jwsjbxjs', '_TZE200_leaqthqq']),
         model: 'TS0601_switch_5_gang',
         vendor: 'TuYa',
         description: '5 gang switch',
