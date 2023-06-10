@@ -1593,7 +1593,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Light controller',
         whiteLabel: [
-            {vendor: 'Mercator Ikuü', model: 'SMI7040', description: 'Ford Batten Light'},
+            tuya.whitelabel('Mercator Ikuü', 'SMI7040', 'Ford Batten Light', ['_TZ3000_zw7wr5uo']),
             {vendor: 'Mercator Ikuü', model: 'SMD9300', description: 'Donovan Panel Light'},
             tuya.whitelabel('Aldi', 'F122SB62H22A4.5W', 'LIGHTWAY smart home LED-lamp - filament', ['_TZ3000_g1glzzfk']),
             tuya.whitelabel('Miboxer', 'FUT035Z', 'Dual white LED controller', ['_TZ3210_frm6149r', '_TZ3210_jtifm80b', '_TZ3210_xwqng7ol']),
