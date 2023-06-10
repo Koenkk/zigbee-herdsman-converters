@@ -229,15 +229,11 @@ const definitions: Definition[] = [
         vendor: 'Third Reality',
         description: 'Zigbee multi-Function night light',
         ota: ota.zigbeeOTA,
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], noConfigure: true}),
-        exposes: [e.light_brightness_colortemp_color().removeFeature('color_temp_startup')],
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
         endpoint: (device) => {
             return {'default': 1};
         },
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+
     },
 ];
 
