@@ -2038,7 +2038,6 @@ module.exports = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: 4107});
         },
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SML004'],

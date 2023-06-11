@@ -487,7 +487,7 @@ module.exports = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee 6W E26/E27 Bulb RGB+CCT (pro)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: false}),
     },
     {
         zigbeeModel: ['GL-B-008Z'],
