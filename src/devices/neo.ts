@@ -84,7 +84,7 @@ const definitions: Definition[] = [
             await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
         },
     },
-	{
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nlrfgpny'}],
         zigbeeModel: ['lrfgpny'],
         model: 'NAS-AB06B2',
@@ -94,7 +94,7 @@ const definitions: Definition[] = [
         toZigbee: [legacy.tz.neo_alarm],
         exposes: [
             e.battery_low(),
-			e.tamper(),
+            e.tamper(),
             e.binary('alarm', ea.STATE_SET, true, false),
             e.enum('melody', ea.STATE_SET, Array.from(Array(18).keys()).map((x)=>(x+1).toString())),
             e.numeric('duration', ea.STATE_SET).withUnit('s').withValueMin(0).withValueMax(1800),
