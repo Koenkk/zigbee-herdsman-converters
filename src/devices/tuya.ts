@@ -2701,6 +2701,7 @@ const definitions: Definition[] = [
             {vendor: 'Coswall', model: 'CS-AJ-DE2U-ZG-11'}, {vendor: 'Aubess', model: 'TS011F_plug_1'}, {vendor: 'Immax', model: '07752L'},
             tuya.whitelabel('NOUS', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_2putqrmw']),
             tuya.whitelabel('Moes', 'MOES_plug', 'Smart plug (with power monitoring)', ['_TZ3000_yujkchbz']),
+            tuya.whitelabel('Moes', 'ZK-EU', 'Smart wallsocket (with power monitoring)', ['_TZ3000_ss98ec5d']),
         ],
         ota: ota.zigbeeOTA,
         extend: tuya.extend.switch({
