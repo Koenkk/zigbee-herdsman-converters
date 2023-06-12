@@ -17,6 +17,13 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
     },
     {
+        zigbeeModel: ['H036-0500'],
+        model: '968.93',
+        vendor: 'Paulmann',
+        description: 'URail rail adapter smart home Zigbee on/off/dimm',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht GmbH'}],
         zigbeeModel: ['RGBW'],
         model: '948.47',
