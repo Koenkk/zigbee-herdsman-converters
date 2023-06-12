@@ -227,7 +227,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['3RSNL02043Z'],
         model: '3RSNL02043Z',
         vendor: 'Third Reality',
-        description: 'Zigbee multi-Function night light',
+        description: 'Zigbee multi-function night light',
         ota: ota.zigbeeOTA,
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
         endpoint: (device) => {
