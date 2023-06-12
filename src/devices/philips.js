@@ -2015,6 +2015,13 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929003128401'],
+        model: '929003128401',
+        vendor: 'Philips',
+        description: 'Hue Go portable table lamp white',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['SML003'],
         model: '9290030675',
         vendor: 'Philips',
