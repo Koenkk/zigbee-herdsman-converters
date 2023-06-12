@@ -1080,8 +1080,9 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Zigbee Socket',
         whiteLabel: [
-            {vendor: 'Larkkey', model: 'PS080'}, {vendor: 'Mercator', model: 'SPBS01G'},
-            tuya.whitelabel('Mercator', 'SISW01', 'Ikuü inline switch', ['_TZ3210_2dfy6tol']),
+            {vendor: 'Larkkey', model: 'PS080'},
+            {vendor: 'Mercator Ikuü', model: 'SPBS01G'},
+            tuya.whitelabel('Mercator Ikuü', 'SISW01', 'Inline Switch', ['_TZ3210_2dfy6tol']),
         ],
         extend: tuya.extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
