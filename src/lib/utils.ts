@@ -1,6 +1,7 @@
 import * as globalStore from './store';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
+import {Dictionary} from './customTypes';
 
 export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
@@ -529,6 +530,10 @@ export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Grou
     return obj.constructor.name.toLowerCase() === 'group';
 }
 
+export function getListValueByKey(source: Dictionary<number>, value: string) {
+    return source.hasOwnProperty(value) ? source[value] : parseInt(value, 10);
+}
+
 exports.noOccupancySince = noOccupancySince;
 exports.getOptions = getOptions;
 exports.isLegacyEnabled = isLegacyEnabled;
@@ -567,3 +572,4 @@ exports.printNumberAsHex = printNumberAsHex;
 exports.printNumbersAsHexSequence = printNumbersAsHexSequence;
 exports.createLogger = createLogger;
 exports.getFromLookup = getFromLookup;
+exports.getListValueByKey = getListValueByKey;
