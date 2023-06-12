@@ -36,8 +36,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_t1blo2bj'}, {modelID: 'TS0601', manufacturerName: '_TZE204_t1blo2bj'}],
-        zigbeeModel: ['1blo2bj'],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t1blo2bj', '_TZE204_t1blo2bj', '_TZE200_nlrfgpny']),
+        zigbeeModel: ['1blo2bj', 'lrfgpny'],
         model: 'NAS-AB02B2',
         vendor: 'Neo',
         description: 'Alarm',
@@ -51,6 +51,7 @@ const definitions: Definition[] = [
             e.enum('volume', ea.STATE_SET, ['low', 'medium', 'high']),
             e.numeric('battpercentage', ea.STATE).withUnit('%'),
         ],
+        whiteLabel: [tuya.whitelabel('Neo', 'NAS-AB06B2', 'Outdoor solar alarm', ['_TZE200_nlrfgpny'])],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -81,30 +82,6 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nlrfgpny'}],
-        zigbeeModel: ['lrfgpny'],
-        model: 'NAS-AB06B2',
-        vendor: 'Neo',
-        description: 'Outdoor Solar Alarm',
-        fromZigbee: [legacy.fz.neo_alarm, fz.ignore_basic_report],
-        toZigbee: [legacy.tz.neo_alarm],
-        exposes: [
-            e.battery_low(),
-            e.tamper(),
-            e.binary('alarm', ea.STATE_SET, true, false),
-            e.enum('melody', ea.STATE_SET, Array.from(Array(18).keys()).map((x)=>(x+1).toString())),
-            e.numeric('duration', ea.STATE_SET).withUnit('s').withValueMin(0).withValueMax(1800),
-            e.enum('volume', ea.STATE_SET, ['low', 'medium', 'high']),
-            e.numeric('battpercentage', ea.STATE).withUnit('%'),
-        ],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
             await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
         },
     },
