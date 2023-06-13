@@ -232,3 +232,7 @@ export namespace Reporting {
         change?: number | [number, number],
     }
 }
+
+export type Dictionary<T> = {
+    [key: string]: T;
+};

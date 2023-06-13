@@ -1,7 +1,6 @@
 import * as globalStore from './store';
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
-import {Dictionary} from './customTypes';
+import {Definition, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh, Dictionary} from './types';
 
 export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;

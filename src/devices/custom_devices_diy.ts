@@ -2,14 +2,13 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import {Definition, Tz, Fz, KeyValueAny, KeyValue, Zh, Expose} from '../lib/types';
+import {Definition, Tz, Fz, KeyValueAny, KeyValue, Zh, Expose, Dictionary} from '../lib/types';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
 import {calibrateAndPrecisionRoundOptions, getKey, getListValueByKey, postfixWithEndpointName} from '../lib/utils';
-import {Dictionary} from 'src/lib/customTypes';
 
 const switchTypesList = {
     'switch': 0x00,
