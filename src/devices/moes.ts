@@ -331,6 +331,7 @@ const definitions: Definition[] = [
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch module',
         meta: {coverInverted: true},
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [e.cover_position(), e.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
