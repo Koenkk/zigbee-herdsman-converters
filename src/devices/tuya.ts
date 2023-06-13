@@ -3620,7 +3620,7 @@ const definitions: Definition[] = [
         description: 'Vibration sensor',
         fromZigbee: [fz.battery, fz.ias_vibration_alarm_1_with_timeout],
         toZigbee: [tz.TS0210_sensitivity],
-        exposes: [e.battery(), e.battery_voltage(), e.vibration(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])],
+        exposes: [e.battery(), e.battery_voltage(), e.vibration(), e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(50)],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8bxrzyxz'},
