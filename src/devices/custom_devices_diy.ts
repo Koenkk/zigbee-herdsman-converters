@@ -161,9 +161,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const data = getFromLookup(value, switchTypesList);
             const payload = {switchType: data};
-
             await entity.write('genOnOffSwitchCfg', payload);
-
             return {state: {[`${key}`]: value}};
         },
     } as Tz.Converter,
@@ -365,11 +363,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const voltage = msg.data['batteryVoltage'] * 100;
             const battery = (voltage - 2200) / 8;
-
-            return {
-                battery: battery > 100 ? 100 : battery,
-                voltage: voltage,
-            };
+            return {battery: battery > 100 ? 100 : battery, voltage: voltage};
         },
     } as Fz.Converter,
     multi_zig_sw_switch_buttons: {
@@ -380,10 +374,7 @@ const fzLocal = {
             const actionLookup: { [key: number]: string } = {0: 'release', 1: 'single', 2: 'double', 3: 'triple', 4: 'hold'};
             const value = msg.data['presentValue'];
             const action = actionLookup[value];
-
-            return {
-                action: button + '_' + action,
-            };
+            return {action: button + '_' + action};
         },
     } as Fz.Converter,
     multi_zig_sw_switch_config: {
@@ -392,10 +383,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const channel = getKey(model.endpoint?.(msg.device) ?? {}, msg.endpoint.ID);
             const {switchType} = msg.data;
-
-            return {
-                [`switch_type_${channel}`]: getKey(switchTypesList, switchType),
-            };
+            return {[`switch_type_${channel}`]: getKey(switchTypesList, switchType)};
         },
     } as Fz.Converter,
 };
@@ -1155,20 +1143,11 @@ const definitions: Definition[] = [
             ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_2')],
             ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_3')],
             ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_4')],
-            e.battery(),
-            e.action(['single', 'double', 'triple', 'hold', 'release']),
-            e.battery_voltage(),
+            e.battery(), e.action(['single', 'double', 'triple', 'hold', 'release']), e.battery_voltage(),
         ],
-        meta: {
-            multiEndpoint: true,
-        },
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {
-                button_1: 1,
-                button_2: 2,
-                button_3: 3,
-                button_4: 4,
-            };
+            return {button_1: 1, button_2: 2, button_3: 3, button_4: 4};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
