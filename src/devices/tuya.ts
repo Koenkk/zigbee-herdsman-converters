@@ -4903,7 +4903,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        zigbeeModel: ['TS0001'],
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3210_dse8ogfy']),
         model: 'FingerBot',
         vendor: 'TuYa',
         description: 'Zigbee fingbot plus',
