@@ -4915,7 +4915,7 @@ const definitions: Definition[] = [
             {
                 ...tuya.tz.datapoints,
                 key: tuya.tz.datapoints.key.filter((item) => {
-                    return item !== 'state'
+                    return item !== 'state';
                 }).concat([
                     'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program',
                 ]),
