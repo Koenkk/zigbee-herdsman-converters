@@ -4914,20 +4914,20 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off,
             {
                 ...tuya.tz.datapoints,
-                key: tuya.tz.datapoints.key.filter(item => item !== 'state').concat([
+                key: tuya.tz.datapoints.key.filter((item) => {item !== 'state'}).concat([
                     'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program',
-                ])
+                ]),
             },
         ],
         exposes: [
             e.switch(),
             e.enum('mode', ea.STATE_SET, ['click', 'switch', 'program']).withDescription('Working mode'),
             e.numeric('lower', ea.STATE_SET).withValueMin(50).withValueMax(100).withValueStep(1).withUnit('%')
-                    .withDescription('Down movement limit'),
+                .withDescription('Down movement limit'),
             e.numeric('upper', ea.STATE_SET).withValueMin(0).withValueMax(50).withValueStep(1).withUnit('%')
-                    .withDescription('Up movement limit'),
+                .withDescription('Up movement limit'),
             e.numeric('delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('s')
-                    .withDescription('Sustain time'),
+                .withDescription('Sustain time'),
             e.binary('reverse', ea.STATE_SET, 'ON', 'OFF').withDescription('Reverse'),
             e.binary('touch', ea.STATE_SET, 'ON', 'OFF').withDescription('Touch controll'),
             e.battery(),
@@ -4945,9 +4945,9 @@ const definitions: Definition[] = [
                 [0x69, 'battery', tuya.valueConverter.raw],
                 [0x6a, 'upper', tuya.valueConverter.raw],
                 [0x6b, 'touch', tuya.valueConverter.onOff],
-                //? [0x6c, '', tuya.valueConverter.raw],
+                // ? [0x6c, '', tuya.valueConverter.raw],
                 [0x6d, 'program', tuya.valueConverter.raw],
-                //? [0x70, '', tuya.valueConverter.raw],
+                // ? [0x70, '', tuya.valueConverter.raw],
             ],
         },
     },
