@@ -4920,7 +4920,7 @@ const definitions: Definition[] = [
             },
         ],
         exposes: [
-            tuya.exposes.switch(),
+            e.switch(),
             e.enum('mode', ea.STATE_SET, ['click', 'switch', 'program']).withDescription('Working mode'),
             e.numeric('lower', ea.STATE_SET).withValueMin(50).withValueMax(100).withValueStep(1).withUnit('%')
                     .withDescription('Down movement limit'),
