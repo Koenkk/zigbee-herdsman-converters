@@ -8,6 +8,7 @@ const e = exposes.presets;
 const definitions: Definition[] = [
     {
         zigbeeModel: ['HK-DIM-A', 'Candeo Zigbee Dimmer'],
+        fingerprint: [{modelID: 'HK_DIM_A', manufacturerName: 'Shyugj'}],
         model: 'HK-DIM-A',
         vendor: 'Candeo',
         description: 'Zigbee LED dimmer smart switch',
