@@ -671,6 +671,15 @@ const definitions: Definition[] = [
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['RB 255 C'],
+        model: 'RB 255 C',
+        vendor: 'Innr',
+        description: 'E14 mini bulb RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
+        meta: {supportsEnhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['OFL 122 C'],
         model: 'OFL 122 C',
         vendor: 'Innr',
