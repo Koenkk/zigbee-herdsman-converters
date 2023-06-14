@@ -2,13 +2,13 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import {Definition, Tz, Fz, KeyValueAny, KeyValue, Zh, Expose, Dictionary} from '../lib/types';
+import {Definition, Tz, Fz, KeyValueAny, KeyValue, Zh, Expose} from '../lib/types';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
-import {calibrateAndPrecisionRoundOptions, getKey, getListValueByKey, postfixWithEndpointName} from '../lib/utils';
+import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, postfixWithEndpointName} from '../lib/utils';
 
 const switchTypesList = {
     'switch': 0x00,
@@ -159,12 +159,10 @@ const tzLocal = {
             await entity.read('genOnOffSwitchCfg', ['switchType']);
         },
         convertSet: async (entity, key, value, meta) => {
-            if (key == 'switch_type') {
-                const data = getListValueByKey(switchTypesList, value as string);
-                const payload = {switchType: data};
+            const data = getFromLookup(value, switchTypesList);
+            const payload = {switchType: data};
 
-                await entity.write('genOnOffSwitchCfg', payload);
-            }
+            await entity.write('genOnOffSwitchCfg', payload);
 
             return {state: {[`${key}`]: value}};
         },
@@ -379,7 +377,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const button = getKey(model.endpoint?.(msg.device) ?? {}, msg.endpoint.ID);
-            const actionLookup: Dictionary<string> = {0: 'release', 1: 'single', 2: 'double', 3: 'triple', 4: 'hold'};
+            const actionLookup: { [key: number]: string } = {0: 'release', 1: 'single', 2: 'double', 3: 'triple', 4: 'hold'};
             const value = msg.data['presentValue'];
             const action = actionLookup[value];
 
