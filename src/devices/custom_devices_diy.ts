@@ -8,7 +8,12 @@ import extend from '../lib/extend';
 import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
-import {calibrateAndPrecisionRoundOptions, postfixWithEndpointName} from '../lib/utils';
+import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, postfixWithEndpointName} from '../lib/utils';
+
+const switchTypesList = {
+    'switch': 0x00,
+    'multi-click': 0x02,
+};
 
 const tzLocal = {
     tirouter: {
@@ -146,6 +151,18 @@ const tzLocal = {
             return {
                 state: {[key]: rawValue},
             };
+        },
+    } as Tz.Converter,
+    multi_zig_sw_switch_type: {
+        key: ['switch_type'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOffSwitchCfg', ['switchType']);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            const data = getFromLookup(value, switchTypesList);
+            const payload = {switchType: data};
+            await entity.write('genOnOffSwitchCfg', payload);
+            return {state: {[`${key}`]: value}};
         },
     } as Tz.Converter,
 };
@@ -338,6 +355,35 @@ const fzLocal = {
             const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
             const property = (multiEndpoint)? postfixWithEndpointName('pressure', msg, model, meta): 'pressure';
             return {[property]: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+        },
+    } as Fz.Converter,
+    multi_zig_sw_battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const voltage = msg.data['batteryVoltage'] * 100;
+            const battery = (voltage - 2200) / 8;
+            return {battery: battery > 100 ? 100 : battery, voltage: voltage};
+        },
+    } as Fz.Converter,
+    multi_zig_sw_switch_buttons: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint?.(msg.device) ?? {}, msg.endpoint.ID);
+            const actionLookup: { [key: number]: string } = {0: 'release', 1: 'single', 2: 'double', 3: 'triple', 4: 'hold'};
+            const value = msg.data['presentValue'];
+            const action = actionLookup[value];
+            return {action: button + '_' + action};
+        },
+    } as Fz.Converter,
+    multi_zig_sw_switch_config: {
+        cluster: 'genOnOffSwitchCfg',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const channel = getKey(model.endpoint?.(msg.device) ?? {}, msg.endpoint.ID);
+            const {switchType} = msg.data;
+            return {[`switch_type_${channel}`]: getKey(switchTypesList, switchType)};
         },
     } as Fz.Converter,
 };
@@ -1083,6 +1129,29 @@ const definitions: Definition[] = [
             await reporting.humidity(endpoint);
             await reporting.soil_moisture(endpoint);
             await reporting.illuminance(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['MULTI-ZIG-SW'],
+        model: 'MULTI-ZIG-SW',
+        vendor: 'smarthjemmet.dk',
+        description: '[Multi switch from Smarthjemmet.dk](https://smarthjemmet.dk)',
+        fromZigbee: [fz.ignore_basic_report, fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
+        toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        exposes: [
+            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_1')],
+            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_2')],
+            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_3')],
+            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_4')],
+            e.battery(), e.action(['single', 'double', 'triple', 'hold', 'release']), e.battery_voltage(),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {button_1: 1, button_2: 2, button_3: 3, button_4: 4};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
         },
     },
 ];
