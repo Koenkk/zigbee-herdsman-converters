@@ -4914,7 +4914,9 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off,
             {
                 ...tuya.tz.datapoints,
-                key: tuya.tz.datapoints.key.filter((item) => {item !== 'state'}).concat([
+                key: tuya.tz.datapoints.key.filter((item) => {
+                    return item !== 'state'
+                }).concat([
                     'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program',
                 ]),
             },
