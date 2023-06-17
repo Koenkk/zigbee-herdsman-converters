@@ -1929,7 +1929,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_54hjn4vs']),
-        model: 'TS0002',
+        model: 'TS0002_switch_module_3',
         vendor: 'TuYa',
         description: '2-Gang switch with backlight',
         extend: tuya.extend.switch({ powerOnBehavior2: true, indicatorMode: true, endpoints: ['l1', 'l2'] }),
