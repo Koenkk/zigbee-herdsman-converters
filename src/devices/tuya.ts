@@ -1944,7 +1944,7 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('Lonsonho', 'X702A', '2 Gang switch with backlight', ['_TZ3000_54hjn4vs']),
-        ]
+        ],
     },
     {
         zigbeeModel: ['TS0002'],
