@@ -1928,29 +1928,6 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['TS0002'],
-        model: 'TS0002',
-        vendor: 'TuYa',
-        description: '2 gang switch',
-        whiteLabel: [
-            { vendor: 'Zemismart', model: 'ZM-CSW002-D_switch' },
-            { vendor: 'Lonsonho', model: 'X702' },
-            { vendor: 'Lonsonho', model: 'X702A' },
-            { vendor: 'Avatto', model: 'ZTS02' }
-        ],
-        extend: tuya.extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        endpoint: (device) => {
-            return { 'l1': 1, 'l2': 2 };
-        },
-        meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
         fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_54hjn4vs']),
         model: 'TS0002',
         vendor: 'TuYa',
@@ -1974,14 +1951,17 @@ const definitions: Definition[] = [
         model: 'TS0002',
         vendor: 'TuYa',
         description: '2 gang switch',
-        whiteLabel: [{vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'}, {vendor: 'Lonsonho', model: 'X702'},
-            {vendor: 'Avatto', model: 'ZTS02'}],
+        whiteLabel: [
+            { vendor: 'Zemismart', model: 'ZM-CSW002-D_switch' },
+            { vendor: 'Lonsonho', model: 'X702' },
+            { vendor: 'Lonsonho', model: 'X702A' },
+            { vendor: 'Avatto', model: 'ZTS02' }],
         extend: tuya.extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
+            return { 'l1': 1, 'l2': 2 };
         },
-        meta: {multiEndpoint: true},
+        meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
