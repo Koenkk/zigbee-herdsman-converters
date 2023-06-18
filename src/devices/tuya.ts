@@ -1954,7 +1954,6 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'},
             {vendor: 'Lonsonho', model: 'X702'},
-            {vendor: 'Lonsonho', model: 'X702A'},
             {vendor: 'Avatto', model: 'ZTS02'}],
         extend: tuya.extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
