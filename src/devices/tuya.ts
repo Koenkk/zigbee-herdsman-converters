@@ -4908,15 +4908,13 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Zigbee fingerbot plus',
         whiteLabel: [
-            tuya.whitelabel('Adaprox', 'TS0001_1', 'Zigbee fingbot plus', ['_TZ3210_dse8ogfy']),
+            tuya.whitelabel('Adaprox', 'TS0001_1', 'Zigbee fingerbot plus', ['_TZ3210_dse8ogfy']),
         ],
         fromZigbee: [fz.on_off, tuya.fz.datapoints],
         toZigbee: [tz.on_off,
             {
                 ...tuya.tz.datapoints,
-                key: tuya.tz.datapoints.key.filter((item) => {
-                    return item !== 'state';
-                }).concat([
+                key: tuya.tz.datapoints.key.concat([
                     'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program',
                 ]),
             },
@@ -4943,11 +4941,11 @@ const definitions: Definition[] = [
                 [0x65, 'mode', tuya.valueConverterBasic.lookup({'click': tuya.enum(0), 'switch': tuya.enum(1), 'program': tuya.enum(2)})],
                 [0x66, 'lower', tuya.valueConverter.raw],
                 [0x67, 'delay', tuya.valueConverter.raw],
-                [0x68, 'reverse', tuya.valueConverter.onOff],
+                [0x68, 'reverse', tuya.valueConverterBasic.lookup({ 'ON': 1, 'OFF': 0 })],
                 [0x69, 'battery', tuya.valueConverter.raw],
                 [0x6a, 'upper', tuya.valueConverter.raw],
-                [0x6b, 'touch', tuya.valueConverter.onOff],
-                // ? [0x6c, '', tuya.valueConverter.raw],
+                [0x6b, 'touch', tuya.valueConverterBasic.lookup({ 'ON': 1, 'OFF': 0 })],
+                //? [0x6c, '', tuya.valueConverter.onOff],
                 [0x6d, 'program', tuya.valueConverter.raw],
                 // ? [0x70, '', tuya.valueConverter.raw],
             ],
