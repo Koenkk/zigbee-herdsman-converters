@@ -3989,7 +3989,7 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.tuya_smart_human_presense_sensor],
         toZigbee: [legacy.tz.tuya_smart_human_presense_sensor],
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'ZY-M100-S', 'Human presence sensor', ['_TZE204_ztc6ggyl']),
+            tuya.whitelabel('TuYa', 'ZY-M100-L', 'Ceiling Human Breathe Sensor', ['_TZE204_ztc6ggyl']),
         ],
         exposes: [
             e.illuminance_lux(), e.presence(),
@@ -4011,9 +4011,9 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sxm7l9xa']),
-        model: 'TS0601_smart_human_presence_sensor_2',
+        model: 'ZY-M100-S',
         vendor: 'TuYa',
-        description: 'Smart Human presence sensor',
+        description: 'Mini Human Breathe Sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
