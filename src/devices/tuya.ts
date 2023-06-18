@@ -4906,7 +4906,7 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0001', ['_TZ3210_dse8ogfy']),
         model: 'FingerBot',
         vendor: 'TuYa',
-        description: 'Zigbee fingbot plus',
+        description: 'Zigbee fingerbot plus',
         whiteLabel: [
             tuya.whitelabel('Adaprox', 'TS0001_1', 'Zigbee fingbot plus', ['_TZ3210_dse8ogfy']),
         ],
