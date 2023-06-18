@@ -116,6 +116,11 @@ const converters = {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model, meta)] =
                     mapNumberRange(msg.data['pIHeatingDemand'], 0, (dontMapPIHeatingDemand ? 100: 255), 0, 100);
             }
+            if (msg.data.hasOwnProperty('pICoolingDemand')) {
+                // we assume the behavior is consistent for pIHeatingDemand + pICoolingDemand for the same vendor
+                result[postfixWithEndpointName('pi_cooling_demand', msg, model, meta)] =
+                    mapNumberRange(msg.data['pICoolingDemand'], 0, (dontMapPIHeatingDemand ? 100: 255), 0, 100);
+            }
             if (msg.data.hasOwnProperty('tempSetpointHold')) {
                 result[postfixWithEndpointName('temperature_setpoint_hold', msg, model, meta)] = msg.data['tempSetpointHold'] == 1;
             }
@@ -142,6 +147,21 @@ const converters = {
                 let value = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
                 value = value < -250 ? 0 : value;
                 result[postfixWithEndpointName('abs_max_heat_setpoint_limit', msg, model, meta)] = value;
+            }
+            if (msg.data.hasOwnProperty('absMinCoolSetpointLimit')) {
+                let value = precisionRound(msg.data['absMinCoolSetpointLimit'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('abs_min_cool_setpoint_limit', msg, model, meta)] = value;
+            }
+            if (msg.data.hasOwnProperty('absMaxCoolSetpointLimit')) {
+                let value = precisionRound(msg.data['absMaxCoolSetpointLimit'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('abs_max_cool_setpoint_limit', msg, model, meta)] = value;
+            }
+            if (msg.data.hasOwnProperty('minSetpointDeadBand')) {
+                let value = precisionRound(msg.data['minSetpointDeadBand'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('min_setpoint_dead_band', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('acLouverPosition')) {
                 result[postfixWithEndpointName('ac_louver_position', msg, model, meta)] =
