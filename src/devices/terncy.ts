@@ -63,6 +63,14 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        zigbeeModel: ['CL001'],
+        model: 'CL001',
+        vendor: 'TERNCY',
+        description: 'Terncy Beevon Ceiling Light', 
+        ota: ota.zigbeeOTA,
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [50, 500], disablePowerOnBehavior: true, disableEffect: true})
+    }
 ];
 
 module.exports = definitions;
