@@ -42,14 +42,18 @@ const converters = {
             const result = {};
             const dontMapPIHeatingDemand = model.meta && model.meta.thermostat && model.meta.thermostat.dontMapPIHeatingDemand;
             if (msg.data.hasOwnProperty('localTemp')) {
-                result[postfixWithEndpointName('local_temperature', msg, model, meta)] = precisionRound(msg.data['localTemp'], 2) / 100;
+                let value = precisionRound(msg.data['localTemp'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('localTemperatureCalibration')) {
                 result[postfixWithEndpointName('local_temperature_calibration', msg, model, meta)] =
                     precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
             if (msg.data.hasOwnProperty('outdoorTemp')) {
-                result[postfixWithEndpointName('outdoor_temperature', msg, model, meta)] = precisionRound(msg.data['outdoorTemp'], 2) / 100;
+                let value = precisionRound(msg.data['outdoorTemp'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('outdoor_temperature', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('occupancy')) {
                 result[postfixWithEndpointName('occupancy', msg, model, meta)] = (msg.data.occupancy % 2) > 0;
