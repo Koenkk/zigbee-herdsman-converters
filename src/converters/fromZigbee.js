@@ -43,7 +43,7 @@ const converters = {
             const dontMapPIHeatingDemand = model.meta && model.meta.thermostat && model.meta.thermostat.dontMapPIHeatingDemand;
             if (msg.data.hasOwnProperty('localTemp')) {
                 let value = precisionRound(msg.data['localTemp'], 2) / 100;
-                value = value < -250 ? 0 : value;
+                value = value < -273.15 ? null : value;
                 result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('localTemperatureCalibration')) {
@@ -52,7 +52,7 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('outdoorTemp')) {
                 let value = precisionRound(msg.data['outdoorTemp'], 2) / 100;
-                value = value < -250 ? 0 : value;
+                value = value < -273.15 ? null : value;
                 result[postfixWithEndpointName('outdoor_temperature', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('occupancy')) {
@@ -61,7 +61,7 @@ const converters = {
             if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
                 let value = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
                 // Stelpro will return -325.65 when set to off, value is not realistic anyway
-                value = value < -250 ? 0 : value;
+                value = value < -273.15 ? null : value;
                 result[postfixWithEndpointName('occupied_heating_setpoint', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('unoccupiedHeatingSetpoint')) {
@@ -134,37 +134,37 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('minHeatSetpointLimit')) {
                 let value = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
+                value = value < -273.15 ? null : value;
                 result[postfixWithEndpointName('min_heat_setpoint_limit', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('maxHeatSetpointLimit')) {
                 let value = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
+                value = value < -273.15 ? null : value;
                 result[postfixWithEndpointName('max_heat_setpoint_limit', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('absMinHeatSetpointLimit')) {
                 let value = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
+                value = value < -273.15 ? null : value;
                 result[postfixWithEndpointName('abs_min_heat_setpoint_limit', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('absMaxHeatSetpointLimit')) {
                 let value = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
+                value = value < -273.15 ? null : value;
                 result[postfixWithEndpointName('abs_max_heat_setpoint_limit', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('absMinCoolSetpointLimit')) {
                 let value = precisionRound(msg.data['absMinCoolSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
+                value = value < -273.15 ? null : value;
                 result[postfixWithEndpointName('abs_min_cool_setpoint_limit', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('absMaxCoolSetpointLimit')) {
                 let value = precisionRound(msg.data['absMaxCoolSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
+                value = value < -273.15 ? null : value;
                 result[postfixWithEndpointName('abs_max_cool_setpoint_limit', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('minSetpointDeadBand')) {
                 let value = precisionRound(msg.data['minSetpointDeadBand'], 2) / 100;
-                value = value < -250 ? 0 : value;
+                value = value < -273.15 ? null : value;
                 result[postfixWithEndpointName('min_setpoint_dead_band', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('acLouverPosition')) {
