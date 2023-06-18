@@ -23,6 +23,13 @@ const definitions: Definition[] = [
         description: 'SALITERAS-Z ceiling light',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
+    {
+        zigbeeModel: ['EGLO_ZM_TW_CLP'],
+        model: '98847',
+        vendor: 'EGLO',
+        description: 'FUEVA-Z ceiling light IP44',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
 ];
 
 module.exports = definitions;
