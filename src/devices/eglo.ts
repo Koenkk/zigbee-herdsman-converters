@@ -27,7 +27,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['EGLO_ZM_TW_CLP'],
         model: '98847',
         vendor: 'EGLO',
-        description: 'EGLO FUEVA-Z ceiling light IP44',
+        description: 'FUEVA-Z ceiling light IP44',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
 ];
