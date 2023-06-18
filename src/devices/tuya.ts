@@ -4947,7 +4947,7 @@ const definitions: Definition[] = [
                 [0x6b, 'touch', tuya.valueConverterBasic.lookup({'ON': 1, 'OFF': 0})],
                 //? [0x6c, '', tuya.valueConverter.onOff],
                 [0x6d, 'program', tuya.valueConverter.raw],
-                // ? [0x70, '', tuya.valueConverter.raw],
+                //? [0x70, '', tuya.valueConverter.raw],
             ],
         },
     },
