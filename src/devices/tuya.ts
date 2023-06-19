@@ -1921,7 +1921,6 @@ const definitions: Definition[] = [
         extend: tuya.extend.switch(),
         whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'}, {vendor: 'Lonsonho', model: 'X701'},
             {vendor: 'Bandi', model: 'BDS03G1'},
-            tuya.whitelabel('Adaprox', 'TS0001_1', 'White Zigbee fingbot plus', ['_TZ3210_dse8ogfy']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -4924,6 +4923,48 @@ const definitions: Definition[] = [
             tuya.whitelabel('Cleverio', 'SS200', 'Motion sensor', ['_TYZB01_z2umiwvq']),
             tuya.whitelabel('Marmitek', 'SM0202_1', 'Motion sensor', ['_TYZB01_yr95mpib']),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3210_dse8ogfy']),
+        model: 'TS0001_fingerbot',
+        vendor: 'TuYa',
+        description: 'Zigbee fingerbot plus',
+        whiteLabel: [
+            tuya.whitelabel('Adaprox', 'TS0001_fingerbot_1', 'Zigbee fingerbot plus', ['_TZ3210_dse8ogfy']),
+        ],
+        fromZigbee: [fz.on_off, tuya.fz.datapoints],
+        toZigbee: [tz.on_off, tuya.tz.datapoints],
+        exposes: [
+            e.switch(), e.battery(),
+            e.enum('mode', ea.STATE_SET, ['click', 'switch', 'program']).withDescription('Working mode'),
+            e.numeric('lower', ea.STATE_SET).withValueMin(50).withValueMax(100).withValueStep(1).withUnit('%')
+                .withDescription('Down movement limit'),
+            e.numeric('upper', ea.STATE_SET).withValueMin(0).withValueMax(50).withValueStep(1).withUnit('%')
+                .withDescription('Up movement limit'),
+            e.numeric('delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('s')
+                .withDescription('Sustain time'),
+            e.binary('reverse', ea.STATE_SET, 'ON', 'OFF').withDescription('Reverse'),
+            e.binary('touch', ea.STATE_SET, 'ON', 'OFF').withDescription('Touch controll'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+        meta: {
+            tuyaSendCommand: 'sendData',
+            tuyaDatapoints: [
+                [0x65, 'mode', tuya.valueConverterBasic.lookup({'click': tuya.enum(0), 'switch': tuya.enum(1), 'program': tuya.enum(2)})],
+                [0x66, 'lower', tuya.valueConverter.raw],
+                [0x67, 'delay', tuya.valueConverter.raw],
+                [0x68, 'reverse', tuya.valueConverterBasic.lookup({'ON': tuya.enum(1), 'OFF': tuya.enum(0)})],
+                [0x69, 'battery', tuya.valueConverter.raw],
+                [0x6a, 'upper', tuya.valueConverter.raw],
+                [0x6b, 'touch', tuya.valueConverterBasic.lookup({'ON': true, 'OFF': false})],
+                // ? [0x6c, '', tuya.valueConverter.onOff],
+                [0x6d, 'program', tuya.valueConverter.raw],
+                // ? [0x70, '', tuya.valueConverter.raw],
+            ],
+        },
     },
 ];
 
