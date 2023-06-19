@@ -1928,11 +1928,32 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_54hjn4vs']),
+        model: 'TS0002_switch_module_3',
+        vendor: 'TuYa',
+        description: '2 gang switch with backlight',
+        extend: tuya.extend.switch({powerOnBehavior2: true, indicatorMode: true, endpoints: ['l1', 'l2']}),
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+        whiteLabel: [
+            tuya.whitelabel('Lonsonho', 'X702A', '2 gang switch with backlight', ['_TZ3000_54hjn4vs']),
+        ],
+    },
+    {
         zigbeeModel: ['TS0002'],
         model: 'TS0002',
         vendor: 'TuYa',
         description: '2 gang switch',
-        whiteLabel: [{vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'}, {vendor: 'Lonsonho', model: 'X702'},
+        whiteLabel: [
+            {vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'},
+            {vendor: 'Lonsonho', model: 'X702'},
             {vendor: 'Avatto', model: 'ZTS02'}],
         extend: tuya.extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
