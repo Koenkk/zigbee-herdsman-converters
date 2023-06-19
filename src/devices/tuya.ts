@@ -560,6 +560,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_vs0skpuc'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_44af8vyi'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zl1kmjqx'}],
         model: 'TS0601_temperature_humidity_sensor_1',
         vendor: 'TuYa',
