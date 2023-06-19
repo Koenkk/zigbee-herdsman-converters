@@ -779,7 +779,7 @@ const definitions: Definition[] = [
 		model: '4512749-N', 
 		vendor: 'Namron', 
 		description: 'Thermostat outlet socket', 
-		fromZigbee: [fz.metering, fz.electrical_measurement, fz.on_off, fz.temperature], // 
+		fromZigbee: [fz.metering, fz.electrical_measurement, fz.on_off, fz.temperature],
 		toZigbee: [tz.on_off, tz.power_on_behavior], // 
 		exposes: [e.temperature(), e.power(), e.current(), e.voltage(), e.switch(), e.power_on_behavior()], 
 		configure: async (device, coordinatorEndpoint, logger) => {
@@ -794,7 +794,7 @@ const definitions: Definition[] = [
 			await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - z2m displays only the first decimals, so change of 10 (0,01)
 			await reporting.activePower(endpoint, {min: 10, change: 1}); // W - Min change of 0,1W
 		},
-	};
+	},
     {
         zigbeeModel: ['4512747'],
         model: '4512747',
