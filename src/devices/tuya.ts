@@ -4937,6 +4937,7 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
         meta: {
+            tuyaSendCommand: 'sendData',
             tuyaDatapoints: [
                 [0x65, 'mode', tuya.valueConverterBasic.lookup({'click': tuya.enum(0), 'switch': tuya.enum(1), 'program': tuya.enum(2)})],
                 [0x66, 'lower', tuya.valueConverter.raw],
