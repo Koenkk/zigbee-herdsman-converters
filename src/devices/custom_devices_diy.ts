@@ -407,7 +407,7 @@ function ptvoSetMetaOption(device: Zh.Device, key: string, value: unknown) {
     }
 }
 
-function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options: KeyValue) {
+function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options: KeyValue, deviceOptions: KeyValue) {
     const epId = endpoint.ID;
     const epName = `l${epId}`;
     if (endpoint.supportsInputCluster('lightingColorCtrl')) {
@@ -450,10 +450,10 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
         options['exposed_illuminance'] = true;
     }
     if (endpoint.supportsInputCluster('genPowerCfg')) {
-        options['expose_battery'] = true;
+        deviceOptions['expose_battery'] = true;
     }
     if (endpoint.supportsInputCluster('genMultistateInput') || endpoint.supportsOutputCluster('genMultistateInput')) {
-        options['expose_action'] = true;
+        deviceOptions['expose_action'] = true;
     }
 }
 
@@ -514,13 +514,14 @@ const definitions: Definition[] = [
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tz.on_off],
         exposes: (device, options) => {
             const expose: Expose[] = [];
-            const exposeOptions: KeyValue = {};
+            const exposeDeviceOptions: KeyValue = {};
             const deviceConfig = ptvoGetMetaOption(device, 'device_config', '');
 
             if (deviceConfig === '') {
                 if ( (device != null) && device.endpoints ) {
                     for (const endpoint of device.endpoints) {
-                        ptvoAddStandardExposes(endpoint, expose, exposeOptions);
+                        const exposeEpOptions: KeyValue = {};
+                        ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
                     }
                 } else {
                     // fallback code
@@ -539,22 +540,23 @@ const definitions: Definition[] = [
                     }
                     const epId = i + 1;
                     const epName = `l${epId}`;
+                    const exposeEpOptions: KeyValue = {};
                     if ((epConfig & 0x01) != 0) {
                         // GPIO input
-                        exposeOptions['expose_action'] = true;
+                        exposeEpOptions['expose_action'] = true;
                     }
                     if ((epConfig & 0x02) != 0) {
                         // GPIO output
-                        exposeOptions['exposed_onoff'] = true;
+                        exposeEpOptions['exposed_onoff'] = true;
                         expose.push(e.switch().withEndpoint(epName));
                     }
                     if ((epConfig & 0x04) != 0) {
                         // reportable analog value
-                        exposeOptions['exposed_analog'] = true;
+                        exposeEpOptions['exposed_analog'] = true;
                         expose.push(e.numeric(epName, ea.STATE).withDescription('State or sensor value'));
                     } else if ((epConfig & 0x08) != 0) {
                         // readable analog value
-                        exposeOptions['exposed_analog'] = true;
+                        exposeEpOptions['exposed_analog'] = true;
                         expose.push(e.numeric(epName, ea.STATE_SET)
                             .withValueMin(-9999999).withValueMax(9999999).withValueStep(1)
                             .withDescription('State or sensor value'));
@@ -563,13 +565,13 @@ const definitions: Definition[] = [
                     if (!endpoint) {
                         continue;
                     }
-                    ptvoAddStandardExposes(endpoint, expose, exposeOptions);
+                    ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
                 }
             }
-            if (exposeOptions['expose_action']) {
+            if (exposeDeviceOptions['expose_action']) {
                 expose.push(e.action(['single', 'double', 'triple', 'hold', 'release']));
             }
-            if (exposeOptions['expose_battery']) {
+            if (exposeDeviceOptions['expose_battery']) {
                 expose.push(e.battery());
             }
             expose.push(e.linkquality());
