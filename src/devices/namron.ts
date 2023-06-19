@@ -775,6 +775,27 @@ const definitions: Definition[] = [
         },
     },
     {
+		zigbeeModel: ['4512749-N'], 
+		model: '4512749-N', 
+		vendor: 'Namron', 
+		description: 'Thermostat outlet socket', 
+		fromZigbee: [fz.metering, fz.electrical_measurement, fz.on_off, fz.temperature], // 
+		toZigbee: [tz.on_off, tz.power_on_behavior], // 
+		exposes: [e.temperature(), e.power(), e.current(), e.voltage(), e.switch(), e.power_on_behavior()], 
+		configure: async (device, coordinatorEndpoint, logger) => {
+			const endpoint = device.getEndpoint(1);
+			await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
+			await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
+			await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+			await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+			await reporting.onOff(endpoint);
+			await reporting.temperature(endpoint, {min: 10, change: 10}); 
+			await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2v
+			await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - z2m displays only the first decimals, so change of 10 (0,01)
+			await reporting.activePower(endpoint, {min: 10, change: 1}); // W - Min change of 0,1W
+		},
+	};
+    {
         zigbeeModel: ['4512747'],
         model: '4512747',
         vendor: 'Namron',
