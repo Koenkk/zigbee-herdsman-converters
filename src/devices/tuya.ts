@@ -4904,23 +4904,16 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0001', ['_TZ3210_dse8ogfy']),
-        model: 'FingerBot',
+        model: 'TS0001_fingerbot',
         vendor: 'TuYa',
         description: 'Zigbee fingerbot plus',
         whiteLabel: [
-            tuya.whitelabel('Adaprox', 'TS0001_1', 'Zigbee fingerbot plus', ['_TZ3210_dse8ogfy']),
+            tuya.whitelabel('Adaprox', 'TS0001_fingerbot_1', 'Zigbee fingerbot plus', ['_TZ3210_dse8ogfy']),
         ],
         fromZigbee: [fz.on_off, tuya.fz.datapoints],
-        toZigbee: [tz.on_off,
-            {
-                ...tuya.tz.datapoints,
-                key: tuya.tz.datapoints.key.concat([
-                    'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program',
-                ]),
-            },
-        ],
+        toZigbee: [tz.on_off, tuya.tz.datapoints],
         exposes: [
-            e.switch(),
+            e.switch(), e.battery(),
             e.enum('mode', ea.STATE_SET, ['click', 'switch', 'program']).withDescription('Working mode'),
             e.numeric('lower', ea.STATE_SET).withValueMin(50).withValueMax(100).withValueStep(1).withUnit('%')
                 .withDescription('Down movement limit'),
@@ -4930,7 +4923,6 @@ const definitions: Definition[] = [
                 .withDescription('Sustain time'),
             e.binary('reverse', ea.STATE_SET, 'ON', 'OFF').withDescription('Reverse'),
             e.binary('touch', ea.STATE_SET, 'ON', 'OFF').withDescription('Touch controll'),
-            e.battery(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
