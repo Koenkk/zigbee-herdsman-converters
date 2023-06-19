@@ -4905,7 +4905,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_0j5jma9b']),
-        model: 'G3 Smart Switch (4 gang + 2 scene controller) with neutral wire',
+        model: 'G3 Smart Switch - 4 gang + 2 scence with neutral wire',
         vendor: 'TuYa',
         description: 'TuYa Smart Switch (4 gang + 2 scene) with neutral wire. Includes led for status change',
         fromZigbee: [tuya.fz.datapoints],
