@@ -42,23 +42,30 @@ const converters = {
             const result = {};
             const dontMapPIHeatingDemand = model.meta && model.meta.thermostat && model.meta.thermostat.dontMapPIHeatingDemand;
             if (msg.data.hasOwnProperty('localTemp')) {
-                result[postfixWithEndpointName('local_temperature', msg, model, meta)] = precisionRound(msg.data['localTemp'], 2) / 100;
+                const value = precisionRound(msg.data['localTemp'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('localTemperatureCalibration')) {
                 result[postfixWithEndpointName('local_temperature_calibration', msg, model, meta)] =
                     precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
             if (msg.data.hasOwnProperty('outdoorTemp')) {
-                result[postfixWithEndpointName('outdoor_temperature', msg, model, meta)] = precisionRound(msg.data['outdoorTemp'], 2) / 100;
+                const value = precisionRound(msg.data['outdoorTemp'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('outdoor_temperature', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('occupancy')) {
                 result[postfixWithEndpointName('occupancy', msg, model, meta)] = (msg.data.occupancy % 2) > 0;
             }
             if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
-                let value = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+                const value = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
                 // Stelpro will return -325.65 when set to off, value is not realistic anyway
-                value = value < -250 ? 0 : value;
-                result[postfixWithEndpointName('occupied_heating_setpoint', msg, model, meta)] = value;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('occupied_heating_setpoint', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('unoccupiedHeatingSetpoint')) {
                 result[postfixWithEndpointName('unoccupied_heating_setpoint', msg, model, meta)] =
@@ -116,6 +123,11 @@ const converters = {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model, meta)] =
                     mapNumberRange(msg.data['pIHeatingDemand'], 0, (dontMapPIHeatingDemand ? 100: 255), 0, 100);
             }
+            if (msg.data.hasOwnProperty('pICoolingDemand')) {
+                // we assume the behavior is consistent for pIHeatingDemand + pICoolingDemand for the same vendor
+                result[postfixWithEndpointName('pi_cooling_demand', msg, model, meta)] =
+                    mapNumberRange(msg.data['pICoolingDemand'], 0, (dontMapPIHeatingDemand ? 100: 255), 0, 100);
+            }
             if (msg.data.hasOwnProperty('tempSetpointHold')) {
                 result[postfixWithEndpointName('temperature_setpoint_hold', msg, model, meta)] = msg.data['tempSetpointHold'] == 1;
             }
@@ -124,24 +136,46 @@ const converters = {
                     msg.data['tempSetpointHoldDuration'];
             }
             if (msg.data.hasOwnProperty('minHeatSetpointLimit')) {
-                let value = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
-                result[postfixWithEndpointName('min_heat_setpoint_limit', msg, model, meta)] = value;
+                const value = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('min_heat_setpoint_limit', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('maxHeatSetpointLimit')) {
-                let value = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
-                result[postfixWithEndpointName('max_heat_setpoint_limit', msg, model, meta)] = value;
+                const value = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('max_heat_setpoint_limit', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('absMinHeatSetpointLimit')) {
-                let value = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
-                result[postfixWithEndpointName('abs_min_heat_setpoint_limit', msg, model, meta)] = value;
+                const value = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('abs_min_heat_setpoint_limit', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('absMaxHeatSetpointLimit')) {
-                let value = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
-                result[postfixWithEndpointName('abs_max_heat_setpoint_limit', msg, model, meta)] = value;
+                const value = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('abs_max_heat_setpoint_limit', msg, model, meta)] = value;
+                }
+            }
+            if (msg.data.hasOwnProperty('absMinCoolSetpointLimit')) {
+                const value = precisionRound(msg.data['absMinCoolSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('abs_min_cool_setpoint_limit', msg, model, meta)] = value;
+                }
+            }
+            if (msg.data.hasOwnProperty('absMaxCoolSetpointLimit')) {
+                const value = precisionRound(msg.data['absMaxCoolSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('abs_max_cool_setpoint_limit', msg, model, meta)] = value;
+                }
+            }
+            if (msg.data.hasOwnProperty('minSetpointDeadBand')) {
+                const value = precisionRound(msg.data['minSetpointDeadBand'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('min_setpoint_dead_band', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('acLouverPosition')) {
                 result[postfixWithEndpointName('ac_louver_position', msg, model, meta)] =
