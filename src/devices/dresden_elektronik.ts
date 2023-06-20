@@ -33,6 +33,13 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['Hive'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: 'Hive', // Vendor model number, look on the device for a model number
+        vendor: 'Phoscon', // Vendor of the device (only used for documentation and startup logging)
+        description: 'Phoscon Hive battery powered smart LED light', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+        extend: extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
         zigbeeModel: ['FLS-A lp (1-10V)'],
         model: 'BN-600078',
         vendor: 'Dresden Elektronik',
