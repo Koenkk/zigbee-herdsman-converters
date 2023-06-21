@@ -6101,6 +6101,53 @@ const converters = {
             }
         },
     },
+    awox_colors: {
+        cluster: 'lightingColorCtrl',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const buffer = msg.data;
+            const commonForColors = buffer[0] === 17 && buffer[2] === 48 && buffer[3] === 0 && buffer[5] === 8 && buffer[6] === 0;
+            let color = null;
+            if (commonForColors && buffer[4] === 255) {
+                color = 'red';
+            } else if (commonForColors && buffer[4] === 42) {
+                color = 'yellow';
+            } else if (commonForColors && buffer[4] === 85) {
+                color = 'green';
+            } else if (commonForColors && buffer[4] === 170) {
+                color = 'blue';
+            }
+
+            if (color != null) {
+                return {action: color};
+            }
+        },
+    },
+    awox_refreshColored: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandMoveHue'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.movemode === 1 && msg.data.rate === 12) {
+                return {
+                    action: 'refresh_colored',
+                };
+            }
+        },
+    },
+    awox_refresh: {
+        cluster: 'genLevelCtrl',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const buffer = msg.data;
+            const isRefresh = buffer[0] === 17 && buffer[2] === 16 && (buffer[3] === 1 || buffer[3] === 0) && buffer[4] === 1;
+            const isRefreshLong = buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 2;
+            if (isRefresh) {
+                return {action: 'refresh'};
+            } else if (isRefreshLong) {
+                return {action: 'refresh_long'};
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
