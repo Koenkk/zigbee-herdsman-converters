@@ -301,6 +301,13 @@ const definitions: Definition[] = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['Connected Tube Value II'],
+        model: 'ST8EM-CON',
+        vendor: 'LEDVANCE',
+        description: 'SubstiTUBE connected advanced ultra output',
+        extend: extend.light_onoff_brightness({disablePowerOnBehavior: true}),
+    },
+    {
         zigbeeModel: ['PLUG COMPACT EU T', 'Plug Value'],
         model: '4058075729322',
         vendor: 'LEDVANCE',
