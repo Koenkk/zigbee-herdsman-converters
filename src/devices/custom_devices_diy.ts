@@ -154,7 +154,7 @@ const tzLocal = {
         },
     } as Tz.Converter,
     multi_zig_sw_switch_type: {
-        key: ['switch_type'],
+        key: ['switch_type_1', 'switch_type_2', 'switch_type_3', 'switch_type_4'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOffSwitchCfg', ['switchType']);
         },
