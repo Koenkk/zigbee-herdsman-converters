@@ -8,7 +8,12 @@ import extend from '../lib/extend';
 import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
-import {calibrateAndPrecisionRoundOptions, postfixWithEndpointName} from '../lib/utils';
+import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, postfixWithEndpointName} from '../lib/utils';
+
+const switchTypesList = {
+    'switch': 0x00,
+    'multi-click': 0x02,
+};
 
 const tzLocal = {
     tirouter: {
@@ -146,6 +151,18 @@ const tzLocal = {
             return {
                 state: {[key]: rawValue},
             };
+        },
+    } as Tz.Converter,
+    multi_zig_sw_switch_type: {
+        key: ['switch_type'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOffSwitchCfg', ['switchType']);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            const data = getFromLookup(value, switchTypesList);
+            const payload = {switchType: data};
+            await entity.write('genOnOffSwitchCfg', payload);
+            return {state: {[`${key}`]: value}};
         },
     } as Tz.Converter,
 };
@@ -340,6 +357,35 @@ const fzLocal = {
             return {[property]: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     } as Fz.Converter,
+    multi_zig_sw_battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const voltage = msg.data['batteryVoltage'] * 100;
+            const battery = (voltage - 2200) / 8;
+            return {battery: battery > 100 ? 100 : battery, voltage: voltage};
+        },
+    } as Fz.Converter,
+    multi_zig_sw_switch_buttons: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint?.(msg.device) ?? {}, msg.endpoint.ID);
+            const actionLookup: { [key: number]: string } = {0: 'release', 1: 'single', 2: 'double', 3: 'triple', 4: 'hold'};
+            const value = msg.data['presentValue'];
+            const action = actionLookup[value];
+            return {action: button + '_' + action};
+        },
+    } as Fz.Converter,
+    multi_zig_sw_switch_config: {
+        cluster: 'genOnOffSwitchCfg',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const channel = getKey(model.endpoint?.(msg.device) ?? {}, msg.endpoint.ID);
+            const {switchType} = msg.data;
+            return {[`switch_type_${channel}`]: getKey(switchTypesList, switchType)};
+        },
+    } as Fz.Converter,
 };
 
 function ptvoGetMetaOption(device: Zh.Device, key: string, defaultValue: unknown) {
@@ -361,7 +407,7 @@ function ptvoSetMetaOption(device: Zh.Device, key: string, value: unknown) {
     }
 }
 
-function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options: KeyValue) {
+function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options: KeyValue, deviceOptions: KeyValue) {
     const epId = endpoint.ID;
     const epName = `l${epId}`;
     if (endpoint.supportsInputCluster('lightingColorCtrl')) {
@@ -404,10 +450,10 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
         options['exposed_illuminance'] = true;
     }
     if (endpoint.supportsInputCluster('genPowerCfg')) {
-        options['expose_battery'] = true;
+        deviceOptions['expose_battery'] = true;
     }
     if (endpoint.supportsInputCluster('genMultistateInput') || endpoint.supportsOutputCluster('genMultistateInput')) {
-        options['expose_action'] = true;
+        deviceOptions['expose_action'] = true;
     }
 }
 
@@ -468,13 +514,14 @@ const definitions: Definition[] = [
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tz.on_off],
         exposes: (device, options) => {
             const expose: Expose[] = [];
-            const exposeOptions: KeyValue = {};
+            const exposeDeviceOptions: KeyValue = {};
             const deviceConfig = ptvoGetMetaOption(device, 'device_config', '');
 
             if (deviceConfig === '') {
                 if ( (device != null) && device.endpoints ) {
                     for (const endpoint of device.endpoints) {
-                        ptvoAddStandardExposes(endpoint, expose, exposeOptions);
+                        const exposeEpOptions: KeyValue = {};
+                        ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
                     }
                 } else {
                     // fallback code
@@ -493,22 +540,23 @@ const definitions: Definition[] = [
                     }
                     const epId = i + 1;
                     const epName = `l${epId}`;
+                    const exposeEpOptions: KeyValue = {};
                     if ((epConfig & 0x01) != 0) {
                         // GPIO input
-                        exposeOptions['expose_action'] = true;
+                        exposeEpOptions['expose_action'] = true;
                     }
                     if ((epConfig & 0x02) != 0) {
                         // GPIO output
-                        exposeOptions['exposed_onoff'] = true;
+                        exposeEpOptions['exposed_onoff'] = true;
                         expose.push(e.switch().withEndpoint(epName));
                     }
                     if ((epConfig & 0x04) != 0) {
                         // reportable analog value
-                        exposeOptions['exposed_analog'] = true;
+                        exposeEpOptions['exposed_analog'] = true;
                         expose.push(e.numeric(epName, ea.STATE).withDescription('State or sensor value'));
                     } else if ((epConfig & 0x08) != 0) {
                         // readable analog value
-                        exposeOptions['exposed_analog'] = true;
+                        exposeEpOptions['exposed_analog'] = true;
                         expose.push(e.numeric(epName, ea.STATE_SET)
                             .withValueMin(-9999999).withValueMax(9999999).withValueStep(1)
                             .withDescription('State or sensor value'));
@@ -517,13 +565,13 @@ const definitions: Definition[] = [
                     if (!endpoint) {
                         continue;
                     }
-                    ptvoAddStandardExposes(endpoint, expose, exposeOptions);
+                    ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
                 }
             }
-            if (exposeOptions['expose_action']) {
+            if (exposeDeviceOptions['expose_action']) {
                 expose.push(e.action(['single', 'double', 'triple', 'hold', 'release']));
             }
-            if (exposeOptions['expose_battery']) {
+            if (exposeDeviceOptions['expose_battery']) {
                 expose.push(e.battery());
             }
             expose.push(e.linkquality());
@@ -1083,6 +1131,29 @@ const definitions: Definition[] = [
             await reporting.humidity(endpoint);
             await reporting.soil_moisture(endpoint);
             await reporting.illuminance(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['MULTI-ZIG-SW'],
+        model: 'MULTI-ZIG-SW',
+        vendor: 'smarthjemmet.dk',
+        description: '[Multi switch from Smarthjemmet.dk](https://smarthjemmet.dk)',
+        fromZigbee: [fz.ignore_basic_report, fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
+        toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        exposes: [
+            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_1')],
+            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_2')],
+            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_3')],
+            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_4')],
+            e.battery(), e.action(['single', 'double', 'triple', 'hold', 'release']), e.battery_voltage(),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {button_1: 1, button_2: 2, button_3: 3, button_4: 4};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
         },
     },
 ];

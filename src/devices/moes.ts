@@ -102,6 +102,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE204_5toc8efa'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_aoclfnxz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'}],
         model: 'BHT-002-GCLZB',
         vendor: 'Moes',
@@ -111,6 +112,9 @@ const definitions: Definition[] = [
             legacy.tz.moes_thermostat_standby, legacy.tz.moes_thermostat_sensor, legacy.tz.moes_thermostat_calibration,
             legacy.tz.moes_thermostat_deadzone_temperature, legacy.tz.moes_thermostat_max_temperature_limit,
             legacy.tz.moes_thermostat_min_temperature_limit, legacy.tz.moes_thermostat_program_schedule],
+        whiteLabel: [
+            tuya.whitelabel('Moes', 'BHT-006GBZB', 'Smart heating thermostat', ['_TZE204_aoclfnxz']),
+        ],
         exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(), e.min_temperature_limit(),
             e.climate().withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
@@ -331,6 +335,7 @@ const definitions: Definition[] = [
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch module',
         meta: {coverInverted: true},
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [e.cover_position(), e.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),

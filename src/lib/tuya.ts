@@ -60,8 +60,8 @@ function getDataValue(dpValue: Tuya.DpValue) {
 function convertDecimalValueTo4ByteHexArray(value: number) {
     const hexValue = Number(value).toString(16).padStart(8, '0');
     const chunk1 = hexValue.substring(0, 2);
-    const chunk2 = hexValue.substring(2, 2);
-    const chunk3 = hexValue.substring(4, 2);
+    const chunk2 = hexValue.substring(2, 4);
+    const chunk3 = hexValue.substring(4, 6);
     const chunk4 = hexValue.substring(6);
     return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => parseInt(hexVal, 16));
 }
@@ -776,6 +776,7 @@ const tuyaTz = {
             'min_temperature', 'max_temperature', 'window_detection', 'boost_heating', 'alarm_ringtone', 'alarm_time', 'fan_speed',
             'reverse_direction', 'border', 'click_control', 'motor_direction', 'opening_mode', 'factory_reset', 'set_upper_limit', 'set_bottom_limit',
             'motor_speed', 'timer', 'reset_frost_lock', 'schedule_periodic', 'schedule_weekday', 'backlight_mode', 'calibration', 'motor_steering',
+            'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program',
             ...[1, 2, 3, 4, 5, 6].map((no) => `schedule_slot_${no}`), 'minimum_range', 'maximum_range', 'detection_delay', 'fading_time',
         ],
         convertSet: async (entity, key, value, meta) => {

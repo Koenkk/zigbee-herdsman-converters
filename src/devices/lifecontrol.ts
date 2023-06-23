@@ -25,6 +25,7 @@ const definitions: Definition[] = [
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
+        meta: {battery: {dontDividePercentage: true}},
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
