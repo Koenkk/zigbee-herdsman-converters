@@ -37,7 +37,7 @@ const definitions: Definition[] = [
         model: 'Hive',
         vendor: 'Phoscon',
         description: 'Battery powered smart LED light',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['FLS-A lp (1-10V)'],
