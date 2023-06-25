@@ -3611,7 +3611,7 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay','_TZE200_ga1maeof']),
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay', '_TZE200_ga1maeof']),
         model: 'TS0222_temperature_humidity',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
