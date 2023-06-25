@@ -40,8 +40,10 @@ const definitions: Definition[] = [
         vendor: 'Phoscon',
         description: 'Battery powered smart LED light',
         ota: ota.zigbeeOTA,
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370], fromZigbee: [fz.battery], exposes: [e.battery()]}),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370], fromZigbee: [fz.battery], exposes: [e.battery()],
+            noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness_colortemp_color().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
