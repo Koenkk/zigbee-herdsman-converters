@@ -1,6 +1,8 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
+import * as fz from '../converters/fromZigbee';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 
@@ -37,7 +39,13 @@ const definitions: Definition[] = [
         model: 'Hive',
         vendor: 'Phoscon',
         description: 'Battery powered smart LED light',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        ota: ota.zigbeeOTA,
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370], fromZigbee: [fz.battery], exposes: [e.battery()]}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['FLS-A lp (1-10V)'],
