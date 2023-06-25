@@ -1148,7 +1148,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu', '_TZE200_ga1maeof']),
         model: 'TS0601_soil',
         vendor: 'TuYa',
         description: 'Soil sensor',
@@ -3611,7 +3611,7 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay']),
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay','_TZE200_ga1maeof']),
         model: 'TS0222_temperature_humidity',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
@@ -3620,6 +3620,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
         whiteLabel: [
             tuya.whitelabel('TuYa', 'QT-07S', 'Soil sensor', ['_TZ3000_kky16aay']),
+            tuya.whitelabel('TuYa', 'QT-07S', 'Soil sensor', ['_TZE200_ga1maeof']),
         ],
     },
     {
