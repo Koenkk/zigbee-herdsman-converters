@@ -753,18 +753,32 @@ const definitions: Definition[] = [
         model: "BTH-RM",
         vendor: "Bosch",
         description: "Room Thermostat II",
-        fromZigbee: [fz.humidity, fz.thermostat, fz.battery, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
-        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tzLocal.bosch_thermostat, tzLocal.bosch_userInterface],
+        fromZigbee: [
+            fz.humidity, 
+            fz.thermostat, 
+            fz.battery, 
+            fzLocal.bosch_thermostat, 
+            fzLocal.bosch_userInterface
+        ],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint, 
+            tz.thermostat_local_temperature_calibration, 
+            tz.thermostat_local_temperature, 
+            tz.thermostat_keypad_lockout, 
+            tzLocal.bosch_thermostat, 
+            tzLocal.bosch_userInterface
+        ],
         exposes: [
             e.numeric('humidity', ea.STATE).withUnit('%').withDescription('Measured relative humidity'),
             e.climate()
                 .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET),
+                .withSystemMode(['off', 'heat', 'auto']),
             e.binary('window_open', ea.ALL, 'ON', 'OFF')
                 .withDescription('Window open'),
-            e.child_lock(),
+            e.child_lock()
+                .setAccess('state', ea.ALL),
             e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30)
                 .withDescription('Specifies the diplay On-time'),
             e.numeric('display_brightness', ea.ALL).withValueMin(0).withValueMax(10)
