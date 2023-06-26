@@ -749,24 +749,24 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ["RBSH-RTH0-BAT-ZB-EU"],
-        model: "BTH-RM",
-        vendor: "Bosch",
-        description: "Room Thermostat II",
+        zigbeeModel: ['RBSH-RTH0-BAT-ZB-EU'],
+        model: 'BTH-RM',
+        vendor: 'Bosch',
+        description: 'Room Thermostat II',
         fromZigbee: [
-            fz.humidity, 
-            fz.thermostat, 
-            fz.battery, 
-            fzLocal.bosch_thermostat, 
-            fzLocal.bosch_userInterface
+            fz.humidity,
+            fz.thermostat,
+            fz.battery,
+            fzLocal.bosch_thermostat,
+            fzLocal.bosch_userInterface,
         ],
         toZigbee: [
-            tz.thermostat_occupied_heating_setpoint, 
-            tz.thermostat_local_temperature_calibration, 
-            tz.thermostat_local_temperature, 
-            tz.thermostat_keypad_lockout, 
-            tzLocal.bosch_thermostat, 
-            tzLocal.bosch_userInterface
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
+            tz.thermostat_keypad_lockout,
+            tzLocal.bosch_thermostat,
+            tzLocal.bosch_userInterface,
         ],
         exposes: [
             e.numeric('humidity', ea.STATE).withUnit('%').withDescription('Measured relative humidity'),
@@ -784,7 +784,7 @@ const definitions: Definition[] = [
             e.numeric('display_brightness', ea.ALL).withValueMin(0).withValueMax(10)
                 .withDescription('Specifies the brightness value of the display'),
             e.battery_low(),
-            e.battery_voltage()
+            e.battery_voltage(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -798,7 +798,7 @@ const definitions: Definition[] = [
 
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x403a, 0x403b], boschManufacturer);
-        }
+        },
     },
     {
         zigbeeModel: ['Champion'],
