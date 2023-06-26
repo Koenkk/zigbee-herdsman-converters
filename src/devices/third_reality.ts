@@ -24,9 +24,7 @@ const fzLocal = {
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data[2];
-            return {
-                occupancy: (zoneStatus & 1) > 0,
-            };
+            return {occupancy: (zoneStatus & 1) > 0};
         },
     } as Fz.Converter,
 };
@@ -243,9 +241,7 @@ const definitions: Definition[] = [
             fzLocal.thirdreality_private_motion_sensor, fz.illuminance]),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee,
         exposes: [e.light_brightness_colortemp_color([153, 555]).removeFeature('color_temp_startup'),
-            e.occupancy(),
-            e.illuminance(),
-            e.illuminance_lux().withUnit('lx')],
+            e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
         endpoint: (device) => {
             return {'default': 1};
         },
@@ -254,7 +250,6 @@ const definitions: Definition[] = [
             device.save();
         },
     },
-
 ];
 
 module.exports = definitions;
