@@ -1,5 +1,18 @@
 # Changelog
 
+## [15.31.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.30.0...v15.31.0) (2023-06-26)
+
+
+### Features
+
+* Support occupancy and illuminance for Third Reality 3RSNL02043Z ([#5914](https://github.com/Koenkk/zigbee-herdsman-converters/issues/5914)) ([c1f9b33](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c1f9b33b1fe24242762a2be459be5f5f9c063405))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_ga1maeof` as TuYa TS0601_soil ([#5911](https://github.com/Koenkk/zigbee-herdsman-converters/issues/5911)) ([143bc6f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/143bc6ff7500b3f85c35dd3c5a18f4d17b078de1))
+* Fix actions missing for PTM 215Z detected as Hue tap. https://github.com/Koenkk/zigbee2mqtt/issues/18088 ([aae25f7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aae25f7d09c1fc319997767da08cb9c15cbe46af))
+
 ## [15.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.29.0...v15.30.0) (2023-06-25)
 
 
