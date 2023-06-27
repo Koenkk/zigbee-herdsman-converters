@@ -4993,7 +4993,7 @@ const definitions: Definition[] = [
                 [2, 'energy_reverse', tuya.valueConverter.divideBy100],
                 // datapoint 3 = monthly energy: "we don't know how to support these" (resquest + response)
                 // datapoint 4 = daily energy: "we don't know how to support these" (resquest + response)
-                [6, null, phaseVariantNew], // voltage, current and power
+                [6, null, tuya.valueConverter.phaseVariant3], // voltage, current and power
                 // datapoint 101 is datatype=number
                 //[101, 'power101', tuya.valueConverter.raw],
                 // Not used: "power" is taken in datapoint 6. Both provide the same value.
