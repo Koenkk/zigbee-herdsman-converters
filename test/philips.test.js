@@ -1,4 +1,4 @@
-const philips = require('../lib/philips');
+const philips = require('../src/lib/philips');
 
 describe('lib/philips.js', () => {
     describe('decodeGradientColors', () => {

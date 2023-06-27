@@ -17,6 +17,7 @@ If you'd like to submit a pull request, you should run the following commands to
 npm install
 npm run lint
 npm test
+npm run build
 ```
 
 If any of those commands finish with an error your PR won't pass the tests and will likely be rejected.
@@ -27,8 +28,8 @@ If any of those commands finish with an error your PR won't pass the tests and w
 - `multiEndpointEnforce`: enforce a certain endpoint for an attribute, e.g. {"power": 4} see utils.enforceEndpoint()
 - `disableDefaultResponse`: used by toZigbee converters to disable the default response of some devices as they don't provide one. (default: false)
 - `applyRedFix`: see toZigbee.light_color (default: false)
-- `enhancedHue`: see toZigbee.light_color (default: true)
-- `supportsHueAndSaturation`: see toZigbee.light_color (default: false)
+- `supportsEnhancedHue`: see toZigbee.light_color (default: true)
+- `supportsHueAndSaturation`: see toZigbee.light_color (default: true), usually set by light_* extends via options.
 - `timeout`: timeout for commands to this device used in toZigbee. (default: 10000)
 - `coverInverted`: Set to true for cover controls that report position=100 as open (default: false)
 - `coverStateFromTilt`: Set cover state based on tilt
@@ -37,8 +38,10 @@ If any of those commands finish with an error your PR won't pass the tests and w
 - `disableActionGroup`: Prevents some converters adding the action_group to the payload (default: false)
 - `tuyaThermostatSystemMode`/`tuyaThermostatPreset`: TuYa specific thermostat options
 - `thermostat`: see e.g. HT-08 definition
-  - `{dontMapPIHeatingDemand: true}`: do not map piHeatingDemand from 0-255 -> 0-100, see fromZigbee.thermostat (default: false)
+  - `{dontMapPIHeatingDemand: true}`: do not map `pIHeatingDemand`/`pICoolingDemand` from 0-255 -> 0-100, see fromZigbee.thermostat (default: false)
 - `battery`:
   - `{dontDividePercentage: true}`: prevents batteryPercentageRemainig from being divided (ZCL 200=100%, but some report 100=100%) (default: false)
   - `{voltageToPercentage: '3V_2100'}`: convert voltage to percentage using specified option. See utils.batteryVoltageToPercentage() (default: null, no voltage to percentage conversion)
 - `fanStateOn`: value used for fan_mode when using fan_state="ON", the default is "on"
+
+

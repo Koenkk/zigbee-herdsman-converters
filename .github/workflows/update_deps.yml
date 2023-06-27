@@ -1,29 +1,30 @@
-name: Update dependencies
+name: update-deps
+
 on:
   workflow_dispatch:
   schedule:
   - cron: "0 0 * * 0"
 
-permissions: {}
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   update_deps:
-    permissions:
-      contents: write  #  to create branch (peter-evans/create-pull-request)
-      pull-requests: write  #  to create a PR (peter-evans/create-pull-request)
-
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
       with:
-        ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        token: ${{ secrets.GH_TOKEN }}
     - uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: 20
+        cache: npm
+    - run: npx npm-check-updates -u
     - run: npm install
-    - run: npm ls --depth 0 --prod --parseable | tail -n +2 | xargs -I '{}' basename "{}" | xargs -I '{}' npm install '{}'@latest
-    - run: rm -rf node_modules package-lock.json && npm install
     - uses: peter-evans/create-pull-request@v5
       with:
-        commit-message: Update dependencies
-        branch: "update_deps"
+        commit-message: "fix(ignore): update dependencies"
+        branch: "deps/all"
         title: Update dependencies
+        token: ${{ secrets.GH_TOKEN }}
