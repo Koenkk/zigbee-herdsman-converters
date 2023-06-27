@@ -4970,7 +4970,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [modelID: 'TS0601', manufacturerName: '_TZE204_ac0fhfiq' ],
+        fingerprint: tuya.fingerprint('TS6001', ['_TZE204_ac0fhfiq']),        
         model: 'TS0601_Bidirectional_Energy_Meter_with_150A_Current_Clamp',
         vendor: 'TuYa',
         description: 'Bidirectional Energy Meter with 150A Current Clamp',
