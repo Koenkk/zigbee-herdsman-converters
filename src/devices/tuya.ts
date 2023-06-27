@@ -4969,6 +4969,39 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: [modelID: 'TS0601', manufacturerName: '_TZE204_ac0fhfiq' ],
+        model: 'TS0601_Bidirectional_Energy_Meter_with_150A_Current_Clamp',
+        vendor: 'TuYa',
+        description: 'Bidirectional Energy Meter with 150A Current Clamp',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            // Here you should put all functionality that your device exposes
+            exposes.numeric('energy_forward', ea.STATE).withUnit('kW.h').withDescription('Total forward energy'),
+            exposes.numeric('energy_reverse', ea.STATE).withUnit('kW.h').withDescription('Total forward reverse'),       
+            e.power(), e.voltage(), e.current(),
+            //exposes.numeric('power101', ea.STATE).withUnit('W').withDescription('Power from datapoint 101'),
+            // datapoint 101 is not used see datapoint 101 below
+            exposes.numeric('power_direction', ea.STATE).withDescription('Power direction 0/1 for forward/reverse'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'energy_forward', tuya.valueConverter.divideBy100],
+                [2, 'energy_reverse', tuya.valueConverter.divideBy100],
+                // datapoint 3 = monthly energy: "we don't know how to support these" (resquest + response)
+                // datapoint 4 = daily energy: "we don't know how to support these" (resquest + response)
+                [6, null, phaseVariantNew], // voltage, current and power
+                // datapoint 101 is datatype=number
+                //[101, 'power101', tuya.valueConverter.raw],
+                // Not used: "power" is taken in datapoint 6. Both provide the same value.
+                [102, 'power_direction', tuya.valueConverter.raw],
+    
+            ],
+        },
+    },    
 ];
 
 module.exports = definitions;
