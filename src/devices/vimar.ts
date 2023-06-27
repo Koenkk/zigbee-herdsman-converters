@@ -39,7 +39,7 @@ const definitions: Definition[] = [
         exposes: [e.cover_position()],
     },
     {
-        zigbeeModel: ['Window_Cov_v1.0'],
+        zigbeeModel: ['Window_Cov_Module_v1.0'],
         model: '03982',
         vendor: 'Vimar',
         description: 'Roller shutter with slat orientation and change-over relay',
