@@ -4980,12 +4980,12 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             // Here you should put all functionality that your device exposes
-            exposes.numeric('energy_forward', ea.STATE).withUnit('kW.h').withDescription('Total forward energy'),
-            exposes.numeric('energy_reverse', ea.STATE).withUnit('kW.h').withDescription('Total forward reverse'),       
+            e.numeric('energy_forward', ea.STATE).withUnit('kW.h').withDescription('Total forward energy'),
+            e.numeric('energy_reverse', ea.STATE).withUnit('kW.h').withDescription('Total forward reverse'),       
             e.power(), e.voltage(), e.current(),
-            //exposes.numeric('power101', ea.STATE).withUnit('W').withDescription('Power from datapoint 101'),
+            //e.numeric('power101', ea.STATE).withUnit('W').withDescription('Power from datapoint 101'),
             // datapoint 101 is not used see datapoint 101 below
-            exposes.numeric('power_direction', ea.STATE).withDescription('Power direction 0/1 for forward/reverse'),
+            e.numeric('power_direction', ea.STATE).withDescription('Power direction 0/1 for forward/reverse'),
         ],
         meta: {
             tuyaDatapoints: [
