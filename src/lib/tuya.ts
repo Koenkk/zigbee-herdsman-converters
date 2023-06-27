@@ -429,7 +429,7 @@ export const valueConverter = {
             return {voltage: (buf[1] | buf[0] << 8) / 10, current: (buf[4] | buf[3] << 8) / 1000, power: (buf[7] | buf[6] << 8)};
         },
     },
-    phaseVariant3 = {
+    phaseVariant3: = {
         from: (v: string) => {
             const buf = Buffer.from(v, 'base64');
             return {
