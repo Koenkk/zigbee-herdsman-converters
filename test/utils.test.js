@@ -1,4 +1,4 @@
-const utils = require('../lib/utils');
+const utils = require('../src/lib/utils');
 
 describe('lib/utils.js', () => {
     describe('mapNumberRange', () => {

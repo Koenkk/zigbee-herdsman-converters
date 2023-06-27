@@ -1,5 +1,6 @@
 const index = require('../index');
 const exposes = require('../lib/exposes');
+const utils = require('../lib/utils');
 const tuya = require('../lib/tuya');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
@@ -303,7 +304,7 @@ describe('index.js', () => {
 
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'multiEndpoint', 'multiEndpointSkip', 'multiEndpointEnforce', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'coverStateFromTilt', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaDatapoints', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite', 'publishDuplicateTransaction', 'tuyaSendCommand'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'multiEndpointSkip', 'multiEndpointEnforce', 'applyRedFix', 'disableDefaultResponse', 'supportsEnhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'coverStateFromTilt', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaDatapoints', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite', 'publishDuplicateTransaction', 'tuyaSendCommand'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
@@ -514,11 +515,6 @@ describe('index.js', () => {
         expect(index.getConfigureKey(definition1)).not.toBe(index.getConfigureKey(definition2));
     });
 
-    it('Calculate configure key legacy', () => {
-        const definition = index.findByZigbeeModel('MCT-340 SMA');
-        expect(index.getConfigureKey(definition)).toBe(1);
-    });
-
     it('Number exposes with set access should have a range', () => {
         index.definitions.forEach((device) => {
             if (device.exposes) {
@@ -550,9 +546,9 @@ describe('index.js', () => {
     });
 
     it('Verify imports', () => {
-        const files = fs.readdirSync('devices');
+        const files = fs.readdirSync('src/devices');
         for (const file of files) {
-            const content = fs.readFileSync(`devices/${file}`, {encoding: 'utf-8'});
+            const content = fs.readFileSync(`src/devices/${file}`, {encoding: 'utf-8'});
             expect(content).not.toContain(`require('zigbee-herdsman-converters`);
         }
     });
@@ -561,6 +557,13 @@ describe('index.js', () => {
         const TS0601_soil = index.definitions.find((d) => d.model == 'TS0601_soil');
         expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(
             ['temperature_precision', 'temperature_calibration']);
+    });
+
+    it('Check getFromLookup', () => {
+        expect(utils.getFromLookup('OFF', {'off': 0, 'on': 1, 'previous': 2})).toStrictEqual(0);
+        expect(utils.getFromLookup('On', {'off': 0, 'on': 1, 'previous': 2})).toStrictEqual(1);
+        expect(utils.getFromLookup('previous', {'OFF': 0, 'ON': 1, 'PREVIOUS': 2})).toStrictEqual(2);
+        expect(utils.getFromLookup(1, {0: 'OFF', 1: 'on'})).toStrictEqual('on');
     });
 
     it('List expose number', () => {

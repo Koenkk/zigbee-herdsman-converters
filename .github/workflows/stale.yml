@@ -1,16 +1,12 @@
-name: "Close stale issues/pull requests"
+name: stale
+
 on:
   schedule:
   - cron: "0 0 * * *"
   workflow_dispatch:
 
-permissions: {}
 jobs:
   stale:
-    permissions:
-      issues: write  #  to close stale issues (actions/stale)
-      pull-requests: write  #  to close stale PRs (actions/stale)
-
     runs-on: ubuntu-latest
     steps:
     - uses: actions/stale@v8
@@ -20,4 +16,5 @@ jobs:
         stale-pr-message: 'This pull request is stale because it has been open 30 days with no activity. Remove stale label or comment or this will be closed in 7 days'
         days-before-stale: 30
         days-before-close: 7
+        exempt-issue-labels: dont-stale
         operations-per-run: 500
