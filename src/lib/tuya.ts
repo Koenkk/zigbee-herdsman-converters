@@ -438,8 +438,7 @@ export const valueConverter = {
             power : (    (buf[5] << 16) |  (buf[6] << 8)  |  buf[7]   )
             }; 
         },
-      };
-
+    },
     phaseVariant2WithPhase: (phase: string) => {
         return {
             from: (v: string) => {
