@@ -22,6 +22,10 @@ jobs:
       run: npm run build
     - name: Test
       run: npm test
+    - name: autofix.ci
+      # You may pin to the exact commit or the version.
+      # uses: autofix-ci/action@ffd35390d6449f911cccb7694edeeecd7c4d8d87
+      uses: autofix-ci/action@v1      
     - name: Lint
       run: npm run lint
     - name: Publish new release
