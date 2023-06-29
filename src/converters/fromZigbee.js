@@ -5915,7 +5915,10 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const lookup = {32768: 'pressed'};
+            const lookup = {
+                32768: 'pressed',
+                32772: 'pressed',
+            };
             const zoneStatus = msg.data.zonestatus;
             return {
                 action: lookup[zoneStatus],
