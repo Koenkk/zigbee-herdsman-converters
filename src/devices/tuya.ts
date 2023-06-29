@@ -4999,8 +4999,8 @@ const definitions: Definition[] = [
 		model: 'TZE200_8eazvzo6',
 		vendor: 'TuYa',
 		description: '6 Gang Wall Switch',
-		fromZigbee: [tuya.fz.DataPoints],
-		toZigbee: [tuya.tz.DataPoints],
+		fromZigbee: [tuya.fz.datapoints],
+		toZigbee: [tuya.tz.datapoints],
 		configure: tuya.configureMagicPacket,
 		exposes: [
 			e.switch().withEndpoint('l1'), 
