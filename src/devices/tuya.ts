@@ -4994,7 +4994,7 @@ const definitions: Definition[] = [
             ],
         },
     },
-	{
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8eazvzo6']),
         model: 'TZE200_8eazvzo6',
         vendor: 'TuYa',
@@ -5011,7 +5011,7 @@ const definitions: Definition[] = [
             e.switch().withEndpoint('l6'),
             e.current(),
             e.power(),
-            e.voltage()
+            e.voltage(),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
@@ -5027,7 +5027,7 @@ const definitions: Definition[] = [
                 [6, 'state_l6', tuya.valueConverter.onOff],
                 [21, 'current', tuya.valueConverter.divideBy1000],
                 [22, 'power', tuya.valueConverter.divideBy10],
-                [23, 'voltage', tuya.valueConverter.divideBy10]
+                [23, 'voltage', tuya.valueConverter.divideBy10],
             ],
         },
     },
