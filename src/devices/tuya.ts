@@ -4994,6 +4994,43 @@ const definitions: Definition[] = [
             ],
         },
     },
+	{
+		fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8eazvzo6']),
+		model: 'TZE200_8eazvzo6',
+		vendor: 'TuYa',
+		description: '6 Gang Wall Switch',
+		fromZigbee: [tuya.fzDataPoints],
+		toZigbee: [tuya.tzDataPoints],
+		configure: tuya.configureMagicPacket,
+		exposes: [
+			e.switch().withEndpoint('l1'), 
+			e.switch().withEndpoint('l2'), 
+			e.switch().withEndpoint('l3'), 
+			e.switch().withEndpoint('l4'), 
+			e.switch().withEndpoint('l5'),
+			e.switch().withEndpoint('l6'), 
+			e.current(),
+			e.power(),  
+			e.voltage()
+		],
+		endpoint: (device) => {
+			return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
+		},
+		meta: {
+			multiEndpoint: true,
+			tuyaDatapoints: [
+				[1, 'state_l1', tuya.valueConverter.onOff],
+				[2, 'state_l2', tuya.valueConverter.onOff],
+				[3, 'state_l3', tuya.valueConverter.onOff],
+				[4, 'state_l4', tuya.valueConverter.onOff],
+				[5, 'state_l5', tuya.valueConverter.onOff],
+				[6, 'state_l6', tuya.valueConverter.onOff],
+				[21, 'current', tuya.valueConverter.divideBy1000],
+				[22, 'power', tuya.valueConverter.divideBy10],
+				[23, 'voltage', tuya.valueConverter.divideBy10]
+			],
+		},	
+	},
 ];
 
 module.exports = definitions;
