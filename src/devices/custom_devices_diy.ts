@@ -154,7 +154,7 @@ const tzLocal = {
         },
     } as Tz.Converter,
     multi_zig_sw_switch_type: {
-        key: ['switch_type'],
+        key: ['switch_type_1', 'switch_type_2', 'switch_type_3', 'switch_type_4'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOffSwitchCfg', ['switchType']);
         },
@@ -1141,15 +1141,15 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ignore_basic_report, fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
         exposes: [
-            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_1')],
-            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_2')],
-            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_3')],
-            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_4')],
+            ...[e.enum('switch_type_1', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_1')],
+            ...[e.enum('switch_type_2', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_2')],
+            ...[e.enum('switch_type_3', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_3')],
+            ...[e.enum('switch_type_4', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_4')],
             e.battery(), e.action(['single', 'double', 'triple', 'hold', 'release']), e.battery_voltage(),
         ],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {button_1: 1, button_2: 2, button_3: 3, button_4: 4};
+            return {button_1: 2, button_2: 3, button_3: 4, button_4: 5};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
