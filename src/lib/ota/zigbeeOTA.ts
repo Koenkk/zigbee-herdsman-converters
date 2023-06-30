@@ -3,7 +3,7 @@ import * as common from './common';
 import {Logger, Zh, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
 import fs from 'fs';
-import URI from 'uri-js';
+import * as URI from 'uri-js';
 import path from 'path';
 
 let overrideIndexFileName: string = null;

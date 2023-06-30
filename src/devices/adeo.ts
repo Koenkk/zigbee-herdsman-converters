@@ -124,6 +124,13 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['ZBEK-22'],
+        model: 'BD05C-FL-21-G-ENK',
+        vendor: 'ADEO',
+        description: 'ENKI RGBCCT lamp',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['ZBEK-5'],
         model: 'IST-CDZFB2AS007NA-MZN-01',
         vendor: 'ADEO',

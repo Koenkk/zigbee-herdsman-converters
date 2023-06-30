@@ -93,7 +93,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['ZB-SW02', 'E220-KR2N0Z0-HA'],
         model: 'ZB-SW02',
         vendor: 'eWeLink',
-        description: 'Smart light switch - 2 gang',
+        description: 'Smart light switch/2 gang relay',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
         endpoint: (device) => {

@@ -1,5 +1,8 @@
 import {Definition} from '../lib/types';
 import extend from '../lib/extend';
+import fz from '../converters/fromZigbee';
+import * as exposes from '../lib/exposes';
+const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
@@ -29,6 +32,19 @@ const definitions: Definition[] = [
         vendor: 'EGLO',
         description: 'FUEVA-Z ceiling light IP44',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
+        zigbeeModel: ['ERCU_3groups_Zm'],
+        model: '99099',
+        vendor: 'EGLO',
+        description: '3 groups remote controller',
+        fromZigbee: [fz.command_on, fz.awox_colors, fz.awox_refresh, fz.awox_refreshColored, fz.command_off,
+            fz.command_step, fz.command_move, fz.command_move_to_level, fz.command_move_to_color_temp,
+            fz.command_stop, fz.command_recall, fz.command_step_color_temperature],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'red', 'refresh', 'refresh_colored', 'blue', 'yellow',
+            'green', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
+            'recall_1', 'color_temperature_step_up', 'color_temperature_step_down'])],
     },
 ];
 

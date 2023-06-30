@@ -1,6 +1,8 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
+import * as fz from '../converters/fromZigbee';
 import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 
@@ -31,6 +33,21 @@ const definitions: Definition[] = [
         description: 'Zigbee 3.0 dimm actuator',
         extend: extend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['Hive'],
+        model: 'Hive',
+        vendor: 'Phoscon',
+        description: 'Battery powered smart LED light',
+        ota: ota.zigbeeOTA,
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370], fromZigbee: [fz.battery], exposes: [e.battery()],
+            noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness_colortemp_color().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['FLS-A lp (1-10V)'],
