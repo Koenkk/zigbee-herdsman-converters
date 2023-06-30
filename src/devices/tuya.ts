@@ -4996,9 +4996,9 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8eazvzo6']),
-        model: 'TZE200_8eazvzo6',
+        model: 'SWS6TZ-WHITE',
         vendor: 'TuYa',
-        description: '6 Gang Wall Switch',
+        description: '6 gang wall switch',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -5009,9 +5009,7 @@ const definitions: Definition[] = [
             e.switch().withEndpoint('l4'),
             e.switch().withEndpoint('l5'),
             e.switch().withEndpoint('l6'),
-            e.current(),
-            e.power(),
-            e.voltage(),
+            e.current(), e.power(), e.voltage(),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
