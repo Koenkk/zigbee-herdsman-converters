@@ -30,7 +30,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000427.....$/}],
         model: '9133',
-        vendor: 'Led Trading',
+        vendor: 'LED-Trading',
         description: 'Pushbutton transmitter module',
         fromZigbee: [fzLocal.led_trading_9133],
         toZigbee: [],
@@ -39,7 +39,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['HK-LN-DIM-A'],
         model: 'HK-LN-DIM-A',
-        vendor: 'LED Trading',
+        vendor: 'LED-Trading',
         description: 'ZigBee AC phase-cut dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -52,7 +52,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['HK-LN-SOCKET-A'],
         model: '9134',
-        vendor: 'LED Trading',
+        vendor: 'LED-Trading',
         description: 'Powerstrip with 4 sockets and USB',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
@@ -72,7 +72,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['HK-ZCC-ZLL-A'],
         model: '9135',
-        vendor: 'LED Trading',
+        vendor: 'LED-Trading',
         description: 'Curtain motor controller',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
