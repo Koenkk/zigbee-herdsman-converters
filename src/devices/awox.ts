@@ -1,72 +1,8 @@
-import {Definition, Fz} from '../lib/types';
+import {Definition} from '../lib/types';
 import extend from '../lib/extend';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 const e = exposes.presets;
-
-const awoxRemoteHelper = {
-    convertToColorName: (buffer: Buffer) => {
-        const commonForColors = buffer[0] === 17 && buffer[2] === 48 && buffer[3] === 0 && buffer[5] === 8 && buffer[6] === 0;
-
-        if (commonForColors && buffer[4] === 255) {
-            return 'red';
-        } else if (commonForColors && buffer[4] === 42) {
-            return 'yellow';
-        } else if (commonForColors && buffer[4] === 85) {
-            return 'green';
-        } else if (commonForColors && buffer[4] === 170) {
-            return 'blue';
-        }
-        return null;
-    },
-    isRefresh: (buffer: Buffer) => {
-        return buffer[0] === 17 && buffer[2] === 16 && (buffer[3] === 1 || buffer[3] === 0) && buffer[4] === 1;
-    },
-    isRefreshLong: (buffer: Buffer) => {
-        return buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 2;
-    },
-};
-
-const fzLocal = {
-    colors: {
-        cluster: 'lightingColorCtrl',
-        type: ['raw'],
-        convert: (model, msg, publish, options, meta) => {
-            const color = awoxRemoteHelper.convertToColorName(msg.data);
-            if (color != null) {
-                return {
-                    action: color,
-                };
-            }
-        },
-    } as Fz.Converter,
-    refreshColored: {
-        cluster: 'lightingColorCtrl',
-        type: ['commandMoveHue'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.movemode === 1 && msg.data.rate === 12) {
-                return {
-                    action: 'refresh_colored',
-                };
-            }
-        },
-    } as Fz.Converter,
-    refresh: {
-        cluster: 'genLevelCtrl',
-        type: ['raw'],
-        convert: (model, msg, publish, options, meta) => {
-            if (awoxRemoteHelper.isRefresh(msg.data)) {
-                return {
-                    action: 'refresh',
-                };
-            } else if (awoxRemoteHelper.isRefreshLong(msg.data)) {
-                return {
-                    action: 'refresh_long',
-                };
-            }
-        },
-    } as Fz.Converter,
-};
 
 const definitions: Definition[] = [
     {
@@ -97,21 +33,8 @@ const definitions: Definition[] = [
         model: '33952',
         vendor: 'AwoX',
         description: 'Remote controller',
-        fromZigbee: [fz.command_on, fzLocal.colors, fzLocal.refresh, fzLocal.refreshColored, fz.command_off,
+        fromZigbee: [fz.command_on, fz.awox_colors, fz.awox_refresh, fz.awox_refreshColored, fz.command_off,
             fz.command_step, fz.command_move, fz.command_stop, fz.command_recall, fz.command_step_color_temperature],
-        toZigbee: [],
-        exposes: [e.action(['on', 'off', 'red', 'refresh', 'refresh_colored', 'blue', 'yellow',
-            'green', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
-            'recall_1', 'color_temperature_step_up', 'color_temperature_step_down'])],
-    },
-    {
-        zigbeeModel: ['ERCU_3groups_Zm'],
-        model: '99099',
-        vendor: 'AwoX',
-        description: '3 groups remote controller',
-        fromZigbee: [fz.command_on, fzLocal.colors, fzLocal.refresh, fzLocal.refreshColored, fz.command_off,
-            fz.command_step, fz.command_move, fz.command_move_to_level, fz.command_move_to_color_temp,
-            fz.command_stop, fz.command_recall, fz.command_step_color_temperature],
         toZigbee: [],
         exposes: [e.action(['on', 'off', 'red', 'refresh', 'refresh_colored', 'blue', 'yellow',
             'green', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',

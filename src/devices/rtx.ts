@@ -29,7 +29,7 @@ const definitions: Definition[] = [
                 .withDescription('Auto off timer time left'),
             e.numeric('last_valve_open_duration', ea.STATE).withUnit('min')
                 .withDescription('Time the valve was open when state on'),
-            e.numeric('water_consumed', ea.STATE).withUnit('l')
+            e.numeric('water_consumed', ea.STATE).withUnit('L')
                 .withDescription('Liters of water consumed'),
             e.text('cycle_timer_1', ea.STATE_SET).withDescription('Format 08:00 / 20:00 / 15 / 60 / MoTuWeThFrSaSu / 1 (' +
                 '08:00 = start time ' +

@@ -638,7 +638,7 @@ const definitions: Definition[] = [
                 await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
-        ota: ota.zigbeeOTA,
+        ota: ota.ubisys,
     },
     {
         zigbeeModel: ['S2 (5502)', 'S2-R (5602)'],
@@ -696,7 +696,7 @@ const definitions: Definition[] = [
                 await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
-        ota: ota.zigbeeOTA,
+        ota: ota.ubisys,
     },
     {
         zigbeeModel: ['D1 (5503)', 'D1-R (5603)'],
@@ -793,7 +793,7 @@ const definitions: Definition[] = [
                 await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
-        ota: ota.zigbeeOTA,
+        ota: ota.ubisys,
     },
     {
         zigbeeModel: ['J1 (5502)', 'J1-R (5602)'],
@@ -837,7 +837,7 @@ const definitions: Definition[] = [
                 await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
-        ota: ota.zigbeeOTA,
+        ota: ota.ubisys,
     },
     {
         zigbeeModel: ['C4 (5504)'],
@@ -870,7 +870,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'s1': 1, 's2': 2, 's3': 3, 's4': 4, 's5': 5, 's6': 6};
         },
-        ota: ota.zigbeeOTA,
+        ota: ota.ubisys,
     },
     {
         zigbeeModel: ['H1'],
@@ -944,7 +944,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
-        ota: ota.zigbeeOTA,
+        ota: ota.ubisys,
     },
 ];
 

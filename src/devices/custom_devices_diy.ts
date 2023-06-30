@@ -154,7 +154,7 @@ const tzLocal = {
         },
     } as Tz.Converter,
     multi_zig_sw_switch_type: {
-        key: ['switch_type'],
+        key: ['switch_type_1', 'switch_type_2', 'switch_type_3', 'switch_type_4'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOffSwitchCfg', ['switchType']);
         },
@@ -407,7 +407,7 @@ function ptvoSetMetaOption(device: Zh.Device, key: string, value: unknown) {
     }
 }
 
-function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options: KeyValue) {
+function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options: KeyValue, deviceOptions: KeyValue) {
     const epId = endpoint.ID;
     const epName = `l${epId}`;
     if (endpoint.supportsInputCluster('lightingColorCtrl')) {
@@ -450,10 +450,10 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
         options['exposed_illuminance'] = true;
     }
     if (endpoint.supportsInputCluster('genPowerCfg')) {
-        options['expose_battery'] = true;
+        deviceOptions['expose_battery'] = true;
     }
     if (endpoint.supportsInputCluster('genMultistateInput') || endpoint.supportsOutputCluster('genMultistateInput')) {
-        options['expose_action'] = true;
+        deviceOptions['expose_action'] = true;
     }
 }
 
@@ -514,13 +514,14 @@ const definitions: Definition[] = [
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tz.on_off],
         exposes: (device, options) => {
             const expose: Expose[] = [];
-            const exposeOptions: KeyValue = {};
+            const exposeDeviceOptions: KeyValue = {};
             const deviceConfig = ptvoGetMetaOption(device, 'device_config', '');
 
             if (deviceConfig === '') {
                 if ( (device != null) && device.endpoints ) {
                     for (const endpoint of device.endpoints) {
-                        ptvoAddStandardExposes(endpoint, expose, exposeOptions);
+                        const exposeEpOptions: KeyValue = {};
+                        ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
                     }
                 } else {
                     // fallback code
@@ -539,22 +540,23 @@ const definitions: Definition[] = [
                     }
                     const epId = i + 1;
                     const epName = `l${epId}`;
+                    const exposeEpOptions: KeyValue = {};
                     if ((epConfig & 0x01) != 0) {
                         // GPIO input
-                        exposeOptions['expose_action'] = true;
+                        exposeEpOptions['expose_action'] = true;
                     }
                     if ((epConfig & 0x02) != 0) {
                         // GPIO output
-                        exposeOptions['exposed_onoff'] = true;
+                        exposeEpOptions['exposed_onoff'] = true;
                         expose.push(e.switch().withEndpoint(epName));
                     }
                     if ((epConfig & 0x04) != 0) {
                         // reportable analog value
-                        exposeOptions['exposed_analog'] = true;
+                        exposeEpOptions['exposed_analog'] = true;
                         expose.push(e.numeric(epName, ea.STATE).withDescription('State or sensor value'));
                     } else if ((epConfig & 0x08) != 0) {
                         // readable analog value
-                        exposeOptions['exposed_analog'] = true;
+                        exposeEpOptions['exposed_analog'] = true;
                         expose.push(e.numeric(epName, ea.STATE_SET)
                             .withValueMin(-9999999).withValueMax(9999999).withValueStep(1)
                             .withDescription('State or sensor value'));
@@ -563,13 +565,13 @@ const definitions: Definition[] = [
                     if (!endpoint) {
                         continue;
                     }
-                    ptvoAddStandardExposes(endpoint, expose, exposeOptions);
+                    ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
                 }
             }
-            if (exposeOptions['expose_action']) {
+            if (exposeDeviceOptions['expose_action']) {
                 expose.push(e.action(['single', 'double', 'triple', 'hold', 'release']));
             }
-            if (exposeOptions['expose_battery']) {
+            if (exposeDeviceOptions['expose_battery']) {
                 expose.push(e.battery());
             }
             expose.push(e.linkquality());
@@ -1139,15 +1141,15 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ignore_basic_report, fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
         exposes: [
-            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_1')],
-            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_2')],
-            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_3')],
-            ...[e.enum('switch_type', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_4')],
+            ...[e.enum('switch_type_1', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_1')],
+            ...[e.enum('switch_type_2', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_2')],
+            ...[e.enum('switch_type_3', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_3')],
+            ...[e.enum('switch_type_4', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_4')],
             e.battery(), e.action(['single', 'double', 'triple', 'hold', 'release']), e.battery_voltage(),
         ],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {button_1: 1, button_2: 2, button_3: 3, button_4: 4};
+            return {button_1: 2, button_2: 3, button_3: 4, button_4: 5};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

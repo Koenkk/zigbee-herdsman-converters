@@ -76,7 +76,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['ON/OFF(2CH)'],
         model: 'UP-SA-9127D',
         vendor: 'Sunricher',
-        description: 'LED-trading 2 channel AC switch',
+        description: 'LED-Trading 2 channel AC switch',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         endpoint: (device) => {

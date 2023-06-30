@@ -107,10 +107,10 @@ function getCoverStateEnums(manufacturerName: string) {
 
 function convertDecimalValueTo4ByteHexArray(value: number) {
     const hexValue = Number(value).toString(16).padStart(8, '0');
-    const chunk1 = hexValue.substr(0, 2);
-    const chunk2 = hexValue.substr(2, 2);
-    const chunk3 = hexValue.substr(4, 2);
-    const chunk4 = hexValue.substr(6);
+    const chunk1 = hexValue.substring(0, 2);
+    const chunk2 = hexValue.substring(2, 4);
+    const chunk3 = hexValue.substring(4, 6);
+    const chunk4 = hexValue.substring(6);
     return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => parseInt(hexVal, 16));
 }
 
