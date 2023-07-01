@@ -1,5 +1,13 @@
 # Changelog
 
+## [15.33.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.33.0...v15.33.1) (2023-07-01)
+
+
+### Bug Fixes
+
+* Fix naming inconsistency for vendor Nous ([#5934](https://github.com/Koenkk/zigbee-herdsman-converters/issues/5934)) ([6c458b0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6c458b02e986e2fba539aa6ea2aec377126fad8b))
+* **ignore:** update dependencies ([#5932](https://github.com/Koenkk/zigbee-herdsman-converters/issues/5932)) ([92afa1f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/92afa1ff3de67ad51a963243c3de1a0bbc98fd16))
+
 ## [15.33.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.32.0...v15.33.0) (2023-06-30)
 
 
