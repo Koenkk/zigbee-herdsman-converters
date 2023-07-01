@@ -5029,6 +5029,61 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: [
+            {
+                modelID: "TS0601",
+                manufacturerName: "_TZE200_0j5jma9b",
+            }
+        ],
+        model: 'G3 Smart Switch',
+        vendor: 'TuYa',
+        description: 'TuYa Smart Switch (4 gang + 2 scene) with neutral wire',
+        powerSource: 'Mains (single phase)',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            tuya.exposes.switch().withEndpoint('l3'),
+            tuya.exposes.switch().withEndpoint('l4'),
+            tuya.exposes.switch().withEndpoint('l5'),
+            tuya.exposes.switch().withEndpoint('l6'),
+            tuya.exposes.backlightModeOffOn(),
+            tuya.exposes.countdown().withEndpoint('l1'),
+            tuya.exposes.countdown().withEndpoint('l2'),
+            tuya.exposes.countdown().withEndpoint('l3'),
+            tuya.exposes.countdown().withEndpoint('l4'),
+            tuya.exposes.countdown().withEndpoint('l5'),
+            tuya.exposes.countdown().withEndpoint('l6'),
+            tuya.exposes.switch().withEndpoint('master_switch'),
+        ],
+        onEvent: tuya.onEventSetTime,
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'master_switch': 1, 'backlight': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+                [5, 'state_l5', tuya.valueConverter.onOff],
+                [6, 'state_l6', tuya.valueConverter.onOff],
+                [7, 'countdown_l1', tuya.valueConverter.countdown],
+                [8, 'countdown_l2', tuya.valueConverter.countdown],
+                [9, 'countdown_l3', tuya.valueConverter.countdown],
+                [10, 'countdown_l4', tuya.valueConverter.countdown],
+                [11, 'countdown_l5', tuya.valueConverter.countdown],
+                [12, 'countdown_l6', tuya.valueConverter.countdown],
+                [13, 'state_master', tuya.valueConverter.onOff],
+                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({"off": 0, 'on': 1, 'memory': 2})],
+                [16, 'backlight_mode', tuya.valueConverter.onOff],
+            ]
+        },
+    }
 ];
 
 module.exports = definitions;
