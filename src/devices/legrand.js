@@ -238,6 +238,7 @@ module.exports = [
         model: '067771',
         vendor: 'Legrand',
         description: 'Wired switch without neutral',
+        ota: ota.zigbeeOTA,
         extend: extend.light_onoff_brightness({noConfigure: true}),
         fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fz.legrand_cluster_fc01,
             fz.power_on_behavior],

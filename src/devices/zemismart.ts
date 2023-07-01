@@ -173,15 +173,6 @@ const definitions: Definition[] = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7eue9vhc'}],
-        model: 'ZM25RX-08/30',
-        vendor: 'Zemismart',
-        description: 'Tubular motor',
-        fromZigbee: [legacy.fz.tuya_cover, fz.ignore_basic_report],
-        toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options],
-        exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
-    },
-    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}, {modelID: 'TS0601', manufacturerName: '_TZE200_shkxsgis'}],
         model: 'TB26-4',
         vendor: 'Zemismart',

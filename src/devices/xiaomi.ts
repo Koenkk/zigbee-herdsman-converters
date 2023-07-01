@@ -3304,6 +3304,35 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.switch.acn030'],
+        model: 'ZNQBKG25LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch H1M (with neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple, fz.xiaomi_power],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_flip_indicator_light],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {multiEndpoint: true},
+        exposes: [
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for left button')
+                .withEndpoint('left'),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for right button')
+                .withEndpoint('right'),
+            e.action(['single_left', 'double_left', 'single_right', 'double_right',
+                'single_left_right', 'double_left_right', 'single_all', 'double_all']),
+            e.device_temperature(), e.flip_indicator_light(),
+        ],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.switch.acn031'],
         model: 'ZNQBKG26LM',
         vendor: 'Xiaomi',

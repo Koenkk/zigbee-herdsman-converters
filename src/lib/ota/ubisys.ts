@@ -7,6 +7,16 @@ import {Ota, Logger, Zh} from '../types';
 const axios = common.getAxios();
 
 /**
+ * Ubisys switched firmware format when the switched to their newer
+ *  `Ubisys Compact7B Stack` (I think it was 7B, could have bene earlier)
+ *
+ * Their firmware index lists a *.ota1.zigbee firmware for those devices that
+ *  is in the old firmware format that will update the device to use the new
+ *  format. The matching logisch seems to generally work, however as reported in
+ *  Koenkk/zigbee-OTA#329 there still seems to be a bug lurking somewhere.
+ */
+
+/**
  * Helper functions
  */
 

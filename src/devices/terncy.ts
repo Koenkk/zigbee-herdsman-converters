@@ -11,6 +11,25 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['TERNCY-WS01-S4'],
+        model: 'TERNCY-WS01',
+        vendor: 'TERNCY',
+        description: 'Smart light switch - 4 gang without neutral wire',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+            e.switch().withEndpoint('l4')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            for (const ID of [1, 2, 3, 4]) {
+                const endpoint = device.getEndpoint(ID);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            }
+        },
+    },
+    {
         zigbeeModel: ['DL001'],
         model: 'DL001',
         vendor: 'TERNCY',
