@@ -254,7 +254,6 @@ module.exports = [
                 ` see the switch in the dark`),
             exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
             e.power_on_behavior()],
-        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
