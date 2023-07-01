@@ -5032,14 +5032,13 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {
-                modelID: "TS0601",
-                manufacturerName: "_TZE200_0j5jma9b",
-            }
+                modelID: 'TS0601',
+                manufacturerName: '_TZE200_0j5jma9b',
+            },
         ],
         model: 'G3 Smart Switch',
         vendor: 'TuYa',
         description: 'TuYa Smart Switch (4 gang + 2 scene) with neutral wire',
-        powerSource: 'Mains (single phase)',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -5079,11 +5078,11 @@ const definitions: Definition[] = [
                 [11, 'countdown_l5', tuya.valueConverter.countdown],
                 [12, 'countdown_l6', tuya.valueConverter.countdown],
                 [13, 'state_master', tuya.valueConverter.onOff],
-                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({"off": 0, 'on': 1, 'memory': 2})],
+                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': 0, 'on': 1, 'memory': 2})],
                 [16, 'backlight_mode', tuya.valueConverter.onOff],
-            ]
+            ],
         },
-    }
+    },
 ];
 
 module.exports = definitions;
