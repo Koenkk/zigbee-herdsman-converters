@@ -1346,7 +1346,6 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['qnazj70', 'kjintbl'],
         fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
             {modelID: 'TS0601', manufacturerName: '_TZ3000_uim07oem'},
@@ -5079,6 +5078,46 @@ const definitions: Definition[] = [
                 [12, 'countdown_l6', tuya.valueConverter.countdown],
                 [13, 'state_master', tuya.valueConverter.onOff],
                 [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': 0, 'on': 1, 'memory': 2})],
+                [16, 'backlight_mode', tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ['TS0601'],
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE200_wunufsil',
+            },
+        ],
+        model: 'Tuya Smart Switch with Backlight',
+        vendor: 'TuYa',
+        description: 'TuYa Smart 2 Gang Switch with backlight and neutral wire',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints, tuya.tz.power_on_behavior_1],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.switch().withDescription('All Switches'),
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            tuya.exposes.backlightModeOffOn(),
+            tuya.exposes.countdown().withEndpoint('l1'),
+            tuya.exposes.countdown().withEndpoint('l2'),
+            e.power_on_behavior(['off', 'on', 'memory']).withAccess(ea.STATE_SET),
+        ],
+        onEvent: tuya.onEventSetTime,
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'state': 1, 'backlight': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [7, 'countdown_l1', tuya.valueConverter.countdown],
+                [8, 'countdown_l2', tuya.valueConverter.countdown],
+                [13, 'state', tuya.valueConverter.onOff],
+                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1), 'memory': tuya.enum(2)})],
                 [16, 'backlight_mode', tuya.valueConverter.onOff],
             ],
         },
