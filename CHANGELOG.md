@@ -1,5 +1,22 @@
 # Changelog
 
+## [15.34.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.33.1...v15.34.0) (2023-07-02)
+
+
+### Features
+
+* Add OTA for multiple Legrand devices ([#5936](https://github.com/Koenkk/zigbee-herdsman-converters/issues/5936)) ([b4e5a28](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b4e5a287d2faa94b7c2bc7e1a3f3050f020017cf))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_a8sdabtg` as TuYa ZG-227Z. https://github.com/Koenkk/zigbee2mqtt/issues/18158 ([70a9083](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70a90831171e9414fa34758bb5595526847c9d48))
+* **detect:** Detect `_TZE200_feolm6rk` as TuYa TS0601_cover_1 [@1060778506](https://github.com/1060778506) https://github.com/Koenkk/zigbee-herdsman-converters/issues/5843 ([0dddb8b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0dddb8ba40ce65749fe9b8d6c541b173800b526c))
+* Fix `Expected one of: 1, 2, got: '29146'` error https://github.com/Koenkk/zigbee2mqtt/issues/17961 ([3fba669](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3fba669c63b66c9a0c87e8f5d2755d93557442a2))
+* Fix Eco-Dim.07/Eco-Dim.10 not detected as supported https://github.com/Koenkk/zigbee2mqtt/issues/18171 ([aa8bc2b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aa8bc2bd05bfaed8e9b7d088ff901081c6093b85))
+* **ignore:** update dependencies ([#5937](https://github.com/Koenkk/zigbee-herdsman-converters/issues/5937)) ([3ee5226](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3ee5226d1eace678de8c5351bd8aab907e6e1134))
+* Silence `Moes BHT-002: Unrecognized DP` warning message https://github.com/Koenkk/zigbee2mqtt/issues/17861 ([fb273e3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fb273e35cea228334710ed3fa24a688243f83e2d))
+
 ## [15.33.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.33.0...v15.33.1) (2023-07-01)
 
 

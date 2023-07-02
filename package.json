@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "15.33.1",
+  "version": "15.34.0",
   "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "types": "index.d.ts",
@@ -47,11 +47,11 @@
   "devDependencies": {
     "@types/buffer-crc32": "^0.2.2",
     "@types/jest": "^29.5.2",
-    "@types/node": "^20.3.2",
+    "@types/node": "^20.3.3",
     "@types/tar-stream": "^2.2.2",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
     "@typescript-eslint/parser": "^5.60.1",
-    "eslint": "^8.43.0",
+    "eslint": "^8.44.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-jest": "^27.2.2",
     "fast-deep-equal": "*",

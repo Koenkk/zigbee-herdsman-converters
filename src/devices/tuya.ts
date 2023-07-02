@@ -2100,6 +2100,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_bqcqqjpb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xaabybja'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rmymn92d'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_feolm6rk'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3i3exuay'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_tvrvdj6o'},
             {modelID: 'zo2pocs\u0000', manufacturerName: '_TYST11_fzo2pocs'},
@@ -4234,6 +4235,9 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         exposes: [e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), tuya.exposes.temperatureCalibration(),
             tuya.exposes.humidityCalibration(), e.battery()],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'ZG-227Z', 'Temperature and humidity sensor', ['_TZE200_a8sdabtg']),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
