@@ -1534,7 +1534,7 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 1};
         },
         meta: {
-            multiEndpoint : true,
+            multiEndpoint: true,
             tuyaDatapoints: [
                 [21, 'state_l1', tuya.valueConverter.onOff],
                 [22, 'state_l2', tuya.valueConverter.onOff],
