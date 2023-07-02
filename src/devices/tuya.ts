@@ -5122,6 +5122,50 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        zigbeeModel: ['TS0601_3gang'],
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE200_vhy3iakz',
+            },
+        ],
+        model: 'Tuya Smart Switch with Backlight',
+        vendor: 'TuYa',
+        description: 'TuYa Smart 3 Gang Switch with backlight and neutral wire',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints, tuya.tz.power_on_behavior_1],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.switch().withDescription('All Switches'),
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            tuya.exposes.switch().withEndpoint('l3'),
+            tuya.exposes.backlightModeOffOn(),
+            tuya.exposes.countdown().withEndpoint('l1'),
+            tuya.exposes.countdown().withEndpoint('l2'),
+            tuya.exposes.countdown().withEndpoint('l3'),
+            e.power_on_behavior(['off', 'on', 'memory']).withAccess(ea.STATE_SET),
+        ],
+        onEvent: tuya.onEventSetTime,
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'state': 1, 'backlight': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [7, 'countdown_l1', tuya.valueConverter.countdown],
+                [8, 'countdown_l2', tuya.valueConverter.countdown],
+                [9, 'countdown_l3', tuya.valueConverter.countdown],
+                [13, 'state', tuya.valueConverter.onOff],
+                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1), 'memory': tuya.enum(2)})],
+                [16, 'backlight_mode', tuya.valueConverter.onOff],
+            ],
+        },
+    },
 ];
 
 module.exports = definitions;
