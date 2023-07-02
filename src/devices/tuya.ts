@@ -1487,11 +1487,11 @@ const definitions: Definition[] = [
             return {'l1': 1};
         },
         meta: {
-            multiEndpoint : true,
+            multiEndpoint: true,
             tuyaDatapoints: [
-                [21, 'state_l1', tuya.valueConverter.onOff]
-            ]
-        }
+                [21, 'state_l1', tuya.valueConverter.onOff],
+            ],
+        },
     },
     {
         fingerprint: [
@@ -1524,7 +1524,7 @@ const definitions: Definition[] = [
         description: '2 gang switch',
         exposes: [
             e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
         ],
         fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
         toZigbee: [legacy.toZigbee.tuya_switch_state],
@@ -1538,8 +1538,8 @@ const definitions: Definition[] = [
             tuyaDatapoints: [
                 [21, 'state_l1', tuya.valueConverter.onOff],
                 [22, 'state_l2', tuya.valueConverter.onOff],
-            ]
-        }
+            ],
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kyfqmmyl'},
@@ -1582,7 +1582,7 @@ const definitions: Definition[] = [
         ],
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
-            return {'l1': 1, 'l2': 1, 'l3': 1}
+            return {'l1': 1, 'l2': 1, 'l3': 1};
         },
         meta: {
             multiEndpoint: true,
@@ -1590,8 +1590,8 @@ const definitions: Definition[] = [
                 [21, 'state_l1', tuya.valueConverter.onOff],
                 [22, 'state_l2', tuya.valueConverter.onOff],
                 [23, 'state_l3', tuya.valueConverter.onOff],
-            ]
-        }
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0215A', ['_TZ3000_4fsgukof', '_TZ3000_wr2ucaj9', '_TZ3000_zsh6uat3', '_TZ3000_tj4pwzzm',
