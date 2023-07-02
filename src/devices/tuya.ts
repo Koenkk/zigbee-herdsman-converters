@@ -1346,7 +1346,6 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['qnazj70', 'kjintbl'],
         fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
             {modelID: 'TS0601', manufacturerName: '_TZ3000_uim07oem'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_js3mgbjb'},
@@ -5030,10 +5029,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE200_0j5jma9b',
-            },
+            {modelID: 'TS0601', manufacturerName: '_TZE200_0j5jma9b'},
         ],
         model: 'G3 Smart Switch',
         vendor: 'TuYa',
@@ -5085,10 +5081,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['TS0601-2Gang'],
         fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE200_wunufsil',
-            },
+            {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
         ],
         model: 'Tuya Smart Switch with Backlight',
         vendor: 'TuYa',
@@ -5125,10 +5118,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['TS0601_3gang'],
         fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE200_vhy3iakz',
-            },
+            {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
         ],
         model: 'Tuya Smart Switch with Backlight',
         vendor: 'TuYa',
