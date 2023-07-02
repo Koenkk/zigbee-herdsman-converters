@@ -5037,11 +5037,12 @@ const definitions: Definition[] = [
         ],
         model: 'G3 Smart Switch',
         vendor: 'TuYa',
-        description: 'TuYa Smart Switch (4 gang + 2 scene) with neutral wire',
+        description: 'TuYa Smart Switch (4 gang + 2 scene) with backlight and neutral wire',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
+            tuya.exposes.switch().withDescription('All Switches'),
             tuya.exposes.switch().withEndpoint('l1'),
             tuya.exposes.switch().withEndpoint('l2'),
             tuya.exposes.switch().withEndpoint('l3'),
@@ -5055,11 +5056,10 @@ const definitions: Definition[] = [
             tuya.exposes.countdown().withEndpoint('l4'),
             tuya.exposes.countdown().withEndpoint('l5'),
             tuya.exposes.countdown().withEndpoint('l6'),
-            tuya.exposes.switch().withEndpoint('master_switch'),
         ],
         onEvent: tuya.onEventSetTime,
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'master_switch': 1, 'backlight': 1};
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'state': 1, 'backlight': 1};
         },
         meta: {
             multiEndpoint: true,
@@ -5076,8 +5076,8 @@ const definitions: Definition[] = [
                 [10, 'countdown_l4', tuya.valueConverter.countdown],
                 [11, 'countdown_l5', tuya.valueConverter.countdown],
                 [12, 'countdown_l6', tuya.valueConverter.countdown],
-                [13, 'state_master', tuya.valueConverter.onOff],
-                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': 0, 'on': 1, 'memory': 2})],
+                [13, 'state', tuya.valueConverter.onOff],
+                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1), 'memory': tuya.enum(2)})],
                 [16, 'backlight_mode', tuya.valueConverter.onOff],
             ],
         },
@@ -5107,7 +5107,7 @@ const definitions: Definition[] = [
         ],
         onEvent: tuya.onEventSetTime,
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'state': 1, 'backlight': 1};
+            return {'l1': 1, 'l2': 1, 'state': 1, 'backlight': 1};
         },
         meta: {
             multiEndpoint: true,
