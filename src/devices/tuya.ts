@@ -2100,6 +2100,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_bqcqqjpb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xaabybja'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rmymn92d'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_feolm6rk'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3i3exuay'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_tvrvdj6o'},
             {modelID: 'zo2pocs\u0000', manufacturerName: '_TYST11_fzo2pocs'},
