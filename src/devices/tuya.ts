@@ -1475,7 +1475,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_gbagoilo']),
-        model: 'TS0601_switch_1_gang',
+        model: 'TS0601-1-gang-switchboard',
         vendor: 'TuYa',
         description: '1 gang switch',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET)],
@@ -1519,7 +1519,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nh9m9emk']),
-        model: 'TS0601_switch_2_gang',
+        model: 'TS0601-2-gang-switchboard',
         vendor: 'TuYa',
         description: '2 gang switch',
         exposes: [
@@ -1569,7 +1569,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_go3tvswy']),
-        model: 'TS0601_switch_3_gang',
+        model: 'TS0601-3-gang-switchboard',
         vendor: 'TuYa',
         description: '3 gang switch',
         fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
