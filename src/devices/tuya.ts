@@ -5083,7 +5083,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['TS0601'],
+        zigbeeModel: ['TS0601-2Gang'],
         fingerprint: [
             {
                 modelID: 'TS0601',
