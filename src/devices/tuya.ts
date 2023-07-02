@@ -1474,6 +1474,26 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_gbagoilo']),
+        model: 'TS0601_switch_1_gang',
+        vendor: 'TuYa',
+        description: '1 gang switch',
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET)],
+        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
+        toZigbee: [legacy.toZigbee.tuya_switch_state],
+        configure: tuya.configureMagicPacket,
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1};
+        },
+        meta: {
+            multiEndpoint : true,
+            tuyaDatapoints: [
+                [21, 'state_l1', tuya.valueConverter.onOff]
+            ]
+        }
+    },
+    {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ji1gn7rw'},
@@ -1496,6 +1516,30 @@ const definitions: Definition[] = [
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1};
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nh9m9emk']),
+        model: 'TS0601_switch_2_gang',
+        vendor: 'TuYa',
+        description: '2 gang switch',
+        exposes: [
+            e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)
+        ],
+        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
+        toZigbee: [legacy.toZigbee.tuya_switch_state],
+        configure: tuya.configureMagicPacket,
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1};
+        },
+        meta: {
+            multiEndpoint : true,
+            tuyaDatapoints: [
+                [21, 'state_l1', tuya.valueConverter.onOff],
+                [22, 'state_l2', tuya.valueConverter.onOff],
+            ]
+        }
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kyfqmmyl'},
@@ -1522,6 +1566,32 @@ const definitions: Definition[] = [
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1, 'l3': 1};
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_go3tvswy']),
+        model: 'TS0601_switch_3_gang',
+        vendor: 'TuYa',
+        description: '3 gang switch',
+        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
+        toZigbee: [legacy.toZigbee.tuya_switch_state],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
+        ],
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1, 'l3': 1}
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [21, 'state_l1', tuya.valueConverter.onOff],
+                [22, 'state_l2', tuya.valueConverter.onOff],
+                [23, 'state_l3', tuya.valueConverter.onOff],
+            ]
+        }
     },
     {
         fingerprint: tuya.fingerprint('TS0215A', ['_TZ3000_4fsgukof', '_TZ3000_wr2ucaj9', '_TZ3000_zsh6uat3', '_TZ3000_tj4pwzzm',
