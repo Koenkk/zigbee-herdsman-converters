@@ -3881,7 +3881,7 @@ const fromZigbee1 = {
             case dataPoints.bacFanMode:
                 return {fan_mode: fanModes[value]};
             default: // DataPoint 17 is unknown
-                meta.logger.warn(`zigbee-herdsman-converters:Moes BHT-002: Unrecognized DP #${
+                meta.logger.debug(`zigbee-herdsman-converters:Moes BHT-002: Unrecognized DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
