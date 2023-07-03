@@ -2015,6 +2015,13 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929003128401'],
+        model: '929003128401',
+        vendor: 'Philips',
+        description: 'Hue Go portable table lamp white',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['SML003'],
         model: '9290030675',
         vendor: 'Philips',
@@ -2038,7 +2045,6 @@ module.exports = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: 4107});
         },
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SML004'],
@@ -3085,14 +3091,28 @@ module.exports = [
         zigbeeModel: ['929003115801'],
         model: '929003115801',
         vendor: 'Philips',
-        description: 'Hue Perifo ceiling light, 1 pendant (white)',
+        description: 'Hue Perifo cylinder spotlight (white)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['929003115701'],
+        model: '929003115701',
+        vendor: 'Philips',
+        description: 'Hue Perifo cylinder spotlight (black)',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['929003116201'],
         model: '929003116201',
         vendor: 'Philips',
-        description: 'Hue Perifo linear light bar',
+        description: 'Hue Perifo linear light bar (white)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['929003116101'],
+        model: '929003116101',
+        vendor: 'Philips',
+        description: 'Hue Perifo linear light bar (black)',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {

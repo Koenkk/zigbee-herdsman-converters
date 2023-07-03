@@ -82,7 +82,7 @@ export const doorState = async (endpoint: Zh.Endpoint, overrides?: Reporting.Ove
     await endpoint.configureReporting('closuresDoorLock', p);
 };
 export const brightness = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-    const p = payload('currentLevel', 0, repInterval.HOUR, 1, overrides);
+    const p = payload('currentLevel', 1, repInterval.HOUR, 1, overrides);
     await endpoint.configureReporting('genLevelCtrl', p);
 };
 export const colorTemperature = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {

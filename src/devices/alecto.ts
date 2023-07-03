@@ -10,7 +10,6 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'daqwrsj\u0000', manufacturerName: '_TYST11_8daqwrsj'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_qtbrwrfv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_8daqwrsj'},
         ],
         model: 'SMART-HEAT10',
@@ -27,7 +26,10 @@ const definitions: Definition[] = [
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)],
     },
     {
-        fingerprint: [{modelID: 'tbrwrfv\u0000', manufacturerName: '_TYST11_qtbrwrfv'}],
+        fingerprint: [
+            {modelID: 'tbrwrfv\u0000', manufacturerName: '_TYST11_qtbrwrfv'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_qtbrwrfv'},
+        ],
         model: 'SMART-SMOKE10',
         vendor: 'Alecto',
         description: 'Smoke detector',

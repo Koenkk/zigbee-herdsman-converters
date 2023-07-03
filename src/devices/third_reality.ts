@@ -19,6 +19,14 @@ const fzLocal = {
             return payload;
         },
     } as Fz.Converter,
+    thirdreality_private_motion_sensor: {
+        cluster: '64512',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data[2];
+            return {occupancy: (zoneStatus & 1) > 0};
+        },
+    } as Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -220,6 +228,25 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
+            device.save();
+        },
+    },
+    {
+        zigbeeModel: ['3RSNL02043Z'],
+        model: '3RSNL02043Z',
+        vendor: 'Third Reality',
+        description: 'Zigbee multi-function night light',
+        ota: ota.zigbeeOTA,
+        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
+            fzLocal.thirdreality_private_motion_sensor, fz.illuminance]),
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee,
+        exposes: [e.light_brightness_colortemp_color([153, 555]).removeFeature('color_temp_startup'),
+            e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
+        endpoint: (device) => {
+            return {'default': 1};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Mains (single phase)';
             device.save();
         },
     },

@@ -209,7 +209,9 @@ const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, model: 
             }
             break;
         case '10':
-            if (['SSM-U01', 'DLKZMK11LM', 'SSM-U02', 'DLKZMK12LM'].includes(model.model)) {
+            // Value 29146 is received for SSM-U02 sometimes here:
+            // https://github.com/Koenkk/zigbee2mqtt/issues/17961#issuecomment-1616170548
+            if (['SSM-U01', 'DLKZMK11LM', 'SSM-U02', 'DLKZMK12LM'].includes(model.model) && (value === 1 || value === 2)) {
                 payload.switch_type = getFromLookup(value, {1: 'toggle', 2: 'momentary'});
             }
             break;

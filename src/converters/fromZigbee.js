@@ -42,23 +42,30 @@ const converters = {
             const result = {};
             const dontMapPIHeatingDemand = model.meta && model.meta.thermostat && model.meta.thermostat.dontMapPIHeatingDemand;
             if (msg.data.hasOwnProperty('localTemp')) {
-                result[postfixWithEndpointName('local_temperature', msg, model, meta)] = precisionRound(msg.data['localTemp'], 2) / 100;
+                const value = precisionRound(msg.data['localTemp'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('localTemperatureCalibration')) {
                 result[postfixWithEndpointName('local_temperature_calibration', msg, model, meta)] =
                     precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
             if (msg.data.hasOwnProperty('outdoorTemp')) {
-                result[postfixWithEndpointName('outdoor_temperature', msg, model, meta)] = precisionRound(msg.data['outdoorTemp'], 2) / 100;
+                const value = precisionRound(msg.data['outdoorTemp'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('outdoor_temperature', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('occupancy')) {
                 result[postfixWithEndpointName('occupancy', msg, model, meta)] = (msg.data.occupancy % 2) > 0;
             }
             if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
-                let value = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+                const value = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
                 // Stelpro will return -325.65 when set to off, value is not realistic anyway
-                value = value < -250 ? 0 : value;
-                result[postfixWithEndpointName('occupied_heating_setpoint', msg, model, meta)] = value;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('occupied_heating_setpoint', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('unoccupiedHeatingSetpoint')) {
                 result[postfixWithEndpointName('unoccupied_heating_setpoint', msg, model, meta)] =
@@ -116,6 +123,11 @@ const converters = {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model, meta)] =
                     mapNumberRange(msg.data['pIHeatingDemand'], 0, (dontMapPIHeatingDemand ? 100: 255), 0, 100);
             }
+            if (msg.data.hasOwnProperty('pICoolingDemand')) {
+                // we assume the behavior is consistent for pIHeatingDemand + pICoolingDemand for the same vendor
+                result[postfixWithEndpointName('pi_cooling_demand', msg, model, meta)] =
+                    mapNumberRange(msg.data['pICoolingDemand'], 0, (dontMapPIHeatingDemand ? 100: 255), 0, 100);
+            }
             if (msg.data.hasOwnProperty('tempSetpointHold')) {
                 result[postfixWithEndpointName('temperature_setpoint_hold', msg, model, meta)] = msg.data['tempSetpointHold'] == 1;
             }
@@ -124,24 +136,46 @@ const converters = {
                     msg.data['tempSetpointHoldDuration'];
             }
             if (msg.data.hasOwnProperty('minHeatSetpointLimit')) {
-                let value = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
-                result[postfixWithEndpointName('min_heat_setpoint_limit', msg, model, meta)] = value;
+                const value = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('min_heat_setpoint_limit', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('maxHeatSetpointLimit')) {
-                let value = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
-                result[postfixWithEndpointName('max_heat_setpoint_limit', msg, model, meta)] = value;
+                const value = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('max_heat_setpoint_limit', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('absMinHeatSetpointLimit')) {
-                let value = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
-                result[postfixWithEndpointName('abs_min_heat_setpoint_limit', msg, model, meta)] = value;
+                const value = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('abs_min_heat_setpoint_limit', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('absMaxHeatSetpointLimit')) {
-                let value = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
-                value = value < -250 ? 0 : value;
-                result[postfixWithEndpointName('abs_max_heat_setpoint_limit', msg, model, meta)] = value;
+                const value = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('abs_max_heat_setpoint_limit', msg, model, meta)] = value;
+                }
+            }
+            if (msg.data.hasOwnProperty('absMinCoolSetpointLimit')) {
+                const value = precisionRound(msg.data['absMinCoolSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('abs_min_cool_setpoint_limit', msg, model, meta)] = value;
+                }
+            }
+            if (msg.data.hasOwnProperty('absMaxCoolSetpointLimit')) {
+                const value = precisionRound(msg.data['absMaxCoolSetpointLimit'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('abs_max_cool_setpoint_limit', msg, model, meta)] = value;
+                }
+            }
+            if (msg.data.hasOwnProperty('minSetpointDeadBand')) {
+                const value = precisionRound(msg.data['minSetpointDeadBand'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('min_setpoint_dead_band', msg, model, meta)] = value;
+                }
             }
             if (msg.data.hasOwnProperty('acLouverPosition')) {
                 result[postfixWithEndpointName('ac_louver_position', msg, model, meta)] =
@@ -5483,7 +5517,12 @@ const converters = {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
-            const lookup = {0x22: 'press_1', 0x10: 'press_2', 0x11: 'press_3', 0x12: 'press_4'};
+            const lookup = {
+                0x22: 'press_1', 0x10: 'press_2', 0x11: 'press_3', 0x12: 'press_4',
+                // Actions below are never generated by a Hue Tap but by a PMT 215Z
+                // https://github.com/Koenkk/zigbee2mqtt/issues/18088
+                0x62: 'press_3_and_4', 0x63: 'release_3_and_4', 0x64: 'press_1_and_2', 0x65: 'release_1_and_2',
+            };
             if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`Hue Tap: missing command '${commandID}'`);
             } else {
@@ -5876,7 +5915,10 @@ const converters = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const lookup = {32768: 'pressed'};
+            const lookup = {
+                32768: 'pressed',
+                32772: 'pressed',
+            };
             const zoneStatus = msg.data.zonestatus;
             return {
                 action: lookup[zoneStatus],
@@ -6064,6 +6106,53 @@ const converters = {
             // SNZB-02 reports stranges values sometimes
             if (humidity >= 0 && humidity <= 99.75) {
                 return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+            }
+        },
+    },
+    awox_colors: {
+        cluster: 'lightingColorCtrl',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const buffer = msg.data;
+            const commonForColors = buffer[0] === 17 && buffer[2] === 48 && buffer[3] === 0 && buffer[5] === 8 && buffer[6] === 0;
+            let color = null;
+            if (commonForColors && buffer[4] === 255) {
+                color = 'red';
+            } else if (commonForColors && buffer[4] === 42) {
+                color = 'yellow';
+            } else if (commonForColors && buffer[4] === 85) {
+                color = 'green';
+            } else if (commonForColors && buffer[4] === 170) {
+                color = 'blue';
+            }
+
+            if (color != null) {
+                return {action: color};
+            }
+        },
+    },
+    awox_refreshColored: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandMoveHue'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.movemode === 1 && msg.data.rate === 12) {
+                return {
+                    action: 'refresh_colored',
+                };
+            }
+        },
+    },
+    awox_refresh: {
+        cluster: 'genLevelCtrl',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const buffer = msg.data;
+            const isRefresh = buffer[0] === 17 && buffer[2] === 16 && (buffer[3] === 1 || buffer[3] === 0) && buffer[4] === 1;
+            const isRefreshLong = buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 2;
+            if (isRefresh) {
+                return {action: 'refresh'};
+            } else if (isRefreshLong) {
+                return {action: 'refresh_long'};
             }
         },
     },

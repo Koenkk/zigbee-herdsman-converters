@@ -36,8 +36,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_t1blo2bj'}, {modelID: 'TS0601', manufacturerName: '_TZE204_t1blo2bj'}],
-        zigbeeModel: ['1blo2bj'],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t1blo2bj', '_TZE204_t1blo2bj', '_TZE200_nlrfgpny']),
+        zigbeeModel: ['1blo2bj', 'lrfgpny'],
         model: 'NAS-AB02B2',
         vendor: 'Neo',
         description: 'Alarm',
@@ -51,6 +51,7 @@ const definitions: Definition[] = [
             e.enum('volume', ea.STATE_SET, ['low', 'medium', 'high']),
             e.numeric('battpercentage', ea.STATE).withUnit('%'),
         ],
+        whiteLabel: [tuya.whitelabel('Neo', 'NAS-AB06B2', 'Outdoor solar alarm', ['_TZE200_nlrfgpny'])],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

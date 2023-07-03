@@ -2,6 +2,8 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -25,6 +27,26 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint2);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint3);
+        },
+    },
+    {
+        zigbeeModel: ['HY0043'],
+        model: 'U86Z13A16-ZJH(HA)',
+        vendor: 'Honyar',
+        description: 'Smart Power Socket 16A (with power monitoring)',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
         },
     },
 ];
