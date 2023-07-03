@@ -3680,7 +3680,7 @@ const definitions: Definition[] = [
             e.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on'])
                 .withDescription('Relay LED indicator mode')],
         options: [exposes.options.measurement_poll_interval()],
-        onEvent: tuya.onEventMeasurementPoll,
+        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_7issjl2q'}],
