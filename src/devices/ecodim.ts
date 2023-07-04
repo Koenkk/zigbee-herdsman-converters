@@ -37,7 +37,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {type: 'Router', manufacturerID: 4714, modelID: 'Dimmer-Switch-ZB3.0'}, 
+            {type: 'Router', manufacturerID: 4714, modelID: 'Dimmer-Switch-ZB3.0'},
             {type: 'Router', manufacturerName: 'EcoDim BV', modelID: 'Dimmer-Switch-ZB3.0'},
             {type: 'Router', manufacturerName: 'EcoDim B.V', modelID: 'Dimmer-Switch-ZB3.0'},
             {type: 'Router', manufacturerName: 'Lightsolutions', modelID: 'Dimmer-Switch-ZB3.0'},
