@@ -17,16 +17,16 @@ const fzLocal = {
             if (msg.data['2']) payload.y_axis = msg.data['2'];
             if (msg.data['3']) payload.z_axis = msg.data['3'];
             return payload;
-       },
-   } as Fz.Converter,
+        },
+    } as Fz.Converter,
     thirdreality_private_motion_sensor: {
         cluster: '64512',
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data[2];
             return {occupancy: (zoneStatus & 1) > 0};
-       },
-   } as Fz.Converter,
+        },
+    } as Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -44,8 +44,8 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
-       },
-   },
+        },
+    },
     {
         zigbeeModel: ['3RSS008Z'],
         model: '3RSS008Z',
@@ -53,9 +53,9 @@ const definitions: Definition[] = [
         description: 'RealitySwitch Plus',
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        meta: {battery: {voltageToPercentage: '3V_2100' }},
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.switch(), e.battery(), e.battery_voltage()],
-   },
+    },
     {
         zigbeeModel: ['3RSS007Z'],
         model: '3RSS007Z',
@@ -67,22 +67,22 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
-       },
-   },
+        },
+    },
     {
         zigbeeModel: ['3RSL011Z'],
         model: '3RSL011Z',
         vendor: 'Third Reality',
         description: 'Smart light A19',
         extend: extend.light_onoff_brightness_colortemp(),
-   },
+    },
     {
         zigbeeModel: ['3RSL012Z'],
         model: '3RSL012Z',
         vendor: 'Third Reality',
         description: 'Smart light BR30',
         extend: extend.light_onoff_brightness_colortemp(),
-   },
+    },
     {
         zigbeeModel: ['3RWS18BZ'],
         model: '3RWS18BZ',
@@ -97,8 +97,8 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
-       },
-   },
+        },
+    },
     {
         zigbeeModel: ['3RMS16BZ'],
         model: '3RMS16BZ',
@@ -113,8 +113,8 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
-       },
-   },
+        },
+    },
     {
         zigbeeModel: ['3RDS17BZ'],
         model: '3RDS17BZ',
@@ -129,8 +129,8 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
-       },
-   },
+        },
+    },
     {
         zigbeeModel: ['3RSP019BZ'],
         model: '3RSP019BZ',
@@ -142,8 +142,8 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
-       },
-   },
+        },
+    },
     {
         zigbeeModel: ['3RSB015BZ'],
         model: '3RSB015BZ',
@@ -151,7 +151,7 @@ const definitions: Definition[] = [
         description: 'Roller shade',
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {battery: {dontDividePercentage: false }},
+        meta: {battery: {dontDividePercentage: false}},
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -160,9 +160,9 @@ const definitions: Definition[] = [
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
             } catch (error) {/* Fails for some*/}
-       },
+        },
         exposes: [e.cover_position(), e.battery()],
-   },
+    },
     {
         zigbeeModel: ['3RSB22BZ'],
         model: '3RSB22BZ',
@@ -177,8 +177,8 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
-       },
-   },
+        },
+    },
     {
         zigbeeModel: ['3RTHS24BZ'],
         model: '3RTHS24BZ',
@@ -188,7 +188,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         ota: ota.zigbeeOTA,
-   },
+    },
     {
         zigbeeModel: ['3RSP02028BZ'],
         model: '3RSP02028BZ',
@@ -211,10 +211,10 @@ const definitions: Definition[] = [
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
                 acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
                 acPowerDivisor: 10,
-           });
+            });
             device.save();
-       },
-   },
+        },
+    },
     {
         zigbeeModel: ['3RVS01031Z'],
         model: '3RVS01031Z',
@@ -229,8 +229,8 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
-       },
-   },
+        },
+    },
     {
         zigbeeModel: ['3RSNL02043Z'],
         model: '3RSNL02043Z',
@@ -241,15 +241,15 @@ const definitions: Definition[] = [
             fzLocal.thirdreality_private_motion_sensor, fz.illuminance]),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee,
         exposes: [e.light_brightness_colortemp_color([153, 555]).removeFeature('color_temp_startup'),
-        e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
+            e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
         endpoint: (device) => {
             return {'default': 1};
-       },
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
-       },
-   },
+        },
+    },
     {
         zigbeeModel: ['3RSPE01044BZ'],
         model: '3RSPE01044BZ',
@@ -272,10 +272,10 @@ const definitions: Definition[] = [
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
                 acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
                 acPowerDivisor: 10,
-           });
+            });
             device.save();
-       },
-   },
+        },
+    },
 ];
 
 module.exports = definitions;
