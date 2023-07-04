@@ -4,7 +4,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
-import {Definition, Fz, KeyValue} from '../lib/types';
+import { Definition, Fz, KeyValue } from '../lib/types';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -24,7 +24,7 @@ const fzLocal = {
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data[2];
-            return {occupancy: (zoneStatus & 1) > 0};
+            return { occupancy: (zoneStatus & 1) > 0 };
         },
     } as Fz.Converter,
 };
@@ -53,7 +53,7 @@ const definitions: Definition[] = [
         description: 'RealitySwitch Plus',
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: { battery: { voltageToPercentage: '3V_2100' } },
         exposes: [e.switch(), e.battery(), e.battery_voltage()],
     },
     {
@@ -62,7 +62,7 @@ const definitions: Definition[] = [
         vendor: 'Third Reality',
         description: 'Smart light switch',
         extend: extend.switch(),
-        meta: {disableDefaultResponse: true},
+        meta: { disableDefaultResponse: true },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -151,7 +151,7 @@ const definitions: Definition[] = [
         description: 'Roller shade',
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {battery: {dontDividePercentage: false}},
+        meta: { battery: { dontDividePercentage: false } },
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -159,7 +159,7 @@ const definitions: Definition[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some*/}
+            } catch (error) {/* Fails for some*/ }
         },
         exposes: [e.cover_position(), e.battery()],
     },
@@ -203,11 +203,11 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint, {change: 10});
-            await reporting.rmsCurrent(endpoint, {change: 50});
-            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.activePower(endpoint, { change: 10 });
+            await reporting.rmsCurrent(endpoint, { change: 50 });
+            await reporting.rmsVoltage(endpoint, { change: 5 });
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 3600000, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', { divisor: 3600000, multiplier: 1 });
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
                 acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
                 acPowerDivisor: 10,
@@ -241,12 +241,38 @@ const definitions: Definition[] = [
             fzLocal.thirdreality_private_motion_sensor, fz.illuminance]),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee,
         exposes: [e.light_brightness_colortemp_color([153, 555]).removeFeature('color_temp_startup'),
-            e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
+        e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
         endpoint: (device) => {
-            return {'default': 1};
+            return { 'default': 1 };
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
+        zigbeeModel: ['3RSPE01044BZ'],
+        model: '3RSPE01044BZ',
+        vendor: 'Third Reality',
+        description: 'Zigbee / BLE smart plug with power',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        ota: ota.zigbeeOTA,
+        exposes: [e.switch(), e.power_on_behavior(), e.ac_frequency(), e.power(), e.power_factor(), e.energy(), e.current(), e.voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint, { change: 10 });
+            await reporting.rmsCurrent(endpoint, { change: 50 });
+            await reporting.rmsVoltage(endpoint, { change: 5 });
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', { divisor: 3600000, multiplier: 1 });
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
+                acPowerDivisor: 10,
+            });
             device.save();
         },
     },
