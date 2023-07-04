@@ -102,9 +102,9 @@ const tzLocal = {
                     }
 
                     // Convert to device specific format and send
-                    utils.assertNumber(newSettings.brightness, 'brightness');
+                    const brightness = utils.toNumber(newSettings.brightness, 'brightness');
                     const zclData = {
-                        brightness: utils.mapNumberRange(newSettings.brightness, 0, 254, 0, 1000),
+                        brightness: utils.mapNumberRange(brightness, 0, 254, 0, 1000),
                         hue: newSettings.hue,
                         saturation: utils.mapNumberRange(newSettings.saturation, 0, 100, 0, 1000),
                     };
@@ -130,8 +130,7 @@ const tzLocal = {
             let payload = null;
             if (key === 'min_brightness' || key == 'max_brightness') {
                 const id = key === 'min_brightness' ? 64515 : 64516;
-                utils.assertNumber(value, key);
-                payload = {[id]: {value: utils.mapNumberRange(value, 1, 255, 0, 1000), type: 0x21}};
+                payload = {[id]: {value: utils.mapNumberRange(utils.toNumber(value, key), 1, 255, 0, 1000), type: 0x21}};
             } else if (key === 'light_type' || key === 'switch_type') {
                 utils.assertString(value, 'light_type/switch_type');
                 const lookup: KeyValue = key === 'light_type' ? {led: 0, incandescent: 1, halogen: 2} : {momentary: 0, toggle: 1, state: 2};
@@ -161,10 +160,10 @@ const tzLocal = {
                     await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
                 }
 
-                utils.assertNumber(message.brightness, 'brightness');
-                const level = utils.mapNumberRange(message.brightness, 0, 254, 0, 1000);
+                const brightness = utils.toNumber(message.brightness, 'brightness');
+                const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
                 await entity.command('genLevelCtrl', 'moveToLevelTuya', {level, transtime: 100}, utils.getOptions(meta.mapped, entity));
-                return {state: {state: 'ON', brightness: message.brightness}};
+                return {state: {state: 'ON', brightness}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -252,72 +251,67 @@ const tzLocal = {
             const onOffLookup = {'on': 1, 'off': 0};
             switch (key) {
             case 'temperature_threshold': {
-                utils.assertNumber(value, 'temperature_threshold');
                 const state = meta.state['temperature_breaker'];
-                const buf = Buffer.from([5, utils.getFromLookup(state, onOffLookup), 0, value]);
+                const buf = Buffer.from([5, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, 'temperature_threshold')]);
                 await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
                 break;
             }
             case 'temperature_breaker': {
                 const threshold = meta.state['temperature_threshold'];
-                utils.assertNumber(threshold, 'temperature_threshold');
-                const buf = Buffer.from([5, utils.getFromLookup(value, onOffLookup), 0, threshold]);
+                const number = utils.toNumber(threshold, 'temperature_threshold');
+                const buf = Buffer.from([5, utils.getFromLookup(value, onOffLookup), 0, number]);
                 await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
                 break;
             }
             case 'power_threshold': {
                 const state = meta.state['power_breaker'];
-                utils.assertNumber(value, 'power_breaker');
-                const buf = Buffer.from([7, utils.getFromLookup(state, onOffLookup), 0, value]);
+                const buf = Buffer.from([7, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, 'power_breaker')]);
                 await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
                 break;
             }
             case 'power_breaker': {
                 const threshold = meta.state['power_threshold'];
-                utils.assertNumber(threshold, 'power_breaker');
-                const buf = Buffer.from([7, utils.getFromLookup(value, onOffLookup), 0, threshold]);
+                const number = utils.toNumber(threshold, 'power_breaker');
+                const buf = Buffer.from([7, utils.getFromLookup(value, onOffLookup), 0, number]);
                 await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
                 break;
             }
             case 'over_current_threshold': {
                 const state = meta.state['over_current_breaker'];
-                utils.assertNumber(value, 'over_current_threshold');
-                const buf = Buffer.from([1, utils.getFromLookup(state, onOffLookup), 0, value]);
+                const buf = Buffer.from([1, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, 'over_current_threshold')]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
             case 'over_current_breaker': {
                 const threshold = meta.state['over_current_threshold'];
-                utils.assertNumber(threshold, 'over_current_threshold');
-                const buf = Buffer.from([1, utils.getFromLookup(value, onOffLookup), 0, threshold]);
+                const number = utils.toNumber(threshold, 'over_current_threshold');
+                const buf = Buffer.from([1, utils.getFromLookup(value, onOffLookup), 0, number]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
             case 'over_voltage_threshold': {
                 const state = meta.state['over_voltage_breaker'];
-                utils.assertNumber(value, 'over_voltage_breaker');
-                const buf = Buffer.from([3, utils.getFromLookup(state, onOffLookup), 0, value]);
+                const buf = Buffer.from([3, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, 'over_voltage_breaker')]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
             case 'over_voltage_breaker': {
                 const threshold = meta.state['over_voltage_threshold'];
-                utils.assertNumber(threshold, 'over_voltage_threshold');
-                const buf = Buffer.from([3, utils.getFromLookup(value, onOffLookup), 0, threshold]);
+                const number = utils.toNumber(threshold, 'over_voltage_threshold');
+                const buf = Buffer.from([3, utils.getFromLookup(value, onOffLookup), 0, number]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
             case 'under_voltage_threshold': {
                 const state = meta.state['under_voltage_breaker'];
-                utils.assertNumber(value, 'under_voltage_threshold');
-                const buf = Buffer.from([4, utils.getFromLookup(state, onOffLookup), 0, value]);
+                const buf = Buffer.from([4, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, 'under_voltage_threshold')]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
             case 'under_voltage_breaker': {
                 const threshold = meta.state['under_voltage_threshold'];
-                utils.assertNumber(threshold, 'under_voltage_breaker');
-                const buf = Buffer.from([4, utils.getFromLookup(value, onOffLookup), 0, threshold]);
+                const number = utils.toNumber(threshold, 'under_voltage_breaker');
+                const buf = Buffer.from([4, utils.getFromLookup(value, onOffLookup), 0, number]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
