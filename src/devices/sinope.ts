@@ -284,11 +284,11 @@ const tzLocal = {
     thermostat_outdoor_temperature: {
         key: ['thermostat_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
-            if (value >= -99.5 && value <= 99.5) {
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplay: value * 100}, manuSinope);
+            const number = utils.toNumber(value);
+            if (number >= -99.5 && number <= 99.5) {
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplay: number * 100}, manuSinope);
             }
-            return {state: {thermostat_outdoor_temperature: value}};
+            return {state: {thermostat_outdoor_temperature: number}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['outdoorTempToDisplay'], manuSinope);
@@ -297,10 +297,10 @@ const tzLocal = {
     outdoor_temperature_timeout: {
         key: ['outdoor_temperature_timeout'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
-            if (value >= 30 && value <= 64800) {
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: value});
-                return {state: {outdoor_temperature_timeout: value}};
+            const number = utils.toNumber(value);
+            if (number >= 30 && number <= 64800) {
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: number});
+                return {state: {outdoor_temperature_timeout: number}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -464,11 +464,11 @@ const tzLocal = {
         // DM25x0ZB and SW2500ZB
         key: ['led_intensity_on'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
-            if (value >= 0 && value <= 100) {
-                await entity.write('manuSpecificSinope', {ledIntensityOn: value});
+            const number = utils.toNumber(value);
+            if (number >= 0 && number <= 100) {
+                await entity.write('manuSpecificSinope', {ledIntensityOn: number});
             }
-            return {state: {led_intensity_on: value}};
+            return {state: {led_intensity_on: number}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['ledIntensityOn']);
@@ -478,11 +478,11 @@ const tzLocal = {
         // DM25x0ZB and SW2500ZB
         key: ['led_intensity_off'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
-            if (value >= 0 && value <= 100) {
-                await entity.write('manuSpecificSinope', {ledIntensityOff: value});
+            const number = utils.toNumber(value);
+            if (number >= 0 && number <= 100) {
+                await entity.write('manuSpecificSinope', {ledIntensityOff: number});
             }
-            return {state: {led_intensity_off: value}};
+            return {state: {led_intensity_off: number}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['ledIntensityOff']);
@@ -516,11 +516,11 @@ const tzLocal = {
         // DM25x0ZB
         key: ['minimum_brightness'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
-            if (value >= 0 && value <= 3000) {
-                await entity.write('manuSpecificSinope', {minimumBrightness: value});
+            const number = utils.toNumber(value);
+            if (number >= 0 && number <= 3000) {
+                await entity.write('manuSpecificSinope', {minimumBrightness: number});
             }
-            return {readAfterWriteTime: 250, state: {minimumBrightness: value}};
+            return {readAfterWriteTime: 250, state: {minimumBrightness: number}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['minimumBrightness']);
@@ -530,11 +530,11 @@ const tzLocal = {
         // DM25x0ZB and SW2500ZB
         key: ['timer_seconds'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
-            if (value >= 0 && value <= 65535) {
-                await entity.write('manuSpecificSinope', {dimmerTimmer: value});
+            const number = utils.toNumber(value);
+            if (number >= 0 && number <= 65535) {
+                await entity.write('manuSpecificSinope', {dimmerTimmer: number});
             }
-            return {state: {timer_seconds: value}};
+            return {state: {timer_seconds: number}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['dimmerTimmer']);

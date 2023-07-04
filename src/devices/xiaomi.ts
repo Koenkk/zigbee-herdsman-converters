@@ -395,8 +395,8 @@ const tzLocal = {
                     {manufacturerCode: 0x115f});
                 break;
             case 'away_preset_temperature':
-                utils.assertNumber(value, 'away_preset_temperature');
-                await entity.write('aqaraOpple', {0x0279: {value: Math.round(value * 100), type: 0x23}}, {manufacturerCode: 0x115f});
+                await entity.write('aqaraOpple', {0x0279: {value: Math.round(utils.toNumber(value, 'away_preset_temperature') * 100), type: 0x23}},
+                    {manufacturerCode: 0x115f});
                 break;
             case 'sensor': {
                 utils.assertEndpoint(entity);
@@ -460,8 +460,8 @@ const tzLocal = {
             case 'sensor_temp':
                 if (meta.state['sensor'] === 'external') {
                     const temperatureBuf = Buffer.alloc(4);
-                    utils.assertNumber(value);
-                    temperatureBuf.writeFloatBE(Math.round(value * 100));
+                    const number = utils.toNumber(value);
+                    temperatureBuf.writeFloatBE(Math.round(number * 100));
 
                     const params = [...sensor, 0x00, 0x01, 0x00, 0x55, ...temperatureBuf];
                     const data = [...(aqaraHeader(0x12, params, 0x05)), ...params];

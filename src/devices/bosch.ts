@@ -117,16 +117,16 @@ const tzLocal = {
                 return {state: {child_lock: value}};
             }
             if (key === 'calibration_closing_time') {
-                utils.assertNumber(value, 'calibration_closing_time');
-                const index = value *10;
+                const number = utils.toNumber(value, 'calibration_closing_time');
+                const index = number *10;
                 await entity.write(0xFCA0, {0x0002: {value: index, type: 0x23}}, boschManufacturer);
-                return {state: {calibration_closing_time: value}};
+                return {state: {calibration_closing_time: number}};
             }
             if (key === 'calibration_opening_time') {
-                utils.assertNumber(value, 'calibration_opening_time');
-                const index = value *10;
+                const number = utils.toNumber(value, 'calibration_opening_time');
+                const index = number *10;
                 await entity.write(0xFCA0, {0x0003: {value: index, type: 0x23}}, boschManufacturer);
-                return {state: {calibration_opening_time: value}};
+                return {state: {calibration_opening_time: number}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -208,11 +208,11 @@ const tzLocal = {
                 return {state: {pi_heating_demand: value}};
             }
             if (key === 'remote_temperature') {
-                utils.assertNumber(value, 'remote_temperature');
-                const remoteTemperature = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
+                const number = utils.toNumber(value, 'remote_temperature');
+                const remoteTemperature = Number((Math.round(Number((number * 2).toFixed(1))) / 2).toFixed(1)) * 100;
                 await entity.write('hvacThermostat',
                     {0x4040: {value: remoteTemperature, type: Zcl.DataType.int16}}, boschManufacturer);
-                return {state: {remote_temperature: value}};
+                return {state: {remote_temperature: number}};
             }
         },
         convertGet: async (entity, key, meta) => {
