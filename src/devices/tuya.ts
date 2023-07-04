@@ -5028,9 +5028,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['ZS-TYG3-SM-61Z'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_0j5jma9b'}],
-        model: 'Tuya 4 Gang + 2 Scene Smart Switch with Backlight',
+        model: 'ZS-TYG3-SM-61Z',
         vendor: 'TuYa',
         description: 'TuYa Smart Switch (4 gang + 2 scene) with backlight and neutral wire',
         fromZigbee: [tuya.fz.datapoints],
@@ -5078,9 +5077,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['ZS-TYG3-SM-21Z'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'}],
-        model: 'Tuya 2 Gang Smart Switch with Backlight',
+        model: 'ZS-TYG3-SM-21Z',
         vendor: 'TuYa',
         description: 'TuYa 2 Gang Smart Switch with backlight and neutral wire',
         fromZigbee: [tuya.fz.datapoints],
@@ -5113,9 +5111,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['ZS-TYG3-SM-31Z'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'}],
-        model: 'Tuya 3 Gang Smart Switch with Backlight',
+        model: 'ZS-TYG3-SM-31Z',
         vendor: 'TuYa',
         description: 'TuYa 3 Gang Smart Switch with backlight and neutral wire',
         fromZigbee: [tuya.fz.datapoints],
@@ -5152,9 +5149,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['ZS-TYG3-SM-41Z'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_k6jhsr0q'}],
-        model: 'Tuya 4 Gang Smart Switch with Backlight',
+        model: 'ZS-TYG3-SM-41Z',
         vendor: 'TuYa',
         description: 'TuYa 4 Gang Smart Switch with backlight and neutral wire',
         fromZigbee: [tuya.fz.datapoints],
