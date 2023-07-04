@@ -5028,7 +5028,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['TS0601_4_gang_2_scene'],
+        zigbeeModel: ['ZS-TYG3-SM-61Z'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_0j5jma9b'}],
         model: 'Tuya 4 Gang + 2 Scene Smart Switch with Backlight',
         vendor: 'TuYa',
@@ -5078,7 +5078,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['TS0601_2_gang'],
+        zigbeeModel: ['ZS-TYG3-SM-21Z'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'}],
         model: 'Tuya 2 Gang Smart Switch with Backlight',
         vendor: 'TuYa',
@@ -5113,7 +5113,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['TS0601_3_gang'],
+        zigbeeModel: ['ZS-TYG3-SM-31Z'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'}],
         model: 'Tuya 3 Gang Smart Switch with Backlight',
         vendor: 'TuYa',
@@ -5152,7 +5152,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['TS0601_4_gang'],
+        zigbeeModel: ['ZS-TYG3-SM-41Z'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_k6jhsr0q'}],
         model: 'Tuya 4 Gang Smart Switch with Backlight',
         vendor: 'TuYa',
