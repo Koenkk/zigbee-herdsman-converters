@@ -3621,6 +3621,7 @@ const definitions: Definition[] = [
         description: 'Temperature & humidity sensor',
         fromZigbee: [fzLocal.TS0222_humidity, fz.battery, fz.temperature, fz.illuminance],
         toZigbee: [],
+        configure: tuya.configureMagicPacket,
         exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
         whiteLabel: [
             tuya.whitelabel('TuYa', 'QT-07S', 'Soil sensor', ['_TZ3000_kky16aay']),
