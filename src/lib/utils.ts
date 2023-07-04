@@ -86,21 +86,20 @@ export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
 export function calibrateAndPrecisionRoundOptions(number: number, options: KeyValue, type: string) {
     // Calibrate
     const calibrateKey = `${type}_calibration`;
-    let calibrationOffset = options && options.hasOwnProperty(calibrateKey) ? options[calibrateKey] : 0;
-    assertNumber(calibrationOffset, calibrateKey);
+    let calibrationOffset = toNumber(
+        options && options.hasOwnProperty(calibrateKey) ? options[calibrateKey] : 0, calibrateKey);
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
         calibrationOffset = Math.round(number * calibrationOffset / 100);
     }
-    assertNumber(calibrationOffset, calibrateKey);
     number = number + calibrationOffset;
 
     // Precision round
     const precisionKey = `${type}_precision`;
     const defaultValue = calibrateAndPrecisionRoundOptionsDefaultPrecision[type] || 0;
-    const precision = options && options.hasOwnProperty(precisionKey) ? options[precisionKey] : defaultValue;
-    assertNumber(precision, precisionKey);
+    const precision = toNumber(
+        options && options.hasOwnProperty(precisionKey) ? options[precisionKey] : defaultValue, precisionKey);
     return precisionRound(number, precision);
 }
 
@@ -386,11 +385,11 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
     }
 
     if (message.hasOwnProperty('transition')) {
-        assertNumber(message.transition, 'transition');
-        return {time: message.transition * 10, specified: true};
+        const time = toNumber(message.transition, 'transition');
+        return {time: time * 10, specified: true};
     } else if (options.hasOwnProperty('transition')) {
-        assertNumber(options.transition, 'transition');
-        return {time: options.transition * 10, specified: true};
+        const transition = toNumber(options.transition, 'transition');
+        return {time: transition * 10, specified: true};
     } else {
         return {time: 0, specified: false};
     }
@@ -500,6 +499,16 @@ export function assertString(value: unknown, property?: string): asserts value i
 export function assertNumber(value: unknown, property?: string): asserts value is number {
     property = property ? `'${property}'` : 'Value';
     if (typeof value !== 'number') throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
+}
+
+export function toNumber(value: unknown, property?: string): number {
+    property = property ? `'${property}'` : 'Value';
+    // @ts-ignore
+    const result = parseFloat(value);
+    if (Number.isNaN(result)) {
+        throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
+    }
+    return result;
 }
 
 export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}): V {

@@ -265,8 +265,7 @@ const develco = {
         ias_occupancy_timeout: {
             key: ['occupancy_timeout'],
             convertSet: async (entity, key, value, meta) => {
-                utils.assertNumber(value, 'occupancy_timeout');
-                let timeoutValue = value;
+                let timeoutValue = utils.toNumber(value, 'occupancy_timeout');
                 if (timeoutValue < 20) {
                     meta.logger.warn(`Minimum occupancy_timeout is 20, using 20 instead of ${timeoutValue}!`);
                     timeoutValue = 20;
