@@ -40,6 +40,7 @@ const definitions: Definition[] = [
             {type: 'Router', manufacturerName: 'EcoDim BV', modelID: 'Dimmer-Switch-ZB3.0'},
             {type: 'Router', manufacturerName: 'EcoDim B.V', modelID: 'Dimmer-Switch-ZB3.0'},
             {type: 'Router', manufacturerName: 'Lightsolutions', modelID: 'Dimmer-Switch-ZB3.0'},
+            {type: 'Router', manufacturerName: 'Smart Dim', modelID: 'Dimmer-Switch-ZB3.0'},
             {type: 'Router', manufacturerName: 'Namron AS', modelID: 'Dimmer-Switch-ZB3.0'},
             {type: 'Router', manufacturerName: 'EcoDim BV', modelID: 'EcoDim-Zigbee 3.0', endpoints: [
                 {ID: 1, profileID: 260, deviceID: 257, inputClusters: [0, 3, 4, 5, 6, 8, 2821, 4096], outputClusters: [25]},
