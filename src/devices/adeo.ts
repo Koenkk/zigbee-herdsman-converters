@@ -298,6 +298,21 @@ const definitions: Definition[] = [
             return {default: 1};
         },
     },
+    {
+        zigbeeModel: ['SIN-4-RS-20_LEX'],
+        model: 'SIN-4-RS-20_LEX',
+        vendor: 'ADEO',
+        description: 'Roller shutter controller (Leroy Merlin version)',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionTiltPercentage(endpoint);
+        },
+        exposes: [e.cover_position()],
+    },
 ];
 
 module.exports = definitions;
