@@ -1477,7 +1477,6 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         endpoint: (device) => {
-            // Endpoint selection is made in tuya_switch_state
             return {'l1': 1};
         },
         meta: {
