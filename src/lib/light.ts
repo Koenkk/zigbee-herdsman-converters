@@ -49,15 +49,13 @@ export function findColorTempRange(entity: Zh.Endpoint | Zh.Group, logger: Logge
     let colorTempMin;
     let colorTempMax;
     if (utils.isGroup(entity)) {
-        const minCandidates = entity.members.map(
-            (m) => Number(m.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMin')),
-        ).filter((v) => v != null);
+        const minCandidates = entity.members.map((m) => m.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMin'))
+            .filter((v) => v != null).map((v) => Number(v));
         if (minCandidates.length > 0) {
             colorTempMin = Math.max(...minCandidates);
         }
-        const maxCandidates = entity.members.map(
-            (m) => Number(m.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMax')),
-        ).filter((v) => v != null);
+        const maxCandidates = entity.members.map((m) => m.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMax'))
+            .filter((v) => v != null).map((v) => Number(v));
         if (maxCandidates.length > 0) {
             colorTempMax = Math.min(...maxCandidates);
         }

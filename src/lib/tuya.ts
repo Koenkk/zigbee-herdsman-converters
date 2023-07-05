@@ -80,8 +80,8 @@ export async function onEventMeasurementPoll(type: OnEventType, data: OnEventDat
         clearTimeout(globalStore.getValue(device, 'measurement_poll'));
         globalStore.clearValue(device, 'measurement_poll');
     } else if (!globalStore.hasValue(device, 'measurement_poll')) {
-        const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
-        utils.assertNumber(seconds, 'measurement_poll_interval');
+        const seconds = utils.toNumber(
+            options && options.measurement_poll_interval ? options.measurement_poll_interval : 60, 'measurement_poll_interval');
         if (seconds === -1) return;
         const setTimer = () => {
             const timer = setTimeout(async () => {
@@ -762,13 +762,13 @@ const tuyaTz = {
     min_brightness: {
         key: ['min_brightness'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value, `min_brightness`);
-            const minValueHex = value.toString(16);
+            const number = utils.toNumber(value, `min_brightness`);
+            const minValueHex = number.toString(16);
             const maxValueHex = 'ff';
             const minMaxValue = parseInt(`${minValueHex}${maxValueHex}`, 16);
             const payload = {0xfc00: {value: minMaxValue, type: 0x21}};
             await entity.write('genLevelCtrl', payload, {disableDefaultResponse: true});
-            return {state: {min_brightness: value}};
+            return {state: {min_brightness: number}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', [0xfc00]);
@@ -986,7 +986,7 @@ const tuyaFz = {
             for (const dpValue of msg.data.dpValues) {
                 const dpId = dpValue.dp;
                 const dpEntry = datapoints.find((d) => d[0] === dpId);
-                if (dpEntry?.[2].from) {
+                if (dpEntry?.[2]?.from) {
                     const value = getDataValue(dpValue);
                     if (dpEntry[1]) {
                         result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish);
@@ -1003,8 +1003,8 @@ const tuyaFz = {
             const keys = Object.keys(utils.calibrateAndPrecisionRoundOptionsDefaultPrecision);
             for (const entry of Object.entries(result)) {
                 if (keys.includes(entry[0])) {
-                    utils.assertNumber(entry[1], entry[0]);
-                    result[entry[0]] = utils.calibrateAndPrecisionRoundOptions(entry[1], options, entry[0]);
+                    const number = utils.toNumber(entry[1], entry[0]);
+                    result[entry[0]] = utils.calibrateAndPrecisionRoundOptions(number, options, entry[0]);
                 }
             }
             return result;
