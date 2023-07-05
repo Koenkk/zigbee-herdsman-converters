@@ -1479,8 +1479,8 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: '1 gang switch',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
-        toZigbee: [legacy.toZigbee.tuya_switch_state],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -1489,7 +1489,7 @@ const definitions: Definition[] = [
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [21, 'state_l1', tuya.valueConverter.onOff],
+                [21, 'state_l1', tuya.valueConverterBasic.legacyOnOff()],
             ],
         },
     },
@@ -1526,8 +1526,8 @@ const definitions: Definition[] = [
             e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
-        toZigbee: [legacy.toZigbee.tuya_switch_state],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -1536,8 +1536,8 @@ const definitions: Definition[] = [
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [21, 'state_l1', tuya.valueConverter.onOff],
-                [22, 'state_l2', tuya.valueConverter.onOff],
+                [21, 'state_l1', tuya.valueConverterBasic.legacyOnOff()],
+                [22, 'state_l2', tuya.valueConverterBasic.legacyOnOff()],
             ],
         },
     },
@@ -1572,8 +1572,8 @@ const definitions: Definition[] = [
         model: 'TS0601-3-gang-switchboard',
         vendor: 'TuYa',
         description: '3 gang switch',
-        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
-        toZigbee: [legacy.toZigbee.tuya_switch_state],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
@@ -1587,9 +1587,9 @@ const definitions: Definition[] = [
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [21, 'state_l1', tuya.valueConverter.onOff],
-                [22, 'state_l2', tuya.valueConverter.onOff],
-                [23, 'state_l3', tuya.valueConverter.onOff],
+                [21, 'state_l1', tuya.valueConverterBasic.legacyOnOff()],
+                [22, 'state_l2', tuya.valueConverterBasic.legacyOnOff()],
+                [23, 'state_l3', tuya.valueConverterBasic.legacyOnOff()],
             ],
         },
     },
