@@ -1943,6 +1943,28 @@ const definitions: Definition[] = [
         ],
     },
     {
+        fingerprint: [
+            {modelID: 'TS0003', manufacturerName: '_TZ3000_rhkfbfcv'},
+        ],
+        model: 'TS0003_switch_3_gang_with_backlight',
+        vendor: 'TuYa',
+        description: '3-Gang switch with backlight',
+        extend: tuya.extend.switch({powerOnBehavior2: true, indicatorMode: true, endpoints: ['l1', 'l2', 'l3']}),
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+        whiteLabel: [
+            tuya.whitelabel('Lonsonho', 'X703A', '3 Gang switch with backlight', ['_TZ3000_rhkfbfcv']),
+        ],
+    },
+    {
         zigbeeModel: ['TS0002'],
         model: 'TS0002',
         vendor: 'TuYa',
