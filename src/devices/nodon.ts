@@ -12,7 +12,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-RS-20'],
         model: 'SIN-4-RS-20',
         vendor: 'NodOn',
-        description: 'Roller Shutter Relay Switch',
+        description: 'Roller shutter relay switch',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -28,7 +28,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-RS-20_PRO'],
         model: 'SIN-4-RS-20_PRO',
         vendor: 'NodOn',
-        description: 'Roller Shutter Relay Switch',
+        description: 'Roller shutter relay switch',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -44,7 +44,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-1-20'],
         model: 'SIN-4-1-20',
         vendor: 'NodOn',
-        description: 'Multifunction Relay Switch',
+        description: 'Multifunction relay switch',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -60,7 +60,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-1-20_PRO'],
         model: 'SIN-4-1-20_PRO',
         vendor: 'NodOn',
-        description: 'Multifunction Relay Switch',
+        description: 'Multifunction relay switch',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -76,7 +76,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-2-20'],
         model: 'SIN-4-2-20',
         vendor: 'NodOn',
-        description: 'Lighting Relay Switch',
+        description: 'Lighting relay switch',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         extend: extend.switch(),
         endpoint: (device) => {
@@ -97,7 +97,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-2-20_PRO'],
         model: 'SIN-4-2-20_PRO',
         vendor: 'NodOn',
-        description: 'Lighting Relay Switch',
+        description: 'Lighting relay switch',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         extend: extend.switch(),
         endpoint: (device) => {
