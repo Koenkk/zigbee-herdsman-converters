@@ -369,15 +369,6 @@ export const valueConverterBasic = {
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue};
     },
-    legacyOnOff: ( ) => {
-        const legacyLookupMap = {'ON': true, 'OFF': false};
-        return {
-            to: (v: string) => utils.getFromLookup(v, legacyLookupMap),
-            from: (v:number) => {
-                return v ? 'ON': 'OFF';
-            },
-        };
-    },
 };
 
 export const valueConverter = {
