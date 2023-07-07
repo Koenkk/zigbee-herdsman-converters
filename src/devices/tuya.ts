@@ -5071,7 +5071,7 @@ const definitions: Definition[] = [
                 [11, 'countdown_l5', tuya.valueConverter.countdown],
                 [12, 'countdown_l6', tuya.valueConverter.countdown],
                 [13, 'state', tuya.valueConverter.onOff],
-                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1), 'memory': tuya.enum(2)})],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
                 [16, 'backlight_mode', tuya.valueConverter.onOff],
             ],
         },
@@ -5091,7 +5091,7 @@ const definitions: Definition[] = [
             tuya.exposes.backlightModeOffOn(),
             tuya.exposes.countdown().withEndpoint('l1'),
             tuya.exposes.countdown().withEndpoint('l2'),
-            e.power_on_behavior(['off', 'on', 'memory']).withAccess(ea.STATE_SET),
+            e.power_on_behavior()
         ],
         onEvent: tuya.onEventSetTime,
         endpoint: (device) => {
@@ -5105,7 +5105,7 @@ const definitions: Definition[] = [
                 [7, 'countdown_l1', tuya.valueConverter.countdown],
                 [8, 'countdown_l2', tuya.valueConverter.countdown],
                 [13, 'state', tuya.valueConverter.onOff],
-                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1), 'memory': tuya.enum(2)})],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
                 [16, 'backlight_mode', tuya.valueConverter.onOff],
             ],
         },
@@ -5127,7 +5127,7 @@ const definitions: Definition[] = [
             tuya.exposes.countdown().withEndpoint('l1'),
             tuya.exposes.countdown().withEndpoint('l2'),
             tuya.exposes.countdown().withEndpoint('l3'),
-            e.power_on_behavior(['off', 'on', 'memory']).withAccess(ea.STATE_SET),
+            e.power_on_behavior()
         ],
         onEvent: tuya.onEventSetTime,
         endpoint: (device) => {
@@ -5143,7 +5143,7 @@ const definitions: Definition[] = [
                 [8, 'countdown_l2', tuya.valueConverter.countdown],
                 [9, 'countdown_l3', tuya.valueConverter.countdown],
                 [13, 'state', tuya.valueConverter.onOff],
-                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1), 'memory': tuya.enum(2)})],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
                 [16, 'backlight_mode', tuya.valueConverter.onOff],
             ],
         },
@@ -5167,7 +5167,7 @@ const definitions: Definition[] = [
             tuya.exposes.countdown().withEndpoint('l2'),
             tuya.exposes.countdown().withEndpoint('l3'),
             tuya.exposes.countdown().withEndpoint('l4'),
-            e.power_on_behavior(['off', 'on', 'memory']).withAccess(ea.STATE_SET),
+            e.power_on_behavior()
         ],
         onEvent: tuya.onEventSetTime,
         endpoint: (device) => {
@@ -5185,7 +5185,7 @@ const definitions: Definition[] = [
                 [9, 'countdown_l3', tuya.valueConverter.countdown],
                 [10, 'countdown_l4', tuya.valueConverter.countdown],
                 [13, 'state', tuya.valueConverter.onOff],
-                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1), 'memory': tuya.enum(2)})],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
                 [16, 'backlight_mode', tuya.valueConverter.onOff],
             ],
         },
