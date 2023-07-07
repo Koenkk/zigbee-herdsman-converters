@@ -1300,7 +1300,7 @@ const definitions: Definition[] = [
         description: 'In-wall outlet',
         extend: tuya.extend.switch(),
         whiteLabel: [{vendor: 'Teekar', model: 'SWP86-01OG'},
-            {vendor: 'ClickSmart+', model: 'CMA30035'},
+            tuya.whitelabel('ClickSmart+', 'CMA30035', '1 gang socket outlet', ['_TYZB01_mtunwanm']),
             {vendor: 'BSEED', model: 'Zigbee Socket'}],
     },
     {
