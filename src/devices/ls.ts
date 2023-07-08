@@ -9,7 +9,7 @@ const definitions: Definition[] = [
         model: 'A319463',
         vendor: 'LS Deutschland GmbH',
         description: 'Home base',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
         exposes: (device, options) => {
             if (!device) return [e.light_brightness_colortemp_colorxy([153, 454]), e.linkquality()];
             return [e.linkquality(), ...device.endpoints.filter((ep) => ep.ID !== 242).map((ep) => {
