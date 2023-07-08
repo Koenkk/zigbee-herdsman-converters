@@ -11,10 +11,10 @@ const definitions: Definition[] = [
         description: 'Home base',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         exposes: (device, options) => {
-            if (!device) return [e.light_brightness_colortemp_colorxy([153, 454])];
-            return device.endpoints.filter((ep) => ep.ID !== 242).map((ep) => {
+            if (!device) return [e.light_brightness_colortemp_colorxy([153, 454]), e.linkquality()];
+            return [e.linkquality(), ...device.endpoints.filter((ep) => ep.ID !== 242).map((ep) => {
                 return e.light_brightness_colortemp_colorxy([153, 454]).withEndpoint(`l${ep.ID}`);
-            });
+            })];
         },
         meta: {multiEndpoint: true},
         endpoint: (device) => {
