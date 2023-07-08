@@ -22,7 +22,7 @@ const definitions: Definition[] = [
     },
 
     {
-        fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerId: 4098}],
+        fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerID: 4098}],
         model: 'C210',
         vendor: 'Candeo',
         description: 'Candeo Zigbee Dimming Smart Plug',
