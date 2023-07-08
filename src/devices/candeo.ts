@@ -20,6 +20,22 @@ const definitions: Definition[] = [
             await reporting.brightness(endpoint);
         },
     },
+
+    {
+        fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerId: 4098}],
+        model: 'C210',
+        vendor: 'Candeo',
+        description: 'Candeo Zigbee Dimming Smart Plug',
+        extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+
     {
         zigbeeModel: ['HK-DIM-A', 'Candeo Zigbee Dimmer'],
         fingerprint: [{modelID: 'HK_DIM_A', manufacturerName: 'Shyugj'}],
