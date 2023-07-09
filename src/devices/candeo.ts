@@ -24,7 +24,7 @@ const definitions: Definition[] = [
         fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerID: 4098}],
         model: 'C210',
         vendor: 'Candeo',
-        description: 'Zigbee dimming stmart plug',
+        description: 'Zigbee dimming smart plug',
         extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
