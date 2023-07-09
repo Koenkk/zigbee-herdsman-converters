@@ -238,7 +238,7 @@ const definitions: Definition[] = [
         description: 'Zigbee multi-function night light',
         ota: ota.zigbeeOTA,
         fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
-            fzLocal.thirdreality_private_motion_sensor, fz.illuminance]),
+            fzLocal.thirdreality_private_motion_sensor, fz.illuminance, fz.ias_occupancy_alarm_1_report]),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee,
         exposes: [e.light_brightness_colortemp_color([153, 555]).removeFeature('color_temp_startup'),
             e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
