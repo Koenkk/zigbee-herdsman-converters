@@ -746,7 +746,9 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: '2 gang wall outlet',
         extend: tuya.extend.switch({backlightModeLowMediumHigh: true, childLock: true, endpoints: ['l1', 'l2']}),
-        whiteLabel: [{vendor: 'ClickSmart+', model: 'CMA30036'}],
+        whiteLabel: [
+            tuya.whitelabel('ClickSmart+', 'CMA30036', '2 gang socket outlet', ['_TYZB01_hlla45kx']),
+        ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
