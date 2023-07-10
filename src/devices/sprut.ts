@@ -8,7 +8,7 @@ import {Definition, Fz, KeyValueAny, Tz} from '../lib/types';
 const e = exposes.presets;
 const eo = exposes.options;
 const ea = exposes.access;
-import {assertNumber, assertString, calibrateAndPrecisionRoundOptions, getFromLookup, getOptions} from '../lib/utils';
+import {assertString, calibrateAndPrecisionRoundOptions, getFromLookup, getOptions, toNumber} from '../lib/utils';
 
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -163,10 +163,9 @@ const tzLocal = {
     occupancy_timeout: {
         key: ['occupancy_timeout'],
         convertSet: async (entity, key, value, meta) => {
-            assertNumber(value, 'occupancy_timeout');
-            value *= 1;
-            await entity.write('msOccupancySensing', {pirOToUDelay: value}, getOptions(meta.mapped, entity));
-            return {state: {[key]: value}};
+            const number = toNumber(value, 'occupancy_timeout');
+            await entity.write('msOccupancySensing', {pirOToUDelay: number}, getOptions(meta.mapped, entity));
+            return {state: {[key]: number}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
@@ -175,10 +174,10 @@ const tzLocal = {
     noise_timeout: {
         key: ['noise_timeout'],
         convertSet: async (entity, key, value, meta) => {
-            assertNumber(value, 'noise_timeout');
-            value *= 1;
-            await entity.write('sprutNoise', {noiseAfterDetectDelay: value}, getOptions(meta.mapped, entity));
-            return {state: {[key]: value}};
+            let number = toNumber(value, 'noise_timeout');
+            number *= 1;
+            await entity.write('sprutNoise', {noiseAfterDetectDelay: number}, getOptions(meta.mapped, entity));
+            return {state: {[key]: number}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('sprutNoise', ['noiseAfterDetectDelay']);
@@ -187,11 +186,11 @@ const tzLocal = {
     occupancy_sensitivity: {
         key: ['occupancy_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
-            assertNumber(value, 'occupancy_sensitivity');
-            value *= 1;
+            let number = toNumber(value, 'occupancy_sensitivity');
+            number *= 1;
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
-            await entity.write('msOccupancySensing', {'sprutOccupancySensitivity': value}, options);
-            return {state: {[key]: value}};
+            await entity.write('msOccupancySensing', {'sprutOccupancySensitivity': number}, options);
+            return {state: {[key]: number}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['sprutOccupancySensitivity'], manufacturerOptions);
@@ -200,11 +199,11 @@ const tzLocal = {
     noise_detect_level: {
         key: ['noise_detect_level'],
         convertSet: async (entity, key, value, meta) => {
-            assertNumber(value, 'noise_detect_level');
-            value *= 1;
+            let number = toNumber(value, 'noise_detect_level');
+            number *= 1;
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
-            await entity.write('sprutNoise', {'noiseDetectLevel': value}, options);
-            return {state: {[key]: value}};
+            await entity.write('sprutNoise', {'noiseDetectLevel': number}, options);
+            return {state: {[key]: number}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('sprutNoise', ['noiseDetectLevel'], manufacturerOptions);
@@ -213,12 +212,12 @@ const tzLocal = {
     temperature_offset: {
         key: ['temperature_offset'],
         convertSet: async (entity, key, value, meta) => {
-            assertNumber(value, 'temperature_offset');
-            value *= 1;
-            const newValue = value * 100.0;
+            let number = toNumber(value, 'temperature_offset');
+            number *= 1;
+            const newValue = number * 100.0;
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write('msTemperatureMeasurement', {'sprutTemperatureOffset': newValue}, options);
-            return {state: {[key]: value}};
+            return {state: {[key]: number}};
         },
     } as Tz.Converter,
     co2_config: {
