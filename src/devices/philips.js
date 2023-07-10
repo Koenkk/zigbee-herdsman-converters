@@ -1884,10 +1884,10 @@ module.exports = [
         model: '929003017102',
         vendor: 'Philips',
         description: 'Hue wall switch module',
-        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, fz.hue_wall_switch],
+        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, fz.hue_wall_switch, fz.command_toggle],
         exposes: [
             e.battery(), e.action(['left_press', 'left_press_release', 'right_press', 'right_press_release',
-                'left_hold', 'left_hold_release', 'right_hold', 'right_hold_release']),
+                'left_hold', 'left_hold_release', 'right_hold', 'right_hold_release', 'toggle']),
             exposes.enum('device_mode', ea.ALL, ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'])],
         toZigbee: [tz.hue_wall_switch_device_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
