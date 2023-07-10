@@ -238,7 +238,7 @@ const definitions: Definition[] = [
         description: 'Zigbee multi-function night light',
         ota: ota.zigbeeOTA,
         fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
-            fzLocal.thirdreality_private_motion_sensor, fz.illuminance]),
+            fzLocal.thirdreality_private_motion_sensor, fz.illuminance, fz.ias_occupancy_alarm_1_report]),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee,
         exposes: [e.light_brightness_colortemp_color([153, 555]).removeFeature('color_temp_startup'),
             e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
@@ -247,6 +247,32 @@ const definitions: Definition[] = [
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
+        zigbeeModel: ['3RSPE01044BZ'],
+        model: '3RSPE01044BZ',
+        vendor: 'Third Reality',
+        description: 'Zigbee / BLE smart plug with power',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        ota: ota.zigbeeOTA,
+        exposes: [e.switch(), e.power_on_behavior(), e.ac_frequency(), e.power(), e.power_factor(), e.energy(), e.current(), e.voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 3600000, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
+                acPowerDivisor: 10,
+            });
             device.save();
         },
     },

@@ -75,6 +75,7 @@ module.exports = [
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power, tzLocal.auto_mode],
+        ota: ota.zigbeeOTA,
         exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             e.power().withAccess(ea.STATE_GET),
             exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
@@ -99,6 +100,7 @@ module.exports = [
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
+        ota: ota.zigbeeOTA,
         exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             e.power().withAccess(ea.STATE_GET), exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on teleruptor with buttons')],
@@ -141,6 +143,7 @@ module.exports = [
         description: 'Netatmo wired shutter switch',
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
@@ -166,6 +169,7 @@ module.exports = [
         description: 'Netatmo wired shutter switch',
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        ota: ota.zigbeeOTA,
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -222,6 +226,7 @@ module.exports = [
         fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.battery],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle'])],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
@@ -278,6 +283,7 @@ module.exports = [
                 ` see the switch in the dark`),
             exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
             e.power_on_behavior()],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
@@ -341,6 +347,7 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         whiteLabel: [{vendor: 'BTicino', model: 'LN4570CWI'}],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
@@ -365,6 +372,7 @@ module.exports = [
         toZigbee: [tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.electrical_measurement_power, tz.legrand_powerAlarm],
         exposes: [e.power().withAccess(ea.STATE_GET), e.power_apparent(), exposes.binary('power_alarm_active', ea.STATE, true, false),
             exposes.binary('power_alarm', ea.ALL, true, false).withDescription('Enable/disable the power alarm')],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'genIdentify']);
@@ -408,6 +416,7 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['enter', 'leave', 'sleep', 'wakeup', 'center'])],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
