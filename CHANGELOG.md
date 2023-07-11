@@ -1,5 +1,13 @@
 # Changelog
 
+## [15.39.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.39.0...v15.39.1) (2023-07-11)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_eanjj2pa` as Nous SZ-T04 ([#5960](https://github.com/Koenkk/zigbee-herdsman-converters/issues/5960)) ([4d26608](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d26608bfdbc3e6f3207b36660e159eb1bc5e75e))
+* Fix invalid 0 power measurements for TuYa `_TZ3000_b28wrpvx` https://github.com/Koenkk/zigbee2mqtt/issues/16709 ([95e27ca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/95e27cae9d453c1cae106edb7d09fc96be3d126b))
+
 ## [15.39.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.38.0...v15.39.0) (2023-07-10)
 
 
