@@ -190,6 +190,7 @@ module.exports = [
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
             'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2500'}, publishDuplicateTransaction: true},
         onEvent: readInitialBatteryState,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -206,6 +207,7 @@ module.exports = [
         exposes: [e.battery(),
             e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}, publishDuplicateTransaction: true},
         onEvent: readInitialBatteryState,
         configure: async (device, coordinatorEndpoint, logger) => {
