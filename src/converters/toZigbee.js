@@ -4640,7 +4640,7 @@ const converters = {
     TS0210_sensitivity: {
         key: ['sensitivity'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value, 'sensitivity');
+            value = utils.toNumber(value, 'sensitivity');
             await entity.write('ssIasZone', {currentZoneSensitivityLevel: value});
             return {state: {sensitivity: value}};
         },

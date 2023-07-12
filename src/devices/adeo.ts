@@ -128,7 +128,14 @@ const definitions: Definition[] = [
         model: 'BD05C-FL-21-G-ENK',
         vendor: 'ADEO',
         description: 'ENKI RGBCCT lamp',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-28'],
+        model: 'PEZ1-042-1020-C1D1',
+        vendor: 'ADEO',
+        description: 'Gdansk ENKI',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['ZBEK-5'],
@@ -290,6 +297,21 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {default: 1};
         },
+    },
+    {
+        zigbeeModel: ['SIN-4-RS-20_LEX'],
+        model: 'SIN-4-RS-20_LEX',
+        vendor: 'ADEO',
+        description: 'Roller shutter controller (Leroy Merlin version)',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionTiltPercentage(endpoint);
+        },
+        exposes: [e.cover_position()],
     },
 ];
 

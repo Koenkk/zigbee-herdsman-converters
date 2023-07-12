@@ -211,13 +211,13 @@ function convertRawToCycleTimer(value: any) {
         timernr = value[1];
         timeractive = value[2];
         if (value[3] > 0) {
-            weekdays = (value[3] & 0x40 ? 'Sa' : '') +
-            (value[3] & 0x20 ? 'Fr' : '') +
-            (value[3] & 0x10 ? 'Th' : '') +
-            (value[3] & 0x08 ? 'We' : '') +
-            (value[3] & 0x04 ? 'Tu' : '') +
+            weekdays = (value[3] & 0x01 ? 'Su' : '') +
             (value[3] & 0x02 ? 'Mo' : '') +
-            (value[3] & 0x01 ? 'Su' : '');
+            (value[3] & 0x04 ? 'Tu' : '') +
+            (value[3] & 0x08 ? 'We' : '') +
+            (value[3] & 0x10 ? 'Th' : '') +
+            (value[3] & 0x20 ? 'Fr' : '') +
+            (value[3] & 0x40 ? 'Sa' : '');
         } else {
             weekdays = 'once';
         }
@@ -461,13 +461,13 @@ function convertRawToTimer(value: any) {
         starttime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
         duration = value[4] * 256 + value[5];
         if (value[6] > 0) {
-            weekdays = (value[6] & 0x40 ? 'Sa' : '') +
-            (value[6] & 0x20 ? 'Fr' : '') +
-            (value[6] & 0x10 ? 'Th' : '') +
-            (value[6] & 0x08 ? 'We' : '') +
-            (value[6] & 0x04 ? 'Tu' : '') +
+            weekdays = (value[6] & 0x01 ? 'Su' : '') +
             (value[6] & 0x02 ? 'Mo' : '') +
-            (value[6] & 0x01 ? 'Su' : '');
+            (value[6] & 0x04 ? 'Tu' : '') +
+            (value[6] & 0x08 ? 'We' : '') +
+            (value[6] & 0x10 ? 'Th' : '') +
+            (value[6] & 0x20 ? 'Fr' : '') +
+            (value[6] & 0x40 ? 'Sa' : '');
         } else {
             weekdays = 'once';
         }
@@ -8686,9 +8686,39 @@ export {
     giexWaterValve,
     msLookups,
     ZMLookups,
+    firstDpValue,
     dpValueFromEnum,
     dataPoints,
     dpValueFromBool,
     dpValueFromIntValue,
+    dpValueFromRaw,
+    dpValueFromBitmap,
+    dpValueFromStringBuffer,
     moesSwitch,
+    getDataValue,
+    getTypeName,
+    logUnexpectedDataPoint,
+    logUnexpectedDataType,
+    getDataPointNames,
+    getCoverStateEnums,
+    convertDecimalValueTo4ByteHexArray,
+    sendDataPoints,
+    convertStringToHexArray,
+    sendDataPoint,
+    sendDataPointValue,
+    sendDataPointBool,
+    sendDataPointEnum,
+    sendDataPointRaw,
+    sendDataPointBitmap,
+    sendDataPointStringBuffer,
+    convertRawToCycleTimer,
+    logDataPoint,
+    convertWeekdaysTo1ByteHexArray,
+    convertRawToTimer,
+    logUnexpectedDataValue,
+    isCoverInverted,
+    convertDecimalValueTo2ByteHexArray,
+    convertTimeTo2ByteHexArray,
+    getMetaValue,
+    tuyaGetDataValue,
 };

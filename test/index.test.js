@@ -18,6 +18,15 @@ function containsOnly(array1, array2){
 }
 
 describe('index.js', () => {
+    it('Test utils.toNumber', () => {
+        expect(utils.toNumber('1')).toBe(1);
+        expect(utils.toNumber(5)).toBe(5);
+        expect(() => utils.toNumber('notanumber')).toThrowError('Value is not a number, got string (notanumber)');
+        expect(utils.toNumber('0')).toBe(0);
+        expect(utils.toNumber(0)).toBe(0);
+        expect(() => utils.toNumber('')).toThrowError('Value is not a number, got string ()');
+    });
+
     it('Legacy: Find by zigbeeModel', () => {
         const device = index.findByZigbeeModel('WaterSensor-N');
         expect(device.model).toBe('HS1WL/HS3WL')

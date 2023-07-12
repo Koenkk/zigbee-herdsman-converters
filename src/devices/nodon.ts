@@ -12,7 +12,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-RS-20'],
         model: 'SIN-4-RS-20',
         vendor: 'NodOn',
-        description: 'Roller shutter controller',
+        description: 'Roller shutter relay switch',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -28,7 +28,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-RS-20_PRO'],
         model: 'SIN-4-RS-20_PRO',
         vendor: 'NodOn',
-        description: 'Roller shutter controller',
+        description: 'Roller shutter relay switch',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -38,27 +38,13 @@ const definitions: Definition[] = [
             await reporting.currentPositionTiltPercentage(endpoint);
         },
         exposes: [e.cover_position()],
-    },
-    {
-        zigbeeModel: ['SIN-4-RS-20_LEX'],
-        model: 'SIN-4-RS-20_LEX',
-        vendor: 'NodOn',
-        description: 'Roller shutter controller (Leroy Merlin version)',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-            await reporting.currentPositionTiltPercentage(endpoint);
-        },
-        exposes: [e.cover_position()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SIN-4-1-20'],
         model: 'SIN-4-1-20',
         vendor: 'NodOn',
-        description: 'Single LED relay',
+        description: 'Multifunction relay switch',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -68,12 +54,13 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {default: 1};
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SIN-4-1-20_PRO'],
         model: 'SIN-4-1-20_PRO',
         vendor: 'NodOn',
-        description: 'Single LED relay',
+        description: 'Multifunction relay switch',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -83,12 +70,13 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {default: 1};
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SIN-4-2-20'],
         model: 'SIN-4-2-20',
         vendor: 'NodOn',
-        description: 'Double LED relay',
+        description: 'Lighting relay switch',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         extend: extend.switch(),
         endpoint: (device) => {
@@ -103,12 +91,13 @@ const definitions: Definition[] = [
             await reporting.onOff(ep1);
             await reporting.onOff(ep2);
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SIN-4-2-20_PRO'],
         model: 'SIN-4-2-20_PRO',
         vendor: 'NodOn',
-        description: 'Double LED relay',
+        description: 'Lighting relay switch',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         extend: extend.switch(),
         endpoint: (device) => {
@@ -123,6 +112,7 @@ const definitions: Definition[] = [
             await reporting.onOff(ep1);
             await reporting.onOff(ep2);
         },
+        ota: ota.zigbeeOTA,
     },
 ];
 
