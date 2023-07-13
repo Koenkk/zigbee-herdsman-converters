@@ -1207,4 +1207,22 @@ module.exports = [
             await reporting.batteryVoltage(endpoint1);
         },
     },
+    {
+        zigbeeModel: ['RODRET Dimmer'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: 'E2201', // Vendor model number, look on the device for a model number
+        vendor: 'IKEA', // Vendor of the device (only used for documentation and startup logging)
+        description: 'RODRET wireless dimmer/power switch', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop,], // We will add this later
+        toZigbee: [tz.battery_percentage_remaining], // Should be empty, unless device can be controlled (e.g. lights, switches).
+        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
+        'brightness_stop', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
+        'arrow_right_hold', 'arrow_left_release', 'arrow_right_release']),], // Defines what this device exposes, used for e.g. Home Assistant discovery and in the frontend
+        ota: ota.tradfri,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genOnOff', 'genLevelCtrl']
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    };
 ];
