@@ -788,8 +788,8 @@ const tuyaTz = {
             'motor_speed', 'timer', 'reset_frost_lock', 'schedule_periodic', 'schedule_weekday', 'backlight_mode', 'calibration', 'motor_steering',
             'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program',
             ...[1, 2, 3, 4, 5, 6].map((no) => `schedule_slot_${no}`), 'minimum_range', 'maximum_range', 'detection_delay', 'fading_time',
-            ...[1, 2, 3, 4, 5, 6,].map((no) => `power_on_behavior_l${no}`),
-            ...[1, 2, 3, 4, 5, 6,].map((no) => `mode_l${no}`),
+            ...[1, 2, 3, 4, 5, 6].map((no) => `power_on_behavior_l${no}`),
+            ...[1, 2, 3, 4, 5, 6].map((no) => `mode_l${no}`),
             'light_mode',
         ],
         convertSet: async (entity, key, value, meta) => {

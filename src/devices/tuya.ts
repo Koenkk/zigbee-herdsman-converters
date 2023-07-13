@@ -5315,7 +5315,7 @@ const definitions: Definition[] = [
             {
                 modelID: 'TS0601',
                 manufacturerName: '_TZE200_nvodulvi',
-            }
+            },
         ],
         fromZigbee: [tuya.fz.datapoints, fz.ias_occupancy_only_alarm_2, tuya.fz.indicator_mode],
         toZigbee: [tuya.tz.datapoints, tuya.tz.power_on_behavior_1, tuya.tz.backlight_indicator_mode_1],
@@ -5328,14 +5328,22 @@ const definitions: Definition[] = [
             tuya.exposes.switch().withEndpoint('l5'),
             tuya.exposes.switch().withEndpoint('l6'),
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
-            new exposes.Enum('power_on_behavior_l1', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Changes the behavior of l1 after power loss'),
-            new exposes.Enum('power_on_behavior_l2', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Changes the behavior of l2 after power loss'),
-            new exposes.Enum('power_on_behavior_l3', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Changes the behavior of l3 after power loss'),
-            new exposes.Enum('power_on_behavior_l4', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Changes the behavior of l4 after power loss'),
-            new exposes.Enum('power_on_behavior_l5', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Changes the behavior of l5 after power loss'),
-            new exposes.Enum('power_on_behavior_l6', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Changes the behavior of l6 after power loss'),
-            new exposes.Enum('power_on_behavior_l7', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Changes the behavior of l7 after power loss'),
-            new exposes.Enum('power_on_behavior_l8', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Changes the behavior of l8 after power loss'),
+            new exposes.Enum('power_on_behavior_l1', ea.STATE_SET, ['off', 'on', 'memory'])
+                .withDescription('Changes the behavior of l1 after power loss'),
+            new exposes.Enum('power_on_behavior_l2', ea.STATE_SET, ['off', 'on', 'memory'])
+                .withDescription('Changes the behavior of l2 after power loss'),
+            new exposes.Enum('power_on_behavior_l3', ea.STATE_SET, ['off', 'on', 'memory'])
+                .withDescription('Changes the behavior of l3 after power loss'),
+            new exposes.Enum('power_on_behavior_l4', ea.STATE_SET, ['off', 'on', 'memory'])
+                .withDescription('Changes the behavior of l4 after power loss'),
+            new exposes.Enum('power_on_behavior_l5', ea.STATE_SET, ['off', 'on', 'memory'])
+                .withDescription('Changes the behavior of l5 after power loss'),
+            new exposes.Enum('power_on_behavior_l6', ea.STATE_SET, ['off', 'on', 'memory'])
+                .withDescription('Changes the behavior of l6 after power loss'),
+            new exposes.Enum('power_on_behavior_l7', ea.STATE_SET, ['off', 'on', 'memory'])
+                .withDescription('Changes the behavior of l7 after power loss'),
+            new exposes.Enum('power_on_behavior_l8', ea.STATE_SET, ['off', 'on', 'memory'])
+                .withDescription('Changes the behavior of l8 after power loss'),
             e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6', 'scene_7', 'scene_8']),
             e.presence(),
             new exposes.Numeric('delay', ea.STATE_SET).withUnit('sec').withDescription('light off delay').withValueMin(0).withValueMax(1000),
@@ -5349,17 +5357,57 @@ const definitions: Definition[] = [
             new exposes.Enum('mode_l6', ea.STATE_SET, ['switch', 'scene']).withDescription('Sets the mode of l6 to act as a switch or as a scene'),
             new exposes.Enum('mode_l7', ea.STATE_SET, ['switch', 'scene']).withDescription('Sets the mode of l6 to act as a switch or as a scene'),
             new exposes.Enum('mode_l8', ea.STATE_SET, ['switch', 'scene']).withDescription('Sets the mode of l6 to act as a switch or as a scene'),
-            new exposes.Enum('light_mode_l1', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).withDescription('Sets the indicator mode of l1. Normal: Orange while off and white while on. On: Always white. Off: Always orange. Flash: Flashes white when triggered. Note: Orange light will turn off after light off delay, white light always stays on'),
-            new exposes.Enum('light_mode_l2', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).withDescription('Sets the indicator mode of l1. Normal: Orange while off and white while on. On: Always white. Off: Always orange. Flash: Flashes white when triggered. Note: Orange light will turn off after light off delay, white light always stays on'),
-            new exposes.Enum('light_mode_l3', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).withDescription('Sets the indicator mode of l1. Normal: Orange while off and white while on. On: Always white. Off: Always orange. Flash: Flashes white when triggered. Note: Orange light will turn off after light off delay, white light always stays on'),
-            new exposes.Enum('light_mode_l4', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).withDescription('Sets the indicator mode of l1. Normal: Orange while off and white while on. On: Always white. Off: Always orange. Flash: Flashes white when triggered. Note: Orange light will turn off after light off delay, white light always stays on'),
-            new exposes.Enum('light_mode_l5', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).withDescription('Sets the indicator mode of l1. Normal: Orange while off and white while on. On: Always white. Off: Always orange. Flash: Flashes white when triggered. Note: Orange light will turn off after light off delay, white light always stays on'),
-            new exposes.Enum('light_mode_l6', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).withDescription('Sets the indicator mode of l1. Normal: Orange while off and white while on. On: Always white. Off: Always orange. Flash: Flashes white when triggered. Note: Orange light will turn off after light off delay, white light always stays on'),
-            new exposes.Enum('light_mode_l7', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).withDescription('Sets the indicator mode of l1. Normal: Orange while off and white while on. On: Always white. Off: Always orange. Flash: Flashes white when triggered. Note: Orange light will turn off after light off delay, white light always stays on'),
-            new exposes.Enum('light_mode_l8', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).withDescription('Sets the indicator mode of l1. Normal: Orange while off and white while on. On: Always white. Off: Always orange. Flash: Flashes white when triggered. Note: Orange light will turn off after light off delay, white light always stays on'),
+            new exposes.Enum('light_mode_l1', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).
+                withDescription(`'Sets the indicator mode of l1.
+                    Normal: Orange while off and white while on.
+                    On: Always white. Off: Always orange.
+                    Flash: Flashes white when triggered.
+                    Note: Orange light will turn off after light off delay, white light always stays on'`),
+            new exposes.Enum('light_mode_l2', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).
+                withDescription(`'Sets the indicator mode of l2.
+                    Normal: Orange while off and white while on.
+                    On: Always white. Off: Always orange.
+                    Flash: Flashes white when triggered.
+                    Note: Orange light will turn off after light off delay, white light always stays on'`),
+            new exposes.Enum('light_mode_l3', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).
+                withDescription(`'Sets the indicator mode of l3.
+                    Normal: Orange while off and white while on.
+                    On: Always white. Off: Always orange.
+                    Flash: Flashes white when triggered.
+                    Note: Orange light will turn off after light off delay, white light always stays on'`),
+            new exposes.Enum('light_mode_l4', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).
+                withDescription(`'Sets the indicator mode of l4.
+                    Normal: Orange while off and white while on.
+                    On: Always white. Off: Always orange.
+                    Flash: Flashes white when triggered.
+                    Note: Orange light will turn off after light off delay, white light always stays on'`),
+            new exposes.Enum('light_mode_l5', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).
+                withDescription(`'Sets the indicator mode of l5.
+                    Normal: Orange while off and white while on.
+                    On: Always white. Off: Always orange.
+                    Flash: Flashes white when triggered.
+                    Note: Orange light will turn off after light off delay, white light always stays on'`),
+            new exposes.Enum('light_mode_l6', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).
+                withDescription(`'Sets the indicator mode of l6.
+                    Normal: Orange while off and white while on.
+                    On: Always white. Off: Always orange.
+                    Flash: Flashes white when triggered.
+                    Note: Orange light will turn off after light off delay, white light always stays on'`),
+            new exposes.Enum('light_mode_l7', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).
+                withDescription(`'Sets the indicator mode of l7.
+                    Normal: Orange while off and white while on.
+                    On: Always white. Off: Always orange.
+                    Flash: Flashes white when triggered.
+                    Note: Orange light will turn off after light off delay, white light always stays on'`),
+            new exposes.Enum('light_mode_l8', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).
+                withDescription(`'Sets the indicator mode of l8.
+                    Normal: Orange while off and white while on.
+                    On: Always white. Off: Always orange.
+                    Flash: Flashes white when triggered.
+                    Note: Orange light will turn off after light off delay, white light always stays on'`),
         ],
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4' : 1, 'l5': 1, 'l6':1 ,'state': 1, 'backlight': 1, 'l7': 1, 'l8': 1};
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'state': 1, 'backlight': 1, 'l7': 1, 'l8': 1};
         },
         meta: {
             multiEndpoint: true,
@@ -5397,14 +5445,22 @@ const definitions: Definition[] = [
                 [119, 'mode_l6', tuya.valueConverterBasic.lookup({'switch': tuya.enum(0), 'scene': tuya.enum(1)})],
                 [120, 'mode_l7', tuya.valueConverterBasic.lookup({'switch': tuya.enum(0), 'scene': tuya.enum(1)})],
                 [121, 'mode_l8', tuya.valueConverterBasic.lookup({'switch': tuya.enum(0), 'scene': tuya.enum(1)})],
-                [122, 'light_mode_l1', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
-                [123, 'light_mode_l2', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
-                [124, 'light_mode_l3', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
-                [125, 'light_mode_l4', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
-                [126, 'light_mode_l5', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
-                [127, 'light_mode_l6', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
-                [128, 'light_mode_l7', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
-                [129, 'light_mode_l8', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
+                [122, 'light_mode_l1', tuya.valueConverterBasic.
+                    lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
+                [123, 'light_mode_l2', tuya.valueConverterBasic.
+                    lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
+                [124, 'light_mode_l3', tuya.valueConverterBasic.
+                    lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
+                [125, 'light_mode_l4', tuya.valueConverterBasic.
+                    lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
+                [126, 'light_mode_l5', tuya.valueConverterBasic.
+                    lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
+                [127, 'light_mode_l6', tuya.valueConverterBasic.
+                    lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
+                [128, 'light_mode_l7', tuya.valueConverterBasic.
+                    lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
+                [129, 'light_mode_l8', tuya.valueConverterBasic.
+                    lookup({'normal': tuya.enum(0), 'on': tuya.enum(1), 'off': tuya.enum(2), 'flash': tuya.enum(3)})],
                 [130, 'power_on_behavior_l7', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1), 'memory': tuya.enum(2)})],
                 [131, 'power_on_behavior_l8', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1), 'memory': tuya.enum(2)})],
             ],
