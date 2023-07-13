@@ -1223,5 +1223,5 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-    };
+    },
 ];
