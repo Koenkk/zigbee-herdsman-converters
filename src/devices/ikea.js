@@ -1219,7 +1219,7 @@ module.exports = [
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'genLevelCtrl', 'genPollCtrl']
+            const binds = ['genOnOff', 'genLevelCtrl', 'genPollCtrl'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryPercentageRemaining(endpoint);
         },
