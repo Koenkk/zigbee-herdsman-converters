@@ -1215,15 +1215,15 @@ module.exports = [
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
         toZigbee: [tz.battery_percentage_remaining],
         exposes: [
-            e.battery().withAccess(ea.STATE_GET), 
-            e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])
+            e.battery().withAccess(ea.STATE_GET),
+            e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
         ],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
-        const endpoint = device.getEndpoint(1);
-        const binds = ['genOnOff', 'genLevelCtrl', 'genPollCtrl'];
-        await reporting.bind(endpoint, coordinatorEndpoint, binds);
-        await reporting.batteryPercentageRemaining(endpoint);
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genOnOff', 'genLevelCtrl', 'genPollCtrl'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
 ];
