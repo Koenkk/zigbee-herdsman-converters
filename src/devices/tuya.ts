@@ -429,7 +429,8 @@ const fzLocal = {
 
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
-            if (result && ['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l', '_TZ3000_typdpbpg', '_TZ3000_hdopuwv6'].includes(meta.device.manufacturerName)) {
+            if (result && ['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l', '_TZ3000_typdpbpg', '_TZ3000_hdopuwv6',
+                '_TZ3000_b28wrpvx'].includes(meta.device.manufacturerName)) {
                 for (const key of ['power', 'current', 'voltage']) {
                     if (key in result) {
                         const value = result[key];
@@ -746,7 +747,9 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: '2 gang wall outlet',
         extend: tuya.extend.switch({backlightModeLowMediumHigh: true, childLock: true, endpoints: ['l1', 'l2']}),
-        whiteLabel: [{vendor: 'ClickSmart+', model: 'CMA30036'}],
+        whiteLabel: [
+            tuya.whitelabel('ClickSmart+', 'CMA30036', '2 gang socket outlet', ['_TYZB01_hlla45kx']),
+        ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
