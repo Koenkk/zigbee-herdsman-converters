@@ -95,6 +95,21 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['HT-SMO-2'],
+        model: 'HT-SMO-2',
+        vendor: 'Heimgard Technologies',
+        description: 'Smoke detector',
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.smoke(), e.battery_low(), e.battery()],
+    },
 ];
 
 module.exports = definitions;
