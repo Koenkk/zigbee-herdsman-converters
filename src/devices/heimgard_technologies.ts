@@ -110,6 +110,22 @@ const definitions: Definition[] = [
         },
         exposes: [e.smoke(), e.battery_low(), e.battery()],
     },
+    {
+        zigbeeModel: ['HT-DWM-2'],
+        model: 'HT-DWM-2',
+        vendor: 'Heimgard Technologies',
+        description: 'Door sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
+    },
 ];
 
 module.exports = definitions;
