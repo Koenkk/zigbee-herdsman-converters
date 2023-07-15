@@ -188,6 +188,7 @@ export const lockSourceName = {
     1: 'rf',
     2: 'manual',
     3: 'rfid',
+    4: 'fingerprint',
 };
 
 export const armMode = {
