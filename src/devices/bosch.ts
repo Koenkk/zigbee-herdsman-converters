@@ -839,7 +839,7 @@ const definitions: Definition[] = [
         exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['RBSH-SP-ZB-EU'],
+        zigbeeModel: ['RBSH-SP-ZB-EU', 'RBSH-SP-ZB-FR', 'RBSH-SP-ZB-GB'],
         model: 'BSP-FZ2',
         vendor: 'Bosch',
         description: 'Plug compact EU',
@@ -858,6 +858,10 @@ const definitions: Definition[] = [
             await reporting.activePower(endpoint);
         },
         exposes: [e.switch(), e.power_on_behavior(), e.power(), e.energy()],
+        whiteLabel: [
+            {vendor: 'Bosch', model: 'BSP-EZ2', description: 'Plug compact FR', fingerprint: [{modelID: 'RBSH-SP-ZB-FR'}]},
+            {vendor: 'Bosch', model: 'BSP-GZ2', description: 'Plug compact UK', fingerprint: [{modelID: 'RBSH-SP-ZB-GB'}]},
+        ],
     },
     {
         zigbeeModel: ['RBSH-SWD-ZB'],
@@ -867,26 +871,6 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.bosch_contact],
         toZigbee: [],
         exposes: [e.battery_low(), e.contact(), e.action(['single', 'long'])],
-    },
-    {
-        zigbeeModel: ['RBSH-SP-ZB-FR'],
-        model: 'BSP-EZ2',
-        vendor: 'Bosch',
-        description: 'Plug compact FR',
-        fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {change: [0, 1]});
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.activePower(endpoint);
-        },
-        exposes: [e.switch(), e.power_on_behavior(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
