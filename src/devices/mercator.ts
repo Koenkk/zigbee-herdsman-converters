@@ -95,7 +95,7 @@ const definitions: Definition[] = [
         extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']}),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
             e.power().withEndpoint('left'), e.current().withEndpoint('left'),
-            e.voltage().withEndpoint('left').withAccess(ea.STATE), e.energy()],
+            e.voltage().withEndpoint('left').withAccess(ea.STATE), e.energy(), tuya.exposes.powerOutageMemory()],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
