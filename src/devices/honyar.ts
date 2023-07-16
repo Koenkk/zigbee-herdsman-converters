@@ -49,6 +49,28 @@ const definitions: Definition[] = [
             await reporting.currentSummDelivered(endpoint);
         },
     },
+    {
+        zigbeeModel: ['HY0157'],
+        model: 'U86Z223A10-ZJU01(GD)',
+        vendor: 'Honyar',
+        description: 'Smart Power Socket 10A with USB (with power monitoring)',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.rmsVoltage(endpoint, {change: 5});
+		    await reporting.currentSummDelivered(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1, acPowerDivisor: 10});
+        },
+    },
 ];
 
 module.exports = definitions;
