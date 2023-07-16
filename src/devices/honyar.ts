@@ -53,7 +53,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['HY0157'],
         model: 'U86Z223A10-ZJU01(GD)',
         vendor: 'Honyar',
-        description: 'Smart Power Socket 10A with USB (with power monitoring)',
+        description: 'Smart power socket 10A with USB (with power monitoring)',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
