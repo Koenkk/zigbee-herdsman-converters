@@ -389,6 +389,7 @@ export const valueConverter = {
     trueFalseEnum0: valueConverterBasic.trueFalse(new Enum(0)),
     onOff: valueConverterBasic.lookup({'ON': true, 'OFF': false}),
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
+    powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
     lightType: valueConverterBasic.lookup({'led': 0, 'incandescent': 1, 'halogen': 2}),
     countdown: valueConverterBasic.raw(),
     scale0_254to0_1000: valueConverterBasic.scale(0, 254, 0, 1000),
