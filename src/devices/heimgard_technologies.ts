@@ -12,8 +12,10 @@ const definitions: Definition[] = [
         model: 'HC-SLM-1',
         vendor: 'Heimgard Technologies',
         description: 'Wattle door lock pro',
-        fromZigbee: [fz.lock, fz.battery],
-        toZigbee: [tz.lock, tz.lock_auto_relock_time, tz.lock_sound_volume],
+        fromZigbee: [fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock, fz.lock_pin_code_response,
+            fz.lock_user_status_response],
+        toZigbee: [tz.identify, tz.lock, tz.lock_sound_volume, tz.lock_auto_relock_time, tz.pincode_lock, tz.lock_userstatus],
+        meta: {pinCodeCount: 39},
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -23,7 +25,9 @@ const definitions: Definition[] = [
             await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
         },
         exposes: [
-            e.lock(), e.battery(), e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume()],
+            e.lock(), e.battery(), e.sound_volume(), e.auto_relock_time().withValueMin(0).withValueMax(3600),
+            e.lock_action_user(), e.lock_action_source_name(), e.pincode(),
+        ],
     },
     {
         zigbeeModel: ['HT-SLM-2'],
@@ -94,6 +98,37 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['HT-SMO-2'],
+        model: 'HT-SMO-2',
+        vendor: 'Heimgard Technologies',
+        description: 'Smoke detector',
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.smoke(), e.battery_low(), e.battery()],
+    },
+    {
+        zigbeeModel: ['HT-DWM-2'],
+        model: 'HT-DWM-2',
+        vendor: 'Heimgard Technologies',
+        description: 'Door sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
 ];
 

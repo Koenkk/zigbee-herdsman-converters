@@ -1893,7 +1893,7 @@ const definitions: Definition[] = [
                             .withFeature(e.numeric('y', ea.SET)
                                 .withValueMin(fp1.constants.region_config_zoneY_min)
                                 .withValueMax(fp1.constants.region_config_zoneY_max)),
-                    ),
+                    ).withDescription('list of dictionaries in the format {"x": 1, "y": 1}, {"x": 2, "y": 1}'),
                 ),
             e.composite('region_delete', 'region_delete', ea.SET)
                 .withDescription('Region definition to be deleted from the device.')

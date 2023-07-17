@@ -6,7 +6,7 @@ const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['EBF_RGB_Zm'],
+        zigbeeModel: ['EBF_RGB_Zm', 'EBF_RGB_Zm_CLP'],
         model: '900091',
         vendor: 'EGLO',
         description: 'ROVITO-Z ceiling light',
