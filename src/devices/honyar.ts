@@ -56,21 +56,27 @@ const definitions: Definition[] = [
         description: 'Smart power socket 10A with USB (with power monitoring)',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        exposes: [
+            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.power().withEndpoint('l1'), e.current().withEndpoint('l1'), 
+            e.voltage().withEndpoint('l1').withAccess(ea.STATE),
+            e.energy(),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+		    const binds = ['genOnOff', 'haElectricalMeasurement', 'seMetering'];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint, {change: 10});
-            await reporting.rmsCurrent(endpoint, {change: 50});
-            await reporting.rmsVoltage(endpoint, {change: 5});
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor', 'acCurrentDivisor', 'acCurrentMultiplier', 'acVoltageDivisor', 'acVoltageMultiplier']);
+            await reporting.activePower(endpoint, {min: 10, change: 10});
+            await reporting.rmsCurrent(endpoint, {min: 10, change: 50});
+            await reporting.rmsVoltage(endpoint, {min: 10, change: 10});
+	    	await reporting.currentSummDelivered(endpoint, {min: 10});
+	    	await reporting.onOff(endpoint, {min: 10});
+            await reporting.readMeteringMultiplierDivisor(endpoint, {min: 10});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
-                acPowerDivisor: 10});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1, acPowerDivisor: 10});
         },
     },
 ];
