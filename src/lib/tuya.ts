@@ -278,7 +278,7 @@ const tuyaExposes = {
         .withDescription('Do not disturb mode, when enabled this function will keep the light OFF after a power outage'),
     colorPowerOnBehavior: () => e.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
         .withDescription('Power on behavior state'),
-    switchMode: () => e.enum('mode', ea.STATE_SET, ['switch', 'scene'])
+    switchMode: () => e.enum('switch_mode', ea.STATE_SET, ['switch', 'scene'])
         .withDescription('Sets the mode of the switch to act as a switch or as a scene'),
     lightMode: () => e.enum('light_mode', ea.STATE_SET, ['normal', 'on', 'off', 'flash'])
         .withDescription(`'Sets the indicator mode of l1.
@@ -399,7 +399,7 @@ export const valueConverter = {
     batteryState: valueConverterBasic.lookup({'low': 0, 'medium': 1, 'high': 2}),
     divideBy10: valueConverterBasic.divideBy(10),
     divideBy1000: valueConverterBasic.divideBy(1000),
-    mode: valueConverterBasic.lookup({'switch': new Enum(0), 'scene': new Enum(1)}),
+    switchMode: valueConverterBasic.lookup({'switch': new Enum(0), 'scene': new Enum(1)}),
     lightMode: valueConverterBasic.lookup({'normal': new Enum(0), 'on': new Enum(1), 'off': new Enum(2), 'flash': new Enum(3)}),
     raw: valueConverterBasic.raw(),
     setLimit: {
@@ -797,9 +797,8 @@ const tuyaTz = {
             'min_temperature', 'max_temperature', 'window_detection', 'boost_heating', 'alarm_ringtone', 'alarm_time', 'fan_speed',
             'reverse_direction', 'border', 'click_control', 'motor_direction', 'opening_mode', 'factory_reset', 'set_upper_limit', 'set_bottom_limit',
             'motor_speed', 'timer', 'reset_frost_lock', 'schedule_periodic', 'schedule_weekday', 'backlight_mode', 'calibration', 'motor_steering',
-            'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program',
+            'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program', 'light_mode', 'switch_mode',
             ...[1, 2, 3, 4, 5, 6].map((no) => `schedule_slot_${no}`), 'minimum_range', 'maximum_range', 'detection_delay', 'fading_time',
-            'light_mode', 'power_on_behavior', 'mode',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
