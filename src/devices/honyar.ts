@@ -59,7 +59,7 @@ const definitions: Definition[] = [
         exposes: [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.power().withEndpoint('l1'), e.current().withEndpoint('l1'), 
-            e.voltage().withEndpoint('l1').withAccess(e.STATE),
+            e.voltage().withEndpoint('l1').withAccess(ea.STATE),
             e.energy(),
 		],
         endpoint: (device) => {
