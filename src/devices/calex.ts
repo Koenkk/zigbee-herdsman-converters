@@ -17,7 +17,7 @@ const definitions: Definition[] = [
         model: '421792',
         vendor: 'Calex',
         description: 'LED A60 Zigbee RGB lamp',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['Smart Wall Switch '], // Yes, it has a space at the end :(
