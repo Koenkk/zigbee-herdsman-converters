@@ -641,6 +641,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['LTU001'],
+        model: '8719514491106',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E14',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['929003053401'],
         model: '929003053401',
         vendor: 'Philips',
