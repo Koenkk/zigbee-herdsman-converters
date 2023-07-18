@@ -1,10 +1,11 @@
-import {Definition, Fz} from '../lib/types';
+import {Definition, Fz, Tz} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import tz from '../converters/toZigbee';
 const e = exposes.presets;
+const ea = exposes.access;
 
 const fzLocal = {
     LDSENK08: {
@@ -22,6 +23,16 @@ const fzLocal = {
     } as Fz.Converter,
 };
 
+const tzLocal = {
+    LDSENK08_sensitivity: {
+        key: ['sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('ssIasZone', {0x0013: {value, type: 0x20}});
+            return {state: {sensitivity: value}};
+        },
+    } as Tz.Converter,
+};
+
 const definitions: Definition[] = [
     {
         zigbeeModel: ['LDSENK08'],
@@ -29,8 +40,9 @@ const definitions: Definition[] = [
         vendor: 'ADEO',
         description: 'ENKI LEXMAN wireless smart door window sensor with vibration',
         fromZigbee: [fzLocal.LDSENK08, fz.battery],
-        toZigbee: [],
-        exposes: [e.battery_low(), e.contact(), e.vibration(), e.tamper(), e.battery()],
+        toZigbee: [tzLocal.LDSENK08_sensitivity],
+        exposes: [e.battery_low(), e.contact(), e.vibration(), e.tamper(), e.battery(),
+            e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(4).withDescription('Sensitivity of the motion sensor')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
