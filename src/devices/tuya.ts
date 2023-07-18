@@ -4417,7 +4417,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia', '_TZ3210_weaqkhab']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia', '_TZ3210_weaqkhab', '_TZ3210_tkkb1ym8']),
         model: 'TS110E_1gang_2',
         vendor: 'TuYa',
         description: '1 channel dimmer',
