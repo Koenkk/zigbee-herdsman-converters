@@ -5383,7 +5383,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            { modelID: 'TS0601', manufacturerName: '_TZE204_sooucan5' },
+            {modelID: 'TS0601', manufacturerName: '_TZE204_sooucan5'},
         ],
         model: 'YXZBRB58',
         vendor: 'TuYa',
