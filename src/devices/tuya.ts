@@ -5405,7 +5405,6 @@ const definitions: Definition[] = [
                 .withDescription('Presets for sensitivity for presence and movement'),
         ],
         meta: {
-            tuyaSendCommand: 'dataRequest',
             tuyaDatapoints: [
                 [0x01, 'presence', tuya.valueConverter.trueFalse1],
                 [0x02, 'radar_sensitivity', tuya.valueConverter.raw],
