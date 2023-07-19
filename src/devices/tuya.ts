@@ -5383,6 +5383,48 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sooucan5']),
+        model: 'YXZBRB58',
+        vendor: 'TuYa',
+        description: 'Smart human presence sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.illuminance_lux(), e.presence(),
+            e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
+            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
+                .withDescription('Sensitivity of the radar'),
+            e.numeric('minimum_range', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1)
+                .withDescription('Minimum range').withUnit('m'),
+            e.numeric('maximum_range', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1)
+                .withDescription('Maximum range').withUnit('m'),
+            e.numeric('detection_delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1)
+                .withDescription('Detection delay').withUnit('s'),
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(1500).withValueStep(1)
+                .withDescription('Fading time').withUnit('s'),
+            e.enum('radar_scene', ea.STATE_SET, ['default', 'bathroom', 'bedroom', 'sleeping'])
+                .withDescription('Presets for sensitivity for presence and movement'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [0x01, 'presence', tuya.valueConverter.trueFalse1],
+                [0x02, 'radar_sensitivity', tuya.valueConverter.raw],
+                [0x03, 'minimum_range', tuya.valueConverter.divideBy100],
+                [0x04, 'maximum_range', tuya.valueConverter.divideBy100],
+                [0x65, 'illuminance_lux', tuya.valueConverter.raw],
+                [0x66, 'fading_time', tuya.valueConverter.divideBy10],
+                [0x67, 'detection_delay', tuya.valueConverter.divideBy10],
+                [0x68, 'radar_scene', tuya.valueConverterBasic.lookup({
+                    'default': tuya.enum(0),
+                    'bathroom': tuya.enum(1),
+                    'bedroom': tuya.enum(2),
+                    'sleeping': tuya.enum(3),
+                })],
+                [0x69, 'target_distance', tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
 ];
 
 module.exports = definitions;
