@@ -5382,12 +5382,10 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_sooucan5'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sooucan5']),
         model: 'YXZBRB58',
         vendor: 'TuYa',
-        description: 'Smart Human Presence Sensor',
+        description: 'Smart human presence sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
