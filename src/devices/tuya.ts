@@ -4933,6 +4933,66 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ves1ycwx'}],
+        model: 'SPM02',
+        vendor: 'TuYa',
+        description: 'Smart energy monitor for 3P+N system',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.voltage_phase_a(), e.voltage_phase_b(), e.voltage_phase_c(),
+            e.current_phase_a(), e.current_phase_b(), e.current_phase_c(),
+            e.power_phase_a(), e.power_phase_b(), e.power_phase_c(),
+            // Change the description according to the specifications of the device
+            e.energy().withDescription('Total forward active energy'),
+            e.produced_energy().withDescription('Total reverse active energy'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'energy', tuya.valueConverter.divideBy100],
+                [2, 'produced_energy', tuya.valueConverter.divideBy100],
+                [6, null, {
+                    from: (v: Buffer) => {
+                        return {
+                            voltage_phase_a: v.readUint16BE(0) / 10,
+                            current_phase_a: ((v.readUint8(2) << 16) + (v.readUint8(3) << 8) + v.readUint8(4)) / 1000,
+                            power_phase_a: ((v.readUint8(5) << 16) + (v.readUint8(6) << 8) + v.readUint8(7)),
+                        };
+                    },
+                }],
+                [7, null, {
+                    from: (v: Buffer) => {
+                        return {
+                            voltage_phase_b: v.readUint16BE(0) / 10,
+                            current_phase_b: ((v.readUint8(2) << 16) + (v.readUint8(3) << 8) + v.readUint8(4)) / 1000,
+                            power_phase_b: ((v.readUint8(5) << 16) + (v.readUint8(6) << 8) + v.readUint8(7)),
+                        };
+                    },
+                }],
+                [8, null, {
+                    from: (v: Buffer) => {
+                        return {
+                            voltage_phase_c: v.readUint16BE(0) / 10,
+                            current_phase_c: ((v.readUint8(2) << 16) + (v.readUint8(3) << 8) + v.readUint8(4)) / 1000,
+                            power_phase_c: ((v.readUint8(5) << 16) + (v.readUint8(6) << 8) + v.readUint8(7)),
+                        };
+                    },
+                }],
+                [6, 'voltage_phase_a', tuya.valueConverter.raw],
+                [6, 'current_phase_a', tuya.valueConverter.raw],
+                [6, 'power_phase_a', tuya.valueConverter.raw],
+                [7, 'voltage_phase_b', tuya.valueConverter.raw],
+                [7, 'current_phase_b', tuya.valueConverter.raw],
+                [7, 'power_phase_b', tuya.valueConverter.raw],
+                [8, 'voltage_phase_c', tuya.valueConverter.raw],
+                [8, 'current_phase_c', tuya.valueConverter.raw],
+                [8, 'power_phase_c', tuya.valueConverter.raw],
+                // [11,'switch_prepayment',]
+                // [9,'',tuya.valueConverter.raw] // Unknown / datatype=5 (bitmap)
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ac0fhfiq']),
         model: 'TS0601_bidirectional_energy meter',
         vendor: 'TuYa',
