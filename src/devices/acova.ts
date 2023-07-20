@@ -7,7 +7,7 @@ const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['PERCALE2 D1.00P1.01Z1.00', 'PERCALE2 D1.00P1.02Z1.00', 'PERCALE2 D1.00P1.03Z1.00'],
+        zigbeeModel: ['PERCALE2 D1.00P1.01Z1.00', 'PERCALE2 D1.00P1.02Z1.00', 'PERCALE2 D1.00P1.03Z1.00', 'TAFFETAS2 D1.00P1.03Z1.00'],
         model: 'PERCALE2',
         vendor: 'Acova',
         description: 'Percale 2 heater',

@@ -641,6 +641,27 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['915005987801'],
+        model: '915005987801',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance gradient Signe floor lamp (black)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['LTU001'],
+        model: '8719514491106',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E14',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['929003053401'],
+        model: '929003053401',
+        vendor: 'Philips',
+        description: 'Hue Flourish white and color ambiance table light with Bluetooth',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['915005988401'],
         model: '915005988401',
         vendor: 'Philips',
