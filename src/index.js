@@ -225,23 +225,21 @@ function findByModel(model){
     Useful when redefining, expanding device descriptions in external converters.
     */
     const modelToFind = model.toLowerCase();
-    let candidate = findByZigbeeModel(modelToFind);
-    if (!candidate) {
-        for (const definition of definitions) {
-            if (definition.model.toLowerCase() == modelToFind) {
-                candidate = definition;
-                break;
-            }
-            if (definition.whiteLabel) {
-                for (const whiteLabel of definition.whiteLabel) {
-                    const {vendor, model, description} = whiteLabel;
-                    if (model.toLowerCase() == modelToFind) {
-                        candidate = definition;
-                        break;
-                    }
+    let candidate;
+    for (const definition of definitions) {
+        if (definition.model.toLowerCase() == modelToFind) {
+            candidate = definition;
+            break;
+        }
+        if (definition.whiteLabel) {
+            for (const whiteLabel of definition.whiteLabel) {
+                const {vendor, model, description} = whiteLabel;
+                if (model.toLowerCase() == modelToFind) {
+                    candidate = definition;
+                    break;
                 }
-                if (candidate) break;
             }
+            if (candidate) break;
         }
     }
     return candidate;
