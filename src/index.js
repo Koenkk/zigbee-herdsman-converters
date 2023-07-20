@@ -221,28 +221,14 @@ function isFingerprintMatch(fingerprint, device) {
 
 function findByModel(model){
     /*
-    Search device description by model name.
+    Search device description by definition model name.
     Useful when redefining, expanding device descriptions in external converters.
     */
-    const modelToFind = model.toLowerCase();
-    let candidate;
-    for (const definition of definitions) {
-        if (definition.model.toLowerCase() == modelToFind) {
-            candidate = definition;
-            break;
-        }
-        if (definition.whiteLabel) {
-            for (const whiteLabel of definition.whiteLabel) {
-                const {vendor, model, description} = whiteLabel;
-                if (model.toLowerCase() == modelToFind) {
-                    candidate = definition;
-                    break;
-                }
-            }
-            if (candidate) break;
-        }
-    }
-    return candidate;
+    model = model.toLowerCase();
+    return definitions.find((d) => {
+        const whiteLabelMatch = definition.whiteLabel && definition.whiteLabel.find((dd) => dd.model.toLowerCase() === modelToFind);
+        return d.model.toLowerCase() == model || whiteLabelMatch;
+    });
 }
 
 module.exports = {
