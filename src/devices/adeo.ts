@@ -340,7 +340,7 @@ const definitions: Definition[] = [
         },
         endpoint: (device) => {
             return {default: 1};
-        }, 
+        },
     },
 ];
 
