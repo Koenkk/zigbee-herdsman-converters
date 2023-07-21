@@ -225,9 +225,9 @@ function findByModel(model){
     Useful when redefining, expanding device descriptions in external converters.
     */
     model = model.toLowerCase();
-    return definitions.find((d) => {
-        const whiteLabelMatch = definition.whiteLabel && definition.whiteLabel.find((dd) => dd.model.toLowerCase() === modelToFind);
-        return d.model.toLowerCase() == model || whiteLabelMatch;
+    return definitions.find((definition) => {
+        const whiteLabelMatch = definition.whiteLabel && definition.whiteLabel.find((dd) => dd.model.toLowerCase() === model);
+        return definition.model.toLowerCase() == model || whiteLabelMatch;
     });
 }
 
