@@ -340,7 +340,8 @@ const definitions: Definition[] = [
         },
         endpoint: (device) => {
             return {default: 1};
-    }, 
+        }, 
+    },
 ];
 
 module.exports = definitions;
