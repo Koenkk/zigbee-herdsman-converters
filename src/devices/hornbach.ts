@@ -42,7 +42,7 @@ const definitions: Definition[] = [
         model: '10454466',
         vendor: 'HORNBACH',
         description: 'FLAIR Viyu Smart LED GU10 RGBW lamp',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
     },
     {
         zigbeeModel: ['VIYU-GU10-350-CCT-10011724'],
