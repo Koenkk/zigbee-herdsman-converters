@@ -410,17 +410,10 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
     },
     {
-        zigbeeModel: ['929003128501'],
+        zigbeeModel: ['929003128501', '929003128701', '929003521501', '929003521701'],
         model: '929003128501',
         vendor: 'Philips',
-        description: 'Hue Go portable table lamp',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
-    },
-    {
-        zigbeeModel: ['929003128701'],
-        model: '929003128701',
-        vendor: 'Philips',
-        description: 'Hue Go portable table lamp',
+        description: 'Hue Go portable table lamp black',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
@@ -2043,7 +2036,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['929003128401'],
+        zigbeeModel: ['929003128401', '929003128601', '929003521401', '929003521601', '929003128801', '929003128901', '929003129001'],
         model: '929003128401',
         vendor: 'Philips',
         description: 'Hue Go portable table lamp white',
