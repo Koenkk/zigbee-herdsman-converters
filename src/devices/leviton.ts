@@ -79,7 +79,7 @@ const definitions: Definition[] = [
         model: 'DG15S-1BW',
         vendor: 'Leviton',
         description: 'Decora smart Zigbee 3.0 certified 15A switch',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
