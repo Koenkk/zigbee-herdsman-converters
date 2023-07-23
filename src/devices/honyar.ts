@@ -4,6 +4,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import * as tuya from '../lib/tuya';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -17,7 +18,7 @@ const fzLocal = {
                 return {[`state_${endpointName}`]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
-    },
+    } as Fz.Converter,
 };
 const definitions: Definition[] = [
     {
