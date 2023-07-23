@@ -6,6 +6,19 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 const e = exposes.presets;
 
+const fzLocal = {
+    //Refer https://github.com/Koenkk/zigbee2mqtt/issues/13190
+    HY0157_on_off: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                const endpointName = utils.getKey(model.endpoint(meta.device), msg.endpoint.ID);
+                return {[`state_${endpointName}`]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+};
 const definitions: Definition[] = [
     {
         zigbeeModel: ['00500c35'],
@@ -54,30 +67,27 @@ const definitions: Definition[] = [
         model: 'U86Z223A10-ZJU01(GD)',
         vendor: 'Honyar',
         description: 'Smart power socket 10A with USB (with power monitoring)',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+        fromZigbee: [fzLocal.HY0157_on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
-        exposes: [
-            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.power().withEndpoint('l1'), e.current().withEndpoint('l1'),
-            e.voltage().withEndpoint('l1'), e.energy(),
-        ],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power(), e.current(), e.voltage(),
+            e.energy()],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor',
-                'acCurrentDivisor', 'acCurrentMultiplier', 'acVoltageDivisor', 'acVoltageMultiplier']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.activePower(endpoint, {min: 10, change: 10});
             await reporting.rmsCurrent(endpoint, {min: 10, change: 50});
             await reporting.rmsVoltage(endpoint, {min: 10, change: 10});
             await reporting.currentSummDelivered(endpoint, {min: 10});
-            await reporting.onOff(endpoint, {min: 10});
             await reporting.readMeteringMultiplierDivisor(endpoint);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acVoltageMultiplier: 1,
                 acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1, acPowerDivisor: 10});
+            device.save();
         },
     },
 ];
