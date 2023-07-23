@@ -219,6 +219,18 @@ function isFingerprintMatch(fingerprint, device) {
     return match;
 }
 
+function findByModel(model){
+    /*
+    Search device description by definition model name.
+    Useful when redefining, expanding device descriptions in external converters.
+    */
+    model = model.toLowerCase();
+    return definitions.find((definition) => {
+        const whiteLabelMatch = definition.whiteLabel && definition.whiteLabel.find((dd) => dd.model.toLowerCase() === model);
+        return definition.model.toLowerCase() == model || whiteLabelMatch;
+    });
+}
+
 module.exports = {
     getConfigureKey: configureKey.getConfigureKey,
     devices: definitions,
@@ -226,6 +238,7 @@ module.exports = {
     definitions,
     findByZigbeeModel, // Legacy method, use findByDevice instead.
     findByDevice,
+    findByModel,
     toZigbeeConverters: toZigbee,
     fromZigbeeConverters: fromZigbee,
     addDeviceDefinition: addDefinition,
