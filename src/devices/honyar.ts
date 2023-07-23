@@ -9,8 +9,8 @@ import extend from '../lib/extend';
 const e = exposes.presets;
 
 const fzLocal = {
-    //Refer
-    //https://github.com/Koenkk/zigbee2mqtt/issues/13190
+    // Refer
+    // https://github.com/Koenkk/zigbee2mqtt/issues/13190
     HY0157_on_off: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
