@@ -82,11 +82,11 @@ const definitions: Definition[] = [
         zigbeeModel: ['GB-540'],
         model: 'GB-540',
         vendor: 'Visonic',
-        description: 'Glass Break Detector',  //https://www.visonic.com/glass-break-detector-gb-540
+        description: 'Glass Break Detector',
         fromZigbee: [fz.ias_vibration_alarm_1],
         toZigbee: [],
-        exposes: [e.vibration(), e.battery_low(), e.tamper()]
-    }
+        exposes: [e.vibration(), e.battery_low(), e.tamper()],
+    },
 ];
 
 module.exports = definitions;
