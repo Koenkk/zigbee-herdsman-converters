@@ -5457,7 +5457,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Smart siren',
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [{...tuya.tz.datapoints, key: [...tuya.tz.datapoints.key, 'alarm', 'type', 'volume', 'ringtone', 'duration']}],
+        toZigbee: [tuya.tz.datapoints],
         exposes: [
             e.binary('alarm', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the light of the alarm ON/OFF'),
             e.enum('type', ea.STATE_SET, ['sound', 'light', 'sound+light', 'normal']).withDescription('Alarm type'),
