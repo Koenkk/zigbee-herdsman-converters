@@ -4175,7 +4175,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sxm7l9xa', '_TZE204_qasjif9e']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sxm7l9xa']),
         model: 'ZY-M100-S',
         vendor: 'TuYa',
         description: 'Mini human breathe sensor',
@@ -4208,6 +4208,40 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_qasjif9e']),
+        model: 'ZY-M100-S',
+        vendor: 'TuYa',
+        description: 'Mini Human Breathe Sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.illuminance_lux(), e.presence(),
+            e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
+            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
+                .withDescription('sensitivity of the radar'),
+            e.numeric('minimum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
+                .withDescription('Minimum range').withUnit('m'),
+            e.numeric('maximum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
+                .withDescription('Maximum range').withUnit('m'),
+            e.numeric('detection_delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1)
+                .withDescription('Detection delay').withUnit('s'),
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(0.5).withValueMax(1500).withValueStep(1)
+                .withDescription('Fading time').withUnit('s'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [9, 'target_distance', tuya.valueConverter.divideBy100],
+                [104, 'illuminance_lux', tuya.valueConverter.raw],
+                [106, 'radar_sensitivity', tuya.valueConverter.raw],
+                [107, 'maximum_range', tuya.valueConverter.divideBy100],
+                [108, 'minimum_range', tuya.valueConverter.divideBy100],
+                [110, 'fading_time', tuya.valueConverter.divideBy10],
+                [111, 'detection_delay', tuya.valueConverter.divideBy10],
+            ],
+        },
+    }, 
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}],
         model: 'JM-TRH-ZGB-V1',
