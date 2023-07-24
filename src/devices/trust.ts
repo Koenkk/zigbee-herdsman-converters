@@ -80,7 +80,7 @@ const definitions: Definition[] = [
         model: 'ZLED-RGB9',
         vendor: 'Trust',
         description: 'Smart RGB LED bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disablePowerOnBehavior: true}),
         endpoint: (device) => {
             return {'default': 2};
         },
