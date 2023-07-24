@@ -5484,66 +5484,25 @@ const definitions: Definition[] = [
         },
     },
     {
-	fingerprint: [
-		{modelID: 'TS0601', manufacturerName: '_TZE200_86nbew0j',
-		},
-	],    
-	model: 'TY-12-100-400-W1Z', 
-	vendor: 'Ltech',
-	description: '12W 100-400mA Tuya Zigbee CC Dimmable LED driver',
-	fromZigbee: [tuya.fz.datapoints],
-	toZigbee: [tuya.tz.datapoints],
-	exposes: [
-		tuya.exposes.lightBrightness()
-	],
-	meta: {
-		tuyaDatapoints: [
-			[1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
-			[3, 'brightness', tuya.valueConverter.scale0_254to0_1000],
-    		],
-    	},
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_86nbew0j', '_TZE200_io0zdqh1', '_TZE200_drs6j6m5']),
+        model: 'TS0601_light',
+        vendor: 'TuYa',
+        description: 'Light',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [tuya.exposes.lightBrightness()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [3, 'brightness', tuya.valueConverter.scale0_254to0_1000],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Ltech', 'TY-12-100-400-W1Z', '12W 100-400mA Zigbee CC Dimmable LED driver', ['_TZE200_86nbew0j']),
+            tuya.whitelabel('Ltech', 'TY-75-24-G2Z2', '150W 24V Zigbee CV tunable white LED driver', ['_TZE200_io0zdqh1']),
+            tuya.whitelabel('Lifud', 'LF-AAZ012-0400-42', 'Zigbee dimmable LED driver 4-40W 220-240Vac', ['_TZE200_drs6j6m5']),
+        ],
     },
-    {
-	fingerprint: [
-		{modelID: 'TS0601', manufacturerName: '_TZE200_io0zdqh1',
-		},
-	],    
-	model: 'TY-75-24-G2Z2',
-	vendor: 'Ltech',
-	description: '150W 24V Tuya Zigbee CV tunable white LED driver',
-	fromZigbee: [tuya.fz.datapoints],
-	toZigbee: [tuya.tz.datapoints],
-	exposes: [
-		tuya.exposes.lightBrightness()
-	],
-	meta: {
-		tuyaDatapoints: [
-			[1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
-			[3, 'brightness', tuya.valueConverter.scale0_254to0_1000],
-    		],
-    	},
-    },
-    {
-	fingerprint: [
-		{modelID: 'TS0601', manufacturerName: '_TZE200_drs6j6m5',
-		},
-	],    
-	model: 'LF-AAZ012-0400-42',
-	vendor: 'Lifud',
-	description: 'Zigbee Dimmable LED Driver 4-40W 220-240Vac',
-	fromZigbee: [tuya.fz.datapoints],
-	toZigbee: [tuya.tz.datapoints],
-	exposes: [
-		tuya.exposes.lightBrightness()
-	],
-	meta: {
-		tuyaDatapoints: [
-			[1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
-			[3, 'brightness', tuya.valueConverter.scale0_254to0_1000],
-		]
-	},
-    };
-
 ];
 
 module.exports = definitions;
