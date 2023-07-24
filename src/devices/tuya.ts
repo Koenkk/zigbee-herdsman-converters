@@ -5483,6 +5483,47 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_k7mfgaen']),
+        model: 'YXZBSL',
+        vendor: 'TuYa',
+        description: 'Smart siren',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.binary('alarm', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the light of the alarm ON/OFF'),
+            e.enum('type', ea.STATE_SET, ['sound', 'light', 'sound+light', 'normal']).withDescription('Alarm type'),
+            e.enum('volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high']).withDescription('Volume of the alarm'),
+            e.enum('ringtone', ea.STATE_SET, [
+                'melody1', 'melody2', 'melody3', 'melody4', 'melody5', 'melody6', 'melody7', 'melody8',
+                'door', 'water', 'temperature', 'entered', 'left',
+            ]).withDescription('Ringtone of the alarm'),
+            e.enum('power_type', ea.STATE, ['battery', 'cable']).withDescription('Power type'),
+            e.numeric('duration', ea.STATE_SET).withValueMin(1).withValueMax(60).withValueStep(1)
+                .withUnit('min').withDescription('Duration of the alarm'),
+            e.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'type', tuya.valueConverterBasic.lookup({
+                    'sound': tuya.enum(0), 'light': tuya.enum(1), 'sound+light': tuya.enum(2), 'normal': tuya.enum(3)})],
+                [5, 'volume', tuya.valueConverterBasic.lookup({
+                    'low': tuya.enum(0), 'middle': tuya.enum(1), 'high': tuya.enum(2), 'mute': tuya.enum(3)})],
+                [6, 'power_type', tuya.valueConverterBasic.lookup({'cable': false, 'battery': true})],
+                [7, 'duration', tuya.valueConverter.raw],
+                [13, 'alarm', tuya.valueConverter.onOff],
+                [14, 'battery_level', tuya.valueConverterBasic.lookup({
+                    'low': tuya.enum(0), 'middle': tuya.enum(1), 'high': tuya.enum(2)})],
+                [15, 'battery', tuya.valueConverter.raw],
+                [21, 'ringtone', tuya.valueConverterBasic.lookup({
+                    'melody1': tuya.enum(0), 'melody2': tuya.enum(1), 'melody3': tuya.enum(2), 'melody4': tuya.enum(3),
+                    'melody5': tuya.enum(4), 'melody6': tuya.enum(5), 'melody7': tuya.enum(6), 'melody8': tuya.enum(7),
+                    'door': tuya.enum(8), 'water': tuya.enum(9), 'temperature': tuya.enum(10), 'entered': tuya.enum(11), 'left': tuya.enum(12),
+                })],
+            ],
+        },
+    },
 ];
 
 module.exports = definitions;
