@@ -217,6 +217,18 @@ const definitions: Definition[] = [
             e.binary('calibration', ea.ALL, 'ON', 'OFF'), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
             e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
     },
+    {
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3210_ol1uhvza'}],
+        model: 'QS-Zigbee-C03',
+        vendor: 'Lonsonho',
+        description: 'Curtain/blind motor controller',
+        fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        meta: {coverInverted: true},
+        exposes: [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+            e.binary('calibration', ea.ALL, 'ON', 'OFF'), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
+            e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
+    },
 ];
 
 module.exports = definitions;
