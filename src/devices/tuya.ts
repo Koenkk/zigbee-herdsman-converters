@@ -5474,44 +5474,20 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [0x01, 'type', tuya.valueConverterBasic.lookup({
-                    'sound': tuya.enum(0),
-                    'light': tuya.enum(1),
-                    'sound+light': tuya.enum(2),
-                    'normal': tuya.enum(3),
-                })],
-                [0x05, 'volume', tuya.valueConverterBasic.lookup({
-                    'low': tuya.enum(0),
-                    'middle': tuya.enum(1),
-                    'high': tuya.enum(2),
-                    'mute': tuya.enum(3),
-                })],
-                [0x06, 'power_type', tuya.valueConverterBasic.lookup({
-                    'cable': false,
-                    'battery': true,
-                })],
-                [0x07, 'duration', tuya.valueConverter.raw],
-                [0x0D, 'alarm', tuya.valueConverter.onOff],
-                [0x0E, 'battery_level', tuya.valueConverterBasic.lookup({
-                    'low': tuya.enum(0),
-                    'middle': tuya.enum(1),
-                    'high': tuya.enum(2),
-                })],
-                [0x0F, 'battery', tuya.valueConverter.raw],
-                [0x15, 'ringtone', tuya.valueConverterBasic.lookup({
-                    'melody1': tuya.enum(0),
-                    'melody2': tuya.enum(1),
-                    'melody3': tuya.enum(2),
-                    'melody4': tuya.enum(3),
-                    'melody5': tuya.enum(4),
-                    'melody6': tuya.enum(5),
-                    'melody7': tuya.enum(6),
-                    'melody8': tuya.enum(7),
-                    'door': tuya.enum(8),
-                    'water': tuya.enum(9),
-                    'temperature': tuya.enum(10),
-                    'entered': tuya.enum(11),
-                    'left': tuya.enum(12),
+                [1, 'type', tuya.valueConverterBasic.lookup({
+                    'sound': tuya.enum(0), 'light': tuya.enum(1), 'sound+light': tuya.enum(2), 'normal': tuya.enum(3)})],
+                [5, 'volume', tuya.valueConverterBasic.lookup({
+                    'low': tuya.enum(0), 'middle': tuya.enum(1), 'high': tuya.enum(2), 'mute': tuya.enum(3)})],
+                [6, 'power_type', tuya.valueConverterBasic.lookup({'cable': false, 'battery': true})],
+                [7, 'duration', tuya.valueConverter.raw],
+                [13, 'alarm', tuya.valueConverter.onOff],
+                [14, 'battery_level', tuya.valueConverterBasic.lookup({
+                    'low': tuya.enum(0), 'middle': tuya.enum(1), 'high': tuya.enum(2)})],
+                [15, 'battery', tuya.valueConverter.raw],
+                [21, 'ringtone', tuya.valueConverterBasic.lookup({
+                    'melody1': tuya.enum(0), 'melody2': tuya.enum(1), 'melody3': tuya.enum(2), 'melody4': tuya.enum(3),
+                    'melody5': tuya.enum(4), 'melody6': tuya.enum(5), 'melody7': tuya.enum(6), 'melody8': tuya.enum(7),
+                    'door': tuya.enum(8), 'water': tuya.enum(9), 'temperature': tuya.enum(10), 'entered': tuya.enum(11), 'left': tuya.enum(12),
                 })],
             ],
         },
