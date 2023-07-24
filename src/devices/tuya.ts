@@ -4703,6 +4703,18 @@ const definitions: Definition[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3000_hdc8bbha']),
+        model: 'QS-Zigbee-SEC01-U',
+        vendor: 'TuYa',
+        description: 'Zigbee 3.0 smart light switch module 1 gang',
+        extend: tuya.extend.switch({switchType: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS000F', ['_TZ3000_m8f3z8ju']),
         model: 'QS-Zigbee-SEC02-U',
         vendor: 'TuYa',
