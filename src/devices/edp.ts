@@ -8,7 +8,7 @@ const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['ZB-SmartPlug-1.0.0'],
+        zigbeeModel: ['ZB-SmartPlug-1.0.0', 'ZB-SmartPlugIR-1.0.0'],
         model: 'PLUG EDP RE:DY',
         vendor: 'EDP',
         description: 're:dy plug',
