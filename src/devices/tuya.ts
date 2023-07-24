@@ -5465,6 +5465,27 @@ const definitions: Definition[] = [
     		],
     	},
     },
+    {
+	fingerprint: [
+		{modelID: 'TS0601', manufacturerName: '_TZE200_drs6j6m5',
+		},
+	],    
+	model: 'LF-AAZ012-0400-42',
+	vendor: 'Lifud',
+	description: 'Zigbee Dimmable LED Driver 4-40W 220-240Vac',
+	fromZigbee: [tuya.fz.datapoints],
+	toZigbee: [tuya.tz.datapoints],
+	exposes: [
+		tuya.exposes.lightBrightness()
+	],
+	meta: {
+		tuyaDatapoints: [
+			[1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+			[3, 'brightness', tuya.valueConverter.scale0_254to0_1000],
+		]
+	},
+    };
+
 ];
 
 module.exports = definitions;
