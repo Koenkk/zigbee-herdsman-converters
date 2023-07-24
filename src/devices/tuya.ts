@@ -22,6 +22,13 @@ const ez = zosung.presetsZosung;
 
 
 const tzLocal = {
+    TS0726_switch_mode: {
+        key: ['switch_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(0xe001, {0xd020: {value: utils.getFromLookup(value, {switch: 0, scene: 1}), type: 0x30}});
+            return {state: {switch_mode: value}};
+        },
+    } as Tz.Converter,
     led_control: {
         key: ['brightness', 'color', 'color_temp', 'transition'],
         options: [exposes.options.color_sync()],
@@ -323,6 +330,13 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    TS0726_action: {
+        cluster: 'genOnOff',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `scene_${msg.endpoint.ID}`};
+        },
+    } as Fz.Converter,
     TS0222_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
@@ -3531,17 +3545,23 @@ const definitions: Definition[] = [
         model: 'TS0726',
         vendor: 'TuYa',
         description: '4 gang switch with neutral wire',
-        extend: tuya.extend.switch({powerOnBehavior2: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
+        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fz.ignore_basic_report, fzLocal.TS0726_action],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
+        exposes: [
+            ...[1, 2, 3, 4].map((ep) => e.switch().withEndpoint(`l${ep}`)),
+            ...[1, 2, 3, 4].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
+            ...[1, 2, 3, 4].map((ep) => e.enum('switch_mode', ea.STATE_SET, ['switch', 'scene']).withEndpoint(`l${ep}`)),
+            e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4']),
+        ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            for (const ep of [1, 2, 3, 4]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
+            }
         },
     },
     {
