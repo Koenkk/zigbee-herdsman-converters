@@ -28,11 +28,11 @@ const fzLocal = {
                 const hex = msg.data['256'].toString(16).padStart(8, '0');
                 const firstOctet = String(hex.substring(0, 2));
                 const lookup: { [key: string]: string } = {
-                    '00': 'MQTT',
-                    '02': 'Keypad',
-                    '03': 'Fingerprint',
-                    '04': 'RFID',
-                    '0a': 'Self',
+                    '00': 'mqtt',
+                    '02': 'keypad',
+                    '03': 'fingerprintsensor',
+                    '04': 'rfid',
+                    '0a': 'self',
                 };
                 result.last_action_source = lookup[firstOctet]||'Unknown';
                 const secondOctet = hex.substring(2, 4);
