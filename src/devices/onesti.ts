@@ -11,7 +11,7 @@ const fzLocal = {
     nimly_pro_lock_actions: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
-        convert: (model: Definition, msg: Fz.Message) => {
+        convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const attributes: KeyValue = {};
             // Handle attribute 257
