@@ -5545,46 +5545,18 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_vmcgja59'},
-        ],
-        model: 'TS0601_switch_24',
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_vmcgja59']),
+        model: 'ZYXH',
         vendor: 'TuYa',
-        description: '24 Gang switch',
+        description: '24 gang switch',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [
-            tuya.exposes.switch().withEndpoint('l1'),
-            tuya.exposes.switch().withEndpoint('l2'),
-            tuya.exposes.switch().withEndpoint('l3'),
-            tuya.exposes.switch().withEndpoint('l4'),
-            tuya.exposes.switch().withEndpoint('l5'),
-            tuya.exposes.switch().withEndpoint('l6'),
-            tuya.exposes.switch().withEndpoint('l7'),
-            tuya.exposes.switch().withEndpoint('l8'),
-            tuya.exposes.switch().withEndpoint('l9'),
-            tuya.exposes.switch().withEndpoint('l10'),
-            tuya.exposes.switch().withEndpoint('l11'),
-            tuya.exposes.switch().withEndpoint('l12'),
-            tuya.exposes.switch().withEndpoint('l13'),
-            tuya.exposes.switch().withEndpoint('l14'),
-            tuya.exposes.switch().withEndpoint('l15'),
-            tuya.exposes.switch().withEndpoint('l16'),
-            tuya.exposes.switch().withEndpoint('l17'),
-            tuya.exposes.switch().withEndpoint('l18'),
-            tuya.exposes.switch().withEndpoint('l19'),
-            tuya.exposes.switch().withEndpoint('l20'),
-            tuya.exposes.switch().withEndpoint('l21'),
-            tuya.exposes.switch().withEndpoint('l22'),
-            tuya.exposes.switch().withEndpoint('l23'),
-            tuya.exposes.switch().withEndpoint('l24'),
-        ],
+        exposes: [...Array.from(Array(24).keys()).map((ep) => tuya.exposes.switch().withEndpoint(`l${ep + 1}`))],
         endpoint: (device) => {
             return {
-                'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1,
-                'l9': 1, 'l10': 1, 'l11': 1, 'l12': 1, 'l13': 1, 'l14': 1, 'l15': 1, 'l16': 1,
-                'l17': 1, 'l18': 1, 'l19': 1, 'l20': 1, 'l21': 1, 'l22': 1, 'l23': 1, 'l24': 1,
+                'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1, 'l9': 1, 'l10': 1, 'l11': 1, 'l12': 1,
+                'l13': 1, 'l14': 1, 'l15': 1, 'l16': 1, 'l17': 1, 'l18': 1, 'l19': 1, 'l20': 1, 'l21': 1, 'l22': 1, 'l23': 1, 'l24': 1,
             };
         },
         meta: {
@@ -5616,9 +5588,6 @@ const definitions: Definition[] = [
                 [0x76, 'state_l24', tuya.valueConverter.onOff],
             ],
         },
-        whiteLabel: [
-            tuya.whitelabel('ZYXH', 'TS0601_switch_24', '24 Gang switch', ['_TZE204_vmcgja59']),
-        ],
     },
 ];
 
