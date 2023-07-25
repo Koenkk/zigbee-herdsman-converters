@@ -5544,6 +5544,51 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_vmcgja59']),
+        model: 'ZYXH',
+        vendor: 'TuYa',
+        description: '24 gang switch',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [...Array.from(Array(24).keys()).map((ep) => tuya.exposes.switch().withEndpoint(`l${ep + 1}`))],
+        endpoint: (device) => {
+            return {
+                'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1, 'l9': 1, 'l10': 1, 'l11': 1, 'l12': 1,
+                'l13': 1, 'l14': 1, 'l15': 1, 'l16': 1, 'l17': 1, 'l18': 1, 'l19': 1, 'l20': 1, 'l21': 1, 'l22': 1, 'l23': 1, 'l24': 1,
+            };
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+                [5, 'state_l5', tuya.valueConverter.onOff],
+                [6, 'state_l6', tuya.valueConverter.onOff],
+                [0x65, 'state_l7', tuya.valueConverter.onOff],
+                [0x66, 'state_l8', tuya.valueConverter.onOff],
+                [0x67, 'state_l9', tuya.valueConverter.onOff],
+                [0x68, 'state_l10', tuya.valueConverter.onOff],
+                [0x69, 'state_l11', tuya.valueConverter.onOff],
+                [0x6A, 'state_l12', tuya.valueConverter.onOff],
+                [0x6B, 'state_l13', tuya.valueConverter.onOff],
+                [0x6C, 'state_l14', tuya.valueConverter.onOff],
+                [0x6D, 'state_l15', tuya.valueConverter.onOff],
+                [0x6E, 'state_l16', tuya.valueConverter.onOff],
+                [0x6F, 'state_l17', tuya.valueConverter.onOff],
+                [0x70, 'state_l18', tuya.valueConverter.onOff],
+                [0x71, 'state_l19', tuya.valueConverter.onOff],
+                [0x72, 'state_l20', tuya.valueConverter.onOff],
+                [0x73, 'state_l21', tuya.valueConverter.onOff],
+                [0x74, 'state_l22', tuya.valueConverter.onOff],
+                [0x75, 'state_l23', tuya.valueConverter.onOff],
+                [0x76, 'state_l24', tuya.valueConverter.onOff],
+            ],
+        },
+    },
 ];
 
 module.exports = definitions;
