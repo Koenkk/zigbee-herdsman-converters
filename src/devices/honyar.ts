@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import * as utils from '../lib/utils';
 import extend from '../lib/extend';
 const e = exposes.presets;
 
