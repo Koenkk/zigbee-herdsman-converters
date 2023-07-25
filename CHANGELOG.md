@@ -1,5 +1,19 @@
 # Changelog
 
+## [15.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.46.0...v15.47.0) (2023-07-25)
+
+
+### Features
+
+* **add:** WB-MSW-ZIGBEE v.4 ([#6006](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6006)) ([db83556](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db8355656b175c6ea8c80d85cf290f1731c3aa6a))
+* **add:** ZYXH ([#6007](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6007)) ([4e31caa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4e31caa73db228513701af3645b36c7536144ba1))
+* Expose `battery` for Visonic MP-840 ([#6008](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6008)) ([e6b2b53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e6b2b53ca51e9010db620c49f5fe76dbd2576a99))
+
+
+### Bug Fixes
+
+* **ignore:** Improvements for U86Z223A10-ZJU01(GD) ([#5997](https://github.com/Koenkk/zigbee-herdsman-converters/issues/5997)) ([2062d03](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2062d03d53d2e2baea9a0cfe71b161128fef6af3))
+
 ## [15.46.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.45.0...v15.46.0) (2023-07-24)
 
 
