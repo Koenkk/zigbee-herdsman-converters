@@ -34,7 +34,7 @@ const fzLocal = {
                     '04': 'rfid',
                     '0a': 'self',
                 };
-                result.last_action_source = lookup[firstOctet]||'Unknown';
+                result.last_action_source = lookup[firstOctet]||'unknown';
                 const secondOctet = hex.substring(2, 4);
                 const thirdOctet = hex.substring(4, 8);
                 result.last_action_user = parseInt(thirdOctet, 16);
