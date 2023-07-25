@@ -3263,6 +3263,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['915005988201'],
+        model: '915005988201',
+        vendor: 'Philips',
+        description: 'Hue Gradient light tube large black EU',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929003055701'],
         model: '929003055701',
         vendor: 'Philips',
