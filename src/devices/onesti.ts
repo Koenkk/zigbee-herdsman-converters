@@ -1,4 +1,4 @@
-import {Definition} from '../lib/types';
+import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -11,7 +11,7 @@ const fzLocal = {
     nimly_pro_lock_actions: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg) => {
+        convert: (model: Definition, msg: Fz.Message) => {
             const result: KeyValue = {};
             const attributes: KeyValue = {};
             // Handle attribute 257
@@ -27,8 +27,8 @@ const fzLocal = {
             // Handle attribute 256
             if (msg.data['256'] !== undefined) {
                 const hex = msg.data['256'].toString(16).padStart(8, '0');
-                const firstOctet = hex.substring(0, 2);
-                const lookup = {
+                const firstOctet = String(hex.substring(0, 2));
+                const lookup: { [key: string]: string } = {
                     '00': 'MQTT',
                     '02': 'Keypad',
                     '03': 'Fingerprint',
@@ -67,7 +67,7 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.nimly_pro_lock_actions, fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.easycodetouch_action],
         toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume, tz.pincode_lock],
         meta: {pinCodeCount: 50},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -93,7 +93,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature, fz.identify],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genDeviceTempCfg',
                 'haElectricalMeasurement', 'seMetering']);
