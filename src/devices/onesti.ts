@@ -83,6 +83,7 @@ const definitions: Definition[] = [
             e.text('last_lock_user', ea.STATE).withDescription('Last lock user'),
             e.text('last_used_pin_code', ea.STATE).withDescription('Last used pin code'),
             e.binary('auto_relock', ea.STATE_SET, true, false).withDescription('Auto relock after 7 seconds.'),
+            e.pincode(),
         ],
     },
     {
