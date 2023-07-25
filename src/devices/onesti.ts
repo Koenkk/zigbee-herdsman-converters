@@ -5,7 +5,57 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
-import * as constants from '../lib/constants';
+import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
+
+const fzLocal = {
+    nimly_pro_lock_actions: {
+        cluster: 'closuresDoorLock',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg) => {
+            const result: KeyValue = {};
+            const attributes: KeyValue = {};
+            // Handle attribute 257
+            if (msg.data['257'] !== undefined) {
+                const buffer = Buffer.from(msg.data['257']);
+                let pincode = '';
+                for (const byte of buffer) {
+                    pincode += byte.toString(16);
+                }
+                attributes.last_used_pincode = pincode;
+            }
+
+            // Handle attribute 256
+            if (msg.data['256'] !== undefined) {
+                const hex = msg.data['256'].toString(16).padStart(8, '0');
+                const firstOctet = hex.substring(0, 2);
+                const lookup = {
+                    '00': 'MQTT',
+                    '02': 'Keypad',
+                    '03': 'Fingerprint',
+                    '04': 'RFID',
+                    '0a': 'Self',
+                };
+                result.last_action_source = lookup[firstOctet]||'Unknown';
+                const secondOctet = hex.substring(2, 4);
+                const thirdOctet = hex.substring(4, 8);
+                result.last_action_user = parseInt(thirdOctet, 16);
+                if (secondOctet == '01') {
+                    attributes.last_lock_user = result.last_action_user;
+                    attributes.last_lock_source = result.last_action_source;
+                } else if (secondOctet == '02') {
+                    attributes.last_unlock_user = result.last_action_user;
+                    attributes.last_unlock_source = result.last_action_source;
+                }
+            }
+
+            // Return result if not empty
+            if (Object.keys(attributes).length > 0) {
+                return attributes;
+            }
+        },
+    },
+};
+
 
 const definitions: Definition[] = [
     {
@@ -13,7 +63,8 @@ const definitions: Definition[] = [
         model: 'easyCodeTouch_v1',
         vendor: 'Onesti Products AS',
         description: 'Zigbee module for EasyAccess code touch series',
-        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.easycodetouch_action],
+        // eslint-disable-next-line max-len
+        fromZigbee: [fzLocal.nimly_pro_lock_actions, fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.easycodetouch_action],
         toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume, tz.pincode_lock],
         meta: {pinCodeCount: 50},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -26,10 +77,12 @@ const definitions: Definition[] = [
             device.save();
         },
         exposes: [e.lock(), e.battery(), e.sound_volume(),
-            e.lock_action_source_name(), e.lock_action_user(),
-            e.action(Array.from(Object.values(constants.easyCodeTouchActions))),
+            e.text('last_unlock_source', ea.STATE).withDescription('Last unlock source'),
+            e.text('last_unlock_user', ea.STATE).withDescription('Last unlock user'),
+            e.text('last_lock_source', ea.STATE).withDescription('Last lock source'),
+            e.text('last_lock_user', ea.STATE).withDescription('Last lock user'),
+            e.text('last_used_pin_code', ea.STATE).withDescription('Last used pin code'),
             e.binary('auto_relock', ea.STATE_SET, true, false).withDescription('Auto relock after 7 seconds.'),
-            e.pincode(),
         ],
     },
     {
