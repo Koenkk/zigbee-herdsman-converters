@@ -8,20 +8,6 @@ import * as utils from '../lib/utils';
 import extend from '../lib/extend';
 const e = exposes.presets;
 
-const fzLocal = {
-    // Refer
-    // https://github.com/Koenkk/zigbee2mqtt/issues/13190
-    HY0157_on_off: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
-                const endpointName = utils.getKey(model.endpoint(meta.device), msg.endpoint.ID);
-                return {[`state_${endpointName}`]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
-            }
-        },
-    } as Fz.Converter,
-};
 const definitions: Definition[] = [
     {
         zigbeeModel: ['00500c35'],
@@ -70,10 +56,11 @@ const definitions: Definition[] = [
         model: 'U86Z223A10-ZJU01(GD)',
         vendor: 'Honyar',
         description: 'Smart power socket 10A with USB (with power monitoring)',
-        fromZigbee: [fzLocal.HY0157_on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power(), e.current(), e.voltage(),
             e.energy()],
+        meta: {multiEndpoint: true, multiEndpointSkip: ['energy', 'current', 'voltage', 'power']},
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
