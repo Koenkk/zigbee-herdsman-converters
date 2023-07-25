@@ -28,7 +28,7 @@ const fzLocal = {
                 const hex = msg.data['256'].toString(16).padStart(8, '0');
                 const firstOctet = String(hex.substring(0, 2));
                 const lookup: { [key: string]: string } = {
-                    '00': 'mqtt',
+                    '00': 'zigbee',
                     '02': 'keypad',
                     '03': 'fingerprintsensor',
                     '04': 'rfid',
