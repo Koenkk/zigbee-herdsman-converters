@@ -1,11 +1,10 @@
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {Definition, Fz} from 'src/lib/types';
+import {Definition, Fz, KeyValue} from 'src/lib/types';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
-import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
 
 const fzLocal = {
     nimly_pro_lock_actions: {
@@ -63,11 +62,11 @@ const definitions: Definition[] = [
         model: 'easyCodeTouch_v1',
         vendor: 'Onesti Products AS',
         description: 'Zigbee module for EasyAccess code touch series',
-        // eslint-disable-next-line max-len
-        fromZigbee: [fzLocal.nimly_pro_lock_actions, fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.easycodetouch_action],
+        fromZigbee: [fzLocal.nimly_pro_lock_actions, fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event,
+            fz.easycodetouch_action],
         toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume, tz.pincode_lock],
         meta: {pinCodeCount: 50},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -94,7 +93,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature, fz.identify],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genDeviceTempCfg',
                 'haElectricalMeasurement', 'seMetering']);
