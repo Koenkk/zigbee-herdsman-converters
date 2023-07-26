@@ -4174,7 +4174,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sxm7l9xa']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sxm7l9xa','_TZE204_qasjif9e']),
         model: 'ZY-M100-S',
         vendor: 'TuYa',
         description: 'Mini Human Breathe Sensor',
