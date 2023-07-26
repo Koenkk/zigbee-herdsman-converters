@@ -1,8 +1,5 @@
 import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-
 
 const definitions: Definition[] = [
     {
