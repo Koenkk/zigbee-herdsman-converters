@@ -505,9 +505,9 @@ module.exports = [
         model: 'S520530W',
         vendor: 'Schneider Electric',
         description: 'Odace connectable relay switch 10A',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(21);
+            const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
