@@ -4146,6 +4146,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wukb7rhc'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_xsm7l9xa'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_ztc6ggyl'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_qasjif9e'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'}],
         model: 'TS0601_smart_human_presence_sensor_1',
         vendor: 'TuYa',
@@ -4177,7 +4178,7 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sxm7l9xa']),
         model: 'ZY-M100-S',
         vendor: 'TuYa',
-        description: 'Mini Human Breathe Sensor',
+        description: 'Mini human breathe sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
