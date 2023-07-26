@@ -76,9 +76,9 @@ const definitions: Definition[] = [
             device.save();
         },
         exposes: [e.lock(), e.battery(), e.sound_volume(),
-            e.text('last_unlock_source', ea.STATE).withDescription('Last unlock source'),
+            e.enum('last_unlock_source', ea.STATE, ['zigbee', 'keypad', 'fingerprintsensor', 'rfid', 'self', 'unknown']),
             e.text('last_unlock_user', ea.STATE).withDescription('Last unlock user'),
-            e.text('last_lock_source', ea.STATE).withDescription('Last lock source'),
+            e.enum('last_lock_source', ea.STATE, ['zigbee', 'keypad', 'fingerprintsensor', 'rfid', 'self', 'unknown']),
             e.text('last_lock_user', ea.STATE).withDescription('Last lock user'),
             e.text('last_used_pin_code', ea.STATE).withDescription('Last used pin code'),
             e.binary('auto_relock', ea.STATE_SET, true, false).withDescription('Auto relock after 7 seconds.'),
