@@ -2830,7 +2830,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Nous', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_2putqrmw']),
             tuya.whitelabel('Moes', 'MOES_plug', 'Smart plug (with power monitoring)', ['_TZ3000_yujkchbz']),
             tuya.whitelabel('Moes', 'ZK-EU', 'Smart wallsocket (with power monitoring)', ['_TZ3000_ss98ec5d']),
-            tuya.whitelabel('Moes', '1AZ', 'Smart plug (with power monitoring)', ['_TZ3000_ksw8qtmt']),
+            tuya.whitelabel('Nous', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_ksw8qtmt']),
         ],
         ota: ota.zigbeeOTA,
         extend: tuya.extend.switch({
