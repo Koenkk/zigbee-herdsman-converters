@@ -20,7 +20,7 @@ const fzLocal = {
                 for (const byte of buffer) {
                     pincode += byte.toString(16);
                 }
-                attributes.last_used_pincode = pincode;
+                attributes.last_used_pin_code = pincode;
             }
 
             // Handle attribute 256
