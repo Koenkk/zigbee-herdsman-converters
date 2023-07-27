@@ -318,9 +318,7 @@ module.exports = [
             await reporting.fanMode(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
-            await reporting.thermostatUnoccupiedCoolingSetpoint(endpoint);
             await reporting.thermostatTemperature(endpoint, {min: 60, max: 600, change: 0.1});
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningMode(endpoint);
