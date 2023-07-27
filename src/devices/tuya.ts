@@ -4154,7 +4154,6 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wukb7rhc'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_xsm7l9xa'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_ztc6ggyl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_qasjif9e'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'}],
         model: 'TS0601_smart_human_presence_sensor_1',
         vendor: 'TuYa',
@@ -4184,7 +4183,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sxm7l9xa']),
-        model: 'ZY-M100-S',
+        model: 'ZY-M100-S_1',
         vendor: 'TuYa',
         description: 'Mini human breathe sensor',
         fromZigbee: [tuya.fz.datapoints],
@@ -4213,6 +4212,40 @@ const definitions: Definition[] = [
                 [109, 'target_distance', tuya.valueConverter.divideBy100],
                 [110, 'fading_time', tuya.valueConverter.divideBy10],
                 [111, 'detection_delay', tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_qasjif9e']),
+        model: 'ZY-M100-S_2',
+        vendor: 'TuYa',
+        description: 'Mini human breathe sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.illuminance_lux(), e.presence(),
+            e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
+            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
+                .withDescription('sensitivity of the radar'),
+            e.numeric('minimum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
+                .withDescription('Minimum range').withUnit('m'),
+            e.numeric('maximum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
+                .withDescription('Maximum range').withUnit('m'),
+            e.numeric('detection_delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1)
+                .withDescription('Detection delay').withUnit('s'),
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(0.5).withValueMax(1500).withValueStep(1)
+                .withDescription('Fading time').withUnit('s'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [9, 'target_distance', tuya.valueConverter.divideBy100],
+                [104, 'illuminance_lux', tuya.valueConverter.raw],
+                [2, 'radar_sensitivity', tuya.valueConverter.raw],
+                [4, 'maximum_range', tuya.valueConverter.divideBy100],
+                [3, 'minimum_range', tuya.valueConverter.divideBy100],
+                [102, 'fading_time', tuya.valueConverter.divideBy10],
+                [101, 'detection_delay', tuya.valueConverter.divideBy10],
             ],
         },
     },
