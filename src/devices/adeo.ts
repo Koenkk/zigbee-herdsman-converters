@@ -331,16 +331,6 @@ const definitions: Definition[] = [
         vendor: 'ADEO',
         description: 'ENKI LEXMAN Access Control',
         extend: extend.switch(),
-        // The configure method below is needed to make the device reports on/off state changes
-        // when the device is controlled manually through the button on it.
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(ep);
-        },
-        endpoint: (device) => {
-            return {default: 1};
-        },
     },
 ];
 
