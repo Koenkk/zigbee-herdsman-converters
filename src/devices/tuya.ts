@@ -2931,7 +2931,10 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ntcy3xu1']),
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ntcy3xu1'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_ntcy3xu1'},
+        ],
         model: 'TS0601_smoke_1',
         vendor: 'TuYa',
         description: 'Smoke sensor',
