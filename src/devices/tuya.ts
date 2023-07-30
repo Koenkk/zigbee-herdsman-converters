@@ -554,6 +554,7 @@ const definitions: Definition[] = [
             {vendor: 'TuYa', model: 'iH-F001'},
             {vendor: 'Tesla Smart', model: 'TSL-SEN-DOOR'},
             {vendor: 'Cleverio', model: 'SS100'},
+            tuya.whitelabel('Niceboy', 'ORBIS Windows & Door Sensor', 'Door sensor', ['_TZ3000_qrldbmfn']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
@@ -992,6 +993,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0202', manufacturerName: '_TZ3040_bb6xaihh'},
             {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'},
             {modelID: 'TS0202', manufacturerName: '_TZ3040_wqmtjsyk'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_qomxlryd'},
         ],
         model: 'TS0202',
         vendor: 'TuYa',
@@ -1003,6 +1005,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'ZMS01', 'Motion sensor', ['_TZ3000_otvn3lne']),
             tuya.whitelabel('Nous', 'E2', 'Motion sensor', ['_TZ3000_h4wnrtck']),
             tuya.whitelabel('TuYa', '809WZT', 'Motion sensor', ['_TZ3040_bb6xaihh']),
+            tuya.whitelabel('Niceboy', 'ORBIS Motion Sensor', 'Motion sensor', ['_TZ3000_qomxlryd']),
         ],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
@@ -1077,6 +1080,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_1', 'Zigbee water flood sensor + 1m probe cable', ['_TZ3000_ocjlo4ea']),
             tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_2', 'Zigbee water leak sensor + alarm (40dB)', ['_TZ3000_upgcbody']),
             tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_3', 'Zigbee water leak sensor', ['_TYZB01_sqmd19i1']),
+            tuya.whitelabel('Niceboy', 'ORBIS Water Sensor', 'Water leak sensor', ['_TZ3000_awvmkayh']),
         ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2830,7 +2834,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Nous', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_2putqrmw']),
             tuya.whitelabel('Moes', 'MOES_plug', 'Smart plug (with power monitoring)', ['_TZ3000_yujkchbz']),
             tuya.whitelabel('Moes', 'ZK-EU', 'Smart wallsocket (with power monitoring)', ['_TZ3000_ss98ec5d']),
-            tuya.whitelabel('Moes', '1AZ', 'Smart plug (with power monitoring)', ['_TZ3000_ksw8qtmt']),
+            tuya.whitelabel('Nous', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_ksw8qtmt']),
         ],
         ota: ota.zigbeeOTA,
         extend: tuya.extend.switch({
@@ -3751,10 +3755,14 @@ const definitions: Definition[] = [
             {modelID: 'TS0210', manufacturerName: '_TYZB01_cc3jzhlj'},
             {modelID: 'TS0210', manufacturerName: '_TZ3000_bmfw9ykl'},
             {modelID: 'TS0210', manufacturerName: '_TYZB01_geigpsy4'},
-            {modelID: 'TS0210', manufacturerName: '_TZ3000_fkxmyics'}],
+            {modelID: 'TS0210', manufacturerName: '_TZ3000_fkxmyics'},
+            {modelID: 'TS0210', manufacturerName: '_TYZB01_821siati'}],
         model: 'TS0210',
         vendor: 'TuYa',
         description: 'Vibration sensor',
+        whiteLabel: [
+            tuya.whitelabel('Niceboy', 'ORBIS Vibration Sensor', 'Vibration sensor', ['_TYZB01_821siati']),
+        ],
         fromZigbee: [fz.battery, fz.ias_vibration_alarm_1_with_timeout],
         toZigbee: [tz.TS0210_sensitivity],
         exposes: [e.battery(), e.battery_voltage(), e.vibration(), e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(50)],
@@ -4146,7 +4154,6 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wukb7rhc'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_xsm7l9xa'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_ztc6ggyl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_qasjif9e'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'}],
         model: 'TS0601_smart_human_presence_sensor_1',
         vendor: 'TuYa',
@@ -4176,7 +4183,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sxm7l9xa']),
-        model: 'ZY-M100-S',
+        model: 'ZY-M100-S_1',
         vendor: 'TuYa',
         description: 'Mini human breathe sensor',
         fromZigbee: [tuya.fz.datapoints],
@@ -4205,6 +4212,40 @@ const definitions: Definition[] = [
                 [109, 'target_distance', tuya.valueConverter.divideBy100],
                 [110, 'fading_time', tuya.valueConverter.divideBy10],
                 [111, 'detection_delay', tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_qasjif9e']),
+        model: 'ZY-M100-S_2',
+        vendor: 'TuYa',
+        description: 'Mini human breathe sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.illuminance_lux(), e.presence(),
+            e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
+            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
+                .withDescription('sensitivity of the radar'),
+            e.numeric('minimum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
+                .withDescription('Minimum range').withUnit('m'),
+            e.numeric('maximum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
+                .withDescription('Maximum range').withUnit('m'),
+            e.numeric('detection_delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1)
+                .withDescription('Detection delay').withUnit('s'),
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(0.5).withValueMax(1500).withValueStep(1)
+                .withDescription('Fading time').withUnit('s'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [9, 'target_distance', tuya.valueConverter.divideBy100],
+                [104, 'illuminance_lux', tuya.valueConverter.raw],
+                [2, 'radar_sensitivity', tuya.valueConverter.raw],
+                [4, 'maximum_range', tuya.valueConverter.divideBy100],
+                [3, 'minimum_range', tuya.valueConverter.divideBy100],
+                [102, 'fading_time', tuya.valueConverter.divideBy10],
+                [101, 'detection_delay', tuya.valueConverter.divideBy10],
             ],
         },
     },

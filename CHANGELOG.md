@@ -1,5 +1,21 @@
 # Changelog
 
+## [15.49.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.48.0...v15.49.0) (2023-07-27)
+
+
+### Features
+
+* Add new features for Onesti Products AS easyCodeTouch_v1 ([#6010](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6010)) ([62fbaa2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/62fbaa2cec1b1846813707a25390dc4227f56380))
+* **add:** SOMFY-1241752 ([#6019](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6019)) ([ccffb64](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ccffb6437c0810e744e700ffd32f4b83d3c60bb0))
+* **add:** ZY-M100-S_2 ([#5990](https://github.com/Koenkk/zigbee-herdsman-converters/issues/5990)) ([90519ec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/90519ecfbd064fc16a8eb757cfc00feead3876e1))
+* **detect:** Detect `_TZ3000_qomxlryd` as ORBIS Windows & Door Sensor, `_TZ3000_qomxlryd` as ORBIS Motion Sensor, `_TZ3000_awvmkayh` as ORBIS Water Sensor and `_TYZB01_821siati` as ORBIS Vibration Sensor ([#6013](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6013)) ([7ad7aa3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7ad7aa3fde3e47b36b4b3e1cddadc7f47abc1c33))
+
+
+### Bug Fixes
+
+* Fix configure failing for OWON PCT504 ([#6020](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6020)) ([cfc5e64](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cfc5e649b20cc17638690813fbdbd59a14c8b5f7))
+* Fix typo with Noes A1Z ([#6021](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6021)) ([69c3223](https://github.com/Koenkk/zigbee-herdsman-converters/commit/69c32231aaa6557ab7773fb1af356c6f86303264))
+
 ## [15.48.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.47.0...v15.48.0) (2023-07-26)
 
 
