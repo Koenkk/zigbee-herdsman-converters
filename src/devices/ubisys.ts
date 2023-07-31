@@ -954,7 +954,7 @@ const definitions: Definition[] = [
             return {
                 'l1': 11, 'l2': 12, 'l3': 13, 'l4': 14, 'l5': 15,
                 'l6': 16, 'l7': 17, 'l8': 18, 'l9': 19, 'l10': 20,
-                default: 21,
+                'default': 21,
             };
         },
         exposes: [
