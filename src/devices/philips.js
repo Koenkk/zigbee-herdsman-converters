@@ -659,7 +659,7 @@ module.exports = [
         model: '9290024406A',
         vendor: 'Philips',
         description: 'Hue P45 light bulb',
-        extend: extend.light_onoff_brightness(),
+        extend: philips.extend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['915005987801'],
