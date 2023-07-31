@@ -325,6 +325,18 @@ const definitions: Definition[] = [
         },
         exposes: [e.cover_position()],
     },
+    {
+        zigbeeModel: ['SIN-4-1-22_LEX'],
+        model: 'SIN-4-1-22_LEX',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN Access Control',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(ep);
+        },
+    },
 ];
 
 module.exports = definitions;
