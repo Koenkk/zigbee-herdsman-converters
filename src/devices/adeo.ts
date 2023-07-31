@@ -335,7 +335,7 @@ const definitions: Definition[] = [
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(ep);
-        },        
+        },
     },
 ];
 
