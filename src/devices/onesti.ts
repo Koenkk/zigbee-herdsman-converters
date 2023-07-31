@@ -20,7 +20,7 @@ const fzLocal = {
                 for (const byte of buffer) {
                     pincode += byte.toString(16);
                 }
-                attributes.last_used_pincode = pincode;
+                attributes.last_used_pin_code = pincode;
             }
 
             // Handle attribute 256
@@ -76,9 +76,11 @@ const definitions: Definition[] = [
             device.save();
         },
         exposes: [e.lock(), e.battery(), e.sound_volume(),
-            e.enum('last_unlock_source', ea.STATE, ['zigbee', 'keypad', 'fingerprintsensor', 'rfid', 'self', 'unknown']),
-            e.text('last_unlock_user', ea.STATE).withDescription('Last unlock user'),
-            e.enum('last_lock_source', ea.STATE, ['zigbee', 'keypad', 'fingerprintsensor', 'rfid', 'self', 'unknown']),
+            e.enum('last_unlock_source', ea.STATE, ['zigbee', 'keypad', 'fingerprintsensor', 'rfid',
+                'self', 'unknown']).withDescription('Last unlock source'),
+            e.text('last_unlock_user', ea.STATE).withDescription('Last unlock user').withDescription('Last unlock user'),
+            e.enum('last_lock_source', ea.STATE, ['zigbee', 'keypad', 'fingerprintsensor', 'rfid',
+                'self', 'unknown']).withDescription('Last lock source'),
             e.text('last_lock_user', ea.STATE).withDescription('Last lock user'),
             e.text('last_used_pin_code', ea.STATE).withDescription('Last used pin code'),
             e.binary('auto_relock', ea.STATE_SET, true, false).withDescription('Auto relock after 7 seconds.'),
