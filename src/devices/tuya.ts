@@ -566,6 +566,25 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0203', ['_TZ3210_jowhpxop']),
+        model: 'TS0203_1',
+        vendor: 'TuYa',
+        description: 'Door sensor with scene switch',
+        fromZigbee: [tuya.fz.datapoints, fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [e.action(['single', 'double', 'hold']), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
+        meta: {
+            tuyaDatapoints: [
+                [101, 'action', tuya.valueConverterBasic.lookup({'single': 0, 'double': 1, 'hold': 2})],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Linkoze', 'LKDSZ001', 'Door sensor with scene switch', ['_TZ3210_jowhpxop']),
+        ],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'},
