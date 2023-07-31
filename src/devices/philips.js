@@ -655,6 +655,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['LWU002'],
+        model: '9290024406A',
+        vendor: 'Philips',
+        description: 'Hue P45 light bulb',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['915005987801'],
         model: '915005987801',
         vendor: 'Philips',
