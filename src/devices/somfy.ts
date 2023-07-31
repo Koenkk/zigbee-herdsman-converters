@@ -15,11 +15,11 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.power_source, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint, logger) => {
-    	   const endpoint = device.getEndpoint(232);
-           await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-           await reporting.batteryPercentageRemaining(endpoint);
+            const endpoint = device.getEndpoint(232);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.cover_position(),e.battery()]
+        exposes: [e.cover_position(), e.battery()],
     },
 ];
 
