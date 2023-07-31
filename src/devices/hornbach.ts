@@ -38,6 +38,13 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['VIYU_GU10_350_RGBW_10454466'],
+        model: '10454466',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu Smart LED GU10 RGBW lamp',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+    },
+    {
         zigbeeModel: ['VIYU-GU10-350-CCT-10011724'],
         model: '10011724',
         vendor: 'HORNBACH',

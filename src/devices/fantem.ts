@@ -48,14 +48,15 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3210_wuhzzfqg'}],
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_0aqbrnts', '_TZ3210_rxqls8v0', '_TZ3210_zmy9hjay', '_TZ3210_wuhzzfqg']),
         model: 'ZB003-X',
         vendor: 'Fantem',
         description: '4 in 1 multi sensor',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
+        whiteLabel: [
+            tuya.whitelabel('EFK', 'is-thpl-zb', '4 in 1 multi sensor', ['_TZ3210_0aqbrnts']),
+        ],
         exposes: [e.occupancy(), e.tamper(), e.illuminance_lux(), e.illuminance(), e.temperature(), e.humidity(),
             e.battery(), e.battery_voltage(),
             e.numeric('battery2', ea.STATE).withUnit('%').withDescription('Remaining battery 2 in %'),

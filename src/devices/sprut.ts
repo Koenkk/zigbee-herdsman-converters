@@ -92,7 +92,7 @@ const fzLocal = {
             return {noise_detect_level: msg.data['noiseDetectLevel']};
         },
     } as Fz.Converter,
-    co2_config: {
+    co2_mh_z19b_config: {
         key: ['co2_autocalibration', 'co2_manual_calibration'],
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
@@ -220,7 +220,7 @@ const tzLocal = {
             return {state: {[key]: number}};
         },
     } as Tz.Converter,
-    co2_config: {
+    co2_mh_z19b_config: {
         key: ['co2_autocalibration', 'co2_manual_calibration'],
         convertSet: async (entity, key, value, meta) => {
             let newValue = value;
@@ -260,9 +260,9 @@ const definitions: Definition[] = [
         vendor: 'Sprut.device',
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
-            fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout, fzLocal.co2_config,
+            fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout, fzLocal.co2_mh_z19b_config,
             fzLocal.th_heater, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level],
-        toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout, tzLocal.co2_config,
+        toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout, tzLocal.co2_mh_z19b_config,
             tzLocal.th_heater, tzLocal.temperature_offset, tzLocal.occupancy_sensitivity, tzLocal.noise_detect_level],
         exposes: [e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity(), e.occupancy(), e.occupancy_level(), e.co2(),
             e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
@@ -314,6 +314,75 @@ const definitions: Definition[] = [
 
             // buzzer
             await device.getEndpoint(4).read('genOnOff', ['onOff']);
+        },
+        endpoint: (device) => {
+            return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4};
+        },
+        meta: {multiEndpoint: true},
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['WBMSW4'],
+        model: 'WB-MSW-ZIGBEE v.4',
+        vendor: 'Sprut.device',
+        description: 'Wall-mounted Zigbee sensor',
+        fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
+            fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout,
+            fzLocal.th_heater, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level],
+        toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout,
+            tzLocal.th_heater, tzLocal.temperature_offset, tzLocal.occupancy_sensitivity, tzLocal.noise_detect_level],
+        exposes: [e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity(), e.occupancy(), e.occupancy_level(), e.co2(),
+            e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'),
+            e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s')
+                .withDescription('Time in seconds after which noise is cleared after detecting it (default: 60)'),
+            e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s')
+                .withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 60)'),
+            e.numeric('temperature_offset', ea.SET).withValueMin(-10).withValueMax(10).withUnit('°C')
+                .withDescription('Self-heating compensation. The compensation value is subtracted from the measured temperature (default: 0)'),
+            e.numeric('occupancy_sensitivity', ea.ALL).withValueMin(0).withValueMax(2000)
+                .withDescription('If the sensor is triggered by the slightest movement, reduce the sensitivity, '+
+                    'otherwise increase it (default: 50)'),
+            e.numeric('noise_detect_level', ea.ALL).withValueMin(0).withValueMax(150).withUnit('dBA')
+                .withDescription('The minimum noise level at which the detector will work (default: 50)'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const binds = ['msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity',
+                'msOccupancySensing', 'msCO2', 'sprutVoc', 'sprutNoise', 'sprutIrBlaster', 'genOta'];
+            await reporting.bind(endpoint1, coordinatorEndpoint, binds);
+
+            // report configuration
+            await reporting.temperature(endpoint1);
+            await reporting.illuminance(endpoint1);
+            await reporting.humidity(endpoint1);
+
+            let payload = reporting.payload('occupancy', 10, constants.repInterval.MINUTE, 0);
+            await endpoint1.configureReporting('msOccupancySensing', payload);
+
+            payload = reporting.payload('sprutOccupancyLevel', 10, constants.repInterval.MINUTE, 5);
+            await endpoint1.configureReporting('msOccupancySensing', payload, manufacturerOptions);
+
+            payload = reporting.payload('noise', 10, constants.repInterval.MINUTE, 5);
+            await endpoint1.configureReporting('sprutNoise', payload);
+
+            payload = reporting.payload('measuredValue', 10, constants.repInterval.HOUR, 10);
+            await endpoint1.configureReporting('msCO2', payload);
+
+            payload = reporting.payload('voc', 10, constants.repInterval.HOUR, 10);
+            await endpoint1.configureReporting('sprutVoc', payload, manufacturerOptions);
+
+            // led_red
+            await device.getEndpoint(2).read('genOnOff', ['onOff']);
+
+            // led_green
+            await device.getEndpoint(3).read('genOnOff', ['onOff']);
+
+            // buzzer
+            await device.getEndpoint(4).read('genOnOff', ['onOff']);
+
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
         endpoint: (device) => {
             return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4};

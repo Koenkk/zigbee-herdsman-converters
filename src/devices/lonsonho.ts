@@ -206,7 +206,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_zirycpws'}],
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_zirycpws'}, {modelID: 'TS130F', manufacturerName: '_TZ3210_ol1uhvza'}],
         model: 'QS-Zigbee-C03',
         vendor: 'Lonsonho',
         description: 'Curtain/blind motor controller',

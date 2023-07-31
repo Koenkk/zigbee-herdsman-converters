@@ -10,9 +10,10 @@ const definitions: Definition[] = [
         model: 'MP-840',
         vendor: 'Visonic',
         description: 'Long range pet immune PIR motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.temperature],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery_voltage(), e.linkquality()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery_voltage(), e.linkquality(), e.temperature(), e.battery()],
     },
     {
         zigbeeModel: ['MP-841'],
@@ -77,6 +78,15 @@ const definitions: Definition[] = [
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
+    },
+    {
+        zigbeeModel: ['GB-540'],
+        model: 'GB-540',
+        vendor: 'Visonic',
+        description: 'Glass break detector',
+        fromZigbee: [fz.ias_vibration_alarm_1],
+        toZigbee: [],
+        exposes: [e.vibration(), e.battery_low(), e.tamper()],
     },
 ];
 

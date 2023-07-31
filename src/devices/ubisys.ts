@@ -937,6 +937,44 @@ const definitions: Definition[] = [
         ota: ota.ubisys,
     },
     {
+        zigbeeModel: ['H10'],
+        model: 'H10',
+        vendor: 'Ubisys',
+        description: 'Heatingcontrol 10-Way',
+        meta: {thermostat: {dontMapPIHeatingDemand: true}, multiEndpoint: true},
+        fromZigbee: [fz.on_off, fz.thermostat, fz.thermostat_weekly_schedule],
+        toZigbee: [
+            tz.on_off, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_local_temperature,
+            tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_running_mode,
+            tz.thermostat_pi_heating_demand,
+        ],
+        endpoint: (device) => {
+            return {
+                'l1': 11, 'l2': 12, 'l3': 13, 'l4': 14, 'l5': 15,
+                'l6': 16, 'l7': 17, 'l8': 18, 'l9': 19, 'l10': 20,
+                'default': 21,
+            };
+        },
+        exposes: [
+            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'),
+            e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6'),
+            e.switch().withEndpoint('l7'), e.switch().withEndpoint('l8'),
+            e.switch().withEndpoint('l9'), e.switch().withEndpoint('l10'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // setup ep 11-20 as on/off switches
+            const heaterCoolerBinds = ['genOnOff'];
+            for (let ep = 11; ep <= 20; ep++) {
+                const endpoint = device.getEndpoint(ep);
+                await reporting.bind(endpoint, coordinatorEndpoint, heaterCoolerBinds);
+                await reporting.onOff(endpoint);
+            }
+        },
+    },
+    {
         zigbeeModel: ['R0 (5501)'],
         model: 'R0',
         vendor: 'Ubisys',
