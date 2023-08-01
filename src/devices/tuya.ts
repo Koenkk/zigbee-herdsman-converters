@@ -1507,7 +1507,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_gbagoilo']),
-        model: 'MG-ZG01W ',
+        model: 'MG-ZG01W',
         vendor: 'TuYa',
         description: '1 gang switch',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET)],
