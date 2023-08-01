@@ -32,6 +32,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['LCZ001'],
+        model: '8719514419278',
+        vendor: 'Philips',
+        description: 'Hue Ellipse E27 smart bulb',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929003056701'],
         model: '929003056701',
         vendor: 'Philips',
