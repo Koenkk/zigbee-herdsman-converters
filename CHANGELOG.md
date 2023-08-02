@@ -1,5 +1,18 @@
 # Changelog
 
+## [15.51.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.50.1...v15.51.0) (2023-08-02)
+
+
+### Features
+
+* **add:** 8719514419278 https://github.com/Koenkk/zigbee2mqtt/issues/18465 ([77547a0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/77547a0888dbc5f955027c0bdfb11543d99bf202))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_j4pdtz9v` as TuYa TS0001_fingerbot. https://github.com/Koenkk/zigbee2mqtt/issues/18494 ([5723131](https://github.com/Koenkk/zigbee-herdsman-converters/commit/57231316ac1f135e3e5a1adb400978e885653b75))
+* Various fixes for ptvo.switch ([#6033](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6033)) ([25a2a79](https://github.com/Koenkk/zigbee-herdsman-converters/commit/25a2a792ca80af3eadc0bc51c31999e48fb003c8))
+
 ## [15.50.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.50.0...v15.50.1) (2023-08-01)
 
 
