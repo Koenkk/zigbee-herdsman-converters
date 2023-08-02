@@ -172,6 +172,13 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
+        zigbeeModel: ['ZBEK-27'],
+        model: '84845506',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN Gdansk',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['ZBEK-28'],
         model: 'PEZ1-042-1020-C1D1',
         vendor: 'ADEO',
