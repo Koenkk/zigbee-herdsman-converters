@@ -560,18 +560,18 @@ const definitions: Definition[] = [
                         exposeEpOptions['exposed_onoff'] = true;
                         let exposeObj = undefined;
                         switch (valueDescription) {
-                            case 'g': exposeObj = e.gas(); break;
-                            case 'n': exposeObj = e.noise_detected(); break;
-                            case 'o': exposeObj = e.occupancy(); break;
-                            case 'p': exposeObj = e.presence(); break;
-                            case 'm': exposeObj = e.smoke(); break;
-                            case 's': exposeObj = e.sos(); break;
-                            case 't': exposeObj = e.tamper(); break;
-                            case 'v': exposeObj = e.vibration(); break;
-                            case 'w': exposeObj = e.water_leak(); break;
-                            default: // 'c'
-                                exposeObj = e.contact();
-                        };
+                        case 'g': exposeObj = e.gas(); break;
+                        case 'n': exposeObj = e.noise_detected(); break;
+                        case 'o': exposeObj = e.occupancy(); break;
+                        case 'p': exposeObj = e.presence(); break;
+                        case 'm': exposeObj = e.smoke(); break;
+                        case 's': exposeObj = e.sos(); break;
+                        case 't': exposeObj = e.tamper(); break;
+                        case 'v': exposeObj = e.vibration(); break;
+                        case 'w': exposeObj = e.water_leak(); break;
+                        default: // 'c'
+                            exposeObj = e.contact();
+                        }
                         expose.push(exposeObj.withEndpoint(epName));
                     } else if (valueConfig) {
                         let valueName = undefined; // name in Z2M
@@ -589,7 +589,7 @@ const definitions: Definition[] = [
                         // 1: value name (if empty, use the EP name)
                         // 2: description (if empty or undefined, use the value name)
                         // 3: units (if undefined, use the key name)
-                        const infoLookup: any = {
+                        const infoLookup: KeyValue = {
                             'C': 'temperature',
                             '%': 'humidity',
                             'm': 'altitude',
@@ -699,8 +699,7 @@ const definitions: Definition[] = [
                             ptvoSetMetaOption(device, 'device_config', deviceConfig);
                             device.save();
                         }
-                    }
-                    catch (err) { /* do nothing */ }
+                    } catch (err) {/* do nothing */}
                 }
             }
         },
