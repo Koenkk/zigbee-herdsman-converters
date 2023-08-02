@@ -507,7 +507,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['ptvo.switch'],
         model: 'ptvo.switch',
         vendor: 'Custom devices (DiY)',
-        description: '[Multi-channel relay switch](https://ptvo.info/zigbee-switch-configurable-firmware-router-199/)',
+        description: '[Multi-functional device](https://ptvo.info/zigbee-configurable-firmware-features/)',
         fromZigbee: [fz.on_off, fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report, fz.temperature,
             fzLocal.humidity2, fzLocal.pressure2, fzLocal.illuminance2],
@@ -516,9 +516,8 @@ const definitions: Definition[] = [
             const expose: Expose[] = [];
             const exposeDeviceOptions: KeyValue = {};
             const deviceConfig = ptvoGetMetaOption(device, 'device_config', '');
-
             if (deviceConfig === '') {
-                if ( (device != null) && device.endpoints ) {
+                if ((device != null) && device.endpoints) {
                     for (const endpoint of device.endpoints) {
                         const exposeEpOptions: KeyValue = {};
                         ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
@@ -533,39 +532,119 @@ const definitions: Definition[] = [
                     }
                 }
             } else {
-                for (let i = 0; i < deviceConfig.length; i++) {
-                    const epConfig = deviceConfig.charCodeAt(i);
-                    if (epConfig <= 0x20) {
+                // device configuration description from a device
+                const deviceConfigArray = deviceConfig.split(/[\r\n]+/);
+                let prevEp = -1;
+                for (let i = 0; i < deviceConfigArray.length; i++) {
+                    const epConfig = deviceConfigArray[i];
+                    const epId = parseInt(epConfig.substr(0, 1), 16);
+                    if (epId <= 0) {
                         continue;
                     }
-                    const epId = i + 1;
                     const epName = `l${epId}`;
+                    const epValueAccessRights = epConfig.substr(1, 1);
+                    const epStateType = ((epValueAccessRights === 'W') || (epValueAccessRights === '*'))?
+                        ea.STATE_SET: ea.STATE;
+                    let valueConfig = epConfig.substr(2);
+                    valueConfig = valueConfig.split(',');
+                    let valueId = (valueConfig[0])? valueConfig[0]: '';
+                    let valueDescription = (valueConfig[1])? valueConfig[1]: '';
+                    let valueUnit = (valueConfig[2] !== undefined)? valueConfig[2]: '';
                     const exposeEpOptions: KeyValue = {};
-                    if ((epConfig & 0x01) != 0) {
-                        // GPIO input
-                        exposeEpOptions['expose_action'] = true;
-                    }
-                    if ((epConfig & 0x02) != 0) {
-                        // GPIO output
+                    if (valueId === '*') {
+                        // GPIO output (Generic)
                         exposeEpOptions['exposed_onoff'] = true;
                         expose.push(e.switch().withEndpoint(epName));
-                    }
-                    if ((epConfig & 0x04) != 0) {
-                        // reportable analog value
+                    } else if (valueId === '#') {
+                        // GPIO state (contact, gas, noise, occupancy, presence, smoke, sos, tamper, vibration, water leak)
+                        exposeEpOptions['exposed_onoff'] = true;
+                        let exposeObj = undefined;
+                        switch (valueDescription) {
+                        case 'g': exposeObj = e.gas(); break;
+                        case 'n': exposeObj = e.noise_detected(); break;
+                        case 'o': exposeObj = e.occupancy(); break;
+                        case 'p': exposeObj = e.presence(); break;
+                        case 'm': exposeObj = e.smoke(); break;
+                        case 's': exposeObj = e.sos(); break;
+                        case 't': exposeObj = e.tamper(); break;
+                        case 'v': exposeObj = e.vibration(); break;
+                        case 'w': exposeObj = e.water_leak(); break;
+                        default: // 'c'
+                            exposeObj = e.contact();
+                        }
+                        expose.push(exposeObj.withEndpoint(epName));
+                    } else if (valueConfig) {
+                        let valueName = undefined; // name in Z2M
+                        let valueNumIndex = undefined;
+                        const idxPos = valueId.search(/(\d+)$/);
+                        if (valueId.startsWith('mcpm') || valueId.startsWith('ncpm')) {
+                            const num = parseInt(valueId.substr(4, 1), 16);
+                            valueName = valueId.substr(0, 4) + num;
+                        } else if (idxPos >= 0) {
+                            valueNumIndex = valueId.substr(idxPos);
+                            valueId = valueId.substr(0, idxPos);
+                        }
+
+                        // analog value
+                        // 1: value name (if empty, use the EP name)
+                        // 2: description (if empty or undefined, use the value name)
+                        // 3: units (if undefined, use the key name)
+                        const infoLookup: KeyValue = {
+                            'C': 'temperature',
+                            '%': 'humidity',
+                            'm': 'altitude',
+                            'Pa': 'pressure',
+                            'ppm': 'quality',
+                            'psize': 'particle_size',
+                            'V': 'voltage',
+                            'A': 'current',
+                            'Wh': 'energy',
+                            'W': 'power',
+                            'Hz': 'frequency',
+                            'pf': 'power_factor',
+                            'lx': 'illuminance_lux',
+                        };
+                        valueName = (valueName !== undefined)? valueName: infoLookup[valueId];
+
+                        if ((valueName === undefined) && valueNumIndex) {
+                            valueName = 'val' + valueNumIndex;
+                        }
+
+                        valueName = (valueName === undefined)? epName: valueName + '_' + epName;
+
+                        if ((valueDescription === undefined) || (valueDescription === '')) {
+                            if (infoLookup[valueId]) {
+                                valueDescription = infoLookup[valueId];
+                                valueDescription = valueDescription.replace('_', ' ');
+                            } else {
+                                valueDescription = 'Sensor value';
+                            }
+                        }
+                        valueDescription = valueDescription.substring(0, 1).toUpperCase() +
+                            valueDescription.substring(1);
+
+                        if (valueNumIndex) {
+                            valueDescription = valueDescription + ' ' + valueNumIndex;
+                        }
+
+                        if (((valueUnit === undefined) || (valueUnit === '')) && infoLookup[valueId]) {
+                            valueUnit = valueId;
+                        }
+
                         exposeEpOptions['exposed_analog'] = true;
-                        expose.push(e.numeric(epName, ea.STATE).withDescription('State or sensor value'));
-                    } else if ((epConfig & 0x08) != 0) {
-                        // readable analog value
-                        exposeEpOptions['exposed_analog'] = true;
-                        expose.push(e.numeric(epName, ea.STATE_SET)
+                        expose.push(e.numeric(valueName, epStateType)
                             .withValueMin(-9999999).withValueMax(9999999).withValueStep(1)
-                            .withDescription('State or sensor value'));
+                            .withDescription(valueDescription)
+                            .withUnit(valueUnit));
                     }
                     const endpoint = device.getEndpoint(epId);
                     if (!endpoint) {
                         continue;
                     }
-                    ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
+                    if (prevEp !== epId) {
+                        prevEp = epId;
+                        ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
+                    }
                 }
             }
             if (exposeDeviceOptions['expose_action']) {
@@ -583,7 +662,7 @@ const definitions: Definition[] = [
             const endpointList: any = [];
             const deviceConfig = ptvoGetMetaOption(device, 'device_config', '');
             if (deviceConfig === '') {
-                if ( (device != null) && device.endpoints ) {
+                if ((device != null) && device.endpoints) {
                     for (const endpoint of device.endpoints) {
                         const epId = endpoint.ID;
                         const epName = `l${epId}`;
@@ -614,8 +693,14 @@ const definitions: Definition[] = [
             if (device != null) {
                 const controlEp = device.getEndpoint(1);
                 if (controlEp != null) {
-                    ptvoSetMetaOption(device, 'device_config', (await controlEp.read('genBasic', ['locationDesc'])).locationDesc);
-                    device.save();
+                    try {
+                        let deviceConfig = await controlEp.read('genBasic', [32768]);
+                        if (deviceConfig) {
+                            deviceConfig = deviceConfig['32768'];
+                            ptvoSetMetaOption(device, 'device_config', deviceConfig);
+                            device.save();
+                        }
+                    } catch (err) {/* do nothing */}
                 }
             }
         },
