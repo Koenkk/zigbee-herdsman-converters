@@ -614,7 +614,8 @@ const definitions: Definition[] = [
 
                         if ((valueDescription === undefined) || (valueDescription === '')) {
                             if (infoLookup[valueId]) {
-                                valueDescription = infoLookup[valueId].replace('_', ' ');
+                                valueDescription = infoLookup[valueId];
+                                valueDescription = valueDescription.replace('_', ' ');
                             } else {
                                 valueDescription = 'Sensor value';
                             }
