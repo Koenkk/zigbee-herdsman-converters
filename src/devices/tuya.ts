@@ -5195,7 +5195,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0001', ['_TZ3210_dse8ogfy']),
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3210_dse8ogfy', '_TZ3210_j4pdtz9v']),
         model: 'TS0001_fingerbot',
         vendor: 'TuYa',
         description: 'Zigbee fingerbot plus',
