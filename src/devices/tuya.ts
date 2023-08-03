@@ -407,7 +407,7 @@ const fzLocal = {
     TS0201_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
-            if (meta.device.manufacturerName === '_TZ3000_ywagc4rj') {
+            if (['_TZ3210_ncw88jfq', '_TZ3000_ywagc4rj'].includes(meta.device.manufacturerName)) {
                 msg.data['measuredValue'] *= 10;
             }
             return fz.humidity.convert(model, msg, publish, options, meta);
