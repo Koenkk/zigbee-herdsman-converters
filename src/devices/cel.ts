@@ -6,7 +6,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['Z10'],
         model: 'CGW-Z-0010',
         vendor: 'CEL',
-        description: 'Cortet Range extender',
+        description: 'Cortet range extender',
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
