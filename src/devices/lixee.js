@@ -435,7 +435,7 @@ const tarifsDef = {
         ]},
     stand_TEMPO: {
         fname: 'Standard - TEMPO',
-        currentTarf: 'H PLEINE/CREUSE', excluded: [
+        currentTarf: 'TEMPO', excluded: [
             'EASF07',
             'EASF08',
             'EASF09',
