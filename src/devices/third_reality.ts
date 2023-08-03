@@ -20,7 +20,7 @@ const fzLocal = {
         },
     } as Fz.Converter,
     thirdreality_private_motion_sensor: {
-        cluster: '64512',
+        cluster: 'manuSpecificUbisysDeviceSetup',
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data[2];
@@ -237,14 +237,13 @@ const definitions: Definition[] = [
         vendor: 'Third Reality',
         description: 'Zigbee multi-function night light',
         ota: ota.zigbeeOTA,
-        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
-            fzLocal.thirdreality_private_motion_sensor, fz.illuminance, fz.ias_occupancy_alarm_1_report]),
-        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee,
-        exposes: [e.light_brightness_colortemp_color([153, 555]).removeFeature('color_temp_startup'),
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report,
+            fzLocal.thirdreality_private_motion_sensor, fz.illuminance, fz.ias_occupancy_alarm_1_report],
+        toZigbee: [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
+            tz.light_brightness_step, tz.level_config, tz.light_hue_saturation_move, tz.light_hue_saturation_step, tz.light_color_options,
+            tz.light_color_mode],
+        exposes: [e.light_brightness_colorxy(),
             e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
-        endpoint: (device) => {
-            return {'default': 1};
-        },
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
