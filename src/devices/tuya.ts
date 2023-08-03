@@ -4272,6 +4272,65 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0225', ['_TZE200_hl0ss9oa']),
+        model: 'TS0225',
+        vendor: 'TuYa',
+        description: 'Tuya 24Ghz Human Presence Sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.presence(),
+            e.enum('motion_state', ea.STATE, ['none', 'large', 'small', 'static']).withDescription('Motion state (none, large, small, static)'),
+            e.illuminance_lux(),
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(600).withValueStep(1).withUnit('s')
+                .withDescription('Presence keep time'),
+            e.numeric('large_motion_detection_distance', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.01).withUnit('m')
+                .withDescription('Large motion detection distance'),
+            e.numeric('large_motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
+                .withDescription('Large motion detection sensitivity'),
+            e.numeric('small_motion_detection_distance', ea.STATE_SET).withValueMin(0).withValueMax(6).withValueStep(0.01).withUnit('m')
+                .withDescription('Small motion detection distance'),
+            e.numeric('small_motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
+                .withDescription('Small motion detection sensitivity'),
+            e.numeric('static_detection_distance', ea.STATE_SET).withValueMin(0).withValueMax(6).withValueStep(0.01).withUnit('m')
+                .withDescription('Static detection distance'),
+            e.numeric('static_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
+                .withDescription('Static detection sensitivity'),
+            e.enum('mode', ea.STATE_SET, ['off', 'arm', 'alarm']).withDescription('Alarm mode'),
+            e.enum('alarm_volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high']).withDescription('Alarm volume'),
+            e.numeric('alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(60).withValueStep(1).withUnit('m').withDescription('Alarm time'),
+            e.binary('light_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('LED indicator mode'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [20, 'illuminance_lux', tuya.valueConverter.raw],
+                [11, 'motion_state', tuya.valueConverterBasic.lookup({
+                    'none': tuya.enum(0),
+                    'large': tuya.enum(1),
+                    'small': tuya.enum(2),
+                    'static': tuya.enum(3),
+                })],
+                [12, 'fading_time', tuya.valueConverter.raw],
+                [13, 'large_motion_detection_distance', tuya.valueConverter.divideBy100],
+                [15, 'large_motion_detection_sensitivity', tuya.valueConverter.raw],
+                [14, 'small_motion_detection_distance', tuya.valueConverter.divideBy100],
+                [16, 'small_motion_detection_sensitivity', tuya.valueConverter.raw],
+                [103, 'static_detection_distance', tuya.valueConverter.divideBy100],
+                [104, 'static_detection_sensitivity', tuya.valueConverter.raw],
+                [105, 'mode', tuya.valueConverterBasic.lookup({'arm': tuya.enum(0), 'off': tuya.enum(1), 'alarm': tuya.enum(2)})],
+                [102, 'alarm_volume', tuya.valueConverterBasic.lookup({
+                    'low': tuya.enum(0),
+                    'medium': tuya.enum(1),
+                    'high': tuya.enum(2),
+                    'mute': tuya.enum(3),
+                })],
+                [101, 'alarm_time', tuya.valueConverter.raw],
+                [24, 'light_mode', tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}],
         model: 'JM-TRH-ZGB-V1',
         vendor: 'TuYa',
