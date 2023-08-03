@@ -4275,12 +4275,12 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0225', ['_TZE200_hl0ss9oa']),
         model: 'TS0225',
         vendor: 'TuYa',
-        description: 'Tuya 24Ghz Human Presence Sensor',
+        description: '24Ghz human presence sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
             e.presence(),
-            e.enum('motion_state', ea.STATE, ['none', 'large', 'small', 'static']).withDescription('Motion state (none, large, small, static)'),
+            e.enum('motion_state', ea.STATE, ['none', 'large', 'small', 'static']).withDescription('Motion state'),
             e.illuminance_lux(),
             e.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(600).withValueStep(1).withUnit('s')
                 .withDescription('Presence keep time'),
@@ -4306,10 +4306,7 @@ const definitions: Definition[] = [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
                 [20, 'illuminance_lux', tuya.valueConverter.raw],
                 [11, 'motion_state', tuya.valueConverterBasic.lookup({
-                    'none': tuya.enum(0),
-                    'large': tuya.enum(1),
-                    'small': tuya.enum(2),
-                    'static': tuya.enum(3),
+                    'none': tuya.enum(0), 'large': tuya.enum(1), 'small': tuya.enum(2), 'static': tuya.enum(3),
                 })],
                 [12, 'fading_time', tuya.valueConverter.raw],
                 [13, 'large_motion_detection_distance', tuya.valueConverter.divideBy100],
@@ -4320,10 +4317,7 @@ const definitions: Definition[] = [
                 [104, 'static_detection_sensitivity', tuya.valueConverter.raw],
                 [105, 'mode', tuya.valueConverterBasic.lookup({'arm': tuya.enum(0), 'off': tuya.enum(1), 'alarm': tuya.enum(2)})],
                 [102, 'alarm_volume', tuya.valueConverterBasic.lookup({
-                    'low': tuya.enum(0),
-                    'medium': tuya.enum(1),
-                    'high': tuya.enum(2),
-                    'mute': tuya.enum(3),
+                    'low': tuya.enum(0), 'medium': tuya.enum(1), 'high': tuya.enum(2), 'mute': tuya.enum(3),
                 })],
                 [101, 'alarm_time', tuya.valueConverter.raw],
                 [24, 'light_mode', tuya.valueConverter.onOff],
