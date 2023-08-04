@@ -290,7 +290,7 @@ module.exports = [
     {
         fingerprint: [
             {modelID: 'TY0203', manufacturerName: '_TZ1800_ejwkn2h2'},
-            {modelID: 'TY0203', manufacturerName: '_TZ1800_ho6i0zk9'}
+            {modelID: 'TY0203', manufacturerName: '_TZ1800_ho6i0zk9'},
         ],
         model: 'HG06336',
         vendor: 'Lidl',
