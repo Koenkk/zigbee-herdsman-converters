@@ -4,6 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import * as ota from '../lib/ota';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -76,6 +77,7 @@ const definitions: Definition[] = [
                 `to see the switch in the dark`),
             e.enum('identify', ea.SET, ['blink']).withDescription(`Blinks the built-in LED to make it easier to find the device`),
         ],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
