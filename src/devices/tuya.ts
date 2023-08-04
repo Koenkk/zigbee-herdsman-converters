@@ -5724,6 +5724,61 @@ const definitions: Definition[] = [
                 [0x76, 'state_l24', tuya.valueConverter.onOff],
             ],
         },
+        {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6']),
+        model: 'MTG075-ZB-RL',
+        vendor: 'TuYa',
+        description: '5.8G human presence sensor with relay',
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.presence(), e.illuminance_lux(),
+            e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
+            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription('Sensitivity of the radar'),
+            e.numeric('entry_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription('Entry sensitivity'),
+            e.numeric('illuminance_threshold', ea.STATE_SET).withValueMin(0).withValueMax(420).withValueStep(0.1).withUnit('lx')
+                .withDescription('Illumination threshold for switching on'),
+            e.numeric('detection_range', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1)
+                .withUnit('m').withDescription('Detection range'),
+            e.numeric('shield_range', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
+                .withDescription('Shield range of the radar'),
+            e.numeric('entry_distance_indentation', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
+                .withDescription('Entry distance indentation'),
+            e.numeric('entry_filter_time', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('s')
+                .withDescription('Entry filter time'),
+            e.numeric('departure_delay', ea.STATE_SET).withValueMin(0).withValueMax(600).withValueStep(1).withUnit('s').
+                withDescription('Turn off delay'),
+            e.numeric('block_time', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('s').withDescription('Block time'),
+            e.binary('breaker_status', ea.STATE_SET, 'ON', 'OFF').withDescription('Breaker status changes with breaker_mode->standard'),
+            e.enum('breaker_mode', ea.STATE_SET, ['standard', 'local']).withDescription('Status breaker mode: standard is external, local is auto'),
+            e.enum('status_indication', ea.STATE_SET, ['OFF', 'ON']).withDescription('Led backlight when triggered'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [2, 'radar_sensitivity', tuya.valueConverter.raw],
+                [3, 'shield_range', tuya.valueConverter.divideBy100],
+                [4, 'detection_range', tuya.valueConverter.divideBy100],
+                [6, 'equipment_status', tuya.valueConverter.raw],
+                [9, 'target_distance', tuya.valueConverter.divideBy100],
+                [101, 'entry_filter_time', tuya.valueConverter.divideBy10],
+                [102, 'departure_delay', tuya.valueConverter.raw],
+                [103, 'cline', tuya.valueConverter.raw],
+                [104, 'illuminance_lux', tuya.valueConverter.divideBy10],
+                [105, 'entry_sensitivity', tuya.valueConverter.raw],
+                [106, 'entry_distance_indentation', tuya.valueConverter.divideBy100],
+                [107, 'breaker_mode', tuya.valueConverterBasic.lookup({'standard': tuya.enum(0), 'local': tuya.enum(1)})],
+                [108, 'breaker_status', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
+                [109, 'status_indication', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
+                [110, 'illuminance_threshold', tuya.valueConverter.divideBy10],
+                [111, 'breaker_polarity', tuya.valueConverterBasic.lookup({'NC': tuya.enum(0), 'NO': tuya.enum(1)})],
+                [112, 'block_time', tuya.valueConverter.divideBy10],
+                [113, 'parameter_setting_result', tuya.valueConverter.raw],
+                [114, 'factory_parameters', tuya.valueConverter.raw],
+                [115, 'sensor', tuya.valueConverter.onOff],
+            ],
+        },
     },
 ];
 
