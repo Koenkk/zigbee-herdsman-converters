@@ -58,7 +58,7 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['easyCodeTouch_v1', 'EasyCodeTouch', 'EasyFingerTouch', 'NimlyPRO', 'NimlyCode'],
+        zigbeeModel: ['easyCodeTouch_v1', 'EasyCodeTouch', 'EasyFingerTouch', 'NimlyPRO', 'NimlyCode', 'NimlyIn'],
         model: 'easyCodeTouch_v1',
         vendor: 'Onesti Products AS',
         description: 'Zigbee module for EasyAccess code touch series',
