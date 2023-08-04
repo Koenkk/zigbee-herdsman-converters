@@ -5724,7 +5724,7 @@ const definitions: Definition[] = [
                 [0x76, 'state_l24', tuya.valueConverter.onOff],
             ],
         },
-        {
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6']),
         model: 'MTG075-ZB-RL',
         vendor: 'TuYa',
@@ -5779,6 +5779,7 @@ const definitions: Definition[] = [
                 [115, 'sensor', tuya.valueConverter.onOff],
             ],
         },
+    },
     },
 ];
 
