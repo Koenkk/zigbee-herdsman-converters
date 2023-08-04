@@ -29,7 +29,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['PSMP5_00.00.03.11TC', 'PSMP5_00.00.05.12TC'],
+        zigbeeModel: ['PSMP5_00.00.03.11TC', 'PSMP5_00.00.05.12TC', 'PSMP5_00.00.03.05TC'],
         model: '12050',
         vendor: 'Lupus',
         description: 'LUPUSEC mains socket with power meter',
