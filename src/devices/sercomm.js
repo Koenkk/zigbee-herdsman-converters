@@ -141,7 +141,7 @@ module.exports = [
         zigbeeModel: ['SZ-WTD03'],
         model: 'SZ-WTD03',
         vendor: 'Sercomm',
-        description: 'Water Leak Detector',
+        description: 'Water leak detector',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low()],
