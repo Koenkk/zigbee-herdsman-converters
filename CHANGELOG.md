@@ -1,5 +1,15 @@
 # Changelog
 
+## [15.54.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.53.0...v15.54.0) (2023-08-05)
+
+
+### Features
+
+* Add OTA support for Bticino 4027C ([#6049](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6049)) ([72505b9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/72505b90123ad90604e9dd08e0fa77ef3fd33a1d))
+* **add:** SZ-WTD03 ([#6048](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6048)) ([9de8d85](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9de8d853c40db0bff3738c8231449b2cbde8d904))
+* **add:** ZY-M100-24G @VladKorr https://github.com/Koenkk/zigbee2mqtt/issues/18237 ([39f13a9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/39f13a9401576f2aedb5bba02b3f095d6926af89))
+* Support OTA for Gledopto GL-D-007P @BradleyFord https://github.com/Koenkk/zigbee-OTA/pull/342 ([3298895](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3298895e54849e7527f80b43919f3b38c6d9a91c))
+
 ## [15.53.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.52.0...v15.53.0) (2023-08-04)
 
 
