@@ -630,6 +630,7 @@ module.exports = [
         model: 'GL-D-007P',
         vendor: 'Gledopto',
         description: 'Zigbee 12W anti-glare downlight RGB+CCT (pro)',
+        ota: ota.zigbeeOTA,
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
     {
