@@ -5726,6 +5726,37 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ijxvkhd0']),
+        model: 'ZY-M100-24G',
+        vendor: 'TuYa',
+        description: '24G MmWave radar human presence motion sensor',
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.illuminance_lux(), e.presence(),
+            e.enum('presence_state', ea.STATE, ['none', 'present', 'moving']).withDescription('Presence state'),
+            e.numeric('motion_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion sensitivity'),
+            e.numeric('detection_distance_max', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
+                .withDescription('Max detection distance').withUnit('m'),
+            e.numeric('detection_distance_min', ea.STATE).withDescription('Min detection distance').withUnit('m'),
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(1).withValueMax(15).withValueStep(1).withDescription('Delay time').withUnit('s'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence sensitivity'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [104, 'illuminance_lux', tuya.valueConverter.raw],
+                [105, 'presence_state', tuya.valueConverterBasic.lookup({'none': tuya.enum(0), 'present': tuya.enum(1), 'moving': tuya.enum(2)})],
+                [106, 'motion_sensitivity', tuya.valueConverter.divideBy10],
+                [107, 'detection_distance_max', tuya.valueConverter.divideBy100],
+                [109, 'detection_distance_min', tuya.valueConverter.divideBy100],
+                [110, 'fading_time', tuya.valueConverter.raw],
+                [111, 'presence_sensitivity', tuya.valueConverter.divideBy10],
+                [112, 'presence', tuya.valueConverter.trueFalseEnum1],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6']),
         model: 'MTG075-ZB-RL',
         vendor: 'TuYa',

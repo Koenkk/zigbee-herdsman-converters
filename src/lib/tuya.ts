@@ -387,6 +387,7 @@ export const valueConverter = {
         from: (v: boolean) => !v,
     },
     trueFalseEnum0: valueConverterBasic.trueFalse(new Enum(0)),
+    trueFalseEnum1: valueConverterBasic.trueFalse(new Enum(1)),
     onOff: valueConverterBasic.lookup({'ON': true, 'OFF': false}),
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
