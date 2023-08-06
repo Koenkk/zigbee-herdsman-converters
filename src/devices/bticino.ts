@@ -50,6 +50,7 @@ const definitions: Definition[] = [
             e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
             e.enum('identify', ea.SET, ['blink']).withDescription(`Blinks the built-in LED to make it easier to find the device`),
         ],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
