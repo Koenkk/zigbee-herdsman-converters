@@ -4,6 +4,7 @@ import tz from '../converters/toZigbee';
 import extend from '../lib/extend';
 import * as exposes from '../lib/exposes';
 const e = exposes.presets;
+const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
@@ -35,7 +36,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.command_step, fz.command_step_color_temperature,
             fz.command_recall, fz.command_off, fz.command_on],
         toZigbee: [tz.battery_percentage_remaining],
-        exposes: [e.action_group(), e.battery(), e.action(['recall_*', 'on', 'off',
+        exposes: [e.action_group(), e.battery().withAccess(ea.STATE_GET), e.action(['recall_*', 'on', 'off',
             'color_temperature_step_up', 'color_temperature_step_down', 'brightness_step_up', 'brightness_step_down']),
         ],
     },
