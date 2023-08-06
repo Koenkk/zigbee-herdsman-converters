@@ -25,6 +25,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['LEDtube T8 5FT V2.0'],
+        model: 'LP_CF_7904008_EU',
+        vendor: 'Philips',
+        description: 'MasterConnect LEDtube EM/mains T8',
+        extend: philips.extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['929003055801'],
         model: '929003055801',
         vendor: 'Philips',
