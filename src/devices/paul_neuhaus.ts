@@ -74,7 +74,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['JZ-RC-J4R'],
         model: 'E0040006',
         vendor: 'Paul Neuhaus',
-        description: 'Paul Neuhaus Q RGBW Remote Controller',
+        description: 'Q RGBW remote controller',
         fromZigbee: [fz.command_step, fz.command_ehanced_move_to_hue_and_saturation, fz.command_move_to_color_temp,
             fz.command_on, fz.command_off, fz.command_color_loop_set],
         toZigbee: [],
