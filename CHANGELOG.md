@@ -1,5 +1,13 @@
 # Changelog
 
+## [15.54.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.54.0...v15.54.1) (2023-08-06)
+
+
+### Bug Fixes
+
+* **ignore:** Fix missing ZY-M100-24G keys. https://github.com/Koenkk/zigbee2mqtt/issues/18237 ([d0e8519](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0e8519777590b76c38054ad91e4eb3c4e14f73c))
+* **ignore:** update dependencies ([#6025](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6025)) ([ee4858b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ee4858b568074bf12186a9186d4e4ec35801cf13))
+
 ## [15.54.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.53.0...v15.54.0) (2023-08-05)
 
 
