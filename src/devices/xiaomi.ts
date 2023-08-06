@@ -2982,6 +2982,9 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
             await endpoint.read('aqaraOpple', [0x0000], {manufacturerCode: 0x115f});
+
+            // This cluster is not discovered automatically and needs to be explicitly attached to enable OTA
+            utils.attachOutputCluster(device, 'genOta');
         },
         ota: ota.zigbeeOTA,
     },
