@@ -29,7 +29,7 @@ const definitions: Definition[] = [
         description: 'Cover',
         fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.cover_position_tilt ],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        exposes: [e.cover_position() ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
