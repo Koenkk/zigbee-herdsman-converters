@@ -71,6 +71,18 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['JZ-RC-J4R'],
+        model: 'E0040006',
+        vendor: 'Paul Neuhaus',
+        description: 'Paul Neuhaus Q RGBW Remote Controller',
+        fromZigbee: [fz.command_step, fz.command_ehanced_move_to_hue_and_saturation, fz.command_move_to_color_temp,
+            fz.command_on, fz.command_off, fz.command_color_loop_set],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_move',
+            'color_temperature_move', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
+            'color_loop_set', 'enhanced_move_to_hue_and_saturation']), e.action_group()],
+    },
+    {
         zigbeeModel: ['JZ-RGBW-Z01'],
         model: '100.075.74',
         vendor: 'Paul Neuhaus',
