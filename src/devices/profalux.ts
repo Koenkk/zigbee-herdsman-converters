@@ -18,13 +18,23 @@ const definitions: Definition[] = [
         exposes: [],
     },
     {
-        // Recent covers are matched by Zigbee model. Their remotes communicate using cluster 0x102 "closuresWindowCovering", so use that.
+        // Recent covers are matched by Zigbee model. Their remotes communicate
+        // using cluster 0x102 "closuresWindowCovering", so use that.
+        // 06/10/20/30 is the torque in Nm. 20/30 have not been seen but
+        // extracted from Profalux documentation. C/F seems to be a version. D
+        // and E have not been seen in the while. I suspect A is the earlier
+        // model covered below, NSAV061_v1.
         zigbeeModel: [
             'MOT-C1Z06C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
-            'MOT-C1Z10F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+            'MOT-C1Z10C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+            'MOT-C1Z20C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+            'MOT-C1Z30C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
             'MOT-C1Z06F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+            'MOT-C1Z10F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+            'MOT-C1Z20F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+            'MOT-C1Z30F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
         ],
-        model: 'NSAV061',
+        model: 'MOT-C1ZxxC/F',
         vendor: 'Profalux',
         description: 'Cover',
         fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.cover_position_tilt],
