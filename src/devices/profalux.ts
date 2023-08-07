@@ -23,7 +23,7 @@ const definitions: Definition[] = [
         // 06/10/20/30 is the torque in Nm. 20/30 have not been seen but
         // extracted from Profalux documentation. C/F seems to be a version. D
         // and E have not been seen in the while. I suspect A is the earlier
-        // model covered below, NSAV061_v1.
+        // model covered below, NSAV061.
         zigbeeModel: [
             'MOT-C1Z06C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
             'MOT-C1Z10C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
@@ -56,7 +56,7 @@ const definitions: Definition[] = [
         // is the right thing to do.
         fingerprint: [{manufacturerID: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 512,
             inputClusters: [0, 3, 4, 5, 6, 8, 10, 21, 256, 64544, 64545], outputClusters: [3, 64544]}]}],
-        model: 'NSAV061_v1',
+        model: 'NSAV061',
         vendor: 'Profalux',
         description: 'Cover',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
