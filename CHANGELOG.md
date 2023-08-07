@@ -1,5 +1,22 @@
 # Changelog
 
+## [15.55.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.54.1...v15.55.0) (2023-08-07)
+
+
+### Features
+
+* **add:** HA-ZSM-MW2, E0040006 ([#6053](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6053)) ([98ed3a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/98ed3a6179769d0cc889fdddd35d57527952e1ca))
+* **add:** LP_CF_7904008_EU https://github.com/Koenkk/zigbee2mqtt/issues/17871 ([e92b260](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e92b260b903b54e064c3906260181edcf4717b76))
+* Support OTA for BTicino L4411C/N4411C/NT4411C and K4003C/L4003C/N4003C/NT4003C ([#6052](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6052)) ([d0e7bf4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0e7bf44c68403080252ae03c031123d96138ea4))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_odzoiovu` as TuYa TS0003_switch_module_2 ([#6056](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6056)) ([b75e56a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b75e56a23fe9ef84c8f2d927d5f11fa9eb03c098))
+* Fix Eco-Dim.05 not detected as supported. https://github.com/Koenkk/zigbee2mqtt/issues/18540 ([99b560a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/99b560a87568841fe1f05826658305176ed4371f))
+* Fix OTA endpoint missing ofr Xiaomi GZCGQ11LM. https://github.com/Koenkk/zigbee2mqtt/issues/18531 ([cf884df](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cf884dfc500ba3748196fae9d6314fecdfe3dbb8))
+* **ignore:** Add missing tuya.tz.datpoint keys ([#6055](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6055)) ([95f40d8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/95f40d82335f43f2c0a37f90a2362ef3633f8867))
+
 ## [15.54.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.54.0...v15.54.1) (2023-08-06)
 
 
