@@ -2163,11 +2163,11 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_4o16jdca'}],
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_4o16jdca', '_TZ3000_odzoiovu'}],
         model: 'TS0003_switch_module_2',
         vendor: 'TuYa',
         description: '3 gang switch module',
-        extend: tuya.extend.switch({endpoints: ['l1', 'l2', 'l3']}),
+        extend: tuya.extend.switch({switchType: true, endpoints: ['l1', 'l2', 'l3']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
@@ -2180,7 +2180,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_vsasbzkf', '_TZ3000_odzoiovu', '_TZ3000_nnwehhst']),
+        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_vsasbzkf', '_TZ3000_nnwehhst']),
         model: 'TS0003_switch_module_1',
         vendor: 'TuYa',
         description: '3 gang switch module',
