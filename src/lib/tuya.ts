@@ -800,6 +800,8 @@ const tuyaTz = {
             'motor_speed', 'timer', 'reset_frost_lock', 'schedule_periodic', 'schedule_weekday', 'backlight_mode', 'calibration', 'motor_steering',
             'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program', 'light_mode', 'switch_mode',
             ...[1, 2, 3, 4, 5, 6].map((no) => `schedule_slot_${no}`), 'minimum_range', 'maximum_range', 'detection_delay', 'fading_time',
+            'radar_sensitivity', 'entry_sensitivity', 'illumin_threshold', 'detection_range', 'shield_range', 'entry_distance_indentation',
+            'entry_filter_time', 'departure_delay', 'block_time', 'status_indication', 'breaker_mode', 'breaker_status',
             'alarm', 'alarm_time', 'alarm_volume', 'type', 'volume', 'ringtone', 'duration',
             'large_motion_detection_distance', 'large_motion_detection_sensitivity', 'small_motion_detection_distance',
             'small_motion_detection_sensitivity', 'static_detection_distance', 'static_detection_sensitivity',
