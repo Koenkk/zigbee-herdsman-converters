@@ -15,6 +15,11 @@ const definitions: Definition[] = [
                 {ID: 2, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8], outputClusters: []},
                 {ID: 242, profileID: 41440, inputClusters: [], outputClusters: [33]},
             ]},
+            {type: 'Router', manufacturerName: 'EcoDim BV', modelID: 'EcoDim-Zigbee 3.0', endpoints: [
+                {ID: 1, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8, 4096], outputClusters: [25]},
+                {ID: 2, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8, 4096], outputClusters: [25]},
+                {ID: 242, profileID: 41440, inputClusters: [], outputClusters: [33]},
+            ]},
         ],
         model: 'Eco-Dim.05',
         vendor: 'EcoDim',
