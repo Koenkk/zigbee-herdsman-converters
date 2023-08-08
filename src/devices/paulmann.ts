@@ -120,7 +120,7 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['371000002'],
+        zigbeeModel: ['371000002', 'RGBW'],
         model: '371000002',
         vendor: 'Paulmann',
         description: 'Amaris LED panels',
