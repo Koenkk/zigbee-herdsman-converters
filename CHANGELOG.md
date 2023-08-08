@@ -1,5 +1,13 @@
 # Changelog
 
+## [15.55.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.55.0...v15.55.1) (2023-08-08)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TYZB01_j7iyqfcs` as TuYa TS0202 https://github.com/Koenkk/zigbee2mqtt/issues/10397 ([3c4bc93](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c4bc93e7d50190637320b6c62ca5e6e7caafe92))
+* Remove unsupported color for ADEO IA-CDZFB2AA007NA-MZN-02 and IG-CDZB2AG009RA-MZN-01 ([#6057](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6057)) ([eb6a61b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eb6a61b4e9fcfdc1e3f5a5decb8466f6e17a11c8))
+
 ## [15.55.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.54.1...v15.55.0) (2023-08-07)
 
 
