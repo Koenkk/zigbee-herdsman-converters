@@ -1000,6 +1000,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0202', manufacturerName: '_TZ3000_wrgn6xrz'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_tv3wxhcz'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_rwb0hxtf'},
+            {modelID: 'TS0202', manufacturerName: '_TYZB01_j7iyqfcs'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_hqbdru35'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_otvn3lne'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_tiwq83wk'},
