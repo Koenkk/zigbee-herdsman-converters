@@ -119,14 +119,14 @@ const definitions: Definition[] = [
         model: 'IA-CDZFB2AA007NA-MZN-02',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN E27 LED white',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
         zigbeeModel: ['ZBEK-6'],
         model: 'IG-CDZB2AG009RA-MZN-01',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN E27 Led white bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
 
     {
