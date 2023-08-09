@@ -120,6 +120,7 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
+        fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht'}],
         zigbeeModel: ['371000002'],
         model: '371000002',
         vendor: 'Paulmann',
