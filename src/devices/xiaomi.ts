@@ -2616,7 +2616,7 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
         exposes: [e.battery(), e.battery_voltage(), e.illuminance().withAccess(ea.STATE_GET),
-            e.illuminance_lux().withAccess(ea.STATE_GET), e.power_outage_count(false)],
+            e.illuminance_lux().withAccess(ea.STATE_GET)],
     },
     {
         zigbeeModel: ['lumi.light.rgbac1'],
