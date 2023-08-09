@@ -1,5 +1,13 @@
 # Changelog
 
+## [15.55.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.55.1...v15.55.2) (2023-08-09)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_dtzziy1e` as TuYa MTG075-ZB-RL. https://github.com/Koenkk/zigbee-herdsman-converters/issues/5930 ([1273634](https://github.com/Koenkk/zigbee-herdsman-converters/commit/12736341b681b96b1057cc3087f3d7a3afaa0eb9))
+* **detect:** Detect `RGBW` as Paulmann 371000002 ([#6058](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6058)) ([ff87637](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ff87637655d8493efc80221fea48a39383063a29))
+
 ## [15.55.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.55.0...v15.55.1) (2023-08-08)
 
 
