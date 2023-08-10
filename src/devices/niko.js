@@ -294,7 +294,7 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {multiEndpointEnforce: {'operation_mode': 1}},
+        meta: {multiEndpointEnforce: {'operation_mode': 1}, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep1 = device.getEndpoint(1);
             const ep2 = device.getEndpoint(2);
