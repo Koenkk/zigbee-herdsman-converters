@@ -1,5 +1,16 @@
 # Changelog
 
+## [15.55.3](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.55.2...v15.55.3) (2023-08-10)
+
+
+### Bug Fixes
+
+* **detect:** Detect `Remote Control`/`MLI` as Müller Licht 404049D. https://github.com/Koenkk/zigbee2mqtt/issues/18569 ([bf70a7e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bf70a7e3f8356ed3a8063ae376ab6327b6a1ee99))
+* Fix Niko 552-721X2 state incorrect when controlled physically.  https://github.com/Koenkk/zigbee2mqtt/issues/17749 ([ef5b19b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ef5b19b7748ec0cd6632408acecd36262266b50d))
+* Remove unsupported `power_outage_count` from Xiaomi GZCGQ01LM. https://github.com/Koenkk/zigbee2mqtt/issues/18558 ([68d71ed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/68d71ed5f251f77f2711ce5722965c17489ec815))
+* Remove unsupported `tamper` from TuYa ZM-35H-Q, TS0202 and IH012-RT01 ([#6062](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6062)) ([7f4c2d6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7f4c2d6b4a715c78f0f26390285574fee4a1ad53))
+* Update description of TuYa TS0207_water_leak_detector_2 ([#6063](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6063)) ([68b0c89](https://github.com/Koenkk/zigbee-herdsman-converters/commit/68b0c89abcb33a3cb57a04eae7dc1092c1d419db))
+
 ## [15.55.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.55.1...v15.55.2) (2023-08-09)
 
 
