@@ -159,6 +159,7 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: [{modelID: 'Remote Control', manufacturerName: 'MLI'}],
         zigbeeModel: ['tint-Remote-white'],
         model: '404022/404049C',
         description: 'Tint dim remote control',
@@ -172,6 +173,8 @@ const definitions: Definition[] = [
             device.powerSource = 'Battery';
             device.save();
         },
+        whiteLabel: [{vendor: 'Müller Licht', model: '404049D', description: 'Tint dim remote control',
+            fingerprint: [{modelID: 'Remote Control', manufacturerName: 'MLI'}]}],
     },
     {
         zigbeeModel: ['tint-ColorTemperature', 'tint-ColorTemperature2'],
