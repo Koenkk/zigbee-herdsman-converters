@@ -1454,7 +1454,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.battery_low(), e.battery(), e.temperature(),
             e.numeric('tank_level', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100)
-            .withDescription('Percent volume remaining in tank')],
+                .withDescription('Percent volume remaining in tank')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'msTemperatureMeasurement', 'genAnalogInput'];
