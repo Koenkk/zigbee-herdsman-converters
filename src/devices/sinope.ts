@@ -115,7 +115,7 @@ const fzLocal = {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            let result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty('presentValue')) {
                 let x = msg.data['presentValue']
                 if (x == -1) {
