@@ -117,25 +117,25 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty('presentValue')) {
-                let x = msg.data['presentValue']
+                const x = msg.data['presentValue'];
                 if (x == -1) {
-                    result.tank_level = 0
+                    result.tank_level = 0;
                 } else {
-                    let x_min = 110;
-                    let x_max = 406;
-                    let delta = 46;
+                    const xMin = 110;
+                    const xMax = 406;
+                    const delta = 46;
                     if (delta <= x && x <= 70) {
                         x = delta;
                     }
                     if (0 <= x && x <= delta) {
                         x = x + 360;
                     }
-                    let y = (x - x_min) / (x_max - x_min);
-                    let lower_limit = 10;
-                    let upper_limit = 80;
-                    let value_range = upper_limit - lower_limit
-                    let pct = y * value_range + lower_limit;
-                
+                    const y = (x - xMin) / (xMax - xMin);
+                    const lowerLimit = 10;
+                    const upperLimit = 80;
+                    const valueRange = upperLimit - lowerLimit;
+                    const pct = y * valueRange + lowerLimit;
+
                     result.tank_level = utils.precisionRound(pct, 2);
                 }
             }
@@ -1452,14 +1452,16 @@ const definitions: Definition[] = [
         description: 'Tank level monitor',
         fromZigbee: [fz.battery, fz.temperature, fzLocal.tank_level],
         toZigbee: [],
-        exposes: [e.battery_low(), e.battery(), e.temperature(),e.numeric('tank_level', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Percent volume remaining in tank')],
+        exposes: [e.battery_low(), e.battery(), e.temperature(),
+                  e.numeric('tank_level', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Percent volume remaining in tank')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'msTemperatureMeasurement', 'genAnalogInput'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryAlarmState(endpoint);
             await reporting.temperature(endpoint);
-            
+
             const payload = reporting.payload('presentValue', 10, constants.repInterval.HOUR, 1);
             await endpoint.configureReporting('genAnalogInput', payload);
             await endpoint.read('genAnalogInput', ['presentValue']);
