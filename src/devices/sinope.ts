@@ -117,7 +117,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty('presentValue')) {
-                const x = msg.data['presentValue'];
+                let x = msg.data['presentValue'];
                 if (x == -1) {
                     result.tank_level = 0;
                 } else {
