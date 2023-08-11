@@ -3,6 +3,7 @@
 
 import assert from 'assert';
 import {Range} from './types';
+import {getLabelFromName} from './utils';
 
 type Feature = Numeric | Binary | Enum | Composite | List | Text;
 
@@ -12,6 +13,7 @@ export class Base {
     type: 'switch' | 'lock' | 'binary' | 'list' | 'numeric' | 'enum' | 'text' | 'composite' | 'light' | 'cover' | 'fan' | 'climate';
     endpoint?: string;
     property?: string;
+    label?: string;
     description?: string;
     features?: Feature[];
 
@@ -42,6 +44,11 @@ export class Base {
 
     withProperty(property: string) {
         this.property = property;
+        return this;
+    }
+
+    withLabel(label: string) {
+        this.label = label;
         return this;
     }
 
@@ -115,6 +122,7 @@ export class Binary extends Base {
         super();
         this.type = 'binary';
         this.name = name;
+        this.label = getLabelFromName(name);
         this.property = name;
         this.access = access;
         this.value_on = valueOn;
@@ -136,6 +144,7 @@ export class List extends Base {
         super();
         this.type = 'list';
         this.name = name;
+        this.label = getLabelFromName(name);
         this.property = name;
         this.access = access;
         this.item_type = itemType;
@@ -164,6 +173,7 @@ export class Numeric extends Base {
         super();
         this.type = 'numeric';
         this.name = name;
+        this.label = getLabelFromName(name);
         this.property = name;
         this.access = access;
     }
@@ -202,6 +212,7 @@ export class Enum extends Base {
         super();
         this.type = 'enum';
         this.name = name;
+        this.label = getLabelFromName(name);
         this.property = name;
         this.access = access;
         this.values = values;
@@ -213,6 +224,7 @@ export class Text extends Base {
         super();
         this.type = 'text';
         this.name = name;
+        this.label = getLabelFromName(name);
         this.property = name;
         this.access = access;
     }
@@ -224,6 +236,7 @@ export class Composite extends Base {
         this.type = 'composite';
         this.property = property;
         this.name = name;
+        this.label = getLabelFromName(name);
         this.features = [];
         this.access = access;
     }
@@ -599,10 +612,10 @@ export const presets = {
     angle: (name: string) => new Numeric(name, access.STATE).withValueMin(-360).withValueMax(360).withUnit('°'),
     angle_axis: (name: string) => new Numeric(name, access.STATE).withValueMin(-90).withValueMax(90).withUnit('°'),
     aqi: () => new Numeric('aqi', access.STATE).withDescription('Air quality index'),
-    auto_lock: () => new Switch().withState('auto_lock', false, 'Enable/disable auto lock', access.STATE_SET, 'AUTO', 'MANUAL'),
+    auto_lock: () => new Switch().withLabel('Auto lock').withState('auto_lock', false, 'Enable/disable auto lock', access.STATE_SET, 'AUTO', 'MANUAL'),
     auto_off: (offTime: number) => new Binary('auto_off', access.ALL, true, false).withDescription(`Turn the device automatically off when attached device consumes less than 2W for ${offTime} minutes`),
     auto_relock_time: () => new Numeric('auto_relock_time', access.ALL).withValueMin(0).withUnit('s').withDescription('The number of seconds to wait after unlocking a lock before it automatically locks again. 0=disabled'),
-    away_mode: () => new Switch().withState('away_mode', false, 'Enable/disable away mode', access.STATE_SET),
+    away_mode: () => new Switch().withLabel('Away mode').withState('away_mode', false, 'Enable/disable away mode', access.STATE_SET),
     away_preset_days: () => new Numeric('away_preset_days', access.STATE_SET).withDescription('Away preset days').withValueMin(0).withValueMax(100),
     away_preset_temperature: () => new Numeric('away_preset_temperature', access.STATE_SET).withUnit('°C').withDescription('Away preset temperature').withValueMin(-10).withValueMax(35),
     battery: () => new Numeric('battery', access.STATE).withUnit('%').withDescription('Remaining battery in %, can take up to 24 hours before reported.').withValueMin(0).withValueMax(100),
@@ -611,7 +624,7 @@ export const presets = {
     boost_time: () => new Numeric('boost_time', access.STATE_SET).withUnit('s').withDescription('Boost time').withValueMin(0).withValueMax(900),
     button_lock: () => new Binary('button_lock', access.ALL, 'ON', 'OFF').withDescription('Disables the physical switch button'),
     carbon_monoxide: () => new Binary('carbon_monoxide', access.STATE, true, false).withDescription('Indicates if CO (carbon monoxide) is detected'),
-    child_lock: () => new Lock().withState('child_lock', 'LOCK', 'UNLOCK', 'Enables/disables physical input on the device', access.STATE_SET),
+    child_lock: () => new Lock().withLabel('Child lock').withState('child_lock', 'LOCK', 'UNLOCK', 'Enables/disables physical input on the device', access.STATE_SET),
     co2: () => new Numeric('co2', access.STATE).withUnit('ppm').withDescription('The measured CO2 (carbon dioxide) value'),
     co: () => new Numeric('co', access.STATE).withUnit('ppm').withDescription('The measured CO (carbon monoxide) value'),
     comfort_temperature: () => new Numeric('comfort_temperature', access.STATE_SET).withUnit('°C').withDescription('Comfort temperature').withValueMin(0).withValueMax(30),
@@ -702,7 +715,7 @@ export const presets = {
     valve_position: () => new Numeric('position', access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of the valve'),
     valve_switch: () => new Binary('state', access.ALL, 'OPEN', 'CLOSE').withDescription('Valve state if open or closed'),
     valve_state: () => new Binary('valve_state', access.STATE, 'OPEN', 'CLOSED').withDescription('Valve state if open or closed'),
-    valve_detection: () => new Switch().withState('valve_detection', true, 'Valve detection').setAccess('state', access.STATE_SET),
+    valve_detection: () => new Switch().withLabel('Valve detection').withState('valve_detection', true, 'Valve detection').setAccess('state', access.STATE_SET),
     vibration: () => new Binary('vibration', access.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
     voc: () => new Numeric('voc', access.STATE).withUnit('µg/m³').withDescription('Measured VOC value'),
     voc_index: () => new Numeric('voc_index', access.STATE).withDescription('VOC index'),
@@ -719,7 +732,7 @@ export const presets = {
         .withFeature(new Numeric('strobe_duty_cycle', access.SET).withValueMax(10).withValueMin(0).withDescription('Length of the flash cycle'))
         .withFeature(new Numeric('duration', access.SET).withUnit('s').withDescription('Duration in seconds of the alarm')),
     week: () => new Enum('week', access.STATE_SET, ['5+2', '6+1', '7']).withDescription('Week format user for schedule'),
-    window_detection: () => new Switch().withState('window_detection', true, 'Enables/disables window detection on the device', access.STATE_SET),
+    window_detection: () => new Switch().withLabel('Window detection').withState('window_detection', true, 'Enables/disables window detection on the device', access.STATE_SET),
     moving: () => new Binary('moving', access.STATE, true, false).withDescription('Indicates if the device is moving'),
     x_axis: () => new Numeric('x_axis', access.STATE).withDescription('Accelerometer X value'),
     y_axis: () => new Numeric('y_axis', access.STATE).withDescription('Accelerometer Y value'),

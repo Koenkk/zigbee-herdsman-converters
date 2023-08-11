@@ -370,6 +370,7 @@ describe('index.js', () => {
               {
                 "type":"binary",
                 "name":"state",
+                "label": "State",
                 "description": "On/off state of this light",
                 "property":"state_rgb",
                 "access":7,
@@ -381,6 +382,7 @@ describe('index.js', () => {
               {
                 "type":"numeric",
                 "name":"brightness",
+                "label": "Brightness",
                 "description": "Brightness of this light",
                 "property":"brightness_rgb",
                 "access":7,
@@ -392,18 +394,21 @@ describe('index.js', () => {
                 "type":"composite",
                 "property":"color_rgb",
                 "name":"color_xy",
+                "label": "Color xy",
                 "description": "Color of this light in the CIE 1931 color space (x/y)",
                 "access":7,
                 "features":[
                   {
                     "type":"numeric",
                     "name":"x",
+                    "label": "X",
                     "property":"x",
                     "access":7
                   },
                   {
                     "type":"numeric",
                     "name":"y",
+                    "label": "Y",
                     "property":"y",
                     "access":7
                   }
@@ -582,8 +587,9 @@ describe('index.js', () => {
         const list = exposes.list('temperatures', exposes.access.STATE_SET, itemType);
         expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
             "access": 3, 
-            "item_type": {"access": 3, "name": "temperature", "type": "numeric"}, 
+            "item_type": {"access": 3, "name": "temperature", "label": "Temperature", "type": "numeric"}, 
             "name": "temperatures", 
+            "label": "Temperatures",
             "property": "temperatures", 
             "type": "list"
         });
@@ -602,15 +608,18 @@ describe('index.js', () => {
         expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
             type: 'list',
             name: 'schedule',
+            label: 'Schedule',
             property: 'schedule',
             access: 3,
             item_type: {
                 type: 'composite',
                 name: 'dayTime',
+                label: 'DayTime',
                 features: [
                     {
                         access: 3, 
                         name: "day", 
+                        label: "Day",
                         property: "day", 
                         type: "enum",
                         values: ['monday', 'tuesday', 'wednesday'],
@@ -618,12 +627,14 @@ describe('index.js', () => {
                     {
                         access: 3, 
                         name: "hour", 
+                        label: "Hour",
                         property: "hour", 
                         type: "numeric",
                     },
                     {
                         access: 3, 
                         name: "minute", 
+                        label: "Minute",
                         property: "minute", 
                         type: "numeric",
                     },
