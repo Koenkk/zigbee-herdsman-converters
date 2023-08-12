@@ -1041,7 +1041,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_msl6wxk9', '_TZ3040_fwxuzcf4', '_TZ3040_msl6wxk9']),
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3040_fwxuzcf4', '_TZ3040_msl6wxk9']),
         model: 'ZM-35H-Q',
         vendor: 'TuYa',
         description: 'Motion sensor',
@@ -1053,11 +1053,11 @@ const definitions: Definition[] = [
         ],
         configure: tuya.configureMagicPacket,
         whiteLabel: [
-            tuya.whitelabel('Aubess', '40ZH-O', 'Motion sensor', ['_TZ3000_msl6wxk9', '_TZ3040_msl6wxk9']),
+            tuya.whitelabel('Aubess', '40ZH-O', 'Motion sensor', ['_TZ3040_msl6wxk9']),
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_mcxw5ehu', '_TZ3000_6ygjfyll', '_TZ3040_6ygjfyll']),
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_mcxw5ehu', '_TZ3000_6ygjfyll', '_TZ3040_6ygjfyll', '_TZ3000_msl6wxk9']),
         model: 'IH012-RT01',
         vendor: 'TuYa',
         description: 'Motion sensor',
@@ -1073,6 +1073,9 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'ZMS-102', 'Motion sensor', ['_TZ3000_msl6wxk9']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_o4mkahkc']),
@@ -4838,7 +4841,7 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cayepv1a']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cayepv1a', '_TZ3000_lepzuhto']),
         model: 'TS011F_with_threshold',
         description: 'Din rail switch with power monitoring and threshold settings',
         vendor: 'TuYa',
