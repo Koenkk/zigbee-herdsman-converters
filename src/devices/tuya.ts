@@ -1074,7 +1074,7 @@ const definitions: Definition[] = [
             await reporting.batteryVoltage(endpoint);
         },
         whiteLabel: [
-            tuya.whitelabel('Tuya', 'ZMS-102', 'Motion sensor', ['_TZ3000_msl6wxk9']),
+            tuya.whitelabel('TuYa', 'ZMS-102', 'Motion sensor', ['_TZ3000_msl6wxk9']),
         ],
     },
     {
