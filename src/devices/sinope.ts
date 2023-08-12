@@ -111,6 +111,37 @@ const fzLocal = {
             return result;
         },
     } as Fz.Converter,
+    tank_level: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (msg.data.hasOwnProperty('presentValue')) {
+                let x = msg.data['presentValue'];
+                if (x == -1) {
+                    result.tank_level = 0;
+                } else {
+                    const xMin = 110;
+                    const xMax = 406;
+                    const delta = 46;
+                    if (delta <= x && x <= 70) {
+                        x = delta;
+                    }
+                    if (0 <= x && x <= delta) {
+                        x = x + 360;
+                    }
+                    const y = (x - xMin) / (xMax - xMin);
+                    const lowerLimit = 10;
+                    const upperLimit = 80;
+                    const valueRange = upperLimit - lowerLimit;
+                    const pct = y * valueRange + lowerLimit;
+
+                    result.tank_level = utils.precisionRound(pct, 2);
+                }
+            }
+            return result;
+        },
+    } as Fz.Converter,
     sinope: {
         cluster: 'manuSpecificSinope',
         type: ['attributeReport', 'readResponse'],
@@ -1412,6 +1443,29 @@ const definitions: Definition[] = [
 
             await endpoint.configureReporting('ssIasZone', [{attribute: 'zoneStatus', minimumReportInterval: 1,
                 maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
+        },
+    },
+    {
+        zigbeeModel: ['LM4110-ZB'],
+        model: 'LM4110ZB',
+        vendor: 'Sinopé',
+        description: 'Tank level monitor',
+        fromZigbee: [fz.battery, fz.temperature, fzLocal.tank_level],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.battery(), e.temperature(),
+            e.numeric('tank_level', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100)
+                .withDescription('Percent volume remaining in tank')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'msTemperatureMeasurement', 'genAnalogInput'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryAlarmState(endpoint);
+            await reporting.temperature(endpoint);
+
+            const payload = reporting.payload('presentValue', 10, constants.repInterval.HOUR, 1);
+            await endpoint.configureReporting('genAnalogInput', payload);
+            await endpoint.read('genAnalogInput', ['presentValue']);
         },
     },
 ];
