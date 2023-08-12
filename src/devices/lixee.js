@@ -88,6 +88,7 @@ const fzLocal = {
 
             const elements = [
                 /* 0x0305 */ 'totalReactivePower',
+                /* 0x0306 */ 'totalApparentPower',
                 /* 0x0505 */ 'rmsVoltage',
                 /* 0x0508 */ 'rmsCurrent',
                 /* 0x050A */ 'rmsCurrentMax',
@@ -561,6 +562,7 @@ const threePhasesData = [
     {cluster: clustersDef._0x0B04, att: 'apparentPower', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS1', ea.STATE).withUnit('VA').withProperty('apparent_power').withDescription('Immediate apparent power delivered (phase 1)')},
     {cluster: clustersDef._0x0B04, att: 'apparentPowerPhB', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS2', ea.STATE).withUnit('VA').withProperty('apparent_power_ph_b').withDescription('Immediate apparent power delivered (phase 2)')},
     {cluster: clustersDef._0x0B04, att: 'apparentPowerPhC', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS3', ea.STATE).withUnit('VA').withProperty('apparent_power_ph_c').withDescription('Immediate apparent power delivered (phase 3)')},
+    {cluster: clustersDef._0x0B04, att: 'totalApparentPower', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS', ea.STATE).withUnit('VA').withProperty('total_apparent_power').withDescription('Total immediate apparent power delivered')},
     {cluster: clustersDef._0x0B04, att: 'averageRmsVoltageMeasPeriodPhC', reportable: true, onlyProducer: false, exposes: exposes.numeric('UMOY3', ea.STATE).withUnit('V').withProperty('average_rms_voltage_meas_period_ph_c').withDescription('Average RMS voltage (phase 3)')},
     {cluster: clustersDef._0x0B04, att: 'averageRmsVoltageMeasurePeriodPhB', reportable: true, onlyProducer: false, exposes: exposes.numeric('UMOY2', ea.STATE).withUnit('V').withProperty('average_rms_voltage_measure_period_ph_b').withDescription('Average RMS voltage (phase 2)')},
     {cluster: clustersDef._0x0B04, att: 'rmsCurrentPhB', reportable: true, onlyProducer: false, exposes: exposes.numeric('IRMS2', ea.STATE).withUnit('A').withProperty('rms_current_ph_b').withDescription('RMS current (phase 2)')},
