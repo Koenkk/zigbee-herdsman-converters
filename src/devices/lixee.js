@@ -87,6 +87,7 @@ const fzLocal = {
             const result = {};
 
             const elements = [
+                /* 0x0304 */ 'totalActivePower',
                 /* 0x0305 */ 'totalReactivePower',
                 /* 0x0306 */ 'totalApparentPower',
                 /* 0x0505 */ 'rmsVoltage',
@@ -94,8 +95,10 @@ const fzLocal = {
                 /* 0x050A */ 'rmsCurrentMax',
                 /* 0x050B */ 'activePower',
                 /* 0x050D */ 'activePowerMax',
+                /* 0x050D */ 'activePowerMaxPha',
                 /* 0x050E */ 'reactivePower',
                 /* 0x050F */ 'apparentPower',
+                /* 0x050F */ 'apparentPowerPha',
                 /* 0x0511 */ 'averageRmsVoltageMeasPeriod',
                 /* 0x0905 */ 'rmsVoltagePhB',
                 /* 0x0908 */ 'rmsCurrentPhB',
@@ -152,8 +155,10 @@ const fzLocal = {
                 /* 0x0210 */ 'injectedActiveLoadN',
                 /* 0x0211 */ 'injectedActiveLoadN1',
                 /* 0x0212 */ 'drawnVAMaxN1',
+                /* 0x0212 */ 'drawnVAMaxN1P1',
                 /* 0x0213 */ 'drawnVAMaxN1P2',
                 /* 0x0214 */ 'drawnVAMaxN1P3',
+                /* 0x0400 */ 'totalDrawnVAMaxN1',
                 /* 0x0215 */ 'message1',
                 /* 0x0216 */ 'message2',
                 /* 0x0217 */ 'statusRegister',
@@ -556,10 +561,11 @@ const singlePhaseData = [
 });
 
 const threePhasesData = [
-    {cluster: clustersDef._0x0B04, att: 'activePowerMax', reportable: true, onlyProducer: false, exposes: exposes.numeric('SMAXN1', ea.STATE).withUnit('VA').withProperty('active_power_max').withDescription('Apparent power delivered peak (phase 1)')},
+    {cluster: clustersDef._0x0B04, att: 'activePowerMaxPha', reportable: true, onlyProducer: false, exposes: exposes.numeric('SMAXN1', ea.STATE).withUnit('VA').withProperty('active_power_max').withDescription('Apparent power delivered peak (phase 1)')},
     {cluster: clustersDef._0x0B04, att: 'activePowerMaxPhB', reportable: true, onlyProducer: false, exposes: exposes.numeric('SMAXN2', ea.STATE).withUnit('VA').withProperty('active_power_max_ph_b').withDescription('Apparent power delivered peak (phase 2)')},
     {cluster: clustersDef._0x0B04, att: 'activePowerMaxPhC', reportable: true, onlyProducer: false, exposes: exposes.numeric('SMAXN3', ea.STATE).withUnit('VA').withProperty('active_power_max_ph_c').withDescription('Apparent power delivered peak (phase 3)')},
-    {cluster: clustersDef._0x0B04, att: 'apparentPower', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS1', ea.STATE).withUnit('VA').withProperty('apparent_power').withDescription('Immediate apparent power delivered (phase 1)')},
+    {cluster: clustersDef._0x0B04, att: 'totalActivePower', reportable: true, onlyProducer: false, exposes: exposes.numeric('SMAXN', ea.STATE).withUnit('VA').withProperty('total_active_power').withDescription('Total apparent power delivered peak')},
+    {cluster: clustersDef._0x0B04, att: 'apparentPowerPha', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS1', ea.STATE).withUnit('VA').withProperty('apparent_power').withDescription('Immediate apparent power delivered (phase 1)')},
     {cluster: clustersDef._0x0B04, att: 'apparentPowerPhB', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS2', ea.STATE).withUnit('VA').withProperty('apparent_power_ph_b').withDescription('Immediate apparent power delivered (phase 2)')},
     {cluster: clustersDef._0x0B04, att: 'apparentPowerPhC', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS3', ea.STATE).withUnit('VA').withProperty('apparent_power_ph_c').withDescription('Immediate apparent power delivered (phase 3)')},
     {cluster: clustersDef._0x0B04, att: 'totalApparentPower', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS', ea.STATE).withUnit('VA').withProperty('total_apparent_power').withDescription('Total immediate apparent power delivered')},
@@ -569,7 +575,8 @@ const threePhasesData = [
     {cluster: clustersDef._0x0B04, att: 'rmsCurrentPhC', reportable: true, onlyProducer: false, exposes: exposes.numeric('IRMS3', ea.STATE).withUnit('A').withProperty('rms_current_ph_c').withDescription('RMS current (phase 3)')},
     {cluster: clustersDef._0x0B04, att: 'rmsVoltagePhB', reportable: true, onlyProducer: false, exposes: exposes.numeric('URMS2', ea.STATE).withUnit('V').withProperty('rms_voltage_ph_b').withDescription('RMS voltage (phase 2)')},
     {cluster: clustersDef._0x0B04, att: 'rmsVoltagePhC', reportable: true, onlyProducer: false, exposes: exposes.numeric('URMS3', ea.STATE).withUnit('V').withProperty('rms_voltage_ph_c').withDescription('RMS voltage (phase 3)')},
-    {cluster: clustersDef._0xFF66, att: 'drawnVAMaxN1', reportable: false, onlyProducer: false, exposes: exposes.numeric('SMAXN1-1', ea.STATE).withUnit('VA').withProperty('drawn_v_a_max_n1').withDescription('Apparent power max. draw-off n-1 (phase 1)')},
+    {cluster: clustersDef._0xFF66, att: 'totalDrawnVAMaxN1', reportable: false, onlyProducer: false, exposes: exposes.numeric('SMAXN-1', ea.STATE).withUnit('VA').withProperty('total_drawn_v_a_max_n1').withDescription('Total apparent power max. draw-off n-1')},
+    {cluster: clustersDef._0xFF66, att: 'drawnVAMaxN1P1', reportable: false, onlyProducer: false, exposes: exposes.numeric('SMAXN1-1', ea.STATE).withUnit('VA').withProperty('drawn_v_a_max_n1_p1').withDescription('Apparent power max. draw-off n-1 (phase 1)')},
     {cluster: clustersDef._0xFF66, att: 'drawnVAMaxN1P2', reportable: false, onlyProducer: false, exposes: exposes.numeric('SMAXN2-1', ea.STATE).withUnit('VA').withProperty('drawn_v_a_max_n1_p2').withDescription('Apparent power max. draw-off n-1 (phase 2)')},
     {cluster: clustersDef._0xFF66, att: 'drawnVAMaxN1P3', reportable: false, onlyProducer: false, exposes: exposes.numeric('SMAXN3-1', ea.STATE).withUnit('VA').withProperty('drawn_v_a_max_n1_p3').withDescription('Apparent power max. draw-off n-1 (phase 3)')},
 ].map((x) => {
