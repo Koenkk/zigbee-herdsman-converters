@@ -91,7 +91,9 @@ const fzLocal = {
                 /* 0x0305 */ 'totalReactivePower',
                 /* 0x0306 */ 'totalApparentPower',
                 /* 0x0505 */ 'rmsVoltage',
+                /* 0x0505 */ 'rmsVoltagePhA',
                 /* 0x0508 */ 'rmsCurrent',
+                /* 0x0508 */ 'rmsCurrentPhA',
                 /* 0x050A */ 'rmsCurrentMax',
                 /* 0x050B */ 'activePower',
                 /* 0x050D */ 'activePowerMax',
@@ -99,7 +101,8 @@ const fzLocal = {
                 /* 0x050E */ 'reactivePower',
                 /* 0x050F */ 'apparentPower',
                 /* 0x050F */ 'apparentPowerPha',
-                /* 0x0511 */ 'averageRmsVoltageMeasPeriod',
+                /* 0x0511 */ 'averageRmsVoltageMeasurePeriod',
+                /* 0x0511 */ 'averageRmsVoltageMeasurePeriodPhA',
                 /* 0x0905 */ 'rmsVoltagePhB',
                 /* 0x0908 */ 'rmsCurrentPhB',
                 /* 0x090A */ 'rmsCurrentMaxPhB',
@@ -114,7 +117,7 @@ const fzLocal = {
                 /* 0x0A0D */ 'activePowerMaxPhC',
                 /* 0x0A0E */ 'reactivePowerPhC',
                 /* 0x0A0F */ 'apparentPowerPhC',
-                /* 0x0A11 */ 'averageRmsVoltageMeasPeriodPhC',
+                /* 0x0A11 */ 'averageRmsVoltageMeasurePeriodPhC',
             ];
 
             for (const at of elements) {
@@ -513,13 +516,10 @@ const allPhaseData = [
     {cluster: clustersDef._0x0B01, att: 'softwareRevision', reportable: false, onlyProducer: false, exposes: exposes.numeric('VTIC', ea.STATE).withProperty('software_revision').withDescription('Customer tele-information protocol version')},
     {cluster: clustersDef._0x0B04, att: 'activePower', reportable: true, onlyProducer: false, exposes: exposes.numeric('CCASN', ea.STATE).withUnit('W').withProperty('active_power').withDescription('Current point of the active load curve drawn')},
     {cluster: clustersDef._0x0B04, att: 'activePowerPhB', reportable: true, onlyProducer: false, exposes: exposes.numeric('CCASN-1', ea.STATE).withUnit('W').withProperty('active_power_ph_b').withDescription('Previous point of the active load curve drawn')},
-    {cluster: clustersDef._0x0B04, att: 'averageRmsVoltageMeasPeriod', reportable: true, onlyProducer: false, exposes: exposes.numeric('UMOY1', ea.STATE).withUnit('V').withProperty('average_rms_voltage_meas_period').withDescription('Average RMS voltage (phase 1)')},
     {cluster: clustersDef._0x0B04, att: 'totalReactivePower', reportable: true, onlyProducer: true, exposes: exposes.numeric('ERQ1', ea.STATE).withUnit('VArh').withProperty('total_reactive_power').withDescription('Total reactive power (Q1)')},
     {cluster: clustersDef._0x0B04, att: 'reactivePower', reportable: true, onlyProducer: true, exposes: exposes.numeric('ERQ2', ea.STATE).withUnit('VArh').withProperty('reactive_power').withDescription('Total reactive power (Q2)')},
     {cluster: clustersDef._0x0B04, att: 'reactivePowerPhB', reportable: true, onlyProducer: true, exposes: exposes.numeric('ERQ3', ea.STATE).withUnit('VArh').withProperty('reactive_power_ph_b').withDescription('Total reactive power (Q3)')},
     {cluster: clustersDef._0x0B04, att: 'reactivePowerPhC', reportable: true, onlyProducer: true, exposes: exposes.numeric('ERQ4', ea.STATE).withUnit('VArh').withProperty('reactive_power_ph_c').withDescription('Total reactive power (Q4)')},
-    {cluster: clustersDef._0x0B04, att: 'rmsCurrent', reportable: true, onlyProducer: false, exposes: exposes.numeric('IRMS1', ea.STATE).withUnit('A').withProperty('rms_current').withDescription('RMS current')},
-    {cluster: clustersDef._0x0B04, att: 'rmsVoltage', reportable: true, onlyProducer: false, exposes: exposes.numeric('URMS1', ea.STATE).withUnit('V').withProperty('rms_voltage').withDescription('RMS voltage')},
     {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD01', reportable: true, report: {change: 100}, onlyProducer: false, exposes: exposes.numeric('EASD01', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d01').withDescription('Active energy withdrawn Distributor (index 01)')},
     {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD02', reportable: true, report: {change: 100}, onlyProducer: false, exposes: exposes.numeric('EASD02', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d02').withDescription('Active energy withdrawn Distributor (index 02)')},
     {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD03', reportable: true, report: {change: 100}, onlyProducer: false, exposes: exposes.numeric('EASD03', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d03').withDescription('Active energy withdrawn Distributor (index 03)')},
@@ -553,9 +553,14 @@ const allPhaseData = [
 
 
 const singlePhaseData = [
+    {cluster: clustersDef._0x0B04, att: 'rmsCurrent', reportable: true, onlyProducer: false, exposes: exposes.numeric('IRMS1', ea.STATE).withUnit('A').withProperty('rms_current').withDescription('RMS current')},
     {cluster: clustersDef._0x0B04, att: 'activePowerMax', reportable: true, onlyProducer: false, exposes: exposes.numeric('SMAXN', ea.STATE).withUnit('VA').withProperty('active_power_max').withDescription('Apparent power delivered peak')},
     {cluster: clustersDef._0x0B04, att: 'apparentPower', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS', ea.STATE).withUnit('VA').withProperty('apparent_power').withDescription('Immediate apparent power delivered')},
     {cluster: clustersDef._0xFF66, att: 'drawnVAMaxN1', reportable: false, onlyProducer: false, exposes: exposes.numeric('SMAXN-1', ea.STATE).withUnit('VA').withProperty('drawn_v_a_max_n1').withDescription('Apparent power max. draw-off n-1')},
+    {cluster: clustersDef._0x0B04, att: 'averageRmsVoltageMeasurePeriod', reportable: true, onlyProducer: false, exposes: exposes.numeric('UMOY1', ea.STATE).withUnit('V').withProperty('average_rms_voltage_measure_period').withDescription('Average RMS voltage (phase 1)')},
+    {cluster: clustersDef._0x0B04, att: 'rmsVoltage', reportable: true, onlyProducer: false, exposes: exposes.numeric('URMS1', ea.STATE).withUnit('V').withProperty('rms_voltage').withDescription('RMS voltage')},
+
+
 ].map((x) => {
     return {...x, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard};
 });
@@ -569,10 +574,13 @@ const threePhasesData = [
     {cluster: clustersDef._0x0B04, att: 'apparentPowerPhB', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS2', ea.STATE).withUnit('VA').withProperty('apparent_power_ph_b').withDescription('Immediate apparent power delivered (phase 2)')},
     {cluster: clustersDef._0x0B04, att: 'apparentPowerPhC', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS3', ea.STATE).withUnit('VA').withProperty('apparent_power_ph_c').withDescription('Immediate apparent power delivered (phase 3)')},
     {cluster: clustersDef._0x0B04, att: 'totalApparentPower', reportable: true, onlyProducer: false, exposes: exposes.numeric('SINSTS', ea.STATE).withUnit('VA').withProperty('total_apparent_power').withDescription('Total immediate apparent power delivered')},
-    {cluster: clustersDef._0x0B04, att: 'averageRmsVoltageMeasPeriodPhC', reportable: true, onlyProducer: false, exposes: exposes.numeric('UMOY3', ea.STATE).withUnit('V').withProperty('average_rms_voltage_meas_period_ph_c').withDescription('Average RMS voltage (phase 3)')},
+    {cluster: clustersDef._0x0B04, att: 'averageRmsVoltageMeasurePeriodPhA', reportable: true, onlyProducer: false, exposes: exposes.numeric('UMOY1', ea.STATE).withUnit('V').withProperty('average_rms_voltage_measure_period_ph_a').withDescription('Average RMS voltage (phase 1)')},
     {cluster: clustersDef._0x0B04, att: 'averageRmsVoltageMeasurePeriodPhB', reportable: true, onlyProducer: false, exposes: exposes.numeric('UMOY2', ea.STATE).withUnit('V').withProperty('average_rms_voltage_measure_period_ph_b').withDescription('Average RMS voltage (phase 2)')},
+    {cluster: clustersDef._0x0B04, att: 'averageRmsVoltageMeasurePeriodPhC', reportable: true, onlyProducer: false, exposes: exposes.numeric('UMOY3', ea.STATE).withUnit('V').withProperty('average_rms_voltage_measure_period_ph_c').withDescription('Average RMS voltage (phase 3)')},
+    {cluster: clustersDef._0x0B04, att: 'rmsCurrentPhA', reportable: true, onlyProducer: false, exposes: exposes.numeric('IRMS1', ea.STATE).withUnit('A').withProperty('rms_current_ph_a').withDescription('RMS current (phase 1)')},
     {cluster: clustersDef._0x0B04, att: 'rmsCurrentPhB', reportable: true, onlyProducer: false, exposes: exposes.numeric('IRMS2', ea.STATE).withUnit('A').withProperty('rms_current_ph_b').withDescription('RMS current (phase 2)')},
     {cluster: clustersDef._0x0B04, att: 'rmsCurrentPhC', reportable: true, onlyProducer: false, exposes: exposes.numeric('IRMS3', ea.STATE).withUnit('A').withProperty('rms_current_ph_c').withDescription('RMS current (phase 3)')},
+    {cluster: clustersDef._0x0B04, att: 'rmsVoltagePhA', reportable: true, onlyProducer: false, exposes: exposes.numeric('URMS1', ea.STATE).withUnit('V').withProperty('rms_voltage_ph_a').withDescription('RMS voltage (phase 1)')},
     {cluster: clustersDef._0x0B04, att: 'rmsVoltagePhB', reportable: true, onlyProducer: false, exposes: exposes.numeric('URMS2', ea.STATE).withUnit('V').withProperty('rms_voltage_ph_b').withDescription('RMS voltage (phase 2)')},
     {cluster: clustersDef._0x0B04, att: 'rmsVoltagePhC', reportable: true, onlyProducer: false, exposes: exposes.numeric('URMS3', ea.STATE).withUnit('V').withProperty('rms_voltage_ph_c').withDescription('RMS voltage (phase 3)')},
     {cluster: clustersDef._0xFF66, att: 'totalDrawnVAMaxN1', reportable: false, onlyProducer: false, exposes: exposes.numeric('SMAXN-1', ea.STATE).withUnit('VA').withProperty('total_drawn_v_a_max_n1').withDescription('Total apparent power max. draw-off n-1')},
