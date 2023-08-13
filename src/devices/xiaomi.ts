@@ -1921,6 +1921,9 @@ const definitions: Definition[] = [
                 ),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
+            device.softwareBuildID = `${device.applicationVersion}`;
+            device.save();
+
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x0142], {manufacturerCode: 0x115f});
