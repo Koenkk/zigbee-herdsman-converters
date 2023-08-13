@@ -2166,6 +2166,11 @@ const definitions: Definition[] = [
             e.gas(), e.battery_low(), e.tamper(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             e.numeric('gas_density', ea.STATE), e.enum('selftest', ea.SET, ['']),
         ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.type = 'EndDevice';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.sensor_gas.acn02'],
