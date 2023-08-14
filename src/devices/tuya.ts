@@ -5105,7 +5105,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ves1ycwx'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ves1ycwx'}, {modelID: 'TS0601', manufacturerName: '_TZE200_ves1ycwx'}],
         model: 'SPM02',
         vendor: 'TuYa',
         description: 'Smart energy monitor for 3P+N system',
