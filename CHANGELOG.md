@@ -1,5 +1,21 @@
 # Changelog
 
+## [15.57.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.56.0...v15.57.0) (2023-08-14)
+
+
+### Features
+
+* **add:** MEG5126-0300 [@tech2mar](https://github.com/tech2mar) https://github.com/Koenkk/zigbee2mqtt/issues/18595 ([e3473ef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e3473ef97078c007e06e59b17ab210560cf99415))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_ves1ycwx` as TuYa SPM02 ([#6076](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6076)) ([eea6818](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eea68187083ef0b2908fa2a064ba651e8ba5a512))
+* Fix no firmware versions shown for Xiaomi RTCZCGQ11LM ([#6068](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6068)) ([4d535ef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d535effcbd6fbae0317ded493e116faf30e00ed))
+* Fix Xiaoimi JTQJ-BF-01LM/BW device type and power source. https://github.com/Koenkk/zigbee2mqtt/issues/18597 ([194ae56](https://github.com/Koenkk/zigbee-herdsman-converters/commit/194ae568d4a9b5e8e942c005c7c33b9508f9ae98))
+* **ignore:** Fix e3473ef97078c007e06e59b17ab210560cf99415 ([b717b62](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b717b62472854ac32e8cf043d7b59a45a0e391cf))
+* **ignore:** update dependencies ([#6074](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6074)) ([7ce0d3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7ce0d3f6adf4d92e49998df96a5f099d2a766f7a))
+
 ## [15.56.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.55.3...v15.56.0) (2023-08-12)
 
 
