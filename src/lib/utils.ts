@@ -324,8 +324,8 @@ export function toCamelCase(value: KeyValueAny | string) {
 }
 
 export function getLabelFromName(name: string) {
-    const title = name.replace(/_/g, ' ');
-    return title[0].toUpperCase() + title.slice(1);
+    const label = name.replace(/_/g, ' ');
+    return label[0].toUpperCase() + label.slice(1);
 }
 
 export function saveSceneState(entity: Zh.Endpoint, sceneID: number, groupID: number, state: KeyValue, name: string) {

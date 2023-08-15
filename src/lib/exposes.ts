@@ -9,11 +9,11 @@ type Feature = Numeric | Binary | Enum | Composite | List | Text;
 
 export class Base {
     name: string;
+    label: string;
     access: number;
     type: 'switch' | 'lock' | 'binary' | 'list' | 'numeric' | 'enum' | 'text' | 'composite' | 'light' | 'cover' | 'fan' | 'climate';
     endpoint?: string;
     property?: string;
-    label?: string;
     description?: string;
     features?: Feature[];
 
