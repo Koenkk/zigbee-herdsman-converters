@@ -1114,7 +1114,7 @@ const definitions: Definition[] = [
         model: 'TS0207_water_leak_detector',
         vendor: 'TuYa',
         description: 'Water leak detector',
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fz.ignore_basic_report],
         whiteLabel: [
             {vendor: 'CR Smart Home', model: 'TS0207'},
             tuya.whitelabel('Meian', 'SW02', 'Water leak sensor', ['_TZ3000_kyb656no']),
@@ -1130,7 +1130,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.water_leak(), e.battery_low(), e.battery()],
+        exposes: [e.water_leak(), e.tamper(), e.battery_low(), e.battery()],
     },
     {
         fingerprint: tuya.fingerprint('TS0101', ['_TYZB01_ijihzffk', '_TZ3210_tfxwxklq', '_TZ3210_2dfy6tol']),
