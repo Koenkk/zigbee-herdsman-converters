@@ -968,6 +968,9 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        endpoint: (device) => {
+            return {'default': 11};
+        },
     },
     {
         zigbeeModel: ['LCA004'],
