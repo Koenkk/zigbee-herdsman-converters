@@ -3901,7 +3901,7 @@ const definitions: Definition[] = [
                 .withDescription('Relay LED indicator mode')],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nklqjk62'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_nklqjk62', '_TZE200_nklqjk62']),
         model: 'PJ-ZGD01',
         vendor: 'TuYa',
         description: 'Garage door opener',
