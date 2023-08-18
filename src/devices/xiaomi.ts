@@ -2448,6 +2448,7 @@ const definitions: Definition[] = [
             await endpoint.read('aqaraOpple', [0x0428], {manufacturerCode: 0x115f});
             await endpoint.read('genBasic', ['powerSource']);
             await endpoint.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
+            utils.attachOutputCluster(device, 'genOta');
         },
         ota: ota.zigbeeOTA,
     },
