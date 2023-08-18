@@ -4296,7 +4296,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0225', ['_TZE200_hl0ss9oa']),
-        model: 'TS0225',
+        model: 'ZG-205ZL',
         vendor: 'TuYa',
         description: '24Ghz human presence sensor',
         fromZigbee: [tuya.fz.datapoints],
@@ -4347,6 +4347,7 @@ const definitions: Definition[] = [
             ],
         },
     },
+     
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}],
         model: 'JM-TRH-ZGB-V1',
@@ -4378,21 +4379,7 @@ const definitions: Definition[] = [
                 .withDescription('Alarm humidity min'),
         ],
     },
-    {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_3towulqd', '_TZE200_1ibpyhdc', '_TZE200_bh3n6gk8']),
-        model: 'ZG-204ZL',
-        vendor: 'TuYa',
-        description: 'Luminance motion sensor',
-        fromZigbee: [legacy.fromZigbee.ZG204ZL_lms],
-        toZigbee: [legacy.toZigbee.ZG204ZL_lms],
-        exposes: [
-            e.occupancy(), e.illuminance().withUnit('lx'), e.battery(),
-            e.enum('sensitivity', ea.ALL, ['low', 'medium', 'high'])
-                .withDescription('PIR sensor sensitivity (refresh and update only while active)'),
-            e.enum('keep_time', ea.ALL, ['10', '30', '60', '120'])
-                .withDescription('PIR keep time in seconds (refresh and update only while active)'),
-        ],
-    },
+
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'},
             {modelID: 'TS004F', manufacturerName: '_TZ3000_ja5osu5g'}],
@@ -4533,12 +4520,15 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.contact(), e.illuminance().withUnit('lx'), e.battery()],
+        exposes: [e.contact(), e.illuminance().withUnit('lx'), e.battery(), 
+            e.numeric('illuminance_interval', ea.STATE_SET).withValueMin(1).withValueMax(720).withValueStep(1).withUnit('minutes')
+                .withDescription('Brightness acquisition interval (refresh and update only while active)')],
         meta: {
             tuyaDatapoints: [
                 [1, 'contact', tuya.valueConverter.inverse],
                 [101, 'illuminance', tuya.valueConverter.raw],
                 [2, 'battery', tuya.valueConverter.raw],
+                [102, 'illuminance_interval', tuya.valueConverter.raw],
             ],
         },
     },
@@ -4558,6 +4548,82 @@ const definitions: Definition[] = [
             ],
         },
     },
+
+      {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_3towulqd', '_TZE200_1ibpyhdc', '_TZE200_bh3n6gk8']),
+        model: 'ZG-204ZL',
+        vendor: 'TuYa',
+        description: 'Luminance motion sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.occupancy(), e.illuminance().withUnit('lx'), e.battery(),
+            e.enum('pir_sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])
+                .withDescription('PIR sensor sensitivity (refresh and update only while active)'),
+            e.enum('pir_keep_time', ea.STATE_SET, ['10', '30', '60', '120'])
+                .withDescription('PIR keep time in seconds (refresh and update only while active)'),
+            e.numeric('illuminance_interval', ea.STATE_SET).withValueMin(1).withValueMax(720).withValueStep(1).withUnit('minutes')
+                .withDescription('Brightness acquisition interval (refresh and update only while active)')
+
+        ],
+         meta: {
+            tuyaDatapoints: [
+                [1, 'occupancy', tuya.valueConverter.trueFalse0],
+                [4, 'battery', tuya.valueConverter.raw],
+                [9, 'pir_sensitivity',tuya.valueConverterBasic.lookup({'low': tuya.enum(0), 'medium': tuya.enum(1), 'high': tuya.enum(2)})],
+                [10, 'pir_keep_time', tuya.valueConverterBasic.lookup({'10': tuya.enum(0), '30': tuya.enum(1), '60': tuya.enum(2),'120': tuya.enum(3)})],
+                [12, 'illuminance', tuya.valueConverter.raw],
+                [102, 'illuminance_interval', tuya.valueConverter.raw],
+
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0225', ['_TZE200_2aaelwxk']),
+        model: 'ZG-205Z',
+        vendor: 'TuYa',
+        description: 'Mini 24Ghz human presence sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.presence(),
+            e.enum('motion_state', ea.STATE, ['none', 'large', 'small', 'static']).withDescription('Motion state'),
+            e.illuminance_lux(),
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(600).withValueStep(1).withUnit('s')
+                .withDescription('Presence keep time'),
+            e.numeric('large_motion_detection_distance', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.01).withUnit('m')
+                .withDescription('Large motion detection distance'),
+            e.numeric('large_motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
+                .withDescription('Large motion detection sensitivity'),
+            e.numeric('small_motion_detection_distance', ea.STATE_SET).withValueMin(0).withValueMax(6).withValueStep(0.01).withUnit('m')
+                .withDescription('Small motion detection distance'),
+            e.numeric('small_motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
+                .withDescription('Small motion detection sensitivity'),
+            e.numeric('static_detection_distance', ea.STATE_SET).withValueMin(0).withValueMax(6).withValueStep(0.01).withUnit('m')
+                .withDescription('Static detection distance'),
+            e.numeric('static_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
+                .withDescription('Static detection sensitivity'),
+            e.binary('light_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('LED indicator mode'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [106, 'illuminance_lux', tuya.valueConverter.raw],
+                [101, 'motion_state', tuya.valueConverterBasic.lookup({
+                    'none': tuya.enum(0), 'large': tuya.enum(1), 'small': tuya.enum(2), 'static': tuya.enum(3),
+                })],
+                [102, 'fading_time', tuya.valueConverter.raw],
+                [4, 'large_motion_detection_distance', tuya.valueConverter.divideBy100],
+                [2, 'large_motion_detection_sensitivity', tuya.valueConverter.raw],
+                [104, 'small_motion_detection_distance', tuya.valueConverter.divideBy100],
+                [105, 'small_motion_detection_sensitivity', tuya.valueConverter.raw],
+                [108, 'static_detection_distance', tuya.valueConverter.divideBy100],
+                [109, 'static_detection_sensitivity', tuya.valueConverter.raw],
+                [107, 'light_mode', tuya.valueConverter.onOff],
+            ],
+        },
+    },
+
     {
         fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6']),
         model: 'TS110E_1gang_1',
