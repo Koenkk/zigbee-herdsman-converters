@@ -448,6 +448,30 @@ module.exports = [
         exposes: [e.action(['press_once', 'press_twice'])],
     },
     {
+        zigbeeModel: ['GreenPower_3'],
+        fingerprint: [{modelID: 'GreenPower_3', ieeeAddr: /^0x00000000005.....$/}],
+        model: '600087L',
+        vendor: 'Legrand',
+        description: 'Wireless and batteryless blind control switch',
+        fromZigbee: [{
+            cluster: 'greenPower',
+            type: ['commandNotification'],
+            convert: (model, msg, publish, options, meta) => {
+                const commandID = msg.data.commandID;
+                const lookup = {0x34: 'cover_stop', 0x35: 'cover_up', 0x36: 'cover_down'};
+                if(commandID === 224) return;
+                if(!lookup.hasOwnProperty(commandID)) {
+                    meta.logger.error(`GreenPower_3 error: missing command '${commandID}'`);
+                }
+			    else {
+				    return {action: lookup[commandID]};
+                }
+            }
+        }],
+        toZigbee: [],
+        exposes: [e.action(['cover_stop', 'cover_up', 'cover_down'])]
+    },
+    {
         zigbeeModel: [' Cable outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' +
             '\u0000\u0000'],
         model: '064882',
