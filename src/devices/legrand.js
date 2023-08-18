@@ -463,8 +463,8 @@ module.exports = [
                 if(!lookup.hasOwnProperty(commandID)) {
                     meta.logger.error(`GreenPower_3 error: missing command '${commandID}'`);
                 }
-			    else {
-				    return {action: lookup[commandID]};
+                else {
+                    return {action: lookup[commandID]};
                 }
             }
         }],
