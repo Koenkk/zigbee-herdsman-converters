@@ -4308,7 +4308,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0225', ['_TZE200_hl0ss9oa']),
+        zigbeeModel: ['TS0225'],
         model: 'TS0225',
         vendor: 'TuYa',
         description: '24Ghz human presence sensor',
