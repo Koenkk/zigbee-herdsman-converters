@@ -1,5 +1,14 @@
 # Changelog
 
+## [15.58.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.58.0...v15.58.1) (2023-08-18)
+
+
+### Bug Fixes
+
+* **detect:** Detect all `TS0225` as supported https://github.com/Koenkk/zigbee2mqtt/issues/18612 ([126c55e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/126c55eae80d78cf270e8c616909e53c59c1844c))
+* Fix `Cannot read properties of undefined (reading 'hasOwnProperty')}` error for some Schneider Electric devices. https://github.com/Koenkk/zigbee2mqtt/issues/18656 ([5e8130b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e8130b60c502793344b0df136a2648bcf399b33))
+* Fix OTA upgrade not working for Xiaomi ZNCLBL01LM https://github.com/Koenkk/zigbee2mqtt/discussions/18651 ([7c94ab7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7c94ab7535c74c4d5dc9271e58532ca6f4aa9694))
+
 ## [15.58.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.57.0...v15.58.0) (2023-08-17)
 
 
