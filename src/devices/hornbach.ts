@@ -10,6 +10,13 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['VIYU_A60_806_RGBW_10454471'],
+        model: '10454471',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu Smart LED bulb RGBW E27',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+    },
+    {
         zigbeeModel: ['VIYU_C35_470_RGBW_10297667'],
         model: '10297667',
         vendor: 'HORNBACH',
