@@ -14,7 +14,7 @@ module.exports = [
         zigbeeModel: ['LWV006'],
         model: '9290030518',
         vendor: 'Philips',
-        description: 'Philips Filament E26 Hue Bulb',
+        description: 'Philips filament E26 bulb',
         extend: philips.extend.light_onoff_brightness({disableHueEffects: false}),
     },
     {
