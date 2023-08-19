@@ -439,7 +439,7 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: 'start' | 'stop') {
     if (options && options.no_occupancy_since) {
         if (action == 'start') {
-            globalStore.getValue(endpoint, 'no_occupancy_since_timers', []).forEach((t: NodeJS.Timer) => clearTimeout(t));
+            globalStore.getValue(endpoint, 'no_occupancy_since_timers', []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
             globalStore.putValue(endpoint, 'no_occupancy_since_timers', []);
 
             options.no_occupancy_since.forEach((since: number) => {
@@ -449,7 +449,7 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
                 globalStore.getValue(endpoint, 'no_occupancy_since_timers').push(timer);
             });
         } else if (action === 'stop') {
-            globalStore.getValue(endpoint, 'no_occupancy_since_timers', []).forEach((t: NodeJS.Timer) => clearTimeout(t));
+            globalStore.getValue(endpoint, 'no_occupancy_since_timers', []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
             globalStore.putValue(endpoint, 'no_occupancy_since_timers', []);
         }
     }
