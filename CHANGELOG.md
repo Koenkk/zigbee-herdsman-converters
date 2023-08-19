@@ -1,5 +1,18 @@
 # Changelog
 
+## [15.59.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.58.1...v15.59.0) (2023-08-19)
+
+
+### Features
+
+* **add:** 9290030518 ([#6085](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6085)) ([b843b4f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b843b4f4280583d856f96b99180c85be84884e5a))
+* **add:** ZG-205Z/A ([#6084](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6084)) ([74df0f3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/74df0f386fd7e444edb9bf83f8aef95e2e92df33))
+
+
+### Bug Fixes
+
+* **ignore:** revert 126c55eae80d78cf270e8c616909e53c59c1844c ([ddb5115](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ddb51157e0b9af4c7d61717b7d859e69db40e4d4))
+
 ## [15.58.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.58.0...v15.58.1) (2023-08-18)
 
 
