@@ -4305,7 +4305,7 @@ const definitions: Definition[] = [
             e.presence(),
             e.enum('motion_state', ea.STATE, ['none', 'large', 'small', 'static']).withDescription('Motion state'),
             e.illuminance_lux(),
-            e.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(600).withValueStep(1).withUnit('s')
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(3600).withValueStep(1).withUnit('s')
                 .withDescription('Presence keep time'),
             e.numeric('large_motion_detection_distance', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.01).withUnit('m')
                 .withDescription('Large motion detection distance'),
@@ -4319,7 +4319,7 @@ const definitions: Definition[] = [
                 .withDescription('Static detection distance'),
             e.numeric('static_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
                 .withDescription('Static detection sensitivity'),
-            e.enum('mode', ea.STATE_SET, ['off', 'arm', 'alarm']).withDescription('Alarm mode'),
+            e.enum('mode', ea.STATE_SET, ['off', 'arm', 'alarm','doorbell']).withDescription('Working mode'),
             e.enum('alarm_volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high']).withDescription('Alarm volume'),
             e.numeric('alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(60).withValueStep(1).withUnit('m').withDescription('Alarm time'),
             e.binary('light_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('LED indicator mode'),
@@ -4338,7 +4338,7 @@ const definitions: Definition[] = [
                 [16, 'small_motion_detection_sensitivity', tuya.valueConverter.raw],
                 [103, 'static_detection_distance', tuya.valueConverter.divideBy100],
                 [104, 'static_detection_sensitivity', tuya.valueConverter.raw],
-                [105, 'mode', tuya.valueConverterBasic.lookup({'arm': tuya.enum(0), 'off': tuya.enum(1), 'alarm': tuya.enum(2)})],
+                [105, 'mode', tuya.valueConverterBasic.lookup({'arm': tuya.enum(0), 'off': tuya.enum(1), 'alarm': tuya.enum(2),'doorbell': tuya.enum(3)})],
                 [102, 'alarm_volume', tuya.valueConverterBasic.lookup({
                     'low': tuya.enum(0), 'medium': tuya.enum(1), 'high': tuya.enum(2), 'mute': tuya.enum(3),
                 })],
