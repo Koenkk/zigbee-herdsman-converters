@@ -448,7 +448,6 @@ module.exports = [
         exposes: [e.action(['press_once', 'press_twice'])],
     },
     {
-        zigbeeModel: ['GreenPower_3'],
         fingerprint: [{modelID: 'GreenPower_3', ieeeAddr: /^0x00000000005.....$/}],
         model: '600087L',
         vendor: 'Legrand',
