@@ -927,6 +927,23 @@ const definitions: Definition[] = [
             return {'l1': 112, 'l2': 113, 'l3': 114, 'l4': 115, 'l11': 116, 'l12': 117};
         },
     },
+    {
+        zigbeeModel: ['SBTZB-110'],
+        model: 'SBTZB-110',
+        vendor: 'Develco',
+        description: 'Smart button',
+        fromZigbee: [fz.ewelink_action, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(32);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genIdentify']);
+            await reporting.batteryVoltage(endpoint);
+        },
+        endpoint: (device) => {
+            return {default: 32};
+        },
+    },
 ];
 
 module.exports = definitions;
