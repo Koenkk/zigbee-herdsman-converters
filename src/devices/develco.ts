@@ -931,7 +931,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SBTZB-110'],
         model: 'SBTZB-110',
         vendor: 'Develco',
-        description: 'Smart Button',
+        description: 'Smart button',
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single'])],
