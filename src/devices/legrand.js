@@ -27,6 +27,24 @@ const tzLocal = {
     },
 };
 
+const fzlocal = {
+    legrand_600087l: {
+        cluster: 'greenPower',
+        type: ['commandNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            const lookup = {0x34: 'cover_stop', 0x35: 'cover_up', 0x36: 'cover_down'};
+            if(commandID === 224) return;
+            if(!lookup.hasOwnProperty(commandID)) {
+                meta.logger.error(`GreenPower_3 error: missing command '${commandID}'`);
+            }
+            else {
+                return {action: lookup[commandID]};
+            }
+        }
+    }
+};
+
 module.exports = [
     {
         zigbeeModel: [' Pocket remote\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
@@ -452,21 +470,7 @@ module.exports = [
         model: '600087L',
         vendor: 'Legrand',
         description: 'Wireless and batteryless blind control switch',
-        fromZigbee: [{
-            cluster: 'greenPower',
-            type: ['commandNotification'],
-            convert: (model, msg, publish, options, meta) => {
-                const commandID = msg.data.commandID;
-                const lookup = {0x34: 'cover_stop', 0x35: 'cover_up', 0x36: 'cover_down'};
-                if(commandID === 224) return;
-                if(!lookup.hasOwnProperty(commandID)) {
-                    meta.logger.error(`GreenPower_3 error: missing command '${commandID}'`);
-                }
-                else {
-                    return {action: lookup[commandID]};
-                }
-            }
-        }],
+        fromZigbee: [fzlocal.legrand_600087l],
         toZigbee: [],
         exposes: [e.action(['cover_stop', 'cover_up', 'cover_down'])]
     },
