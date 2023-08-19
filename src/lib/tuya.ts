@@ -802,11 +802,11 @@ const tuyaTz = {
             ...[1, 2, 3, 4, 5, 6].map((no) => `schedule_slot_${no}`), 'minimum_range', 'maximum_range', 'detection_delay', 'fading_time',
             'radar_sensitivity', 'entry_sensitivity', 'illumin_threshold', 'detection_range', 'shield_range', 'entry_distance_indentation',
             'entry_filter_time', 'departure_delay', 'block_time', 'status_indication', 'breaker_mode', 'breaker_status',
-            'alarm', 'alarm_time', 'alarm_volume', 'type', 'volume', 'ringtone', 'duration',
+            'alarm', 'alarm_time', 'alarm_volume', 'type', 'volume', 'ringtone', 'duration', 'medium_motion_detection_distance',
             'large_motion_detection_distance', 'large_motion_detection_sensitivity', 'small_motion_detection_distance',
-            'small_motion_detection_sensitivity', 'static_detection_distance', 'static_detection_sensitivity',
-            'motion_sensitivity', 'detection_distance_max', 'detection_distance_min', 'presence_sensitivity','illuminance_interval','pir_sensitivity',
-            'pir_keep_time',
+            'small_motion_detection_sensitivity', 'static_detection_distance', 'static_detection_sensitivity', 'keep_time', 'indicator',
+            'motion_sensitivity', 'detection_distance_max', 'detection_distance_min', 'presence_sensitivity', 'sensitivity', 'illuminance_interval',
+            'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
