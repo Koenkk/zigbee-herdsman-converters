@@ -35,7 +35,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['HK-DIM-A', 'Candeo Zigbee Dimmer'],
+        zigbeeModel: ['HK-DIM-A', 'Candeo Zigbee Dimmer', 'HK_DIM_A'],
         fingerprint: [{modelID: 'HK_DIM_A', manufacturerName: 'Shyugj'}],
         model: 'HK-DIM-A',
         vendor: 'Candeo',
