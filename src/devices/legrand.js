@@ -34,15 +34,14 @@ const fzlocal = {
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             const lookup = {0x34: 'stop', 0x35: 'up', 0x36: 'down'};
-            if(commandID === 224) return;
-            if(!lookup.hasOwnProperty(commandID)) {
+            if (commandID === 224) return;
+            if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`GreenPower_3 error: missing command '${commandID}'`);
-            }
-            else {
+            } else {
                 return {action: lookup[commandID]};
             }
-        }
-    }
+        },
+    },
 };
 
 module.exports = [
@@ -472,7 +471,7 @@ module.exports = [
         description: 'Wireless and batteryless blind control switch',
         fromZigbee: [fzlocal.legrand_600087l],
         toZigbee: [],
-        exposes: [e.action(['stop', 'up', 'down'])]
+        exposes: [e.action(['stop', 'up', 'down'])],
     },
     {
         zigbeeModel: [' Cable outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' +
