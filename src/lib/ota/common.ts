@@ -399,7 +399,7 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
                         logger.debug(`Update succeeded, waiting for device announce`);
                         onProgress(100, null);
 
-                        let timer: NodeJS.Timer = null;
+                        let timer: ReturnType<typeof setTimeout> = null;
                         const cb = () => {
                             logger.debug('Got device announce or timed out, call resolve');
                             clearInterval(timer);

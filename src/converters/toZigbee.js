@@ -4530,6 +4530,36 @@ const converters = {
             meta.logger.info('Successfully removed all scenes');
         },
     },
+    scene_rename: {
+        key: ['scene_rename'],
+        convertSet: (entity, key, value, meta) => {
+            if (typeof value !== 'object') {
+                throw new Error('Payload should be object.');
+            }
+            const isGroup = entity.constructor.name === 'Group';
+            const sceneid = value.ID;
+            const scenename = value.name;
+            const groupid = isGroup ? entity.groupID : value.hasOwnProperty('group_id') ? value.group_id : 0;
+
+            if (isGroup) {
+                if (meta.membersState) {
+                    for (const member of entity.members) {
+                        const state = utils.getSceneState(member, sceneid, groupid);
+                        if (state) {
+                            utils.saveSceneState(member, sceneid, groupid, state, scenename);
+                        }
+                    }
+                }
+            } else {
+                const state = utils.getSceneState(entity, sceneid, groupid);
+                if (!state) {
+                    throw new Error(`No such scene in device meta data`);
+                }
+                utils.saveSceneState(entity, sceneid, groupid, state, scenename);
+            }
+            meta.logger.info('Successfully renamed scene');
+        },
+    },
     TS0003_curtain_switch: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
