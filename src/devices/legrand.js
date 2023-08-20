@@ -27,6 +27,23 @@ const tzLocal = {
     },
 };
 
+const fzlocal = {
+    legrand_600087l: {
+        cluster: 'greenPower',
+        type: ['commandNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            const lookup = {0x34: 'stop', 0x35: 'up', 0x36: 'down'};
+            if (commandID === 224) return;
+            if (!lookup.hasOwnProperty(commandID)) {
+                meta.logger.error(`GreenPower_3 error: missing command '${commandID}'`);
+            } else {
+                return {action: lookup[commandID]};
+            }
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: [' Pocket remote\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
@@ -446,6 +463,15 @@ module.exports = [
         fromZigbee: [fz.legrand_zlgp17_zlgp18],
         toZigbee: [],
         exposes: [e.action(['press_once', 'press_twice'])],
+    },
+    {
+        fingerprint: [{modelID: 'GreenPower_3', ieeeAddr: /^0x00000000005.....$/}],
+        model: '600087L',
+        vendor: 'Legrand',
+        description: 'Wireless and batteryless blind control switch',
+        fromZigbee: [fzlocal.legrand_600087l],
+        toZigbee: [],
+        exposes: [e.action(['stop', 'up', 'down'])],
     },
     {
         zigbeeModel: [' Cable outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' +
