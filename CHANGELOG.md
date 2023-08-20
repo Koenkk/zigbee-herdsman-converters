@@ -1,5 +1,15 @@
 # Changelog
 
+## [15.60.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.59.0...v15.60.0) (2023-08-20)
+
+
+### Features
+
+* Add `scene_rename` command ([#6092](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6092)) ([bc696cf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc696cf421143d8c479476ff089e7fbb7e07d39a))
+* **add:** 10454471 ([#6093](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6093)) ([47d1bc4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/47d1bc4875ef0838c59c5e42b901e5b1f9f91024))
+* **add:** 600087L ([#6090](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6090)) ([5264bd0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5264bd0cfae8491322bf6f0b0f8ae4fcf6d6e5f2))
+* **add:** SBTZB-110 ([#6088](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6088)) ([7910e32](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7910e327589124055829be2e4af314d99f2b9e75))
+
 ## [15.59.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.58.1...v15.59.0) (2023-08-19)
 
 
