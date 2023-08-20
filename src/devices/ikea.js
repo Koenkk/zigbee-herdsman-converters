@@ -832,7 +832,8 @@ module.exports = [
         fromZigbee: [fz.legacy.cmd_move, fz.legacy.cmd_stop, fz.legacy.E1744_play_pause, fz.legacy.E1744_skip, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action([
-            'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'toggle', 'brightness_step_up', 'brightness_step_down'])],
+            'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'toggle', 'brightness_step_up', 'brightness_step_down',
+            'rotate_left', 'rotate_right', 'rotate_stop', 'skip_backward', 'skip_forward', 'play_pause'])],
         ota: ota.tradfri,
         meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
