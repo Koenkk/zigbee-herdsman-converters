@@ -52,7 +52,6 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
-}
 ];
 
 module.exports = definitions;
