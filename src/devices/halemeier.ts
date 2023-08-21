@@ -47,7 +47,7 @@ const definitions: Definition[] = [
         description: 'S-Mitter Basic MultiWhite² 1-channel sender Zigbee ',
         fromZigbee: [fz.command_recall, fz.command_off, fz.command_on, fz.command_step_color_temperature, fz.command_step],
         toZigbee: [tz.battery_percentage_remaining],
-        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off']), e.light_brightness_colortemp([0, 254])],
+        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
