@@ -42,6 +42,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['HA-ZBM-MW2'],
+        model: 'HA-ZBM-MW2',
         vendor: 'Halemeier',
         description: 'S-Mitter Basic MultiWhite² 1-channel sender Zigbee ',
         fromZigbee: [fz.command_recall, fz.command_off, fz.command_on, fz.command_step_color_temperature, fz.command_step],
