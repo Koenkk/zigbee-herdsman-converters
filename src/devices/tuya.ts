@@ -555,6 +555,7 @@ const definitions: Definition[] = [
             {vendor: 'Tesla Smart', model: 'TSL-SEN-DOOR'},
             {vendor: 'Cleverio', model: 'SS100'},
             tuya.whitelabel('Niceboy', 'ORBIS Windows & Door Sensor', 'Door sensor', ['_TZ3000_qrldbmfn']),
+            tuya.whitelabel('Sber', 'SBDV-00030', 'Door sensor', ['_TYZB01_epni2jgy']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
@@ -1834,11 +1835,13 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['TS0041'],
-        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}],
+        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}, {modelID: 'TS0041A', manufacturerName: '_TYZB01_ub7urdza'}],
         model: 'TS0041',
         vendor: 'TuYa',
         description: 'Wireless switch with 1 button',
-        whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'}],
+        whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'},
+            tuya.whitelabel('Sber', 'SBDV-00032', 'Wireless switch with 1 button', ['_TYZB01_ub7urdza']),
+        ],
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
@@ -5360,6 +5363,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Cleverio', 'SS200', 'Motion sensor', ['_TYZB01_z2umiwvq']),
             tuya.whitelabel('Marmitek', 'SM0202_1', 'Motion sensor', ['_TYZB01_yr95mpib']),
+            tuya.whitelabel('Sber', 'SBDV-00029', 'Motion sensor', ['_TYZB01_2jzbhomb']),
         ],
     },
     {
