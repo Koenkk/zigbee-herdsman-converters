@@ -12,7 +12,7 @@ const definitions: Definition[] = [
         model: '03981',
         vendor: 'Vimar',
         description: 'IoT connected relay module',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
