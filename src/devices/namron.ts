@@ -830,6 +830,15 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.occupancy()],
     },
+    {
+        zigbeeModel: ['4512764'],
+        model: '4512764',
+        vendor: 'Namron',
+        description: 'Zigbee water leak sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.water_leak()],
+    },
 ];
 
 module.exports = definitions;
