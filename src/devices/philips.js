@@ -42,7 +42,7 @@ module.exports = [
         zigbeeModel: ['MWM001'],
         model: '13190230',
         vendor: 'Philips',
-        description: 'Hue white Dimmer 1-10V',
+        description: 'Hue white dimmer 1-10V',
         extend: philips.extend.light_onoff_brightness(),
     },
     {
