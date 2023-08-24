@@ -576,8 +576,8 @@ export const access = {
 const a = access;
 
 export const options = {
-    calibration: (name: string, type='absolute') => new Numeric(`${name}_calibration`, access.SET).withLabel(`${getLabelFromName(name)} calibration`).withDescription(`Calibrates the ${name} value (${type} offset), takes into effect on next report of device.`),
-    precision: (name: string) => new Numeric(`${name}_precision`, access.SET).withLabel(`${getLabelFromName(name)} precision`).withValueMin(0).withValueMax(3).withDescription(`Number of digits after decimal point for ${name}, takes into effect on next report of device.`),
+    calibration: (name: string, type='absolute') => new Numeric(`${name}_calibration`, access.SET).withDescription(`Calibrates the ${name} value (${type} offset), takes into effect on next report of device.`),
+    precision: (name: string) => new Numeric(`${name}_precision`, access.SET).withValueMin(0).withValueMax(3).withDescription(`Number of digits after decimal point for ${name}, takes into effect on next report of device.`),
     invert_cover: () => new Binary(`invert_cover`, access.SET, true, false).withDescription(`Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).`),
     color_sync: () => new Binary(`color_sync`, access.SET, true, false).withDescription(`When enabled colors will be synced, e.g. if the light supports both color x/y and color temperature a conversion from color x/y to color temperature will be done when setting the x/y color (default true).`),
     thermostat_unit: () => new Enum('thermostat_unit', access.SET, ['celsius', 'fahrenheit']).withDescription('Controls the temperature unit of the thermostat (default celsius).'),
@@ -641,7 +641,7 @@ export const presets = {
     cover_position_tilt: () => new Cover().withPosition().withTilt(),
     cover_tilt: () => new Cover().withTilt(),
     cpu_temperature: () => new Numeric('cpu_temperature', access.STATE).withLabel('CPU temperature').withUnit('°C').withDescription('Temperature of the CPU'),
-    cube_side: (name: string) => new Numeric(name, access.STATE).withLabel(getLabelFromName(name)).withDescription('Side of the cube').withValueMin(0).withValueMax(6).withValueStep(1),
+    cube_side: (name: string) => new Numeric(name, access.STATE).withDescription('Side of the cube').withValueMin(0).withValueMax(6).withValueStep(1),
     current: () => new Numeric('current', access.STATE).withUnit('A').withDescription('Instantaneous measured electrical current'),
     current_phase_b: () => new Numeric('current_phase_b', access.STATE).withLabel('Current phase B').withUnit('A').withDescription('Instantaneous measured electrical current on phase B'),
     current_phase_c: () => new Numeric('current_phase_c', access.STATE).withLabel('Current phase C').withUnit('A').withDescription('Instantaneous measured electrical current on phase C'),
