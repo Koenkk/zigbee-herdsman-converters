@@ -394,7 +394,7 @@ describe('index.js', () => {
                 "type":"composite",
                 "property":"color_rgb",
                 "name":"color_xy",
-                "label": "Color xy",
+                "label": "Color (X/Y)",
                 "description": "Color of this light in the CIE 1931 color space (x/y)",
                 "access":7,
                 "features":[
