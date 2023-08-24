@@ -278,13 +278,16 @@ export class Light extends Base {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const levelConfig = new Composite('level_config', 'level_config', access.ALL)
             .withFeature(new Numeric('on_off_transition_time', access.ALL)
+                .withLabel('ON/OFF transition time')
                 .withDescription('Represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster'),
             )
             .withFeature(new Numeric('on_transition_time', access.ALL)
+                .withLabel('ON transition time')
                 .withPreset('disabled', 65535, 'Use on_off_transition_time value')
                 .withDescription('Represents the time taken to move the current level from the minimum level to the maximum level when an On command is received'),
             )
             .withFeature(new Numeric('off_transition_time', access.ALL)
+                .withLabel('OFF transition time')
                 .withPreset('disabled', 65535, 'Use on_off_transition_time value')
                 .withDescription('Represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received'),
             )
@@ -354,12 +357,14 @@ export class Light extends Base {
         for (const type of types) {
             if (type === 'xy') {
                 const colorXY = new Composite('color_xy', 'color', access.ALL)
+                    .withLabel('Color (X/Y)')
                     .withFeature(new Numeric('x', access.ALL))
                     .withFeature(new Numeric('y', access.ALL))
                     .withDescription('Color of this light in the CIE 1931 color space (x/y)');
                 this.features.push(colorXY);
             } else if (type === 'hs') {
                 const colorHS = new Composite('color_hs', 'color', access.ALL)
+                    .withLabel('Color (HS)')
                     .withFeature(new Numeric('hue', access.ALL))
                     .withFeature(new Numeric('saturation', access.ALL))
                     .withDescription('Color of this light expressed as hue/saturation');
@@ -484,7 +489,7 @@ export class Climate extends Base {
 
     withPiHeatingDemand(access=a.STATE) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('pi_heating_demand', access).withValueMin(0).withValueMax(100).withUnit('%').withDescription('Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open'));
+        this.features.push(new Numeric('pi_heating_demand', access).withLabel('PI heating demand').withValueMin(0).withValueMax(100).withUnit('%').withDescription('Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open'));
         return this;
     }
 
@@ -500,7 +505,7 @@ export class Climate extends Base {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['fully_open', 'fully_closed', 'half_open', 'quarter_open', 'three_quarters_open'];
         positions.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('ac_louver_position', access, positions).withDescription('Ac louver position of this device'));
+        this.features.push(new Enum('ac_louver_position', access, positions).withLabel('AC louver position').withDescription('AC louver position of this device'));
         return this;
     }
 
@@ -512,15 +517,17 @@ export class Climate extends Base {
         const featureDayOfWeek = new List('dayofweek', a.SET, new Composite('day', 'dayofweek', a.SET).withFeature(new Enum('day', a.SET, [
             'monday', 'tuesday', 'wednesday', 'thursday', 'friday',
             'saturday', 'sunday', 'away_or_vacation',
-        ]))).withLengthMin(1).withLengthMax(8).withDescription('Days on which the schedule will be active.');
+        ]))).withLabel('Day of week').withLengthMin(1).withLengthMax(8).withDescription('Days on which the schedule will be active.');
 
         const featureTransitionTime = new Composite('time', 'transitionTime', a.SET)
             .withFeature(new Numeric('hour', a.SET))
             .withFeature(new Numeric('minute', a.SET))
             .withDescription('Trigger transition X minutes after 00:00.');
         const featureTransitionHeatSetPoint = new Numeric('heatSetpoint', a.SET)
+            .withLabel('Heat setpoint')
             .withDescription('Target heat setpoint');
         const featureTransitionCoolSetPoint = new Numeric('coolSetpoint', a.SET)
+            .withLabel('Cool setpoint')
             .withDescription('Target cool setpoint');
         let featureTransition = new Composite('transition', 'transition', a.SET).withFeature(featureTransitionTime);
         if (modes.includes('heat')) featureTransition = featureTransition.withFeature(featureTransitionHeatSetPoint);
@@ -569,12 +576,12 @@ export const access = {
 const a = access;
 
 export const options = {
-    calibration: (name: string, type='absolute') => new Numeric(`${name}_calibration`, access.SET).withDescription(`Calibrates the ${name} value (${type} offset), takes into effect on next report of device.`),
-    precision: (name: string) => new Numeric(`${name}_precision`, access.SET).withValueMin(0).withValueMax(3).withDescription(`Number of digits after decimal point for ${name}, takes into effect on next report of device.`),
+    calibration: (name: string, type='absolute') => new Numeric(`${name}_calibration`, access.SET).withLabel(`${getLabelFromName(name)} calibration`).withDescription(`Calibrates the ${name} value (${type} offset), takes into effect on next report of device.`),
+    precision: (name: string) => new Numeric(`${name}_precision`, access.SET).withLabel(`${getLabelFromName(name)} precision`).withValueMin(0).withValueMax(3).withDescription(`Number of digits after decimal point for ${name}, takes into effect on next report of device.`),
     invert_cover: () => new Binary(`invert_cover`, access.SET, true, false).withDescription(`Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).`),
     color_sync: () => new Binary(`color_sync`, access.SET, true, false).withDescription(`When enabled colors will be synced, e.g. if the light supports both color x/y and color temperature a conversion from color x/y to color temperature will be done when setting the x/y color (default true).`),
     thermostat_unit: () => new Enum('thermostat_unit', access.SET, ['celsius', 'fahrenheit']).withDescription('Controls the temperature unit of the thermostat (default celsius).'),
-    expose_pin: () => new Binary(`expose_pin`, access.SET, true, false).withDescription(`Expose pin of this lock in the published payload (default false).`),
+    expose_pin: () => new Binary(`expose_pin`, access.SET, true, false).withLabel('Expose PIN').withDescription(`Expose pin of this lock in the published payload (default false).`),
     occupancy_timeout: () => new Numeric(`occupancy_timeout`, access.SET).withValueMin(0).withDescription('Time in seconds after which occupancy is cleared after detecting it (default 90 seconds).'),
     occupancy_timeout_2: () => new Numeric(`occupancy_timeout`, access.SET).withValueMin(0).withValueStep(0.1).withUnit('s').withDescription('Time in seconds after which occupancy is cleared after detecting it (default is "detection_interval" + 2 seconds). The value must be equal to or greater than "detection_interval", and it can also be a fraction.'),
     vibration_timeout: () => new Numeric(`vibration_timeout`, access.SET).withValueMin(0).withDescription('Time in seconds after which vibration is cleared after detecting it (default 90 seconds).'),
@@ -606,14 +613,14 @@ export const presets = {
     list: (name: string, access: number, itemType: Feature) => new List(name, access, itemType),
     switch_: () => new Switch(),
     // Specific
-    ac_frequency: () => new Numeric('ac_frequency', access.STATE).withUnit('Hz').withDescription('Measured electrical AC frequency'),
+    ac_frequency: () => new Numeric('ac_frequency', access.STATE).withLabel('AC frequency').withUnit('Hz').withDescription('Measured electrical AC frequency'),
     action: (values: string[]) => new Enum('action', access.STATE, values).withDescription('Triggered action (e.g. a button click)'),
     action_group: () => new Numeric('action_group', access.STATE).withDescription('Group where the action was triggered on'),
     angle: (name: string) => new Numeric(name, access.STATE).withValueMin(-360).withValueMax(360).withUnit('°'),
     angle_axis: (name: string) => new Numeric(name, access.STATE).withValueMin(-90).withValueMax(90).withUnit('°'),
     aqi: () => new Numeric('aqi', access.STATE).withDescription('Air quality index'),
     auto_lock: () => new Switch().withLabel('Auto lock').withState('auto_lock', false, 'Enable/disable auto lock', access.STATE_SET, 'AUTO', 'MANUAL'),
-    auto_off: (offTime: number) => new Binary('auto_off', access.ALL, true, false).withDescription(`Turn the device automatically off when attached device consumes less than 2W for ${offTime} minutes`),
+    auto_off: (offTime: number) => new Binary('auto_off', access.ALL, true, false).withLabel('Auto OFF').withDescription(`Turn the device automatically off when attached device consumes less than 2W for ${offTime} minutes`),
     auto_relock_time: () => new Numeric('auto_relock_time', access.ALL).withValueMin(0).withUnit('s').withDescription('The number of seconds to wait after unlocking a lock before it automatically locks again. 0=disabled'),
     away_mode: () => new Switch().withLabel('Away mode').withState('away_mode', false, 'Enable/disable away mode', access.STATE_SET),
     away_preset_days: () => new Numeric('away_preset_days', access.STATE_SET).withDescription('Away preset days').withValueMin(0).withValueMax(100),
@@ -625,22 +632,22 @@ export const presets = {
     button_lock: () => new Binary('button_lock', access.ALL, 'ON', 'OFF').withDescription('Disables the physical switch button'),
     carbon_monoxide: () => new Binary('carbon_monoxide', access.STATE, true, false).withDescription('Indicates if CO (carbon monoxide) is detected'),
     child_lock: () => new Lock().withLabel('Child lock').withState('child_lock', 'LOCK', 'UNLOCK', 'Enables/disables physical input on the device', access.STATE_SET),
-    co2: () => new Numeric('co2', access.STATE).withUnit('ppm').withDescription('The measured CO2 (carbon dioxide) value'),
-    co: () => new Numeric('co', access.STATE).withUnit('ppm').withDescription('The measured CO (carbon monoxide) value'),
+    co2: () => new Numeric('co2', access.STATE).withLabel('CO2').withUnit('ppm').withDescription('The measured CO2 (carbon dioxide) value'),
+    co: () => new Numeric('co', access.STATE).withLabel('CO').withUnit('ppm').withDescription('The measured CO (carbon monoxide) value'),
     comfort_temperature: () => new Numeric('comfort_temperature', access.STATE_SET).withUnit('°C').withDescription('Comfort temperature').withValueMin(0).withValueMax(30),
     consumer_connected: () => new Binary('consumer_connected', access.STATE, true, false).withDescription('Indicates whether a plug is physically attached. Device does not have to pull power or even be connected electrically (state of this binary switch can be ON even if main power switch is OFF)'),
     contact: () => new Binary('contact', access.STATE, false, true).withDescription('Indicates if the contact is closed (= true) or open (= false)'),
     cover_position: () => new Cover().withPosition(),
     cover_position_tilt: () => new Cover().withPosition().withTilt(),
     cover_tilt: () => new Cover().withTilt(),
-    cpu_temperature: () => new Numeric('cpu_temperature', access.STATE).withUnit('°C').withDescription('Temperature of the CPU'),
-    cube_side: (name: string) => new Numeric(name, access.STATE).withDescription('Side of the cube').withValueMin(0).withValueMax(6).withValueStep(1),
+    cpu_temperature: () => new Numeric('cpu_temperature', access.STATE).withLabel('CPU temperature').withUnit('°C').withDescription('Temperature of the CPU'),
+    cube_side: (name: string) => new Numeric(name, access.STATE).withLabel(getLabelFromName(name)).withDescription('Side of the cube').withValueMin(0).withValueMax(6).withValueStep(1),
     current: () => new Numeric('current', access.STATE).withUnit('A').withDescription('Instantaneous measured electrical current'),
-    current_phase_b: () => new Numeric('current_phase_b', access.STATE).withUnit('A').withDescription('Instantaneous measured electrical current on phase B'),
-    current_phase_c: () => new Numeric('current_phase_c', access.STATE).withUnit('A').withDescription('Instantaneous measured electrical current on phase C'),
+    current_phase_b: () => new Numeric('current_phase_b', access.STATE).withLabel('Current phase B').withUnit('A').withDescription('Instantaneous measured electrical current on phase B'),
+    current_phase_c: () => new Numeric('current_phase_c', access.STATE).withLabel('Current phase C').withUnit('A').withDescription('Instantaneous measured electrical current on phase C'),
     deadzone_temperature: () => new Numeric('deadzone_temperature', access.STATE_SET).withUnit('°C').withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat').withValueMin(0).withValueMax(5).withValueStep(1),
     device_temperature: () => new Numeric('device_temperature', access.STATE).withUnit('°C').withDescription('Temperature of the device'),
-    eco2: () => new Numeric('eco2', access.STATE).withUnit('ppm').withDescription('Measured eCO2 value'),
+    eco2: () => new Numeric('eco2', access.STATE).withLabel('eCO2').withLabel('PPM').withUnit('ppm').withDescription('Measured eCO2 value'),
     eco_mode: () => new Binary('eco_mode', access.STATE_SET, 'ON', 'OFF').withDescription('ECO mode (energy saving mode)'),
     eco_temperature: () => new Numeric('eco_temperature', access.STATE_SET).withUnit('°C').withDescription('Eco temperature').withValueMin(0).withValueMax(35),
     effect: () => new Enum('effect', access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']).withDescription('Triggers an effect on the light (e.g. make light blink for a few seconds)'),
@@ -651,14 +658,14 @@ export const presets = {
     force: () => new Enum('force', access.STATE_SET, ['normal', 'open', 'close']).withDescription('Force the valve position'),
     formaldehyd: () => new Numeric('formaldehyd', access.STATE).withDescription('The measured formaldehyd value').withUnit('mg/m³'),
     gas: () => new Binary('gas', access.STATE, true, false).withDescription('Indicates whether the device detected gas'),
-    hcho: () => new Numeric('hcho', access.STATE).withUnit('mg/m³').withDescription('Measured Hcho value'),
+    hcho: () => new Numeric('hcho', access.STATE).withLabel('HCHO').withUnit('mg/m³').withDescription('Measured HCHO value'),
     holiday_temperature: () => new Numeric('holiday_temperature', access.STATE_SET).withUnit('°C').withDescription('Holiday temperature').withValueMin(0).withValueMax(30),
     humidity: () => new Numeric('humidity', access.STATE).withUnit('%').withDescription('Measured relative humidity'),
     illuminance: () => new Numeric('illuminance', access.STATE).withDescription('Raw measured illuminance'),
-    illuminance_lux: () => new Numeric('illuminance_lux', access.STATE).withUnit('lx').withDescription('Measured illuminance in lux'),
+    illuminance_lux: () => new Numeric('illuminance_lux', access.STATE).withLabel('Illuminance (lux)').withUnit('lx').withDescription('Measured illuminance in lux'),
     brightness_state: () => new Enum('brightness_state', access.STATE, ['low', 'middle', 'high', 'strong']).withDescription('Brightness state'),
     keypad_lockout: () => new Enum('keypad_lockout', access.ALL, ['unlock', 'lock1', 'lock2']).withDescription('Enables/disables physical input on the device'),
-    led_disabled_night: () => new Binary('led_disabled_night', access.ALL, true, false).withDescription('Enable/disable the LED at night'),
+    led_disabled_night: () => new Binary('led_disabled_night', access.ALL, true, false).withLabel('LED disabled night').withDescription('Enable/disable the LED at night'),
     light_brightness: () => new Light().withBrightness(),
     light_brightness_color: (preferHueAndSaturation: boolean) => new Light().withBrightness().withColor((preferHueAndSaturation ? ['hs', 'xy'] : ['xy', 'hs'])),
     light_brightness_colorhs: () => new Light().withBrightness().withColor(['hs']),
@@ -689,13 +696,13 @@ export const presets = {
     open_window: () => new Binary('open_window', access.STATE_SET, 'ON', 'OFF').withDescription('Enables/disables the status on the device'),
     open_window_temperature: () => new Numeric('open_window_temperature', access.STATE_SET).withUnit('°C').withDescription('Open window temperature').withValueMin(0).withValueMax(35),
     overload_protection: (min: number, max: number) => new Numeric('overload_protection', access.ALL).withUnit('W').withValueMin(min).withValueMax(max).withDescription('Maximum allowed load, turns off if exceeded'),
-    pm10: () => new Numeric('pm10', access.STATE).withUnit('µg/m³').withDescription('Measured PM10 (particulate matter) concentration'),
-    pm25: () => new Numeric('pm25', access.STATE).withUnit('µg/m³').withDescription('Measured PM2.5 (particulate matter) concentration'),
+    pm10: () => new Numeric('pm10', access.STATE).withLabel('PM10').withUnit('µg/m³').withDescription('Measured PM10 (particulate matter) concentration'),
+    pm25: () => new Numeric('pm25', access.STATE).withLabel('PM25').withUnit('µg/m³').withDescription('Measured PM2.5 (particulate matter) concentration'),
     position: () => new Numeric('position', access.STATE).withUnit('%').withDescription('Position'),
     power: () => new Numeric('power', access.STATE).withUnit('W').withDescription('Instantaneous measured power'),
     power_factor: () => new Numeric('power_factor', access.STATE).withUnit('%').withDescription('Instantaneous measured power factor'),
     power_apparent: () => new Numeric('power_apparent', access.STATE).withUnit('VA').withDescription('Instantaneous measured apparent power'),
-    power_on_behavior: (values=['off', 'previous', 'on']) => new Enum('power_on_behavior', access.ALL, values).withDescription('Controls the behavior when the device is powered on after power loss'),
+    power_on_behavior: (values=['off', 'previous', 'on']) => new Enum('power_on_behavior', access.ALL, values).withLabel('Power-on behavior').withDescription('Controls the behavior when the device is powered on after power loss'),
     power_outage_count: (resetsWhenPairing = true) => new Numeric('power_outage_count', access.STATE).withDescription('Number of power outages' + (resetsWhenPairing ? ' (since last pairing)' : '')),
     power_outage_memory: () => new Binary('power_outage_memory', access.ALL, true, false).withDescription('Enable/disable the power outage memory, this recovers the on/off mode after power failure'),
     power_reactive: () => new Numeric('power_reactive', access.STATE).withUnit('VAR').withDescription('Instantaneous measured reactive power'),
@@ -704,7 +711,7 @@ export const presets = {
     programming_operation_mode: () => new Enum('programming_operation_mode', access.ALL, ['setpoint', 'schedule', 'schedule_with_preheat', 'eco']).withDescription('Controls how programming affects the thermostat. Possible values: setpoint (only use specified setpoint), schedule (follow programmed setpoint schedule), schedule_with_preheat (follow programmed setpoint schedule with pre-heating). Changing this value does not clear programmed schedules.'),
     smoke: () => new Binary('smoke', access.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
     soil_moisture: () => new Numeric('soil_moisture', access.STATE).withUnit('%').withDescription('Measured soil moisture value'),
-    sos: () => new Binary('sos', access.STATE, true, false).withDescription('SOS alarm'),
+    sos: () => new Binary('sos', access.STATE, true, false).withLabel('SOS').withDescription('SOS alarm'),
     sound_volume: () => new Enum('sound_volume', access.ALL, ['silent_mode', 'low_volume', 'high_volume']).withDescription('Sound volume of the lock'),
     switch: () => new Switch().withState('state', true, 'On/off state of the switch'),
     switch_type: () => new Enum('switch_type', access.ALL, ['toggle', 'momentary']).withDescription('Wall switch type'),
@@ -717,11 +724,11 @@ export const presets = {
     valve_state: () => new Binary('valve_state', access.STATE, 'OPEN', 'CLOSED').withDescription('Valve state if open or closed'),
     valve_detection: () => new Switch().withLabel('Valve detection').withState('valve_detection', true, 'Valve detection').setAccess('state', access.STATE_SET),
     vibration: () => new Binary('vibration', access.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
-    voc: () => new Numeric('voc', access.STATE).withUnit('µg/m³').withDescription('Measured VOC value'),
-    voc_index: () => new Numeric('voc_index', access.STATE).withDescription('VOC index'),
+    voc: () => new Numeric('voc', access.STATE).withLabel('VOC').withUnit('µg/m³').withDescription('Measured VOC value'),
+    voc_index: () => new Numeric('voc_index', access.STATE).withLabel('VOC index').withDescription('VOC index'),
     voltage: () => new Numeric('voltage', access.STATE).withUnit('V').withDescription('Measured electrical potential value'),
-    voltage_phase_b: () => new Numeric('voltage_phase_b', access.STATE).withUnit('V').withDescription('Measured electrical potential value on phase B'),
-    voltage_phase_c: () => new Numeric('voltage_phase_c', access.STATE).withUnit('V').withDescription('Measured electrical potential value on phase C'),
+    voltage_phase_b: () => new Numeric('voltage_phase_b', access.STATE).withLabel('Voltage phase B').withUnit('V').withDescription('Measured electrical potential value on phase B'),
+    voltage_phase_c: () => new Numeric('voltage_phase_c', access.STATE).withLabel('Voltage phase C').withDescription('Measured electrical potential value on phase C'),
     water_leak: () => new Binary('water_leak', access.STATE, true, false).withDescription('Indicates whether the device detected a water leak'),
     rain: () => new Binary('rain', access.STATE, true, false).withDescription('Indicates whether the device detected rainfall'),
     warning: () => new Composite('warning', 'warning', access.SET)
@@ -741,7 +748,7 @@ export const presets = {
         .withFeature(new Numeric('user', access.SET).withDescription('User ID to set or clear the pincode for'))
         .withFeature(new Enum('user_type', access.SET, ['unrestricted', 'year_day_schedule', 'week_day_schedule', 'master', 'non_access']).withDescription('Type of user, unrestricted: owner (default), (year|week)_day_schedule: user has ability to open lock based on specific time period, master: user has ability to both program and operate the door lock, non_access: user is recognized by the lock but does not have the ability to open the lock'))
         .withFeature(new Binary('user_enabled', access.SET, true, false).withDescription('Whether the user is enabled/disabled'))
-        .withFeature(new Numeric('pin_code', access.SET).withDescription('Pincode to set, set pincode to null to clear')),
+        .withFeature(new Numeric('pin_code', access.SET).withLabel('PIN code').withDescription('Pincode to set, set pincode to null to clear')),
     squawk: () => new Composite('squawk', 'squawk', access.SET)
         .withFeature(new Enum('state', access.SET, ['system_is_armed', 'system_is_disarmed']).withDescription('Set Squawk state'))
         .withFeature(new Enum('level', access.SET, ['low', 'medium', 'high', 'very_high']).withDescription('Sound level'))
