@@ -835,9 +835,14 @@ const definitions: Definition[] = [
         model: '4512764',
         vendor: 'Namron',
         description: 'Zigbee water leak sensor',
-        fromZigbee: [fz.ias_water_leak_alarm_1],
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [e.battery_low(), e.water_leak()],
+        exposes: [e.battery_low(), e.water_leak(), e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
 ];
 
