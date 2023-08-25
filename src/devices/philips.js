@@ -3336,4 +3336,11 @@ module.exports = [
         description: 'Hue Phoenix dimmable LED smart pendant light',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
+    {
+        zigbeeModel: ['929003046601_01', '929003046601_02'],
+        model: '929003046601',
+        vendor: 'Philips',
+        description: 'Philips Hue white ambiance pillar double spot (2 spot) with Bluetooth',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];
