@@ -964,6 +964,15 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['lumi.light.acn132'],
+        model: 'RLS-K01D',
+        vendor: 'Xiaomi',
+        description: 'Aqara Zigbee 3.0 LED strip T1',
+        extend: extend.light_onoff_brightness_colortemp_color(
+            {disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.sensor_86sw2', 'lumi.sensor_86sw2.es1'],
         model: 'WXKG02LM_rev1',
         vendor: 'Xiaomi',
