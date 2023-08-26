@@ -965,8 +965,9 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['lumi.light.acn132'],
-        model: 'RLS-K01D',
+        model: 'LGYCDD01LM',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'RLS-K01D'}],
         description: 'Aqara Zigbee 3.0 LED strip T1',
         extend: extend.light_onoff_brightness_colortemp_color(
             {disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370]}),
