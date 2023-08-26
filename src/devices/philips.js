@@ -1565,7 +1565,7 @@ module.exports = [
         model: '929003054401',
         vendor: 'Philips',
         description: 'Hue white ambiance suspension Fair',
-        extend: philips.extend.light_onoff_brightness_colortemp(),
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
         zigbeeModel: ['LTP002', '929003054901'],
