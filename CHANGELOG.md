@@ -1,5 +1,16 @@
 # Changelog
 
+## [15.62.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.61.0...v15.62.0) (2023-08-26)
+
+
+### Features
+
+* **add:** 4512760 [@erwahlb](https://github.com/erwahlb) https://github.com/Koenkk/zigbee2mqtt/issues/18732 ([2bcb272](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2bcb27250b3f3f1417c0bfe98de0aed9fe1cb9e3))
+* **add:** 5047330P6 https://github.com/Koenkk/zigbee2mqtt/discussions/18712 ([8518fa6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8518fa68aca04602ff5ad52af2950e606e9299c3))
+* **add:** 929003046601 ([#6104](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6104)) ([a25c4b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a25c4b71d032a2a29dbb4e59dba52313f95f05b2))
+* **add:** RLS-K01D @FabienVINCENT https://github.com/Koenkk/zigbee2mqtt/issues/18471 ([1443b52](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1443b52bd653b45c9a0dde3009b2383f80860109))
+* Support battery for Namron 4512764 ([#6103](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6103)) ([53b6d91](https://github.com/Koenkk/zigbee-herdsman-converters/commit/53b6d916e5a1939f2283d6483b8ae2e97960595d))
+
 ## [15.61.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.60.0...v15.61.0) (2023-08-24)
 
 
