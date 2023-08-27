@@ -2102,7 +2102,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'},
             {vendor: 'Lonsonho', model: 'X702'},
-            {vendor: 'Avatto', model: 'ZTS02'}],
+            {vendor: 'AVATTO', model: 'ZTS02'}],
         extend: tuya.extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         endpoint: (device) => {
@@ -2645,11 +2645,11 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
-            '_TZE200_bvu2wnxz', /* model: 'ME167', vendor: 'Avatto' */
-            '_TZE200_6rdj8dzm', /* model: 'ME167', vendor: 'Avatto' */
+            '_TZE200_bvu2wnxz', /* model: 'ME167', vendor: 'AVATTO' */
+            '_TZE200_6rdj8dzm', /* model: 'ME167', vendor: 'AVATTO' */
             '_TZE200_gd4rvykv', // Sanico
-            '_TZE200_p3dbf6qs', /* model: 'ME168', vendor: 'Avatto' */
-            '_TZE200_rxntag7i', /* model: 'ME168', vendor: 'Avatto' */
+            '_TZE200_p3dbf6qs', /* model: 'ME168', vendor: 'AVATTO' */
+            '_TZE200_rxntag7i', /* model: 'ME168', vendor: 'AVATTO' */
         ]),
         model: 'TS0601_thermostat_3',
         vendor: 'TuYa',
@@ -2657,8 +2657,8 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         whiteLabel: [
-            tuya.whitelabel('Avatto', 'ME167', 'Thermostatic radiator valve', ['_TZE200_bvu2wnxz', '_TZE200_6rdj8dzm']),
-            tuya.whitelabel('Avatto', 'ME168', 'Thermostatic radiator valve', ['_TZE200_p3dbf6qs', '_TZE200_rxntag7i']),
+            tuya.whitelabel('AVATTO', 'ME167', 'Thermostatic radiator valve', ['_TZE200_bvu2wnxz', '_TZE200_6rdj8dzm']),
+            tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_p3dbf6qs', '_TZE200_rxntag7i']),
         ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
@@ -2932,7 +2932,7 @@ const definitions: Definition[] = [
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
         whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}, {vendor: 'BlitzWolf', model: 'BW-SHP15'},
-            {vendor: 'Avatto', model: 'MIUCOT10Z'}, {vendor: 'Neo', model: 'NAS-WR01B'}, {vendor: 'Neo', model: 'PLUG-001SPB2'},
+            {vendor: 'AVATTO', model: 'MIUCOT10Z'}, {vendor: 'Neo', model: 'NAS-WR01B'}, {vendor: 'Neo', model: 'PLUG-001SPB2'},
             tuya.whitelabel('TuYa', 'BSD29', 'Smart plug (with power monitoring by polling)', ['_TZ3000_okaz9tjs']),
         ],
         ota: ota.zigbeeOTA,
@@ -3753,7 +3753,7 @@ const definitions: Definition[] = [
         description: 'Wall-mount thermostat',
         fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.x5h_thermostat],
         toZigbee: [legacy.toZigbee.x5h_thermostat],
-        whiteLabel: [{vendor: 'Beok', model: 'TGR85-ZB'}],
+        whiteLabel: [{vendor: 'Beok', model: 'TGR85-ZB'}, {vendor: 'AVATTO', model: 'ZWT-100-16A'}],
         exposes: [
             e.climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
