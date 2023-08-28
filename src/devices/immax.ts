@@ -11,6 +11,30 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_jak16dll']),
+        model: '07752L',
+        description: 'NEO smart internal double socket',
+        vendor: 'Immax',
+        extend: tuya.extend.switch({
+            electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ['l1', 'l2']}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.currentSummDelivered(endpoint);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+    },
+    {
 
         zigbeeModel: ['Motion-Sensor-ZB3.0'],
         model: '07043M',
