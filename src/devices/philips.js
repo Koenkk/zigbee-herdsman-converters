@@ -1659,7 +1659,7 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
-        zigbeeModel: ['929002376401'],
+        zigbeeModel: ['929002376401', '929002376402'],
         model: '929002376401',
         vendor: 'Philips',
         description: 'Hue Iris gold limited edition (generation 4) ',
