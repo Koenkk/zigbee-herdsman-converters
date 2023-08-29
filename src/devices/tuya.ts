@@ -5913,7 +5913,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_81yrt3lo']),
-        model: 'TS0601_Bidirectional_Energy_Meter_with_80A_Current_Clamp',
+        model: 'PJ-1203A',
         vendor: 'TuYa',
         description: 'Bidirectional Energy Meter with 80A Current Clamp',
         fromZigbee: [tuya.fz.datapoints],
@@ -5927,7 +5927,7 @@ const definitions: Definition[] = [
             e.ac_frequency(),
             e.numeric('total_power_A', ea.STATE).withUnit('W').withDescription('Total power A'),
             e.numeric('total_power_B', ea.STATE).withUnit('W').withDescription('Total power B'),
-            e.numeric('total_power_AB', ea.STATE).withUnit('W').withDescription('Total power A'),
+            e.numeric('total_power_AB', ea.STATE).withUnit('W').withDescription('Total power A+B'),
             e.numeric('voltage', ea.STATE).withUnit('V').withDescription('Voltage'),
             e.numeric('current_A', ea.STATE).withUnit('A').withDescription('Current A'),
             e.numeric('current_B', ea.STATE).withUnit('A').withDescription('Current B'),
@@ -5942,7 +5942,7 @@ const definitions: Definition[] = [
             e.numeric('update_frequency', ea.STATE).withUnit('sec').withDescription('Update frequency'),
         ],
         meta: {
-            tuyaDatapoints: [
+            tuyaDatapoints: [//only report data
                 [111, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [101, 'total_power_A', tuya.valueConverter.divideBy10],
                 [105, 'total_power_B', tuya.valueConverter.divideBy10],
