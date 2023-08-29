@@ -5961,5 +5961,5 @@ const definitions: Definition[] = [
         },
     },
 ];
-            
+
 module.exports = definitions;
