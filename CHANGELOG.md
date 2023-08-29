@@ -1,5 +1,19 @@
 # Changelog
 
+## [15.64.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.63.0...v15.64.0) (2023-08-29)
+
+
+### Features
+
+* **add:** 07752L https://github.com/Koenkk/zigbee2mqtt/issues/18326 ([e479f95](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e479f95589e01c3c7b3544027cf6ba3af686ebe2))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_rhblgy0z` as TuYa TS0601_din_1 ([#6111](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6111)) ([d2c0dd2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d2c0dd2ba1680a94b670c65179715810e5cf1acd))
+* **detect:** Detect `929002376402` as 929002376401 ([#6112](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6112)) ([21a0401](https://github.com/Koenkk/zigbee-herdsman-converters/commit/21a0401168d8a0ddb95de7a53634ae6e416631a2))
+* Enable hue/saturation for Paulmann lights ([#6114](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6114)) ([1b401e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1b401e9ba3847e6f24109d3b4dacf01385bfad56))
+
 ## [15.63.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.62.0...v15.63.0) (2023-08-27)
 
 
