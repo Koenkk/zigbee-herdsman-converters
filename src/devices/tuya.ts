@@ -5923,7 +5923,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Tuya', 'PJ-1203A', 'Bidirectional Energy Meter with 80A Current Clamp', ['_TZE204_81yrt3lo']),
         ],
-        exposes: [//only report data
+        exposes: [
             e.ac_frequency(),
             e.numeric('total_power_A', ea.STATE).withUnit('W').withDescription('Total power A'),
             e.numeric('total_power_B', ea.STATE).withUnit('W').withDescription('Total power B'),
@@ -5942,7 +5942,7 @@ const definitions: Definition[] = [
             e.numeric('update_frequency', ea.STATE).withUnit('sec').withDescription('Update frequency'),
         ],
         meta: {
-            tuyaDatapoints: [//only report data
+            tuyaDatapoints: [
                 [111, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [101, 'total_power_A', tuya.valueConverter.divideBy10],
                 [105, 'total_power_B', tuya.valueConverter.divideBy10],
