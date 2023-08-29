@@ -5958,6 +5958,7 @@ const definitions: Definition[] = [
               [107, 'energy_reverse_A', tuya.valueConverter.divideBy100],
               [109, 'energy_reverse_B', tuya.valueConverter.divideBy100],
               [129, 'update_frequency' , tuya.valueConverter.raw],
+            ],
         },
     },
 ];
