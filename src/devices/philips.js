@@ -1148,6 +1148,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['LTD008'],
+        model: '929003123801',
+        vendor: 'Philips',
+        description: 'Hue white ambiance 6" downlight',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['LTG001'],
         model: '9290019534',
         vendor: 'Philips',
