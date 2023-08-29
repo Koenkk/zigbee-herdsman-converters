@@ -5911,7 +5911,6 @@ const definitions: Definition[] = [
             ],
         },
     },
-];
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_81yrt3lo']),
         model: 'TS0601_Bidirectional_Energy_Meter_with_80A_Current_Clamp', 
@@ -5959,6 +5958,8 @@ const definitions: Definition[] = [
               [107, 'energy_reverse_A', tuya.valueConverter.divideBy100],
               [109, 'energy_reverse_B', tuya.valueConverter.divideBy100],
               [129, 'update_frequency' , tuya.valueConverter.raw],
+        },
     },
-},
+];
+            
 module.exports = definitions;
