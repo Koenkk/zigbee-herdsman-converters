@@ -5938,7 +5938,7 @@ const definitions: Definition[] = [
             e.numeric('energy_forward_B', ea.STATE).withUnit('kWh').withDescription('Total energy B forward'), 
             e.numeric('energy_reverse_A', ea.STATE).withUnit('kWh').withDescription('Total energy A reverse'), 
             e.numeric('energy_reverse_B', ea.STATE).withUnit('kWh').withDescription('Total energy B reverse'), 
-            e.numeric('update_frequency', ea.STATE).withUnit('sec').withDescription('Update frequency'), ],
+            e.numeric('update_frequency', ea.STATE).withUnit('sec').withDescription('Update frequency'),
         ],
         meta: {
             tuyaDatapoints: [//only report data
