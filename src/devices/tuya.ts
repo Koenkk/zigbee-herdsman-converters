@@ -12,7 +12,6 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueNumberString, KeyValueString} from '../lib/types';
-
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -5913,8 +5912,31 @@ const definitions: Definition[] = [
         },
     },
 ];
-const definition = { fingerprint: [ { modelID: 'TS0601', manufacturerName: '_TZE204_81yrt3lo', }, ], model: 'TS0601_Bidirectional_Energy_Meter_with_80A_Current_Clamp', vendor: 'TuYa', description: 'Bidirectional Energy Meter with 80A Current Clamp', fromZigbee: [tuya.fz.datapoints], toZigbee: [tuya.tz.datapoints], onEvent: tuya.onEventSetTime, configure: tuya.configureMagicPacket, whiteLabel: [ tuya.whitelabel('Tuya', 'PJ-1203A', 'Bidirectional Energy Meter with 80A Current Clamp', ['_TZE204_81yrt3lo']), ], // whiteLabel: [{vendor: 'MatSeePlus', model: 'PJ-1203A'}], exposes: [ //only report data e.ac_frequency(), exposes.numeric('total_power_A', ea.STATE).withUnit('W').withDescription('Total power A'), exposes.numeric('total_power_B', ea.STATE).withUnit('W').withDescription('Total power B'), exposes.numeric('total_power_AB', ea.STATE).withUnit('W').withDescription('Total power A'), exposes.numeric('voltage', ea.STATE).withUnit('V').withDescription('Voltage'), exposes.numeric('current_A', ea.STATE).withUnit('A').withDescription('Current A'), exposes.numeric('current_B', ea.STATE).withUnit('A').withDescription('Current B'), exposes.numeric('power_factor_A', ea.STATE).withUnit('%').withDescription('Instantaneous measured power factor A'), exposes.numeric('power_factor_B', ea.STATE).withUnit('%').withDescription('Instantaneous measured power factor B'), exposes.numeric('power_direction A', ea.STATE).withDescription('Power direction A 0/1 for forward/reverse'), exposes.numeric('power_direction B', ea.STATE).withDescription('Power direction B 0/1 for forward/reverse'), exposes.numeric('energy_forward_A', ea.STATE).withUnit('kWh').withDescription('Total energy A forward'), exposes.numeric('energy_forward_B', ea.STATE).withUnit('kWh').withDescription('Total energy B forward'), exposes.numeric('energy_reverse_A', ea.STATE).withUnit('kWh').withDescription('Total energy A reverse'), exposes.numeric('energy_reverse_B', ea.STATE).withUnit('kWh').withDescription('Total energy B reverse'), exposes.numeric('update_frequency', ea.STATE).withUnit('sec').withDescription('Update frequency'), ],
-
+const definition = { fingerprint: [ { modelID: 'TS0601', manufacturerName: '_TZE204_81yrt3lo', }, ], 
+                    model: 'TS0601_Bidirectional_Energy_Meter_with_80A_Current_Clamp', 
+                    vendor: 'TuYa', description: 'Bidirectional Energy Meter with 80A Current Clamp', 
+                    fromZigbee: [tuya.fz.datapoints], 
+                    toZigbee: [tuya.tz.datapoints], 
+                    onEvent: tuya.onEventSetTime, 
+                    configure: tuya.configureMagicPacket, 
+                    whiteLabel: [ tuya.whitelabel('Tuya', 'PJ-1203A', 'Bidirectional Energy Meter with 80A Current Clamp', ['_TZE204_81yrt3lo']), ], // whiteLabel: [{vendor: 'MatSeePlus', model: 'PJ-1203A'}], 
+                    exposes: [ //only report data 
+                    e.ac_frequency(),
+                    exposes.numeric('total_power_A', ea.STATE).withUnit('W').withDescription('Total power A'), 
+                    exposes.numeric('total_power_B', ea.STATE).withUnit('W').withDescription('Total power B'), 
+                    exposes.numeric('total_power_AB', ea.STATE).withUnit('W').withDescription('Total power A'), 
+                    exposes.numeric('voltage', ea.STATE).withUnit('V').withDescription('Voltage'), 
+                    exposes.numeric('current_A', ea.STATE).withUnit('A').withDescription('Current A'), 
+                    exposes.numeric('current_B', ea.STATE).withUnit('A').withDescription('Current B'), 
+                    exposes.numeric('power_factor_A', ea.STATE).withUnit('%').withDescription('Instantaneous measured power factor A'), 
+                    exposes.numeric('power_factor_B', ea.STATE).withUnit('%').withDescription('Instantaneous measured power factor B'), 
+                    exposes.numeric('power_direction A', ea.STATE).withDescription('Power direction A 0/1 for forward/reverse'), 
+                    exposes.numeric('power_direction B', ea.STATE).withDescription('Power direction B 0/1 for forward/reverse'), 
+                    exposes.numeric('energy_forward_A', ea.STATE).withUnit('kWh').withDescription('Total energy A forward'), 
+                    exposes.numeric('energy_forward_B', ea.STATE).withUnit('kWh').withDescription('Total energy B forward'), 
+                    exposes.numeric('energy_reverse_A', ea.STATE).withUnit('kWh').withDescription('Total energy A reverse'), 
+                    exposes.numeric('energy_reverse_B', ea.STATE).withUnit('kWh').withDescription('Total energy B reverse'), 
+                    exposes.numeric('update_frequency', ea.STATE).withUnit('sec').withDescription('Update frequency'), ],
 meta: {
     tuyaDatapoints: [//only report data
       [111, 'ac_frequency', tuya.valueConverter.divideBy100],
