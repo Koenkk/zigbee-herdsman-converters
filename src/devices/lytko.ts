@@ -421,10 +421,10 @@ const definitions: Definition[] = [
         },
         exposes: [
             e.temperature()
-                .withAccess(ea.ALL)
+                .withAccess(ea.STATE_GET)
                 .withEndpoint('l2'),
             e.humidity()
-                .withAccess(ea.ALL)
+                .withAccess(ea.STATE_GET)
                 .withEndpoint('l2'),
             e.climate()
                 .withLocalTemperature()
