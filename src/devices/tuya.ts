@@ -5749,7 +5749,7 @@ const definitions: Definition[] = [
         exposes: [
             e.binary('alarm', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the light of the alarm ON/OFF'),
             e.enum('type', ea.STATE_SET, ['sound', 'light', 'sound+light', 'normal']).withDescription('Alarm type'),
-            e.enum('volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high']).withDescription('Volume of the alarm'),
+            e.enum('volume', ea.STATE_SET, ['mute', 'low', 'middle', 'high']).withDescription('Volume of the alarm'),
             e.enum('ringtone', ea.STATE_SET, [
                 'melody1', 'melody2', 'melody3', 'melody4', 'melody5', 'melody6', 'melody7', 'melody8',
                 'door', 'water', 'temperature', 'entered', 'left',
