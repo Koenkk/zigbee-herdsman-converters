@@ -1,5 +1,19 @@
 # Changelog
 
+## [15.65.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.64.0...v15.65.0) (2023-08-30)
+
+
+### Features
+
+* **add:** 929003123801 ([#6115](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6115)) ([dd5c667](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dd5c6676e53f9f9648c19977019a2a55ed8a33e1))
+* **add:** PJ-1203A ([#6116](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6116)) ([888918c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/888918c119756090bb123b061c83587155168ae0))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_aa5t61rh` as TS0002_switch_module_3 ([#6117](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6117)) ([eb83e94](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eb83e949ebbea0e6c959c41abfb35d47dd1af8f1))
+* Fix middle volume value for TuYa YXZBSL ([#6119](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6119)) ([2db8db2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2db8db243b645a0e81a24eada2601fb863810637))
+
 ## [15.64.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.63.0...v15.64.0) (2023-08-29)
 
 
