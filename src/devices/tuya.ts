@@ -2054,7 +2054,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_54hjn4vs']),
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_54hjn4vs', '_TZ3000_aa5t61rh']),
         model: 'TS0002_switch_module_3',
         vendor: 'TuYa',
         description: '2 gang switch with backlight',
@@ -2069,7 +2069,7 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
         whiteLabel: [
-            tuya.whitelabel('Lonsonho', 'X702A', '2 gang switch with backlight', ['_TZ3000_54hjn4vs']),
+            tuya.whitelabel('Lonsonho', 'X702A', '2 gang switch with backlight', ['_TZ3000_54hjn4vs', '_TZ3000_aa5t61rh']),
         ],
     },
     {
