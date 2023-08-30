@@ -254,6 +254,10 @@ const tuyaExposes = {
     gasValue: () => e.numeric('gas_value', ea.STATE).withDescription('Measured gas concentration'),
     energyWithPhase: (phase: string) => e.numeric(`energy_${phase}`, ea.STATE).withUnit('kWh')
         .withDescription(`Sum of consumed energy (phase ${phase.toUpperCase()})`),
+    energyProducedWithPhase: (phase: string) => e.numeric(`energy_${phase}`, ea.STATE).withUnit('kWh')
+        .withDescription(`Sum of produced energy (phase ${phase.toUpperCase()})`),
+    energyFlowWithPhase: (phase: string) => e.enum(`energy_flow_${phase}`, ea.STATE, ['consuming', 'producing'])
+        .withDescription(`Direction of energy (phase ${phase.toUpperCase()})`),
     voltageWithPhase: (phase: string) => e.numeric(`voltage_${phase}`, ea.STATE).withUnit('V')
         .withDescription(`Measured electrical potential value (phase ${phase.toUpperCase()})`),
     powerWithPhase: (phase: string) => e.numeric(`power_${phase}`, ea.STATE).withUnit('W')
