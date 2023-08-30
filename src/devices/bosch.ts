@@ -782,6 +782,38 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['RBSH-RTH0-ZB-EU'],
+        model: 'RBSH-RTH0',
+        vendor: 'Bosch',
+        description: 'Room thermostat II',
+        fromZigbee: [fz.humidity, fz.thermostat, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tzLocal.bosch_thermostat, tzLocal.bosch_userInterface],
+        exposes: [
+            e.numeric('humidity', ea.STATE).withUnit('%').withDescription('Measured relative humidity'),
+            e.climate()
+                .withLocalTemperature()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperatureCalibration(-12, 12, 0.5)
+                .withSystemMode(['off', 'heat', 'auto']),
+            e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
+            e.child_lock().setAccess('state', ea.ALL),
+            e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the diplay On-time'),
+            e.numeric('display_brightness', ea.ALL).withValueMin(0).withValueMax(10).withDescription('Specifies the brightness value of the display'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg']);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.humidity(endpoint);
+            await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], boschManufacturer);
+            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
+            await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x403a, 0x403b], boschManufacturer);
+        },
+    },
+    {
         zigbeeModel: ['Champion'],
         model: '8750001213',
         vendor: 'Bosch',
