@@ -175,7 +175,6 @@ const definitions: Definition[] = [
                 .withAccess(ea.STATE_GET)
                 .withEndpoint('l2'),
             e.humidity()
-                .withAccess(ea.STATE_GET)
                 .withEndpoint('l2'),
             e.climate()
                 .withLocalTemperature()
@@ -424,7 +423,6 @@ const definitions: Definition[] = [
                 .withAccess(ea.STATE_GET)
                 .withEndpoint('l2'),
             e.humidity()
-                .withAccess(ea.STATE_GET)
                 .withEndpoint('l2'),
             e.climate()
                 .withLocalTemperature()
