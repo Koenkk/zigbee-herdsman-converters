@@ -171,8 +171,12 @@ const definitions: Definition[] = [
             return {l3: 3, l2: 2, l1: 1};
         },
         exposes: [
-            e.temperature(),
-            e.humidity(),
+            e.temperature()
+                .withAccess(ea.STATE_GET)
+                .withEndpoint('l2'),
+            e.humidity()
+                .withAccess(ea.STATE_GET)
+                .withEndpoint('l2'),
             e.climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
@@ -416,8 +420,12 @@ const definitions: Definition[] = [
             return {l4: 4, l3: 3, l2: 2, l1: 1};
         },
         exposes: [
-            e.temperature(),
-            e.humidity(),
+            e.temperature()
+                .withAccess(ea.ALL)
+                .withEndpoint('l2'),
+            e.humidity()
+                .withAccess(ea.ALL)
+                .withEndpoint('l2'),
             e.climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
