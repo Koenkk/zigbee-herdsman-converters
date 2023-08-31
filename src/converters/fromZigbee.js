@@ -432,12 +432,13 @@ const converters = {
         options: [exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
+            const property = postfixWithEndpointName('humidity', msg, model, meta);
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
             // Sometimes the sensor publishes non-realistic vales, it should only publish message
             // in the 0 - 100 range, don't produce messages beyond these values.
             if (humidity >= 0 && humidity <= 100) {
-                return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+                return {[property]: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
             }
         },
     },
