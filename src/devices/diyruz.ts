@@ -206,7 +206,7 @@ const definitions: Definition[] = [
         description: '[Flower sensor](http://modkam.ru/?p=1700)',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.pressure, fz.battery],
         toZigbee: [],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
         endpoint: (device) => {
             return {'bme': 1, 'ds': 2};
         },
