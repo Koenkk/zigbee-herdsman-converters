@@ -1,5 +1,20 @@
 # Changelog
 
+## [15.66.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.65.0...v15.66.0) (2023-08-31)
+
+
+### Features
+
+* **add:** L101Z-SBI, L101Z-SBN, L101Z-SLN, L101Z-DBI, L101Z-DBN, L101Z-DLN ([#6121](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6121)) ([e441f99](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e441f9915dae7b5bf7e9a4bb254c78bb4fcb407a))
+* **add:** RBSH-RTH0 ([#6120](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6120)) ([33f6ddc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/33f6ddc973deeb5d3743438a267911de71b5ed50))
+* **add:** TS030F @JuMi2006 https://github.com/Koenkk/zigbee2mqtt/issues/18745 ([368b00c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/368b00cc8c82b3ea72a9d28aacc757088d596795))
+
+
+### Bug Fixes
+
+* Add some Legrand/BTicino whitelabel models ([#6122](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6122)) ([f7985b5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f7985b542ee50706a5b14413d25bfcad9fad2b20))
+* Fix Iris 3460-L configure failing https://github.com/Koenkk/zigbee2mqtt/issues/18797 ([5ce5a01](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5ce5a01f10f55f7496bb86f2e3307eaab194b8cd))
+
 ## [15.65.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.64.0...v15.65.0) (2023-08-30)
 
 
