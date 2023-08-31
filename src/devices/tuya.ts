@@ -5091,6 +5091,21 @@ const definitions: Definition[] = [
         ],
     },
     {
+        zigbeeModel: ['TS030F'],
+        model: 'TS030F',
+        vendor: 'TuYa',
+        description: 'Smart blind controller',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+        exposes: [e.cover_position()],
+    },
+    {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_jhkttplm'},
         ],
