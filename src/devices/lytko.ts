@@ -16,9 +16,8 @@ const sensorTypes = [
     '3.3', '5', '6.8', '10', '12', '14.8', '15', '20', '33', '47',
 ];
 
-
 const fzLocal = {
-    hvacThermostat: {
+    thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -39,7 +38,7 @@ const fzLocal = {
             return result;
         },
     } as Fz.Converter,
-    hvacThermostatUI: {
+    thermostat_ui: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -60,7 +59,7 @@ const fzLocal = {
 };
 
 const tzLocal = {
-    hvacThermostat: {
+    thermostat: {
         key: ['sensor_type', 'target_temp_first', 'min_setpoint_deadband'],
         convertGet: async (entity, key, meta) => {
             const lookup = {
@@ -103,7 +102,7 @@ const tzLocal = {
             return {state: {[key]: value}};
         },
     } as Tz.Converter,
-    hvacThermostatUI: {
+    thermostat_ui: {
         key: ['brightness', 'brightness_standby'],
         convertGet: async (entity, key, meta) => {
             const lookup = {
@@ -147,72 +146,33 @@ const definitions: Definition[] = [
         model: 'L101Z-SBI',
         vendor: 'Lytko',
         ota: ota.zigbeeOTA,
-        description: 'Single channel zigbee thermostat',
-        fromZigbee: [
-            fz.humidity,
-            fz.temperature,
-            fz.thermostat,
-            fzLocal.hvacThermostat,
-            fzLocal.hvacThermostatUI,
-        ],
-        toZigbee: [
-            tz.thermostat_keypad_lockout,
-            tz.temperature,
-            tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_mode,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_local_temperature_calibration,
-            tzLocal.hvacThermostat,
-            tzLocal.hvacThermostatUI,
-        ],
+        description: 'Single channel Zigbee thermostat',
+        fromZigbee: [fz.humidity, fz.temperature, fz.thermostat, fzLocal.thermostat, fzLocal.thermostat_ui],
+        toZigbee: [tz.thermostat_keypad_lockout, tz.temperature, tz.thermostat_local_temperature,
+            tz.thermostat_system_mode, tz.thermostat_running_mode, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_local_temperature_calibration, tzLocal.thermostat, tzLocal.thermostat_ui],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l3: 3, l2: 2, l1: 1};
         },
         exposes: [
-            e.temperature()
-                .withAccess(ea.STATE_GET)
-                .withEndpoint('l2'),
-            e.humidity()
-                .withEndpoint('l2'),
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
-                .withSystemMode(['off', 'heat'])
-                .withRunningMode(['off', 'heat'])
-                .withLocalTemperatureCalibration(-3.0, 3.0, 0.1)
+            e.temperature().withAccess(ea.STATE_GET).withEndpoint('l2'),
+            e.humidity().withEndpoint('l2'),
+            e.climate().withLocalTemperature().withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
+                .withSystemMode(['off', 'heat']).withRunningMode(['off', 'heat'])
+                .withLocalTemperatureCalibration(-3.0, 3.0, 0.1).withEndpoint('l3'),
+            e.numeric('min_setpoint_deadband', ea.ALL).withUnit('C').withValueMax(3).withValueMin(0)
+                .withValueStep(0.1).withDescription('Hysteresis setting').withEndpoint('l3'),
+            e.enum('sensor_type', ea.ALL, sensorTypes).withDescription('Type of sensor. Sensor resistance value (kOhm)')
                 .withEndpoint('l3'),
-            e.numeric('min_setpoint_deadband', ea.ALL)
-                .withUnit('C')
-                .withValueMax(3)
-                .withValueMin(0)
-                .withValueStep(0.1)
-                .withDescription('Hysteresis setting')
+            e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l3'),
-            e.enum('sensor_type', ea.ALL, sensorTypes)
-                .withDescription('Type of sensor. Sensor resistance value (kOhm)')
-                .withEndpoint('l3'),
-            e.binary('target_temp_first', ea.ALL, true, false)
-                .withDescription('Display current temperature or target temperature')
-                .withEndpoint('l3'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
-                .withDescription('Enables/disables physical input on the device')
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables/disables physical input on the device')
                 .withEndpoint('l1'),
-            e.numeric('brightness', ea.ALL)
-                .withUnit('%')
-                .withValueMax(100)
-                .withValueMin(0)
-                .withValueStep(1)
-                .withDescription('Display brightness')
-                .withEndpoint('l1'),
-            e.numeric('brightness_standby', ea.ALL)
-                .withUnit('%')
-                .withValueMax(100)
-                .withValueMin(0)
-                .withValueStep(1)
-                .withDescription('Display brightness in standby mode')
-                .withEndpoint('l1'),
+            e.numeric('brightness', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1)
+                .withDescription('Display brightness').withEndpoint('l1'),
+            e.numeric('brightness_standby', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1)
+                .withDescription('Display brightness in standby mode').withEndpoint('l1'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint2 = device.getEndpoint(2);
@@ -244,65 +204,31 @@ const definitions: Definition[] = [
         zigbeeModel: ['L101Z-SBN'],
         model: 'L101Z-SBN',
         vendor: 'Lytko',
-        description: 'Single channel zigbee thermostat',
+        description: 'Single channel Zigbee thermostat',
         ota: ota.zigbeeOTA,
-        fromZigbee: [
-            fz.thermostat,
-            fzLocal.hvacThermostat,
-            fzLocal.hvacThermostatUI,
-        ],
-        toZigbee: [
-            tz.thermostat_keypad_lockout,
-            tz.temperature,
-            tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_mode,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_local_temperature_calibration,
-            tzLocal.hvacThermostat,
-            tzLocal.hvacThermostatUI,
-        ],
+        fromZigbee: [fz.thermostat, fzLocal.thermostat, fzLocal.thermostat_ui],
+        toZigbee: [tz.thermostat_keypad_lockout, tz.temperature, tz.thermostat_local_temperature,
+            tz.thermostat_system_mode, tz.thermostat_running_mode, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_local_temperature_calibration, tzLocal.thermostat, tzLocal.thermostat_ui],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l3: 3, l1: 1};
         },
         exposes: [
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
-                .withSystemMode(['off', 'heat'])
-                .withRunningMode(['off', 'heat'])
-                .withLocalTemperatureCalibration(-3.0, 3.0, 0.1)
+            e.climate().withLocalTemperature().withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
+                .withSystemMode(['off', 'heat']).withRunningMode(['off', 'heat']).withLocalTemperatureCalibration(-3.0, 3.0, 0.1).withEndpoint('l3'),
+            e.numeric('min_setpoint_deadband', ea.ALL).withUnit('C').withValueMax(3).withValueMin(0)
+                .withValueStep(0.1).withDescription('Hysteresis setting').withEndpoint('l3'),
+            e.enum('sensor_type', ea.ALL, sensorTypes).withDescription('Type of sensor. Sensor resistance value (kOhm)')
                 .withEndpoint('l3'),
-            e.numeric('min_setpoint_deadband', ea.ALL)
-                .withUnit('C')
-                .withValueMax(3)
-                .withValueMin(0)
-                .withValueStep(0.1)
-                .withDescription('Hysteresis setting')
+            e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l3'),
-            e.enum('sensor_type', ea.ALL, sensorTypes)
-                .withDescription('Type of sensor. Sensor resistance value (kOhm)')
-                .withEndpoint('l3'),
-            e.binary('target_temp_first', ea.ALL, true, false)
-                .withDescription('Display current temperature or target temperature')
-                .withEndpoint('l3'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
-                .withDescription('Enables/disables physical input on the device')
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables/disables physical input on the device')
                 .withEndpoint('l1'),
-            e.numeric('brightness', ea.ALL)
-                .withUnit('%')
-                .withValueMax(100)
-                .withValueMin(0)
-                .withValueStep(1)
-                .withDescription('Display brightness')
+            e.numeric('brightness', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1).withDescription('Display brightness')
                 .withEndpoint('l1'),
             e.numeric('brightness_standby', ea.ALL)
-                .withUnit('%')
-                .withValueMax(100)
-                .withValueMin(0)
-                .withValueStep(1)
-                .withDescription('Display brightness in standby mode')
+                .withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1).withDescription('Display brightness in standby mode')
                 .withEndpoint('l1'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -331,44 +257,22 @@ const definitions: Definition[] = [
         zigbeeModel: ['L101Z-SLN'],
         model: 'L101Z-SLN',
         vendor: 'Lytko',
-        description: 'Single channel zigbee thermostat without screen',
+        description: 'Single channel Zigbee thermostat without screen',
         ota: ota.zigbeeOTA,
-        fromZigbee: [
-            fz.thermostat,
-            fzLocal.hvacThermostat,
-        ],
-        toZigbee: [
-            tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_mode,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_local_temperature_calibration,
-            tzLocal.hvacThermostat,
-        ],
+        fromZigbee: [fz.thermostat, fzLocal.thermostat],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_mode,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tzLocal.thermostat],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l3: 3, l1: 1};
         },
         exposes: [
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
-                .withSystemMode(['off', 'heat'])
-                .withRunningMode(['off', 'heat'])
-                .withLocalTemperatureCalibration(-3.0, 3.0, 0.1)
-                .withEndpoint('l3'),
-            e.numeric('min_setpoint_deadband', ea.ALL)
-                .withUnit('C')
-                .withValueMax(3)
-                .withValueMin(0)
-                .withValueStep(0.1)
-                .withDescription('Hysteresis setting')
-                .withEndpoint('l3'),
-            e.enum('sensor_type', ea.ALL, sensorTypes)
-                .withDescription('Type of sensor. Sensor resistance value (kOhm)')
-                .withEndpoint('l3'),
-            e.binary('target_temp_first', ea.ALL, true, false)
-                .withDescription('Display current temperature or target temperature')
+            e.climate().withLocalTemperature().withSetpoint('occupied_heating_setpoint', 15, 35, 0.5).withSystemMode(['off', 'heat'])
+                .withRunningMode(['off', 'heat']).withLocalTemperatureCalibration(-3.0, 3.0, 0.1).withEndpoint('l3'),
+            e.numeric('min_setpoint_deadband', ea.ALL).withUnit('C').withValueMax(3).withValueMin(0).withValueStep(0.1)
+                .withDescription('Hysteresis setting').withEndpoint('l3'),
+            e.enum('sensor_type', ea.ALL, sensorTypes).withDescription('Type of sensor. Sensor resistance value (kOhm)').withEndpoint('l3'),
+            e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l3'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -394,93 +298,38 @@ const definitions: Definition[] = [
         zigbeeModel: ['L101Z-DBI'],
         model: 'L101Z-DBI',
         vendor: 'Lytko',
-        description: 'Dual channel zigbee thermostat',
+        description: 'Dual channel Zigbee thermostat',
         ota: ota.zigbeeOTA,
-        fromZigbee: [
-            fz.humidity,
-            fz.temperature,
-            fz.thermostat,
-            fzLocal.hvacThermostat,
-            fzLocal.hvacThermostatUI,
-        ],
-        toZigbee: [
-            tz.thermostat_keypad_lockout,
-            tz.temperature,
-            tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_mode,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_local_temperature_calibration,
-            tzLocal.hvacThermostat,
-            tzLocal.hvacThermostatUI,
-        ],
+        fromZigbee: [fz.humidity, fz.temperature, fz.thermostat, fzLocal.thermostat, fzLocal.thermostat_ui],
+        toZigbee: [tz.thermostat_keypad_lockout, tz.temperature, tz.thermostat_local_temperature, tz.thermostat_system_mode,
+            tz.thermostat_running_mode, tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
+            tzLocal.thermostat, tzLocal.thermostat_ui],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l4: 4, l3: 3, l2: 2, l1: 1};
         },
         exposes: [
-            e.temperature()
-                .withAccess(ea.STATE_GET)
-                .withEndpoint('l2'),
-            e.humidity()
-                .withEndpoint('l2'),
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
-                .withSystemMode(['off', 'heat'])
-                .withRunningMode(['off', 'heat'])
-                .withLocalTemperatureCalibration(-3.0, 3.0, 0.1)
+            e.temperature().withAccess(ea.STATE_GET).withEndpoint('l2'),
+            e.humidity().withEndpoint('l2'),
+            e.climate().withLocalTemperature().withSetpoint('occupied_heating_setpoint', 15, 35, 0.5).withSystemMode(['off', 'heat'])
+                .withRunningMode(['off', 'heat']).withLocalTemperatureCalibration(-3.0, 3.0, 0.1).withEndpoint('l3'),
+            e.numeric('min_setpoint_deadband', ea.ALL).withUnit('C').withValueMax(3).withValueMin(0).withValueStep(0.1)
+                .withDescription('Hysteresis setting').withEndpoint('l3'),
+            e.enum('sensor_type', ea.ALL, sensorTypes).withDescription('Type of sensor. Sensor resistance value (kOhm)').withEndpoint('l3'),
+            e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l3'),
-            e.numeric('min_setpoint_deadband', ea.ALL)
-                .withUnit('C')
-                .withValueMax(3)
-                .withValueMin(0)
-                .withValueStep(0.1)
-                .withDescription('Hysteresis setting')
-                .withEndpoint('l3'),
-            e.enum('sensor_type', ea.ALL, sensorTypes)
-                .withDescription('Type of sensor. Sensor resistance value (kOhm)')
-                .withEndpoint('l3'),
-            e.binary('target_temp_first', ea.ALL, true, false)
-                .withDescription('Display current temperature or target temperature')
-                .withEndpoint('l3'),
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
-                .withSystemMode(['off', 'heat'])
-                .withRunningMode(['off', 'heat'])
-                .withLocalTemperatureCalibration(-3.0, 3.0, 0.1)
+            e.climate().withLocalTemperature().withSetpoint('occupied_heating_setpoint', 15, 35, 0.5).withSystemMode(['off', 'heat'])
+                .withRunningMode(['off', 'heat']).withLocalTemperatureCalibration(-3.0, 3.0, 0.1).withEndpoint('l4'),
+            e.numeric('min_setpoint_deadband', ea.ALL).withUnit('C').withValueMax(3).withValueMin(0).withValueStep(0.1)
+                .withDescription('Hysteresis setting').withEndpoint('l4'),
+            e.enum('sensor_type', ea.ALL, sensorTypes).withDescription('Type of sensor. Sensor resistance value (kOhm)').withEndpoint('l4'),
+            e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l4'),
-            e.numeric('min_setpoint_deadband', ea.ALL)
-                .withUnit('C')
-                .withValueMax(3)
-                .withValueMin(0)
-                .withValueStep(0.1)
-                .withDescription('Hysteresis setting')
-                .withEndpoint('l4'),
-            e.enum('sensor_type', ea.ALL, sensorTypes)
-                .withDescription('Type of sensor. Sensor resistance value (kOhm)')
-                .withEndpoint('l4'),
-            e.binary('target_temp_first', ea.ALL, true, false)
-                .withDescription('Display current temperature or target temperature')
-                .withEndpoint('l4'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
-                .withDescription('Enables/disables physical input on the device')
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables/disables physical input on the device').withEndpoint('l1'),
+            e.numeric('brightness', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1).withDescription('Display brightness')
                 .withEndpoint('l1'),
-            e.numeric('brightness', ea.ALL)
-                .withUnit('%')
-                .withValueMax(100)
-                .withValueMin(0)
-                .withValueStep(1)
-                .withDescription('Display brightness')
-                .withEndpoint('l1'),
-            e.numeric('brightness_standby', ea.ALL)
-                .withUnit('%')
-                .withValueMax(100)
-                .withValueMin(0)
-                .withValueStep(1)
-                .withDescription('Display brightness in standby mode')
-                .withEndpoint('l1'),
+            e.numeric('brightness_standby', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1)
+                .withDescription('Display brightness in standby mode').withEndpoint('l1'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint2 = device.getEndpoint(2);
@@ -530,84 +379,34 @@ const definitions: Definition[] = [
         vendor: 'Lytko',
         description: 'Dual channel zigbee thermostat',
         ota: ota.zigbeeOTA,
-        fromZigbee: [
-            fz.thermostat,
-            fzLocal.hvacThermostat,
-            fzLocal.hvacThermostatUI,
-        ],
-        toZigbee: [
-            tz.thermostat_keypad_lockout,
-            tz.temperature,
-            tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_mode,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_local_temperature_calibration,
-            tzLocal.hvacThermostat,
-            tzLocal.hvacThermostatUI,
-        ],
+        fromZigbee: [fz.thermostat, fzLocal.thermostat, fzLocal.thermostat_ui],
+        toZigbee: [tz.thermostat_keypad_lockout, tz.temperature, tz.thermostat_local_temperature, tz.thermostat_system_mode,
+            tz.thermostat_running_mode, tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
+            tzLocal.thermostat, tzLocal.thermostat_ui],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l4: 4, l3: 3, l1: 1};
         },
         exposes: [
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
-                .withSystemMode(['off', 'heat'])
-                .withRunningMode(['off', 'heat'])
-                .withLocalTemperatureCalibration(-3.0, 3.0, 0.1)
+            e.climate().withLocalTemperature().withSetpoint('occupied_heating_setpoint', 15, 35, 0.5).withSystemMode(['off', 'heat'])
+                .withRunningMode(['off', 'heat']).withLocalTemperatureCalibration(-3.0, 3.0, 0.1).withEndpoint('l3'),
+            e.numeric('min_setpoint_deadband', ea.ALL).withUnit('C').withValueMax(3).withValueMin(0).withValueStep(0.1)
+                .withDescription('Hysteresis setting').withEndpoint('l3'),
+            e.enum('sensor_type', ea.ALL, sensorTypes).withDescription('Type of sensor. Sensor resistance value (kOhm)').withEndpoint('l3'),
+            e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l3'),
-            e.numeric('min_setpoint_deadband', ea.ALL)
-                .withUnit('C')
-                .withValueMax(3)
-                .withValueMin(0)
-                .withValueStep(0.1)
-                .withDescription('Hysteresis setting')
-                .withEndpoint('l3'),
-            e.enum('sensor_type', ea.ALL, sensorTypes)
-                .withDescription('Type of sensor. Sensor resistance value (kOhm)')
-                .withEndpoint('l3'),
-            e.binary('target_temp_first', ea.ALL, true, false)
-                .withDescription('Display current temperature or target temperature')
-                .withEndpoint('l3'),
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
-                .withSystemMode(['off', 'heat'])
-                .withRunningMode(['off', 'heat'])
-                .withLocalTemperatureCalibration(-3.0, 3.0, 0.1)
+            e.climate().withLocalTemperature().withSetpoint('occupied_heating_setpoint', 15, 35, 0.5).withSystemMode(['off', 'heat'])
+                .withRunningMode(['off', 'heat']).withLocalTemperatureCalibration(-3.0, 3.0, 0.1).withEndpoint('l4'),
+            e.numeric('min_setpoint_deadband', ea.ALL).withUnit('C').withValueMax(3).withValueMin(0).withValueStep(0.1)
+                .withDescription('Hysteresis setting').withEndpoint('l4'),
+            e.enum('sensor_type', ea.ALL, sensorTypes).withDescription('Type of sensor. Sensor resistance value (kOhm)').withEndpoint('l4'),
+            e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l4'),
-            e.numeric('min_setpoint_deadband', ea.ALL)
-                .withUnit('C')
-                .withValueMax(3)
-                .withValueMin(0)
-                .withValueStep(0.1)
-                .withDescription('Hysteresis setting')
-                .withEndpoint('l4'),
-            e.enum('sensor_type', ea.ALL, sensorTypes)
-                .withDescription('Type of sensor. Sensor resistance value (kOhm)')
-                .withEndpoint('l4'),
-            e.binary('target_temp_first', ea.ALL, true, false)
-                .withDescription('Display current temperature or target temperature')
-                .withEndpoint('l4'),
-            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
-                .withDescription('Enables/disables physical input on the device')
-                .withEndpoint('l1'),
-            e.numeric('brightness', ea.ALL)
-                .withUnit('%')
-                .withValueMax(100)
-                .withValueMin(0)
-                .withValueStep(1)
-                .withDescription('Display brightness')
-                .withEndpoint('l1'),
-            e.numeric('brightness_standby', ea.ALL)
-                .withUnit('%')
-                .withValueMax(100)
-                .withValueMin(0)
-                .withValueStep(1)
-                .withDescription('Display brightness in standby mode')
-                .withEndpoint('l1'),
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1']).withDescription('Enables/disables physical input on the device').withEndpoint('l1'),
+            e.numeric('brightness', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1)
+                .withDescription('Display brightness').withEndpoint('l1'),
+            e.numeric('brightness_standby', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1)
+                .withDescription('Display brightness in standby mode').withEndpoint('l1'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint3 = device.getEndpoint(3);
@@ -651,64 +450,29 @@ const definitions: Definition[] = [
         zigbeeModel: ['L101Z-DLN'],
         model: 'L101Z-DLN',
         vendor: 'Lytko',
-        description: 'Dual channel zigbee thermostat without screen',
+        description: 'Dual channel Zigbee thermostat without screen',
         ota: ota.zigbeeOTA,
-        fromZigbee: [
-            fz.thermostat,
-            fzLocal.hvacThermostat,
-        ],
-        toZigbee: [
-            tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_mode,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_local_temperature_calibration,
-            tzLocal.hvacThermostat,
-        ],
+        fromZigbee: [fz.thermostat, fzLocal.thermostat],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_mode,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tzLocal.thermostat],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l4: 4, l3: 3, l1: 1};
         },
         exposes: [
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
-                .withSystemMode(['off', 'heat'])
-                .withRunningMode(['off', 'heat'])
-                .withLocalTemperatureCalibration(-3.0, 3.0, 0.1)
+            e.climate().withLocalTemperature().withSetpoint('occupied_heating_setpoint', 15, 35, 0.5).withSystemMode(['off', 'heat'])
+                .withRunningMode(['off', 'heat']).withLocalTemperatureCalibration(-3.0, 3.0, 0.1).withEndpoint('l3'),
+            e.numeric('min_setpoint_deadband', ea.ALL).withUnit('C').withValueMax(3).withValueMin(0).withValueStep(0.1)
+                .withDescription('Hysteresis setting').withEndpoint('l3'),
+            e.enum('sensor_type', ea.ALL, sensorTypes).withDescription('Type of sensor. Sensor resistance value (kOhm)').withEndpoint('l3'),
+            e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l3'),
-            e.numeric('min_setpoint_deadband', ea.ALL)
-                .withUnit('C')
-                .withValueMax(3)
-                .withValueMin(0)
-                .withValueStep(0.1)
-                .withDescription('Hysteresis setting')
-                .withEndpoint('l3'),
-            e.enum('sensor_type', ea.ALL, sensorTypes)
-                .withDescription('Type of sensor. Sensor resistance value (kOhm)')
-                .withEndpoint('l3'),
-            e.binary('target_temp_first', ea.ALL, true, false)
-                .withDescription('Display current temperature or target temperature')
-                .withEndpoint('l3'),
-            e.climate()
-                .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
-                .withSystemMode(['off', 'heat'])
-                .withRunningMode(['off', 'heat'])
-                .withLocalTemperatureCalibration(-3.0, 3.0, 0.1)
-                .withEndpoint('l4'),
-            e.numeric('min_setpoint_deadband', ea.ALL)
-                .withUnit('C')
-                .withValueMax(3)
-                .withValueMin(0)
-                .withValueStep(0.1)
-                .withDescription('Hysteresis setting')
-                .withEndpoint('l4'),
-            e.enum('sensor_type', ea.ALL, sensorTypes)
-                .withDescription('Type of sensor. Sensor resistance value (kOhm)')
-                .withEndpoint('l4'),
-            e.binary('target_temp_first', ea.ALL, true, false)
-                .withDescription('Display current temperature or target temperature')
+            e.climate().withLocalTemperature().withSetpoint('occupied_heating_setpoint', 15, 35, 0.5).withSystemMode(['off', 'heat'])
+                .withRunningMode(['off', 'heat']).withLocalTemperatureCalibration(-3.0, 3.0, 0.1).withEndpoint('l4'),
+            e.numeric('min_setpoint_deadband', ea.ALL).withUnit('C').withValueMax(3).withValueMin(0).withValueStep(0.1)
+                .withDescription('Hysteresis setting').withEndpoint('l4'),
+            e.enum('sensor_type', ea.ALL, sensorTypes).withDescription('Type of sensor. Sensor resistance value (kOhm)').withEndpoint('l4'),
+            e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l4'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
