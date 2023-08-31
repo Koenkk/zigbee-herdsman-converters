@@ -318,7 +318,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
         ota: ota.zigbeeOTA,
     },
     {
@@ -387,7 +387,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
         ota: ota.zigbeeOTA,
     },
 ];
