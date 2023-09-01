@@ -1,5 +1,17 @@
 # Changelog
 
+## [15.67.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.66.1...v15.67.0) (2023-09-01)
+
+
+### Features
+
+* **add:** QBKG32LM [@ssnaveen10](https://github.com/ssnaveen10) https://github.com/Koenkk/zigbee2mqtt/issues/18772 ([f3bffc2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f3bffc248f80da42e3da5e3548f010fbf718842d))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_weaqkhab` as Lonsonho QS-Zigbee-D02-TRIAC-L_1. https://github.com/Koenkk/zigbee2mqtt/issues/18803 ([71e2af0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/71e2af0a88d552017e9a46acbde134b0e5e0f498))
+
 ## [15.66.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.66.0...v15.66.1) (2023-08-31)
 
 
