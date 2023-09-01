@@ -156,6 +156,7 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness(),
     },
     {
+        fingerprint: [{manufacturerName: 'Paulmann Licht GmbH', modelID: 'Dimmable'}],
         zigbeeModel: ['H036-0001'],
         model: '93999',
         vendor: 'Paulmann',
