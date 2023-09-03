@@ -5724,8 +5724,8 @@ const definitions: Definition[] = [
                 [0x03, 'minimum_range', tuya.valueConverter.divideBy100],
                 [0x04, 'maximum_range', tuya.valueConverter.divideBy100],
                 [0x65, 'illuminance_lux', tuya.valueConverter.raw],
-                [0x66, 'fading_time', tuya.valueConverter.divideBy10],
-                [0x67, 'detection_delay', tuya.valueConverter.divideBy10],
+                [0x66, 'detection_delay', tuya.valueConverter.divideBy10],
+                [0x67, 'fading_time', tuya.valueConverter.divideBy10],
                 [0x68, 'radar_scene', tuya.valueConverterBasic.lookup({
                     'default': tuya.enum(0),
                     'bathroom': tuya.enum(1),
