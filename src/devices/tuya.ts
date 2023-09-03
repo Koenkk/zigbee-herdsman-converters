@@ -22,6 +22,13 @@ const ez = zosung.presetsZosung;
 
 
 const tzLocal = {
+    TS030F_border: {
+        key: ['border'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {up: 0, down: 1, up_delete: 2, down_delete: 3};
+            await entity.write(0xe001, {0xe001: {value: utils.getFromLookup(value, lookup), type: 0x30}});
+        },
+    } as Tz.Converter,
     TS0726_switch_mode: {
         key: ['switch_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -5097,15 +5104,22 @@ const definitions: Definition[] = [
         model: 'TS030F',
         vendor: 'TuYa',
         description: 'Smart blind controller',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state],
+        fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options_2],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.TS030F_border, tz.moes_cover_calibration, tz.tuya_cover_reversal],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
         },
-        exposes: [e.cover_position()],
+        exposes: [
+            e.cover_position(),
+            e.enum('border', ea.SET, ['up', 'down', 'up_delete', 'down_delete']),
+            e.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
+            e.binary('motor_reversal', ea.ALL, 'ON', 'OFF')
+                .withDescription('Reverse the motor, resets all endpoints! Also the upper border after hardware initialisation. Be careful!' +
+                    'After this you have to turn off and turn on the roller so that it can drive into the uppest position.'),
+        ],
     },
     {
         fingerprint: [

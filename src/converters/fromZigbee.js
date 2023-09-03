@@ -2350,6 +2350,23 @@ const converters = {
             return result;
         },
     },
+    tuya_cover_options_2: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('moesCalibrationTime')) {
+                const value = parseFloat(msg.data['moesCalibrationTime']) / 100;
+                result[postfixWithEndpointName('calibration_time', msg, model, meta)] = value;
+            }
+            if (msg.data.hasOwnProperty('tuyaMotorReversal')) {
+                const value = msg.data['tuyaMotorReversal'];
+                const reversalLookup = {0: 'OFF', 1: 'ON'};
+                result[postfixWithEndpointName('motor_reversal', msg, model, meta)] = reversalLookup[value];
+            }
+            return result;
+        },
+    },
     tuya_cover_options: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
