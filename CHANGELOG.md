@@ -1,5 +1,22 @@
 # Changelog
 
+## [15.70.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.69.0...v15.70.0) (2023-09-04)
+
+
+### Features
+
+* **add:** ROB_200-063-0 ([#6138](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6138)) ([7493914](https://github.com/Koenkk/zigbee-herdsman-converters/commit/74939141029df3f1f7d658df296ca856b13641c7))
+* Support color for HORNBACH 10454471 https://github.com/Koenkk/zigbee2mqtt/issues/18850 ([3665121](https://github.com/Koenkk/zigbee-herdsman-converters/commit/36651214dfb94516e714db7983e8b462a18d536b))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZB000_42ha4rsc` as Lidl HG09648 https://github.com/Koenkk/zigbee2mqtt/issues/18745 ([a118719](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a11871926c6de02ad4004fb51662b2bfefa60a2f))
+* **detect:** Detect `_TZE200_cirvgep4z` as TuYa ZTH08-E https://github.com/Koenkk/zigbee2mqtt/issues/17008 ([e71ba2a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e71ba2aa57c943d8e1c0aea907f3b4536835e2fe))
+* **detect:** Detect `_TZE204_zenj4lxv` as Moes ZS-SR-EUD-2 ([#6136](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6136)) ([20253c7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/20253c76011a2b6d088b3662e20446478c2b9643))
+* Fix 9290030517 discovery ([#6135](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6135)) ([455fe49](https://github.com/Koenkk/zigbee-herdsman-converters/commit/455fe49f05feec288817f06c6b981601d69bd04e))
+* Remove unsupported color from Gledopto GL-B-002P and GL-B-004P https://github.com/Koenkk/zigbee2mqtt/issues/18846 ([e929f8a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e929f8a8628c3d27981889b140b860d1323b4cce))
+
 ## [15.69.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.68.0...v15.69.0) (2023-09-03)
 
 
