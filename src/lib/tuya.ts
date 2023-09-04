@@ -5,7 +5,7 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import extend from './extend';
-import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose} from './types';
+import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent} from './types';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -33,6 +33,50 @@ function convertStringToHexArray(value: string) {
         asciiKeys.push(value[i].charCodeAt(0));
     }
     return asciiKeys;
+}
+
+export function onEvent(options: {queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000'}): OnEvent {
+    return async (type, data, device, settings, state) => {
+        options = {queryOnDeviceAnnounce: false, timeStart: '1970', ...options};
+
+        const endpoint = device.endpoints[0];
+
+        if (type === 'message' && data.cluster === 'manuSpecificTuya') {
+            if (data.type === 'commandMcuVersionResponse') {
+                await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
+            } else if (data.type === 'commandMcuGatewayConnectionStatus') {
+                // "payload" can have the following values:
+                // 0x00: The gateway is not connected to the internet.
+                // 0x01: The gateway is connected to the internet.
+                // 0x02: The request timed out after three seconds.
+                const payload = {payloadSize: 1, payload: 1};
+                await endpoint.command('manuSpecificTuya', 'mcuGatewayConnectionStatus', payload, {});
+            }
+        }
+
+        if (data.type === 'commandMcuSyncTime' && data.cluster === 'manuSpecificTuya') {
+            try {
+                const offset = options.timeStart === '2000' ? constants.OneJanuary2000 : 0;
+                const utcTime = Math.round(((new Date()).getTime() - offset) / 1000);
+                const localTime = utcTime - (new Date()).getTimezoneOffset() * 60;
+                const payload = {
+                    payloadSize: 8,
+                    payload: [
+                        ...convertDecimalValueTo4ByteHexArray(utcTime),
+                        ...convertDecimalValueTo4ByteHexArray(localTime),
+                    ],
+                };
+                await endpoint.command('manuSpecificTuya', 'mcuSyncTime', payload, {});
+            } catch (error) {
+                /* handle error to prevent crash */
+            }
+        }
+
+        // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
+        if (options.queryOnDeviceAnnounce && type === 'deviceAnnounce') {
+            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
+        }
+    };
 }
 
 function getDataValue(dpValue: Tuya.DpValue) {
@@ -401,6 +445,7 @@ export const valueConverter = {
     scale0_1to0_1000: valueConverterBasic.scale(0, 1, 0, 1000),
     divideBy100: valueConverterBasic.divideBy(100),
     temperatureUnit: valueConverterBasic.lookup({'celsius': 0, 'fahrenheit': 1}),
+    temperatureUnitEnum: valueConverterBasic.lookup({'celsius': new Enum(0), 'fahrenheit': new Enum(1)}),
     batteryState: valueConverterBasic.lookup({'low': 0, 'medium': 1, 'high': 2}),
     divideBy10: valueConverterBasic.divideBy(10),
     divideBy1000: valueConverterBasic.divideBy(1000),
