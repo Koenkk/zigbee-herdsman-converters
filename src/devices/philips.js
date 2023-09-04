@@ -2554,6 +2554,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['LWV005'],
+        model: '9290030517',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison ST64 E27 LED',
+        extend: philips.extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['HML004'],
         model: '3115331PH',
         vendor: 'Philips',
@@ -2833,13 +2840,6 @@ module.exports = [
     {
         zigbeeModel: ['LTV001'],
         model: '92900244777',
-        vendor: 'Philips',
-        description: 'Hue White Ambiance E27 ST64 filament bulb',
-        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
-    },
-    {
-        zigbeeModel: ['LWV005'],
-        model: '9290030517',
         vendor: 'Philips',
         description: 'Hue White Ambiance E27 ST64 filament bulb',
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
