@@ -340,7 +340,7 @@ module.exports = [
         model: 'GL-B-002P',
         vendor: 'Gledopto',
         description: 'Zigbee smart filament LED bulb',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp({colorTempRange: [158, 495]}),
     },
     {
         zigbeeModel: ['GL-S-006P'],
@@ -794,6 +794,6 @@ module.exports = [
         model: 'GL-B-004P',
         vendor: 'Gledopto',
         description: 'Filament LED light bulb E27 G95 7W pro',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp({colorTempRange: [158, 495]}),
     },
 ];
