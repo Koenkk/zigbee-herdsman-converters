@@ -337,7 +337,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['ROB_200-063-0'],
         model: 'ROB_200-063-0',
         vendor: 'ROBB',
-        description: 'Zigbee 0-10V PWM Dimmer',
+        description: 'Zigbee 0-10V PWM dimmer',
         extend: extend.light_onoff_brightness(),
     },
 ];
