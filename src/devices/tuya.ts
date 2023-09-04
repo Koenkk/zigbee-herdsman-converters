@@ -5112,6 +5112,9 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
         },
+        whiteLabel: [
+            tuya.whitelabel('Lidl', 'HG09648', 'Livarno roller blinds', ['_TZB000_42ha4rsc']),
+        ],
         exposes: [
             e.cover_position(),
             e.enum('border', ea.SET, ['up', 'down', 'up_delete', 'down_delete']),
