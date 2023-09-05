@@ -336,6 +336,13 @@ module.exports = [
         meta: {disableDefaultResponse: true},
     },
     {
+        zigbeeModel: ['GL-LB-001P'],
+        model: 'GL-LB-001P',
+        vendor: 'Gledopto',
+        description: 'Zigbee USB LED bar RGB+CCT (pro)',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
+    {
         zigbeeModel: ['GL-B-002P'],
         model: 'GL-B-002P',
         vendor: 'Gledopto',
