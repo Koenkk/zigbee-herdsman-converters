@@ -17,6 +17,13 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
     },
     {
+        zigbeeModel: ['VIYU_C35_470_RGBW_10454467'],
+        model: '10454467',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu Smart LED candle RGB E14',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+    },
+    {
         zigbeeModel: ['VIYU_C35_470_RGBW_10297667'],
         model: '10297667',
         vendor: 'HORNBACH',
