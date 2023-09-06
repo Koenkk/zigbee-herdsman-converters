@@ -315,7 +315,7 @@ const definitions: Definition[] = [
         },
     },
     {
-		zigbeeModel: ['SNZB-06P'],
+        zigbeeModel: ['SNZB-06P'],
         model: 'SNZB-06P',
         vendor: 'SONOFF',
         description: 'Zigbee occupancy sensor',
@@ -329,22 +329,21 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee thermostat',
         exposes: [
-            exposes.climate()
+            e.climate()
                 .withSetpoint('occupied_heating_setpoint', 4, 35, 0.5)
                 .withLocalTemperature()
-                .withSystemMode(['off','auto','heat'], ea.ALL, 'Mode of the thermostat')
+                .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withRunningState(['idle', 'heat'], ea.STATE)],
         fromZigbee: [fz.thermostat],
-        toZigbee: [tz.thermostat_local_temperature,tz.thermostat_local_temperature_calibration,tz.thermostat_occupied_heating_setpoint,tz.thermostat_system_mode,tz.thermostat_running_state],
+        toZigbee: [
+            tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint, 
+            tz.thermostat_system_mode, tz.thermostat_running_state],
         configure: async (device, coordinatorEndpoint, logger) => {
-              const endpoint = device.getEndpoint(1);
-              const binds = ['hvacThermostat'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            try {
-                await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {/* Not all support this */}
+            await reporting.thermostatSystemMode(endpoint);
         },
     },
 ];
