@@ -21,6 +21,24 @@ const definitions: Definition[] = [
         },
         exposes: [e.cover_position(), e.battery()],
     },
+    {
+        zigbeeModel: ['1822647'],
+        model: '1822647A',
+        vendor: 'SOMFY',
+        description: 'Zigbee smart plug',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(12);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
+            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
+            await reporting.readMeteringMultiplierDivisor(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
+            await reporting.currentSummReceived(ep);
+        },
+    },
 ];
 
 module.exports = definitions;
