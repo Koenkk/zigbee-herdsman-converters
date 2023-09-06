@@ -314,6 +314,38 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
         },
     },
+    {
+        zigbeeModel: ['SNZB-06P'],
+        model: 'SNZB-06P',
+        vendor: 'SONOFF',
+        description: 'Zigbee occupancy sensor',
+        fromZigbee: [fz.occupancy],
+        toZigbee: [],
+        exposes: [e.occupancy()],
+    },
+    {
+        zigbeeModel: ['TRVZB'],
+        model: 'TRVZB',
+        vendor: 'SONOFF',
+        description: 'Zigbee thermostat',
+        exposes: [
+            e.climate()
+                .withSetpoint('occupied_heating_setpoint', 4, 35, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
+                .withRunningState(['idle', 'heat'], ea.STATE_GET)],
+        fromZigbee: [fz.thermostat],
+        toZigbee: [
+            tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_system_mode, tz.thermostat_running_state],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+        },
+    },
 ];
 
 module.exports = definitions;
