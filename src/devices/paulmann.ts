@@ -178,14 +178,12 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{ modelID: 'RGBW', manufacturerName: 'Paulmann Licht GmbH' }],
-		zigbeeModel: ['29165'],
-		model: '29165',
-		vendor: 'Paulmann Licht GmbH',
-		description:
-            'Filament 230V Smart Home Zigbee 3.0 LED Bulb E27 470lm 6.3W RGBW+ dimmable Gold',
+        model: '29165',
+        vendor: 'Paulmann Licht GmbH',
+        description: 'Filament 230V Smart Home Zigbee 3.0 LED Bulb E27 470lm 6.3W RGBW+ dimmable Gold',
         extend: extend.light_onoff_brightness_colortemp_color({
-		colorTempRange: [153, 454],
-		supportsHueAndSaturation: true,
+            colorTempRange: [153, 454],
+            supportsHueAndSaturation: true,
         }),
     },
 ];
