@@ -336,7 +336,7 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat'], ea.STATE_GET)],
         fromZigbee: [fz.thermostat],
         toZigbee: [
-            tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint, 
+            tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode, tz.thermostat_running_state],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
