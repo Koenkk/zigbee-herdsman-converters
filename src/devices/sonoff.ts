@@ -333,7 +333,7 @@ const definitions: Definition[] = [
                 .withSetpoint('occupied_heating_setpoint', 4, 35, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
-                .withRunningState(['idle', 'heat'], ea.STATE)],
+                .withRunningState(['idle', 'heat'], ea.ALL)],
         fromZigbee: [fz.thermostat],
         toZigbee: [
             tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint, 
