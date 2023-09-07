@@ -5750,6 +5750,37 @@ const definitions: Definition[] = [
             tuya.whitelabel('Lifud', 'LF-AAZ012-0400-42', 'Zigbee dimmable LED driver 4-40W 220-240Vac', ['_TZE200_drs6j6m5']),
         ],
     },
+{
+    // Since a lot of TuYa devices use the same modelID, but use different datapoints
+    // it's necessary to provide a fingerprint instead of a zigbeeModel
+    fingerprint: [
+        {
+            // The model ID from: Device with modelID 'TS0601' is not supported
+            // You may need to add \u0000 at the end of the name in some cases
+            modelID: 'TS0601',
+            // The manufacturer name from: Device with modelID 'TS0601' is not supported.
+            manufacturerName: '_TZE200_rbbx5mfq',
+        },
+    ],
+    model: 'TS0601_lux',
+    vendor: 'TuYa',
+    description: 'lux sensor',
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [tuya.tz.datapoints],
+//    onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+    configure: tuya.configureMagicPacket,
+    exposes: [e.illuminance(), e.temperature(), e.humidity()
+        // Here you should put all functionality that your device exposes
+    ],
+    meta: {
+        // All datapoints go in here
+        tuyaDatapoints: [
+            [2, 'illuminance', tuya.valueConverter.raw], // <- mapped the datapoint
+            [6, 'temperature', tuya.valueConverter.divideBy10], // <- mapped the datapoint
+            [7, 'humidity', tuya.valueConverter.divideBy10], // <- mapped the datapoint
+        ],
+    },
+},
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_k7mfgaen']),
         model: 'YXZBSL',
