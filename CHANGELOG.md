@@ -1,5 +1,19 @@
 # Changelog
 
+## [15.72.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.71.0...v15.72.0) (2023-09-07)
+
+
+### Features
+
+* **add:** LED2104R3 ([#6147](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6147)) ([47402ad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/47402ade7687e14ec56bdefe206b4dd412968e59))
+* **add:** W599501 [@ronniebach](https://github.com/ronniebach) https://github.com/Koenkk/zigbee-herdsman-converters/issues/6145 ([4654b1b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4654b1bc414566eac2d8034e992d141468b93475))
+* Support battery for TRVZB ([#6146](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6146)) ([3f33a87](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f33a87f54f492fc9e046c163ee7b00edb4cd061))
+
+
+### Bug Fixes
+
+* Rename 948.47 to 948.47/29165 and add color temp range ([#6141](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6141)) ([57bd2c7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/57bd2c77888ef915eb420e770fa73a7b426b686f))
+
 ## [15.71.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.70.0...v15.71.0) (2023-09-06)
 
 
