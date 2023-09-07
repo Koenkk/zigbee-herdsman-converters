@@ -25,11 +25,10 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht GmbH'}],
-        zigbeeModel: ['RGBW'],
-        model: '948.47',
+        model: '948.47/29165',
         vendor: 'Paulmann',
-        description: 'RGBW wall light',
-        extend: extend.light_onoff_brightness_color({supportsHueAndSaturation: true}),
+        description: 'RGBW light',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454], supportsHueAndSaturation: true}),
     },
     {
         zigbeeModel: ['H036-0007'],
