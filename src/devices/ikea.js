@@ -444,7 +444,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 WW 345 lumen, dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
-    },    
+    },
     {
         zigbeeModel: ['TRADFRIbulbG125E27WSopal470lm', 'TRADFRIbulbG125E26WSopal450lm'],
         model: 'LED1936G5',
