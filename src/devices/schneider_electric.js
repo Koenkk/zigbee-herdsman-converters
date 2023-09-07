@@ -1113,6 +1113,24 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['W599501'],
+        model: 'W599501',
+        vendor: 'Schneider Electric',
+        description: 'Wiser smoke alarm',
+        fromZigbee: [fz.temperature, fz.ias_enroll, fz.ias_smoke_alarm_1],
+        toZigbee: [],
+        ota: ota.zigbeeOTA,
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.temperature()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(20);
+            const binds = ['msTemperatureMeasurement', 'ssIasZone'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.temperature(endpoint);
+            await endpoint.read('msTemperatureMeasurement', ['measuredValue']);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneStatus', 'zoneId']);
+        },
+    },
+    {
         zigbeeModel: ['CCT591011_AS'],
         model: 'CCT591011_AS',
         vendor: 'Schneider Electric',
