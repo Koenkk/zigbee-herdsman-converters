@@ -46,10 +46,11 @@ const fzlocal = {
 
 module.exports = [
     {
-        fingerprint: [{modelID: ' Wireless Scenes Command\u0000\u0000\u0000\u0000\u0000\u0000\u0000'}],
+        zigbeeModel: [' Pocket remote\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
+            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000', ' Wireless Scenes Command\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '067755',
         vendor: 'Legrand',
-        description: 'Wireless Scenes Command',
+        description: 'Wireless and batteryless 4 scenes control',
         fromZigbee: [fz.identify, fz.battery, fz.command_recall],
         exposes: [e.battery(), e.action(['identify', 'recall_1_1'])],
         toZigbee: [],
