@@ -47,7 +47,7 @@ const fzlocal = {
 module.exports = [
     {
         zigbeeModel: [' Pocket remote\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
-            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000', ' Wireless Scenes Command\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '067755',
         vendor: 'Legrand',
         description: 'Wireless and batteryless 4 scenes control',
