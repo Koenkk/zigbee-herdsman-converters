@@ -661,7 +661,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vzqtvljm'}],
-        model: 'TS0601_illuminance_temperature_humidity_sensor',
+        model: 'TS0601_illuminance_temperature_humidity_sensor_1',
         vendor: 'TuYa',
         description: 'Illuminance, temperature & humidity sensor',
         fromZigbee: [legacy.fromZigbee.tuya_illuminance_temperature_humidity_sensor],
@@ -679,6 +679,23 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fromZigbee.tuya_air_quality],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd()],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rbbx5mfq'}],
+        model: 'TS0601_illuminance_temperature_humidity_sensor_2',
+        vendor: 'TuYa',
+        description: 'Illuminance sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.illuminance(), e.temperature().withUnit('lx'), e.humidity()],
+        meta: {
+            tuyaDatapoints: [
+                [2, 'illuminance', tuya.valueConverter.raw],
+                [6, 'temperature', tuya.valueConverter.divideBy10],
+                [7, 'humidity', tuya.valueConverter.divideBy10],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dwcarsat', '_TZE200_mja3fuja']),
