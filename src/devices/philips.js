@@ -11,6 +11,13 @@ const extend = {switch: require('../lib/extend').switch};
 
 module.exports = [
     {
+        zigbeeModel: ['LWA023'],
+        model: '9290030516',
+        vendor: 'Philips',
+        description: 'Hue filament standard A60/E27 Bluetooth',
+        extend: philips.extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['LTA013'],
         model: '929003596001',
         vendor: 'Philips',
