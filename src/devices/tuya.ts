@@ -1163,6 +1163,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3p5ydos3'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9cxuhakf'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_a0syesf5'},
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
@@ -1186,6 +1187,7 @@ const definitions: Definition[] = [
             {vendor: 'Moes', model: 'ZS-USD'},
             {vendor: 'Moes', model: 'EDM-1ZBB-EU'},
             tuya.whitelabel('Mercator Ikuü', 'SSWM-DIMZ', 'Switch Mechanism', ['_TZE200_9cxuhakf']),
+            tuya.whitelabel('Mercator Ikuü', 'SSWRM-ZB', 'Rotary dimmer mechanism', ['_TZE200_a0syesf5']),
         ],
     },
     {
