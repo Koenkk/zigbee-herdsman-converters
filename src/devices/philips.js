@@ -11,6 +11,13 @@ const extend = {switch: require('../lib/extend').switch};
 
 module.exports = [
     {
+        zigbeeModel: ['LTA013'],
+        model: '929003596001',
+        vendor: 'Philips',
+        description: 'Hue filament A60 550lm E26',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['LWV006'],
         model: '9290030518',
         vendor: 'Philips',
