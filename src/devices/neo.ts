@@ -36,7 +36,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t1blo2bj', '_TZE204_t1blo2bj', '_TZE200_nlrfgpny']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t1blo2bj', '_TZE204_t1blo2bj']),
         zigbeeModel: ['1blo2bj', 'lrfgpny'],
         model: 'NAS-AB02B2',
         vendor: 'Neo',
@@ -57,6 +57,40 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.command('manuSpecificTuya', 'dataQuery', {});
             await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nlrfgpny']),
+        model: 'NAS-AB06B2',
+        vendor: 'Neo',
+        description: 'Outdoor solar alarm',
+        fromZigbee: [legacy.fz.neo_solar_alarm, fromZigbee_1.default.ignore_basic_report],
+        toZigbee: [tuya.tz.datapoints, legacy.tz.neo_solar_alarm],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum('alarm_state', ea.STATE, ['alarm_sound', 'alarm_light', 'alarm_sound_light', 'normal']).withDescription('Alarm status'),
+            e.binary('alarm_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable alarm'),
+            e.binary('tamper_alarm_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable tamper alarm'),
+            e.binary('tamper_alarm', ea.STATE, 'ON', 'OFF').withDescription('Indicates whether the device is tampered'),
+            e.enum('alarm_melody', ea.STATE_SET, ['melody1', 'melody2', 'melody3']).withDescription('Alarm sound effect'),
+            e.enum('alarm_mode', ea.STATE_SET, ['alarm_sound', 'alarm_light', 'alarm_sound_light']).withDescription('Alarm mode'),
+            e.numeric('alarm_duration', ea.STATE_SET).withValueMin(1).withValueMax(60).withValueStep(1).withUnit('min').withDescription('Alarm duration in minutes'),
+            e.binary('charge_state', ea.STATE, 'Charging', 'Not Charging').withDescription('Charging status'),
+            e.numeric('battery_percentage', ea.STATE).withUnit('%').withDescription('Remaining battery in % (can take up to 24 hours before reported)'),
+            e.binary('battery_low', ea.STATE, true, false).withDescription('Indicates if the battery of this device is almost empty'),
+        ],
+        meta: {
+        tuyaDatapoints: [
+            [1, 'alarm_state', tuya.valueConverterBasic.lookup({'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2,'normal': 3})],
+            [13, 'alarm_switch', tuya.valueConverter.onOff],
+            [101, 'tamper_alarm_switch', tuya.valueConverter.onOff],
+            [20, 'tamper_alarm', tuya.valueConverter.onOff],
+            [21, 'alarm_melody', tuya.valueConverterBasic.lookup({'melody1': 0, 'melody2': 1, 'melody3': 2})],
+            [102, 'alarm_mode', tuya.valueConverterBasic.lookup({'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2})],
+            [7, 'duration', tuya.valueConverter.raw],
+            [6, 'charge_state', tuya.valueConverter.onOff],
+            [15, 'battery_percentage', tuya.valueConverter.raw]
+        ],
         },
     },
     {

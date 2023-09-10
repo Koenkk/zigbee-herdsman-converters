@@ -654,6 +654,16 @@ const dataPoints = {
     neoAODuration: 7,
     neoAOAlarm: 13,
     neoAOVolume: 5,
+    // Neo SolarAlarm
+    neoSAAlarmState: 1,
+    neoSAChargeState: 6,
+    neoSAAlarmTime: 7,
+    neoSAAlarmSwitch: 13,
+    neoSABattPerc: 15,
+    neoSATamperAlarm: 20,
+    neoSAAlarmMelody: 21,
+    neoSATamperAlarmSwitch: 101,
+    neoSAAlarmMode: 102,
     // Saswell TRV
     saswellHeating: 3,
     saswellWindowDetection: 8,
@@ -5994,6 +6004,37 @@ const fromZigbee1 = {
             }
         },
     } as Fz.Converter,
+    neo_solar_alarm: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport', 'commandDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = firstDpValue(msg, meta, 'neo_solar_alarm');
+            const dp = dpValue.dp;
+            const value = getDataValue(dpValue);
+            switch (dp) {
+                case dataPoints.neoSAAlarmState:
+                    return { alarm_state: { 0: 'alarm_sound', 1: 'alarm_light', 2: 'alarm_sound_light', 3: 'normal'}[value] };
+                case dataPoints.neoSAChargeState:
+                    return { charge_state: value };
+                case dataPoints.neoSABattPerc:
+                    return { battery_percentage: value };
+                case dataPoints.neoSAAlarmMelody:
+                    return { alarm_melody: { 0: 'melody1', 1: 'melody2', 2: 'melody3'}[value] };
+                case dataPoints.neoSAAlarmSwitch:
+                    return { alarm_switch: value ? 'ON' : 'OFF' };
+                case dataPoints.neoSATamperAlarm:
+                    return { tamper_alarm: value };
+                case dataPoints.neoSATamperAlarmSwitch:
+                    return {tamper_alarm_switch: value ? 'ON' : 'OFF' };
+                case dataPoints.neoSAAlarmMode:
+                    return {alarm_mode: { 0: 'alarm_sound', 1: 'alarm_light', 2: 'alarm_sound_light'}[value] };
+                case dataPoints.neoSAAlarmTime:
+                    return {alarm_time: value};
+                default: // Unknown code
+                    meta.logger.debug(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+            }
+        },
+    } as Fz.Converter,
 };
 
 const fromZigbee2 = {
@@ -6155,6 +6196,34 @@ const toZigbee1 = {
             }
         },
     } as Tz.Converter,
+    neo_solar_alarm: {
+        key: [
+            'tamper_alarm_switch', 'alarm_melody', 'alarm_mode', 'alarm_duration', 'battery',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+                case 'tamper_alarm_switch':
+                    await sendDataPointBool(entity, dataPoints.neoSATamperAlarmSwitch, value === 'ON');
+                    break;
+                case 'alarm_melody':
+                    await sendDataPointEnum(entity, dataPoints.neoSAAlarmMelody,
+                    { 'melody1': 0, 'melody2': 1, 'melody3': 2 }[value]);
+                    break;
+                case 'alarm_mode':
+                    await sendDataPointEnum(entity, dataPoints.neoSAAlarmMode,
+                    { 'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2 }[value]);
+                    break;
+                case 'alarm_duration':
+                    await sendDataPointValue(entity, dataPoints.neoSAAlarmTime, value);
+                    break;
+                case 'battery':
+                    await sendDataPointValue(entity, dataPoints.neoSAAlarmTime, value);
+                    break;
+                default: // Unknown key
+                    throw new Error(`Unhandled key ${key}`);
+            }
+        },
+    } as tz.Converter,
 };
 
 const toZigbee2 = {
