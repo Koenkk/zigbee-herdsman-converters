@@ -35,7 +35,7 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-export function onEvent(options: {queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000'}): OnEvent {
+export function onEvent(options?: {queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000'}): OnEvent {
     return async (type, data, device, settings, state) => {
         options = {queryOnDeviceAnnounce: false, timeStart: '1970', ...options};
 
