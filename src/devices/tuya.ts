@@ -3814,32 +3814,32 @@ const definitions: Definition[] = [
                 .withDescription('Antifreeze function'),
             e.numeric('upper_temp', ea.STATE_SET).withUnit('°C').withValueMax(95)
                 .withValueMin(15).withValueStep(1).withPreset('default', 60, 'Default value')
-                .withDescription("Maximum upper temperature"),
+                .withDescription('Maximum upper temperature'),
             e.numeric('deadzone_temperature', ea.STATE_SET).withUnit('°C').withValueMax(10)
                 .withValueMin(0.5).withValueStep(0.5).withPreset('default', 1, 'Default value')
                 .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
-            //I wasn't able to get this to work, so i commented it out
+            // I wasn't able to get this to work, so i commented it out
             // e.enum('schedule_mode', ea.STATE_SET, ['disabled','weekday/sat+sun','weekday+sat/sun','7day'])
             //     .withDescription('Schedule mode')
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'system_mode', tuya.valueConverterBasic.lookup({ 'heat': true, 'off': false })],
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({'heat': true, 'off': false})],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
-                [4, 'preset', tuya.valueConverterBasic.lookup({ 'auto': tuya.enum(0), 'manual': tuya.enum(1) })],
+                [4, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1)})],
                 [9, 'child_lock', tuya.valueConverter.lockUnlock],
                 [15, 'upper_temp', tuya.valueConverter.divideBy10],
                 [19, 'local_temperature_calibration', tuya.valueConverter.divideBy10],
-                [101, 'running_state', tuya.valueConverterBasic.lookup({ 'heat': tuya.enum(1), 'idle': tuya.enum(0) })],
+                [101, 'running_state', tuya.valueConverterBasic.lookup({'heat': tuya.enum(1), 'idle': tuya.enum(0)})],
                 [102, 'frost_protection', tuya.valueConverter.onOff],
                 [104, 'schedule_mode', tuya.valueConverterBasic.lookup(
-                    { 'disabled': 0, 'weekday/sat+sun': 1, 'weekday+sat/sun': 2, '7day': 3 }
+                    {'disabled': 0, 'weekday/sat+sun': 1, 'weekday+sat/sun': 2, '7day': 3},
                 )],
                 [107, 'deadzone_temperature', tuya.valueConverter.divideBy10],
-    
+
                 // These are the schedule values in bytes, 8 periods in total (4 bytes per period).
-                // For each period: 
+                // For each period:
                 // 1st byte: hour
                 // 2nd byte: minute
                 // 3rd, 4rd bytes: temperature multiplied by 10
@@ -3852,13 +3852,13 @@ const definitions: Definition[] = [
                 // Sat-Sun: 8:05 --> 20C, 23:00 --> 16C
                 // I wasn't able to find a proper converter or to create one, so i commented it out
                 // [109, 'dp109', tuya.valueConverter.raw],
-    
+
                 // unmapped DPs, still need to figure out what they do
                 // [103, 'dp103', tuya.valueConverter.trueFalse1],
                 // [105, 'dp105', tuya.valueConverter.trueFalse1],
                 // [110, 'dp110', tuya.valueConverter.raw],
                 // [111, 'dp111', tuya.valueConverter.trueFalse1]
-            ]
+            ],
         },
     },
     {
