@@ -3788,18 +3788,13 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE200_viy9ihs7',
-            },
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7']),
         model: 'ZWT198',
         vendor: 'TuYa',
-        description: 'ONNDO Smart thermostat',
+        description: 'ONNDO smart thermostat',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
+        onEvent: tuya.onEvent({timeStart: '2000'}),
         configure: tuya.configureMagicPacket,
         exposes: [
             e.child_lock(),
@@ -3818,7 +3813,7 @@ const definitions: Definition[] = [
             e.numeric('deadzone_temperature', ea.STATE_SET).withUnit('°C').withValueMax(10)
                 .withValueMin(0.5).withValueStep(0.5).withPreset('default', 1, 'Default value')
                 .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
-            // I wasn't able to get this to work, so i commented it out
+            // Not working yet:
             // e.enum('schedule_mode', ea.STATE_SET, ['disabled','weekday/sat+sun','weekday+sat/sun','7day'])
             //     .withDescription('Schedule mode')
         ],
@@ -3837,7 +3832,6 @@ const definitions: Definition[] = [
                     {'disabled': 0, 'weekday/sat+sun': 1, 'weekday+sat/sun': 2, '7day': 3},
                 )],
                 [107, 'deadzone_temperature', tuya.valueConverter.divideBy10],
-
                 // These are the schedule values in bytes, 8 periods in total (4 bytes per period).
                 // For each period:
                 // 1st byte: hour
