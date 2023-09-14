@@ -5421,7 +5421,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_rqbjepe8']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_rqbjepe8', '_TZ3000_uwkja6z1']),
         model: 'TS011F_4',
         description: '2 gang plug',
         vendor: 'TuYa',
@@ -5442,7 +5442,7 @@ const definitions: Definition[] = [
         options: [exposes.options.measurement_poll_interval()],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
         whiteLabel: [
-            tuya.whitelabel('Nous', 'A4Z', '2 gang outdoor plug', ['_TZ3000_rqbjepe8']),
+            tuya.whitelabel('Nous', 'A4Z', '2 gang outdoor plug', ['_TZ3000_rqbjepe8', '_TZ3000_uwkja6z1']),
         ],
     },
     {
