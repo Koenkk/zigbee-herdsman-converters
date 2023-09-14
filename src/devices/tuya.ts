@@ -1229,7 +1229,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems', '_TZE200_la2c2uo9', '_TZE200_579lguh2',
-            '_TZE200_vucankjx', '_TZE200_4mh6tyyo']),
+            '_TZE200_vucankjx', '_TZE200_4mh6tyyo', '_TZE204_hlx9tnzb']),
         model: 'TS0601_dimmer_1',
         vendor: 'TuYa',
         description: '1 gang smart dimmer',
@@ -1253,6 +1253,7 @@ const definitions: Definition[] = [
             {vendor: 'Moes', model: 'MS-105Z'},
             {vendor: 'Lerlink', model: 'X706U'},
             {vendor: 'Moes', model: 'ZS-EUD_1gang'},
+            tuya.whitelabel('Moes', 'ZS-SR-EUD-1', 'Star ring smart dimmer switch 1 gang', ['_TZE204_zenj4lxv']),
         ],
     },
     {
@@ -1294,7 +1295,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vm1gyrso']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vm1gyrso', '_TZE204_1v1dxkck']),
         model: 'TS0601_dimmer_3',
         vendor: 'TuYa',
         description: '3 gang smart dimmer',
@@ -1319,6 +1320,7 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             {vendor: 'Moes', model: 'ZS-EUD_3gang'},
+            tuya.whitelabel('Moes', 'ZS-SR-EUD-3', 'Star ring smart dimmer switch 3 gangs', ['_TZE204_1v1dxkck']),
         ],
     },
     {
@@ -1552,11 +1554,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ji1gn7rw'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_3t91nb6k'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nkjintbl', '_TZE200_ji1gn7rw', '_TZE200_3t91nb6k', '_TZE204_wvovwe9h']),
         model: 'TS0601_switch_2_gang',
         vendor: 'TuYa',
         description: '2 gang switch',
@@ -2280,13 +2278,14 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_axgvo9jh'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bv1jcqqu'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_7eue9vhc'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_gaj531w3'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'TuYa',
         description: 'Curtain motor/roller blind motor/window pusher/tubular motor',
         whiteLabel: [
             {vendor: 'Yushun', model: 'YS-MT750'},
-            tuya.whitelabel('Yushun', 'YS-MT750L', 'Curtain motor', ['_TZE200_bqcqqjpb']),
+            tuya.whitelabel('Yushun', 'YS-MT750L', 'Curtain motor', ['_TZE200_bqcqqjpb', '_TZE200_gaj531w3']),
             {vendor: 'Zemismart', model: 'ZM79E-DT'},
             {vendor: 'Binthen', model: 'BCM100D'},
             {vendor: 'Binthen', model: 'CV01A'},
@@ -2365,6 +2364,27 @@ const definitions: Definition[] = [
                 [101, 'motor_direction', tuya.valueConverterBasic.lookup({'left': tuya.enum(0), 'right': tuya.enum(1)})],
                 [102, 'set_upper_limit', tuya.valueConverterBasic.lookup({'start': tuya.enum(1), 'stop': tuya.enum(0)})],
                 [107, 'factory_reset', tuya.valueConverter.setLimit],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_zvo63cmo']),
+        model: 'TS0601_cover_7',
+        vendor: 'TuYa',
+        description: 'Cover motor',
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'position', tuya.valueConverter.raw],
+                // motor_direction doesn't work: https://github.com/Koenkk/zigbee2mqtt/issues/18103
+                // [5, 'motor_direction', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'reversed': tuya.enum(1)})],
+                [101, 'battery', tuya.valueConverter.raw],
             ],
         },
     },
