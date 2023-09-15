@@ -166,16 +166,17 @@ export namespace Extend {
     export interface options_light_onoff_brightness_colortemp {
         disablePowerOnBehavior?: boolean, toZigbee?: Tz.Converter[], fromZigbee?: Fz.Converter[], exposes?: Expose[], disableEffect?: boolean,
         disableMoveStep?: boolean, disableTransition?: boolean, noConfigure?: boolean, disableColorTempStartup?: boolean, colorTempRange?: Range,
+        enableColorOptions?: boolean,
     }
     export interface options_light_onoff_brightness_color {
         disablePowerOnBehavior?: boolean, toZigbee?: Tz.Converter[], fromZigbee?: Fz.Converter[], exposes?: Expose[], disableEffect?: boolean,
         disableMoveStep?: boolean, disableTransition?: boolean, noConfigure?: boolean, disableColorTempStartup?: boolean, colorTempRange?: Range,
-        preferHueAndSaturation?: boolean, supportsHueAndSaturation?: boolean,
+        preferHueAndSaturation?: boolean, supportsHueAndSaturation?: boolean, enableColorOptions?: boolean,
     }
     export interface options_light_onoff_brightness_colortemp_color {
         disablePowerOnBehavior?: boolean, toZigbee?: Tz.Converter[], fromZigbee?: Fz.Converter[], exposes?: Expose[], disableEffect?: boolean,
         disableMoveStep?: boolean, disableTransition?: boolean, noConfigure?: boolean, disableColorTempStartup?: boolean, colorTempRange?: Range,
-        preferHueAndSaturation?: boolean, supportsHueAndSaturation?: boolean,
+        preferHueAndSaturation?: boolean, supportsHueAndSaturation?: boolean, enableColorOptions?: boolean,
     }
 }
 

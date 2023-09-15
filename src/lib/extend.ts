@@ -47,10 +47,13 @@ const extend = {
     },
     light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp={}) => {
         options = {
-            disableEffect: false, disableColorTempStartup: false, disablePowerOnBehavior: false,
+            disableEffect: false, disableColorTempStartup: false, disablePowerOnBehavior: false, enableColorOptions: false,
             toZigbee: [], fromZigbee: [], exposes: [], ...options,
         };
-        const exposes = [e.light_brightness_colortemp(options.colorTempRange), ...(!options.disableEffect ? [e.effect()] : []),
+
+        const lightExpose = e.light_brightness_colortemp(options.colorTempRange);
+
+        const exposes = [lightExpose, ...(!options.disableEffect ? [e.effect()] : []),
             ...options.exposes];
         const toZigbee = [tz.light_onoff_brightness, tz.light_colortemp, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
             tz.light_colortemp_move, tz.light_brightness_step, tz.light_colortemp_step, tz.light_colortemp_startup, tz.level_config,
@@ -59,7 +62,7 @@ const extend = {
         const fromZigbee = [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report, ...options.fromZigbee];
 
         if (options.disableColorTempStartup) {
-            exposes[0].removeFeature('color_temp_startup');
+            lightExpose.removeFeature('color_temp_startup');
             toZigbee.splice(toZigbee.indexOf(tz.light_colortemp_startup), 1);
         }
 
@@ -67,6 +70,10 @@ const extend = {
             exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
             fromZigbee.push(fz.power_on_behavior);
             toZigbee.push(tz.power_on_behavior);
+        }
+
+        if (options.enableColorOptions) {
+            lightExpose.withColorOptions();
         }
 
         const result: Extend = {exposes, fromZigbee, toZigbee};
@@ -81,9 +88,14 @@ const extend = {
     light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color={}) => {
         options = {
             disableEffect: false, supportsHueAndSaturation: false, preferHueAndSaturation: false, disablePowerOnBehavior: false,
-            toZigbee: [], fromZigbee: [], exposes: [], ...options,
+            enableColorOptions: false, toZigbee: [], fromZigbee: [], exposes: [], ...options,
         };
-        const exposes = [(options.supportsHueAndSaturation ? e.light_brightness_color(options.preferHueAndSaturation) : e.light_brightness_colorxy()),
+
+        const lightExpose = options.supportsHueAndSaturation ?
+            e.light_brightness_color(options.preferHueAndSaturation) :
+            e.light_brightness_colorxy();
+
+        const exposes = [lightExpose,
             ...(!options.disableEffect ? [e.effect()] : []), ...options.exposes];
         const fromZigbee = [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report, ...options.fromZigbee];
         const toZigbee = [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
@@ -95,6 +107,10 @@ const extend = {
             exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
             fromZigbee.push(fz.power_on_behavior);
             toZigbee.push(tz.power_on_behavior);
+        }
+
+        if (options.enableColorOptions) {
+            lightExpose.withColorOptions();
         }
 
         const result: Extend = {exposes, fromZigbee, toZigbee, meta};
@@ -109,11 +125,15 @@ const extend = {
     light_onoff_brightness_colortemp_color: (options: Extend.options_light_onoff_brightness_colortemp_color={}) => {
         options = {
             disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
-            disablePowerOnBehavior: false, toZigbee: [], fromZigbee: [], exposes: [], ...options,
+            disablePowerOnBehavior: false, enableColorOptions: false, toZigbee: [], fromZigbee: [], exposes: [], ...options,
         };
+
+        const lightExpose = options.supportsHueAndSaturation ?
+            e.light_brightness_colortemp_color(options.colorTempRange, options.preferHueAndSaturation) :
+            e.light_brightness_colortemp_colorxy(options.colorTempRange);
+
         const exposes = [
-            (options.supportsHueAndSaturation ? e.light_brightness_colortemp_color(options.colorTempRange, options.preferHueAndSaturation) :
-                e.light_brightness_colortemp_colorxy(options.colorTempRange)), ...(!options.disableEffect ? [e.effect()] : []),
+            lightExpose, ...(!options.disableEffect ? [e.effect()] : []),
             ...options.exposes,
         ];
         const fromZigbee = [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report, ...options.fromZigbee];
@@ -133,6 +153,10 @@ const extend = {
             exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
             fromZigbee.push(fz.power_on_behavior);
             toZigbee.push(tz.power_on_behavior);
+        }
+
+        if (options.enableColorOptions) {
+            lightExpose.withColorOptions();
         }
 
         const result: Extend = {exposes, fromZigbee, toZigbee, meta};

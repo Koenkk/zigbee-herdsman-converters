@@ -78,17 +78,17 @@ const tradfriExtend = {
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
-    light_onoff_brightness_colortemp: (options = {colorTempRange: [250, 454]}) => ({
+    light_onoff_brightness_colortemp: (options = {colorTempRange: [250, 454], enableColorOptions: true}) => ({
         ...extend.light_onoff_brightness_colortemp(options),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
-    light_onoff_brightness_colortemp_color: (options = {disableColorTempStartup: true, colorTempRange: [250, 454]}) => ({
+    light_onoff_brightness_colortemp_color: (options = {disableColorTempStartup: true, colorTempRange: [250, 454], enableColorOptions: true}) => ({
         ...extend.light_onoff_brightness_colortemp_color(options),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
-    light_onoff_brightness_color: (options = {}) => ({
+    light_onoff_brightness_color: (options = {enableColorOptions: true}) => ({
         ...extend.light_onoff_brightness_color(options),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
@@ -600,7 +600,7 @@ module.exports = [
         model: 'LED1732G11',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, white spectrum, opal white',
-        extend: tradfriExtend.light_onoff_brightness_colortemp({colorTempRange: [250, 454]}),
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WW 806lm', 'TRADFRI bulb E26 WW 806lm'],
@@ -1020,7 +1020,7 @@ module.exports = [
         model: 'LED1923R5/LED1925G6',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum, color spectrum',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
+        extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 CWS 470lm', 'TRADFRI bulb E12 CWS 450lm', 'TRADFRI bulb E17 CWS 440lm'],

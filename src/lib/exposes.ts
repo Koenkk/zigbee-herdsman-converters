@@ -376,6 +376,18 @@ export class Light extends Base {
 
         return this;
     }
+
+    withColorOptions() {
+        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
+
+        const colorOptions = new Composite('color_options', 'color_options', access.ALL)
+            .withDescription('Advanced color behavior')
+            .withFeature(new Binary('execute_if_off', access.SET, true, false)
+                .withDescription('Controls whether color and color temperature can be set while light is off'));
+
+        this.features.push(colorOptions);
+        return this;
+    }
 }
 
 export class Cover extends Base {
