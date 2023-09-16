@@ -110,16 +110,16 @@ const definitions: Definition[] = [
             e.binary('battery_low', ea.STATE, true, false).withDescription('Indicates if the battery of this device is almost empty'),
         ],
         meta: {
-            tuyaDatapoints: [
-                    [1, 'alarm_state', tuya.valueConverterBasic.lookup({'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2,'normal': 3})],
-                    [13, 'alarm_switch', tuya.valueConverter.onOff],
-                    [101, 'tamper_alarm_switch', tuya.valueConverter.onOff],
-                    [20, 'tamper_alarm', tuya.valueConverter.onOff],
-                    [21, 'alarm_melody', tuya.valueConverterBasic.lookup({'melody1': 0, 'melody2': 1, 'melody3': 2})],
-                    [102, 'alarm_mode', tuya.valueConverterBasic.lookup({'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2})],
-                    [7, 'alarm_time', tuya.valueConverter.raw],
-                    [6, 'charge_state', tuya.valueConverter.onOff],
-                    [15, 'battpercentage', tuya.valueConverter.raw]
+        tuyaDatapoints: [
+                [1, 'alarm_state', tuya.valueConverterBasic.lookup({'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2, 'normal': 3})],
+                [13, 'alarm_switch', tuya.valueConverter.onOff],
+                [101, 'tamper_alarm_switch', tuya.valueConverter.onOff],
+                [20, 'tamper_alarm', tuya.valueConverter.onOff],
+                [21, 'alarm_melody', tuya.valueConverterBasic.lookup({'melody1': 0, 'melody2': 1, 'melody3': 2})],
+                [102, 'alarm_mode', tuya.valueConverterBasic.lookup({'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2})],
+                [7, 'alarm_time', tuya.valueConverter.raw],
+                [6, 'charge_state', tuya.valueConverter.onOff],
+                [15, 'battpercentage', tuya.valueConverter.raw],
             ],
         },
     },
