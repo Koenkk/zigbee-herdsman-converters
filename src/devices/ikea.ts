@@ -10,7 +10,7 @@ import {repInterval} from '../lib/constants';
 import * as utils from '../lib/utils';
 import extend from '../lib/extend';
 import * as globalStore from '../lib/store';
-import herdsman from 'zigbee-herdsman';
+import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {calibrateAndPrecisionRoundOptions, postfixWithEndpointName, precisionRound} from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -99,7 +99,7 @@ const tradfriExtend = {
     }),
 };
 
-const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
+const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
 
 const configureGenPollCtrl = async (device: Zh.Device, endpoint: Zh.Endpoint) => {
     // NOTE: Firmware 24.4.11 introduce genPollCtrl
