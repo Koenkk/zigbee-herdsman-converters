@@ -110,7 +110,7 @@ const definitions: Definition[] = [
             e.binary('battery_low', ea.STATE, true, false).withDescription('Indicates if the battery of this device is almost empty'),
         ],
         meta: {
-        tuyaDatapoints: [
+            tuyaDatapoints: [
                 [1, 'alarm_state', tuya.valueConverterBasic.lookup({'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2, 'normal': 3})],
                 [13, 'alarm_switch', tuya.valueConverter.onOff],
                 [101, 'tamper_alarm_switch', tuya.valueConverter.onOff],
