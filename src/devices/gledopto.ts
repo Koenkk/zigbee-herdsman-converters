@@ -1,14 +1,15 @@
-const exposes = require('../lib/exposes');
-const globalStore = require('../lib/store');
-const ota = require('../lib/ota');
-const extend = require('../lib/extend');
-const reporting = require('../lib/reporting');
-const utils = require('../lib/utils');
-const tz = require('../converters/toZigbee');
+import {Configure, Definition, KeyValue, OnEventType, Zh, Extend} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import * as globalStore from '../lib/store';
+import * as ota from '../lib/ota';
+import extend from '../lib/extend';
+import * as reporting from '../lib/reporting';
+import * as utils from '../lib/utils';
+import tz from '../converters/toZigbee';
 const e = exposes.presets;
 
 const gledoptoExtend = {
-    light_onoff_brightness: (options={}) => ({
+    light_onoff_brightness: (options: Extend.options_light_onoff_brightness={}) => ({
         ...extend.light_onoff_brightness({disablePowerOnBehavior: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness(options).toZigbee,
@@ -16,7 +17,7 @@ const gledoptoExtend = {
             [tz.gledopto_light_onoff_brightness],
         ),
     }),
-    light_onoff_brightness_colortemp: (options={}) => ({
+    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp={}) => ({
         ...extend.light_onoff_brightness_colortemp({disablePowerOnBehavior: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_colortemp(options).toZigbee,
@@ -24,7 +25,7 @@ const gledoptoExtend = {
             [tz.gledopto_light_onoff_brightness, tz.gledopto_light_colortemp],
         ),
     }),
-    light_onoff_brightness_color: (options={}) => ({
+    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color={}) => ({
         ...extend.light_onoff_brightness_color({disablePowerOnBehavior: true, supportsHueAndSaturation: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_color(options).toZigbee,
@@ -32,7 +33,7 @@ const gledoptoExtend = {
             [tz.gledopto_light_onoff_brightness, tz.gledopto_light_color],
         ),
     }),
-    light_onoff_brightness_colortemp_color: (options={}) => ({
+    light_onoff_brightness_colortemp_color: (options: Extend.options_light_onoff_brightness_colortemp_color={}) => ({
         ...extend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true, supportsHueAndSaturation: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_colortemp_color(options).toZigbee,
@@ -40,9 +41,9 @@ const gledoptoExtend = {
             [tz.gledopto_light_onoff_brightness, tz.gledopto_light_color_colortemp],
         ),
     }),
-    switch: (options={}) => ({
+    switch: (options: Extend.options_switch={}) => ({
         ...extend.switch({disablePowerOnBehavior: true, ...options}),
-        onEvent: async (type, data, device) => {
+        onEvent: async (type: OnEventType, data: KeyValue, device: Zh.Device) => {
             // This device doesn't support reporting.
             // Therefore we read the on/off state every 5 seconds.
             // This is the same way as the Hue bridge does it.
@@ -63,7 +64,7 @@ const gledoptoExtend = {
     }),
 };
 
-const configureReadModelID = async (device, coordinatorEndpoint, logger) => {
+const configureReadModelID: Configure = async (device, coordinatorEndpoint, logger) => {
     // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3016#issuecomment-1027726604
     const endpoint = device.endpoints[0];
     const oldModel = device.modelID;
@@ -73,7 +74,7 @@ const configureReadModelID = async (device, coordinatorEndpoint, logger) => {
     }
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['GL-SD-003P'],
         model: 'GL-SD-003P',
@@ -239,7 +240,7 @@ module.exports = [
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller RGB+CCT (2 ID)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
-        exposes: [e.light_brightness_colorxy().withEndpoint('rgb'), e.light_brightness_colortemp().withEndpoint('cct')],
+        exposes: [e.light_brightness_colorxy().withEndpoint('rgb'), e.light_brightness_colortemp([158, 495]).withEndpoint('cct')],
         // Only enable disableDefaultResponse for the second fingerprint:
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1315#issuecomment-645331185
         meta: {disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
@@ -804,3 +805,5 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp({colorTempRange: [158, 495]}),
     },
 ];
+
+module.exports = definitions;

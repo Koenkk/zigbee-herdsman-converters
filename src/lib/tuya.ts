@@ -245,7 +245,7 @@ async function sendDataPointValue(entity: Zh.Group | Zh.Endpoint, dp: number, va
     return await sendDataPoints(entity, [dpValueFromNumberValue(dp, value)], cmd, seq);
 }
 
-async function sendDataPointBool(entity: Zh.Group | Zh.Endpoint, dp: number, value: boolean, cmd?: string, seq?: number) {
+export async function sendDataPointBool(entity: Zh.Group | Zh.Endpoint, dp: number, value: boolean, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromBool(dp, value)], cmd, seq);
 }
 

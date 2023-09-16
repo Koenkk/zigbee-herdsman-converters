@@ -1,21 +1,21 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const ota = require('../lib/ota');
-const constants = require('../lib/constants');
-const reporting = require('../lib/reporting');
-const {repInterval} = require('../lib/constants');
-const utils = require('../lib/utils');
-const extend = require('../lib/extend');
-const globalStore = require('../lib/store');
+import {Definition, Fz, Tz, OnEvent, Configure, KeyValue, Extend, Zh} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as ota from '../lib/ota';
+import * as constants from '../lib/constants';
+import * as reporting from '../lib/reporting';
+import {repInterval} from '../lib/constants';
+import * as utils from '../lib/utils';
+import extend from '../lib/extend';
+import * as globalStore from '../lib/store';
+import herdsman from 'zigbee-herdsman';
+import {calibrateAndPrecisionRoundOptions, postfixWithEndpointName, precisionRound} from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
-const herdsman = require('zigbee-herdsman');
-const {
-    calibrateAndPrecisionRoundOptions, postfixWithEndpointName, getMetaValue, precisionRound,
-} = require('../lib/utils');
 
-const bulbOnEvent = async (type, data, device, options, state) => {
+const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
     /**
      * IKEA bulbs lose their configured reportings when losing power.
      * A deviceAnnounce indicates they are powered on again.
@@ -38,28 +38,31 @@ const bulbOnEvent = async (type, data, device, options, state) => {
 
         // NOTE: execute_if_off default is false
         //       we only restore if true, to save unneeded network writes
-        if (state !== undefined && state.color_options !== undefined && state.color_options.execute_if_off === true) {
+        const colorOptions = state.color_options as KeyValue;
+        if (colorOptions?.execute_if_off === true) {
             device.endpoints[0].write('lightingColorCtrl', {'options': 1});
         }
-        if (state !== undefined && state.level_config !== undefined && state.level_config.execute_if_off === true) {
+        const levelConfig = state.level_config as KeyValue;
+        if (levelConfig?.execute_if_off === true) {
             device.endpoints[0].write('genLevelCtrl', {'options': 1});
         }
-        if (state !== undefined && state.level_config !== undefined && state.level_config.on_level !== undefined) {
-            let onLevel = state.level_config.on_level;
-            if (typeof onLevel === 'string' && onLevel.toLowerCase() == 'previous') {
+        if (levelConfig?.on_level !== undefined) {
+            const onLevelRaw = levelConfig.on_level;
+            let onLevel: number;
+            if (typeof onLevelRaw === 'string' && onLevelRaw.toLowerCase() == 'previous') {
                 onLevel = 255;
             } else {
-                onLevel = Number(onLevel);
+                onLevel = Number(onLevelRaw);
             }
             if (onLevel > 255) onLevel = 254;
             if (onLevel < 1) onLevel = 1;
 
-            device.endpoints[0].write('genLevelCtrl', {onLevel});
+            device.endpoints[0].write('genLevelCtrl', {onLevel: onLevelRaw});
         }
     }
 };
 
-const configureRemote = async (device, coordinatorEndpoint, logger) => {
+const configureRemote: Configure = async (device, coordinatorEndpoint, logger) => {
     // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
     // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
     // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
@@ -73,22 +76,23 @@ const configureRemote = async (device, coordinatorEndpoint, logger) => {
 };
 
 const tradfriExtend = {
-    light_onoff_brightness: (options = {}) => ({
+    light_onoff_brightness: (options: Extend.options_light_onoff_brightness = {}) => ({
         ...extend.light_onoff_brightness(options),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
-    light_onoff_brightness_colortemp: (options = {colorTempRange: [250, 454]}) => ({
+    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp = {colorTempRange: [250, 454]}) => ({
         ...extend.light_onoff_brightness_colortemp(options),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
-    light_onoff_brightness_colortemp_color: (options = {disableColorTempStartup: true, colorTempRange: [250, 454]}) => ({
+    light_onoff_brightness_colortemp_color: (
+        options: Extend.options_light_onoff_brightness_colortemp_color = {disableColorTempStartup: true, colorTempRange: [250, 454]}) => ({
         ...extend.light_onoff_brightness_colortemp_color(options),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
-    light_onoff_brightness_color: (options = {}) => ({
+    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color = {}) => ({
         ...extend.light_onoff_brightness_color(options),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
@@ -97,293 +101,303 @@ const tradfriExtend = {
 
 const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
 
-const ikea = {
-    fz: {
-        air_purifier: {
-            cluster: 'manuSpecificIkeaAirPurifier',
-            type: ['attributeReport', 'readResponse'],
-            options: [exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
-            convert: (model, msg, publish, options, meta) => {
-                const state = {};
-
-                if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
-                    const pm25Property = postfixWithEndpointName('pm25', msg, model, meta);
-                    let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
-
-                    // Air Quality
-                    // Scale based on EU AQI (https://www.eea.europa.eu/themes/air/air-quality-index)
-                    // Using German IAQ labels to match the Develco Air Quality Sensor
-                    let airQuality;
-                    const airQualityProperty = postfixWithEndpointName('air_quality', msg, model, meta);
-                    if (pm25 <= 10) {
-                        airQuality = 'excellent';
-                    } else if (pm25 <= 20) {
-                        airQuality = 'good';
-                    } else if (pm25 <= 25) {
-                        airQuality = 'moderate';
-                    } else if (pm25 <= 50) {
-                        airQuality = 'poor';
-                    } else if (pm25 <= 75) {
-                        airQuality = 'unhealthy';
-                    } else if (pm25 <= 800) {
-                        airQuality = 'hazardous';
-                    } else if (pm25 < 65535) {
-                        airQuality = 'out_of_range';
-                    } else {
-                        airQuality = 'unknown';
-                    }
-
-                    // calibrate and round pm25 unless invalid
-                    pm25 = (pm25 == 65535) ? -1 : calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
-
-                    state[pm25Property] = calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
-                    state[airQualityProperty] = airQuality;
-                }
-
-                if (msg.data.hasOwnProperty('filterRunTime')) {
-                    // Filter needs to be replaced after 6 months
-                    state['replace_filter'] = (parseInt(msg.data['filterRunTime']) >= 259200);
-                    state['filter_age'] = parseInt(msg.data['filterRunTime']);
-                }
-
-                if (msg.data.hasOwnProperty('controlPanelLight')) {
-                    state['led_enable'] = (msg.data['controlPanelLight'] == 0);
-                }
-
-                if (msg.data.hasOwnProperty('childLock')) {
-                    state['child_lock'] = (msg.data['childLock'] > 0 ? 'LOCK' : 'UNLOCK');
-                }
-
-                if (msg.data.hasOwnProperty('fanSpeed')) {
-                    let fanSpeed = msg.data['fanSpeed'];
-                    if (fanSpeed >= 10) {
-                        fanSpeed = (((fanSpeed - 5) * 2) / 10);
-                    } else {
-                        fanSpeed = 0;
-                    }
-
-                    state['fan_speed'] = fanSpeed;
-                }
-
-                if (msg.data.hasOwnProperty('fanMode')) {
-                    let fanMode = msg.data['fanMode'];
-                    if (fanMode >= 10) {
-                        fanMode = (((fanMode - 5) * 2) / 10).toString();
-                    } else if (fanMode == 1) {
-                        fanMode = 'auto';
-                    } else {
-                        fanMode = 'off';
-                    }
-
-                    state['fan_mode'] = fanMode;
-                    state['fan_state'] = (fanMode === 'off' ? 'OFF' : 'ON');
-                }
-
-                return state;
-            },
-        },
-        ikea_voc_index: {
-            cluster: 'msIkeaVocIndexMeasurement',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('measuredValue')) {
-                    return {voc_index: msg.data['measuredValue']};
-                }
-            },
-        },
-        battery: {
-            cluster: 'genPowerCfg',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                const payload = {};
-                if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
-                    // Some devices do not comply to the ZCL and report a
-                    // batteryPercentageRemaining of 100 when the battery is full (should be 200).
-                    //
-                    // IKEA corrected this on newer remote fw version, but many people are still
-                    // 2.2.010 which is the last version supporting group bindings. We try to be
-                    // smart and pick the correct one for IKEA remotes.
-                    let dontDividePercentage = false;
-                    let percentage = msg.data['batteryPercentageRemaining'];
-                    const fwVer = meta.device.softwareBuildID.split('.');
-                    if ((fwVer[0] < 2) || (fwVer[0] == 2 && fwVer[1] <= 3)) {
-                        dontDividePercentage = true;
-                    }
-                    percentage = dontDividePercentage ? percentage : percentage / 2;
-                    payload.battery = precisionRound(percentage, 2);
-                }
-
-                return payload;
-            },
-        },
-        // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
-        // https://github.com/Koenkk/zigbee2mqtt/issues/13335
-        styrbar_on: {
-            cluster: 'genOnOff',
-            type: 'commandOn',
-            convert: (model, msg, publish, options, meta) => {
-                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-                const arrowReleaseAgo = Date.now() - globalStore.getValue(msg.endpoint, 'arrow_release', 0);
-                if (arrowReleaseAgo > 700) {
-                    return {action: 'on'};
-                }
-            },
-        },
-        styrbar_arrow_release: {
-            cluster: 'genScenes',
-            type: 'commandTradfriArrowRelease',
-            options: [exposes.options.legacy()],
-            convert: (model, msg, publish, options, meta) => {
-                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-                globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
-                const direction = globalStore.getValue(msg.endpoint, 'direction');
-                if (direction) {
-                    globalStore.clearValue(msg.endpoint, 'direction');
-                    const duration = msg.data.value / 1000;
-                    const result = {action: `arrow_${direction}_release`, duration, action_duration: duration};
-                    if (!utils.isLegacyEnabled(options)) delete result.duration;
-                    return result;
-                }
-            },
-        },
-        ikea_dots_click_v1: {
-            // For remotes with firmware 1.0.012 (20211214)
-            cluster: 64639,
-            type: 'raw',
-            convert: (model, msg, publish, options, meta) => {
-                if (!Buffer.isBuffer(msg.data)) return;
-                let action;
-                const button = msg.data[5];
-                switch (msg.data[6]) {
-                case 1: action = 'initial_press'; break;
-                case 2: action = 'double_press'; break;
-                case 3: action = 'long_press'; break;
-                }
-
-                return {action: `dots_${button}_${action}`};
-            },
-        },
-        ikea_dots_click_v2: {
-            // For remotes with firmware 1.0.32 (20221219)
-            cluster: 'heimanSpecificScenes',
-            type: 'raw',
-            convert: (model, msg, publish, options, meta) => {
-                if (!Buffer.isBuffer(msg.data)) return;
-                let button;
-                let action;
-                switch (msg.endpoint.ID) {
-                case 2: button = '1'; break; // 1 dot
-                case 3: button = '2'; break; // 2 dot
-                }
-                switch (msg.data[4]) {
-                case 1: action = 'initial_press'; break;
-                case 2: action = 'long_press'; break;
-                case 3: action = 'short_release'; break;
-                case 4: action = 'long_release'; break;
-                case 6: action = 'double_press'; break;
-                }
-
-                return {action: `dots_${button}_${action}`};
-            },
-        },
-        ikea_volume_click: {
-            cluster: 'genLevelCtrl',
-            type: 'commandMoveWithOnOff',
-            convert: (model, msg, publish, options, meta) => {
-                const direction = msg.data.movemode === 1 ? 'down' : 'up';
-                return {action: `volume_${direction}`};
-            },
-        },
-        ikea_volume_hold: {
-            cluster: 'genLevelCtrl',
-            type: 'commandMove',
-            convert: (model, msg, publish, options, meta) => {
-                const direction = msg.data.movemode === 1 ? 'down_hold' : 'up_hold';
-                return {action: `volume_${direction}`};
-            },
-        },
-        ikea_track_click: {
-            cluster: 'genLevelCtrl',
-            type: 'commandStep',
-            convert: (model, msg, publish, options, meta) => {
-                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-                const direction = msg.data.stepmode === 1 ? 'previous' : 'next';
-                return {action: `track_${direction}`};
-            },
-        },
-    },
-    tz: {
-        air_purifier_fan_mode: {
-            key: ['fan_mode', 'fan_state'],
-            convertSet: async (entity, key, value, meta) => {
-                if (key == 'fan_state' && value.toLowerCase() == 'on') {
-                    value = getMetaValue(entity, meta.mapped, 'fanStateOn', 'allEqual', 'on');
-                } else {
-                    value = value.toString().toLowerCase();
-                }
-
-                let fanMode;
-                switch (value) {
-                case 'off':
-                    fanMode = 0;
-                    break;
-                case 'auto':
-                    fanMode = 1;
-                    break;
-                default:
-                    fanMode = parseInt(((parseInt(value) / 2.0) * 10) + 5);
-                }
-
-                await entity.write('manuSpecificIkeaAirPurifier', {'fanMode': fanMode}, manufacturerOptions.ikea);
-                return {state: {fan_mode: value, fan_state: value === 'off' ? 'OFF' : 'ON'}};
-            },
-            convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificIkeaAirPurifier', ['fanMode']);
-            },
-        },
-        air_purifier_fan_speed: {
-            key: ['fan_speed'],
-            convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificIkeaAirPurifier', ['fanSpeed']);
-            },
-        },
-        air_purifier_pm25: {
-            key: ['pm25', 'air_quality'],
-            convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificIkeaAirPurifier', ['particulateMatter25Measurement']);
-            },
-        },
-        air_purifier_replace_filter: {
-            key: ['replace_filter', 'filter_age'],
-            convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
-            },
-        },
-        air_purifier_child_lock: {
-            key: ['child_lock'],
-            convertSet: async (entity, key, value, meta) => {
-                await entity.write('manuSpecificIkeaAirPurifier', {'childLock': ((value.toLowerCase() === 'lock') ? 1 : 0)},
-                    manufacturerOptions);
-                return {state: {child_lock: ((value.toLowerCase() === 'lock') ? 'LOCK' : 'UNLOCK')}};
-            },
-            convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificIkeaAirPurifier', ['childLock']);
-            },
-        },
-        air_purifier_led_enable: {
-            key: ['led_enable'],
-            convertSet: async (entity, key, value, meta) => {
-                await entity.write('manuSpecificIkeaAirPurifier', {'controlPanelLight': ((value) ? 0 : 1)}, manufacturerOptions);
-                return {state: {led_enable: ((value) ? true : false)}};
-            },
-            convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificIkeaAirPurifier', ['controlPanelLight']);
-            },
-        },
-    },
+const configureGenPollCtrl = async (device: Zh.Device, endpoint: Zh.Endpoint) => {
+    // NOTE: Firmware 24.4.11 introduce genPollCtrl
+    //       after OTA update the checkinInterval is 4 which spams the network a lot
+    //       removing + factory resetting has it set to 172800, we set the same value here
+    //       so people do not need to update.
+    if (Number(device?.softwareBuildID?.split('.')[0]) >= 24) {
+        await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
+    }
 };
 
-module.exports = [
+const fzLocal = {
+    air_purifier: {
+        cluster: 'manuSpecificIkeaAirPurifier',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
+        convert: (model, msg, publish, options, meta) => {
+            const state: KeyValue = {};
+
+            if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
+                const pm25Property = postfixWithEndpointName('pm25', msg, model, meta);
+                let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
+
+                // Air Quality
+                // Scale based on EU AQI (https://www.eea.europa.eu/themes/air/air-quality-index)
+                // Using German IAQ labels to match the Develco Air Quality Sensor
+                let airQuality;
+                const airQualityProperty = postfixWithEndpointName('air_quality', msg, model, meta);
+                if (pm25 <= 10) {
+                    airQuality = 'excellent';
+                } else if (pm25 <= 20) {
+                    airQuality = 'good';
+                } else if (pm25 <= 25) {
+                    airQuality = 'moderate';
+                } else if (pm25 <= 50) {
+                    airQuality = 'poor';
+                } else if (pm25 <= 75) {
+                    airQuality = 'unhealthy';
+                } else if (pm25 <= 800) {
+                    airQuality = 'hazardous';
+                } else if (pm25 < 65535) {
+                    airQuality = 'out_of_range';
+                } else {
+                    airQuality = 'unknown';
+                }
+
+                // calibrate and round pm25 unless invalid
+                pm25 = (pm25 == 65535) ? -1 : calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+
+                state[pm25Property] = calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+                state[airQualityProperty] = airQuality;
+            }
+
+            if (msg.data.hasOwnProperty('filterRunTime')) {
+                // Filter needs to be replaced after 6 months
+                state['replace_filter'] = (parseInt(msg.data['filterRunTime']) >= 259200);
+                state['filter_age'] = parseInt(msg.data['filterRunTime']);
+            }
+
+            if (msg.data.hasOwnProperty('controlPanelLight')) {
+                state['led_enable'] = (msg.data['controlPanelLight'] == 0);
+            }
+
+            if (msg.data.hasOwnProperty('childLock')) {
+                state['child_lock'] = (msg.data['childLock'] > 0 ? 'LOCK' : 'UNLOCK');
+            }
+
+            if (msg.data.hasOwnProperty('fanSpeed')) {
+                let fanSpeed = msg.data['fanSpeed'];
+                if (fanSpeed >= 10) {
+                    fanSpeed = (((fanSpeed - 5) * 2) / 10);
+                } else {
+                    fanSpeed = 0;
+                }
+
+                state['fan_speed'] = fanSpeed;
+            }
+
+            if (msg.data.hasOwnProperty('fanMode')) {
+                let fanMode = msg.data['fanMode'];
+                if (fanMode >= 10) {
+                    fanMode = (((fanMode - 5) * 2) / 10).toString();
+                } else if (fanMode == 1) {
+                    fanMode = 'auto';
+                } else {
+                    fanMode = 'off';
+                }
+
+                state['fan_mode'] = fanMode;
+                state['fan_state'] = (fanMode === 'off' ? 'OFF' : 'ON');
+            }
+
+            return state;
+        },
+    } as Fz.Converter,
+    ikea_voc_index: {
+        cluster: 'msIkeaVocIndexMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('measuredValue')) {
+                return {voc_index: msg.data['measuredValue']};
+            }
+        },
+    } as Fz.Converter,
+    battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValue = {};
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
+                // Some devices do not comply to the ZCL and report a
+                // batteryPercentageRemaining of 100 when the battery is full (should be 200).
+                //
+                // IKEA corrected this on newer remote fw version, but many people are still
+                // 2.2.010 which is the last version supporting group bindings. We try to be
+                // smart and pick the correct one for IKEA remotes.
+                let dontDividePercentage = false;
+                let percentage = msg.data['batteryPercentageRemaining'];
+                const fwVer = meta.device.softwareBuildID.split('.').map((e) => Number(e));
+                if ((fwVer[0] < 2) || (fwVer[0] == 2 && fwVer[1] <= 3)) {
+                    dontDividePercentage = true;
+                }
+                percentage = dontDividePercentage ? percentage : percentage / 2;
+                payload.battery = precisionRound(percentage, 2);
+            }
+
+            return payload;
+        },
+    } as Fz.Converter,
+    // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
+    // https://github.com/Koenkk/zigbee2mqtt/issues/13335
+    styrbar_on: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const arrowReleaseAgo = Date.now() - globalStore.getValue(msg.endpoint, 'arrow_release', 0);
+            if (arrowReleaseAgo > 700) {
+                return {action: 'on'};
+            }
+        },
+    } as Fz.Converter,
+    styrbar_arrow_release: {
+        cluster: 'genScenes',
+        type: 'commandTradfriArrowRelease',
+        options: [exposes.options.legacy()],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
+            const direction = globalStore.getValue(msg.endpoint, 'direction');
+            if (direction) {
+                globalStore.clearValue(msg.endpoint, 'direction');
+                const duration = msg.data.value / 1000;
+                const result = {action: `arrow_${direction}_release`, duration, action_duration: duration};
+                if (!utils.isLegacyEnabled(options)) delete result.duration;
+                return result;
+            }
+        },
+    } as Fz.Converter,
+    ikea_dots_click_v1: {
+        // For remotes with firmware 1.0.012 (20211214)
+        cluster: 64639,
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            if (!Buffer.isBuffer(msg.data)) return;
+            let action;
+            const button = msg.data[5];
+            switch (msg.data[6]) {
+            case 1: action = 'initial_press'; break;
+            case 2: action = 'double_press'; break;
+            case 3: action = 'long_press'; break;
+            }
+
+            return {action: `dots_${button}_${action}`};
+        },
+    } as Fz.Converter,
+    ikea_dots_click_v2: {
+        // For remotes with firmware 1.0.32 (20221219)
+        cluster: 'heimanSpecificScenes',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            if (!Buffer.isBuffer(msg.data)) return;
+            let button;
+            let action;
+            switch (msg.endpoint.ID) {
+            case 2: button = '1'; break; // 1 dot
+            case 3: button = '2'; break; // 2 dot
+            }
+            switch (msg.data[4]) {
+            case 1: action = 'initial_press'; break;
+            case 2: action = 'long_press'; break;
+            case 3: action = 'short_release'; break;
+            case 4: action = 'long_release'; break;
+            case 6: action = 'double_press'; break;
+            }
+
+            return {action: `dots_${button}_${action}`};
+        },
+    } as Fz.Converter,
+    ikea_volume_click: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            return {action: `volume_${direction}`};
+        },
+    } as Fz.Converter,
+    ikea_volume_hold: {
+        cluster: 'genLevelCtrl',
+        type: 'commandMove',
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.movemode === 1 ? 'down_hold' : 'up_hold';
+            return {action: `volume_${direction}`};
+        },
+    } as Fz.Converter,
+    ikea_track_click: {
+        cluster: 'genLevelCtrl',
+        type: 'commandStep',
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const direction = msg.data.stepmode === 1 ? 'previous' : 'next';
+            return {action: `track_${direction}`};
+        },
+    } as Fz.Converter,
+};
+
+const tzLocal = {
+    air_purifier_fan_mode: {
+        key: ['fan_mode', 'fan_state'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key == 'fan_state' && typeof value === 'string' && value.toLowerCase() == 'on') {
+                value = 'auto';
+            } else {
+                value = value.toString().toLowerCase();
+            }
+
+            let fanMode;
+            switch (value) {
+            case 'off':
+                fanMode = 0;
+                break;
+            case 'auto':
+                fanMode = 1;
+                break;
+            default:
+                fanMode = ((Number(value) / 2.0) * 10) + 5;
+            }
+
+            await entity.write('manuSpecificIkeaAirPurifier', {'fanMode': fanMode}, manufacturerOptions);
+            return {state: {fan_mode: value, fan_state: value === 'off' ? 'OFF' : 'ON'}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['fanMode']);
+        },
+    } as Tz.Converter,
+    air_purifier_fan_speed: {
+        key: ['fan_speed'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['fanSpeed']);
+        },
+    } as Tz.Converter,
+    air_purifier_pm25: {
+        key: ['pm25', 'air_quality'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['particulateMatter25Measurement']);
+        },
+    } as Tz.Converter,
+    air_purifier_replace_filter: {
+        key: ['replace_filter', 'filter_age'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
+        },
+    } as Tz.Converter,
+    air_purifier_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, 'child_lock');
+            await entity.write('manuSpecificIkeaAirPurifier', {'childLock': ((value.toLowerCase() === 'lock') ? 1 : 0)},
+                manufacturerOptions);
+            return {state: {child_lock: ((value.toLowerCase() === 'lock') ? 'LOCK' : 'UNLOCK')}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['childLock']);
+        },
+    } as Tz.Converter,
+    air_purifier_led_enable: {
+        key: ['led_enable'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificIkeaAirPurifier', {'controlPanelLight': ((value) ? 0 : 1)}, manufacturerOptions);
+            return {state: {led_enable: ((value) ? true : false)}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['controlPanelLight']);
+        },
+    } as Tz.Converter,
+};
+
+const definitions: Definition[] = [
     {
         zigbeeModel: ['ASKVADER on/off switch'],
         model: 'E1836',
@@ -636,8 +650,8 @@ module.exports = [
         model: 'ICTC-G-1',
         vendor: 'IKEA',
         description: 'TRADFRI wireless dimmer',
-        fromZigbee: [fz.legacy.cmd_move, fz.legacy.cmd_move_with_onoff, fz.legacy.cmd_stop, fz.legacy.cmd_stop_with_onoff,
-            fz.legacy.cmd_move_to_level_with_onoff, fz.battery],
+        fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop, legacy.fz.cmd_stop_with_onoff,
+            legacy.fz.cmd_move_to_level_with_onoff, fz.battery],
         exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'])],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
@@ -736,7 +750,7 @@ module.exports = [
         model: 'E1524/E1810',
         description: 'TRADFRI remote control',
         vendor: 'IKEA',
-        fromZigbee: [ikea.fz.battery, fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.ikea_arrow_click, fz.ikea_arrow_hold,
+        fromZigbee: [fzLocal.battery, fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.ikea_arrow_click, fz.ikea_arrow_hold,
             fz.ikea_arrow_release],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release',
             'arrow_right_click', 'arrow_right_hold', 'arrow_right_release', 'brightness_down_click', 'brightness_down_hold',
@@ -752,8 +766,8 @@ module.exports = [
         model: 'E2001/E2002',
         vendor: 'IKEA',
         description: 'STYRBAR remote control',
-        fromZigbee: [ikea.fz.battery, ikea.fz.styrbar_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
-            fz.ikea_arrow_hold, ikea.fz.styrbar_arrow_release],
+        fromZigbee: [fzLocal.battery, fzLocal.styrbar_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
+            fz.ikea_arrow_hold, fzLocal.styrbar_arrow_release],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
@@ -775,9 +789,9 @@ module.exports = [
         model: 'E1743',
         vendor: 'IKEA',
         description: 'TRADFRI ON/OFF switch',
-        fromZigbee: [fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off, fz.legacy.genOnOff_cmdOff, fz.command_move,
-            ikea.fz.battery, fz.legacy.E1743_brightness_up, fz.legacy.E1743_brightness_down, fz.command_stop,
-            fz.legacy.E1743_brightness_stop],
+        fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff, fz.command_move,
+            fzLocal.battery, legacy.fz.E1743_brightness_up, legacy.fz.E1743_brightness_down, fz.command_stop,
+            legacy.fz.E1743_brightness_stop],
         exposes: [
             e.battery().withAccess(ea.STATE_GET),
             e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
@@ -792,7 +806,7 @@ module.exports = [
         model: 'E1841',
         vendor: 'IKEA',
         description: 'KNYCKLAN open/close remote water valve',
-        fromZigbee: [fz.command_on, fz.command_off, ikea.fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off, fzLocal.battery],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off'])],
         toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
@@ -819,7 +833,7 @@ module.exports = [
         model: 'E1812',
         vendor: 'IKEA',
         description: 'TRADFRI shortcut button',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, ikea.fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fzLocal.battery],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
@@ -836,7 +850,7 @@ module.exports = [
         model: 'E1744',
         vendor: 'IKEA',
         description: 'SYMFONISK sound controller',
-        fromZigbee: [fz.legacy.cmd_move, fz.legacy.cmd_stop, fz.legacy.E1744_play_pause, fz.legacy.E1744_skip, fz.battery],
+        fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_stop, legacy.fz.E1744_play_pause, legacy.fz.E1744_skip, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action([
             'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'toggle', 'brightness_step_up', 'brightness_step_down'])],
@@ -853,12 +867,12 @@ module.exports = [
         model: 'E1525/E1745',
         vendor: 'IKEA',
         description: 'TRADFRI motion sensor',
-        fromZigbee: [ikea.fz.battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
+        fromZigbee: [fzLocal.battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(),
-            exposes.numeric('requested_brightness_level', ea.STATE).withValueMin(76).withValueMax(254),
-            exposes.numeric('requested_brightness_percent', ea.STATE).withValueMin(30).withValueMax(100),
-            exposes.binary('illuminance_above_threshold', ea.STATE, true, false)
+            e.numeric('requested_brightness_level', ea.STATE).withValueMin(76).withValueMax(254),
+            e.numeric('requested_brightness_percent', ea.STATE).withValueMin(30).withValueMax(100),
+            e.binary('illuminance_above_threshold', ea.STATE, true, false)
                 .withDescription('Indicates whether the device detected bright light (works only in night mode)')],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -879,7 +893,7 @@ module.exports = [
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400}];
+            const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400, reportableChange: 0}];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
             await endpoint.configureReporting('genBasic', payload);
         },
@@ -890,7 +904,7 @@ module.exports = [
         model: 'E1757',
         vendor: 'IKEA',
         description: 'FYRTUR roller blind',
-        fromZigbee: [fz.cover_position_tilt, ikea.fz.battery],
+        fromZigbee: [fz.cover_position_tilt, fzLocal.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -898,14 +912,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
-
-            // NOTE: Firmware 24.4.11 introduce genPollCtrl
-            //       after OTA update the checkinInterval is 4 which spams the network a lot
-            //       removing + factory resetting has it set to 172800, we set the same value here
-            //       so people do not need to update.
-            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 24) {
-                await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
-            }
+            await configureGenPollCtrl(device, endpoint);
         },
         exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
@@ -914,7 +921,7 @@ module.exports = [
         model: 'E1926',
         vendor: 'IKEA',
         description: 'KADRILJ roller blind',
-        fromZigbee: [fz.cover_position_tilt, ikea.fz.battery],
+        fromZigbee: [fz.cover_position_tilt, fzLocal.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -922,14 +929,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
-
-            // NOTE: Firmware 24.4.11 introduce genPollCtrl
-            //       after OTA update the checkinInterval is 4 which spams the network a lot
-            //       removing + factory resetting has it set to 172800, we set the same value here
-            //       so people do not need to update.
-            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 24) {
-                await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
-            }
+            await configureGenPollCtrl(device, endpoint);
         },
         exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
@@ -938,7 +938,7 @@ module.exports = [
         model: 'E2102',
         vendor: 'IKEA',
         description: 'PRAKTLYSING cellular blind',
-        fromZigbee: [fz.cover_position_tilt, ikea.fz.battery],
+        fromZigbee: [fz.cover_position_tilt, fzLocal.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -946,14 +946,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
-
-            // NOTE: Firmware 24.4.11 introduce genPollCtrl
-            //       after OTA update the checkinInterval is 4 which spams the network a lot
-            //       removing + factory resetting has it set to 172800, we set the same value here
-            //       so people do not need to update.
-            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 24) {
-                await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
-            }
+            await configureGenPollCtrl(device, endpoint);
         },
         exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
@@ -962,7 +955,7 @@ module.exports = [
         model: 'E2103',
         vendor: 'IKEA',
         description: 'TREDANSEN cellular blind',
-        fromZigbee: [fz.cover_position_tilt, ikea.fz.battery],
+        fromZigbee: [fz.cover_position_tilt, fzLocal.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
@@ -971,14 +964,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
-
-            // NOTE: Firmware 24.4.11 introduce genPollCtrl
-            //       after OTA update the checkinInterval is 4 which spams the network a lot
-            //       removing + factory resetting has it set to 172800, we set the same value here
-            //       so people do not need to update.
-            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 24) {
-                await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
-            }
+            await configureGenPollCtrl(device, endpoint);
         },
         exposes: [e.cover_position(), e.battery()],
     },
@@ -987,8 +973,8 @@ module.exports = [
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        fromZigbee: [ikea.fz.battery, fz.command_cover_close, fz.legacy.cover_close, fz.command_cover_open, fz.legacy.cover_open,
-            fz.command_cover_stop, fz.legacy.cover_stop],
+        fromZigbee: [fzLocal.battery, fz.command_cover_close, legacy.fz.cover_close, fz.command_cover_open, legacy.fz.cover_open,
+            fz.command_cover_stop, legacy.fz.cover_stop],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['close', 'open', 'stop'])],
         toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
@@ -1058,26 +1044,25 @@ module.exports = [
         description: 'STARKVIND air purifier',
         exposes: [
             e.fan().withModes(['off', 'auto', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
-            exposes.numeric('fan_speed', exposes.access.STATE_GET).withValueMin(0).withValueMax(9)
+            e.numeric('fan_speed', exposes.access.STATE_GET).withValueMin(0).withValueMax(9)
                 .withDescription('Current fan speed'),
             e.pm25().withAccess(ea.STATE_GET),
-            exposes.enum('air_quality', ea.STATE_GET, [
+            e.enum('air_quality', ea.STATE_GET, [
                 'excellent', 'good', 'moderate', 'poor',
                 'unhealthy', 'hazardous', 'out_of_range',
                 'unknown',
             ]).withDescription('Measured air quality'),
-            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enabled LED'),
-            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
-            exposes.binary('replace_filter', ea.STATE_GET, true, false)
+            e.binary('led_enable', ea.ALL, true, false).withDescription('Enabled LED'),
+            e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            e.binary('replace_filter', ea.STATE_GET, true, false)
                 .withDescription('Filter is older than 6 months and needs replacing'),
-            exposes.numeric('filter_age', ea.STATE_GET).withDescription('Time the filter has been used in minutes'),
+            e.numeric('filter_age', ea.STATE_GET).withDescription('Time the filter has been used in minutes'),
         ],
-        meta: {fanStateOn: 'auto'},
-        fromZigbee: [ikea.fz.air_purifier],
+        fromZigbee: [fzLocal.air_purifier],
         toZigbee: [
-            ikea.tz.air_purifier_fan_mode, ikea.tz.air_purifier_fan_speed,
-            ikea.tz.air_purifier_pm25, ikea.tz.air_purifier_child_lock, ikea.tz.air_purifier_led_enable,
-            ikea.tz.air_purifier_replace_filter,
+            tzLocal.air_purifier_fan_mode, tzLocal.air_purifier_fan_speed,
+            tzLocal.air_purifier_pm25, tzLocal.air_purifier_child_lock, tzLocal.air_purifier_led_enable,
+            tzLocal.air_purifier_replace_filter,
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1161,7 +1146,7 @@ module.exports = [
         model: 'E2112',
         vendor: 'IKEA',
         description: 'Vindstyrka air quality and humidity sensor',
-        fromZigbee: [fz.temperature, fz.humidity, fz.pm25, ikea.fz.ikea_voc_index],
+        fromZigbee: [fz.temperature, fz.humidity, fz.pm25, fzLocal.ikea_voc_index],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         exposes: [e.temperature(), e.humidity(), e.pm25(), e.voc_index().withDescription('Sensirion VOC index')],
@@ -1169,21 +1154,15 @@ module.exports = [
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint,
                 ['msTemperatureMeasurement', 'msRelativeHumidity', 'pm25Measurement', 'msIkeaVocIndexMeasurement']);
-            await ep.configureReporting('msTemperatureMeasurement', [{
-                attribute: 'measuredValue',
-                minimumReportInterval: 60, maximumReportInterval: 120,
-            }]);
-            await ep.configureReporting('msRelativeHumidity', [{
-                attribute: 'measuredValue',
-                minimumReportInterval: 60, maximumReportInterval: 120,
-            }]);
+            reporting.temperature(ep, {min: 60, max: 120});
+            reporting.humidity(ep, {min: 60, max: 120});
             await ep.configureReporting('pm25Measurement', [{
                 attribute: 'measuredValueIkea',
                 minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 2,
             }]);
             await ep.configureReporting('msIkeaVocIndexMeasurement', [{
                 attribute: 'measuredValue',
-                minimumReportInterval: 60, maximumReportInterval: 120,
+                minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 1,
             }]);
         },
     },
@@ -1192,8 +1171,8 @@ module.exports = [
         model: 'E2123',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote gen2',
-        fromZigbee: [fz.battery, fz.legacy.E1744_play_pause, ikea.fz.ikea_track_click, ikea.fz.ikea_volume_click,
-            ikea.fz.ikea_volume_hold, ikea.fz.ikea_dots_click_v1, ikea.fz.ikea_dots_click_v2],
+        fromZigbee: [fz.battery, legacy.fz.E1744_play_pause, fzLocal.ikea_track_click, fzLocal.ikea_volume_click,
+            fzLocal.ikea_volume_hold, fzLocal.ikea_dots_click_v1, fzLocal.ikea_dots_click_v2],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['toggle', 'track_previous', 'track_next', 'volume_up',
             'volume_down', 'volume_up_hold', 'volume_down_hold', 'dots_1_initial_press', 'dots_2_initial_press',
             'dots_1_long_press', 'dots_2_long_press', 'dots_1_short_release', 'dots_2_short_release', 'dots_1_long_release',
@@ -1234,3 +1213,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

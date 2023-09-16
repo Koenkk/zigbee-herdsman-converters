@@ -1,11 +1,12 @@
-const exposes = require('../lib/exposes');
-const utils = require('../lib/utils');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
-const ota = require('../lib/ota');
-const globalStore = require('../lib/store');
+import {Definition, Fz, Tz} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import * as utils from '../lib/utils';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import * as ota from '../lib/ota';
+import * as globalStore from '../lib/store';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -25,7 +26,7 @@ const fzLocal = {
                 occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
-    },
+    } as Fz.Converter,
     DMS300_OUT: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -40,7 +41,7 @@ const fzLocal = {
                 occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
-    },
+    } as Fz.Converter,
     ISM300Z3_on_off: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -51,10 +52,10 @@ const fzLocal = {
             } else if (msg.data.hasOwnProperty(0x9000)) {
                 const value = msg.data[0x9000];
                 const lookup = {0: 'auto', 1: 'push', 2: 'latch'};
-                return {operation_mode: lookup[value]};
+                return {operation_mode: utils.getFromLookup(value, lookup)};
             }
         },
-    },
+    } as Fz.Converter,
 };
 
 const tzLocal = {
@@ -68,6 +69,7 @@ const tzLocal = {
                 payload = {'presentValue': 81};
                 break;
             case 'counting_freeze':
+                utils.assertString(value, key);
                 if (value.toLowerCase() === 'on') {
                     payload = {'presentValue': 82};
                     await endpoint.write('genAnalogInput', payload);
@@ -155,12 +157,13 @@ const tzLocal = {
             }
             await endpoint.write('genAnalogInput', payload);
         },
-    },
+    } as Tz.Converter,
     ISM300Z3_on_off: {
         key: ['state', 'operation_mode'],
         convertSet: async (entity, key, value, meta) => {
             const endpoint = meta.device.getEndpoint(1);
             if (key === 'state') {
+                // @ts-expect-error
                 const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
                 utils.validateValue(state, ['toggle', 'off', 'on']);
                 await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
@@ -172,7 +175,7 @@ const tzLocal = {
                 }
             } else if (key === 'operation_mode') {
                 const lookup = {'auto': 0, 'push': 1, 'latch': 2};
-                const payload = {0x9000: {value: lookup[value], type: 0x20}}; // INT8U
+                const payload = {0x9000: {value: utils.getFromLookup(value, lookup), type: 0x20}}; // INT8U
                 await entity.write('genOnOff', payload);
                 await endpoint.read('genOnOff', [0x9000]);
             }
@@ -185,18 +188,18 @@ const tzLocal = {
                 await entity.read('genOnOff', ['onOff']);
             }
         },
-    },
+    } as Tz.Converter,
     ISM300Z3_rf_pairing: {
         key: ['rf_pairing'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'l1': 1, 'l2': 2, 'l3': 3};
-            const payload = {0x9001: {value: lookup[value], type: 0x20}}; // INT8U
+            const payload = {0x9001: {value: utils.getFromLookup(value, lookup), type: 0x20}}; // INT8U
             await entity.write('genOnOff', payload);
         },
-    },
+    } as Tz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'CSM-300Z', applicationVersion: 1},
@@ -219,8 +222,8 @@ module.exports = [
             await endpoint.configureReporting('genAnalogInput', payload);
         },
         exposes: [e.battery(), e.battery_voltage(),
-            exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
-            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(50).withDescription('People count')],
+            e.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
+            e.numeric('people', ea.ALL).withValueMin(0).withValueMax(50).withDescription('People count')],
     },
     {
         zigbeeModel: ['CSM-300Z'],
@@ -240,19 +243,19 @@ module.exports = [
             await endpoint.configureReporting('genAnalogInput', payload);
         },
         exposes: [e.battery(), e.battery_voltage(),
-            exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
-            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count'),
-            exposes.enum('rf_pairing_on', ea.SET, ['run']).withDescription('Run RF pairing mode'),
-            exposes.binary('counting_freeze', ea.SET, 'ON', 'OFF')
+            e.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
+            e.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count'),
+            e.enum('rf_pairing_on', ea.SET, ['run']).withDescription('Run RF pairing mode'),
+            e.binary('counting_freeze', ea.SET, 'ON', 'OFF')
                 .withDescription('Counting Freeze ON/OFF, not reporting people value when is ON'),
-            exposes.enum('tof_init', ea.SET, ['initial']).withDescription('ToF sensor initial'),
-            exposes.binary('led_state', ea.SET, 'enable', 'disable').withDescription('Indicate LED enable/disable, default : enable'),
-            exposes.binary('rf_state', ea.SET, 'enable', 'disable').withDescription('RF function enable/disable, default : disable'),
-            exposes.enum('transaction', ea.SET, ['0ms', '200ms', '400ms', '600ms', '800ms', '1,000ms'])
+            e.enum('tof_init', ea.SET, ['initial']).withDescription('ToF sensor initial'),
+            e.binary('led_state', ea.SET, 'enable', 'disable').withDescription('Indicate LED enable/disable, default : enable'),
+            e.binary('rf_state', ea.SET, 'enable', 'disable').withDescription('RF function enable/disable, default : disable'),
+            e.enum('transaction', ea.SET, ['0ms', '200ms', '400ms', '600ms', '800ms', '1,000ms'])
                 .withDescription('Transaction interval, default : 400ms'),
-            exposes.binary('fast_in', ea.SET, 'enable', 'disable')
+            e.binary('fast_in', ea.SET, 'enable', 'disable')
                 .withDescription('Fast process enable/disable when people 0 to 1. default : enable'),
-            exposes.binary('fast_out', ea.SET, 'enable', 'disable')
+            e.binary('fast_out', ea.SET, 'enable', 'disable')
                 .withDescription('Fast process enable/disable when people 1 to 0. default : enable')],
     },
     {
@@ -637,8 +640,8 @@ module.exports = [
         exposes: [e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
             e.current().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET),
             e.temperature().withAccess(ea.STATE_GET).withDescription('temperature of device internal mcu'),
-            exposes.numeric('power_factor', ea.STATE_GET).withDescription('Measured electrical power factor'),
-            exposes.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
+            e.numeric('power_factor', ea.STATE_GET).withDescription('Measured electrical power factor'),
+            e.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
@@ -671,8 +674,8 @@ module.exports = [
         exposes: [e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
             e.current().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET),
             e.temperature().withAccess(ea.STATE_GET).withDescription('temperature of device internal mcu'),
-            exposes.numeric('power_factor', ea.STATE_GET).withDescription('Measured electrical power factor'),
-            exposes.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
+            e.numeric('power_factor', ea.STATE_GET).withDescription('Measured electrical power factor'),
+            e.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
@@ -710,11 +713,11 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint, {min: 600, max: 21600, change: 1});
             await reporting.doorState(endpoint);
         },
-        exposes: [e.battery(), e.lock(), exposes.enum('door_state', ea.STATE, ['open', 'closed']).withDescription('Door status'),
+        exposes: [e.battery(), e.lock(), e.enum('door_state', ea.STATE, ['open', 'closed']).withDescription('Door status'),
             e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
-            exposes.composite('pin_code', 'pin_code', ea.ALL)
-                .withFeature(exposes.numeric('user', ea.SET).withDescription('User ID can only number 1'))
-                .withFeature(exposes.numeric('pin_code', ea.SET).withDescription('Pincode to set, set pincode(4 digit) to null to clear')),
+            e.composite('pin_code', 'pin_code', ea.ALL)
+                .withFeature(e.numeric('user', ea.SET).withDescription('User ID can only number 1'))
+                .withFeature(e.numeric('pin_code', ea.SET).withDescription('Pincode to set, set pincode(4 digit) to null to clear')),
         ],
     },
     {
@@ -738,15 +741,15 @@ module.exports = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
         },
         exposes: [e.battery(), e.battery_voltage(),
-            exposes.binary('occupancy_in', ea.STATE, true, false)
+            e.binary('occupancy_in', ea.STATE, true, false)
                 .withDescription('Indicates whether "IN" Sensor of the device detected occupancy'),
-            exposes.binary('occupancy_out', ea.STATE, true, false)
+            e.binary('occupancy_out', ea.STATE, true, false)
                 .withDescription('Indicates whether "OUT" Sensor of the device detected occupancy'),
-            exposes.binary('occupancy_or', ea.STATE, true, false)
+            e.binary('occupancy_or', ea.STATE, true, false)
                 .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
-            exposes.binary('occupancy_and', ea.STATE, true, false)
+            e.binary('occupancy_and', ea.STATE, true, false)
                 .withDescription('Indicates whether "IN and OUT" Sensor of the device detected occupancy'),
-            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)],
+            e.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)],
     },
     {
         zigbeeModel: ['ISM300Z3'],
@@ -756,9 +759,9 @@ module.exports = [
         fromZigbee: [fzLocal.ISM300Z3_on_off],
         toZigbee: [tzLocal.ISM300Z3_on_off, tzLocal.ISM300Z3_rf_pairing],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            exposes.enum('operation_mode', ea.ALL, ['auto', 'push', 'latch'])
+            e.enum('operation_mode', ea.ALL, ['auto', 'push', 'latch'])
                 .withDescription('Operation mode: "auto" - toggle by S/W, "push" - for momentary S/W, "latch" - sync S/W'),
-            exposes.enum('rf_pairing', ea.SET, ['l1', 'l2', 'l3'])
+            e.enum('rf_pairing', ea.SET, ['l1', 'l2', 'l3'])
                 .withDescription('Enable RF pairing mode each button l1, l2, l3')],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
@@ -775,3 +778,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

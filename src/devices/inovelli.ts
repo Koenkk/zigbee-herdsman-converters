@@ -1,10 +1,11 @@
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const exposes = require('../lib/exposes');
-const globalStore = require('../lib/store');
-const reporting = require('../lib/reporting');
-const ota = require('../lib/ota');
-const utils = require('../lib/utils');
+import {Definition, Expose, Fz, Tz, Zh} from '../lib/types';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import * as globalStore from '../lib/store';
+import * as reporting from '../lib/reporting';
+import * as ota from '../lib/ota';
+import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -66,7 +67,12 @@ const BOOLEAN = 16;
 const UINT16 = 33;
 const INOVELLI = 0x122f;
 
-const ATTRIBUTES = {
+interface Attribute {
+    ID: number, dataType: number, min?: number, max?: number, description: string, unit?: string, displayType?: string,
+    values?: {[s: string]: number}, readOnly?: boolean,
+}
+
+const ATTRIBUTES: {[s: string]: Attribute} = {
     dimmingSpeedUpRemote: {
         ID: 1,
         dataType: UINT8,
@@ -708,127 +714,329 @@ const ATTRIBUTES = {
     },
 };
 
-const tzLocal = {};
-
-// Generate toZigbee items from attribute list.
-
-tzLocal.inovelli_vzw31sn_parameters = {
-    key: Object.keys(ATTRIBUTES).filter((a) => !ATTRIBUTES[a].readOnly),
-    convertSet: async (entity, key, value, meta) => {
-        const payload = {
-            [ATTRIBUTES[key].ID]: {
-                value:
-          ATTRIBUTES[key].displayType === 'enum' ?
-              ATTRIBUTES[key].values[value] :
-              value,
-                type: ATTRIBUTES[key].dataType,
-            },
-        };
-
-        await entity.write('manuSpecificInovelliVZM31SN', payload, {
-            manufacturerCode: INOVELLI,
-        });
-
-        meta.state[key] = value;
-
-        return {
-            state: {
-                [key]: value,
-            },
-        };
-    },
-    convertGet: async (entity, key, meta) => {
-        const value = await entity.read('manuSpecificInovelliVZM31SN', [key], {
-            manufacturerCode: INOVELLI,
-        });
-
-        if (ATTRIBUTES[key].displayType === 'enum') {
-            const valueState = Object.keys(ATTRIBUTES[key].values).find(
-                (a) => ATTRIBUTES[key].values[a] === value[key],
-            );
-            meta.state[key] = valueState;
-            return {
-                state: {
-                    [key]: valueState,
+const tzLocal = {
+    inovelli_vzw31sn_parameters: {
+        key: Object.keys(ATTRIBUTES).filter((a) => !ATTRIBUTES[a].readOnly),
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                [ATTRIBUTES[key].ID]: {
+                    value:
+              ATTRIBUTES[key].displayType === 'enum' ?
+                  // @ts-expect-error
+                  ATTRIBUTES[key].values[value] :
+                  value,
+                    type: ATTRIBUTES[key].dataType,
                 },
             };
-        } else {
-            meta.state[key] = value[key];
-            return {state: value};
-        }
-    },
-};
 
-tzLocal.inovelli_vzw31sn_parameters_readOnly = {
-    key: Object.keys(ATTRIBUTES).filter((a) => ATTRIBUTES[a].readOnly),
-    convertGet: async (entity, key, meta) => {
-        const value = await entity.read('manuSpecificInovelliVZM31SN', [key], {
-            manufacturerCode: INOVELLI,
-        });
+            await entity.write('manuSpecificInovelliVZM31SN', payload, {
+                manufacturerCode: INOVELLI,
+            });
 
-        if (ATTRIBUTES[key].displayType === 'enum') {
-            const valueState = Object.keys(ATTRIBUTES[key].values).find(
-                (a) => ATTRIBUTES[key].values[a] === value[key],
-            );
-            meta.state[key] = valueState;
+            meta.state[key] = value;
+
             return {
                 state: {
-                    [key]: valueState,
+                    [key]: value,
                 },
             };
-        } else {
-            meta.state[key] = value[key];
-            return {state: value};
-        }
-    },
-    convertSet: undefined,
-};
+        },
+        convertGet: async (entity, key, meta) => {
+            const value = await entity.read('manuSpecificInovelliVZM31SN', [key], {
+                manufacturerCode: INOVELLI,
+            });
 
-tzLocal.inovelli_led_effect = {
-    key: ['led_effect'],
-    convertSet: async (entity, key, values, meta) => {
-        await entity.command(
-            'manuSpecificInovelliVZM31SN',
-            'ledEffect',
-            {
-                effect: ledEffects[values.effect],
-                color: Math.min(Math.max(0, values.color), 255),
-                level: Math.min(Math.max(0, values.level), 100),
-                duration: Math.min(Math.max(0, values.duration), 255),
-            },
-            {disableResponse: true, disableDefaultResponse: true},
-        );
-        return {state: {[key]: values}};
-    },
-};
+            if (ATTRIBUTES[key].displayType === 'enum') {
+                const valueState = Object.keys(ATTRIBUTES[key].values).find(
+                    // @ts-expect-error
+                    (a) => ATTRIBUTES[key].values[a] === value[key],
+                );
+                meta.state[key] = valueState;
+            } else {
+                // @ts-expect-error
+                meta.state[key] = value[key];
+            }
+        },
+    } as Tz.Converter,
+    inovelli_vzw31sn_parameters_readOnly: {
+        key: Object.keys(ATTRIBUTES).filter((a) => ATTRIBUTES[a].readOnly),
+        convertGet: async (entity, key, meta) => {
+            const value = await entity.read('manuSpecificInovelliVZM31SN', [key], {
+                manufacturerCode: INOVELLI,
+            });
 
-tzLocal.inovelli_individual_led_effect = {
-    key: ['individual_led_effect'],
-    convertSet: async (entity, key, values, meta) => {
-        await entity.command(
-            'manuSpecificInovelliVZM31SN',
-            'individualLedEffect',
-            {
-                led: Math.min(Math.max(0, parseInt(values.led)), 7),
-                effect: individualLedEffects[values.effect],
-                color: Math.min(Math.max(0, values.color), 255),
-                level: Math.min(Math.max(0, values.level), 100),
-                duration: Math.min(Math.max(0, values.duration), 255),
-            },
-            {disableResponse: true, disableDefaultResponse: true},
-        );
-        return {state: {[key]: values}};
-    },
+            if (ATTRIBUTES[key].displayType === 'enum') {
+                const valueState = Object.keys(ATTRIBUTES[key].values).find(
+                    // @ts-expect-error
+                    (a) => ATTRIBUTES[key].values[a] === value[key],
+                );
+                meta.state[key] = valueState;
+            } else {
+                // @ts-expect-error
+                meta.state[key] = value[key];
+            }
+        },
+        convertSet: undefined,
+    } as Tz.Converter,
+    inovelli_led_effect: {
+        key: ['led_effect'],
+        convertSet: async (entity, key, values, meta) => {
+            await entity.command(
+                'manuSpecificInovelliVZM31SN',
+                'ledEffect',
+                {
+                    // @ts-expect-error
+                    effect: ledEffects[values.effect],
+                    // @ts-expect-error
+                    color: Math.min(Math.max(0, values.color), 255),
+                    // @ts-expect-error
+                    level: Math.min(Math.max(0, values.level), 100),
+                    // @ts-expect-error
+                    duration: Math.min(Math.max(0, values.duration), 255),
+                },
+                {disableResponse: true, disableDefaultResponse: true},
+            );
+            return {state: {[key]: values}};
+        },
+    } as Tz.Converter,
+    inovelli_individual_led_effect: {
+        key: ['individual_led_effect'],
+        convertSet: async (entity, key, values, meta) => {
+            await entity.command(
+                'manuSpecificInovelliVZM31SN',
+                'individualLedEffect',
+                {
+                    // @ts-expect-error
+                    led: Math.min(Math.max(0, parseInt(values.led)), 7),
+                    // @ts-expect-error
+                    effect: individualLedEffects[values.effect],
+                    // @ts-expect-error
+                    color: Math.min(Math.max(0, values.color), 255),
+                    // @ts-expect-error
+                    level: Math.min(Math.max(0, values.level), 100),
+                    // @ts-expect-error
+                    duration: Math.min(Math.max(0, values.duration), 255),
+                },
+                {disableResponse: true, disableDefaultResponse: true},
+            );
+            return {state: {[key]: values}};
+        },
+    } as Tz.Converter,
+    /**
+     * Inovelli VZM31SN has a default transition property that the device should
+     * fallback to if a transition is not specified by passing 0xffff
+     */
+    light_onoff_brightness_inovelli: {
+        key: ['state', 'brightness', 'brightness_percent'],
+        convertSet: async (entity, key, value, meta) => {
+            const {message} = meta;
+            const transition = utils.getTransition(entity, 'brightness', meta);
+            const turnsOffAtBrightness1 = utils.getMetaValue(
+                entity,
+                meta.mapped,
+                'turnsOffAtBrightness1',
+                'allEqual',
+                false,
+            );
+            let state = message.hasOwnProperty('state') ?
+                // @ts-expect-error
+                message.state.toLowerCase() :
+                undefined;
+            let brightness = undefined;
+            if (message.hasOwnProperty('brightness')) {
+                brightness = Number(message.brightness);
+            } else if (message.hasOwnProperty('brightness_percent')) {
+                brightness = utils.mapNumberRange(
+                    Number(message.brightness_percent),
+                    0,
+                    100,
+                    0,
+                    255,
+                );
+            }
+
+            if (
+                brightness !== undefined &&
+        (isNaN(brightness) || brightness < 0 || brightness > 255)
+            ) {
+                // Allow 255 value, changing this to 254 would be a breaking change.
+                throw new Error(
+                    `Brightness value of message: '${JSON.stringify(
+                        message,
+                    )}' invalid, must be a number >= 0 and =< 254`,
+                );
+            }
+
+            if (
+                state !== undefined &&
+        ['on', 'off', 'toggle'].includes(state) === false
+            ) {
+                throw new Error(
+                    `State value of message: '${JSON.stringify(
+                        message,
+                    )}' invalid, must be 'ON', 'OFF' or 'TOGGLE'`,
+                );
+            }
+
+            if (
+                state === 'toggle' ||
+        state === 'off' ||
+        (brightness === undefined && state === 'on')
+            ) {
+                if (transition.specified && transition.time > 0) {
+                    if (state === 'toggle') {
+                        state = meta.state.state === 'ON' ? 'off' : 'on';
+                    }
+
+                    if (
+                        state === 'off' &&
+            meta.state.brightness &&
+            meta.state.state === 'ON'
+                    ) {
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/2850#issuecomment-580365633
+                        // We need to remember the state before turning the device off as we need to restore
+                        // it once we turn it on again.
+                        // We cannot rely on the meta.state as when reporting is enabled the bulb will reports
+                        // it brightness while decreasing the brightness.
+                        globalStore.putValue(entity, 'brightness', meta.state.brightness);
+                        globalStore.putValue(entity, 'turnedOffWithTransition', true);
+                    }
+
+                    const fallbackLevel = utils.getObjectProperty(
+                        meta.state,
+                        'brightness',
+                        254,
+                    );
+                    let level =
+            state === 'off' ?
+                0 :
+                globalStore.getValue(entity, 'brightness', fallbackLevel);
+                    if (state === 'on' && level === 0) {
+                        level = turnsOffAtBrightness1 ? 2 : 1;
+                    }
+
+                    const payload = {level, transtime: transition.time};
+                    await entity.command(
+                        'genLevelCtrl',
+                        'moveToLevelWithOnOff',
+                        payload,
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                    const result = {state: {state: state.toUpperCase()}};
+                    // @ts-expect-error
+                    if (state === 'on') result.state.brightness = level;
+                    return result;
+                } else {
+                    if (
+                        state === 'on' &&
+            globalStore.getValue(entity, 'turnedOffWithTransition') === true
+                    ) {
+                        /**
+             * In case the bulb it turned OFF with a transition and turned ON WITHOUT
+             * a transition, the brightness is not recovered as it turns on with brightness 1.
+             * https://github.com/Koenkk/../issues/1073
+             */
+                        globalStore.putValue(entity, 'turnedOffWithTransition', false);
+                        await entity.command(
+                            'genLevelCtrl',
+                            'moveToLevelWithOnOff',
+                            {
+                                level: globalStore.getValue(entity, 'brightness'),
+                                transtime: transition.specified ? transition.time : 0xffff,
+                            },
+                            utils.getOptions(meta.mapped, entity),
+                        );
+                        const defaultTransitionTime = await entity.read(
+                            'manuSpecificInovelliVZM31SN',
+                            ['rampRateOffToOnRemote'],
+                        );
+                        return {
+                            state: {state: 'ON'},
+                            readAfterWriteTime: transition.specified ?
+                                transition.time * 100 :
+                                // @ts-expect-error
+                                defaultTransitionTime.rampRateOffToOnRemote * 100,
+                        };
+                    } else {
+                        // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
+                        // with transition.
+                        if (meta.state.hasOwnProperty('brightness') && state === 'off') {
+                            globalStore.putValue(entity, 'brightness', meta.state.brightness);
+                            globalStore.putValue(entity, 'turnedOffWithTransition', true);
+                        }
+
+                        const result = await inovelliOnOffConvertSet(
+                            entity,
+                            'state',
+                            state,
+                            meta,
+                        );
+                        // @ts-expect-error
+                        result.readAfterWriteTime = 0;
+                        if (
+                            result.state &&
+                result.state.state === 'ON' &&
+                meta.state.brightness === 0
+                        ) {
+                            // @ts-expect-error
+                            result.state.brightness = 1;
+                        }
+
+                        return result;
+                    }
+                }
+            } else {
+                brightness = Math.min(254, brightness);
+                if (brightness === 1 && turnsOffAtBrightness1) {
+                    brightness = 2;
+                }
+
+                globalStore.putValue(entity, 'brightness', brightness);
+                await entity.command(
+                    'genLevelCtrl',
+                    'moveToLevelWithOnOff',
+                    {
+                        level: Number(brightness),
+                        transtime: !transition.specified ? 0xffff : transition.time,
+                    },
+                    utils.getOptions(meta.mapped, entity),
+                );
+
+                const defaultTransitionTime = await entity.read(
+                    'manuSpecificInovelliVZM31SN',
+                    ['rampRateOnToOffRemote'],
+                );
+
+                return {
+                    state: {
+                        state: brightness === 0 ? 'OFF' : 'ON',
+                        brightness: Number(brightness),
+                    },
+                    readAfterWriteTime:
+            transition.time === 0 ?
+                // @ts-expect-error
+                defaultTransitionTime.rampRateOnToOffRemote * 100 :
+                transition.time * 100, // need on speed
+                };
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (key === 'brightness') {
+                await entity.read('genLevelCtrl', ['currentLevel']);
+            } else if (key === 'state') {
+                await tz.on_off.convertGet(entity, key, meta);
+            }
+        },
+    } as Tz.Converter,
 };
 
 /*
  * Inovelli VZM31SN has a default transition property that the device should
  * fallback to if a transition is not specified by passing 0xffff
  */
-const inovelliOnOffConvertSet = async (entity, key, value, meta) => {
-    const state = meta.message.hasOwnProperty('state') ?
-        meta.message.state.toLowerCase() :
-        null;
+const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
+    // @ts-expect-error
+    const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
     utils.validateValue(state, ['toggle', 'off', 'on']);
 
     if (
@@ -886,208 +1094,6 @@ const inovelliOnOffConvertSet = async (entity, key, value, meta) => {
     }
 };
 
-/**
- * Inovelli VZM31SN has a default transition property that the device should
- * fallback to if a transition is not specified by passing 0xffff
- */
-tzLocal.light_onoff_brightness_inovelli = {
-    key: ['state', 'brightness', 'brightness_percent'],
-    convertSet: async (entity, key, value, meta) => {
-        const {message} = meta;
-        const transition = utils.getTransition(entity, 'brightness', meta);
-        const turnsOffAtBrightness1 = utils.getMetaValue(
-            entity,
-            meta.mapped,
-            'turnsOffAtBrightness1',
-            'allEqual',
-            false,
-        );
-        let state = message.hasOwnProperty('state') ?
-            message.state.toLowerCase() :
-            undefined;
-        let brightness = undefined;
-        if (message.hasOwnProperty('brightness')) {
-            brightness = Number(message.brightness);
-        } else if (message.hasOwnProperty('brightness_percent')) {
-            brightness = utils.mapNumberRange(
-                Number(message.brightness_percent),
-                0,
-                100,
-                0,
-                255,
-            );
-        }
-
-        if (
-            brightness !== undefined &&
-      (isNaN(brightness) || brightness < 0 || brightness > 255)
-        ) {
-            // Allow 255 value, changing this to 254 would be a breaking change.
-            throw new Error(
-                `Brightness value of message: '${JSON.stringify(
-                    message,
-                )}' invalid, must be a number >= 0 and =< 254`,
-            );
-        }
-
-        if (
-            state !== undefined &&
-      ['on', 'off', 'toggle'].includes(state) === false
-        ) {
-            throw new Error(
-                `State value of message: '${JSON.stringify(
-                    message,
-                )}' invalid, must be 'ON', 'OFF' or 'TOGGLE'`,
-            );
-        }
-
-        if (
-            state === 'toggle' ||
-      state === 'off' ||
-      (brightness === undefined && state === 'on')
-        ) {
-            if (transition.specified && transition.time > 0) {
-                if (state === 'toggle') {
-                    state = meta.state.state === 'ON' ? 'off' : 'on';
-                }
-
-                if (
-                    state === 'off' &&
-          meta.state.brightness &&
-          meta.state.state === 'ON'
-                ) {
-                    // https://github.com/Koenkk/zigbee2mqtt/issues/2850#issuecomment-580365633
-                    // We need to remember the state before turning the device off as we need to restore
-                    // it once we turn it on again.
-                    // We cannot rely on the meta.state as when reporting is enabled the bulb will reports
-                    // it brightness while decreasing the brightness.
-                    globalStore.putValue(entity, 'brightness', meta.state.brightness);
-                    globalStore.putValue(entity, 'turnedOffWithTransition', true);
-                }
-
-                const fallbackLevel = utils.getObjectProperty(
-                    meta.state,
-                    'brightness',
-                    254,
-                );
-                let level =
-          state === 'off' ?
-              0 :
-              globalStore.getValue(entity, 'brightness', fallbackLevel);
-                if (state === 'on' && level === 0) {
-                    level = turnsOffAtBrightness1 ? 2 : 1;
-                }
-
-                const payload = {level, transtime: transition.time};
-                await entity.command(
-                    'genLevelCtrl',
-                    'moveToLevelWithOnOff',
-                    payload,
-                    utils.getOptions(meta.mapped, entity),
-                );
-                const result = {state: {state: state.toUpperCase()}};
-                if (state === 'on') result.state.brightness = level;
-                return result;
-            } else {
-                if (
-                    state === 'on' &&
-          globalStore.getValue(entity, 'turnedOffWithTransition') === true
-                ) {
-                    /**
-           * In case the bulb it turned OFF with a transition and turned ON WITHOUT
-           * a transition, the brightness is not recovered as it turns on with brightness 1.
-           * https://github.com/Koenkk/../issues/1073
-           */
-                    globalStore.putValue(entity, 'turnedOffWithTransition', false);
-                    await entity.command(
-                        'genLevelCtrl',
-                        'moveToLevelWithOnOff',
-                        {
-                            level: globalStore.getValue(entity, 'brightness'),
-                            transtime: transition.specified ? transition.time : 0xffff,
-                        },
-                        utils.getOptions(meta.mapped, entity),
-                    );
-                    const defaultTransitionTime = await entity.read(
-                        'manuSpecificInovelliVZM31SN',
-                        ['rampRateOffToOnRemote'],
-                    );
-                    return {
-                        state: {state: 'ON'},
-                        readAfterWriteTime: transition.specified ?
-                            transition.time * 100 :
-                            defaultTransitionTime.rampRateOffToOnRemote * 100,
-                    };
-                } else {
-                    // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
-                    // with transition.
-                    if (meta.state.hasOwnProperty('brightness') && state === 'off') {
-                        globalStore.putValue(entity, 'brightness', meta.state.brightness);
-                        globalStore.putValue(entity, 'turnedOffWithTransition', true);
-                    }
-
-                    const result = await inovelliOnOffConvertSet(
-                        entity,
-                        'state',
-                        state,
-                        meta,
-                    );
-
-                    result.readAfterWriteTime = 0;
-                    if (
-                        result.state &&
-            result.state.state === 'ON' &&
-            meta.state.brightness === 0
-                    ) {
-                        result.state.brightness = 1;
-                    }
-
-                    return result;
-                }
-            }
-        } else {
-            brightness = Math.min(254, brightness);
-            if (brightness === 1 && turnsOffAtBrightness1) {
-                brightness = 2;
-            }
-
-            globalStore.putValue(entity, 'brightness', brightness);
-            await entity.command(
-                'genLevelCtrl',
-                'moveToLevelWithOnOff',
-                {
-                    level: Number(brightness),
-                    transtime: !transition.specified ? 0xffff : transition.time,
-                },
-                utils.getOptions(meta.mapped, entity),
-            );
-
-            const defaultTransitionTime = await entity.read(
-                'manuSpecificInovelliVZM31SN',
-                ['rampRateOnToOffRemote'],
-            );
-
-            return {
-                state: {
-                    state: brightness === 0 ? 'OFF' : 'ON',
-                    brightness: Number(brightness),
-                },
-                readAfterWriteTime:
-          transition.time === 0 ?
-              defaultTransitionTime.rampRateOnToOffRemote * 100 :
-              transition.time * 100, // need on speed
-            };
-        }
-    },
-    convertGet: async (entity, key, meta) => {
-        if (key === 'brightness') {
-            await entity.read('genLevelCtrl', ['currentLevel']);
-        } else if (key === 'state') {
-            await tz.on_off.convertGet(entity, key, meta);
-        }
-    },
-};
-
 const fzLocal = {
     inovelli_vzm31sn: {
         cluster: 'manuSpecificInovelliVZM31SN',
@@ -1110,22 +1116,24 @@ const fzLocal = {
                 // # 2 - up button
                 // # 3 - config button
 
+                // @ts-expect-error
                 const button = buttonLookup[msg.data[5]];
+                // @ts-expect-error
                 const action = clickLookup[msg.data[6]];
                 return {action: `${button}_${action}`};
             }
         },
-    },
+    } as Fz.Converter,
 };
 
-const exposesList = [
+const exposesList: Expose[] = [
     e.light_brightness(),
     e.power(),
     e.energy(),
-    exposes
+    e
         .composite('led_effect', 'led_effect', ea.STATE_SET)
         .withFeature(
-            exposes
+            e
                 .enum('effect', ea.STATE_SET, [
                     'off',
                     'solid',
@@ -1152,7 +1160,7 @@ const exposesList = [
                 .withDescription('Animation Effect to use for the LEDs'),
         )
         .withFeature(
-            exposes
+            e
                 .numeric('color', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(255)
@@ -1161,14 +1169,14 @@ const exposesList = [
                 ),
         )
         .withFeature(
-            exposes
+            e
                 .numeric('level', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withDescription('Brightness of the LEDs'),
         )
         .withFeature(
-            exposes
+            e
                 .numeric('duration', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(255)
@@ -1178,15 +1186,15 @@ const exposesList = [
             'Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
                 ),
         ),
-    exposes
+    e
         .composite('individual_led_effect', 'individual_led_effect', ea.STATE_SET)
         .withFeature(
-            exposes
+            e
                 .enum('led', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7'])
                 .withDescription('Individual LED to target.'),
         )
         .withFeature(
-            exposes
+            e
                 .enum('effect', ea.STATE_SET, [
                     'off',
                     'solid',
@@ -1202,7 +1210,7 @@ const exposesList = [
                 .withDescription('Animation Effect to use for the LED'),
         )
         .withFeature(
-            exposes
+            e
                 .numeric('color', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(255)
@@ -1211,14 +1219,14 @@ const exposesList = [
                 ),
         )
         .withFeature(
-            exposes
+            e
                 .numeric('level', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withDescription('Brightness of the LED'),
         )
         .withFeature(
-            exposes
+            e
                 .numeric('duration', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(255)
@@ -1242,7 +1250,7 @@ const toZigbee = [
 // Create Expose list with Inovelli Parameters
 Object.keys(ATTRIBUTES).forEach((key) => {
     if (ATTRIBUTES[key].displayType === 'enum') {
-        const enumE = exposes
+        const enumE = e
             .enum(
                 key,
                 ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
@@ -1255,17 +1263,18 @@ Object.keys(ATTRIBUTES).forEach((key) => {
     ATTRIBUTES[key].displayType === 'switch'
     ) {
         exposesList.push(
-            exposes
+            e
                 .binary(
                     key,
                     ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
+                    // @ts-expect-error
                     ATTRIBUTES[key].values.Enabled,
                     ATTRIBUTES[key].values.Disabled,
                 )
                 .withDescription(ATTRIBUTES[key].description),
         );
     } else {
-        const numeric = exposes
+        const numeric = e
             .numeric(key, ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL)
             .withValueMin(ATTRIBUTES[key].min)
             .withValueMax(ATTRIBUTES[key].max);
@@ -1310,7 +1319,7 @@ exposesList.push(
     ]),
 );
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['VZM31-SN'],
         model: 'VZM31-SN',
@@ -1359,3 +1368,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

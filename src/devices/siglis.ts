@@ -1,8 +1,10 @@
+import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
 /* eslint-disable linebreak-style */
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const exposes = require('../lib/exposes');
-const reporting = require('../lib/reporting');
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import * as reporting from '../lib/reporting';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -23,15 +25,15 @@ const actionLookup = {
     3: 'hold',
 };
 
-const zifgredFromZigbeeButtonEvent = {
+const zifgredFromZigbeeButtonEvent: Fz.Converter = {
     cluster: 'manuSpecificSiglisZigfred',
     type: ['commandSiglisZigfredButtonEvent'],
     convert: (model, msg, publish, options, meta) => {
         const button = msg.data.button;
         const type = msg.data.type;
 
-        const buttonName = buttonLookup[button];
-        const typeName = actionLookup[type];
+        const buttonName = utils.getFromLookup(button, buttonLookup);
+        const typeName = utils.getFromLookup(type, actionLookup);
 
         if (buttonName && typeName) {
             const action = `${buttonName}_${typeName}`;
@@ -40,10 +42,11 @@ const zifgredFromZigbeeButtonEvent = {
     },
 };
 
-const coverAndLightToZigbee = {
+const coverAndLightToZigbee: Tz.Converter = {
     key: ['state', 'brightness', 'brightness_percent', 'on_time', 'position', 'tilt'],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
+        utils.assertEndpoint(entity);
         const isCover = entity.ID === 0x0b || entity.ID === 0x0c;
         if (isCover) {
             if (key === 'state') {
@@ -58,6 +61,7 @@ const coverAndLightToZigbee = {
         }
     },
     convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
         if (key === 'state' && (entity.ID === 0x0b || entity.ID === 0x0c)) {
             await tz.cover_position_tilt.convertGet(entity, 'position', meta);
         } else if (key === 'brightness') {
@@ -75,7 +79,7 @@ const buttonEventExposes = e.action([
     'button_4_single', 'button_4_double', 'button_4_hold', 'button_4_release',
 ]);
 
-function checkOption(device, options, key) {
+function checkOption(device: Zh.Device, options: KeyValue, key: string) {
     if (options != null && options.hasOwnProperty(key)) {
         if (options[key] === 'true') {
             return true;
@@ -87,7 +91,7 @@ function checkOption(device, options, key) {
     return checkMetaOption(device, key);
 }
 
-function checkMetaOption(device, key) {
+function checkMetaOption(device: Zh.Device, key: string) {
     if (device != null) {
         const enabled = device.meta[key];
         if (enabled === undefined) {
@@ -100,26 +104,26 @@ function checkMetaOption(device, key) {
     return false;
 }
 
-function setMetaOption(device, key, enabled) {
+function setMetaOption(device: Zh.Device, key: string, enabled: boolean) {
     if (device != null && key != null) {
         device.meta[key] = enabled;
     }
 }
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['zigfred uno'],
         model: 'ZFU-1D-CH',
         vendor: 'Siglis',
         description: 'zigfred uno smart in-wall switch',
         options: [
-            exposes.enum(`front_surface_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`front_surface_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Front Surface LED enabled'),
-            exposes.enum(`relay_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`relay_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Relay enabled'),
-            exposes.enum(`dimmer_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`dimmer_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer enabled'),
-            exposes.enum(`dimmer_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`dimmer_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer dimmable'),
         ],
         exposes: (device, options) => {
@@ -177,7 +181,7 @@ module.exports = [
                 'l3': 7,
             };
         },
-        configure: async (device, coordinatorEndpoint, logger, options) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             if (device != null) {
                 const controlEp = device.getEndpoint(zigfredEndpoint);
                 const relayEp = device.getEndpoint(6);
@@ -217,31 +221,31 @@ module.exports = [
         vendor: 'Siglis',
         description: 'zigfred plus smart in-wall switch',
         options: [
-            exposes.enum(`front_surface_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`front_surface_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Front Surface LED enabled'),
-            exposes.enum(`dimmer_1_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`dimmer_1_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 1 enabled'),
-            exposes.enum(`dimmer_1_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`dimmer_1_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 1 dimmable'),
-            exposes.enum(`dimmer_2_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`dimmer_2_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 2 enabled'),
-            exposes.enum(`dimmer_2_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`dimmer_2_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 2 dimmable'),
-            exposes.enum(`dimmer_3_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`dimmer_3_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 3 enabled'),
-            exposes.enum(`dimmer_3_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`dimmer_3_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 3 dimmable'),
-            exposes.enum(`dimmer_4_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`dimmer_4_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 4 enabled'),
-            exposes.enum(`dimmer_4_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`dimmer_4_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 4 dimmable'),
-            exposes.enum(`cover_1_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`cover_1_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Cover 1 enabled'),
-            exposes.enum(`cover_1_tilt_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`cover_1_tilt_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Cover 1 tiltable'),
-            exposes.enum(`cover_2_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`cover_2_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Cover 2 enabled'),
-            exposes.enum(`cover_2_tilt_enabled`, ea.SET, ['auto', 'true', 'false'])
+            e.enum(`cover_2_tilt_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Cover 2 tiltable'),
         ],
         exposes: (device, options) => {
@@ -288,11 +292,11 @@ module.exports = [
 
             if (checkOption(device, options, 'cover_1_enabled')) {
                 if (checkOption(device, options, 'cover_1_tilt_enabled')) {
-                    expose.push(exposes.cover()
+                    expose.push(e.cover()
                         .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
                         .withPosition().withTilt().withEndpoint('l6'));
                 } else {
-                    expose.push(exposes.cover()
+                    expose.push(e.cover()
                         .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
                         .withPosition().withEndpoint('l6'));
                 }
@@ -300,11 +304,11 @@ module.exports = [
 
             if (checkOption(device, options, 'cover_2_enabled')) {
                 if (checkOption(device, options, 'cover_2_tilt_enabled')) {
-                    expose.push(exposes.cover()
+                    expose.push(e.cover()
                         .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
                         .withPosition().withTilt().withEndpoint('l7'));
                 } else {
-                    expose.push(exposes.cover()
+                    expose.push(e.cover()
                         .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
                         .withPosition().withEndpoint('l7'));
                 }
@@ -348,7 +352,7 @@ module.exports = [
                 'l7': 12,
             };
         },
-        configure: async (device, coordinatorEndpoint, logger, options) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             if (device != null) {
                 // Bind Control EP (LED)
                 const controlEp = device.getEndpoint(zigfredEndpoint);
@@ -438,3 +442,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;
