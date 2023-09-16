@@ -7737,11 +7737,14 @@ const toZigbee2 = {
         },
     } as Tz.Converter,
     neo_solar_alarm: {
-        key: ['tamper_alarm_switch', 'alarm_mode', 'alarm_melody', 'duration',],
+        key: ['tamper_alarm_switch', 'alarm_mode', 'alarm_melody', 'duration', 'alarm_switch'],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
             case 'tamper_alarm_switch':
                 await sendDataPointBool(entity, dataPoints.neoSATamperAlarmSwitch, value);
+                break;
+            case 'alarm_switch':
+                await sendDataPointBool(entity, dataPoints.neoSAAlarmSwitch, value);
                 break;
             case 'alarm_mode':
                 await sendDataPointEnum(entity, dataPoints.neoSAAlarmMode,
