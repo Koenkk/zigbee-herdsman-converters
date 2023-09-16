@@ -1,15 +1,16 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const ota = require('../lib/ota');
-const reporting = require('../lib/reporting');
-const philips = require('../lib/philips');
+import {Definition} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as ota from '../lib/ota';
+import * as reporting from '../lib/reporting';
+import * as philips from '../lib/philips';
+import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const extend = {switch: require('../lib/extend').switch};
-
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['LWA023'],
         model: '9290030516',
@@ -2017,7 +2018,7 @@ module.exports = [
         exposes: [
             e.battery(), e.action(['left_press', 'left_press_release', 'right_press', 'right_press_release',
                 'left_hold', 'left_hold_release', 'right_hold', 'right_hold_release', 'toggle']),
-            exposes.enum('device_mode', ea.ALL, ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'])],
+            e.enum('device_mode', ea.ALL, ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'])],
         toZigbee: [tz.hue_wall_switch_device_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -2033,11 +2034,11 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue dimmer switch',
         fromZigbee: [fz.ignore_command_on, fz.ignore_command_off, fz.ignore_command_step, fz.ignore_command_stop,
-            fz.legacy.hue_dimmer_switch, fz.battery],
+            legacy.fz.hue_dimmer_switch, fz.battery],
         exposes: [e.battery(), e.action(['on_press', 'on_press_release', 'on_hold', 'on_hold_release', 'up_press',
             'up_press_release', 'up_hold', 'up_hold_release', 'down_press', 'down_press_release', 'down_hold',
             'down_hold_release', 'off_press', 'off_press_release', 'off_hold', 'off_hold_release']),
-        exposes.numeric('action_duration', ea.STATE).withUnit('second')],
+        e.numeric('action_duration', ea.STATE).withUnit('second')],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -2079,7 +2080,7 @@ module.exports = [
         model: '8718699693985',
         vendor: 'Philips',
         description: 'Hue smart button',
-        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.legacy.SmartButton_skip, fz.hue_smart_button_event, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off_with_effect, legacy.fz.SmartButton_skip, fz.hue_smart_button_event, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off', 'skip_backward', 'skip_forward', 'press', 'hold', 'release'])],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2101,9 +2102,9 @@ module.exports = [
         fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.illuminance,
             fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
         exposes: [e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
-            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
-            exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
-            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
+            e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            e.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
+            e.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {'default': 2, 'ep1': 1, 'ep2': 2};
@@ -2130,9 +2131,9 @@ module.exports = [
         fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.illuminance, fz.occupancy_timeout,
             fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
         exposes: [e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
-            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
-            exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
-            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
+            e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            e.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
+            e.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {'default': 2, 'ep1': 1, 'ep2': 2};
@@ -2208,9 +2209,9 @@ module.exports = [
         fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.illuminance,
             fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
         exposes: [e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
-            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high', 'very_high', 'max']),
-            exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
-            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
+            e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high', 'very_high', 'max']),
+            e.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
+            e.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
@@ -2233,9 +2234,9 @@ module.exports = [
         fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.illuminance, fz.occupancy_timeout,
             fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
         exposes: [e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
-            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high', 'very_high', 'max']),
-            exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
-            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
+            e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high', 'very_high', 'max']),
+            e.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
+            e.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
@@ -2258,7 +2259,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - EU',
         extend: extend.switch({disablePowerOnBehavior: true}),
-        toZigbee: [tz.on_off].concat([philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error]),
+        toZigbee: [tz.on_off, philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2272,7 +2273,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug bluetooth',
         extend: extend.switch({disablePowerOnBehavior: true}),
-        toZigbee: [tz.on_off].concat([philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error]),
+        toZigbee: [tz.on_off, philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2286,7 +2287,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - UK',
         extend: extend.switch({disablePowerOnBehavior: true}),
-        toZigbee: [tz.on_off].concat([philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error]),
+        toZigbee: [tz.on_off, philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2307,7 +2308,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - AU',
         extend: extend.switch({disablePowerOnBehavior: true}),
-        toZigbee: [tz.on_off].concat([philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error]),
+        toZigbee: [tz.on_off, philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2321,7 +2322,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - AU',
         extend: extend.switch({disablePowerOnBehavior: true}),
-        toZigbee: [tz.on_off].concat([philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error]),
+        toZigbee: [tz.on_off, philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2335,7 +2336,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - CH',
         extend: extend.switch({disablePowerOnBehavior: true}),
-        toZigbee: [tz.on_off].concat([philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error]),
+        toZigbee: [tz.on_off, philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2349,7 +2350,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug',
         extend: extend.switch({disablePowerOnBehavior: true}),
-        toZigbee: [tz.on_off].concat([philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error]),
+        toZigbee: [tz.on_off, philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2363,7 +2364,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - EU',
         extend: extend.switch({disablePowerOnBehavior: true}),
-        toZigbee: [tz.on_off].concat([philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error]),
+        toZigbee: [tz.on_off, philips.tz.hue_power_on_behavior, philips.tz.hue_power_on_error],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2775,7 +2776,7 @@ module.exports = [
         model: '8719514440937/8719514440999',
         vendor: 'Philips',
         description: 'Hue Tap dial switch',
-        fromZigbee: [fz.ignore_command_step, philips.fz.hue_tap_dial, fz.battery],
+        fromZigbee: [fz.ignore_command_step, philips.philipsFz.hue_tap_dial, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['button_1_press', 'button_1_press_release', 'button_1_hold', 'button_1_hold_release',
             'button_2_press', 'button_2_press_release', 'button_2_hold', 'button_2_hold_release',
@@ -3379,3 +3380,5 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
 ];
+
+module.exports = definitions;
