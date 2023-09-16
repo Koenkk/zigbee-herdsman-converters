@@ -89,8 +89,9 @@ const definitions: Definition[] = [
         model: 'NAS-AB06B2',
         vendor: 'Neo',
         description: 'Outdoor solar alarm',
-        fromZigbee: [legacy.fz.neo_solar_alarm, fz.ignore_basic_report],
-        toZigbee: [legacy.tz.neo_solar_alarm],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
         exposes: [e.battery_low(),
             e.enum('alarm_state', ea.STATE, ['alarm_sound', 'alarm_light', 'alarm_sound_light', 'normal']).withDescription('Alarm status'),
             e.binary('alarm_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable alarm'),
@@ -108,6 +109,19 @@ const definitions: Definition[] = [
             e.numeric('battpercentage', ea.STATE).withUnit('%').withDescription('Remaining battery in % (can take up to 24 hours before reported)'),
             e.binary('battery_low', ea.STATE, true, false).withDescription('Indicates if the battery of this device is almost empty'),
         ],
+        meta: {
+            tuyaDatapoints: [
+                    [1, 'alarm_state', tuya.valueConverterBasic.lookup({'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2,'normal': 3})],
+                    [13, 'alarm_switch', tuya.valueConverter.onOff],
+                    [101, 'tamper_alarm_switch', tuya.valueConverter.onOff],
+                    [20, 'tamper_alarm', tuya.valueConverter.onOff],
+                    [21, 'alarm_melody', tuya.valueConverterBasic.lookup({'melody1': 0, 'melody2': 1, 'melody3': 2})],
+                    [102, 'alarm_mode', tuya.valueConverterBasic.lookup({'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2})],
+                    [7, 'alarm_time', tuya.valueConverter.raw],
+                    [6, 'charge_state', tuya.valueConverter.onOff],
+                    [15, 'battpercentage', tuya.valueConverter.raw]
+            ],
+        },
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
