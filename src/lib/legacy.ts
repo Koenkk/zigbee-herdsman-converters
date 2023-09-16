@@ -7749,7 +7749,7 @@ const toZigbee2 = {
             case 'alarm_mode':
                 await sendDataPointEnum(entity, dataPoints.neoSAAlarmMode,
                     // @ts-ignore
-                    {'alarm_sound': 0,'alarm_light': 1,'alarm_sound_light': 2});
+                    {'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2});
                 break;
             case 'alarm_melody':
                 await sendDataPointEnum(
