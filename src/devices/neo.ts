@@ -51,7 +51,6 @@ const definitions: Definition[] = [
             e.enum('volume', ea.STATE_SET, ['low', 'medium', 'high']),
             e.numeric('battpercentage', ea.STATE).withUnit('%'),
         ],
-        whiteLabel: [tuya.whitelabel('Neo', 'NAS-AB06B2', 'Outdoor solar alarm', ['_TZE200_nlrfgpny'])],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
