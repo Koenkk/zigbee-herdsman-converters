@@ -122,12 +122,6 @@ const definitions: Definition[] = [
                     [15, 'battpercentage', tuya.valueConverter.raw]
             ],
         },
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
-            await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
-        },
     },
 ];
 
