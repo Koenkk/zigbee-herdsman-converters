@@ -6,9 +6,9 @@ import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
-import herdsman from 'zigbee-herdsman';
+import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 
-const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.PLUGWISE_BV};
+const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.PLUGWISE_BV};
 
 const plugwisePushForce = {
     0: 'standard',
