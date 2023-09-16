@@ -5372,7 +5372,7 @@ const definitions: Definition[] = [
         ],
         model: 'TS0601_switch_8',
         vendor: 'TuYa',
-        description: '8 Gang switch',
+        description: 'ZYXH 8 gang switch',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -5402,9 +5402,36 @@ const definitions: Definition[] = [
                 [0x66, 'state_l8', tuya.valueConverter.onOff],
             ],
         },
-        whiteLabel: [
-            tuya.whitelabel('ZYXH', 'TS0601_switch_8', '8 Gang switch', ['_TZE200_vmcgja59']),
-        ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dqolcpcp']),
+        model: 'TS0601_switch_12',
+        vendor: 'TuYa',
+        description: 'ZXYH 12 gang switch',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [...Array.from({length: 12}, (_, i) => tuya.exposes.switch().withEndpoint(`l${i + 1}`))],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1, 'l9': 1, 'l10': 1, 'l11': 1, 'l12': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+                [5, 'state_l5', tuya.valueConverter.onOff],
+                [6, 'state_l6', tuya.valueConverter.onOff],
+                [0x65, 'state_l7', tuya.valueConverter.onOff],
+                [0x66, 'state_l8', tuya.valueConverter.onOff],
+                [0x67, 'state_l9', tuya.valueConverter.onOff],
+                [0x68, 'state_l10', tuya.valueConverter.onOff],
+                [0x69, 'state_l11', tuya.valueConverter.onOff],
+                [0x6A, 'state_l12', tuya.valueConverter.onOff],
+            ],
+        },
     },
 
     // TS011F
@@ -6032,7 +6059,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_81yrt3lo']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_81yrt3lo', '_TZE200_rks0sgb7']),
         model: 'PJ-1203A',
         vendor: 'TuYa',
         description: 'Bidirectional energy meter with 80A current clamp',
