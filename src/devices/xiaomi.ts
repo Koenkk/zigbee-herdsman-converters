@@ -2514,6 +2514,21 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['lumi.switch.acn047'],
+        model: 'LLKZMK12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara dual relay module T2',
+        fromZigbee: [fz.on_off, fz.aqara_opple, fz.xiaomi_power],
+        toZigbee: [tz.on_off],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.power(), e.current(), e.energy(), e.voltage(), e.device_temperature(),
+        ],
+    },
+    {
         zigbeeModel: ['lumi.lock.acn02'],
         model: 'ZNMS12LM',
         description: 'Aqara S2 lock',
