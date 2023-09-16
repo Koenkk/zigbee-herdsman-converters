@@ -654,17 +654,6 @@ const dataPoints = {
     neoAODuration: 7,
     neoAOAlarm: 13,
     neoAOVolume: 5,
-    // Neo SolarAlarm
-    neoSAAlarmState: 1,
-    neoSAChargeState: 6,
-    neoSAAlarmDuration: 7,
-    neoSAAlarmSwitch: 13,
-    neoSABattPerc: 15,
-    neoSATamperAlarm: 20,
-    neoSAMelody: 21,
-    neoSATamperAlarmSwitch: 101,
-    neoSAAlarmMode: 102,
-    neoSAVolume: 5,
     // Saswell TRV
     saswellHeating: 3,
     saswellWindowDetection: 8,
