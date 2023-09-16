@@ -5400,40 +5400,6 @@ const fromZigbee1 = {
             }
         },
     } as Fz.Converter,
-    neo_solar_alarm: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'neo_solar_alarm');
-            const dp = dpValue.dp;
-            const value = getDataValue(dpValue);
-            switch (dp) {
-            case dataPoints.neoSAAlarmState:
-                // @ts-ignore
-                return {alarm_state: {0: 'alarm_sound', 1: 'alarm_light', 2: 'alarm_sound_light', 3: 'normal'}[value]};
-            case dataPoints.neoSAChargeState:
-                return {charge_state: value ? 'ON': 'OFF'};
-            case dataPoints.neoSAAlarmDuration:
-                return {alarm_time: value};
-            case dataPoints.neoSAAlarmSwitch:
-                return {alarm_switch: value ? 'ON': 'OFF'};
-            case dataPoints.neoSABattPerc:
-                return {battpercentage: value};
-            case dataPoints.neoSATamperAlarm:
-                return {tamper_alarm: value ? 'ON': 'OFF'};
-            case dataPoints.neoSAMelody:
-                // @ts-ignore
-                return {alarm_melody: {0: 'melody1', 1: 'melody2', 2: 'melody3'}[value]};
-            case dataPoints.neoSATamperAlarmSwitch:
-                return {tamper_alarm_switch: value ? 'ON': 'OFF'};
-            case dataPoints.neoSAAlarmMode:
-                // @ts-ignore
-                return {alarm_mode: {0: 'alarm_sound', 1: 'alarm_light', 2: 'alarm_sound_light'}[value]};
-            default: // Unknown code
-                meta.logger.debug(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
-            }
-        },
-    } as Fz.Converter,
     ZB006X_settings: {
         cluster: 'manuSpecificTuya',
         type: ['commandActiveStatusReport', 'commandActiveStatusReportAlt'],
@@ -7730,35 +7696,6 @@ const toZigbee2 = {
                 break;
             case 'duration':
                 await sendDataPointValue(entity, dataPoints.neoAODuration, value);
-                break;
-            default: // Unknown key
-                throw new Error(`Unhandled key ${key}`);
-            }
-        },
-    } as Tz.Converter,
-    neo_solar_alarm: {
-        key: ['tamper_alarm_switch', 'alarm_mode', 'alarm_melody', 'alarm_time', 'alarm_switch'],
-        convertSet: async (entity, key, value: any, meta) => {
-            switch (key) {
-            case 'tamper_alarm_switch':
-                await sendDataPointBool(entity, dataPoints.neoSATamperAlarmSwitch, value);
-                break;
-            case 'alarm_switch':
-                await sendDataPointBool(entity, dataPoints.neoSAAlarmSwitch, value);
-                break;
-            case 'alarm_mode':
-                await sendDataPointEnum(entity, dataPoints.neoSAAlarmMode,
-                    // @ts-ignore
-                    {'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2});
-                break;
-            case 'alarm_melody':
-                await sendDataPointEnum(
-                    entity, dataPoints.neoSAMelody,
-                    // @ts-ignore
-                    {'melody1': 0, 'melody2': 1, 'melody3': 2}[value]);
-                break;
-            case 'alarm_time':
-                await sendDataPointValue(entity, dataPoints.neoSAAlarmDuration, value);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key ${key}`);
