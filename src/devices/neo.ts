@@ -98,7 +98,12 @@ const definitions: Definition[] = [
             e.binary('tamper_alarm', ea.STATE, 'ON', 'OFF').withDescription('Indicates whether the device is tampered'),
             e.enum('alarm_melody', ea.STATE_SET, ['melody1', 'melody2', 'melody3']).withDescription('Alarm sound effect'),
             e.enum('alarm_mode', ea.STATE_SET, ['alarm_sound', 'alarm_light', 'alarm_sound_light']).withDescription('Alarm mode'),
-            e.numeric('alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(60).withValueStep(1).withUnit('min').withDescription('Alarm duration in minutes'),
+            e.numeric('alarm_time', ea.STATE_SET)
+                  .withValueMin(1)
+                  .withValueMax(60)
+                  .withValueStep(1)
+                  .withUnit('min')
+                  .withDescription('Alarm duration in minutes'),
             e.binary('charge_state', ea.STATE, 'Charging', 'Not Charging').withDescription('Charging status'),
             e.numeric('battpercentage', ea.STATE).withUnit('%').withDescription('Remaining battery in % (can take up to 24 hours before reported)'),
             e.binary('battery_low', ea.STATE, true, false).withDescription('Indicates if the battery of this device is almost empty'),
