@@ -5414,7 +5414,7 @@ const fromZigbee1 = {
             case dataPoints.neoSAChargeState:
                 return {charge_state: value ? 'ON': 'OFF'};
             case dataPoints.neoSAAlarmDuration:
-                return {alarm_duration: value};
+                return {alarm_time: value};
             case dataPoints.neoSAAlarmSwitch:
                 return {alarm_switch: value ? 'ON': 'OFF'};
             case dataPoints.neoSABattPerc:
