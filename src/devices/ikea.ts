@@ -439,6 +439,13 @@ const definitions: Definition[] = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['TRADFRI bulb E27 WW globe 806lm'],
+        model: 'LED2103GS',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 806 lumen, wireless dimmable warm white',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['TRADFRIbulbE26WWglobeclear250lm'],
         model: 'LED2008G3',
         vendor: 'IKEA',
