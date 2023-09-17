@@ -92,22 +92,17 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.battery_low(),
+        exposes: [
             e.enum('alarm_state', ea.STATE, ['alarm_sound', 'alarm_light', 'alarm_sound_light', 'normal']).withDescription('Alarm status'),
             e.binary('alarm_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable alarm'),
             e.binary('tamper_alarm_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable tamper alarm'),
             e.binary('tamper_alarm', ea.STATE, 'ON', 'OFF').withDescription('Indicates whether the device is tampered'),
-            e.enum('alarm_melody', ea.STATE_SET, ['melody1', 'melody2', 'melody3']).withDescription('Alarm sound effect'),
+            e.enum('alarm_melody', ea.STATE_SET, ['melody_1', 'melody_2', 'melody_3']).withDescription('Alarm sound effect'),
             e.enum('alarm_mode', ea.STATE_SET, ['alarm_sound', 'alarm_light', 'alarm_sound_light']).withDescription('Alarm mode'),
-            e.numeric('alarm_time', ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(60)
-                .withValueStep(1)
-                .withUnit('min')
+            e.numeric('alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(60).withValueStep(1).withUnit('min')
                 .withDescription('Alarm duration in minutes'),
-            e.binary('charge_state', ea.STATE, 'Charging', 'Not Charging').withDescription('Charging status'),
-            e.numeric('battpercentage', ea.STATE).withUnit('%').withDescription('Remaining battery in % (can take up to 24 hours before reported)'),
-            e.binary('battery_low', ea.STATE, true, false).withDescription('Indicates if the battery of this device is almost empty'),
+            e.binary('charging', ea.STATE, true, false).withDescription('Charging status'),
+            e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -115,11 +110,11 @@ const definitions: Definition[] = [
                 [13, 'alarm_switch', tuya.valueConverter.onOff],
                 [101, 'tamper_alarm_switch', tuya.valueConverter.onOff],
                 [20, 'tamper_alarm', tuya.valueConverter.onOff],
-                [21, 'alarm_melody', tuya.valueConverterBasic.lookup({'melody1': 0, 'melody2': 1, 'melody3': 2})],
+                [21, 'alarm_melody', tuya.valueConverterBasic.lookup({'melody_1': 0, 'melody_2': 1, 'melody_3': 2})],
                 [102, 'alarm_mode', tuya.valueConverterBasic.lookup({'alarm_sound': 0, 'alarm_light': 1, 'alarm_sound_light': 2})],
                 [7, 'alarm_time', tuya.valueConverter.raw],
-                [6, 'charge_state', tuya.valueConverter.onOff],
-                [15, 'battpercentage', tuya.valueConverter.raw],
+                [6, 'charging', tuya.valueConverter.raw],
+                [15, 'battery', tuya.valueConverter.raw],
             ],
         },
     },
