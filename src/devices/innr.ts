@@ -150,6 +150,9 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
+        endpoint: (device) => {
+            return {default: 1};
+        },
     },
     {
         zigbeeModel: ['RB 266'],
@@ -318,6 +321,9 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
         meta: {turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
+        endpoint: (device) => {
+            return {default: 1};
+        },
     },
     {
         zigbeeModel: ['RS 128 T'],
