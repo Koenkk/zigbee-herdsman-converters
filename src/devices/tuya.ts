@@ -1286,7 +1286,7 @@ const definitions: Definition[] = [
                 [11, 'max_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
                 [12, 'countdown_l2', tuya.valueConverter.countdown],
                 [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
-                [21, 'backlight_mode', tuya.valueConverterBasic.lookup({ 'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
+                [21, 'backlight_mode', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
             ],
         },
         endpoint: (device) => {
