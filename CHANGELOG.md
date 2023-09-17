@@ -1,5 +1,19 @@
 # Changelog
 
+## [15.78.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.77.0...v15.78.0) (2023-09-17)
+
+
+### Features
+
+* **add:** LED2103GS [@yaskad](https://github.com/yaskad) https://github.com/Koenkk/zigbee2mqtt/issues/18996 ([f928941](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f92894112f152a5b685d0f4deecf3682db182071))
+* **add:** NAS-AB06B2 ([#6164](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6164)) ([794f63d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/794f63da1aaf6092c039a6915da1d0811dc43e6c))
+* **ignore:** Refactor all devices to TS ([#6166](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6166)) ([beddf3b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/beddf3bb982d3e15daa91fb5904f27815b027193))
+
+
+### Bug Fixes
+
+* **ignore:** update dependencies ([#6168](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6168)) ([367d88c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/367d88c6416b6a41d03db11b5ec249fb873aaa26))
+
 ## [15.77.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.76.0...v15.77.0) (2023-09-16)
 
 
