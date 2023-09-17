@@ -838,6 +838,11 @@ const definitions: Definition[] = [
             e.power_outage_count(),
         ]),
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.type = 'Router';
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.light.cwopcn01'],
