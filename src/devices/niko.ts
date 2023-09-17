@@ -1,8 +1,9 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const utils = require('../lib/utils');
-const reporting = require('../lib/reporting');
+import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as utils from '../lib/utils';
+import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -12,24 +13,24 @@ const local = {
             cluster: 'manuSpecificNiko1',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const state = {};
+                const state: KeyValue = {};
                 if (msg.data.hasOwnProperty('switchOperationMode')) {
                     const operationModeMap = {0x02: 'control_relay', 0x01: 'decoupled', 0x00: 'unknown'};
-                    state['operation_mode'] = operationModeMap[msg.data.switchOperationMode];
+                    state['operation_mode'] = utils.getFromLookup(msg.data.switchOperationMode, operationModeMap);
                 }
                 return state;
             },
-        },
+        } as Fz.Converter,
         switch_action: {
             cluster: 'manuSpecificNiko2',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const state = {};
+                const state: KeyValue = {};
 
                 if (msg.data.hasOwnProperty('switchAction')) {
                     // NOTE: a single press = two seperate values reported, 16 followed by 64
                     //       a hold/release cyle = three seperate values, 16, 32, and 48
-                    const actionMap = (model.model == '552-721X1') ? {
+                    const actionMap: KeyValue = (model.model == '552-721X1') ? {
                         16: null,
                         64: 'single',
                         32: 'hold',
@@ -61,12 +62,12 @@ const local = {
                 }
                 return state;
             },
-        },
+        } as Fz.Converter,
         switch_status_led: {
             cluster: 'manuSpecificNiko1',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const state = {};
+                const state: KeyValue = {};
                 if (msg.data.hasOwnProperty('outletLedState')) {
                     state['led_enable'] = (msg.data['outletLedState'] == 1);
                 }
@@ -75,12 +76,12 @@ const local = {
                 }
                 return state;
             },
-        },
+        } as Fz.Converter,
         outlet: {
             cluster: 'manuSpecificNiko1',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const state = {};
+                const state: KeyValue = {};
                 if (msg.data.hasOwnProperty('outletChildLock')) {
                     state['child_lock'] = (msg.data['outletChildLock'] == 0 ? 'LOCK' : 'UNLOCK');
                 }
@@ -89,7 +90,7 @@ const local = {
                 }
                 return state;
             },
-        },
+        } as Fz.Converter,
     },
     tz: {
         switch_operation_mode: {
@@ -97,24 +98,29 @@ const local = {
             convertSet: async (entity, key, value, meta) => {
                 // WARN: while we can technically write 0x00 to the operationMode attribute
                 //       this seems to brick the device and it will need to be rejoined
+                utils.assertEndpoint(entity);
                 const operationModeLookup = {control_relay: 0x02, decoupled: 0x01};
+                // @ts-expect-error
                 if (!operationModeLookup.hasOwnProperty(value)) {
                     throw new Error(`operation_mode was called with an invalid value (${value})`);
                 } else {
                     await utils.enforceEndpoint(entity, key, meta).write(
                         'manuSpecificNiko1',
+                        // @ts-expect-error
                         {'switchOperationMode': operationModeLookup[value]},
                     );
+                    // @ts-expect-error
                     return {state: {operation_mode: value.toLowerCase()}};
                 }
             },
             convertGet: async (entity, key, meta) => {
+                utils.assertEndpoint(entity);
                 await utils.enforceEndpoint(entity, key, meta).read(
                     'manuSpecificNiko1',
                     ['switchOperationMode'],
                 );
             },
-        },
+        } as Tz.Converter,
         switch_led_enable: {
             key: ['led_enable'],
             convertSet: async (entity, key, value, meta) => {
@@ -125,27 +131,29 @@ const local = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNiko1', ['outletLedState']);
             },
-        },
+        } as Tz.Converter,
         switch_led_state: {
             key: ['led_state'],
             convertSet: async (entity, key, value, meta) => {
+                utils.assertString(value, key);
                 await entity.write('manuSpecificNiko1', {'outletLedColor': ((value.toLowerCase() === 'off') ? 0 : 255)});
                 return {state: {led_state: ((value.toLowerCase() === 'off') ? 'OFF' : 'ON')}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNiko1', ['outletLedColor']);
             },
-        },
+        } as Tz.Converter,
         outlet_child_lock: {
             key: ['child_lock'],
             convertSet: async (entity, key, value, meta) => {
+                utils.assertString(value, key);
                 await entity.write('manuSpecificNiko1', {'outletChildLock': ((value.toLowerCase() === 'lock') ? 0 : 1)});
                 return {state: {child_lock: ((value.toLowerCase() === 'lock') ? 'LOCK' : 'UNLOCK')}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNiko1', ['outletChildLock']);
             },
-        },
+        } as Tz.Converter,
         outlet_led_enable: {
             key: ['led_enable'],
             convertSet: async (entity, key, value, meta) => {
@@ -155,11 +163,11 @@ const local = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNiko1', ['outletLedState']);
             },
-        },
+        } as Tz.Converter,
     },
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['Connected socket outlet'],
         model: '170-33505/170-34605',
@@ -194,8 +202,8 @@ module.exports = [
             e.switch(),
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(),
             e.energy().withAccess(ea.STATE_GET),
-            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
-            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
+            e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            e.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
         ],
     },
     {
@@ -217,7 +225,7 @@ module.exports = [
         },
         exposes: [
             e.switch(), e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
-            exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
+            e.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
                 .withDescription('Controls the behaviour when the device is powered on'),
         ],
     },
@@ -240,7 +248,7 @@ module.exports = [
         },
         exposes: [
             e.switch(), e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
-            exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
+            e.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
                 .withDescription('Controls the behaviour when the device is powered on'),
         ],
     },
@@ -279,9 +287,9 @@ module.exports = [
                 'single', 'hold', 'release',
                 'single_ext', 'hold_ext', 'release_ext',
             ]),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
-            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
-            exposes.binary('led_state', ea.ALL, 'ON', 'OFF').withDescription('LED State'),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
+            e.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
+            e.binary('led_state', ea.ALL, 'ON', 'OFF').withDescription('LED State'),
         ],
     },
     {
@@ -313,11 +321,11 @@ module.exports = [
                 'single_right', 'hold_right', 'release_right',
                 'single_right_ext', 'hold_right_ext', 'release_right_ext',
             ]),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
-            exposes.binary('led_enable', ea.ALL, true, false).withEndpoint('l1').withDescription('Enable LED'),
-            exposes.binary('led_enable', ea.ALL, true, false).withEndpoint('l2').withDescription('Enable LED'),
-            exposes.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l1').withDescription('LED State'),
-            exposes.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l2').withDescription('LED State'),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
+            e.binary('led_enable', ea.ALL, true, false).withEndpoint('l1').withDescription('Enable LED'),
+            e.binary('led_enable', ea.ALL, true, false).withEndpoint('l2').withDescription('Enable LED'),
+            e.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l1').withDescription('LED State'),
+            e.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l2').withDescription('LED State'),
         ],
     },
     {
@@ -381,3 +389,5 @@ module.exports = [
         ],
     },
 ];
+
+module.exports = definitions;

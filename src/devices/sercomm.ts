@@ -1,10 +1,11 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
+import {Definition} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['SZ-ESW01'],
         model: 'SZ-ESW01',
@@ -127,7 +128,7 @@ module.exports = [
         description: 'PIR motion & temperature sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance, fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercent: '3V_2500_3200'}},
+        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement', 'msTemperatureMeasurement', 'genPowerCfg']);
@@ -147,3 +148,5 @@ module.exports = [
         exposes: [e.water_leak(), e.battery_low()],
     },
 ];
+
+module.exports = definitions;

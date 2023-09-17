@@ -1,13 +1,14 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const utils = require('../lib/utils');
+import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
-const herdsman = require('zigbee-herdsman');
+import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 
-const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.PLUGWISE_BV};
+const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.PLUGWISE_BV};
 
 const plugwisePushForce = {
     0: 'standard',
@@ -25,7 +26,7 @@ const fzLocal = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = fz.thermostat.convert(model, msg, publish, options, meta);
+            const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValue;
 
             // Reports pIHeatingDemand between 0 and 100 already
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
@@ -46,7 +47,7 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as Fz.Converter,
 };
 
 const tzLocal = {
@@ -57,7 +58,7 @@ const tzLocal = {
                 {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
             return {state: {'calibrate_valve': value}};
         },
-    },
+    } as Tz.Converter,
     plugwise_valve_position: {
         key: ['plugwise_valve_position', 'valve_position'],
         convertSet: async (entity, key, value, meta) => {
@@ -69,7 +70,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4001], manufacturerOptions);
         },
-    },
+    } as Tz.Converter,
     plugwise_push_force: {
         key: ['plugwise_push_force', 'force'],
         convertSet: async (entity, key, value, meta) => {
@@ -80,7 +81,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4012], manufacturerOptions);
         },
-    },
+    } as Tz.Converter,
     plugwise_radio_strength: {
         key: ['plugwise_radio_strength', 'radio_strength'],
         convertSet: async (entity, key, value, meta) => {
@@ -91,10 +92,10 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4014], manufacturerOptions);
         },
-    },
+    } as Tz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['160-01'],
         model: '160-01',
@@ -133,17 +134,17 @@ module.exports = [
             await reporting.thermostatPIHeatingDemand(endpoint);
         },
         exposes: [e.battery(),
-            exposes.numeric('pi_heating_demand', ea.STATE_GET).withValueMin(0).withValueMax(100).withUnit('%')
+            e.numeric('pi_heating_demand', ea.STATE_GET).withValueMin(0).withValueMax(100).withUnit('%')
                 .withDescription('Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open'),
-            exposes.numeric('local_temperature', ea.STATE).withUnit('°C').withDescription('Current temperature measured on the device'),
-            exposes.numeric('valve_position', ea.ALL).withValueMin(0).withValueMax(100)
+            e.numeric('local_temperature', ea.STATE).withUnit('°C').withDescription('Current temperature measured on the device'),
+            e.numeric('valve_position', ea.ALL).withValueMin(0).withValueMax(100)
                 .withDescription('Directly control the radiator valve. The values range from 0 (valve ' +
                     'closed) to 100 (valve fully open)'),
-            exposes.enum('force', ea.ALL, ['standard', 'high', 'very_high'])
+            e.enum('force', ea.ALL, ['standard', 'high', 'very_high'])
                 .withDescription('How hard the motor pushes the valve. The closer to the boiler, the higher the force needed'),
-            exposes.enum('radio_strength', ea.ALL, ['normal', 'high'])
+            e.enum('radio_strength', ea.ALL, ['normal', 'high'])
                 .withDescription('Transmits with higher power when range is not sufficient'),
-            exposes.binary('calibrate_valve', ea.STATE_SET, 'calibrate', 'idle')
+            e.binary('calibrate_valve', ea.STATE_SET, 'calibrate', 'idle')
                 .withDescription('Calibrates valve on next wakeup'),
         ],
     },
@@ -164,10 +165,12 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
         },
         exposes: [e.battery(),
-            exposes.climate()
+            e.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.ALL)
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(['off', 'auto'], ea.ALL),
         ],
     },
 ];
+
+module.exports = definitions;

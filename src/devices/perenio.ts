@@ -1,11 +1,12 @@
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const exposes = require('../lib/exposes');
-const reporting = require('../lib/reporting');
-const utils = require('../lib/utils');
+import {Definition, Fz, Tz, KeyValue} from '../lib/types';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as exposes from '../lib/exposes';
+import * as reporting from '../lib/reporting';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
-const ota = require('../lib/ota');
+import * as ota from '../lib/ota';
 
 const switchTypeValues = [
     'maintained_state',
@@ -26,7 +27,7 @@ const fzPerenio = {
         cluster: 'haDiagnostic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty('lastMessageLqi')) {
                 result['last_message_lqi'] = msg.data['lastMessageLqi'];
             }
@@ -35,13 +36,13 @@ const fzPerenio = {
             }
             return result;
         },
-    },
+    } as Fz.Converter,
     switch_type: {
         cluster: 'genMultistateValue',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            const switchTypeLookup = {
+            const result: KeyValue = {};
+            const switchTypeLookup: KeyValue = {
                 0x0001: 'momentary_state',
                 0x0010: 'maintained_state',
                 0x00CC: 'maintained_toggle',
@@ -54,12 +55,12 @@ const fzPerenio = {
             }
             return result;
         },
-    },
+    } as Fz.Converter,
     smart_plug: {
         cluster: '64635',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty(2)) {
                 result['rms_current'] = msg.data[2];
             }
@@ -93,6 +94,7 @@ const fzPerenio = {
                 2: 'previous',
             };
             if (msg.data.hasOwnProperty(0)) {
+                // @ts-expect-error
                 result['default_on_off_state'] = powerOnStateLookup[msg.data[0]];
             }
             if (msg.data.hasOwnProperty(1)) {
@@ -118,14 +120,15 @@ const fzPerenio = {
             }
             return result;
         },
-    },
+    } as Fz.Converter,
 };
 
 const tzPerenio = {
     switch_type: {
         key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {
-            const switchTypeLookup = {
+            utils.assertString(value, key);
+            const switchTypeLookup: KeyValue = {
                 'momentary_state': 0x0001,
                 'maintained_state': 0x0010,
                 'maintained_toggle': 0x00CC,
@@ -138,11 +141,12 @@ const tzPerenio = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genMultistateValue', ['presentValue']);
         },
-    },
+    } as Tz.Converter,
     default_state: {
         key: ['default_on_off_state'],
         convertSet: async (entity, key, val, meta) => {
-            const powerOnStateLookup = {
+            utils.assertString(val, key);
+            const powerOnStateLookup: KeyValue = {
                 'off': 0,
                 'on': 1,
                 'previous': 2,
@@ -153,7 +157,7 @@ const tzPerenio = {
         convertGet: async (entity, key, meta) => {
             await entity.read(64635, [0]);
         },
-    },
+    } as Tz.Converter,
     alarms_reset: {
         key: ['alarm_voltage_min', 'alarm_voltage_max', 'alarm_power_max', 'alarm_consumed_energy'],
         convertSet: async (entity, key, val, meta) => {
@@ -163,7 +167,7 @@ const tzPerenio = {
         convertGet: async (entity, key, meta) => {
             await entity.read(64635, [1]);
         },
-    },
+    } as Tz.Converter,
     alarms_limits: {
         key: ['voltage_min', 'voltage_max', 'power_max', 'consumed_energy_limit'],
         convertSet: async (entity, key, val, meta) => {
@@ -199,10 +203,11 @@ const tzPerenio = {
                 break;
             }
         },
-    },
+    } as Tz.Converter,
     on_off_mod: {
         key: ['state', 'on_time', 'off_wait_time'],
         convertSet: async (entity, key, value, meta) => {
+            // @ts-expect-error
             const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
             const alarmVoltageMin = meta.state[`alarm_voltage_min${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
@@ -237,10 +242,10 @@ const tzPerenio = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
         },
-    },
+    } as Tz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['PECLS01'],
         model: 'PECLS01',
@@ -333,13 +338,13 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('l1'),
             e.power_on_behavior().withEndpoint('l1'),
-            exposes.enum('switch_type', ea.ALL, switchTypeValues).withEndpoint('l1'),
+            e.enum('switch_type', ea.ALL, switchTypeValues).withEndpoint('l1'),
             e.switch().withEndpoint('l2'),
             e.power_on_behavior().withEndpoint('l2'),
-            exposes.enum('switch_type', ea.ALL, switchTypeValues).withEndpoint('l2'),
-            exposes.numeric('last_message_lqi', ea.STATE).withUnit('lqi')
+            e.enum('switch_type', ea.ALL, switchTypeValues).withEndpoint('l2'),
+            e.numeric('last_message_lqi', ea.STATE).withUnit('lqi')
                 .withDescription('LQI seen by the device').withValueMin(0).withValueMax(255),
-            exposes.numeric('last_message_rssi', ea.STATE).withUnit('dB')
+            e.numeric('last_message_rssi', ea.STATE).withUnit('dB')
                 .withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
         ],
     },
@@ -383,31 +388,32 @@ module.exports = [
         },
         exposes: [
             e.switch(),
-            exposes.enum('default_on_off_state', ea.ALL, defaultOnOffStateValues),
-            exposes.numeric('rms_voltage', ea.STATE).withUnit('V').withDescription('RMS voltage'),
-            exposes.numeric('active_power', ea.STATE).withUnit('W').withDescription('Active power'),
-            exposes.numeric('consumed_energy', ea.STATE).withUnit('W*h').withDescription('Consumed energy'),
-            exposes.binary('alarm_voltage_min', ea.ALL, true, false)
+            e.enum('default_on_off_state', ea.ALL, defaultOnOffStateValues),
+            e.numeric('rms_voltage', ea.STATE).withUnit('V').withDescription('RMS voltage'),
+            e.numeric('active_power', ea.STATE).withUnit('W').withDescription('Active power'),
+            e.numeric('consumed_energy', ea.STATE).withUnit('W*h').withDescription('Consumed energy'),
+            e.binary('alarm_voltage_min', ea.ALL, true, false)
                 .withDescription('Indicates if the alarm is triggered on the voltage drop below the limit, allows to reset alarms'),
-            exposes.binary('alarm_voltage_max', ea.ALL, true, false)
+            e.binary('alarm_voltage_max', ea.ALL, true, false)
                 .withDescription('Indicates if the alarm is triggered on the voltage rise above the limit, allows to reset alarms'),
-            exposes.binary('alarm_power_max', ea.ALL, true, false)
+            e.binary('alarm_power_max', ea.ALL, true, false)
                 .withDescription('Indicates if the alarm is triggered on the active power rise above the limit, allows to reset alarms'),
-            exposes.binary('alarm_consumed_energy', ea.ALL, true, false)
+            e.binary('alarm_consumed_energy', ea.ALL, true, false)
                 .withDescription(
                     'Indicates if the alarm is triggered when the consumption energy limit is reached, allows to reset alarms'),
-            exposes.numeric('voltage_min', ea.ALL).withValueMin(0).withValueMax(253)
+            e.numeric('voltage_min', ea.ALL).withValueMin(0).withValueMax(253)
                 .withDescription('Minimum allowable voltage limit for alarms.'),
-            exposes.numeric('voltage_max', ea.ALL).withValueMin(0).withValueMax(253)
+            e.numeric('voltage_max', ea.ALL).withValueMin(0).withValueMax(253)
                 .withDescription('Maximum allowable voltage limit for alarms.'),
-            exposes.numeric('power_max', ea.ALL).withValueMin(0).withValueMax(65534)
+            e.numeric('power_max', ea.ALL).withValueMin(0).withValueMax(65534)
                 .withDescription('Maximum allowable power limit for alarms.'),
-            exposes.numeric('consumed_energy_limit', ea.ALL).withValueMin(0).withValueMax(65534)
+            e.numeric('consumed_energy_limit', ea.ALL).withValueMin(0).withValueMax(65534)
                 .withDescription('Limit of electric energy consumption in kW*h. 0 value represents no limit'),
-            exposes.numeric('rssi', ea.STATE).withUnit('dB')
+            e.numeric('rssi', ea.STATE).withUnit('dB')
                 .withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
         ],
         ota: ota.zigbeeOTA,
     },
 ];
 
+module.exports = definitions;

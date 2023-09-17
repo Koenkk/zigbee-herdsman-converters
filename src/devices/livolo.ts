@@ -1,12 +1,13 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const globalStore = require('../lib/store');
-const extend = require('../lib/extend');
+import {Definition, Zh} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as globalStore from '../lib/store';
+import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const poll = async (device) => {
+const poll = async (device: Zh.Device) => {
     try {
         const endpoint = device.getEndpoint(6);
         const options = {transactionSequenceNumber: 0, srcEndpoint: 8, disableResponse: true, disableRecovery: true};
@@ -16,7 +17,7 @@ const poll = async (device) => {
     }
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['TI0001          '],
         model: 'TI0001',
@@ -205,16 +206,16 @@ module.exports = [
         toZigbee: [tz.livolo_cover_state, tz.livolo_cover_position, tz.livolo_cover_options],
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.composite('options', 'options', ea.STATE_SET)
+            e.composite('options', 'options', ea.STATE_SET)
                 .withDescription('Motor options')
-                .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
+                .withFeature(e.numeric('motor_speed', ea.STATE_SET)
                     .withValueMin(20)
                     .withValueMax(40)
                     .withDescription('Motor speed')
                     .withUnit('rpm'))
-                .withFeature(exposes.enum('motor_direction', ea.STATE_SET, ['FORWARD', 'REVERSE'])
+                .withFeature(e.enum('motor_direction', ea.STATE_SET, ['FORWARD', 'REVERSE'])
                     .withDescription('Motor direction')),
-            exposes.binary('moving', ea.STATE)
+            e.binary('moving', ea.STATE, true, false)
                 .withDescription('Motor is moving'),
         ],
         configure: poll,
@@ -284,3 +285,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

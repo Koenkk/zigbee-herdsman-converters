@@ -33,7 +33,7 @@ export async function isUpdateAvailable(device: Zh.Device, logger: Logger, reque
     return common.isUpdateAvailable(device, logger, common.isNewImageAvailable, requestPayload, getImageMeta);
 }
 
-async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
+export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
     return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta);
 }
 

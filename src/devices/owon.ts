@@ -1,8 +1,10 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const constants = require('../lib/constants');
-const reporting = require('../lib/reporting');
+import {Definition, Fz, KeyValue} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as constants from '../lib/constants';
+import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -15,12 +17,12 @@ const fzLocal = {
                 return fz.temperature.convert(model, msg, publish, options, meta);
             }
         },
-    },
+    } as Fz.Converter,
     PC321_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const payload = {};
+            const payload: KeyValue = {};
             if (msg.data.hasOwnProperty('owonL1Energy')) {
                 payload.energy_l1 = msg.data['owonL1Energy'][1] / 1000.0;
             }
@@ -83,10 +85,10 @@ const fzLocal = {
             }
             return payload;
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['WSP402'],
         model: 'WSP402',
@@ -195,7 +197,7 @@ module.exports = [
         fromZigbee: [fz.fan, fz.thermostat],
         toZigbee: [tz.fan_mode, tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint, tz.thermostat_ac_louver_position, tz.thermostat_local_temperature],
-        exposes: [exposes.climate().withSystemMode(['off', 'heat', 'cool', 'auto', 'dry', 'fan_only'])
+        exposes: [e.climate().withSystemMode(['off', 'heat', 'cool', 'auto', 'dry', 'fan_only'])
             .withSetpoint('occupied_heating_setpoint', 8, 30, 1).withSetpoint('occupied_cooling_setpoint', 8, 30, 1)
             .withAcLouverPosition(['fully_open', 'fully_closed', 'half_open', 'quarter_open', 'three_quarters_open'])
             .withLocalTemperature(), e.fan().withModes(['low', 'medium', 'high', 'on', 'auto'])],
@@ -266,24 +268,24 @@ module.exports = [
         },
         meta: {publishDuplicateTransaction: true},
         exposes: [e.energy(),
-            exposes.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
-            exposes.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),
-            exposes.numeric('voltage_l3', ea.STATE).withUnit('V').withDescription('Phase 3 voltage'),
-            exposes.numeric('current_l1', ea.STATE).withUnit('A').withDescription('Phase 1 current'),
-            exposes.numeric('current_l2', ea.STATE).withUnit('A').withDescription('Phase 2 current'),
-            exposes.numeric('current_l3', ea.STATE).withUnit('A').withDescription('Phase 3 current'),
-            exposes.numeric('energy_l1', ea.STATE).withUnit('kWh').withDescription('Phase 1 energy'),
-            exposes.numeric('energy_l2', ea.STATE).withUnit('kWh').withDescription('Phase 2 energy'),
-            exposes.numeric('energy_l3', ea.STATE).withUnit('kWh').withDescription('Phase 3 energy'),
-            exposes.numeric('reactive_energy_l1', ea.STATE).withUnit('kVArh').withDescription('Phase 1 reactive energy'),
-            exposes.numeric('reactive_energy_l2', ea.STATE).withUnit('kVArh').withDescription('Phase 2 reactive energy'),
-            exposes.numeric('reactive_energy_l3', ea.STATE).withUnit('kVArh').withDescription('Phase 3 reactive energy'),
-            exposes.numeric('power_l1', ea.STATE).withUnit('W').withDescription('Phase 1 power'),
-            exposes.numeric('power_l2', ea.STATE).withUnit('W').withDescription('Phase 2 power'),
-            exposes.numeric('power_l3', ea.STATE).withUnit('W').withDescription('Phase 3 power'),
-            exposes.numeric('reactive_power_l1', ea.STATE).withUnit('VAr').withDescription('Phase 1 reactive power'),
-            exposes.numeric('reactive_power_l2', ea.STATE).withUnit('VAr').withDescription('Phase 2 reactive power'),
-            exposes.numeric('reactive_power_l3', ea.STATE).withUnit('VAr').withDescription('Phase 3 reactive power'),
+            e.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
+            e.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),
+            e.numeric('voltage_l3', ea.STATE).withUnit('V').withDescription('Phase 3 voltage'),
+            e.numeric('current_l1', ea.STATE).withUnit('A').withDescription('Phase 1 current'),
+            e.numeric('current_l2', ea.STATE).withUnit('A').withDescription('Phase 2 current'),
+            e.numeric('current_l3', ea.STATE).withUnit('A').withDescription('Phase 3 current'),
+            e.numeric('energy_l1', ea.STATE).withUnit('kWh').withDescription('Phase 1 energy'),
+            e.numeric('energy_l2', ea.STATE).withUnit('kWh').withDescription('Phase 2 energy'),
+            e.numeric('energy_l3', ea.STATE).withUnit('kWh').withDescription('Phase 3 energy'),
+            e.numeric('reactive_energy_l1', ea.STATE).withUnit('kVArh').withDescription('Phase 1 reactive energy'),
+            e.numeric('reactive_energy_l2', ea.STATE).withUnit('kVArh').withDescription('Phase 2 reactive energy'),
+            e.numeric('reactive_energy_l3', ea.STATE).withUnit('kVArh').withDescription('Phase 3 reactive energy'),
+            e.numeric('power_l1', ea.STATE).withUnit('W').withDescription('Phase 1 power'),
+            e.numeric('power_l2', ea.STATE).withUnit('W').withDescription('Phase 2 power'),
+            e.numeric('power_l3', ea.STATE).withUnit('W').withDescription('Phase 3 power'),
+            e.numeric('reactive_power_l1', ea.STATE).withUnit('VAr').withDescription('Phase 1 reactive power'),
+            e.numeric('reactive_power_l2', ea.STATE).withUnit('VAr').withDescription('Phase 2 reactive power'),
+            e.numeric('reactive_power_l3', ea.STATE).withUnit('VAr').withDescription('Phase 3 reactive power'),
         ],
     },
     {
@@ -291,7 +293,7 @@ module.exports = [
         model: 'PCT504',
         vendor: 'OWON',
         description: 'HVAC fan coil',
-        fromZigbee: [fz.fan, fz.thermostat, fz.humidity, fz.occupancy, fz.legacy.hvac_user_interface],
+        fromZigbee: [fz.fan, fz.thermostat, fz.humidity, fz.occupancy, legacy.fz.hvac_user_interface],
         toZigbee: [tz.fan_mode,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint, tz.thermostat_unoccupied_cooling_setpoint,
@@ -301,7 +303,7 @@ module.exports = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode, tz.thermostat_running_mode, tz.thermostat_running_state, tz.thermostat_programming_operation_mode],
         exposes: [e.humidity(), e.occupancy(),
-            exposes.climate().withSystemMode(['off', 'heat', 'cool', 'fan_only', 'sleep']).withLocalTemperature()
+            e.climate().withSystemMode(['off', 'heat', 'cool', 'fan_only', 'sleep']).withLocalTemperature()
                 .withRunningMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool', 'fan_only'])
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
@@ -353,3 +355,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

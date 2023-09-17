@@ -1,25 +1,26 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const constants = require('../lib/constants');
-const reporting = require('../lib/reporting');
-const globalStore = require('../lib/store');
-const utils = require('../lib/utils');
+import {Definition, Fz, KeyValue, Publish} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as constants from '../lib/constants';
+import * as reporting from '../lib/reporting';
+import * as globalStore from '../lib/store';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
 const kmpcilOptions={
     presence_timeout_dc: () => {
-        return exposes.numeric('presence_timeout_dc').withValueMin(60).withDescription(
+        return e.numeric('presence_timeout_dc', ea.STATE).withValueMin(60).withDescription(
             'Time in seconds after which presence is cleared after detecting it (default 60 seconds) while in DC.');
     },
     presence_timeout_battery: () => {
-        return exposes.numeric('presence_timeout_battery').withValueMin(120).withDescription(
+        return e.numeric('presence_timeout_battery', ea.STATE).withValueMin(120).withDescription(
             'Time in seconds after which presence is cleared after detecting it (default 420 seconds) while in Battery.');
     },
 };
 
-function handleKmpcilPresence(model, msg, publish, options, meta) {
+function handleKmpcilPresence(model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta): KeyValue {
     const useOptionsTimeoutBattery = options && options.hasOwnProperty('presence_timeout_battery');
     const timeoutBattery = useOptionsTimeoutBattery ? options.presence_timeout_battery : 420; // 100 seconds by default
 
@@ -28,7 +29,7 @@ function handleKmpcilPresence(model, msg, publish, options, meta) {
 
     const mode = meta.state? meta.state['power_state'] : false;
 
-    const timeout = mode ? timeoutDc : timeoutBattery;
+    const timeout = Number(mode ? timeoutDc : timeoutBattery);
     // Stop existing timer because motion is detected and set a new one.
     clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
     const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
@@ -51,7 +52,7 @@ const kmpcilConverters = {
             }
             return payload;
         },
-    },
+    } as Fz.Converter,
     presence_power: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -61,15 +62,16 @@ const kmpcilConverters = {
             if (msg.data.hasOwnProperty('batteryVoltage')) {
                 payload.voltage = msg.data['batteryVoltage'] * 100;
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                    // @ts-expect-error
                     payload.battery = utils.batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
                 }
             }
             return payload;
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['RES005'],
         model: 'KMPCIL_RES005',
@@ -117,7 +119,7 @@ module.exports = [
         vendor: 'KMPCIL',
         description: 'Arrival sensor',
         fromZigbee: [kmpcilConverters.presence_binary_input, kmpcilConverters.presence_power, fz.temperature],
-        exposes: [e.battery(), e.presence(), exposes.binary('power_state', exposes.access.STATE, true, false),
+        exposes: [e.battery(), e.presence(), e.binary('power_state', exposes.access.STATE, true, false),
             e.occupancy(), e.vibration(), e.temperature()],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
@@ -146,3 +148,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

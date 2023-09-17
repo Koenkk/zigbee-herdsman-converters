@@ -1,13 +1,16 @@
-const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import {Definition, Fz, OnEvent, Tz} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
+import tz from '../converters/toZigbee';
+import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
-const ota = require('../lib/ota');
+import * as ota from '../lib/ota';
 
-const readInitialBatteryState = async (type, data, device) => {
+const readInitialBatteryState: OnEvent = async (type, data, device, options) => {
     if (['deviceAnnounce'].includes(type)) {
         const endpoint = device.getEndpoint(1);
         const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
@@ -19,12 +22,12 @@ const tzLocal = {
     auto_mode: {
         key: ['auto_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const mode = {'off': 0x00, 'auto': 0x02, 'on_override': 0x03};
-            const payload = {data: Buffer.from([mode[value]])};
+            const mode = utils.getFromLookup(value, {'off': 0x00, 'auto': 0x02, 'on_override': 0x03});
+            const payload = {data: Buffer.from([mode])};
             await entity.command('manuSpecificLegrandDevices3', 'command0', payload);
             return {state: {'auto_mode': value}};
         },
-    },
+    } as Tz.Converter,
 };
 
 const fzlocal = {
@@ -33,7 +36,7 @@ const fzlocal = {
         type: ['commandNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            const lookup = {0x34: 'stop', 0x35: 'up', 0x36: 'down'};
+            const lookup: {[s: number]: string} = {0x34: 'stop', 0x35: 'up', 0x36: 'down'};
             if (commandID === 224) return;
             if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`GreenPower_3 error: missing command '${commandID}'`);
@@ -41,10 +44,10 @@ const fzlocal = {
                 return {action: lookup[commandID]};
             }
         },
-    },
+    } as Fz.Converter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: [' Pocket remote\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000', ' Wireless Scenes Command\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
@@ -71,8 +74,8 @@ module.exports = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         whiteLabel: [{vendor: 'BTicino', model: 'FC80AC'}],
-        exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
-            e.power().withAccess(ea.STATE_GET), exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
+        exposes: [e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
+            e.power().withAccess(ea.STATE_GET), e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -81,6 +84,7 @@ module.exports = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
             // Read configuration values that are not sent periodically as well as current power (activePower).
+            // @ts-expect-error
             await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
         },
     },
@@ -95,12 +99,12 @@ module.exports = [
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power, tzLocal.auto_mode],
         whiteLabel: [{vendor: 'BTicino', model: 'FC80CC'}],
         ota: ota.zigbeeOTA,
-        exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
+        exposes: [e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             e.power().withAccess(ea.STATE_GET),
-            exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
+            e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('Switch: allow manual on/off, auto uses contact\'s C1/C2 wired actions for Peak/Off-Peak ' +
                     'electricity rates'),
-            exposes.enum('auto_mode', ea.STATE_SET, ['off', 'auto', 'on_override'])
+            e.enum('auto_mode', ea.STATE_SET, ['off', 'auto', 'on_override'])
                 .withDescription('Off/auto/on (override) (works only if device is set to "auto" mode)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -121,8 +125,8 @@ module.exports = [
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         whiteLabel: [{vendor: 'BTicino', model: 'FC80RC'}],
         ota: ota.zigbeeOTA,
-        exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
-            e.power().withAccess(ea.STATE_GET), exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
+        exposes: [e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
+            e.power().withAccess(ea.STATE_GET), e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on teleruptor with buttons')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -146,8 +150,8 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
         },
-        onEvent: async (type, data, device, options) => {
-            await readInitialBatteryState(type, data, device);
+        onEvent: async (type, data, device, options, state) => {
+            await readInitialBatteryState(type, data, device, options, state);
 
             if (data.type === 'commandCheckin' && data.cluster === 'genPollCtrl') {
                 const endpoint = device.getEndpoint(1);
@@ -170,7 +174,7 @@ module.exports = [
             await reporting.currentPositionLiftPercentage(endpoint);
         },
         exposes: [e.cover_position(),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off,
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off,
             allowing to see it in the dark`)],
     },
     {
@@ -205,7 +209,7 @@ module.exports = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wireless remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop,
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, legacy.fz.cmd_move, legacy.fz.cmd_stop,
             fz.battery],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
             'brightness_move_down', 'brightness_stop'])],
@@ -267,14 +271,14 @@ module.exports = [
         toZigbee: [tz.light_onoff_brightness, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn,
             tz.legrand_deviceMode, tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
         exposes: [e.light_brightness(),
-            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
-            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum brightness value'),
-            exposes.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
+            e.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
                 ` see the switch in the dark`),
-            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
             e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
@@ -296,14 +300,14 @@ module.exports = [
         toZigbee: [tz.light_onoff_brightness, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn,
             tz.legrand_deviceMode, tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
         exposes: [e.light_brightness(),
-            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
-            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum brightness value'),
-            exposes.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
+            e.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
                 ` see the switch in the dark`),
-            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
             e.power_on_behavior()],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -325,9 +329,9 @@ module.exports = [
         toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.legrand_settingEnableLedIfOn,
             tz.power_on_behavior],
         exposes: [e.switch(), e.action(['identify']), e.power(), e.power_apparent(),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off,
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off,
                 allowing to see it in the dark`),
-            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the device is turned on'),
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the device is turned on'),
             e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -374,8 +378,8 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
-        onEvent: async (type, data, device) => {
-            await readInitialBatteryState(type, data, device);
+        onEvent: async (type, data, device, options, state) => {
+            await readInitialBatteryState(type, data, device, options, state);
 
             if (data.type === 'commandCheckin' && data.cluster === 'genPollCtrl') {
                 // TODO current solution is a work around, it would be cleaner to answer to the request
@@ -393,8 +397,8 @@ module.exports = [
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.ignore_basic_report, fz.ignore_genOta, fz.legrand_power_alarm,
             fz.legrand_led_in_dark],
         toZigbee: [tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.electrical_measurement_power, tz.legrand_powerAlarm],
-        exposes: [e.power().withAccess(ea.STATE_GET), e.power_apparent(), exposes.binary('power_alarm_active', ea.STATE, true, false),
-            exposes.binary('power_alarm', ea.ALL, true, false).withDescription('Enable/disable the power alarm')],
+        exposes: [e.power().withAccess(ea.STATE_GET), e.power_apparent(), e.binary('power_alarm_active', ea.STATE, true, false),
+            e.binary('power_alarm', ea.ALL, true, false).withDescription('Enable/disable the power alarm')],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -485,9 +489,9 @@ module.exports = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.legrand_cluster_fc01, fz.legrand_cable_outlet_mode, fz.on_off, fz.electrical_measurement, fz.power_on_behavior],
         toZigbee: [tz.legrand_deviceMode, tz.legrand_cableOutletMode, tz.on_off, tz.electrical_measurement_power, tz.power_on_behavior],
-        exposes: [exposes.binary('device_mode', ea.ALL, 'pilot_on', 'pilot_off'),
-            exposes.enum('cable_outlet_mode', ea.ALL, ['comfort', 'comfort-1', 'comfort-2', 'eco', 'frost_protection', 'off']),
-            exposes.switch().withState('state', true, 'Works only when the pilot wire is deactivated'),
+        exposes: [e.binary('device_mode', ea.ALL, 'pilot_on', 'pilot_off'),
+            e.enum('cable_outlet_mode', ea.ALL, ['comfort', 'comfort-1', 'comfort-2', 'eco', 'frost_protection', 'off']),
+            e.switch().withState('state', true, 'Works only when the pilot wire is deactivated'),
             e.power().withAccess(ea.STATE_GET),
             e.power_apparent(),
             e.power_on_behavior().withDescription(`Controls the behavior when the device is powered on. Works only when the pilot wire is
@@ -511,9 +515,9 @@ module.exports = [
         toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn],
         exposes: [e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
                 ` see the switch in the dark`),
-            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on')],
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpointLeft = device.getEndpoint(2);
@@ -551,9 +555,9 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.legrand_binary_input_on_off, fz.legrand_cluster_fc01, fz.legrand_led_in_dark],
         toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn],
         exposes: [e.switch(),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
                 ` see the switch in the dark`),
-            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on')],
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -571,14 +575,14 @@ module.exports = [
         toZigbee: [tz.light_onoff_brightness, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn,
             tz.legrand_deviceMode, tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
         exposes: [e.light_brightness(),
-            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
-            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum brightness value'),
-            exposes.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
+            e.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
                 ` see the switch in the dark`),
-            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
             e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
@@ -595,7 +599,7 @@ module.exports = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Remote dimmer switch',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop,
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, legacy.fz.cmd_move, legacy.fz.cmd_stop,
             fz.battery],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
             'brightness_move_down', 'brightness_stop'])],
@@ -617,9 +621,9 @@ module.exports = [
         toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.legrand_settingEnableLedIfOn,
             tz.power_on_behavior],
         exposes: [e.switch(), e.action(['identify']),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off,
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off,
                 allowing to see it in the dark`),
-            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the device is turned on'),
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the device is turned on'),
             e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -628,3 +632,5 @@ module.exports = [
         },
     },
 ];
+
+module.exports = definitions;

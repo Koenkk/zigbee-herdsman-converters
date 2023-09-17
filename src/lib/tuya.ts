@@ -245,7 +245,7 @@ async function sendDataPointValue(entity: Zh.Group | Zh.Endpoint, dp: number, va
     return await sendDataPoints(entity, [dpValueFromNumberValue(dp, value)], cmd, seq);
 }
 
-async function sendDataPointBool(entity: Zh.Group | Zh.Endpoint, dp: number, value: boolean, cmd?: string, seq?: number) {
+export async function sendDataPointBool(entity: Zh.Group | Zh.Endpoint, dp: number, value: boolean, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromBool(dp, value)], cmd, seq);
 }
 
@@ -836,8 +836,8 @@ const tuyaTz = {
     } as Tz.Converter,
     datapoints: {
         key: [
-            'temperature_unit', 'temperature_calibration', 'humidity_calibration', 'alarm_switch',
-            'state', 'brightness', 'min_brightness', 'max_brightness', 'power_on_behavior', 'position',
+            'temperature_unit', 'temperature_calibration', 'humidity_calibration', 'alarm_switch', 'tamper_alarm_switch',
+            'state', 'brightness', 'min_brightness', 'max_brightness', 'power_on_behavior', 'position', 'alarm_melody', 'alarm_mode',
             'countdown', 'light_type', 'silence', 'self_test', 'child_lock', 'open_window', 'open_window_temperature', 'frost_protection',
             'system_mode', 'heating_stop', 'current_heating_setpoint', 'local_temperature_calibration', 'preset', 'boost_timeset_countdown',
             'holiday_start_stop', 'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'working_day',
