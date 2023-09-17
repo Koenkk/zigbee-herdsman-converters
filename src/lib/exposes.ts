@@ -675,6 +675,8 @@ export const presets = {
     light_brightness_colortemp_colorxy: (colorTempRange?: Range) => new Light().withBrightness().withColorTemp(colorTempRange).withColorTempStartup(colorTempRange).withColor(['xy']),
     light_brightness_colorxy: () => new Light().withBrightness().withColor((['xy'])),
     light_colorhs: () => new Light().withColor(['hs']),
+    light_color_options: () => new Composite('color_options', 'color_options', access.ALL).withDescription('Advanced color behavior')
+        .withFeature(new Binary('execute_if_off', access.SET, true, false).withDescription('Controls whether color and color temperature can be set while light is off')),
     linkquality: () => new Numeric('linkquality', access.STATE).withUnit('lqi').withDescription('Link quality (signal strength)').withValueMin(0).withValueMax(255),
     local_temperature: () => new Numeric('local_temperature', access.STATE_GET).withUnit('°C').withDescription('Current temperature measured on the device'),
     lock: () => new Lock().withState('state', 'LOCK', 'UNLOCK', 'State of the lock').withLockState('lock_state', 'Actual state of the lock'),
