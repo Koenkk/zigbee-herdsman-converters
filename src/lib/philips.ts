@@ -47,6 +47,8 @@ const knownEffects = {
     '0380': 'colorloop',
     '0980': 'sunrise',
     '0a80': 'sparkle',
+    '0b80': 'opal',
+    '0c80': 'glisten',
 };
 
 export const extend = {
@@ -402,6 +404,8 @@ const hueEffects = {
     'colorloop': '21000103',
     'sunrise': '21000109',
     'sparkle': '2100010a',
+    'opal': '2100010b',
+    'glisten': '2100010c',
     'stop_hue_effect': '200000',
 };
 
