@@ -1236,8 +1236,9 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [tuya.exposes.lightBrightnessWithMinMax(), e.power_on_behavior(),
-            tuya.exposes.countdown(), tuya.exposes.lightType()],
+        exposes: [tuya.exposes.lightBrightnessWithMinMax(), tuya.exposes.countdown(), tuya.exposes.lightType(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET)],
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
@@ -1247,6 +1248,7 @@ const definitions: Definition[] = [
                 [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
                 [6, 'countdown', tuya.valueConverter.countdown],
                 [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
+                [21, 'backlight_mode', tuya.valueConverter.backlightMode],
             ],
         },
         whiteLabel: [
@@ -1269,7 +1271,7 @@ const definitions: Definition[] = [
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l2'),
             tuya.exposes.countdown().withEndpoint('l1'),
             tuya.exposes.countdown().withEndpoint('l2'),
-            e.power_on_behavior(['off', 'on', 'previous']).withAccess(ea.STATE_SET),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
             tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET),
         ],
         meta: {
@@ -1286,7 +1288,7 @@ const definitions: Definition[] = [
                 [11, 'max_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
                 [12, 'countdown_l2', tuya.valueConverter.countdown],
                 [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
-                [21, 'backlight_mode', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'normal': tuya.enum(1), 'inverted': tuya.enum(2)})],
+                [21, 'backlight_mode', tuya.valueConverter.backlightMode],
             ],
         },
         endpoint: (device) => {
@@ -1307,7 +1309,8 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [tuya.exposes.lightBrightness().withEndpoint('l1'), tuya.exposes.lightBrightness().withEndpoint('l2'),
-            tuya.exposes.lightBrightness().withEndpoint('l3')],
+            tuya.exposes.lightBrightness().withEndpoint('l3'), e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET)],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
@@ -1317,6 +1320,8 @@ const definitions: Definition[] = [
                 [8, 'brightness_l2', tuya.valueConverter.scale0_254to0_1000],
                 [15, 'state_l3', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
                 [16, 'brightness_l3', tuya.valueConverter.scale0_254to0_1000],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
+                [21, 'backlight_mode', tuya.valueConverter.backlightMode],
             ],
         },
         endpoint: (device) => {
