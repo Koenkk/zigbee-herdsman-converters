@@ -1270,7 +1270,7 @@ const definitions: Definition[] = [
             tuya.exposes.countdown().withEndpoint('l1'),
             tuya.exposes.countdown().withEndpoint('l2'),
             e.power_on_behavior(['off', 'on', 'previous']).withAccess(ea.STATE_SET),
-            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET),
         ],
         meta: {
             multiEndpoint: true,
@@ -1286,7 +1286,7 @@ const definitions: Definition[] = [
                 [11, 'max_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
                 [12, 'countdown_l2', tuya.valueConverter.countdown],
                 [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
-                [21, 'backlight_mode', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
+                [21, 'backlight_mode', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'normal': tuya.enum(1), 'inverted': tuya.enum(2)})],
             ],
         },
         endpoint: (device) => {
