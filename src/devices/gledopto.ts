@@ -276,7 +276,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB (pro)',
-        extend: gledoptoExtend.light_onoff_brightness_color({noConfigure: true}),
+        extend: gledoptoExtend.light_onoff_brightness_color({noConfigure: true, disablePowerOnBehavior: false}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness_color().configure(device, coordinatorEndpoint, logger);
             await configureReadModelID(device, coordinatorEndpoint, logger);
@@ -341,7 +341,7 @@ const definitions: Definition[] = [
         model: 'GL-LB-001P',
         vendor: 'Gledopto',
         description: 'Zigbee USB LED bar RGB+CCT (pro)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495], disablePowerOnBehavior: false}),
     },
     {
         zigbeeModel: ['GL-B-002P'],
