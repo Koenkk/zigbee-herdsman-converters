@@ -106,12 +106,15 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'alarm_state', tuya.valueConverterBasic.lookup({'alarm_sound': tuya.enum(0), 'alarm_light': tuya.enum(1), 'alarm_sound_light': tuya.enum(2), 'no_alarm': tuya.enum(3)})],
+                [1, 'alarm_state', tuya.valueConverterBasic.lookup({'alarm_sound': tuya.enum(0), 'alarm_light': tuya.enum(1),
+                'alarm_sound_light': tuya.enum(2), 'no_alarm': tuya.enum(3)})],
                 [13, 'alarm_switch', tuya.valueConverter.onOff],
                 [101, 'tamper_alarm_switch', tuya.valueConverter.onOff],
                 [20, 'tamper_alarm', tuya.valueConverter.onOff],
-                [21, 'alarm_melody', tuya.valueConverterBasic.lookup({'melody_1': tuya.enum(0), 'melody_2': tuya.enum(1), 'melody_3': tuya.enum(2)})],
-                [102, 'alarm_mode', tuya.valueConverterBasic.lookup({'alarm_sound': tuya.enum(0), 'alarm_light': tuya.enum(1), 'alarm_sound_light': tuya.enum(2)})],
+                [21, 'alarm_melody', tuya.valueConverterBasic.lookup({'melody_1': tuya.enum(0), 'melody_2': tuya.enum(1),
+                'melody_3': tuya.enum(2)})],
+                [102, 'alarm_mode', tuya.valueConverterBasic.lookup({'alarm_sound': tuya.enum(0), 'alarm_light': tuya.enum(1),
+                'alarm_sound_light': tuya.enum(2)})],
                 [7, 'alarm_time', tuya.valueConverter.raw],
                 [6, 'charging', tuya.valueConverter.raw],
                 [15, 'battery', tuya.valueConverter.raw],
