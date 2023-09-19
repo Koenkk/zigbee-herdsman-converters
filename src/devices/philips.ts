@@ -12,7 +12,7 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['LLM010', 'LLM011', 'LLM012'],
+        zigbeeModel: ['LLM010', 'LLM012'],
         model: '8718696126523',
         vendor: 'Philips',
         description: 'Hue Phoenix ceiling light',
