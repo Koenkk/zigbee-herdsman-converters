@@ -6100,77 +6100,77 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_mpbki2zm',
-            },
-        ],
-        model: 'TYBAC-006',
-        vendor: 'TuYa',
-        description: 'Wall-mount thermostat for 2-pipe fan-coil unit',
-        fromZigbee: [tuya.fz.datapoints, fz.ignore_tuya_set_time],
-        toZigbee: [{...tuya.tz.datapoints, key: [...tuya.tz.datapoints.key, 'fan_mode', 'deadzone_temperature', 'eco_mode', 'max_temperature_limit', 'min_temperature_limit']}],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
-        exposes: [
-            exposes.switch().withState('state', false, 'OFF/ON state'),
-            e.child_lock(),
-            e.climate()
-                    .withLocalTemperature(ea.STATE)
-                    .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
-                    .withSystemMode(['cool', 'heat', 'fan_only'])
-                    .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
-                    .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET),
-            e.min_temperature().withValueMin(5).withValueMax(15),
-            e.max_temperature().withValueMin(15).withValueMax(45),
-            exposes.switch().withState('eco_mode', false, 'ECO Mode OFF/ON'),
-            e.max_temperature_limit().withDescription('ECO Heating energy-saving temperature (Default: 20 ºC)').withValueMin(15).withValueMax(30),
-            e.min_temperature_limit().withDescription('ECO Cooling energy-saving temperature (Default: 26 ºC)').withValueMin(15).withValueMax(30),
-            e.deadzone_temperature().withValueMin(0).withValueMax(5).withValueStep(1),
-            e.binary('valve', ea.STATE, 'CLOSED', 'OPEN').withDescription('3-Way Valve status'),
-        ],
-        meta: {
-            tuyaDatapoints:
-            [
-                [1, 'state', tuya.valueConverter.onOff],
-                [2, 'system_mode', tuya.valueConverterBasic.lookup({'cool': tuya.enum(0), 'heat': tuya.enum(1), 'fan_only': tuya.enum(2)})],
-                [4, 'eco_mode', tuya.valueConverter.onOff],
-                [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
-                [19, 'max_temperature', tuya.valueConverter.divideBy10],
-                [24, 'local_temperature', tuya.valueConverter.divideBy10],
-                [26, 'min_temperature', tuya.valueConverter.divideBy10],
-                [27,  'local_temperature_calibration',  {
-                    from: (value) => {
-                        if (value > 4000) 
-                            return value - 4096;
-                        return value;
-                        },
-                    to: (value) => {
-                        if (value < 0) 
-                            return 4096 + value;
-                        return value;
-                        }
-                    }],
-                [28, 'fan_mode', tuya.valueConverterBasic.lookup({'low': tuya.enum(0), 'medium': tuya.enum(1), 'high': tuya.enum(2), 'auto': tuya.enum(3)})],
-                [36, 'valve', tuya.valueConverterBasic.lookup({'OPEN': 0, 'CLOSE': 1})],
-                [40, 'child_lock', tuya.valueConverter.lockUnlock],
-                [103, 'deadzone_temperature', tuya.valueConverter.raw],
-                [104, 'min_temperature_limit', tuya.valueConverter.divideBy10],
-                [105, 'max_temperature_limit', tuya.valueConverter.divideBy10],
-                /* TODO - help needed
-                "101": DP for "Schedule/Manual",
-                "106": DP for "Schedule",
-                "107": DP for "Schedule",
-                "108": DP for "Schedule",
-                "109": DP for "Schedule",
-                "110": DP for "Schedule",
-                "111": DP for "Schedule",
-                "112": DP for "Schedule"
-                */
-            ],
+    fingerprint: [
+        {
+            modelID: 'TS0601',
+            manufacturerName: '_TZE204_mpbki2zm',
         },
+    ],
+    model: 'TYBAC-006',
+    vendor: 'TuYa',
+    description: 'Wall-mount thermostat for 2-pipe fan-coil unit',
+    fromZigbee: [tuya.fz.datapoints, fz.ignore_tuya_set_time],
+    toZigbee: [{...tuya.tz.datapoints, key: [...tuya.tz.datapoints.key, 'fan_mode', 'deadzone_temperature', 'eco_mode', 'max_temperature_limit', 'min_temperature_limit', 'manual_mode']}],
+    onEvent: tuya.onEventSetLocalTime,
+    configure: tuya.configureMagicPacket,
+    exposes: [
+        e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
+		e.child_lock(),
+		e.climate()
+		        .withLocalTemperature(ea.STATE)
+		        .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
+		        .withSystemMode(['cool', 'heat', 'fan_only'])
+		        .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
+		        .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET),
+		e.min_temperature().withValueMin(5).withValueMax(15),
+		e.max_temperature().withValueMin(15).withValueMax(45),
+		e.binary('eco_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('ECO Mode ON/OFF'),
+		e.max_temperature_limit().withDescription('ECO Heating energy-saving temperature (Default: 20 ºC)').withValueMin(15).withValueMax(30),
+		e.min_temperature_limit().withDescription('ECO Cooling energy-saving temperature (Default: 26 ºC)').withValueMin(15).withValueMax(30),
+		e.deadzone_temperature().withValueMin(0).withValueMax(5).withValueStep(1),
+    	e.binary('valve', ea.STATE, 'CLOSED', 'OPEN').withDescription('3-Way Valve status'),
+    	e.binary('manual_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Manual = ON or Schedule = OFF'),
+    	...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+    ],
+    meta: {
+        tuyaDatapoints:
+        [
+            [1, 'state', tuya.valueConverter.onOff],
+            [2, 'system_mode', tuya.valueConverterBasic.lookup({'cool': tuya.enum(0), 'heat': tuya.enum(1), 'fan_only': tuya.enum(2)})],
+            [4, 'eco_mode', tuya.valueConverter.onOff],
+            [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+            [19, 'max_temperature', tuya.valueConverter.divideBy10],
+            [24, 'local_temperature', tuya.valueConverter.divideBy10],
+            [26, 'min_temperature', tuya.valueConverter.divideBy10],
+            [27,  'local_temperature_calibration',  {
+                from: (value) => {
+                    if (value > 4000) 
+                        return value - 4096;
+                    return value;
+                    },
+                to: (value) => {
+                    if (value < 0) 
+                        return 4096 + value;
+                    return value;
+                    }
+                }],
+            [28, 'fan_mode', tuya.valueConverterBasic.lookup({'low': tuya.enum(0), 'medium': tuya.enum(1), 'high': tuya.enum(2), 'auto': tuya.enum(3)})],
+            [36, 'valve', tuya.valueConverterBasic.lookup({'OPEN': 0, 'CLOSE': 1})],
+			[40, 'child_lock', tuya.valueConverter.lockUnlock],
+			[103, 'deadzone_temperature', tuya.valueConverter.raw],
+			[104, 'min_temperature_limit', tuya.valueConverter.divideBy10],
+			[105, 'max_temperature_limit', tuya.valueConverter.divideBy10],
+			[106, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+			[107, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+			[108, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+			[109, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+			[110, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+			[111, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+			[112, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+			[101, 'manual_mode', tuya.valueConverter.onOff],
+        ],
     },
+},
 ];
 
 module.exports = definitions;
