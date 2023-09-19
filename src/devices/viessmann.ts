@@ -9,6 +9,15 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['7637435'],
+        model: 'ZK03839',
+        vendor: 'Viessmann',
+        description: 'ViCare climate sensor',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+    },
+    {
         zigbeeModel: ['7637434'],
         model: 'ZK03840',
         vendor: 'Viessmann',
