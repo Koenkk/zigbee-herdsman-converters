@@ -12,6 +12,13 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['LLM010', 'LLM011', 'LLM012'],
+        model: '8718696126523',
+        vendor: 'Philips',
+        description: 'Hue Phoenix ceiling light',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 455]}),
+    },
+    {
         zigbeeModel: ['LWA023'],
         model: '9290030516',
         vendor: 'Philips',
