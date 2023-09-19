@@ -231,14 +231,13 @@ const definitions: Definition[] = [
             tuya.exposes.countdown().withEndpoint('l2'),
             tuya.exposes.switchType().withEndpoint('l1'),
             tuya.exposes.switchType().withEndpoint('l2'),
-            e.power_on_behavior(['off', 'on', 'previous']).withAccess(ea.STATE_SET),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1};
         },
         meta: {
             multiEndpoint: true,
-            // All datapoints go in here
             tuyaDatapoints: [
                 [1, 'state_l1', tuya.valueConverter.onOff],
                 [2, 'brightness_l1', tuya.valueConverter.scale0_254to0_1000],
