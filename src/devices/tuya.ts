@@ -6115,7 +6115,7 @@ const definitions: Definition[] = [
             e.climate()
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
-                .withSystemMode(['cool', 'heat', 'fan_only'])
+                .withSystemMode(['cool', 'heat', 'fan_only'], ea.STATE_SET)
                 .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET)
                 .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET),
             e.min_temperature().withValueMin(5).withValueMax(15),
