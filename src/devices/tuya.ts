@@ -4650,6 +4650,24 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_f1pvdgoh']),
+        model: 'TS0601_pir',
+        vendor: 'TuYa',
+        description: 'Haozee PIR sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        exposes: [e.occupancy(), e.illuminance(), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'occupancy', tuya.valueConverter.trueFalse0],
+                [4, 'battery', tuya.valueConverter.raw],
+                [101, 'illuminance', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8isdky6j']),
         model: 'ZG-225Z',
         vendor: 'TuYa',
