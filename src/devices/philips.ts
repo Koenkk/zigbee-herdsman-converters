@@ -3379,6 +3379,13 @@ const definitions: Definition[] = [
         description: 'Philips Hue white ambiance pillar double spot (2 spot) with Bluetooth',
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['LTG003'],
+        model: '8719514491342',
+        vendor: 'Philips',
+        description: 'Hue white ambiance MR16 with Bluetooth',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];
 
 module.exports = definitions;
