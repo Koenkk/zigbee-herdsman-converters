@@ -439,6 +439,7 @@ export const valueConverter = {
     onOff: valueConverterBasic.lookup({'ON': true, 'OFF': false}),
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
+    switchType: valueConverterBasic.lookup({'momentary': new Enum(0), 'toggle': new Enum(1), 'state': new Enum(2)}),
     backlightMode: valueConverterBasic.lookup({'off': new Enum(0), 'normal': new Enum(1), 'inverted': new Enum(2)}),
     lightType: valueConverterBasic.lookup({'led': 0, 'incandescent': 1, 'halogen': 2}),
     countdown: valueConverterBasic.raw(),
@@ -856,7 +857,7 @@ const tuyaTz = {
             'large_motion_detection_distance', 'large_motion_detection_sensitivity', 'small_motion_detection_distance',
             'small_motion_detection_sensitivity', 'static_detection_distance', 'static_detection_sensitivity', 'keep_time', 'indicator',
             'motion_sensitivity', 'detection_distance_max', 'detection_distance_min', 'presence_sensitivity', 'sensitivity', 'illuminance_interval',
-            'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity',
+            'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity', 'switch_type',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
