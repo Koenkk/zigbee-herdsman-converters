@@ -6183,6 +6183,43 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_mhxn2jso']),
+        model: 'rtsc11r',
+        vendor: 'TuYa',
+        description: '5.8G human presence sensor with relay',
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        exposes: [
+            e.presence(), e.illuminance().withUnit('lx'),
+            e.numeric('detection_delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1)
+                .withDescription('Detection delay').withUnit('s'),
+            e.numeric('detection_distance', ea.STATE).withValueMin(0).withValueMax(1000).withValueStep(1)
+                .withDescription('Distance of detected person').withUnit('cm'),
+            e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
+                .withDescription('Detection sensitivity'),
+            e.numeric('keep_time', ea.STATE_SET).withValueMin(5).withValueMax(3600).withValueStep(1)
+                .withDescription('Detection keep time').withUnit('s'),
+            e.numeric('minimum_range', ea.STATE_SET).withValueMin(0).withValueMax(1000).withValueStep(50)
+                .withDescription('Minimum detection range').withUnit('m'),
+            e.numeric('maximum_range', ea.STATE_SET).withValueMin(50).withValueMax(1000).withValueStep(50)
+                .withDescription('Maximum detection range').withUnit('m'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [12, 'detection_delay', tuya.valueConverter.divideBy10],
+                [19, 'detection_distance', tuya.valueConverter.raw],
+                [20, 'illuminance', tuya.valueConverter.raw],
+                [101, 'sensitivity', tuya.valueConverter.divideBy10],
+                [102, 'keep_time', tuya.valueConverter.raw],
+                [111, 'minimum_range', tuya.valueConverter.divideBy100],
+                [112, 'maximum_range', tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
 ];
 
 module.exports = definitions;
