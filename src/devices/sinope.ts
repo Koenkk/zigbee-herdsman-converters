@@ -612,7 +612,7 @@ const definitions: Definition[] = [
                     'in "outdoor temp" mode when expired.'),
             e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('Seconds').withValueMin(30).withValueMax(64800)
+            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
                 .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
             e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
@@ -688,7 +688,7 @@ const definitions: Definition[] = [
                     'in "outdoor temp" mode when expired.'),
             e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('Seconds').withValueMin(30).withValueMax(64800)
+            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
                 .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
             e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
@@ -764,7 +764,7 @@ const definitions: Definition[] = [
                     'in "outdoor temp" mode when expired.'),
             e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('Seconds').withValueMin(30).withValueMax(64800)
+            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
                 .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
             e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
@@ -846,7 +846,7 @@ const definitions: Definition[] = [
                     'in "outdoor temp" mode when expired.'),
             e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('Seconds').withValueMin(30).withValueMax(64800)
+            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
                 .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
             e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
@@ -929,7 +929,7 @@ const definitions: Definition[] = [
                     'in "outdoor temp" mode when expired.'),
             e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('Seconds').withValueMin(30).withValueMax(64800)
+            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
                 .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
             e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
@@ -1018,7 +1018,7 @@ const definitions: Definition[] = [
                     'in "outdoor temp" mode when expired.'),
             e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('Seconds').withValueMin(30).withValueMax(64800)
+            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
                 .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
             e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
@@ -1111,7 +1111,7 @@ const definitions: Definition[] = [
                     'in "outdoor temp" mode when expired.'),
             e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
                 .withDescription('Outdoor temperature for the secondary display'),
-            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('Seconds').withValueMin(30).withValueMax(64800)
+            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
                 .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
                 .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
             e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
@@ -1147,7 +1147,7 @@ const definitions: Definition[] = [
             tzLocal.led_color_on, tzLocal.led_color_off, tzLocal.keypad_lockout, tzLocal.connected_load],
         exposes: [e.switch(),
             e.action(['up_single', 'up_double', 'up_hold', 'down_single', 'down_double', 'down_hold']),
-            e.numeric('timer_seconds', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)
+            e.numeric('timer_seconds', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)
                 .withPreset('Disabled', 0, 'disabled').withDescription('Automatically turn off load after x seconds'),
             e.numeric('led_intensity_on', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
@@ -1197,7 +1197,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.light_onoff_brightness, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
             tzLocal.minimum_brightness, tzLocal.led_color_on, tzLocal.led_color_off],
         exposes: [e.light_brightness(),
-            e.numeric('timer_seconds', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)
+            e.numeric('timer_seconds', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)
                 .withPreset('Disabled', 0, 'disabled').withDescription('Automatically turn off load after x seconds'),
             e.numeric('led_intensity_on', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
@@ -1233,7 +1233,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.light_onoff_brightness, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
             tzLocal.minimum_brightness, tzLocal.led_color_on, tzLocal.led_color_off],
         exposes: [e.light_brightness(),
-            e.numeric('timer_seconds', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)
+            e.numeric('timer_seconds', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)
                 .withPreset('Disabled', 0, 'disabled').withDescription('Automatically turn off load after x seconds'),
             e.numeric('led_intensity_on', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),

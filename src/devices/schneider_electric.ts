@@ -217,7 +217,7 @@ const definitions: Definition[] = [
         description: 'Roller shutter module',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
-        exposes: [e.cover_position(), e.numeric('lift_duration', ea.STATE_SET).withUnit('seconds')
+        exposes: [e.cover_position(), e.numeric('lift_duration', ea.STATE_SET).withUnit('s')
             .withValueMin(0).withValueMax(300).withDescription('Duration of lift')],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -233,7 +233,7 @@ const definitions: Definition[] = [
         description: 'Roller shutter',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
-        exposes: [e.cover_position(), e.numeric('lift_duration', ea.STATE_SET).withUnit('seconds')
+        exposes: [e.cover_position(), e.numeric('lift_duration', ea.STATE_SET).withUnit('s')
             .withValueMin(0).withValueMax(300).withDescription('Duration of lift')],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -568,7 +568,7 @@ const definitions: Definition[] = [
         description: 'Merten MEG5165 PlusLink Shutter insert with Merten Wiser System M Push Button (1fold)',
         fromZigbee: [fz.cover_position_tilt, fz.command_cover_close, fz.command_cover_open, fz.command_cover_stop],
         toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
-        exposes: [e.cover_position(), e.numeric('lift_duration', ea.STATE_SET).withUnit('seconds')
+        exposes: [e.cover_position(), e.numeric('lift_duration', ea.STATE_SET).withUnit('s')
             .withValueMin(0).withValueMax(300).withDescription('Duration of lift')],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -989,7 +989,7 @@ const definitions: Definition[] = [
         description: 'LK FUGA Wiser wireless PIR with relay',
         fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fz.occupancy_timeout],
         exposes: [e.switch().withEndpoint('l1'), e.occupancy(), e.illuminance_lux(), e.illuminance(),
-            e.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)
+            e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(3600)
                 .withDescription('Time in seconds after which occupancy is cleared after detecting it')],
         toZigbee: [tz.on_off, tz.occupancy_timeout],
         endpoint: (device) => {

@@ -948,9 +948,9 @@ const definitions: Definition[] = [
             e.enum('motor_state', ea.STATE, Object.keys(stateMotor))
                 .withDescription('Shutter motor actual state '),
             e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
-            e.numeric('calibration_closing_time', ea.ALL).withUnit('S')
+            e.numeric('calibration_closing_time', ea.ALL).withUnit('s')
                 .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
-            e.numeric('calibration_opening_time', ea.ALL).withUnit('S')
+            e.numeric('calibration_opening_time', ea.ALL).withUnit('s')
                 .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
         ],
     },

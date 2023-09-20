@@ -113,7 +113,7 @@ const definitions: Definition[] = [
         },
         exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.illuminance_lux(), e.illuminance(),
             e.binary('led_on_motion', ea.ALL, true, false).withDescription('Enable/disable LED on motion'),
-            e.numeric('occupancy_timeout', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)],
+            e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)],
     },
     {
         zigbeeModel: ['ID Lock 150'],

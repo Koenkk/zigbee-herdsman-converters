@@ -20,7 +20,7 @@ const definitions: Definition[] = [
         meta: {coverInverted: true},
         exposes: [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             e.binary('calibration', ea.ALL, 'ON', 'OFF'), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
-            e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')],
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_egq7y6pr'}],
@@ -34,7 +34,7 @@ const definitions: Definition[] = [
         exposes: [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             e.binary('calibration', ea.ALL, 'ON', 'OFF'), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
             e.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH']),
-            e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')],
     },
     {
         fingerprint: tuya.fingerprint('TS130F', ['_TZ3000_j1xl73iw', '_TZ3000_kmsbwdol', '_TZ3000_esynmmox', '_TZ3000_l6iqph4f']),
@@ -50,9 +50,9 @@ const definitions: Definition[] = [
         exposes: [
             e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('left'),
             e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('right'),
-            e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')
                 .withEndpoint('left'),
-            e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')
                 .withEndpoint('right'),
             e.cover_position().withEndpoint('left'), e.binary('calibration', ea.ALL, 'ON', 'OFF')
                 .withEndpoint('left'), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF').withEndpoint('left'),
@@ -215,7 +215,7 @@ const definitions: Definition[] = [
         meta: {coverInverted: true},
         exposes: [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             e.binary('calibration', ea.ALL, 'ON', 'OFF'), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
-            e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')],
     },
     {
         fingerprint: [{modelID: 'TS0603', manufacturerName: '_TZE600_wxq8dpha\u0000'}],
