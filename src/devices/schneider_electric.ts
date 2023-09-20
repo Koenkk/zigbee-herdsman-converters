@@ -1116,6 +1116,8 @@ const definitions: Definition[] = [
             await endpoint.read('msTemperatureMeasurement', ['measuredValue']);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneStatus', 'zoneId']);
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
         whiteLabel: [
             {vendor: 'Schneider Electric', model: 'W599501', description: 'Wiser smoke alarm', fingerprint: [{modelID: 'W599501'}]},

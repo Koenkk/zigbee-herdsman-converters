@@ -1236,8 +1236,9 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [tuya.exposes.lightBrightnessWithMinMax(), e.power_on_behavior(),
-            tuya.exposes.countdown(), tuya.exposes.lightType()],
+        exposes: [tuya.exposes.lightBrightnessWithMinMax(), tuya.exposes.countdown(), tuya.exposes.lightType(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET)],
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
@@ -1247,6 +1248,7 @@ const definitions: Definition[] = [
                 [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
                 [6, 'countdown', tuya.valueConverter.countdown],
                 [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
+                [21, 'backlight_mode', tuya.valueConverter.backlightMode],
             ],
         },
         whiteLabel: [
@@ -1269,6 +1271,8 @@ const definitions: Definition[] = [
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l2'),
             tuya.exposes.countdown().withEndpoint('l1'),
             tuya.exposes.countdown().withEndpoint('l2'),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET),
         ],
         meta: {
             multiEndpoint: true,
@@ -1283,6 +1287,8 @@ const definitions: Definition[] = [
                 [9, 'min_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
                 [11, 'max_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
                 [12, 'countdown_l2', tuya.valueConverter.countdown],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
+                [21, 'backlight_mode', tuya.valueConverter.backlightMode],
             ],
         },
         endpoint: (device) => {
@@ -1303,7 +1309,8 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [tuya.exposes.lightBrightness().withEndpoint('l1'), tuya.exposes.lightBrightness().withEndpoint('l2'),
-            tuya.exposes.lightBrightness().withEndpoint('l3')],
+            tuya.exposes.lightBrightness().withEndpoint('l3'), e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET)],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
@@ -1313,6 +1320,8 @@ const definitions: Definition[] = [
                 [8, 'brightness_l2', tuya.valueConverter.scale0_254to0_1000],
                 [15, 'state_l3', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
                 [16, 'brightness_l3', tuya.valueConverter.scale0_254to0_1000],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
+                [21, 'backlight_mode', tuya.valueConverter.backlightMode],
             ],
         },
         endpoint: (device) => {
@@ -4641,6 +4650,24 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_f1pvdgoh']),
+        model: 'TS0601_pir',
+        vendor: 'TuYa',
+        description: 'Haozee PIR sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        exposes: [e.occupancy(), e.illuminance(), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'occupancy', tuya.valueConverter.trueFalse0],
+                [4, 'battery', tuya.valueConverter.raw],
+                [101, 'illuminance', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8isdky6j']),
         model: 'ZG-225Z',
         vendor: 'TuYa',
@@ -6087,8 +6114,8 @@ const definitions: Definition[] = [
                 [112, 'voltage', tuya.valueConverter.divideBy10],
                 [113, 'current_a', tuya.valueConverter.divideBy1000],
                 [114, 'current_b', tuya.valueConverter.divideBy1000],
-                [110, 'power_factor_a', tuya.valueConverter.divideBy100],
-                [121, 'power_factor_b', tuya.valueConverter.divideBy100],
+                [110, 'power_factor_a', tuya.valueConverter.raw],
+                [121, 'power_factor_b', tuya.valueConverter.raw],
                 [102, 'energy_flow_a', tuya.valueConverterBasic.lookup({'consuming': 0, 'producing': 1})],
                 [104, 'energy_flow_b', tuya.valueConverterBasic.lookup({'consuming': 0, 'producing': 1})],
                 [106, 'energy_a', tuya.valueConverter.divideBy100],
