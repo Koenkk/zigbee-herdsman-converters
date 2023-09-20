@@ -3729,7 +3729,7 @@ const definitions: Definition[] = [
             legacy.toZigbee.tuya_thermostat_fan_mode, legacy.toZigbee.tuya_dimmer_state],
     },
     {
-        zigbeeModel: ['E220-KR4N0Z0-HA', 'JZ-ZB-004'],
+        zigbeeModel: ['E220-KR4N0Z0-HA', 'JZ-ZB-004', 'E220-KR5N0Z0-HA'],
         model: 'E220-KR4N0Z0-HA',
         vendor: 'TuYa',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
