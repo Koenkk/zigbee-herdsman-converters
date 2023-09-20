@@ -454,6 +454,10 @@ export const valueConverter = {
     switchMode: valueConverterBasic.lookup({'switch': new Enum(0), 'scene': new Enum(1)}),
     lightMode: valueConverterBasic.lookup({'normal': new Enum(0), 'on': new Enum(1), 'off': new Enum(2), 'flash': new Enum(3)}),
     raw: valueConverterBasic.raw(),
+    localTemperatureCalibration: {
+        from: (value: number) => value > 4000 ? value - 4096 : value,
+        to: (value: number) => value < 0 ? 4096 + value : value,
+    },
     setLimit: {
         to: (v: number) => {
             if (!v) throw new Error('Limit cannot be unset, use factory_reset');
@@ -857,6 +861,8 @@ const tuyaTz = {
             'large_motion_detection_distance', 'large_motion_detection_sensitivity', 'small_motion_detection_distance',
             'small_motion_detection_sensitivity', 'static_detection_distance', 'static_detection_sensitivity', 'keep_time', 'indicator',
             'motion_sensitivity', 'detection_distance_max', 'detection_distance_min', 'presence_sensitivity', 'sensitivity', 'illuminance_interval',
+            'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity', 'fan_mode', 'deadzone_temperature',
+            'eco_mode', 'max_temperature_limit', 'min_temperature_limits', 'manual_modes',
             'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity', 'switch_type',
         ],
         convertSet: async (entity, key, value, meta) => {
