@@ -90,7 +90,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['ZB-SW02', 'E220-KR2N0Z0-HA'],
+        zigbeeModel: ['ZB-SW02', 'E220-KR2N0Z0-HA', 'SWITCH-ZR03-2'],
         model: 'ZB-SW02',
         vendor: 'eWeLink',
         description: 'Smart light switch/2 gang relay',
