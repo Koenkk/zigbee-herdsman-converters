@@ -749,7 +749,7 @@ const definitions: Definition[] = [
                 .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
             e.binary('occupancy_and', ea.STATE, true, false)
                 .withDescription('Indicates whether "IN and OUT" Sensor of the device detected occupancy'),
-            e.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)],
+            e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(3600)],
     },
     {
         zigbeeModel: ['ISM300Z3'],

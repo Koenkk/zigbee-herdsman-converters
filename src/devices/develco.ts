@@ -645,7 +645,7 @@ const definitions: Definition[] = [
             const dynExposes = [];
             dynExposes.push(e.occupancy());
             if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
-                dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('second').
+                dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').
                     withValueMin(20).withValueMax(65535));
             }
             dynExposes.push(e.temperature());
