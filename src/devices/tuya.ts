@@ -6104,10 +6104,9 @@ const definitions: Definition[] = [
         model: 'TYBAC-006',
         vendor: 'TuYa',
         description: 'Wall-mount thermostat for 2-pipe fan-coil unit',
-        fromZigbee: [tuya.fz.datapoints, fz.ignore_tuya_set_time],
-        toZigbee: [{...tuya.tz.datapoints, key: [...tuya.tz.datapoints.key,
-            'fan_mode', 'deadzone_temperature', 'eco_mode', 'max_temperature_limit', 'min_temperature_limit', 'manual_mode']}],
-        onEvent: tuya.onEventSetLocalTime,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEvent({timeStart: '2000'}),
         configure: tuya.configureMagicPacket,
         exposes: [
             e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
@@ -6120,9 +6119,9 @@ const definitions: Definition[] = [
                 .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET),
             e.min_temperature().withValueMin(5).withValueMax(15),
             e.max_temperature().withValueMin(15).withValueMax(45),
-            e.binary('eco_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('ECO Mode ON/OFF'),
-            e.max_temperature_limit().withDescription('ECO Heating energy-saving temperature (Default: 20 ºC)').withValueMin(15).withValueMax(30),
-            e.min_temperature_limit().withDescription('ECO Cooling energy-saving temperature (Default: 26 ºC)').withValueMin(15).withValueMax(30),
+            e.binary('eco_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('ECO mode ON/OFF'),
+            e.max_temperature_limit().withDescription('ECO Heating energy-saving temperature (default: 20 ºC)').withValueMin(15).withValueMax(30),
+            e.min_temperature_limit().withDescription('ECO Cooling energy-saving temperature (default: 26 ºC)').withValueMin(15).withValueMax(30),
             e.deadzone_temperature().withValueMin(0).withValueMax(5).withValueStep(1),
             e.binary('valve', ea.STATE, 'CLOSED', 'OPEN').withDescription('3-Way Valve status'),
             e.binary('manual_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Manual = ON or Schedule = OFF'),
@@ -6138,20 +6137,7 @@ const definitions: Definition[] = [
                 [19, 'max_temperature', tuya.valueConverter.divideBy10],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [26, 'min_temperature', tuya.valueConverter.divideBy10],
-                [27, 'local_temperature_calibration', {
-                    from: (value: number) => {
-                        if (value > 4000) {
-                            return value - 4096;
-                        }
-                        return value;
-                    },
-                    to: (value: number) => {
-                        if (value < 0) {
-                            return 4096 + value;
-                        }
-                        return value;
-                    },
-                }],
+                [27, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration],
                 [28, 'fan_mode', tuya.valueConverterBasic.lookup(
                     {'low': tuya.enum(0), 'medium': tuya.enum(1), 'high': tuya.enum(2), 'auto': tuya.enum(3)})],
                 [36, 'valve', tuya.valueConverterBasic.lookup({'OPEN': 0, 'CLOSE': 1})],
