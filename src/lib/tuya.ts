@@ -1053,8 +1053,8 @@ const tuyaFz = {
             for (const dpValue of msg.data.dpValues) {
                 const dpId = dpValue.dp;
                 const dpEntry = datapoints.find((d) => d[0] === dpId);
+                const value = getDataValue(dpValue);
                 if (dpEntry?.[2]?.from) {
-                    const value = getDataValue(dpValue);
                     if (dpEntry[1]) {
                         result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish);
                     } else {
@@ -1062,7 +1062,7 @@ const tuyaFz = {
                     }
                 } else {
                     meta.logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' ` +
-                        `with data ${JSON.stringify(dpValue)}`);
+                        `with value ${value}`);
                 }
             }
 
