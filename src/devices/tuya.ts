@@ -2270,7 +2270,6 @@ const definitions: Definition[] = [
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_hsgrhjpf'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_pw7mji0l'},
             // Window pushers:
             {modelID: 'TS0601', manufacturerName: '_TZE200_g5wdnuow'},
             // Tubular motors:
@@ -2460,7 +2459,7 @@ const definitions: Definition[] = [
                 .withFeature(e.text('holidays_schedule', ea.STATE_SET))],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_68nvbio9']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_68nvbio9', '_TZE200_pw7mji0l']),
         model: 'TS0601_cover_3',
         vendor: 'TuYa',
         description: 'Cover motor',
@@ -2477,7 +2476,8 @@ const definitions: Definition[] = [
             e.binary('motor_fault', ea.STATE, true, false),
         ],
         whiteLabel: [
-            {vendor: 'Zemismart', model: 'ZM16EL-03/33'}, // _TZE200_68nvbio
+            tuya.whitelabel('Zemismart', 'ZM16EL-03/33', 'Cover motor', ['_TZE200_68nvbio9']),
+            tuya.whitelabel('Zemismart', 'ZM25EL', 'Cover motor', ['_TZE200_pw7mji0l']),
         ],
         meta: {
             // All datapoints go in here
