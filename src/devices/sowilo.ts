@@ -1,5 +1,4 @@
 import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import * as ota from '../lib/ota';
 import extend from '../lib/extend';
 
@@ -15,7 +14,7 @@ const definition: Definition[] = [
         }),
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-    }
+    },
 ];
 
 module.exports = definition;
