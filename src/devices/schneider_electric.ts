@@ -578,6 +578,27 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['1GANG/DIMMER/1'],
+        model: 'MEG5116-0300/MEG5171-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (1fold)',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        exposes: [e.light_brightness().withLevelConfig(),
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
+            e.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
+                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['1GANG/SWITCH/1'],
         model: 'MEG5161-0000',
         vendor: 'Schneider Electric',
