@@ -206,19 +206,19 @@ async function requestOTA(endpoint: Zh.Endpoint): Promise<{payload: Ota.ImageInf
 function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: KeyValueAny, pageOffset: number, pageSize: number, logger: Logger) {
     let start = imageBlockRequest.payload.fileOffset + pageOffset;
     // When the data size is too big, OTA gets unstable, so default it to 50 bytes maximum.
-    // For Insta devices, OTA only works for data sizes 40 and smaller (= manufacturerCode 4474).
-    // Legrand devices (newer firmware) require up to 64 bytes (= manufacturerCode 4129).
+    // - Insta devices, OTA only works for data sizes 40 and smaller (= manufacturerCode 4474).
+    // - Legrand devices (newer firmware) require up to 64 bytes (= manufacturerCode 4129).
     let maximumDataSize = 50;
     if (imageBlockRequest.payload.manufacturerCode === 4474) maximumDataSize = 40;
     else if (imageBlockRequest.payload.manufacturerCode === 4129) maximumDataSize = Infinity;
 
     let dataSize = Math.min(maximumDataSize, imageBlockRequest.payload.maximumDataSize);
 
-    // Hack for Koenkk-OTA#328
+    // Hack for https://github.com/Koenkk/zigbee-OTA/issues/365 (Legrand OTA not working)
     if (imageBlockRequest.payload.manufacturerCode === 4129 &&
         imageBlockRequest.payload.fileOffset === 50 &&
         imageBlockRequest.payload.maximumDataSize === 12) {
-        logger.debug(`>> Detected Legrand Firmware issue (Koenkk-OTA#328). Attempting to reset the OTA stack <<`);
+        logger.info(`Detected Legrand firmwrae issue, attempting to reset the OTA stack`);
         // The following vector seems to buffer overflow the device to reset the OTA stack!
         start = 78;
         dataSize = 64;
