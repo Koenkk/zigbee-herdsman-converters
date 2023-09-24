@@ -26,6 +26,13 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['LTV006'],
+        model: '929003596101',
+        vendor: 'Philips',
+        description: 'Hue Filament Edison bulb ST64 550lm E26',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['SOC001'],
         model: '9290035639',
         vendor: 'Philips',
