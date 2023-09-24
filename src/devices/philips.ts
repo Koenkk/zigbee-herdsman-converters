@@ -1,4 +1,4 @@
-import {Definition} from '../lib/types';
+import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
@@ -10,7 +10,36 @@ import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 
+const fzLocal = {
+    philips_contact: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse', 'commandOff', 'commandOn'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.type === 'commandOff' || msg.type === 'commandOn') {
+                return {contact: msg.type === 'commandOff'};
+            } else if (msg.data.hasOwnProperty('onOff')) {
+                return {contact: msg.data['onOff'] === 0};
+            }
+        },
+    } as Fz.Converter,
+};
+
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['SOC001'],
+        model: '9290035639',
+        vendor: 'Philips',
+        description: 'Hue Secure contact sensor',
+        fromZigbee: [fz.battery, fzLocal.philips_contact],
+        toZigbee: [],
+        exposes: [e.battery(), e.contact()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
     {
         zigbeeModel: ['LLM010', 'LLM012'],
         model: '8718696126523',
