@@ -214,7 +214,7 @@ function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: KeyVa
 
     let dataSize = Math.min(maximumDataSize, imageBlockRequest.payload.maximumDataSize);
 
-    // Hack for https://github.com/Koenkk/zigbee-OTA/issues/365 (Legrand OTA not working)
+    // Hack for https://github.com/Koenkk/zigbee-OTA/issues/328 (Legrand OTA not working)
     if (imageBlockRequest.payload.manufacturerCode === 4129 &&
         imageBlockRequest.payload.fileOffset === 50 &&
         imageBlockRequest.payload.maximumDataSize === 12) {
