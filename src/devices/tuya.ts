@@ -615,7 +615,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq', '_TZE200_9yapgbuv', '_TZE200_cirvgep4']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq', '_TZE200_9yapgbuv', '_TZE204_upagmta9', '_TZE200_cirvgep4']),
         model: 'TS0601_temperature_humidity_sensor_2',
         vendor: 'TuYa',
         description: 'Temperature and humidity sensor',
@@ -635,6 +635,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('TuYa', 'ZTH01', 'Temperature and humidity sensor', ['_TZE200_yjjdcqsq']),
             tuya.whitelabel('TuYa', 'ZTH02', 'Temperature and humidity sensor', ['_TZE200_9yapgbuv']),
+            tuya.whitelabel('TuYa', 'ZTH05', 'Temperature and humidity sensor', ['_TZE204_upagmta9']),
             tuya.whitelabel('TuYa', 'ZTH08-E', 'Temperature and humidity sensor', ['_TZE200_cirvgep4']),
         ],
     },
