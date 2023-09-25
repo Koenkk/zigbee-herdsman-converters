@@ -26,6 +26,13 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['LCU001'],
+        model: '8719514491229',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance E14',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LTV006'],
         model: '929003596101',
         vendor: 'Philips',
