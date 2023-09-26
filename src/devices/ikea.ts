@@ -470,7 +470,7 @@ const definitions: Definition[] = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbG125E27WSopal470lm', 'TRADFRIbulbG125E26WSopal450lm'],
+        zigbeeModel: ['TRADFRIbulbG125E27WSopal470lm', 'TRADFRIbulbG125E26WSopal450lm', 'TRADFRIbulbG125E26WSopal470lm'],
         model: 'LED1936G5',
         vendor: 'IKEA',
         description: 'TRADFRI LED globe-bulb E26/E27 450/470 lumen, dimmable, white spectrum, opal white',
