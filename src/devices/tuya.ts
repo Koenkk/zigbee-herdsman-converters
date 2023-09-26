@@ -3211,7 +3211,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_bkkmqmyo', '_TZE200_eaac7dkw', '_TZE204_wbhaespm', '_TZE204_rhblgy0z']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_bkkmqmyo', '_TZE200_eaac7dkw', '_TZE204_wbhaespm']),
         model: 'TS0601_din_1',
         vendor: 'TuYa',
         description: 'Zigbee DIN energy meter',
@@ -3293,7 +3293,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_rhblgy0z']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_rhblgy0z', '_TZE204_rhblgy0z']),
         model: 'TS0601_din_3',
         vendor: 'TuYa',
         description: 'Zigbee DIN energy meter',
