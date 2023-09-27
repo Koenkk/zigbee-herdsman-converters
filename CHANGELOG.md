@@ -1,5 +1,20 @@
 # Changelog
 
+## [15.84.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.83.0...v15.84.0) (2023-09-27)
+
+
+### Features
+
+* **add:** 9290035753 ([#6200](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6200)) ([86fd64d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/86fd64d1126a04dd31782786c9559e8828495237))
+* **add:** BLE-YL01 [@cloudbr34k84](https://github.com/cloudbr34k84) https://github.com/Koenkk/zigbee2mqtt/issues/18704 ([b98aace](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b98aacee6c35fbe19a44b1ef3d1d3ea64a57f54c))
+* Expose `low_water_temp_protection` for Sinopé RM3500ZB ([#6201](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6201)) ([e5362d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e5362d412ef9fa7ee06e2cb85323ed376848ce02))
+* Support color for Philips 7602031N6 ([#6202](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6202)) ([7fb0917](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7fb09179207cb97a8fb6da5fc6ff92ade2c04291))
+
+
+### Bug Fixes
+
+* **ignore:** fix b98aacee6c35fbe19a44b1ef3d1d3ea64a57f54c ([1001027](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1001027b46f6490e0ddf91e9d7e2536d81628378))
+
 ## [15.83.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.82.0...v15.83.0) (2023-09-26)
 
 
