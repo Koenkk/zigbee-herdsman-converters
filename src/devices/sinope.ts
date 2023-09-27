@@ -586,7 +586,7 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['keypadLockout']);
         },
     } as Tz.Converter,
-       low_water_temp_protection: {
+    low_water_temp_protection: {
         // RM3500ZB specific
         key: ['low_water_temp_protection'],
         convertSet: async (entity, key, value, meta) => {
@@ -596,7 +596,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['drConfigWaterTempMin']);
         },
-    } as Tz.Converter, 
+    } as Tz.Converter,
 };
 const definitions: Definition[] = [
     {
@@ -1440,9 +1440,9 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fzLocal.ias_water_leak_alarm,
             fzLocal.sinope, fz.temperature],
         toZigbee: [tz.on_off, tzLocal.low_water_temp_protection],
-        exposes: [e.switch(), 
+        exposes: [e.switch(),
             e.numeric('low_water_temp_protection', ea.ALL).withUnit('°C').withValueMin(0).withValueMax(65).withValueStep(1)
-                  .withDescription('Temperature at which water heating will resume automatically (default: 45°C)'),
+                .withDescription('Temperature at which water heating will resume automatically (default: 45°C)'),
             e.power(), e.current(), e.voltage(), e.energy(), e.water_leak(), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
