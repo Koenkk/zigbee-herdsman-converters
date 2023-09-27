@@ -6258,14 +6258,20 @@ const definitions: Definition[] = [
             e.numeric('free_chlorine', ea.STATE).withUnit('mg/L').withDescription('Free chlorine value. The water in the swimming pool should ' +
                 'be between 6.5-8ph and ORP should be between 487-840mv, and the chlorine value will be displayed normally. Chlorine will not ' +
                 'be displayed if either value is out of range'),
-            e.numeric('ph_max', ea.STATE_SET).withUnit('pH').withDescription('pH maximal value'),
-            e.numeric('ph_min', ea.STATE_SET).withUnit('pH').withDescription('pH minimal value'),
-            e.numeric('ec_max', ea.STATE_SET).withUnit('µS/cm').withDescription('Electrical Conductivity maximal value'),
-            e.numeric('ec_min', ea.STATE_SET).withUnit('µS/cm').withDescription('Electrical Conductivity minimal value'),
-            e.numeric('orp_max', ea.STATE_SET).withUnit('mV').withDescription('Oxidation Reduction Potential maximal value'),
-            e.numeric('orp_min', ea.STATE_SET).withUnit('mV').withDescription('Oxidation Reduction Potential minimal value'),
-            e.numeric('free_chlorine_max', ea.STATE_SET).withUnit('mg/L').withDescription('Free Chlorine maximal value'),
-            e.numeric('free_chlorine_min', ea.STATE_SET).withUnit('mg/L').withDescription('Free Chlorine minimal value'),
+            e.numeric('ph_max', ea.STATE_SET).withUnit('pH').withDescription('pH maximal value').withValueMin(0).withValueMax(20),
+            e.numeric('ph_min', ea.STATE_SET).withUnit('pH').withDescription('pH minimal value').withValueMin(0).withValueMax(20),
+            e.numeric('ec_max', ea.STATE_SET).withUnit('µS/cm').withDescription('Electrical Conductivity maximal value')
+                .withValueMin(0).withValueMax(100),
+            e.numeric('ec_min', ea.STATE_SET).withUnit('µS/cm').withDescription('Electrical Conductivity minimal value')
+                .withValueMin(0).withValueMax(100),
+            e.numeric('orp_max', ea.STATE_SET).withUnit('mV').withDescription('Oxidation Reduction Potential maximal value')
+                .withValueMin(0).withValueMax(1000),
+            e.numeric('orp_min', ea.STATE_SET).withUnit('mV').withDescription('Oxidation Reduction Potential minimal value')
+                .withValueMin(0).withValueMax(1000),
+            e.numeric('free_chlorine_max', ea.STATE_SET).withUnit('mg/L').withDescription('Free Chlorine maximal value')
+                .withValueMin(0).withValueMax(15),
+            e.numeric('free_chlorine_min', ea.STATE_SET).withUnit('mg/L').withDescription('Free Chlorine minimal value')
+                .withValueMin(0).withValueMax(15),
             e.numeric('salinity', ea.STATE).withUnit('µS/cm').withDescription('Salt value'),
             // e.numeric('backlightvalue', ea.STATE).withUnit('gg').withDescription('Backlight Value'),
         ],
