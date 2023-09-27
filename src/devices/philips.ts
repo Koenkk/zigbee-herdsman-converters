@@ -507,7 +507,7 @@ const definitions: Definition[] = [
         model: '7602031N6',
         vendor: 'Philips',
         description: 'Hue Go portable light',
-        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['929003128501'],
