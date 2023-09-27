@@ -860,6 +860,15 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['4512765'],
+        model: '4512765',
+        vendor: 'Namron AS',
+        description: 'Namron Zigbee Humidity and Temperature Sensor',
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+    },
 ];
 
 module.exports = definitions;
