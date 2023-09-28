@@ -1,5 +1,17 @@
 # Changelog
 
+## [15.85.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.84.0...v15.85.0) (2023-09-28)
+
+
+### Features
+
+* **add:** 4512765 ([#6204](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6204)) ([0b78786](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0b7878650ca2bbfe4a13d086abcb66d3499b2e13))
+
+
+### Bug Fixes
+
+* **detect:** Detect `3450-Geu` as Iris 3450-L https://github.com/Koenkk/zigbee2mqtt/issues/19101 ([d118ec6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d118ec685b54838edce6ec03866aaf95a6c0b77b))
+
 ## [15.84.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.83.0...v15.84.0) (2023-09-27)
 
 
