@@ -78,7 +78,7 @@ const definitions: Definition[] = [
         exposes: [e.contact(), e.battery_low(), e.temperature(), e.battery()],
     },
     {
-        zigbeeModel: ['3450-L', '3450-L2'],
+        zigbeeModel: ['3450-L', '3450-L2', '3450-Geu'],
         model: '3450-L',
         vendor: 'Iris',
         description: 'Smart fob',
