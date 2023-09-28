@@ -863,8 +863,8 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['4512765'],
         model: '4512765',
-        vendor: 'Namron AS',
-        description: 'Namron Zigbee Humidity and Temperature Sensor',
+        vendor: 'Namron',
+        description: 'Zigbee humidity and temperature Sensor',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity()],
