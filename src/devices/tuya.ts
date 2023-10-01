@@ -1824,7 +1824,10 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: tuya.fingerprint('TS0201', ['_TZ3000_dowj6gyi', '_TZ3000_8ybe88nf']),
+        fingerprint: [
+            ...tuya.fingerprint('TS0201', ['_TZ3000_dowj6gyi', '_TZ3000_8ybe88nf']),
+            ...tuya.fingerprint('TY0201', ['_TZ3000_zl1kmjqx']),
+        ],
         model: 'IH-K009',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
