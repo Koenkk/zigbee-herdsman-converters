@@ -728,8 +728,8 @@ const converters = {
             await entity.command('lightingColorCtrl', 'stepColorTemp', payload, utils.getOptions(meta.mapped, entity));
 
             // We cannot determine the color temperature from the current state so we read it, because
-            // - We don't know the max/min valus
-            // - Color mode could have been swithed (x/y or hue/saturation)
+            // - We don't know the max/min values
+            // - Color mode could have been switched (x/y or hue/saturation)
             const entityToRead = utils.getEntityOrFirstGroupMember(entity);
             if (entityToRead) {
                 await utils.sleep(100 + (transition * 100));
@@ -754,7 +754,7 @@ const converters = {
                 await entity.command('lightingColorCtrl', 'moveColorTemp', payload, utils.getOptions(meta.mapped, entity));
 
                 // We cannot determine the color temperaturefrom the current state so we read it, because
-                // - Color mode could have been swithed (x/y or colortemp)
+                // - Color mode could have been switched (x/y or colortemp)
                 if (value === 'stop' || value === 0) {
                     const entityToRead = utils.getEntityOrFirstGroupMember(entity);
                     if (entityToRead) {
@@ -821,7 +821,7 @@ const converters = {
             await entity.command('lightingColorCtrl', command, payload, utils.getOptions(meta.mapped, entity));
 
             // We cannot determine the hue/saturation from the current state so we read it, because
-            // - Color mode could have been swithed (x/y or colortemp)
+            // - Color mode could have been switched (x/y or colortemp)
             const entityToRead = utils.getEntityOrFirstGroupMember(entity);
             if (entityToRead) {
                 await utils.sleep(100 + (transition * 100));
@@ -852,7 +852,7 @@ const converters = {
             await entity.command('lightingColorCtrl', command, payload, utils.getOptions(meta.mapped, entity));
 
             // We cannot determine the hue/saturation from the current state so we read it, because
-            // - Color mode could have been swithed (x/y or colortemp)
+            // - Color mode could have been switched (x/y or colortemp)
             if (value === 'stop' || value === 0) {
                 const entityToRead = utils.getEntityOrFirstGroupMember(entity);
                 if (entityToRead) {
@@ -1089,7 +1089,7 @@ const converters = {
 
                 // Some bulbs e.g. RB 185 C don't turn to red (they don't respond at all) when x: 0.701 and y: 0.299
                 // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
-                // If we slighlty modify these values the bulb will respond.
+                // If we slightly modify these values the bulb will respond.
                 // https://github.com/home-assistant/home-assistant/issues/31094
                 if (utils.getMetaValue(entity, meta.mapped, 'applyRedFix', 'allEqual', false) && xy.x == 0.701 && xy.y === 0.299) {
                     xy.x = 0.7006;
@@ -2677,7 +2677,7 @@ const converters = {
         },
     },
     ledvance_commands: {
-        /* deprectated osram_*/
+        /* deprecated osram_*/
         key: ['set_transition', 'remember_state', 'osram_set_transition', 'osram_remember_state'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'osram_set_transition' || key === 'set_transition') {
@@ -3932,7 +3932,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             // enable the LED when the light object is "doing something"
             // on the light switch, the LED is on when the light is on,
-            // on the shutter switch, the LED is on when te shutter is moving
+            // on the shutter switch, the LED is on when the shutter is moving
             const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {2: {value: enableLedIfOn, type: 16}};
             await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
@@ -4270,7 +4270,7 @@ const converters = {
             } else if (response.status === 0) {
                 utils.saveSceneState(entity, sceneid, groupid, meta.state, scenename);
             } else {
-                throw new Error(`Scene add not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
+                throw new Error(`Scene add not successful ('${herdsman.Zcl.Status[response.status]}')`);
             }
             meta.logger.info('Successfully stored scene');
             return {state: {}};
@@ -4452,7 +4452,7 @@ const converters = {
              * payloads to be merged. Resulting in unexpected behavior when
              * trying to replace a scene.
              *
-             * We accept a SUCESS or NOT_FOUND as a result of the remove call.
+             * We accept a SUCCESS or NOT_FOUND as a result of the remove call.
              */
             const removeresp = await entity.command(
                 'genScenes', 'remove', {groupid, sceneid}, utils.getOptions(meta.mapped, entity),
@@ -4473,7 +4473,7 @@ const converters = {
                 } else if (response.status === 0) {
                     utils.saveSceneState(entity, sceneid, groupid, state, scenename);
                 } else {
-                    throw new Error(`Scene add not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
+                    throw new Error(`Scene add not successful ('${herdsman.Zcl.Status[response.status]}')`);
                 }
             } else {
                 throw new Error(`Scene add unable to remove existing scene ('${herdsman.Zcl.Status[removeresp.status]}')`);
@@ -4500,7 +4500,7 @@ const converters = {
             } else if (response.status === 0) {
                 utils.deleteSceneState(entity, sceneid, groupid);
             } else {
-                throw new Error(`Scene remove not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
+                throw new Error(`Scene remove not successful ('${herdsman.Zcl.Status[response.status]}')`);
             }
             meta.logger.info('Successfully removed scene');
         },
@@ -4522,7 +4522,7 @@ const converters = {
             } else if (response.status === 0) {
                 utils.deleteSceneState(entity);
             } else {
-                throw new Error(`Scene remove all not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
+                throw new Error(`Scene remove all not successful ('${herdsman.Zcl.Status[response.status]}')`);
             }
             meta.logger.info('Successfully removed all scenes');
         },
