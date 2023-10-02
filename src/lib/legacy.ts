@@ -936,7 +936,7 @@ const dataPoints = {
     x5hProtectionTempLimit: 102,
     x5hOutputReverse: 103,
     x5hBackplaneBrightness: 104,
-    // Connecte thermostat
+    // Connected thermostat
     connecteState: 1,
     connecteMode: 2,
     connecteHeatingSetpoint: 16,
@@ -950,7 +950,7 @@ const dataPoints = {
     connecteTempProgram: 105,
     connecteOpenWindow: 106,
     connecteMaxProtectTemp: 107,
-    // TuYa Smart Human Presense Sensor
+    // TuYa Smart Human Presence Sensor
     tshpsPresenceState: 1,
     tshpscSensitivity: 2,
     tshpsMinimumRange: 3,
@@ -2294,7 +2294,7 @@ const fromZigbee1 = {
                         fromZigbeeStore[key].long = Date.now();
                         fromZigbeeStore[key].long_timer = setTimeout(() => {
                             fromZigbeeStore[key].long = false;
-                        }, 4000); // After 4000 milliseconds of not reciving long_release we assume it will not happen.
+                        }, 4000); // After 4000 milliseconds of not receiving long_release we assume it will not happen.
                         // @ts-expect-error
                     }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
                 } else if (state === 1) {
@@ -7956,8 +7956,8 @@ const toZigbee2 = {
                 let hsb: KeyValueAny = {};
 
                 if (value.hasOwnProperty('hsb')) {
-                    const splitted = value.hsb.split(',').map((i: string) => parseInt(i));
-                    hsb = fillInHSB(splitted[0], splitted[1], splitted[2], meta.state);
+                    const split = value.hsb.split(',').map((i: string) => parseInt(i));
+                    hsb = fillInHSB(split[0], split[1], split[2], meta.state);
                 } else {
                     hsb = fillInHSB(
                         value.h || value.hue || null,

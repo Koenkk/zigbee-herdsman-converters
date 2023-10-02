@@ -425,7 +425,7 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
                         device.once('deviceAnnounce', cb);
                     },
                     (e) => {
-                        const message = `Upgrade end reponse failed (${e.message})`;
+                        const message = `Upgrade end response failed (${e.message})`;
                         logger.debug(message);
                         reject(new Error(message));
                     },

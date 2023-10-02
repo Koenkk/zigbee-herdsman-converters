@@ -20,7 +20,7 @@ export function getConfigureKey(definition: Definition) {
         throw new Error(`'${definition.model}' has no configure`);
     }
 
-    // Prevent unecessary recalculation of the hash
+    // Prevent unnecessary recalculation of the hash
     // @ts-expect-error
     if (definition.configure in lookup) return lookup[definition.configure];
 
@@ -33,7 +33,7 @@ export function getConfigureKey(definition: Definition) {
      * Now the configureKey is calculated from the configure method body.
      * This saves us from having to bump the configureKey manually.
      * Since this change would change all configure keys, all devices would be reconfigured again.
-     * This is unecessary, therefore we still return the old configure keys (which are in legacyKeys)
+     * This is unnecessary, therefore we still return the old configure keys (which are in legacyKeys)
      * if the hash dind't change.
      */
     const configureKey = legacyKey in legacyKeys ? legacyKeys[legacyKey] : hash;

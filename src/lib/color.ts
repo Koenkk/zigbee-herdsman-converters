@@ -664,7 +664,7 @@ export class Color {
  * @param {Object} endpoint with lightingColorCtrl cluster
  * @param {Object} options meta.options for the device or group
  * @param {Object} logger used for logging
- * @return {Object} state with color, color_temp, and color_mode set and syncronized from newState's attributes
+ * @return {Object} state with color, color_temp, and color_mode set and synchronized from newState's attributes
  *                  (other attributes are not included make sure to merge yourself)
  */
 export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, endpoint: Zh.Endpoint | Zh.Group, options: KeyValue, logger: Logger) {

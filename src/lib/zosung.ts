@@ -84,7 +84,7 @@ export const fzZosung = {
                 },
                 {disableDefaultResponse: true});
             messagesClear(msg.endpoint, seq);
-            meta.logger.debug(`IRCode has been successfuly sent. (seq:${seq})`);
+            meta.logger.debug(`IRCode has been successfully sent. (seq:${seq})`);
         },
     } as Fz.Converter,
     zosung_send_ir_code_00: {
