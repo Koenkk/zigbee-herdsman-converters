@@ -3269,7 +3269,7 @@ const converters = {
                 8: 'finger_delete',
                 9: 'password_add',
                 10: 'password_delete',
-                11: 'lock_opened_inside', // Open form inside reverse lock enbable
+                11: 'lock_opened_inside', // Open form inside reverse lock enable
                 12: 'lock_opened_outside', // Open form outside reverse lock disable
                 13: 'ring_bell',
                 14: 'change_language_to',
@@ -3336,7 +3336,7 @@ const converters = {
                 8: 'finger_delete',
                 9: 'password_add',
                 10: 'password_delete',
-                11: 'lock_opened_inside', // Open form inside reverse lock enbable
+                11: 'lock_opened_inside', // Open form inside reverse lock enable
                 12: 'lock_opened_outside', // Open form outside reverse lock disable
                 13: 'ring_bell',
                 14: 'change_language_to',
@@ -3440,7 +3440,7 @@ const converters = {
                 const userId = data.substr(12, 2);
                 result.action = lockStatusLookup[6+parseInt(command, 16)];
                 result.action_user = parseInt(userId, 16);
-            } else if (msg.data['65522']) { // set languge
+            } else if (msg.data['65522']) { // set language
                 const data = Buffer.from(msg.data['65522'], 'ascii').toString('hex');
                 const langId = data.substr(6, 2); // 1 chinese, 2: english
                 result.action = (lockStatusLookup[14])+ (langId==='2'?'_english':'_chinese');
@@ -3575,7 +3575,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-            if (commandID === 224) return; // Skip commisioning command.
+            if (commandID === 224) return; // Skip commissioning command.
 
             // Button 1: A0 (top left)
             // Button 2: A1 (bottom left)
@@ -4180,7 +4180,7 @@ const converters = {
                         globalStore.putValue(msg.endpoint, 'hold', false);
                     }, options.hold_timeout_expire || 4000);
                     globalStore.putValue(msg.endpoint, 'hold_timer', holdTimer);
-                    // After 4000 milliseconds of not reciving release we assume it will not happen.
+                    // After 4000 milliseconds of not receiving release we assume it will not happen.
                 }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
                 globalStore.putValue(msg.endpoint, 'timer', timer);
             } else if (state === 1) {
@@ -4852,11 +4852,11 @@ const converters = {
                 entry.CurrentPosition = currentPosition;
 
                 if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] !== 50 ) {
-                    // postion cast float to int
+                    // position cast float to int
                     result.position = currentPosition | 0;
                 } else {
                     if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
-                        // postion cast float to int
+                        // position cast float to int
                         result.position = currentPosition | 0;
                     } else {
                         entry.CurrentPosition = lastPreviousAction;
@@ -5229,7 +5229,7 @@ const converters = {
                 result.angle_y = Math.round(Math.atan(y/Math.sqrt(x*x+z*z)) * 180 / Math.PI);
                 result.angle_z = Math.round(Math.atan(z/Math.sqrt(x*x+y*y)) * 180 / Math.PI);
 
-                // calculate absolulte angle
+                // calculate absolute angle
                 const R = Math.sqrt(x * x + y * y + z * z);
                 result.angle_x_absolute = Math.round((Math.acos(x / R)) * 180 / Math.PI);
                 result.angle_y_absolute = Math.round((Math.acos(y / R)) * 180 / Math.PI);
