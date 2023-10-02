@@ -574,7 +574,7 @@ export const valueConverter = {
     },
     thermostatScheduleDaySingleDP: {
         from: (v: number[]) => {
-            // day splitted to 10 min segments = total 144 segments
+            // day split to 10 min segments = total 144 segments
             const maxPeriodsInDay = 10;
             const periodSize = 3;
             const schedule = [];
@@ -629,7 +629,7 @@ export const valueConverter = {
                 throw new Error('Invalid "working_day" property, need to set it before');
             }
 
-            // day splitted to 10 min segments = total 144 segments
+            // day split to 10 min segments = total 144 segments
             const maxPeriodsInDay = 10;
             utils.assertString(v.schedule, 'schedule');
             const schedule = v.schedule.split(' ');

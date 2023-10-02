@@ -88,7 +88,7 @@ async function getIndex(logger: Logger) {
         logger.debug(`ZigbeeOTA: Loading override index ${overrideIndexFileName}`);
         const localIndex = await getIndexFile(overrideIndexFileName);
 
-        // Resulting index will have overriden items first
+        // Resulting index will have overridden items first
         return localIndex.concat(index).map((item: KeyValueAny) => isValidUrl(item.url) ? item : fillImageInfo(item, logger));
     }
 
