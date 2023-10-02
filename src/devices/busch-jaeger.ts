@@ -69,7 +69,7 @@ const definitions: Definition[] = [
             if (endpoint18 != null) {
                 await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             } else {
-                // We only need to bind endpoint 10 (top rocker) if endoint 18 (relay/dimmer) is not present.
+                // We only need to bind endpoint 10 (top rocker) if endpoint 18 (relay/dimmer) is not present.
                 // Otherwise the top rocker is hard-wired to the relay/dimmer and cannot be used anyways.
                 const endpoint10 = device.getEndpoint(0x0a);
                 if (endpoint10 != null) {

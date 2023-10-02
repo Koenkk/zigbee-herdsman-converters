@@ -795,12 +795,12 @@ const definitions: Definition[] = [
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msSoilMoisture']);
-            const overides = {min: 0, max: 3600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
-            await reporting.temperature(firstEndpoint, overides);
-            await reporting.illuminance(firstEndpoint, overides);
-            await reporting.soil_moisture(firstEndpoint, overides);
+            const overrides = {min: 0, max: 3600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overrides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
+            await reporting.temperature(firstEndpoint, overrides);
+            await reporting.illuminance(firstEndpoint, overrides);
+            await reporting.soil_moisture(firstEndpoint, overrides);
         },
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature()],
     },
@@ -815,11 +815,11 @@ const definitions: Definition[] = [
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
-            await reporting.temperature(firstEndpoint, overides);
-            await reporting.soil_moisture(firstEndpoint, overides);
+            const overrides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overrides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
+            await reporting.temperature(firstEndpoint, overrides);
+            await reporting.soil_moisture(firstEndpoint, overrides);
             const payload1 = [{attribute: {ID: 0x0201, type: 0x21},
                 minimumReportInterval: 0, maximumReportInterval: 21600, reportableChange: 0}];
             await firstEndpoint.configureReporting('genPowerCfg', payload1);
@@ -839,12 +839,12 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement']);
-            const overides = {min: 0, max: 64800, change: 0};
-            await reporting.batteryVoltage(endpoint, overides);
-            await reporting.batteryPercentageRemaining(endpoint, overides);
-            await reporting.temperature(endpoint, overides);
-            await reporting.humidity(endpoint, overides);
-            await reporting.pressureExtended(endpoint, overides);
+            const overrides = {min: 0, max: 64800, change: 0};
+            await reporting.batteryVoltage(endpoint, overrides);
+            await reporting.batteryPercentageRemaining(endpoint, overrides);
+            await reporting.temperature(endpoint, overrides);
+            await reporting.humidity(endpoint, overrides);
+            await reporting.pressureExtended(endpoint, overrides);
             await endpoint.read('msPressureMeasurement', ['scale']);
         },
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
@@ -859,11 +859,11 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
-            await reporting.temperature(firstEndpoint, overides);
-            await reporting.soil_moisture(firstEndpoint, overides);
+            const overrides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overrides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
+            await reporting.temperature(firstEndpoint, overrides);
+            await reporting.soil_moisture(firstEndpoint, overrides);
         },
         exposes: [e.soil_moisture(), e.battery(), e.temperature()],
     },
@@ -878,11 +878,11 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overides);
-            await reporting.batteryPercentageRemaining(endpoint, overides);
-            await reporting.temperature(endpoint, overides);
-            await reporting.humidity(endpoint, overides);
+            const overrides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overrides);
+            await reporting.batteryPercentageRemaining(endpoint, overrides);
+            await reporting.temperature(endpoint, overrides);
+            await reporting.humidity(endpoint, overrides);
         },
         exposes: [e.battery(), e.temperature(), e.humidity()],
     },
@@ -912,12 +912,12 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overides);
-            await reporting.batteryPercentageRemaining(endpoint, overides);
-            await reporting.temperature(endpoint, overides);
-            await reporting.humidity(endpoint, overides);
-            await reporting.pressureExtended(endpoint, overides);
+            const overrides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overrides);
+            await reporting.batteryPercentageRemaining(endpoint, overrides);
+            await reporting.temperature(endpoint, overrides);
+            await reporting.humidity(endpoint, overrides);
+            await reporting.pressureExtended(endpoint, overrides);
             await endpoint.read('msPressureMeasurement', ['scale']);
         },
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
@@ -933,12 +933,12 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overides);
-            await reporting.batteryPercentageRemaining(endpoint, overides);
-            await reporting.temperature(endpoint, overides);
-            await reporting.humidity(endpoint, overides);
-            await reporting.pressureExtended(endpoint, overides);
+            const overrides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overrides);
+            await reporting.batteryPercentageRemaining(endpoint, overrides);
+            await reporting.temperature(endpoint, overrides);
+            await reporting.humidity(endpoint, overrides);
+            await reporting.pressureExtended(endpoint, overrides);
             await endpoint.read('msPressureMeasurement', ['scale']);
         },
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
@@ -954,13 +954,13 @@ const definitions: Definition[] = [
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement', 'msSoilMoisture']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
-            await reporting.temperature(firstEndpoint, overides);
-            await reporting.humidity(firstEndpoint, overides);
-            await reporting.illuminance(firstEndpoint, overides);
-            await reporting.soil_moisture(firstEndpoint, overides);
+            const overrides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overrides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
+            await reporting.temperature(firstEndpoint, overrides);
+            await reporting.humidity(firstEndpoint, overrides);
+            await reporting.illuminance(firstEndpoint, overrides);
+            await reporting.soil_moisture(firstEndpoint, overrides);
         },
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature(), e.humidity()],
     },
@@ -975,13 +975,13 @@ const definitions: Definition[] = [
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement', 'msSoilMoisture']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
-            await reporting.temperature(firstEndpoint, overides);
-            await reporting.humidity(firstEndpoint, overides);
-            await reporting.illuminance(firstEndpoint, overides);
-            await reporting.soil_moisture(firstEndpoint, overides);
+            const overrides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overrides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
+            await reporting.temperature(firstEndpoint, overrides);
+            await reporting.humidity(firstEndpoint, overrides);
+            await reporting.illuminance(firstEndpoint, overrides);
+            await reporting.soil_moisture(firstEndpoint, overrides);
         },
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature(), e.humidity()],
     },
@@ -996,13 +996,13 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement', 'msIlluminanceMeasurement']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overides);
-            await reporting.batteryPercentageRemaining(endpoint, overides);
-            await reporting.temperature(endpoint, overides);
-            await reporting.humidity(endpoint, overides);
-            await reporting.illuminance(endpoint, overides);
-            await reporting.pressureExtended(endpoint, overides);
+            const overrides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overrides);
+            await reporting.batteryPercentageRemaining(endpoint, overrides);
+            await reporting.temperature(endpoint, overrides);
+            await reporting.humidity(endpoint, overrides);
+            await reporting.illuminance(endpoint, overrides);
+            await reporting.pressureExtended(endpoint, overrides);
             await endpoint.read('msPressureMeasurement', ['scale']);
         },
         exposes: [e.battery(), e.illuminance(), e.temperature(), e.humidity(), e.pressure()],
@@ -1018,13 +1018,13 @@ const definitions: Definition[] = [
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement', 'msSoilMoisture']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
-            await reporting.temperature(firstEndpoint, overides);
-            await reporting.humidity(firstEndpoint, overides);
-            await reporting.illuminance(firstEndpoint, overides);
-            await reporting.soil_moisture(firstEndpoint, overides);
+            const overrides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overrides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
+            await reporting.temperature(firstEndpoint, overrides);
+            await reporting.humidity(firstEndpoint, overrides);
+            await reporting.illuminance(firstEndpoint, overrides);
+            await reporting.soil_moisture(firstEndpoint, overrides);
         },
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature(), e.humidity()],
     },
@@ -1039,11 +1039,11 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overides);
-            await reporting.batteryPercentageRemaining(endpoint, overides);
-            await reporting.temperature(endpoint, overides);
-            await reporting.humidity(endpoint, overides);
+            const overrides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overrides);
+            await reporting.batteryPercentageRemaining(endpoint, overrides);
+            await reporting.temperature(endpoint, overrides);
+            await reporting.humidity(endpoint, overrides);
         },
         exposes: [e.battery(), e.temperature(), e.humidity()],
     },
@@ -1171,9 +1171,9 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overides);
-            await reporting.batteryPercentageRemaining(endpoint, overides);
+            const overrides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overrides);
+            await reporting.batteryPercentageRemaining(endpoint, overrides);
         },
         exposes: [e.battery(), e.temperature(), e.humidity(),
             e.numeric('report_delay', ea.STATE_SET).withUnit('min')

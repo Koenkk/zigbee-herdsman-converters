@@ -217,15 +217,15 @@ const definitions: Definition[] = [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement',
                 'msIlluminanceMeasurement', 'msSoilMoisture']);
             await reporting.bind(secondEndpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            const overides = {min: 0, max: 3600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
-            await reporting.temperature(firstEndpoint, overides);
-            await reporting.humidity(firstEndpoint, overides);
-            await reporting.pressureExtended(firstEndpoint, overides);
-            await reporting.illuminance(firstEndpoint, overides);
-            await reporting.soil_moisture(firstEndpoint, overides);
-            await reporting.temperature(secondEndpoint, overides);
+            const overrides = {min: 0, max: 3600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overrides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
+            await reporting.temperature(firstEndpoint, overrides);
+            await reporting.humidity(firstEndpoint, overrides);
+            await reporting.pressureExtended(firstEndpoint, overrides);
+            await reporting.illuminance(firstEndpoint, overrides);
+            await reporting.soil_moisture(firstEndpoint, overrides);
+            await reporting.temperature(secondEndpoint, overrides);
             await firstEndpoint.read('msPressureMeasurement', ['scale']);
         },
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.humidity(), e.pressure(),

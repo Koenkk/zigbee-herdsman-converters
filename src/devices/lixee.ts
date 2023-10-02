@@ -765,9 +765,9 @@ const definitions: Definition[] = [
                 .withDescription(`Power with single or three phase. May require restart (default: auto)`),
             e.enum(`production`, ea.SET, ['auto', 'true', 'false']).withDescription(`If you produce energy back to the grid (works ONLY when linky_mode: ${linkyModeDef.standard}, default: auto)`),
             e.enum(`tarif`, ea.SET, [...Object.entries(tarifsDef).map(([k, v]) => (v.fname)), 'auto'])
-                .withDescription(`Overrides the automatic current tarif. This option will exclude unnecesary attributes. Open a issue to support more of them. Default: auto`),
+                .withDescription(`Overrides the automatic current tarif. This option will exclude unnecessary attributes. Open a issue to support more of them. Default: auto`),
             exposes.options.precision(`kWh`),
-            e.numeric(`measurement_poll_chunk`, ea.SET).withValueMin(1).withDescription(`During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requieres Z2M restart. Default: 1`),
+            e.numeric(`measurement_poll_chunk`, ea.SET).withValueMin(1).withDescription(`During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 1`),
             e.text(`tic_command_whitelist`, ea.SET).withDescription(`List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all`),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {

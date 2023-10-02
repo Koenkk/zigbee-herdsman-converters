@@ -62,7 +62,7 @@ const definitions: Definition[] = [
     },
     {
         // Newer firmwares (e.g. 001f) Does support partial position reporting
-        // Old firmware of this device provides only three values: 0, 100 and 50, 50 means an idefinite position between 1 and 99.
+        // Old firmware of this device provides only three values: 0, 100 and 50, 50 means an indefinite position between 1 and 99.
         // If you have an old Firmware set no_position_support to true
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2214 - 1st very basic support
         zigbeeModel: [' Shutter SW with level control\u0000'],
@@ -106,7 +106,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['Power socket Bticino Serie LL '],
+        zigbeeModel: ['Power socket Bticino Series LL '],
         model: 'L4531C',
         vendor: 'BTicino',
         description: 'Power socket with power consumption monitoring',
