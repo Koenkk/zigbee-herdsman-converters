@@ -322,14 +322,6 @@ const definitions: Definition[] = [
                 .withValueMax(900).withValueStep(100)],
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_7hcgjxpc'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_rcggc0ys'}],
-        model: 'ZLD-RCW',
-        vendor: 'Moes',
-        description: 'RGB+CCT Zigbee LED Controller',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
-    },
-    {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
         model: 'MS-108ZR',
         vendor: 'Moes',
