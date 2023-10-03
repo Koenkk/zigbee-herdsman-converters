@@ -905,6 +905,15 @@ const definitions: Definition[] = [
         exposes: [e.battery_low(), e.contact(), e.action(['single', 'long'])],
     },
     {
+        zigbeeModel: ['RBSH-SWDV-ZB'],
+        model: 'BSEN-CV',
+        vendor: 'Bosch',
+        description: 'Door/window contact II',
+        fromZigbee: [fzLocal.bosch_contact],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.contact(), e.action(['single', 'long'])],
+    },
+    {
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
