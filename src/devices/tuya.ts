@@ -1047,8 +1047,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('HW500A', ['_TZ3000_bsvqrxru']),
-        zigbeeModel: ['TS0202'],
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_bsvqrxru']),
         model: 'HW500A',
         vendor: 'TuYa',
         description: 'Zigbee PIR Motion sensor',
