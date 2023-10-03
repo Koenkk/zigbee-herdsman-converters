@@ -369,10 +369,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genGroups', 'genOnOff', 'genLevelCtrl']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [
-            e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
-            e.battery()
-        ]
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']), e.battery()],
     },
     {
         zigbeeModel: ['Battery switch, 2 button'],
@@ -393,10 +390,10 @@ const definitions: Definition[] = [
             await reporting.bind(ep2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
         exposes: [
-            e.action(['on_left', 'off_left', 'on_right', 'off_right', 'brightness_move_up_left', 'brightness_move_up_right', 
+            e.action(['on_left', 'off_left', 'on_right', 'off_right', 'brightness_move_up_left', 'brightness_move_up_right',
                 'brightness_move_down_left', 'brightness_move_down_right', 'brightness_stop_left', 'brightness_stop_right']),
-            e.battery()
-        ]
+            e.battery(),
+        ],
     },
     {
         zigbeeModel: ['Battery switch, 4 button'],
