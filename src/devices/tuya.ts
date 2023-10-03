@@ -1043,7 +1043,25 @@ const definitions: Definition[] = [
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
                 await reporting.batteryVoltage(endpoint);
-            } catch (error) {/* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708*/}
+            } catch (error) {/* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708 */}
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('HW500A', ['_TZ3000_bsvqrxru']),
+        zigbeeModel: ['TS0202'],
+        model: 'HW500A',
+        vendor: 'TuYa',
+        description: 'Zigbee PIR Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            try {
+                await reporting.batteryPercentageRemaining(endpoint);
+                await reporting.batteryVoltage(endpoint);
+            } catch (error) {/* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708 */}
         },
     },
     {
