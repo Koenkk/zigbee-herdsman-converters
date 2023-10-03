@@ -106,7 +106,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['Power socket Bticino Series LL '],
+        zigbeeModel: ['Power socket Bticino Serie LL '],
         model: 'L4531C',
         vendor: 'BTicino',
         description: 'Power socket with power consumption monitoring',
