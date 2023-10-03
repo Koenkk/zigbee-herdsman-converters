@@ -631,6 +631,24 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: [' Shutter SW with level control\u0000'],
+        model: '067776A',
+        vendor: 'Legrand',
+        description: 'Shutter SW with level control',
+        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt, fz.legrand_led_in_dark],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        ota: ota.zigbeeOTA,
+	    configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+	    exposes: [e.cover_position(), 
+	        e.action(['moving', 'identify', '']),
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off, allowing to see the switch in the dark`),
+            e.enum('identify', ea.SET, ['blink']).withDescription(`Blinks the built-in LED to make it easier to find the device`)],
+    },
 ];
 
 module.exports = definitions;
