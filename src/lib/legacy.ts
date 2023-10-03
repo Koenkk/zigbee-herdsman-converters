@@ -6703,13 +6703,7 @@ const toZigbee2 = {
     moes_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            if (meta.device.manufacturerName === '_TZE200_5toc8efa') {
-                // @ts-ignore
-                const temp = Math.round(value*10);
-                await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, temp);
-            } else {
-                await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
-            }
+            await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
         },
     } as Tz.Converter,
     moes_thermostat_deadzone_temperature: {
