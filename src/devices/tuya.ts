@@ -5337,7 +5337,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bcusnqt8'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_bcusnqt8']),
         model: 'SPM01',
         vendor: 'TuYa',
         description: 'Smart energy monitor for 1P+N system',
@@ -5368,6 +5368,9 @@ const definitions: Definition[] = [
                 // [9,'',tuya.valueConverter.raw] // Unknown / datatype=5 (bitmap)
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('Yagusmart', 'SPM01-D2TZ', 'Smart Energy Sensors', ['_TZE200_bcusnqt8']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ves1ycwx'}, {modelID: 'TS0601', manufacturerName: '_TZE200_ves1ycwx'}],
