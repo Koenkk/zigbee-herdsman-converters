@@ -358,6 +358,44 @@ const definitions: Definition[] = [
         exposes: [e.cover_position()],
     },
     {
+        zigbeeModel: ['Battery switch, 1 button'],
+        model: '552-720X1',
+        vendor: 'Niko',
+        description: 'Battery switch with 1 button',
+        fromZigbee: [fz.command_on, fz.command_off, fz.identify, fz.battery, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genGroups', 'genOnOff', 'genLevelCtrl']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']), e.battery()],
+    },
+    {
+        zigbeeModel: ['Battery switch, 2 button'],
+        model: '552-720X2',
+        vendor: 'Niko',
+        description: 'Battery switch with 2 buttons',
+        meta: {multiEndpoint: true},
+        fromZigbee: [fz.command_on, fz.command_off, fz.identify, fz.battery, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        endpoint: (device) => {
+            return {left: 1, right: 2};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep1 = device.getEndpoint(1);
+            await reporting.bind(ep1, coordinatorEndpoint, ['genGroups', 'genOnOff', 'genLevelCtrl']);
+            await reporting.batteryPercentageRemaining(ep1);
+            const ep2 = device.getEndpoint(2);
+            await reporting.bind(ep2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+        exposes: [
+            e.action(['on_left', 'off_left', 'on_right', 'off_right', 'brightness_move_up_left', 'brightness_move_up_right',
+                'brightness_move_down_left', 'brightness_move_down_right', 'brightness_stop_left', 'brightness_stop_right']),
+            e.battery(),
+        ],
+    },
+    {
         zigbeeModel: ['Battery switch, 4 button'],
         model: '552-720X4',
         vendor: 'Niko',
