@@ -3241,8 +3241,9 @@ const definitions: Definition[] = [
                 [18, null, null], // 18 - Alarm set2 - value seems garbage "AAUAZAAFAB4APAAAAAAAAAA="
             ],
         },
-        whiteLabel: [{vendor: 'Hiking', model: 'DDS238-2'}, {vendor: 'TuYa', model: 'RC-MCB'},
+        whiteLabel: [{vendor: 'TuYa', model: 'RC-MCB'},
             tuya.whitelabel('RTX', 'ZCR1-40EM', 'Zigbee DIN energy meter', ['_TZE204_wbhaespm']),
+            tuya.whitelabel('Hiking', 'DDS238-2', 'Single phase DIN-rail energy meter with switch function', ['_TZE200_bkkmqmyo']),
         ],
     },
     {
