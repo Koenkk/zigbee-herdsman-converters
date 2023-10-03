@@ -1888,11 +1888,10 @@ const definitions: Definition[] = [
          */
     },
     {
-        zigbeeModel: ['TS0041'],
-        fingerprint: [{manufacturerName: '_TZ3000_mrpevh8p'}],
+        fingerprint: tuya.fingerprint('TS0041', ['_TZ3000_mrpevh8p']),
         model: 'SH-SC07',
         vendor: 'TuYa',
-        description: 'Wireless switch with 1 button',
+        description: 'Wireless button',
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
