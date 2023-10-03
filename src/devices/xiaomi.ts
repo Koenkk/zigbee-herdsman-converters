@@ -1176,7 +1176,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['lumi.switch.n3acn1'],
         model: 'QBKG32LM',
         vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1 Pro (with neutral, tripple rocker)',
+        description: 'Aqara smart wall switch H1 Pro (with neutral, triple rocker)',
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -2379,7 +2379,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt, fz.xiaomi_curtain_hagl04_status],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         onEvent: async (type, data, device) => {
-            // The position (genAnalogOutput.presentValue) reported via an attribute contains an invaid value
+            // The position (genAnalogOutput.presentValue) reported via an attribute contains an invalid value
             // however when reading it will provide the correct value.
             if (data.type === 'attributeReport' && data.cluster === 'genAnalogOutput') {
                 await device.endpoints[0].read('genAnalogOutput', ['presentValue']);
@@ -2400,7 +2400,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt, fz.xiaomi_curtain_hagl07_status],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         onEvent: async (type, data, device) => {
-            // The position (genAnalogOutput.presentValue) reported via an attribute contains an invaid value
+            // The position (genAnalogOutput.presentValue) reported via an attribute contains an invalid value
             // however when reading it will provide the correct value.
             if (data.type === 'attributeReport' && data.cluster === 'genAnalogOutput') {
                 await device.endpoints[0].read('genAnalogOutput', ['presentValue']);
@@ -3246,7 +3246,7 @@ const definitions: Definition[] = [
             e.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
             e.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
             e.binary('error', ea.STATE, true, false)
-                .withDescription('Indicates wether there is an error with the feeder'),
+                .withDescription('Indicates whether there is an error with the feeder'),
             e.list('schedule', ea.STATE_SET, e.composite('dayTime', 'dayTime', exposes.access.STATE_SET)
                 .withFeature(e.enum('days', exposes.access.STATE_SET, [
                     'everyday', 'workdays', 'weekend', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',

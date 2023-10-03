@@ -2,7 +2,7 @@ import {Definition} from '../lib/types';
 import extend from '../lib/extend';
 
 const definitions: Definition[] = [
-    // Tested working with firmare 2.5.3_r58: dimming, on/off, and effects give no
+    // Tested working with firmware 2.5.3_r58: dimming, on/off, and effects give no
     // errors (although the stop effect and the finish effect do nothing).
     {
         zigbeeModel: ['K10-1220Z'],

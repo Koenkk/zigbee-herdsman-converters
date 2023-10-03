@@ -82,7 +82,7 @@ const definitions: Definition[] = [
                 '`false` = Auto Offset Mode (use this e.g. for exposed radiators) or `true` = Room Sensor Mode (use this e.g. for ' +
                 'covered radiators). Please note that this flag only controls how the TRV operates on the value of ' +
                 '`External_measured_room_sensor`; only setting this flag without setting the `External_measured_room_sensor` ' +
-                'has no (noticable?) effect.'),
+                'has no (noticeable?) effect.'),
             e.binary('window_open_feature', ea.ALL, true, false)
                 .withDescription('Whether or not the window open feature is enabled'),
             e.enum('window_open_internal', ea.STATE_GET,

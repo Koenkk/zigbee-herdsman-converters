@@ -36,7 +36,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
-            // Configure reporing of currentPositionLiftPercentage always fails.
+            // Configure reporting of currentPositionLiftPercentage always fails.
             // https://github.com/Koenkk/zigbee2mqtt/issues/3216
         },
     },

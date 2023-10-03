@@ -489,7 +489,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed1IntensityWhenOff: {
         ID: 63,
@@ -497,7 +497,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed2ColorWhenOn: {
         ID: 65,
@@ -521,7 +521,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed2IntensityWhenOff: {
         ID: 68,
@@ -529,7 +529,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed3ColorWhenOn: {
         ID: 70,
@@ -553,7 +553,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed3IntensityWhenOff: {
         ID: 73,
@@ -561,7 +561,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed4ColorWhenOn: {
         ID: 75,
@@ -585,7 +585,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed4IntensityWhenOff: {
         ID: 78,
@@ -593,7 +593,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed5ColorWhenOn: {
         ID: 80,
@@ -617,7 +617,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed5IntensityWhenOff: {
         ID: 83,
@@ -625,7 +625,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed6ColorWhenOn: {
         ID: 85,
@@ -649,7 +649,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed6IntensityWhenOff: {
         ID: 88,
@@ -657,7 +657,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed7ColorWhenOn: {
         ID: 90,
@@ -681,7 +681,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     defaultLed7IntensityWhenOff: {
         ID: 93,
@@ -689,7 +689,7 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 101,
         description:
-      'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
+      'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
     relayClick: {
         ID: 261,

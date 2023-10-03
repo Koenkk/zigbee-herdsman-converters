@@ -181,7 +181,7 @@ const fzLocal = {
             if (data.hasOwnProperty(0x0426)) { // External temperature
                 result.external_temp = utils.precisionRound(data[0x0426], 2) /100;
             }
-            if (data.hasOwnProperty(0x0428)) { // Exteral sensor source
+            if (data.hasOwnProperty(0x0428)) { // External sensor source
                 result.exteral_sensor_source = data[0x0428];
             }
             if (data.hasOwnProperty(0x0429)) { // Current air temperature

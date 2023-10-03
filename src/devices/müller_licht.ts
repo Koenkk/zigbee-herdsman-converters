@@ -75,7 +75,7 @@ const definitions: Definition[] = [
         toZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], supportsHueAndSaturation: true}).toZigbee
             .concat([tz.tint_scene]),
         // GU10 bulb does not support supportsEnhancedHue,
-        // we can identify these based on the presense of haDiagnostic input cluster
+        // we can identify these based on the presence of haDiagnostic input cluster
         meta: {supportsEnhancedHue: (entity: Zh.Endpoint) => !entity.getDevice().getEndpoint(1).inputClusters.includes(2821)},
     },
     {

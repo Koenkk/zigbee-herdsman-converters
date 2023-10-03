@@ -2541,7 +2541,7 @@ const definitions: Definition[] = [
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.raw],
                 [5, 'motor_direction', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'reversed': tuya.enum(1)})],
-                [7, null, null], // work_state, not usefull, ignore
+                [7, null, null], // work_state, not useful, ignore
                 [101, 'opening_mode', tuya.valueConverterBasic.lookup({'tilt': tuya.enum(0), 'lift': tuya.enum(1)})],
                 [102, 'factory_reset', tuya.valueConverter.raw],
                 [103, 'set_upper_limit', tuya.valueConverter.setLimit],
@@ -3890,7 +3890,7 @@ const definitions: Definition[] = [
                 // For each period:
                 // 1st byte: hour
                 // 2nd byte: minute
-                // 3rd, 4rd bytes: temperature multiplied by 10
+                // 3rd, 4th bytes: temperature multiplied by 10
                 // Last 2 periods are ignored if schedule_mode is 7day. When schedule_mode is disabled,
                 // scheduling can't be configured at all.
                 // For example, if schedule_mode is weekday/sat+sun and this byte array is received:
@@ -4363,7 +4363,7 @@ const definitions: Definition[] = [
                 .withDescription('Fading time').withUnit('s'),
             // e.text('cli', ea.STATE).withDescription('not recognize'),
             e.enum('self_test', ea.STATE, Object.values(legacy.tuyaHPSCheckingResult))
-                .withDescription('Self_test, possible resuts: checking, check_success, check_failure, others, comm_fault, radar_fault.'),
+                .withDescription('Self_test, possible results: checking, check_success, check_failure, others, comm_fault, radar_fault.'),
         ],
     },
     {

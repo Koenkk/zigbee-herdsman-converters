@@ -22,7 +22,7 @@ const manufacturerOptions = {
     ubisysNull: {manufacturerCode: null},
 };
 
-const ubisysOnEventReadCurrentSummDelivered = async function(type: OnEventType, data: OnEventData, devic: Zh.Device) {
+const ubisysOnEventReadCurrentSummDelivered = async function(type: OnEventType, data: OnEventData, device: Zh.Device) {
     if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
         try {
             await data.endpoint.read('seMetering', ['currentSummDelivered']);

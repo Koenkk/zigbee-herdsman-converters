@@ -28,8 +28,8 @@ const local = {
                 const state: KeyValue = {};
 
                 if (msg.data.hasOwnProperty('switchAction')) {
-                    // NOTE: a single press = two seperate values reported, 16 followed by 64
-                    //       a hold/release cyle = three seperate values, 16, 32, and 48
+                    // NOTE: a single press = two separate values reported, 16 followed by 64
+                    //       a hold/release cycle = three separate values, 16, 32, and 48
                     const actionMap: KeyValue = (model.model == '552-721X1') ? {
                         16: null,
                         64: 'single',

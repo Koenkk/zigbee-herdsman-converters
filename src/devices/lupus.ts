@@ -47,7 +47,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['PRS3CH1_00.00.05.10TC', 'PRS3CH1_00.00.05.11TC'],
         model: '12126',
         vendor: 'Lupus',
-        description: '1 chanel relay',
+        description: '1 channel relay',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -58,7 +58,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['PRS3CH2_00.00.05.10TC', 'PRS3CH2_00.00.05.11TC', 'PRS3CH2_00.00.05.12TC'],
         model: '12127',
         vendor: 'Lupus',
-        description: '2 chanel relay',
+        description: '2 channel relay',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         meta: {multiEndpoint: true},

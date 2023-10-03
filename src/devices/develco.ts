@@ -26,7 +26,7 @@ const develcoLedControlMap = {
     0xFF: 'both',
 };
 
-// develco specific convertors
+// develco specific converters
 const develco = {
     configure: {
         read_sw_hw_version: async (device: Zh.Device, logger: Logger) => {
@@ -448,7 +448,7 @@ const definitions: Definition[] = [
             e.voltage_phase_c()],
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'seMetering' && data.data['divisor']) {
-                // Device sends wrong divisior (512) while it should be fixed to 1000
+                // Device sends wrong divisor (512) while it should be fixed to 1000
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
                 data.endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
             }

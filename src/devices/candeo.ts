@@ -48,7 +48,7 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint);
 
             // The default reporting from the Candeo dimmer can result in a lot of Zigbee traffic
-            // to the extent that reported brighness values can arrive at the endpoint out of order
+            // to the extent that reported brightness values can arrive at the endpoint out of order
             // giving the appearance that the values are jumping around.
             // Limit the reporting to once a second to give a smoother reporting of brightness.
             await reporting.brightness(endpoint, {min: 1});
