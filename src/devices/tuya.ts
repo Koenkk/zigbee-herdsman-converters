@@ -1888,6 +1888,23 @@ const definitions: Definition[] = [
          */
     },
     {
+        zigbeeModel: ['TS0041'],
+        fingerprint: [{manufacturerName: '_TZ3000_mrpevh8p'}],
+        model: 'SH-SC07',
+        vendor: 'TuYa',
+        description: 'Wireless switch with 1 button',
+        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
+        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        /*
+         * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
+         * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
+         * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
+         * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
+         */
+    },
+    {
         zigbeeModel: ['TS0042'],
         model: 'TS0042',
         vendor: 'TuYa',
