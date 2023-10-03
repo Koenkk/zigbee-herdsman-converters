@@ -1030,6 +1030,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', '809WZT', 'Motion sensor', ['_TZ3040_bb6xaihh']),
             tuya.whitelabel('Niceboy', 'ORBIS Motion Sensor', 'Motion sensor', ['_TZ3000_qomxlryd']),
             tuya.whitelabel('Luminea', 'ZX-5311', 'Motion sensor', ['_TZ3000_jmrgyl7o']),
+            tuya.whitelabel('TuYa', 'ZP01', 'Motion sensor', ['_TZ3000_lf56vpxj']),
         ],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
