@@ -64,7 +64,7 @@ const definitions: Definition[] = [
         meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off,
             legacy.fz.genOnOff_cmdOff, fz.battery, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop_with_onoff, fz.command_store],
-        exposes: [e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_move_up', 'brightenss_move_down', 'brightness_stop', 'store_*'])],
+            exposes: [e.battery(), e.action(['on', 'recall_1', 'recall_2', 'recall_3', 'recall_4', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down', 'store_1', 'store_2', 'store_3', 'store_4'])],
         toZigbee: [],
     },
     {
@@ -74,7 +74,7 @@ const definitions: Definition[] = [
         description: 'Zigbee 3.0 Keypad Pulse 8S',
         fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off,
             legacy.fz.genOnOff_cmdOff, fz.battery, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop_with_onoff, fz.command_store],
-        exposes: [e.battery(), e.action(['on', 'recall_*', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down', 'store_*'])],
+            exposes: [e.battery(), e.action(['on', 'recall_1', 'recall_2', 'recall_3', 'recall_4', 'recall_5', 'recall_6', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down', 'store_1', 'store_2', 'store_3', 'store_4', 'store_5', 'store_6'])],
         toZigbee: [],
     },
     {
