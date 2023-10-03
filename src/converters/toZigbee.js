@@ -447,16 +447,6 @@ const converters = {
             await entity.read('closuresWindowCovering', [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']);
         },
     },
-    cover_position_invert: {
-        key: ['position'],
-        options: [exposes.options.invert_cover()],
-        convertSet: async (entity, key, value, meta) => {
-            return await converters.cover_position_tilt.convertSet(entity, key, 100 - value, meta);
-        },
-        convertGet: async (entity, key, meta) => {
-            return converters.cover_position_tilt.convertGet(entity, key, meta);
-        },
-    },
     occupancy_timeout: {
         // Sets delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],
