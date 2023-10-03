@@ -1805,7 +1805,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
         whiteLabel: [
-            {vendor: 'BlitzWolf', model: 'BW-IS4'},
+            {vendor: 'BlitzWolf', model: 'BW-IS4'}, {vendor: 'MultIR', model: 'MIR-TE100-E'},
             tuya.whitelabel('TuYa', 'TS0201_1', 'Zigbee 3.0 temperature humidity sensor with display', ['_TZ3210_alxkwn0h']),
             tuya.whitelabel('TuYa', 'ZTH01/ZTH02', 'Temperature and humidity sensor', ['_TZ3000_0s1izerx']),
         ],
