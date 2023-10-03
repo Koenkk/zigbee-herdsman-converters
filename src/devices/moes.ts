@@ -113,7 +113,7 @@ const definitions: Definition[] = [
             legacy.tz.moes_thermostat_deadzone_temperature, legacy.tz.moes_thermostat_max_temperature_limit,
             legacy.tz.moes_thermostat_min_temperature_limit, legacy.tz.moes_thermostat_program_schedule],
         whiteLabel: [
-            tuya.whitelabel('Moes', 'BHT-006GBZB', 'Smart heating thermostat', ['_TZE204_aoclfnxz']),
+            tuya.whitelabel('Moes', 'BHT-002/BHT-006', 'Smart heating thermostat', ['_TZE204_aoclfnxz']),
         ],
         exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(), e.min_temperature_limit(),
             e.climate().withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
