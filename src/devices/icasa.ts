@@ -65,8 +65,8 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off,
             legacy.fz.genOnOff_cmdOff, fz.battery, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop_with_onoff, fz.command_store],
         exposes: [e.battery(), e.action([
-            'on', 'recall_1', 'recall_2', 'recall_3', 'recall_4',
-            'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
+            'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
+            'recall_1', 'recall_2', 'recall_3', 'recall_4',
             'store_1', 'store_2', 'store_3', 'store_4'])],
         toZigbee: [],
     },
@@ -78,8 +78,8 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off,
             legacy.fz.genOnOff_cmdOff, fz.battery, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop_with_onoff, fz.command_store],
         exposes: [e.battery(), e.action([
-            'on', 'recall_1', 'recall_2', 'recall_3', 'recall_4', 'recall_5', 'recall_6',
-            'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
+            'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
+            'recall_1', 'recall_2', 'recall_3', 'recall_4', 'recall_5', 'recall_6',
             'store_1', 'store_2', 'store_3', 'store_4', 'store_5', 'store_6'])],
         toZigbee: [],
     },
