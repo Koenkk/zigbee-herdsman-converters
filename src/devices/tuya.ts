@@ -1875,23 +1875,8 @@ const definitions: Definition[] = [
         description: 'Wireless switch with 1 button',
         whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'},
             tuya.whitelabel('Sber', 'SBDV-00032', 'Wireless switch with 1 button', ['_TYZB01_ub7urdza']),
+            tuya.whitelabel('TuYa', 'SH-SC07', 'Button Scene Switch', ['_TZ3000_mrpevh8p']),
         ],
-        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
-        toZigbee: [],
-        configure: tuya.configureMagicPacket,
-        /*
-         * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
-         * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
-         * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
-         * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
-         */
-    },
-    {
-        fingerprint: tuya.fingerprint('TS0041', ['_TZ3000_mrpevh8p']),
-        model: 'SH-SC07',
-        vendor: 'TuYa',
-        description: 'Wireless button',
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
