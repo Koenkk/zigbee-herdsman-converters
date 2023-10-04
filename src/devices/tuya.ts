@@ -1142,6 +1142,7 @@ const definitions: Definition[] = [
             if (!device || device.manufacturerName === '_TZ3000_mugyhz0q') {
                 exps.push(e.tamper());
             }
+            exps.push(e.linkquality());
             return exps;
         },
     },
