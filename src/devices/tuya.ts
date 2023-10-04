@@ -1472,19 +1472,36 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aqnazj70', '_TZE200_di3tfv5b', '_TZE200_mexisfik', '_TZE204_6wi2mope']),
-        model: 'TS0601_switch_4_gang',
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aqnazj70', '_TZE200_di3tfv5b', '_TZE200_mexisfik', '_TZE204_6wi2mope', '_TZE204_iik0pquw']),
+        model: 'TS0601_switch_4_gang_1',
         vendor: 'TuYa',
         description: '4 gang switch',
-        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
-        toZigbee: [legacy.toZigbee.tuya_switch_state],
-        meta: {multiEndpoint: true},
+        exposes: [
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            tuya.exposes.switch().withEndpoint('l3'),
+            tuya.exposes.switch().withEndpoint('l4'),
+        ],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        whiteLabel: [
+            tuya.whitelabel('ZYXH', 'TY-04Z', '4 gang switch', ['_TZE204_iik0pquw']),
+            {vendor: 'Norklmes', model: 'MKS-CM-W5'},
+            {vendor: 'Somgoms', model: 'ZSQB-SMB-ZB'},
+            {vendor: 'Moes', model: 'WS-EUB1-ZG'},
+            {vendor: 'AVATTO', model: 'ZGB-WS-EU'},
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+            ],
+        },
         endpoint: (device) => {
-            // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
         },
     },
@@ -5176,7 +5193,7 @@ const definitions: Definition[] = [
         ],
         model: 'TS0601_switch_4_gang_2',
         vendor: 'TuYa',
-        description: '4-Gang switch with backlight',
+        description: '4 gang switch with backlight',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -5451,35 +5468,6 @@ const definitions: Definition[] = [
                 [6, 'state_l6', tuya.valueConverter.onOff],
                 [0x65, 'state_l7', tuya.valueConverter.onOff],
                 [0x66, 'state_l8', tuya.valueConverter.onOff],
-            ],
-        },
-    },
-    {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_iik0pquw'},
-        ],
-        model: 'TY-04Z',
-        vendor: 'TuYa',
-        description: 'ZYXH TY-04Z 4 gang switch',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [
-            tuya.exposes.switch().withEndpoint('l1'),
-            tuya.exposes.switch().withEndpoint('l2'),
-            tuya.exposes.switch().withEndpoint('l3'),
-            tuya.exposes.switch().withEndpoint('l4'),
-        ],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
-        },
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, 'state_l1', tuya.valueConverter.onOff],
-                [2, 'state_l2', tuya.valueConverter.onOff],
-                [3, 'state_l3', tuya.valueConverter.onOff],
-                [4, 'state_l4', tuya.valueConverter.onOff],
             ],
         },
     },
