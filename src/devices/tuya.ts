@@ -6054,10 +6054,13 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_dtzziy1e', '_TZE204_clrdrnya']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya']),
         model: 'MTG075-ZB-RL',
         vendor: 'TuYa',
         description: '5.8G human presence sensor with relay',
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'MTG275-ZB-RL', '24G MmWave radar human presence motion sensor', ['_TZE204_dtzziy1e']),
+        ],
         configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
