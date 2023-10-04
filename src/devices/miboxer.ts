@@ -9,7 +9,7 @@ const definitions: Definition[] = [
         fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3210_ttkgurpb'}],
         model: 'FUT038Z',
         description: 'RGBW LED controller',
-        vendor: 'Miboxer',
+        vendor: 'MiBoxer',
         extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
