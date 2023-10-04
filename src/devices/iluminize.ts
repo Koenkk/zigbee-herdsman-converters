@@ -12,7 +12,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['5120.2210'],
         model: '5120.2210',
-        vendor: 'iluminize',
+        vendor: 'Iluminize',
         description: 'Zigbee 3.0 actuator mini 1x 230V',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
