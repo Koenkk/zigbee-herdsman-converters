@@ -1128,6 +1128,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_1', 'Zigbee water flood sensor + 1m probe cable', ['_TZ3000_ocjlo4ea']),
             tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_2', 'Zigbee water leak sensor', ['_TZ3000_upgcbody']),
             tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_3', 'Zigbee water leak sensor', ['_TYZB01_sqmd19i1']),
+            tuya.whitelabel('TuYa', '899WZ', 'Water leak detector with 80DB Alarm', ['_TZ3000_mugyhz0q']),
             tuya.whitelabel('Niceboy', 'ORBIS Water Sensor', 'Water leak sensor', ['_TZ3000_awvmkayh']),
         ],
         toZigbee: [],
@@ -1136,21 +1137,13 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.water_leak(), e.tamper(), e.battery_low(), e.battery()],
-    },
-    {
-        fingerprint: tuya.fingerprint('TS0207', ['_TZ3000_mugyhz0q']),
-        model: '899WZ',
-        vendor: 'TuYa',
-        description: 'Water leak detector with 80DB Alarm',
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fz.ignore_basic_report],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
+        exposes: (device, options) => {
+            const exps: Expose[] = [e.water_leak(), e.battery_low(), e.battery()];
+            if (!device || device.manufacturerName === '_TZ3000_mugyhz0q') {
+                exps.push(e.tamper());
+            }
+            return exps;
         },
-        exposes: [e.water_leak(), e.battery_low(), e.battery()],
     },
     {
         fingerprint: tuya.fingerprint('TS0101', ['_TYZB01_ijihzffk', '_TZ3210_tfxwxklq', '_TZ3210_2dfy6tol']),
