@@ -9,7 +9,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['ZG_LED_DRIVER42CC'],
         model: 'ZG_LED_DRIVER42CC',
-        vendor: 'ENVILAR',
+        vendor: 'Envilar',
         description: 'Zigbee LED driver',
         extend: extend.light_onoff_brightness(),
     },
