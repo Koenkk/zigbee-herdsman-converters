@@ -1139,6 +1139,20 @@ const definitions: Definition[] = [
         exposes: [e.water_leak(), e.tamper(), e.battery_low(), e.battery()],
     },
     {
+        fingerprint: tuya.fingerprint('TS0207', ['_TZ3000_mugyhz0q']),
+        model: '899WZ',
+        vendor: 'TuYa',
+        description: 'Water leak detector with 80DB Alarm',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fz.ignore_basic_report],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.water_leak(), e.battery_low(), e.battery()],
+    },
+    {
         fingerprint: tuya.fingerprint('TS0101', ['_TYZB01_ijihzffk', '_TZ3210_tfxwxklq', '_TZ3210_2dfy6tol']),
         model: 'TS0101',
         vendor: 'TuYa',
