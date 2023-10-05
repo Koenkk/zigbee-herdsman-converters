@@ -1,5 +1,25 @@
 # Changelog
 
+## [15.88.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.87.0...v15.88.0) (2023-10-05)
+
+
+### Features
+
+* **add:** SP02-ZB001 ([#6234](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6234)) ([7fa9429](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7fa9429929e5b8978a0a9f217511a96ed0d6622d))
+* Expose more actions for iCasa ICZB-KPD14S and ICZB-KPD18S ([#6222](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6222)) ([6bbf333](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6bbf3339356deabff2ce5c0f989e651faefd6345))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_2mbfxlzr` as TuYa MC500A ([#6239](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6239)) ([ebfc824](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ebfc824e7c15af62a0a5dcb135d092e82eac2373))
+* **detect:** Detect `_TZ3000_7d8yme6f` as TuYa ZD08 ([#6240](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6240)) ([65bc25a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/65bc25ade5313e62501de6f9e10fda74dc4a4b27))
+* **detect:** Detect `_TZ3000_lugaswf8` as TuYa ZG-2002-RF ([#6236](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6236)) ([851fe33](https://github.com/Koenkk/zigbee-herdsman-converters/commit/851fe330a3bff181558f1efa70cb30dbaba5efa7))
+* **detect:** Detect `_TZ3000_mrpevh8p` as TuYa SH-SC07 ([#6225](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6225)) ([465413a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/465413a49df8ae413ca1605b841525620a9da5cc))
+* **detect:** Detect `_TZE204_e5hpkc6d` as Connecte 4500994 https://github.com/Koenkk/zigbee2mqtt/issues/19174 ([853e8d8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/853e8d83826389e7a1e1f1796ddad1d87244e08b))
+* **detect:** Detect `_TZE204_iik0pquw` as ZYXH TY-04Z ([#6226](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6226)) ([19e8dc3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/19e8dc35017ecd4ee48fc3a2c14dbd918826526b))
+* Normalise some vendor names ([#6232](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6232)) ([b2119ce](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2119ce46cf85f47c8f4dff539f5b5ef16c5d71d))
+* Rename `900024` to `900024/12253` and support hue and saturation https://github.com/Koenkk/zigbee2mqtt/issues/18941 ([4c1e41c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c1e41c774349494924638b88d1a4222cc37a717))
+
 ## [15.87.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.86.1...v15.87.0) (2023-10-03)
 
 
