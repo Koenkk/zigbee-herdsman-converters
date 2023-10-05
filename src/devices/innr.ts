@@ -56,7 +56,7 @@ const definitions: Definition[] = [
             colorTempRange: [150, 500],
             supportsHueAndSaturation: true,
             disableColorTempStartup: true,
-            disablePowerOnBehavior: true
+            disablePowerOnBehavior: true,
         }),
     },
     {
