@@ -6324,6 +6324,24 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mgxy2d9f']),
+        model: 'SP02-ZB001',
+        vendor: 'iAlarm',
+        description: 'Infrared motion sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [e.tamper(), e.battery(), e.occupancy()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'occupancy', tuya.valueConverter.trueFalse0],
+                [4, 'battery', tuya.valueConverter.raw],
+                [5, 'tamper', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
 
 module.exports = definitions;
