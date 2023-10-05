@@ -563,6 +563,7 @@ const definitions: Definition[] = [
             {vendor: 'Cleverio', model: 'SS100'},
             tuya.whitelabel('Niceboy', 'ORBIS Windows & Door Sensor', 'Door sensor', ['_TZ3000_qrldbmfn']),
             tuya.whitelabel('Sber', 'SBDV-00030', 'Door sensor', ['_TYZB01_epni2jgy']),
+            tuya.whitelabel('TuYa', 'ZD08', 'Door sensor', ['_TZ3000_7d8yme6f']),
             tuya.whitelabel('TuYa', 'MC500A', 'Door sensor', ['_TZ3000_2mbfxlzr']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
