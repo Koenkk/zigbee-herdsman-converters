@@ -1039,7 +1039,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: (device, options) => {
             const exps: Expose[] = [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()];
-            if (!device || device.manufacturerName === '_TZ3000_bsvqrxru') {
+            if (!device || device.manufacturerName !== '_TZ3000_bsvqrxru') {
                 exps.push(e.tamper());
             }
             exps.push(e.linkquality());
