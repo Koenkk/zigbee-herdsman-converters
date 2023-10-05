@@ -21,10 +21,10 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['EGLO_ZM_RGB_TW'],
-        model: '900024',
+        model: '900024/12253',
         vendor: 'EGLO',
-        description: 'SALITERAS-Z ceiling light',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        description: 'RGB light',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370], supportsHueAndSaturation: true}),
     },
     {
         zigbeeModel: ['EGLO_ZM_TW_CLP'],
