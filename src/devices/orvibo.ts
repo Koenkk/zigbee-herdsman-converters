@@ -23,7 +23,7 @@ const tzLocal = {
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['ccb9f56837ab41dcad366fb1452096b6'],
+        zigbeeModel: ['ccb9f56837ab41dcad366fb1452096b6','250bccf66c41421b91b5e3242942c164'],
         model: 'DD10Z',
         vendor: 'ORVIBO',
         description: 'Smart spotlight',
