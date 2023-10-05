@@ -48,6 +48,17 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['FL 142 C'],
+        model: 'FL 142 C',
+        vendor: 'Innr',
+        description: 'Color Flex LED strip 4m 2000lm',
+        extend: extend.light_onoff_brightness_colortemp_color({
+            supportsHueAndSaturation: true,
+            disableColorTempStartup: true,
+            disablePowerOnBehavior: true
+        }),
+    },
+    {
         zigbeeModel: ['FL 140 C'],
         model: 'FL 140 C',
         vendor: 'Innr',
