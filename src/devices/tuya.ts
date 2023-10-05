@@ -1816,6 +1816,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0201', manufacturerName: '_TZ3000_yd2e749y'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_6uzkisv2'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_xr3htd96'},
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_fllyghyj'},
         ],
         model: 'WSD500A',
         vendor: 'TuYa',
