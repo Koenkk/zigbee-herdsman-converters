@@ -555,7 +555,6 @@ const definitions: Definition[] = [
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
         whiteLabel: [
             {vendor: 'CR Smart Home', model: 'TS0203'},
             {vendor: 'TuYa', model: 'iH-F001'},
@@ -565,7 +564,16 @@ const definitions: Definition[] = [
             tuya.whitelabel('Sber', 'SBDV-00030', 'Door sensor', ['_TYZB01_epni2jgy']),
             tuya.whitelabel('TuYa', 'ZD08', 'Door sensor', ['_TZ3000_7d8yme6f']),
             tuya.whitelabel('TuYa', 'MC500A', 'Door sensor', ['_TZ3000_2mbfxlzr']),
+            tuya.whitelabel('TuYa', '19DZT', 'Door sensor', ['_TZ3000_n2egfsli']),
         ],
+        exposes: (device, options) => {
+            const exps: Expose[] = [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()];
+            if (!device || device.manufacturerName !== '_TZ3000_2mbfxlzr' || device.manufacturerName !== '_TZ3000_n2egfsli' ) {
+                exps.push(e.tamper());
+            }
+            exps.push(e.linkquality());
+            return exps;
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
                 const endpoint = device.getEndpoint(1);
