@@ -53,10 +53,7 @@ const definitions: Definition[] = [
         vendor: 'Innr',
         description: 'Color Flex LED strip 4m 2000lm',
         extend: extend.light_onoff_brightness_colortemp_color({
-            colorTempRange: [150, 500],
-            supportsHueAndSaturation: true,
-            disableColorTempStartup: true,
-            disablePowerOnBehavior: true,
+            colorTempRange: [150, 500], supportsHueAndSaturation: true, disableColorTempStartup: true, disablePowerOnBehavior: true,
         }),
     },
     {
