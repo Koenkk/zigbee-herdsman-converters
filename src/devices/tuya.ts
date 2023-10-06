@@ -563,6 +563,8 @@ const definitions: Definition[] = [
             {vendor: 'Cleverio', model: 'SS100'},
             tuya.whitelabel('Niceboy', 'ORBIS Windows & Door Sensor', 'Door sensor', ['_TZ3000_qrldbmfn']),
             tuya.whitelabel('Sber', 'SBDV-00030', 'Door sensor', ['_TYZB01_epni2jgy']),
+            tuya.whitelabel('TuYa', 'ZD08', 'Door sensor', ['_TZ3000_7d8yme6f']),
+            tuya.whitelabel('TuYa', 'MC500A', 'Door sensor', ['_TZ3000_2mbfxlzr']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
@@ -2162,7 +2164,9 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'},
             {vendor: 'Lonsonho', model: 'X702'},
-            {vendor: 'AVATTO', model: 'ZTS02'}],
+            {vendor: 'AVATTO', model: 'ZTS02'},
+            tuya.whitelabel('TuYa', 'ZG-2002-RF', 'Three mode Zigbee Switch', ['_TZ3000_lugaswf8']),
+        ],
         extend: tuya.extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         endpoint: (device) => {
@@ -6327,6 +6331,24 @@ const definitions: Definition[] = [
                 [112, 'free_chlorine_max', tuya.valueConverter.divideBy10],
                 [113, 'free_chlorine_min', tuya.valueConverter.divideBy10],
                 [117, 'salinity', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mgxy2d9f']),
+        model: 'SP02-ZB001',
+        vendor: 'iAlarm',
+        description: 'Infrared motion sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [e.tamper(), e.battery(), e.occupancy()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'occupancy', tuya.valueConverter.trueFalse0],
+                [4, 'battery', tuya.valueConverter.raw],
+                [5, 'tamper', tuya.valueConverter.raw],
             ],
         },
     },

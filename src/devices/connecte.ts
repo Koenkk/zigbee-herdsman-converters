@@ -7,7 +7,7 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_4hbx5cvx'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e5hpkc6d', '_TZE200_4hbx5cvx']),
         model: '4500994',
         vendor: 'Connecte',
         description: 'Smart thermostat',
