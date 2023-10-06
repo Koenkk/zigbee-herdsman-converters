@@ -5337,9 +5337,11 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_bcusnqt8']),
-        model: 'SPM01',
-        vendor: 'TuYa',
+        fingerprint: [
+            {modelID: 'SPM01-D2TZ', manufacturerName: '_TZE200_bcusnqt8'},
+        ],
+        model: 'SPM01-D2TZ',
+        vendor: 'Yagusmart',
         description: 'Smart energy monitor for 1P+N system',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -5368,9 +5370,6 @@ const definitions: Definition[] = [
                 // [9,'',tuya.valueConverter.raw] // Unknown / datatype=5 (bitmap)
             ],
         },
-        whiteLabel: [
-            tuya.whitelabel('Yagusmart', 'SPM01-D2TZ', 'Smart Energy Sensors', ['_TZE200_bcusnqt8']),
-        ],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ves1ycwx'}, {modelID: 'TS0601', manufacturerName: '_TZE200_ves1ycwx'}],
