@@ -1840,10 +1840,10 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'},
-            {modelID: 'TS0201', manufacturerName: '_TZ3000_fllyghyj'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_yd2e749y'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_6uzkisv2'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_xr3htd96'},
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_fllyghyj'},
         ],
         model: 'WSD500A',
         vendor: 'TuYa',
@@ -1852,6 +1852,9 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'TH02Z', 'Temperature and humidity sensor', ['_TZ3000_fllyghyj']),
+        ],
     },
     {
         fingerprint: [
