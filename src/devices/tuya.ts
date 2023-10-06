@@ -3106,8 +3106,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_m9skfctm']),
-        model: 'TS0601_smoke_2',
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_m9skfctm', '_TZE200_rccxox8p']),
+        model: 'PA-44Z',
         vendor: 'TuYa',
         description: 'Photoelectric smoke detector',
         fromZigbee: [tuya.fz.datapoints],
@@ -3128,9 +3128,6 @@ const definitions: Definition[] = [
                 [101, 'test', tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [
-            tuya.whitelabel('TuYa', 'PA-44Z', 'Smoke detector', ['_TZE200_m9skfctm']),
-        ],
     },
     {
         fingerprint: [
