@@ -568,7 +568,7 @@ const definitions: Definition[] = [
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()];
-            if (!device || device.manufacturerName !== '_TZ3000_2mbfxlzr' || device.manufacturerName !== '_TZ3000_n2egfsli' ) {
+            if (!device || !['_TZ3000_2mbfxlzr', '_TZ3000_n2egfsli'].includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
             exps.push(e.linkquality());
