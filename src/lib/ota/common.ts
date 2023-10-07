@@ -19,7 +19,7 @@ const endRequestCodeLookup: KeyValueNumberString = {
 };
 export const upgradeFileIdentifier = Buffer.from([0x1E, 0xF1, 0xEE, 0x0B]);
 
-interface Request {cancel: () => void, promise: Promise<{header: KeyValue, payload: KeyValue}>}
+interface Request {cancel: () => void, promise: Promise<{header: Zh.ZclHeader, payload: KeyValue}>}
 interface Waiters {imageBlockOrPageRequest?: Request, nextImageRequest?: Request, upgradeEndRequest?: Request}
 type IsNewImageAvailable = (current: Ota.ImageInfo, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta) =>
     Promise<{available: number, currentFileVersion: number, otaFileVersion: number}>
@@ -172,7 +172,7 @@ function cancelWaiters(waiters: Waiters) {
     }
 }
 
-function sendQueryNextImageResponse(endpoint: Zh.Endpoint, image: Ota.Image, logger: Logger) {
+function sendQueryNextImageResponse(endpoint: Zh.Endpoint, image: Ota.Image, requestTransactionSequenceNumber: number, logger: Logger) {
     const payload = {
         status: 0,
         manufacturerCode: image.header.manufacturerCode,
@@ -181,7 +181,7 @@ function sendQueryNextImageResponse(endpoint: Zh.Endpoint, image: Ota.Image, log
         imageSize: image.header.totalImageSize,
     };
 
-    endpoint.commandResponse('genOta', 'queryNextImageResponse', payload).catch((e) => {
+    endpoint.commandResponse('genOta', 'queryNextImageResponse', payload, null, requestTransactionSequenceNumber).catch((e) => {
         logger.debug(`Failed to send queryNextImageResponse (${e.message})`);
     });
 }
@@ -377,7 +377,6 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
                     } else {
                         // imageBlockRequest
                         sendImageBlockResponse(imageBlockOrPageRequest, answerNextImageBlockOrPageRequest,
-                            // @ts-expect-error
                             imageBlockOrPageRequest.header.transactionSequenceNumber);
                     }
                 },
@@ -390,9 +389,9 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
 
         const answerNextImageRequest = () => {
             waiters.nextImageRequest = endpoint.waitForCommand('genOta', 'queryNextImageRequest', null, maxTimeout);
-            waiters.nextImageRequest.promise.then(() => {
+            waiters.nextImageRequest.promise.then((payload) => {
                 answerNextImageRequest();
-                sendQueryNextImageResponse(endpoint, image, logger);
+                sendQueryNextImageResponse(endpoint, image, payload.header.transactionSequenceNumber, logger);
             });
         };
 
@@ -409,7 +408,7 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
                     currentTime: 0, upgradeTime: 1,
                 };
 
-                endpoint.commandResponse('genOta', 'upgradeEndResponse', payload).then(
+                endpoint.commandResponse('genOta', 'upgradeEndResponse', payload, null, data.header.transactionSequenceNumber).then(
                     () => {
                         logger.debug(`Update succeeded, waiting for device announce`);
                         onProgress(100, null);
