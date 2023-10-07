@@ -511,19 +511,40 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Double wired switch with neutral',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.legrand_binary_input_on_off, fz.legrand_cluster_fc01, fz.legrand_led_in_dark],
-        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn],
-        exposes: [e.switch().withEndpoint('left'),
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.legrand_binary_input_on_off, fz.lighting_ballast_configuration,
+            fz.legrand_cluster_fc01, fz.power_on_behavior, fz.legrand_led_in_dark],
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_identify, tz.legrand_deviceMode, tz.on_off, tz.legrand_settingEnableLedInDark,
+            tz.legrand_settingEnableLedIfOn, tz.ballast_config, tz.power_on_behavior],
+        exposes: [
+            e.light_brightness().withEndpoint('left'),
+            e.light_brightness().withEndpoint('right'),
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum brightness value').withEndpoint('left'),
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum brightness value').withEndpoint('left'),
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum brightness value').withEndpoint('right'),
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum brightness value').withEndpoint('right'),
+            e.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
+            e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
                 ` see the switch in the dark`),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on')],
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
+            e.power_on_behavior()],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpointLeft = device.getEndpoint(2);
-            await reporting.bind(endpointLeft, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
+            await reporting.bind(endpointLeft, coordinatorEndpoint, ['genOnOff', 'genBinaryInput', 'lightingBallastCfg']);
+            await reporting.brightness(endpointLeft);
+            await reporting.onOff(endpointLeft);
             const endpointRight = device.getEndpoint(1);
-            await reporting.bind(endpointRight, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
+            await reporting.bind(endpointRight, coordinatorEndpoint, ['genOnOff', 'genBinaryInput', 'lightingBallastCfg']);
+            await reporting.brightness(endpointRight);
+            await reporting.onOff(endpointRight);
         },
         endpoint: (device) => {
             return {left: 2, right: 1};
