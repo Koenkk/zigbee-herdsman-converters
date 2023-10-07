@@ -232,6 +232,12 @@ function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: KeyVa
         end = image.raw.length;
     }
 
+    logger.debug(`Request offsets:` +
+                ` fileOffset=${imageBlockRequest.payload.fileOffset}` +
+                ` pageOffset=${pageOffset}` +
+                ` dataSize=${imageBlockRequest.payload.maximumDataSize}`);
+    logger.debug(`Payload offsets: start=${start} end=${end} dataSize=${dataSize}`);
+
     return {
         status: 0,
         manufacturerCode: imageBlockRequest.payload.manufacturerCode,
