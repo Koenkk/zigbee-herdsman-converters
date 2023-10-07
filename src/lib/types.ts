@@ -5,6 +5,9 @@ import type {
     Endpoint as ZHEndpoint,
     Group as ZHGroup,
 } from 'zigbee-herdsman/dist/controller/model';
+import type {
+    ZclHeader as ZHZclHeader,
+} from 'zigbee-herdsman/dist/zcl';
 
 import * as exposes from './exposes';
 
@@ -138,6 +141,7 @@ export namespace Zh {
     export type Endpoint = ZHEndpoint;
     export type Device = ZHDevice;
     export type Group = ZHGroup;
+    export type ZclHeader = ZHZclHeader;
 }
 
 export namespace Tuya {
