@@ -6703,7 +6703,8 @@ const toZigbee2 = {
     moes_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            if (value >= 1 && value <= 5) value = Math.round(value*10);
+            if (value = 5) value = Math.round(value*10);
+            if (value < 5) value = Math.round(value*10);
             await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
         },
     } as Tz.Converter,
