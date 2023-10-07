@@ -5384,8 +5384,8 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bcusnqt8'}],
-        model: 'SPM01',
-        vendor: 'TuYa',
+        model: 'SPM01-D2TZ',
+        vendor: 'Yagusmart',
         description: 'Smart energy monitor for 1P+N system',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
