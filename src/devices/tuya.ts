@@ -5337,7 +5337,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'SPM01-D2TZ', manufacturerName: '_TZE200_bcusnqt8'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bcusnqt8'}],
         model: 'SPM01-D2TZ',
         vendor: 'Yagusmart',
         description: 'Smart energy monitor for 1P+N system',
