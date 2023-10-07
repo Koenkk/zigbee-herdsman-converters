@@ -218,7 +218,7 @@ function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: KeyVa
     if (imageBlockRequest.payload.manufacturerCode === 4129 &&
         imageBlockRequest.payload.fileOffset === 50 &&
         imageBlockRequest.payload.maximumDataSize === 12) {
-        logger.info(`Detected Legrand firmwrae issue, attempting to reset the OTA stack`);
+        logger.info(`Detected Legrand firmware issue, attempting to reset the OTA stack`);
         // The following vector seems to buffer overflow the device to reset the OTA stack!
         start = 78;
         dataSize = 64;
@@ -231,6 +231,12 @@ function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: KeyVa
     if (end > image.raw.length) {
         end = image.raw.length;
     }
+
+    logger.debug(`Request offsets:` +
+                ` fileOffset=${imageBlockRequest.payload.fileOffset}` +
+                ` pageOffset=${pageOffset}` +
+                ` dataSize=${imageBlockRequest.payload.maximumDataSize}`);
+    logger.debug(`Payload offsets: start=${start} end=${end} dataSize=${dataSize}`);
 
     return {
         status: 0,
