@@ -389,6 +389,23 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['CCT593011_AS'],
+        model: '550B1024',
+        vendor: 'Schneider Electric',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fz.humidity, fz.temperature, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['msTemperatureMeasurement', 'genPowerCfg', 'msRelativeHumidity'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.temperature(endpoint);
+            await reporting.humidity(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['NHPB/DIMMER/1'],
         model: 'WDE002386',
         vendor: 'Schneider Electric',
