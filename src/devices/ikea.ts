@@ -421,6 +421,13 @@ const definitions: Definition[] = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['TRADFRI bulb E14 WS candle 470lm'],
+        model: 'LED2107C4',
+        vendor: 'IKEA',
+        description: 'TRADFRI bulb E14 WS candle 470lm, wireless dimmable white spectrum/chandelier opal white',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['TRADFRI Light Engine'],
         model: 'T2011',
         description: 'Osvalla panel round',
