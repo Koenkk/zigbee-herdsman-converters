@@ -664,6 +664,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['1744230P7'],
+        model: '1744230P7',
+        vendor: 'Philips',
+        description: 'Hue Econic outdoor Post Light',
+        extend: philips.extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
         zigbeeModel: ['1745730V7'],
         model: '1745730V7',
         vendor: 'Philips',
