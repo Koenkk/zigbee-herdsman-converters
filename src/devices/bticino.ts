@@ -18,9 +18,10 @@ const definitions: Definition[] = [
         fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input, fz.legrand_cluster_fc01, fz.legrand_led_in_dark],
         toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn, tz.legrand_identify],
         exposes: [
-            e.switch(), e.action(['identify', 'on', 'off']),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').
-                withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
+            e.switch(),
+            e.action(['identify', 'on', 'off']),
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
+                .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
             e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the LED when the light is turned on'),
             e.enum('identify', ea.SET, ['blink'])
@@ -79,7 +80,8 @@ const definitions: Definition[] = [
         toZigbee: [tz.bticino_4027C_cover_state, tz.bticino_4027C_cover_position, tz.legrand_identify,
             tz.legrand_settingEnableLedInDark],
         exposes: [
-            e.cover_position(), e.action(['moving', 'identify', '']),
+            e.cover_position(),
+            e.action(['moving', 'identify', '']),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
             e.enum('identify', ea.SET, ['blink'])
@@ -100,8 +102,10 @@ const definitions: Definition[] = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [
-            e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
-            e.power().withAccess(ea.STATE_GET),
+            e.switch()
+                .withState('state', true, 'On/off (works only if device is in "switch" mode)'),
+            e.power()
+                .withAccess(ea.STATE_GET),
             e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP'),
         ],
