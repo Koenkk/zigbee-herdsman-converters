@@ -75,17 +75,16 @@ const definitions: Definition[] = [
         vendor: 'BTicino',
         description: 'Shutter SW with level control',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.ignore_zclversion_read, fz.bticino_4027C_binary_input_moving,
-            fz.cover_position_tilt, fz.legrand_led_in_dark],
-        toZigbee: [tz.bticino_4027C_cover_state, tz.bticino_4027C_cover_position, tz.legrand_identify,
-            tz.legrand_settingEnableLedInDark],
+        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.bticino_4027C_binary_input_moving,
+            fz.identify, fz.legrand_led_in_dark, fz.ignore_zclversion_read],
+        toZigbee: [tz.bticino_4027C_cover_state, tz.bticino_4027C_cover_position, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
         exposes: [
             e.cover_position(),
             e.action(['moving', 'identify', '']),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
             e.enum('identify', ea.SET, ['blink'])
-                .withDescription('Blinks the built-in LED to make it easier to find the device'),
+                .withDescription('Blinks the built-in LED to make it easier to identify the device'),
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
+                .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
