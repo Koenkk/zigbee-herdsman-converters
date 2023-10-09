@@ -13,7 +13,8 @@
       "outDir": ".",
       "baseUrl": ".",
       "resolveJsonModule": true,
-      "allowJs": true
+      "allowJs": true,
+      "incremental": true
     },
     "include": ["./src/"],
     "exclude": []
