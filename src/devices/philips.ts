@@ -2510,7 +2510,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['LCS002'],
         model: '577262',
         vendor: 'Philips',
-        description: 'Hue White and Color Ambiance PAR38 Outdoor Spotlight',
+        description: 'Hue White and Color Ambiance PAR38 outdoor spotlight',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
