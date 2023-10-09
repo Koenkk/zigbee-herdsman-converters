@@ -752,17 +752,17 @@ const definitions: Definition[] = [
         zigbeeModel: ['RBSH-RTH0-BAT-ZB-EU'],
         model: 'BTH-RM',
         vendor: 'Bosch',
-        description: 'Room thermostat II',
+        description: 'Room thermostat II (Battery model)',
         fromZigbee: [fz.humidity, fz.thermostat, fz.battery, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
             tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tzLocal.bosch_thermostat, tzLocal.bosch_userInterface],
         exposes: [
-            e.numeric('humidity', ea.STATE).withUnit('%').withDescription('Measured relative humidity'),
             e.climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
                 .withSystemMode(['off', 'heat', 'auto']),
+            e.humidity(),
             e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
             e.child_lock().setAccess('state', ea.ALL),
             e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
@@ -771,14 +771,24 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity']);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
             await reporting.thermostatTemperature(endpoint);
             await reporting.humidity(endpoint);
+
+            // report is window_open
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], boschManufacturer);
+
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], boschManufacturer);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
-            await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x403a, 0x403b], boschManufacturer);
+            await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], boschManufacturer);
         },
     },
     {
