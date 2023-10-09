@@ -4754,7 +4754,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_3towulqd', '_TZE200_1ibpyhdc', '_TZE200_bh3n6gk8']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_3towulqd', '_TZE200_1ibpyhdc', '_TZE200_bh3n6gk8', '_TZE200_ttcovulf']),
         model: 'ZG-204ZL',
         vendor: 'TuYa',
         description: 'Luminance motion sensor',
