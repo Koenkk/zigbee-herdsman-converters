@@ -21,7 +21,7 @@ const definitions: Definition[] = [
         exposes: [e.occupancy(), e.battery(), e.illuminance()],
         configure: async (device, cordinatorEndpoint, logger)=>{
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, cordinatorEndpoint, ['msOccupancySensing','genPowerCfg']);
+            await reporting.bind(endpoint1, cordinatorEndpoint, ['msOccupancySensing', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint1);
             await reporting.occupancy(endpoint1);
             await reporting.bind(endpoint1, cordinatorEndpoint, ['msIlluminanceMeasurement']);
