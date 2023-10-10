@@ -221,10 +221,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_j1v25l17'}, // EU
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ynmowqk2'}, // FR
-        ],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_j1v25l17', '_TZ3000_ynmowqk2', '_TZ3000_3uimvkn6']),
         model: 'HG08673',
         vendor: 'Lidl',
         description: 'Silvercrest smart plug with power monitoring (EU, FR)',
@@ -244,6 +241,9 @@ const definitions: Definition[] = [
         },
         options: [exposes.options.measurement_poll_interval().withDescription('Only the energy value is polled for this device.')],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, false, true),
+        whiteLabel: [
+            tuya.whitelabel('Lidl', 'HG08673-BS', 'Silvercrest smart plug with power monitoring (BS)', ['_TZ3000_3uimvkn6']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_rco1yzb1'}],
