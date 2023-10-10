@@ -932,6 +932,22 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_mja6r5ix', '_TZ3210_it1u8ahz']),
+        model: 'TS0505B',
+        vendor: 'TuYa',
+        description: 'Zigbee RGBCW light',
+        whiteLabel: [
+            tuya.whitelabel('Tuya', 'TS0505B_1_1', 'Zigbee 3.0 18W led light bulb E27 RGBCW', ['_TZ3210_mja6r5ix']),
+            tuya.whitelabel('Tuya', 'TS0505B_1_2', 'Zigbee GU10 5W smart bulb', ['_TZ3210_it1u8ahz']),
+        ],
+        toZigbee: [tz.on_off, tzLocal.led_control],
+        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
+        exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature('color_temp_startup')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
         zigbeeModel: ['TS0503B'],
         model: 'TS0503B',
         vendor: 'TuYa',
