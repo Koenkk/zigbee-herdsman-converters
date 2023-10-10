@@ -7,8 +7,8 @@
   "files": [
     "/index.js",
     "/converters",
-    "/devices",
     "/lib",
+    "/devices",
     "CHANGELOG.md"
   ],
   "repository": {
