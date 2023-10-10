@@ -865,7 +865,7 @@ const tuyaTz = {
             'eco_mode', 'max_temperature_limit', 'min_temperature_limits', 'manual_modes',
             'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity', 'switch_type',
             'ph_max', 'ph_min', 'ec_max', 'ec_min', 'orp_max', 'orp_min', 'free_chlorine_max', 'free_chlorine_min', 'target_distance',
-			'illumin_max', 'illumin_min', 'presence_illumin_switch', "light_switch", "light_linkage", "detection_method", "find_switch",
+            'illumin_max', 'illumin_min', 'presence_illumin_switch', "light_switch", "light_linkage", "detection_method", "find_switch",
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
