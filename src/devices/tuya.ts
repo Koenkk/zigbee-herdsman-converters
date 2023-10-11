@@ -6101,84 +6101,78 @@ const definitions: Definition[] = [
             ],
         },
     },
-	{
-		fingerprint: [{
-			modelID: 'TS0601',
-			manufacturerName: '_TZE204_e9ajs4ft',
-		}],
-		model: 'CTL-R1-TY-Zigbee',
-		vendor: 'TuYa',
-		description: 'Creatrol - 24G radar human presence motion sensor.',
-		fromZigbee: [tuya.fz.datapoints],
-		toZigbee: [tuya.tz.datapoints],
-		exposes: [
-			e.illuminance_lux(),
-			e.presence(),
-			e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(100)
-			.withValueStep(1).withUnit('%').withDescription('presence_sensitivity'),
-	
-			e.numeric('detection_range', ea.STATE_SET).withValueMin(1.5).withValueMax(4.5).withValueStep(
-				0.1).withUnit('m').withDescription('Detection range'),
-	
-			e.numeric('detection_delay', ea.STATE_SET).withValueMin(1).withValueMax(600).withValueStep(1)
-			.withUnit('s').withDescription('presence detection delay'),
-	
-			e.numeric('illumin_max', ea.STATE_SET).withValueMin(0).withValueMax(2000).withValueStep(1)
-			.withUnit('Lux').withDescription(
-				'The threshold of the light sensor will be linked to the "light_switch" parameter'),
-	
-			e.numeric('illumin_min', ea.STATE_SET).withValueMin(0).withValueMax(1000).withValueStep(1)
-			.withUnit('Lux').withDescription(
-				'The threshold of the light sensor will be linked to the "light_switch" parameter'),
-			e.enum('presence_illumin_switch', ea.STATE_SET, ['disable', 'enable']).withDescription(
-				'Whether to enable illumination threshold detection'),
-			e.binary('light_switch', ea.STATE, "on", "off").withDescription(
-				'This state will determine the light on/off based on the lighting threshold and presence sensing'
-				),
-			e.enum('light_linkage', ea.STATE_SET, ['disable', 'enable']).withDescription('linkage_light'),
-			e.enum('detection_method', ea.STATE_SET, ['only move', 'exist move']).withDescription(
-				'detection method'),
-			e.enum('backlight_mode', ea.STATE_SET, ['open', 'close', 'lighting']).withDescription(
-				'backlight mode'),
-			e.binary('find_switch', ea.STATE_SET, "on", "off").withDescription(
-				'After turning on, the indicator light quickly flashes, used to locate devices'),
-		],
-		meta: {
-			tuyaDatapoints: [
-				[1, 'presence', tuya.valueConverter.trueFalse1],
-				[2, 'presence_sensitivity', tuya.valueConverter.raw],
-				[4, 'detection_range', tuya.valueConverter.divideBy10],
-				[104, 'detection_delay', tuya.valueConverter.raw],
-				[101, 'illuminance_lux', tuya.valueConverter.raw],
-				[102, 'illumin_max', tuya.valueConverter.raw],
-				[103, 'illumin_min', tuya.valueConverter.raw],
-				[109, 'presence_illumin_switch', tuya.valueConverterBasic.lookup({
-					'disable': tuya.enum(0),
-					'enable': tuya.enum(1),
-				})],
-				[105, 'light_switch', tuya.valueConverterBasic.lookup({
-					'off': false,
-					'on': true,
-				})],
-				[106, 'light_linkage', tuya.valueConverterBasic.lookup({
-					'disable': tuya.enum(0),
-					'enable': tuya.enum(1),
-				})],
-				[107, 'backlight_mode', tuya.valueConverterBasic.lookup({
-					'open': tuya.enum(0),
-					'close': tuya.enum(1),
-					'lighting': tuya.enum(2)
-				})],
-				[108, 'detection_method', tuya.valueConverterBasic.lookup({
-					'only move': tuya.enum(0),
-					'exist move': tuya.enum(1),
-				})],
-				[113, 'find_switch', tuya.valueConverterBasic.lookup({
-					'off': false,
-					'on': true,
-				})],
-			],
-		},
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e9ajs4ft']),
+        model: 'CTL-R1-TY-Zigbee',
+        vendor: 'TuYa',
+        description: '24G radar human presence motion sensor.',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.illuminance().withUnit('lx'), e.presence(),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%')
+                .withDescription('Presence sensitivity'),
+            e.numeric('detection_range', ea.STATE_SET).withValueMin(1.5).withValueMax(4.5).withValueStep(0.1).withUnit('m')
+                .withDescription('Detection range'),
+            e.numeric('detection_delay', ea.STATE_SET).withValueMin(1).withValueMax(600).withValueStep(1).withUnit('s')
+                .withDescription('Presence detection delay'),
+            e.numeric('illuminance_treshold_max', ea.STATE_SET).withValueMin(0).withValueMax(2000).withValueStep(1).withUnit('lx')
+                .withDescription('The max illumiance threshold to turn on the light'),
+            e.numeric('illuminance_treshold_min', ea.STATE_SET).withValueMin(0).withValueMax(2000).withValueStep(1).withUnit('lx')
+                .withDescription('The min illumiance threshold to turn on the light'),
+
+                
+        	e.enum('presence_illumin_switch', ea.STATE_SET, ['disable', 'enable']).withDescription(
+                'Whether to enable illumination threshold detection'),
+        	e.binary('light_switch', ea.STATE, "on", "off").withDescription(
+                'This state will determine the light on/off based on the lighting threshold and presence sensing'
+                ),
+        	e.enum('light_linkage', ea.STATE_SET, ['disable', 'enable']).withDescription('linkage_light'),
+        	e.enum('detection_method', ea.STATE_SET, ['only move', 'exist move']).withDescription(
+                'detection method'),
+        	e.enum('backlight_mode', ea.STATE_SET, ['open', 'close', 'lighting']).withDescription(
+                'backlight mode'),
+        	e.binary('find_switch', ea.STATE_SET, "on", "off").withDescription(
+                'After turning on, the indicator light quickly flashes, used to locate devices'),
+        ],
+        meta: {
+        	tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [2, 'presence_sensitivity', tuya.valueConverter.raw],
+                [4, 'detection_range', tuya.valueConverter.divideBy10],
+                [101, 'illuminance', tuya.valueConverter.raw],
+                [102, 'illuminance_treshold_max', tuya.valueConverter.raw],
+                [103, 'illuminance_treshold_min', tuya.valueConverter.raw],
+                [104, 'detection_delay', tuya.valueConverter.raw],
+
+
+                [109, 'presence_illumin_switch', tuya.valueConverterBasic.lookup({
+                	'disable': tuya.enum(0),
+                	'enable': tuya.enum(1),
+                })],
+                [105, 'light_switch', tuya.valueConverterBasic.lookup({
+                	'off': false,
+                	'on': true,
+                })],
+                [106, 'light_linkage', tuya.valueConverterBasic.lookup({
+                	'disable': tuya.enum(0),
+                	'enable': tuya.enum(1),
+                })],
+                [107, 'backlight_mode', tuya.valueConverterBasic.lookup({
+                	'open': tuya.enum(0),
+                	'close': tuya.enum(1),
+                	'lighting': tuya.enum(2)
+                })],
+                [108, 'detection_method', tuya.valueConverterBasic.lookup({
+                	'only move': tuya.enum(0),
+                	'exist move': tuya.enum(1),
+                })],
+                [113, 'find_switch', tuya.valueConverterBasic.lookup({
+                	'off': false,
+                	'on': true,
+                })],
+        	],
+        },
 	},
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e']),
