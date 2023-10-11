@@ -170,12 +170,15 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt, fz.legrand_led_in_dark],
+        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify, fz.legrand_led_in_dark],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
         exposes: [
             e.cover_position(),
+            e.action(['moving', 'identify']),
+            e.enum('identify', ea.SET, ['blink'])
+                .withDescription('Blinks the built-in LED to make it easier to identify the device'),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the power socket is turned off, allowing to see it in the dark'),
+                .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -202,6 +205,31 @@ const definitions: Definition[] = [
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt, fz.legrand_led_in_dark],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
         exposes: [e.cover_position()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+    },
+    {
+        // Fingerprinting required due to conflict with potential whitelabel Bticino - K4027C/L4027C/N4027C/NT4027C
+        fingerprint: [
+            {modelID: ' Shutter SW with level control\u0000', manufacturerID: 4129},
+        ],
+        model: '067776A',
+        vendor: 'Legrand',
+        description: 'Netatmo wired shutter switch with level control (NLLV)',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify, fz.legrand_led_in_dark],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        exposes: [
+            e.cover_position(),
+            e.action(['moving', 'identify']),
+            e.enum('identify', ea.SET, ['blink'])
+                .withDescription('Blinks the built-in LED to make it easier to identify the device'),
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
+                .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);

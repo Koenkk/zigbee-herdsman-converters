@@ -1,14 +1,14 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "15.90.0",
+  "version": "15.92.1",
   "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
     "/index.js",
     "/converters",
-    "/devices",
     "/lib",
+    "/devices",
     "CHANGELOG.md"
   ],
   "repository": {

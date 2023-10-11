@@ -18,9 +18,10 @@ const definitions: Definition[] = [
         fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input, fz.legrand_cluster_fc01, fz.legrand_led_in_dark],
         toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn, tz.legrand_identify],
         exposes: [
-            e.switch(), e.action(['identify', 'on', 'off']),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF').
-                withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
+            e.switch(),
+            e.action(['identify', 'on', 'off']),
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
+                .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
             e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the LED when the light is turned on'),
             e.enum('identify', ea.SET, ['blink'])
@@ -74,16 +75,16 @@ const definitions: Definition[] = [
         vendor: 'BTicino',
         description: 'Shutter SW with level control',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.ignore_zclversion_read, fz.bticino_4027C_binary_input_moving,
-            fz.cover_position_tilt, fz.legrand_led_in_dark],
-        toZigbee: [tz.bticino_4027C_cover_state, tz.bticino_4027C_cover_position, tz.legrand_identify,
-            tz.legrand_settingEnableLedInDark],
+        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.bticino_4027C_binary_input_moving,
+            fz.identify, fz.legrand_led_in_dark, fz.ignore_zclversion_read],
+        toZigbee: [tz.bticino_4027C_cover_state, tz.bticino_4027C_cover_position, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
         exposes: [
-            e.cover_position(), e.action(['moving', 'identify', '']),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
+            e.cover_position(),
+            e.action(['moving', 'identify', '']),
             e.enum('identify', ea.SET, ['blink'])
-                .withDescription('Blinks the built-in LED to make it easier to find the device'),
+                .withDescription('Blinks the built-in LED to make it easier to identify the device'),
+            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
+                .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -100,8 +101,10 @@ const definitions: Definition[] = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [
-            e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
-            e.power().withAccess(ea.STATE_GET),
+            e.switch()
+                .withState('state', true, 'On/off (works only if device is in "switch" mode)'),
+            e.power()
+                .withAccess(ea.STATE_GET),
             e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP'),
         ],

@@ -12,6 +12,23 @@ import * as tuya from '../lib/tuya';
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['PIRILLSensor-EF-3.0'],
+        model: 'HS1MIS-3.0',
+        vendor: 'HEIMAN',
+        description: 'Smart occupancy sensor',
+        fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery(), e.illuminance()],
+        configure: async (device, cordinatorEndpoint, logger)=>{
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, cordinatorEndpoint, ['msOccupancySensing', 'genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await reporting.occupancy(endpoint1);
+            await reporting.bind(endpoint1, cordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.illuminance(endpoint1);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
         zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba', 'CO_CTPG'],
         model: 'HS1CA-M',

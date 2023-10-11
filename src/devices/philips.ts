@@ -661,7 +661,14 @@ const definitions: Definition[] = [
         model: '1744130P7',
         vendor: 'Philips',
         description: 'Hue Econic outdoor Pedestal',
-        extend: philips.extend.light_onoff_brightness_colortemp_color(),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['1744230P7'],
+        model: '1744230P7',
+        vendor: 'Philips',
+        description: 'Hue Econic outdoor post light',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['1745730V7'],
@@ -2504,6 +2511,13 @@ const definitions: Definition[] = [
         model: '1741830P7',
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['LCS002'],
+        model: '9290031508',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance PAR38 outdoor spotlight',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
