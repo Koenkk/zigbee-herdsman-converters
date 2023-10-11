@@ -26,7 +26,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_dd8wwzcy'}],
         model: 'MG-AUZG01',
-        vendor: 'Makegood',
+        vendor: 'MakeGood',
         description: 'Double Zigbee power point',
         fromZigbee: [fzLocal.MGAUZG01_on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
