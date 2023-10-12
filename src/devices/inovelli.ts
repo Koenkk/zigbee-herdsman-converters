@@ -1121,7 +1121,13 @@ const fzLocal = {
                 const action = clickLookup[msg.data[6]];
                 return {action: `${button}_${action}`};
             } else if (msg.type === 'readResponse') {
-                return msg.data;
+                return Object.fromEntries(Object.entries(msg.data).map((v) => {
+                    const attr = ATTRIBUTES[v[0]];
+                    if (attr.values) {
+                        v[1] = utils.getKey(attr.values, v[1]);
+                    }
+                    return v;
+                }));
             }
         },
     } as Fz.Converter,
