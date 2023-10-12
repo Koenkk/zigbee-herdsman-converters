@@ -85,7 +85,7 @@ const sirenLight = {
     'Siren and Light': 0x02,
 };
                     
-const sirenState = {
+const outdoorSirenState = {
     'ON': 0x07, 
     'OFF': 0x00,
 };
@@ -132,13 +132,13 @@ const tzLocal = {
                 return {state: {siren_volume: value}};
             }
             if (key === 'power_supply') {
-                const index = sirenVolume[value];
+                const index = sirenPowerSupply[value];
                 await entity.write(0x0001, {0xa002: {value: index, type: 0x20}}, boschManufacturer);
                 return {state: {power_supply: value}};
             }
             if (key === 'alarm_on') {
                 const endpoint = meta.device.getEndpoint(1);
-                const index = sirenState[value];
+                const index = outdoorSirenState[value];
                 if (index == 0) {
                     await endpoint.command(0x0502, 0xf0, {data: 0}, boschManufacturer);
                     return {state: {alarm_on: value}};
@@ -1061,7 +1061,7 @@ const definitions: Definition[] = [
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
         exposes: [
-            exposes.enum('alarm_on', ea.STATE_SET, Object.keys(sirenState)).withDescription('Alarm turn ON/OFF'), 
+            exposes.enum('alarm_on', ea.STATE_SET, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'), 
             exposes.binary('alarm', ea.STATE, true, false).withDescription('Alarm state'), 
             e.numeric('light_delay', ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1)
                 .withUnit('s').withDescription('Flashing light delay [s]'),
