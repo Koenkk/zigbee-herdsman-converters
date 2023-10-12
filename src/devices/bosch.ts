@@ -72,9 +72,111 @@ const displayedTemperature = {
     'target': 0,
     'measured': 1,
 };
-
+//--------------- Bosch Outdoor Siren ---------------------------
+const sirenVolume = {
+    'Low': 0x01,   
+    'Medium': 0x02,
+    'High': 0x03,
+};
+                    
+const sirenLight = {   
+    'Only Light': 0x00,
+    'Only Siren': 0x01,     
+    'Siren and Light': 0x02,
+};
+                    
+const sirenState = {
+    'ON': 0x07, 
+    'OFF': 0x00,
+};
+                          
+const sirenPowerSupply = {
+    'Solar Panel': 0x01,    
+    'AC Power Supply': 0x02,
+    'DC Power Supply': 0x03,
+};
+//---------------------------------------------------------
 // Radiator Thermostat II
 const tzLocal = {
+    rbshoszbeu: {
+        key: ['light_delay', 'siren_delay', 'light_duration', 'siren_duration', 'siren_volume', 'alarm_on', 'power_supply', 'siren_and_light'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'light_delay') {
+                const index = value;
+                await entity.write(0x0502, {0xa004: {value: index, type: 0x21}}, boschManufacturer);
+                return {state: {light_delay: value}};
+            }
+            if (key === 'siren_delay') {
+                const index = value;
+                await entity.write(0x0502, {0xa003: {value: index, type: 0x21}}, boschManufacturer);
+                return {state: {siren_delay: value}};
+            }
+            if (key === 'light_duration') {
+                const index = value;
+                await entity.write(0x0502, {0xa005: {value: index, type: 0x20}}, boschManufacturer);
+                return {state: {light_duration: value}};
+            }
+            if (key === 'siren_duration') {
+                const index = value;
+                await entity.write(0x0502, {0xa000: {value: index, type: 0x20}}, boschManufacturer);
+                return {state: {siren_duration: value}};
+            }
+            if (key === 'siren_and_light') {
+                const index = sirenLight[value];
+                await entity.write(0x0502, {0xa001: {value: index, type: 0x20}}, boschManufacturer);
+                return {state: {siren_and_light: value}};
+            }
+            if (key === 'siren_volume') {
+                const index = sirenVolume[value];
+                await entity.write(0x0502, {0xa002: {value: index, type: 0x20}}, boschManufacturer);
+                return {state: {siren_volume: value}};
+            }
+            if (key === 'power_supply') {
+                const index = sirenVolume[value];
+                await entity.write(0x0001, {0xa002: {value: index, type: 0x20}}, boschManufacturer);
+                return {state: {power_supply: value}};
+            }
+            if (key === 'alarm_on') {
+                const endpoint = meta.device.getEndpoint(1);
+                const index = sirenState[value];
+                if (index == 0) {
+                    await endpoint.command(0x0502, 0xf0, {data: 0}, boschManufacturer);
+                    return {state: {alarm_on: value}};
+                    }
+                else {
+                    await endpoint.command(0x0502, 0xf0, {data: 7}, boschManufacturer);
+                    return {state: {alarm_on: value}};
+                    }
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'light_delay':
+                await entity.read(0x0502, [0xa004], boschManufacturer);
+                break;
+            case 'siren_delay':
+                await entity.read(0x0502, [0xa003], boschManufacturer);
+                break;
+            case 'light_duration':
+                await entity.read(0x0502, [0xa005], boschManufacturer);
+                break;
+            case 'siren_duration':
+                await entity.read(0x0502, [0xa000], boschManufacturer);
+                break;
+            case 'siren_and_light':
+                await entity.read(0x0502, [0xa001], boschManufacturer);
+                break;
+            case 'siren_volume':
+                await entity.read(0x0502, [0xa002], boschManufacturer);
+                break;
+            case 'power_supply':
+                await entity.read(0x0502, [0xa002], boschManufacturer);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
+            }
+        },
+    },
     bmct: {
         key: [
             'device_type',
@@ -350,6 +452,23 @@ const tzLocal = {
 
 
 const fzLocal = {
+    ias_siren: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: async (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            await msg.endpoint.command('ssIasZone', 'boschTestTamper', {data: 2},{manufacturerCode: 0x1209});
+            return {
+                alarm: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                supervision_reports: (zoneStatus & 1<<4) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+                ac_status: (zoneStatus & 1<<7) > 0,
+                test: (zoneStatus & 1<<8) > 0,
+            };
+        },
+    },
     bmct: {
         cluster: '64672',
         type: ['attributeReport', 'readResponse'],
@@ -922,6 +1041,52 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.bosch_contact],
         toZigbee: [],
         exposes: [e.battery_low(), e.contact(), e.action(['single', 'long'])],
+    },
+    {
+        zigbeeModel: ['RBSH-OS-ZB-EU'],
+        model: 'BSIR-EZ',
+        vendor: 'Bosch',
+        description: 'Outdoor siren',
+        fromZigbee: [fz.ias_alarm_only_alarm_1, fzLocal.ias_siren, fz.battery, fz.power_source ],
+        toZigbee: [tzLocal.rbshoszbeu, tz.warning],
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 4200}}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
+            await reporting.batteryVoltage(endpoint);
+        //await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+            await endpoint.read(0x0502, [0xa000, 0xa001, 0xa002, 0xa003, 0xa004, 0xa005], boschManufacturer);
+            device.defaultSendRequestWhen = 'immediate';
+            device.save();
+            await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
+        },
+        exposes: [
+            exposes.enum('alarm_on', ea.STATE_SET, Object.keys(sirenState)).withDescription('Alarm turn ON/OFF'), 
+            exposes.binary('alarm', ea.STATE, true, false).withDescription('Alarm state'), 
+            e.numeric('light_delay', ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1)
+                .withUnit('s').withDescription('Flashing light delay [s]'),
+            e.numeric('siren_delay', ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1)
+                .withUnit('s').withDescription('Siren alarm delay [s]'),
+            e.numeric('siren_duration', ea.STATE_SET).withValueMin(1).withValueMax(15).withValueStep(1)
+                .withUnit('m').withDescription('Duration of the alarm siren [m]'),
+            e.numeric('light_duration', ea.STATE_SET).withValueMin(1).withValueMax(15).withValueStep(1)
+                .withUnit('m').withDescription('Duration of the alarm light [m]'),
+            e.enum('siren_volume', ea.STATE_SET, Object.keys(sirenVolume)).withDescription('Volume of the alarm'),
+            e.enum('siren_and_light', ea.STATE_SET, Object.keys(sirenLight)).withDescription('Siren and Light behaviour during alarm '),
+            e.enum('power_supply', ea.STATE_SET, Object.keys(sirenPowerSupply)).withDescription('Volume of the alarm'),
+            e.warning()
+                .removeFeature('strobe_level')
+                .removeFeature('strobe')
+                .removeFeature('strobe_duty_cycle')
+                .removeFeature('level')
+                .removeFeature('duration'),
+            e.test(),
+            e.tamper(),
+            e.battery(),
+            e.battery_voltage(),
+            e.battery_low(), 
+            exposes.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in')
+        ], 
     },
     {
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
