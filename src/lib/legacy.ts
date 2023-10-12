@@ -3850,11 +3850,13 @@ const fromZigbee1 = {
                 return {deadzone_temperature: value};
             case dataPoints.moesLocalTemp:
                 temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
-                if (!['_TZE200_ztvwu4nk', '_TZE200_ye5jkfsb', '_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                if (!['_TZE200_ztvwu4nk', '_TZE200_ye5jkfsb'].includes(meta.device.manufacturerName)) {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11980
                     temperature = temperature / 10;
                 }
-
+                if (!['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                    temperature = value / 10;
+                }
                 return {local_temperature: parseFloat(temperature.toFixed(1))};
             case dataPoints.moesTempCalibration:
                 temperature = value;
@@ -6703,7 +6705,7 @@ const toZigbee2 = {
     moes_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value: any, meta) => {
-            if (value <= 5) value = Math.round(value*10);
+            if (value < 0) value = 4096 + value;
             await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
         },
     } as Tz.Converter,
