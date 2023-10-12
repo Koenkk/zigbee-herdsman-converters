@@ -1,5 +1,24 @@
 # Changelog
 
+## [15.93.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.92.1...v15.93.0) (2023-10-12)
+
+
+### Features
+
+* **add:** CTL-R1-TY-Zigbee ([#6264](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6264)) ([18f68d6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/18f68d6c8d123f1e216b8a662f8f8c68a7fdc92a))
+* **ignore:** Enable incremental TSC builds ([#6273](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6273)) ([d54d5a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d54d5a6a13502ea042c9aa92bb60fd31677d3c69))
+* Increase max supported pincodes to 1000 for Onesti Products AS easyCodeTouch_v1 ([#6271](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6271)) ([40defe1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/40defe13d8184c1f985dda06e10bd60e3922339f))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_qgwcxxws` as TuYa MINI-ZSB https://github.com/Koenkk/zigbee2mqtt/issues/19259 ([6e5e81d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e5e81dee44e277ba0ebc72e0b3ff2cd2bbde27c))
+* **detect:** Detect `_TZ3210_mja6r5ix` and `_TZ3210_it1u8ahz` as TS0505B_2 ([#6266](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6266)) ([10d6da4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10d6da40a00b5a8e0ac9dbaf8f26fe9e64adff9b))
+* **detect:** Detect `_TZE204_hlx9tnzb` as Moes ZS-SR-EUD-1 https://github.com/Koenkk/zigbee2mqtt/issues/19272 ([121d790](https://github.com/Koenkk/zigbee-herdsman-converters/commit/121d790f7173695edc6f0844a7ef6c2e55b2075c))
+* Fix invalid 0 power measurements for TuYa `_TZ3000_1h2x4akh` https://github.com/Koenkk/zigbee2mqtt/issues/16709 ([f03d6fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f03d6fce29484bb2a7627049c29967a5d77fe586))
+* **ignore:** fix 803c995 ([ea15a0e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ea15a0e4516b9894092689741dcaf90447b99af0))
+* Normalise various vendor names ([#6270](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6270)) ([3e2b500](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e2b5002dc468faf08adbe4083bda83e6dbef46a))
+
 ## [15.92.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.92.0...v15.92.1) (2023-10-10)
 
 
