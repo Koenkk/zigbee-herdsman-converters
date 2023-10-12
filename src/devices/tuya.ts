@@ -451,7 +451,7 @@ const fzLocal = {
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
             if (result && ['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l', '_TZ3000_typdpbpg', '_TZ3000_hdopuwv6',
-                '_TZ3000_b28wrpvx'].includes(meta.device.manufacturerName)) {
+                '_TZ3000_b28wrpvx', '_TZ3000_1h2x4akh'].includes(meta.device.manufacturerName)) {
                 for (const key of ['power', 'current', 'voltage']) {
                     if (key in result) {
                         const value = result[key];
@@ -1923,7 +1923,8 @@ const definitions: Definition[] = [
         description: 'Wireless switch with 1 button',
         whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'},
             tuya.whitelabel('Sber', 'SBDV-00032', 'Wireless switch with 1 button', ['_TYZB01_ub7urdza']),
-            tuya.whitelabel('TuYa', 'SH-SC07', 'Button Scene Switch', ['_TZ3000_mrpevh8p']),
+            tuya.whitelabel('TuYa', 'SH-SC07', 'Button scene switch', ['_TZ3000_mrpevh8p']),
+            tuya.whitelabel('TuYa', 'MINI-ZSB', 'Smart button', ['_TZ3000_qgwcxxws']),
         ],
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
@@ -6120,23 +6121,19 @@ const definitions: Definition[] = [
                 .withDescription('The max illumiance threshold to turn on the light'),
             e.numeric('illuminance_treshold_min', ea.STATE_SET).withValueMin(0).withValueMax(2000).withValueStep(1).withUnit('lx')
                 .withDescription('The min illumiance threshold to turn on the light'),
-
-                
-        	e.enum('presence_illumin_switch', ea.STATE_SET, ['disable', 'enable']).withDescription(
-                'Whether to enable illumination threshold detection'),
-        	e.binary('light_switch', ea.STATE, "on", "off").withDescription(
-                'This state will determine the light on/off based on the lighting threshold and presence sensing'
-                ),
-        	e.enum('light_linkage', ea.STATE_SET, ['disable', 'enable']).withDescription('linkage_light'),
-        	e.enum('detection_method', ea.STATE_SET, ['only move', 'exist move']).withDescription(
-                'detection method'),
-        	e.enum('backlight_mode', ea.STATE_SET, ['open', 'close', 'lighting']).withDescription(
-                'backlight mode'),
-        	e.binary('find_switch', ea.STATE_SET, "on", "off").withDescription(
-                'After turning on, the indicator light quickly flashes, used to locate devices'),
+            e.binary('presence_illuminance_switch', ea.STATE_SET, true, false).withDescription(
+                `Whether to enable 'light_switch' illumination is between min/max threshold`),
+            e.binary('light_switch', ea.STATE, 'ON', 'OFF').withDescription(
+                'This state will determine the light on/off based on the lighting threshold and presence sensing'),
+            e.binary('light_linkage', ea.STATE_SET, true, false).withDescription('Light linkage'),
+            e.enum('detection_method', ea.STATE_SET, ['only_move', 'exist_move']).withDescription(
+                `When 'only_move' is used, presence will only be triggered when there is movement`),
+            e.enum('indicator_light', ea.STATE_SET, ['presence', 'off', 'on']).withDescription('Controls when the indicator light is turned on'),
+            e.binary('identify', ea.STATE_SET, true, false)
+                .withDescription('After turning on, the indicator light quickly flashes, used to locate devices'),
         ],
         meta: {
-        	tuyaDatapoints: [
+            tuyaDatapoints: [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
                 [2, 'presence_sensitivity', tuya.valueConverter.raw],
                 [4, 'detection_range', tuya.valueConverter.divideBy10],
@@ -6144,36 +6141,15 @@ const definitions: Definition[] = [
                 [102, 'illuminance_treshold_max', tuya.valueConverter.raw],
                 [103, 'illuminance_treshold_min', tuya.valueConverter.raw],
                 [104, 'detection_delay', tuya.valueConverter.raw],
-
-
-                [109, 'presence_illumin_switch', tuya.valueConverterBasic.lookup({
-                	'disable': tuya.enum(0),
-                	'enable': tuya.enum(1),
-                })],
-                [105, 'light_switch', tuya.valueConverterBasic.lookup({
-                	'off': false,
-                	'on': true,
-                })],
-                [106, 'light_linkage', tuya.valueConverterBasic.lookup({
-                	'disable': tuya.enum(0),
-                	'enable': tuya.enum(1),
-                })],
-                [107, 'backlight_mode', tuya.valueConverterBasic.lookup({
-                	'open': tuya.enum(0),
-                	'close': tuya.enum(1),
-                	'lighting': tuya.enum(2)
-                })],
-                [108, 'detection_method', tuya.valueConverterBasic.lookup({
-                	'only move': tuya.enum(0),
-                	'exist move': tuya.enum(1),
-                })],
-                [113, 'find_switch', tuya.valueConverterBasic.lookup({
-                	'off': false,
-                	'on': true,
-                })],
-        	],
+                [109, 'presence_illuminance_switch', tuya.valueConverter.trueFalseEnum1],
+                [105, 'light_switch', tuya.valueConverter.onOff],
+                [106, 'light_linkage', tuya.valueConverter.trueFalseEnum1],
+                [107, 'indicator_light', tuya.valueConverterBasic.lookup({'presence': tuya.enum(0), 'off': tuya.enum(1), 'on': tuya.enum(2)})],
+                [108, 'detection_method', tuya.valueConverterBasic.lookup({'only_move': tuya.enum(0), 'exist_move': tuya.enum(1)})],
+                [113, 'find_switch', tuya.valueConverter.raw],
+            ],
         },
-	},
+    },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e']),
         model: 'MTG075-ZB-RL',
