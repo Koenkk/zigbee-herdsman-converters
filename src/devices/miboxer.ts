@@ -23,16 +23,18 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await endpoint.command('genGroups', 'miboxerSetZones', {zones: [
-                {zoneNum: 1, groupId: 101},
-                {zoneNum: 2, groupId: 102},
-                {zoneNum: 3, groupId: 103},
-                {zoneNum: 4, groupId: 104},
-                {zoneNum: 5, groupId: 105},
-                {zoneNum: 6, groupId: 106},
-                {zoneNum: 7, groupId: 107},
-                {zoneNum: 8, groupId: 108},
-            ]});
+
+            // Get unique identifier for the remote and convert it from hex-string to integer
+            const devId = parseInt(device.ieeeAddr, 16);
+
+            // Generate 8 globally unique (but reproducable) Zigbee group IDs
+            const groupIds = [devId+1, devId+2, devId+3, devId+4, devId+5, devId+6, devId+7, devId+8];
+
+            // Generate the zone mapping, which tells the remote to use the 8 unique group IDs for its 8 zones
+            const zoneToGroupMappings = groupIds.map((groupId, i) => ({zoneNum: i+1, groupId: groupId}));
+
+            // Send the zone mapping to the remote
+            await endpoint.command('genGroups', 'miboxerSetZones', {zones: zoneToGroupMappings});
             await endpoint.command('genBasic', 'tuyaSetup', {}, {disableDefaultResponse: true});
         },
     },
