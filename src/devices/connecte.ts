@@ -15,8 +15,7 @@ const definitions: Definition[] = [
         toZigbee: [legacy.tz.connecte_thermostat],
         whiteLabel: [
             tuya.whitelabel('Futurehome', 'Co020', 'Smart Thermostat', ['_TZE200_e5hpkc6d']),
-            tuya.whitelabel('Connecte', '4500994', 'Smart thermostat', ['_TZE204_e5hpkc6d']),
-            tuya.whitelabel('Connecte', '4500994', 'Smart thermostat', ['_TZE200_4hbx5cvx']),
+            tuya.whitelabel('Connecte', '4500994', 'Smart thermostat', ['_TZE204_e5hpkc6d', '_TZE200_4hbx5cvx']),
         ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
