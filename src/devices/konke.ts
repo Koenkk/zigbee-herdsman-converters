@@ -191,7 +191,13 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
         },
     },
-
+    {
+        zigbeeModel: ['3AFE2610010C0021'],
+        model: 'KK-QD-Y01w',
+        vendor: 'Konke',
+        description: 'Konke spotlight driver (cw mode)',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
 ];
 
 module.exports = definitions;
