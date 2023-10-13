@@ -4,6 +4,7 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import * as utils from '../lib/utils';
 import * as reporting from '../lib/reporting';
+import extend from '../lib/extend';
 const e = exposes.presets;
 
 const fzLocal = {
