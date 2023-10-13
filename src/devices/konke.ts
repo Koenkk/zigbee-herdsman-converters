@@ -170,7 +170,7 @@ const definitions: Definition[] = [
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
         },
-    },     
+    },
     {
         zigbeeModel: ['3AFE292000068623'],
         model: 'KK-LP-Q03D',
@@ -190,7 +190,7 @@ const definitions: Definition[] = [
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
         },
-    },     
+    },
 
 ];
 
