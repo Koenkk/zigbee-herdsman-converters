@@ -2966,6 +2966,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003598101'],
+        model: '929003598101',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance Surimu round panel',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['5060930P7_01', '5060930P7_02', '5060930P7_03', '5060930P7_04'],
         model: '5060930P7',
         vendor: 'Philips',
