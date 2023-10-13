@@ -18,7 +18,7 @@ const definition: Definition[] = [
         exposes: [
             // Here you should put all functionality that your device exposes
             e.binary('state', ea.STATE_SET, 'ON', 'OFF')
-                    .withDescription('On/off state of the switch'),
+                .withDescription('On/off state of the switch'),
             e.child_lock(),
             e.window_detection(),
             e.away_mode(),
