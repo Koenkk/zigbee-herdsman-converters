@@ -5,10 +5,8 @@ import * as tuya from '../lib/tuya';
 const e = exposes.presets;
 const ea = exposes.access;
 
-
-const definition: Definition[] = [{
-        // Since a lot of TuYa devices use the same modelID, but use different datapoints
-        // it's necessary to provide a fingerprint instead of a zigbeeModel
+const definition: Definition[] = [
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_e5hpkc6d']),
         model: 'Co020',
         vendor: 'Futurehome',
@@ -45,19 +43,7 @@ const definition: Definition[] = [{
                     .withValueMin(20)
                     .withValueMax(95),
         ],
-        meta: {
-            // All datapoints go in here
-            tuyaDatapoints: [
-                [101, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [102, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [103, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [104, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [105, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [106, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-                [107, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDP],
-            ],
-        },
-    }
+    },
 ];
 
 module.exports = definition;
