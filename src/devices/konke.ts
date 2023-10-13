@@ -25,6 +25,17 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['3AFE292000068621'],
+        model: 'KK-LP-Q01D',
+        vendor: 'Konke',
+        description: '1 gang switch',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['3AFE170100510001', '3AFE280100510001'],
         model: '2AJZ4KPKEY',
         vendor: 'Konke',
