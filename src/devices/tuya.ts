@@ -756,7 +756,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yojqa8xn']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yojqa8xn', '_TZE204_zougpkpy']),
         model: 'TS0601_gas_sensor_2',
         vendor: 'TuYa',
         description: 'Gas sensor',
@@ -770,6 +770,9 @@ const definitions: Definition[] = [
             e.numeric('alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(180).withValueStep(1)
                 .withUnit('s').withDescription('Alarm time'),
             e.binary('preheat', ea.STATE, true, false).withDescription('Indicates sensor preheat is active'),
+        ],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'DY-RQ500A', 'Gas sensor', ['_TZE204_zougpkpy']),
         ],
         meta: {
             tuyaDatapoints: [
