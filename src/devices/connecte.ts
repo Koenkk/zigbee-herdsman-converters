@@ -7,7 +7,7 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
-        zigbeeModel:['TS0601'],
+        zigbeeModel: ['TS0601'],
         model: 'TS0601',
         vendor: 'TuYa',
         description: 'Smart Thermostat',
