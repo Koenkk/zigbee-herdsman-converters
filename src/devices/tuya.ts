@@ -2161,9 +2161,9 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0003', manufacturerName: '_TZ3000_rhkfbfcv'},
-        ],
+        fingerprint: tuya.fingerprint('TS0003',  [
+            '_TZ3000_rhkfbfcv', '_TZ3000_empogkya', '_TZ3000_lubfc1t5',
+        ]),
         model: 'TS0003_switch_3_gang_with_backlight',
         vendor: 'TuYa',
         description: '3-Gang switch with backlight',
@@ -2180,6 +2180,8 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('Lonsonho', 'X703A', '3 Gang switch with backlight', ['_TZ3000_rhkfbfcv']),
+            tuya.whitelabel('Zemismart', 'ZM-L03E-Z', '3 Gang switch with neutral', ['_TZ3000_empogkya']),
+            tuya.whitelabel('TuYa', 'M10Z', '2 Gang switch with 20A power socket', ['_TZ3000_lubfc1t5']),
         ],
     },
     {
