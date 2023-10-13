@@ -1,5 +1,20 @@
 # Changelog
 
+## [15.94.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.93.0...v15.94.0) (2023-10-13)
+
+
+### Features
+
+* **add:** KK-LP-Q01D [@sj8023ld](https://github.com/sj8023ld) https://github.com/Koenkk/zigbee2mqtt/issues/19285 ([d19daae](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d19daaef69687dc66738c627e03fa1dc7be5852c))
+* **add:** KK-LP-Q02D, KK-LP-Q03D, KK-QD-Y01w ([#6278](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6278)) ([6230454](https://github.com/Koenkk/zigbee-herdsman-converters/commit/623045479aa62c0ca08ad88c1b26e2b086336c3a))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_u3nv1jwk` as TuYa TM-YKQ004 https://github.com/Koenkk/zigbee2mqtt/issues/19264 ([010de26](https://github.com/Koenkk/zigbee-herdsman-converters/commit/010de26a7f3b0ed7eb67c8987a73724a2c513064))
+* **detect:** Detect `_TZE200_dikkika5` as KOJIMA KOJIMA-THS-ZG-LCD [@do6pbln9l](https://github.com/do6pbln9l) https://github.com/Koenkk/zigbee2mqtt/issues/19275 ([83873bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/83873bce9dd6ae275788b98e25d7b093fe0ee7df))
+* **detect:** Detect `_TZE204_zougpkpy` as TuYa DY-RQ500A @Waterbrain https://github.com/Koenkk/zigbee2mqtt/issues/19256 ([b9f0fb1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b9f0fb190d9784d693605512fc01149ee05419b4))
+
 ## [15.93.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.92.1...v15.93.0) (2023-10-12)
 
 
