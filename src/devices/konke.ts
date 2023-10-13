@@ -25,17 +25,6 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['3AFE292000068621'],
-        model: 'KK-LP-Q01D',
-        vendor: 'Konke',
-        description: '1 gang switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
         zigbeeModel: ['3AFE170100510001', '3AFE280100510001'],
         model: '2AJZ4KPKEY',
         vendor: 'Konke',
@@ -157,18 +146,18 @@ const definitions: Definition[] = [
         zigbeeModel: ['3AFE292000068621'],
         model: 'KK-LP-Q01D',
         vendor: 'Konke',
-        description: 'Light Years Switch 1 gang',
+        description: 'Light years switch 1 gang',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
         zigbeeModel: ['3AFE292000068622'],
         model: 'KK-LP-Q02D',
         vendor: 'Konke',
-        description: 'Light Years Switch 2 gangs',
+        description: 'Light years switch 2 gangs',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         endpoint: (device) => {
@@ -186,7 +175,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['3AFE292000068623'],
         model: 'KK-LP-Q03D',
         vendor: 'Konke',
-        description: 'Light Years Switch 3 gangs',
+        description: 'Light years switch 3 gangs',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
         endpoint: (device) => {
@@ -206,7 +195,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['3AFE2610010C0021'],
         model: 'KK-QD-Y01w',
         vendor: 'Konke',
-        description: 'Konke spotlight driver (cw mode)',
+        description: 'Spotlight driver (cw mode)',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
 ];
