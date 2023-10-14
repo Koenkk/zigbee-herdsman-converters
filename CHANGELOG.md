@@ -1,5 +1,14 @@
 # Changelog
 
+## [15.94.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.94.0...v15.94.1) (2023-10-14)
+
+
+### Bug Fixes
+
+* **detect:** Detect ` Smart shedder module` as Legrand 412172 @Rjevski https://github.com/Koenkk/zigbee2mqtt/issues/19242 ([4f9e053](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4f9e053d7e2b7c37ea54ace397903d489d09ce45))
+* **detect:** Detect `_TZE200_e5hpkc6d` as Futurehome Co020 ([#6279](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6279)) ([72d3775](https://github.com/Koenkk/zigbee-herdsman-converters/commit/72d3775384c771ef8054c8ef9dd08b036070319a))
+* **ignore:** Refactor fromZigbee to TS ([#6284](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6284)) ([602a921](https://github.com/Koenkk/zigbee-herdsman-converters/commit/602a921d42dfef31b7ba5a3c899f2e2daadab00f))
+
 ## [15.94.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.93.0...v15.94.0) (2023-10-13)
 
 
