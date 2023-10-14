@@ -442,9 +442,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: [' DIN power consumption module\u0000\u0000',
-            ' DIN power consumption module',
-        ],
+        zigbeeModel: [' DIN power consumption module\u0000\u0000', ' DIN power consumption module', 'Smart shedder module'],
         model: '412015',
         vendor: 'Legrand',
         description: 'DIN power consumption module',
@@ -457,6 +455,9 @@ const definitions: Definition[] = [
             e.power_apparent(),
             e.binary('power_alarm_active', ea.STATE, true, false),
             e.binary('power_alarm', ea.ALL, true, false).withDescription('Enable/disable the power alarm'),
+        ],
+        whiteLabel: [
+            {vendor: 'Legrand', description: 'DIN power consumption module', model: '412172', fingerprint: [{modelID: ' Smart shedder module'}]},
         ],
         onEvent: async (type, data, device, options, state) => {
             /**
