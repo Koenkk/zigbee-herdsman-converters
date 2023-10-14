@@ -83,11 +83,9 @@ const fzLocal = {
                 result.unoccupied_cooling_setpoint = precisionRound(msg.data['unoccupiedCoolingSetpoint'], 2) / 100;
             }
             if (msg.data.hasOwnProperty('ctrlSeqeOfOper')) {
-                // @ts-expect-error
                 result.control_sequence_of_operation = constants.thermostatControlSequenceOfOperations[msg.data['ctrlSeqeOfOper']];
             }
             if (msg.data.hasOwnProperty('systemMode')) {
-                // @ts-expect-error
                 result.system_mode = constants.thermostatSystemModes[msg.data['systemMode']];
             }
             if (msg.data.hasOwnProperty('pIHeatingDemand')) {

@@ -26,7 +26,7 @@ export interface TrvScheduleConfig {
 }
 
 
-const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buffer) => {
+export const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buffer) => {
     const dataObject: KeyValue = {};
 
     if (buffer !== null && Buffer.isBuffer(buffer)) {
@@ -157,7 +157,7 @@ const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buffer) => 
     return dataObject;
 };
 
-const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, model: Definition, options: KeyValue, dataObject: KeyValue) => {
+export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, model: Definition, options: KeyValue, dataObject: KeyValue) => {
     let payload: KeyValue = {};
 
     for (const [key, value] of Object.entries(dataObject)) {
@@ -750,7 +750,7 @@ export const VOCKQJK11LMDisplayUnit = {
     'ppb_fahrenheit': 0x11, // ppb, °F
 };
 
-const numericAttributes2Options = (definition: Definition) => {
+export const numericAttributes2Options = (definition: Definition) => {
     const supported = ['temperature', 'device_temperature', 'illuminance', 'illuminance_lux',
         'pressure', 'power', 'current', 'voltage', 'energy', 'power'];
     const precisionSupported = ['temperature', 'humidity', 'pressure', 'power', 'current', 'voltage', 'energy', 'power'];
