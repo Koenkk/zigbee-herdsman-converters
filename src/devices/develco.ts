@@ -105,7 +105,6 @@ const develco = {
                 if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
                     result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] =
                         constants.develcoInterfaceMode.hasOwnProperty(msg.data['develcoInterfaceMode']) ?
-                            // @ts-expect-error
                             constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
                             msg.data['develcoInterfaceMode'];
                 }
@@ -169,15 +168,15 @@ const develco = {
         voc_battery: {
             cluster: 'genPowerCfg',
             type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
+            convert: async (model, msg, publish, options, meta) => {
                 /*
                  * Per the technical documentation for AQSZB-110:
                  * To detect low battery the system can monitor the "BatteryVoltage" by setting up a reporting interval of every 12 hour.
                  * When a voltage of 2.5V is measured the battery should be replaced.
                  * Low batt LED indication–RED LED will blink twice every 60 second.
                  */
-                const result = fz.battery.convert(model, msg, publish, options, meta);
-                result.battery_low = (result.voltage <= 2500);
+                const result = await fz.battery.convert(model, msg, publish, options, meta);
+                if (result) result.battery_low = (result.voltage <= 2500);
                 return result;
             },
         } as Fz.Converter,

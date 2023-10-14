@@ -346,9 +346,9 @@ const fzLocal = {
     } as Fz.Converter,
     TS0222_humidity: {
         ...fz.humidity,
-        convert: (model, msg, publish, options, meta) => {
-            const result = fz.humidity.convert(model, msg, publish, options, meta);
-            result.humidity *= 10;
+        convert: async (model, msg, publish, options, meta) => {
+            const result = await fz.humidity.convert(model, msg, publish, options, meta);
+            if (result) result.humidity *= 10;
             return result;
         },
     } as Fz.Converter,
@@ -444,8 +444,8 @@ const fzLocal = {
     } as Fz.Converter,
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = fz.electrical_measurement.convert(model, msg, publish, options, meta);
+        convert: async (model, msg, publish, options, meta) => {
+            const result = await fz.electrical_measurement.convert(model, msg, publish, options, meta);
             const lookup: KeyValueString = {power: 'activePower', current: 'rmsCurrent', voltage: 'rmsVoltage'};
 
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
