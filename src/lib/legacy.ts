@@ -3849,15 +3849,7 @@ const fromZigbee1 = {
             case dataPoints.moesDeadZoneTemp:
                 return {deadzone_temperature: value};
             case dataPoints.moesLocalTemp:
-                temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
-                if (!['_TZE200_ztvwu4nk', '_TZE200_ye5jkfsb'].includes(meta.device.manufacturerName)) {
-                    // https://github.com/Koenkk/zigbee2mqtt/issues/11980
-                    temperature = temperature / 10;
-                }
-                if (!['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
-                    temperature = value / 10;
-                }
-                return {local_temperature: parseFloat(temperature.toFixed(1))};
+                return {local_temperature: (value / 10)};
             case dataPoints.moesTempCalibration:
                 temperature = value;
                 // for negative values produce complimentary hex (equivalent to negative values)
