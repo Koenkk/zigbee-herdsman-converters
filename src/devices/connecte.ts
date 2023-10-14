@@ -7,12 +7,15 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e5hpkc6d', '_TZE200_4hbx5cvx']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e5hpkc6d', '_TZE200_4hbx5cvx', '_TZE200_e5hpkc6d']),
         model: '4500994',
         vendor: 'Connecte',
         description: 'Smart thermostat',
         fromZigbee: [legacy.fz.connecte_thermostat],
         toZigbee: [legacy.tz.connecte_thermostat],
+        whiteLabel: [
+            tuya.whitelabel('Futurehome', 'Co020', 'Smart thermostat', ['_TZE200_e5hpkc6d']),
+        ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
