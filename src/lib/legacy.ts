@@ -3839,7 +3839,11 @@ const fromZigbee1 = {
             case dataPoints.moesChildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case dataPoints.moesHeatingSetpoint:
-                return {current_heating_setpoint: value};
+                if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                    return {current_heating_setpoint: value > 36 ? value / 10 : value};
+                } else {
+                    return {current_heating_setpoint: value};
+                }
             case dataPoints.moesMinTempLimit:
                 return {min_temperature_limit: value};
             case dataPoints.moesMaxTempLimit:
@@ -3849,12 +3853,15 @@ const fromZigbee1 = {
             case dataPoints.moesDeadZoneTemp:
                 return {deadzone_temperature: value};
             case dataPoints.moesLocalTemp:
-                temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
-                if (!['_TZE200_ztvwu4nk', '_TZE200_ye5jkfsb', '_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
-                    // https://github.com/Koenkk/zigbee2mqtt/issues/11980
-                    temperature = temperature / 10;
+                if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                    temperature = value > 36 ? value / 10 : value;
+                } else {
+                    temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
+                    if (!['_TZE200_ztvwu4nk', '_TZE200_ye5jkfsb', '_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/11980
+                        temperature = temperature / 10;
+                    }
                 }
-
                 return {local_temperature: parseFloat(temperature.toFixed(1))};
             case dataPoints.moesTempCalibration:
                 temperature = value;
@@ -6703,8 +6710,12 @@ const toZigbee2 = {
     moes_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value: any, meta) => {
-            if (value <= 5) value = Math.round(value*10);
-            await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
+            if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value * 10);
+            } else {
+                if (value <= 5) value = Math.round(value*10);
+                await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
+            }
         },
     } as Tz.Converter,
     moes_thermostat_deadzone_temperature: {
