@@ -352,7 +352,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     overheat: {
         ID: 33,
-        dataType: UINT8,
+        dataType: BOOLEAN,
         displayType: 'enum',
         values: {'No Alert': 0, 'Overheated': 1},
         min: 0,
