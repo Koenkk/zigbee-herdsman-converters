@@ -3839,7 +3839,10 @@ const fromZigbee1 = {
             case dataPoints.moesChildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case dataPoints.moesHeatingSetpoint:
-                return {current_heating_setpoint: value};
+                temperature = value;
+                if (temperature > 36)
+                    temperature = temperature / 10;
+                return {current_heating_setpoint: temperature};
             case dataPoints.moesMinTempLimit:
                 return {min_temperature_limit: value};
             case dataPoints.moesMaxTempLimit:
@@ -3849,7 +3852,10 @@ const fromZigbee1 = {
             case dataPoints.moesDeadZoneTemp:
                 return {deadzone_temperature: value};
             case dataPoints.moesLocalTemp:
-                return {local_temperature: (value / 10)};
+                temperature = value;
+                if (temperature > 36)
+                    temperature = temperature / 10;
+                return {local_temperature: temperature};
             case dataPoints.moesTempCalibration:
                 temperature = value;
                 // for negative values produce complimentary hex (equivalent to negative values)
@@ -6697,8 +6703,12 @@ const toZigbee2 = {
     moes_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value: any, meta) => {
-            if (value < 0) value = 4096 + value;
-            await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
+            let temp = (value * 10) 
+            if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, temp);
+            } else {
+                await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
+            }
         },
     } as Tz.Converter,
     moes_thermostat_deadzone_temperature: {
