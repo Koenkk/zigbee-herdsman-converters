@@ -874,7 +874,7 @@ const tzLocal = {
                 },
             };
 
-            await entity.write('manuSpecificInovelliVZM31SN', payload, {
+            await entity.write('manuSpecificInovelli', payload, {
                 manufacturerCode: INOVELLI,
             });
 
@@ -885,7 +885,7 @@ const tzLocal = {
             };
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificInovelliVZM31SN', [key], {
+            await entity.read('manuSpecificInovelli', [key], {
                 manufacturerCode: INOVELLI,
             });
         },
@@ -893,7 +893,7 @@ const tzLocal = {
     inovelli_parameters_readOnly: (ATTRIBUTES: {[s: string]: Attribute})=>({
         key: Object.keys(ATTRIBUTES).filter((a) => ATTRIBUTES[a].readOnly),
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificInovelliVZM31SN', [key], {
+            await entity.read('manuSpecificInovelli', [key], {
                 manufacturerCode: INOVELLI,
             });
         },
@@ -903,7 +903,7 @@ const tzLocal = {
         key: ['led_effect'],
         convertSet: async (entity, key, values, meta) => {
             await entity.command(
-                'manuSpecificInovelliVZM31SN',
+                'manuSpecificInovelli',
                 'ledEffect',
                 {
                     // @ts-expect-error
@@ -924,7 +924,7 @@ const tzLocal = {
         key: ['individual_led_effect'],
         convertSet: async (entity, key, values, meta) => {
             await entity.command(
-                'manuSpecificInovelliVZM31SN',
+                'manuSpecificInovelli',
                 'individualLedEffect',
                 {
                     // @ts-expect-error
@@ -1068,7 +1068,7 @@ const tzLocal = {
                             utils.getOptions(meta.mapped, entity),
                         );
                         const defaultTransitionTime = await entity.read(
-                            'manuSpecificInovelliVZM31SN',
+                            'manuSpecificInovelli',
                             ['rampRateOffToOnRemote'],
                         );
                         return {
@@ -1124,7 +1124,7 @@ const tzLocal = {
                 );
 
                 const defaultTransitionTime = await entity.read(
-                    'manuSpecificInovelliVZM31SN',
+                    'manuSpecificInovelli',
                     ['rampRateOnToOffRemote'],
                 );
 
@@ -1657,7 +1657,7 @@ const definitions: Definition[] = [
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, [
-                'manuSpecificInovelliVZM31SN',
+                'manuSpecificInovelli',
             ]);
             await endpoint.read('haElectricalMeasurement', [
                 'acPowerMultiplier',
@@ -1702,7 +1702,7 @@ const definitions: Definition[] = [
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, [
-                'manuSpecificInovelliVZM31SN',
+                'manuSpecificInovelli',
             ]);
         },
     },
