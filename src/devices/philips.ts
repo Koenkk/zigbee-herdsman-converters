@@ -1171,7 +1171,7 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['LCT024', '440400982841', '440400982842'],
+        zigbeeModel: ['LCT024', '440400982841', '440400982842', 'PCM002'],
         model: '915005733701',
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
