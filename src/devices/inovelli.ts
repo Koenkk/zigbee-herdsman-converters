@@ -1677,7 +1677,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['VZM35-SN'],
         model: 'VZM35-SN',
         vendor: 'Inovelli',
-        description: 'Inovelli Fan Controller',
+        description: 'Fan controller',
         fromZigbee: [
             fzLocal.fan_state,
             fzLocal.fan_mode,
