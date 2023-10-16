@@ -2736,7 +2736,7 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue Adore white ambiance bathroom mirror',
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-    }, 
+    },
     {
         zigbeeModel: ['LXC006'],
         model: '929003498601',
