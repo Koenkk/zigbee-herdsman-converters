@@ -496,9 +496,25 @@ export const createLogger = (logger: Logger, vendor: string, key: string) => (le
     logger[level](`zigbee-herdsman-converters:${vendor}:${key}: ${message}`);
 };
 
+// eslint-disable-next-line
+export function assertObject(value: unknown, property?: string): asserts value is {[s: string]: any} {
+    const isObject = typeof value === 'object' && !Array.isArray(value) && value !== null;
+    if (!isObject) {
+        throw new Error(`${property} is not a object, got ${typeof value} (${JSON.stringify(value)})`);
+    }
+}
+
 export function assertString(value: unknown, property?: string): asserts value is string {
     property = property ? `'${property}'` : 'Value';
     if (typeof value !== 'string') throw new Error(`${property} is not a string, got ${typeof value} (${value.toString()})`);
+}
+
+export function isNumber(value: unknown): value is number {
+    return typeof value === 'number';
+}
+
+export function isString(value: unknown): value is string {
+    return typeof value === 'string';
 }
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
