@@ -10,7 +10,7 @@ import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const clickLookup = {
+const clickLookup: { [key: number]: string } = {
     0: 'single',
     1: 'release',
     2: 'held',
@@ -19,13 +19,13 @@ const clickLookup = {
     5: 'quadruple',
     6: 'quintuple',
 };
-const buttonLookup = {
+const buttonLookup: { [key: number]: string } = {
     1: 'down',
     2: 'up',
     3: 'config',
 };
 
-const ledEffects = {
+const ledEffects: { [key: string]: number } = {
     off: 0,
     solid: 1,
     fast_blink: 2,
@@ -49,7 +49,7 @@ const ledEffects = {
     clear_effect: 255,
 };
 
-const individualLedEffects = {
+const individualLedEffects: { [key: string]: number } = {
     off: 0,
     solid: 1,
     fast_blink: 2,
@@ -62,6 +62,8 @@ const individualLedEffects = {
     clear_effect: 255,
 };
 
+const fanModes: { [key: string]: number } = {low: 2, medium: 85, high: 254, on: 255};
+
 const UINT8 = 32;
 const BOOLEAN = 16;
 const UINT16 = 33;
@@ -72,7 +74,75 @@ interface Attribute {
     values?: {[s: string]: number}, readOnly?: boolean,
 }
 
-const ATTRIBUTES: {[s: string]: Attribute} = {
+// Converts brightness level to a fan mode
+const intToFanMode = (value: number) => {
+    let selectedMode = 'Low';
+
+    Object.values(fanModes).forEach((mode) => {
+        if (value >= mode) {
+            selectedMode = Object.keys(fanModes).find(
+                (key) => fanModes[key] === mode,
+            ) || 'Low';
+        }
+    });
+
+    return selectedMode;
+};
+
+// Create Expose list with Inovelli Parameters definitions
+const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesList: Expose[]) =>{
+    Object.keys(ATTRIBUTES).forEach((key) => {
+        if (ATTRIBUTES[key].displayType === 'enum') {
+            const enumE = e
+                .enum(
+                    key,
+                    ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
+                    Object.keys(ATTRIBUTES[key].values),
+                )
+                .withDescription(ATTRIBUTES[key].description);
+            exposesList.push(enumE);
+        } else if (
+            ATTRIBUTES[key].displayType === 'binary' ||
+        ATTRIBUTES[key].displayType === 'switch'
+        ) {
+            exposesList.push(
+                e
+                    .binary(
+                        key,
+                        ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
+                        // @ts-expect-error
+                        ATTRIBUTES[key].values.Enabled,
+                        ATTRIBUTES[key].values.Disabled,
+                    )
+                    .withDescription(ATTRIBUTES[key].description),
+            );
+        } else {
+            const numeric = e
+                .numeric(key, ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL)
+                .withValueMin(ATTRIBUTES[key].min)
+                .withValueMax(ATTRIBUTES[key].max);
+
+            if (ATTRIBUTES[key].values) {
+                Object.keys(ATTRIBUTES[key].values).forEach((value) => {
+                    numeric.withPreset(value, ATTRIBUTES[key].values[value], '');
+                });
+            }
+            if (ATTRIBUTES[key].unit) {
+                numeric.withUnit(ATTRIBUTES[key].unit);
+            }
+            numeric.withDescription(ATTRIBUTES[key].description);
+            exposesList.push(numeric);
+        }
+    });
+};
+
+/**
+ * Common Attributes
+ *
+ * These attributes are shared between all devices with the manufacturer specific Inovelli cluster
+ * Some of the discriptions, max, min or value properties may be overridden for each device
+ */
+const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     dimmingSpeedUpRemote: {
         ID: 1,
         dataType: UINT8,
@@ -244,31 +314,6 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 11,
     },
-    activePowerReports: {
-        ID: 18,
-        dataType: UINT8,
-        min: 0,
-        max: 100,
-        description:
-      'Percent power level change that will result in a new power report being sent. 0 = Disabled',
-    },
-    periodicPowerAndEnergyReports: {
-        ID: 19,
-        min: 0,
-        max: 32767,
-        dataType: UINT16,
-        description:
-      'Time period between consecutive power & energy reports being sent (in seconds). The timer is reset after each report is sent.',
-    },
-    activeEnergyReports: {
-        ID: 20,
-        dataType: UINT16,
-        min: 0,
-        max: 32767,
-        description:
-      'Energy reports Energy level change which will result in sending a new energy report.' +
-      '0 = disabled, 1-32767 = 0.01kWh-327.67kWh. Default setting: 10 (0.1 kWh)',
-    },
     powerType: {
         ID: 21,
         dataType: BOOLEAN,
@@ -297,6 +342,24 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         max: 1,
         description: 'Increase level in non-neutral mode',
     },
+    internalTemperature: {
+        ID: 32,
+        dataType: UINT8,
+        min: 0,
+        max: 127,
+        readOnly: true,
+        description: 'The temperature measured by the temperature sensor inside the chip, in degrees Celsius',
+    },
+    overheat: {
+        ID: 33,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'No Alert': 0, 'Overheated': 1},
+        min: 0,
+        max: 1,
+        readOnly: true,
+        description: 'Indicates if the internal chipset is currently in an overheated state.',
+    },
     buttonDelay: {
         ID: 50,
         dataType: UINT8,
@@ -318,6 +381,12 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         description:
       'This will set the button press delay. 0 = no delay (Disables Button Press Events),' +
       'Default = 500ms.',
+    },
+    deviceBindNumber: {
+        ID: 51,
+        dataType: UINT8,
+        readOnly: true,
+        description: 'The number of devices currently bound (excluding gateways) and counts one group as two devices',
     },
     smartBulbMode: {
         ID: 52,
@@ -404,13 +473,6 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 100,
         description: 'Set the intensity of the LED Indicator when the load is off.',
-    },
-    ledBarScaling: {
-        ID: 100,
-        dataType: BOOLEAN,
-        displayType: 'enum',
-        values: {'Gen3 method (VZM-style)': 0, 'Gen2 method (LZW-style)': 1},
-        description: 'Method used for scaling.',
     },
     auxSwitchUniqueScenes: {
         ID: 123,
@@ -691,6 +753,52 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         description:
       'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
+    doubleTapClearNotifications: {
+        ID: 262,
+        dataType: BOOLEAN,
+        min: 0,
+        max: 1,
+        description: 'Double-Tap the Config button to clear notifications.',
+        values: {'Enabled (Default)': 0, 'Disabled': 1},
+        displayType: 'enum',
+    },
+
+};
+
+const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
+    ...COMMON_ATTRIBUTES,
+    activePowerReports: {
+        ID: 18,
+        dataType: UINT8,
+        min: 0,
+        max: 100,
+        description:
+      'Percent power level change that will result in a new power report being sent. 0 = Disabled',
+    },
+    periodicPowerAndEnergyReports: {
+        ID: 19,
+        min: 0,
+        max: 32767,
+        dataType: UINT16,
+        description:
+      'Time period between consecutive power & energy reports being sent (in seconds). The timer is reset after each report is sent.',
+    },
+    activeEnergyReports: {
+        ID: 20,
+        dataType: UINT16,
+        min: 0,
+        max: 32767,
+        description:
+      'Energy reports Energy level change which will result in sending a new energy report.' +
+      '0 = disabled, 1-32767 = 0.01kWh-327.67kWh. Default setting: 10 (0.1 kWh)',
+    },
+    ledBarScaling: {
+        ID: 100,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Gen3 method (VZM-style)': 0, 'Gen2 method (LZW-style)': 1},
+        description: 'Method used for scaling.',
+    },
     relayClick: {
         ID: 261,
         dataType: BOOLEAN,
@@ -703,19 +811,56 @@ const ATTRIBUTES: {[s: string]: Attribute} = {
         values: {'Disabled (Click Sound On)': 0, 'Enabled (Click Sound Off)': 1},
         displayType: 'enum',
     },
-    doubleTapClearNotifications: {
-        ID: 262,
-        dataType: BOOLEAN,
-        min: 0,
+};
+
+const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
+    ...COMMON_ATTRIBUTES,
+    minimumLevel: {
+        ...COMMON_ATTRIBUTES.minimumLevel,
+        description: '1-84: The level corresponding to the fan is Low, Medium, High. ' +
+        '85-170: The level corresponding to the fan is Medium, Medium, High. '+
+        '170-254: The level corresponding to the fan is High, High, High ',
+    },
+    maximumLevel: {
+        ...COMMON_ATTRIBUTES.maximumLevel,
+        description: '2-84: The level corresponding to the fan is Low, Medium, High.',
+    },
+    switchType: {
+        ...COMMON_ATTRIBUTES.switchType,
+        values: {'Single Pole': 0, 'Aux Switch': 1},
         max: 1,
-        description: 'Double-Tap the Config button to clear notifications.',
-        values: {'Enabled (Default)': 0, 'Disabled': 1},
-        displayType: 'enum',
+    },
+    smartBulbMode: {
+        ...COMMON_ATTRIBUTES.smartBulbMode,
+        description: 'Use this mode to syncronize and control other fan switches or controllers.',
+        values: {'Disabled': 0, 'Remote Control Mode': 1},
+    },
+    nonNeutralAuxMediumGear: {
+        ID: 30,
+        dataType: UINT8,
+        min: 42,
+        max: 135,
+        description: 'Identification value in Non-nuetral, medium gear, aux switch',
+    },
+    nonNeutralAuxLowGear: {
+        ID: 31,
+        dataType: UINT8,
+        min: 42,
+        max: 135,
+        description: 'Identification value in Non-nuetral, low gear, aux switch',
+    },
+    fanLedLevelType: {
+        ID: 263,
+        dataType: UINT8,
+        min: 0,
+        max: 10,
+        values: {'Limitless (like VZM31)': 0, 'Adaptive LED': 10},
+        description: 'Level display of the LED Strip',
     },
 };
 
 const tzLocal = {
-    inovelli_vzw31sn_parameters: {
+    inovelli_parameters: (ATTRIBUTES: {[s: string]: Attribute})=>({
         key: Object.keys(ATTRIBUTES).filter((a) => !ATTRIBUTES[a].readOnly),
         convertSet: async (entity, key, value, meta) => {
             const payload = {
@@ -729,11 +874,9 @@ const tzLocal = {
                 },
             };
 
-            await entity.write('manuSpecificInovelliVZM31SN', payload, {
+            await entity.write('manuSpecificInovelli', payload, {
                 manufacturerCode: INOVELLI,
             });
-
-            meta.state[key] = value;
 
             return {
                 state: {
@@ -742,47 +885,25 @@ const tzLocal = {
             };
         },
         convertGet: async (entity, key, meta) => {
-            const value = await entity.read('manuSpecificInovelliVZM31SN', [key], {
+            await entity.read('manuSpecificInovelli', [key], {
                 manufacturerCode: INOVELLI,
             });
-
-            if (ATTRIBUTES[key].displayType === 'enum') {
-                const valueState = Object.keys(ATTRIBUTES[key].values).find(
-                    // @ts-expect-error
-                    (a) => ATTRIBUTES[key].values[a] === value[key],
-                );
-                meta.state[key] = valueState;
-            } else {
-                // @ts-expect-error
-                meta.state[key] = value[key];
-            }
         },
-    } as Tz.Converter,
-    inovelli_vzw31sn_parameters_readOnly: {
+    }) as Tz.Converter,
+    inovelli_parameters_readOnly: (ATTRIBUTES: {[s: string]: Attribute})=>({
         key: Object.keys(ATTRIBUTES).filter((a) => ATTRIBUTES[a].readOnly),
         convertGet: async (entity, key, meta) => {
-            const value = await entity.read('manuSpecificInovelliVZM31SN', [key], {
+            await entity.read('manuSpecificInovelli', [key], {
                 manufacturerCode: INOVELLI,
             });
-
-            if (ATTRIBUTES[key].displayType === 'enum') {
-                const valueState = Object.keys(ATTRIBUTES[key].values).find(
-                    // @ts-expect-error
-                    (a) => ATTRIBUTES[key].values[a] === value[key],
-                );
-                meta.state[key] = valueState;
-            } else {
-                // @ts-expect-error
-                meta.state[key] = value[key];
-            }
         },
         convertSet: undefined,
-    } as Tz.Converter,
+    }) as Tz.Converter,
     inovelli_led_effect: {
         key: ['led_effect'],
         convertSet: async (entity, key, values, meta) => {
             await entity.command(
-                'manuSpecificInovelliVZM31SN',
+                'manuSpecificInovelli',
                 'ledEffect',
                 {
                     // @ts-expect-error
@@ -803,7 +924,7 @@ const tzLocal = {
         key: ['individual_led_effect'],
         convertSet: async (entity, key, values, meta) => {
             await entity.command(
-                'manuSpecificInovelliVZM31SN',
+                'manuSpecificInovelli',
                 'individualLedEffect',
                 {
                     // @ts-expect-error
@@ -947,7 +1068,7 @@ const tzLocal = {
                             utils.getOptions(meta.mapped, entity),
                         );
                         const defaultTransitionTime = await entity.read(
-                            'manuSpecificInovelliVZM31SN',
+                            'manuSpecificInovelli',
                             ['rampRateOffToOnRemote'],
                         );
                         return {
@@ -1003,7 +1124,7 @@ const tzLocal = {
                 );
 
                 const defaultTransitionTime = await entity.read(
-                    'manuSpecificInovelliVZM31SN',
+                    'manuSpecificInovelli',
                     ['rampRateOnToOffRemote'],
                 );
 
@@ -1026,6 +1147,59 @@ const tzLocal = {
             } else if (key === 'state') {
                 await tz.on_off.convertGet(entity, key, meta);
             }
+        },
+    } as Tz.Converter,
+    fan_mode: {
+        key: ['fan_mode'],
+        convertSet: async (entity, key, value :string, meta) => {
+            await entity.command(
+                'genLevelCtrl',
+                'moveToLevelWithOnOff',
+                {
+                    level: fanModes[value],
+                    transtime: 0xffff,
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
+            return {
+                state: {
+                    [key]: value,
+                    state: 'ON',
+                },
+            };
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['currentLevel']);
+        },
+    } as Tz.Converter,
+    fan_state: {
+        key: ['fan_state'],
+        convertSet: async (entity, key, value, meta) => {
+            const state = meta.message.hasOwnProperty('fan_state')?
+                meta.message.fan_state.toString().toLowerCase() :
+                null;
+            utils.validateValue(state, ['toggle', 'off', 'on']);
+
+            await entity.command(
+                'genOnOff',
+                state,
+                {},
+                utils.getOptions(meta.mapped, entity),
+            );
+            if (state === 'toggle') {
+                const currentState =
+                meta.state[
+                    `state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`
+                ];
+                return currentState ?
+                    {state: {fan_state: currentState === 'OFF' ? 'ON' : 'OFF'}}:
+                    {};
+            } else {
+                return {state: {fan_state: state.toString().toUpperCase()}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
         },
     } as Tz.Converter,
 };
@@ -1095,8 +1269,8 @@ const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: stri
 };
 
 const fzLocal = {
-    inovelli_vzm31sn: {
-        cluster: 'manuSpecificInovelliVZM31SN',
+    inovelli: (ATTRIBUTES: {[s: string]: Attribute})=>({
+        cluster: 'manuSpecificInovelli',
         type: ['raw', 'readResponse', 'commandQueryNextImageRequest'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.type === 'raw' && msg.endpoint.ID == 2 && msg.data[4] === 0x00) {
@@ -1115,20 +1289,51 @@ const fzLocal = {
                 // # 2 - up button
                 // # 3 - config button
 
-                // @ts-expect-error
                 const button = buttonLookup[msg.data[5]];
-                // @ts-expect-error
                 const action = clickLookup[msg.data[6]];
                 return {action: `${button}_${action}`};
             } else if (msg.type === 'readResponse') {
-                return Object.fromEntries(Object.entries(msg.data).map((v) => {
-                    const attr = ATTRIBUTES[v[0]];
-                    if (attr.values) {
-                        v[1] = utils.getKey(attr.values, v[1]);
+                return Object.keys(msg.data).reduce((p, c) => {
+                    if (ATTRIBUTES[c].displayType === 'enum') {
+                        return {
+                            ...p,
+                            [c]: Object.keys(ATTRIBUTES[c].values).find(
+                                (k) => ATTRIBUTES[c].values[k] === msg.data[c],
+                            ),
+                        };
                     }
-                    return v;
-                }));
+                    return {...p, [c]: msg.data[c]};
+                }, {});
             }
+        },
+    }) as Fz.Converter,
+    fan_mode: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('currentLevel')) {
+                const mode = intToFanMode(msg.data['currentLevel'] || 1);
+                return {
+                    fan_mode: mode,
+                };
+            }
+            if (msg.data.hasOwnProperty('currentLevel')) {
+                const mode = intToFanMode(msg.data['currentLevel'] || 1);
+                return {
+                    fan_mode: mode,
+                };
+            }
+            return msg.data;
+        },
+    } as Fz.Converter,
+    fan_state: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                return {fan_state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+            return msg.data;
         },
     } as Fz.Converter,
 };
@@ -1245,62 +1450,156 @@ const exposesList: Expose[] = [
         ),
 ];
 
+const exposesListVZM35: Expose[] = [
+    e.fan().withModes(Object.keys(fanModes)),
+    e
+        .composite('led_effect', 'led_effect', ea.STATE_SET)
+        .withFeature(
+            e
+                .enum('effect', ea.STATE_SET, [
+                    'off',
+                    'solid',
+                    'fast_blink',
+                    'slow_blink',
+                    'pulse',
+                    'chase',
+                    'open_close',
+                    'small_to_big',
+                    'aurora',
+                    'slow_falling',
+                    'medium_falling',
+                    'fast_falling',
+                    'slow_rising',
+                    'medium_rising',
+                    'fast_rising',
+                    'medium_blink',
+                    'slow_chase',
+                    'fast_chase',
+                    'fast_siren',
+                    'slow_siren',
+                    'clear_effect',
+                ])
+                .withDescription('Animation Effect to use for the LEDs'),
+        )
+        .withFeature(
+            e
+                .numeric('color', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription(
+                    'Calculated by using a hue color circle(value/255*360) If color = 255 display white',
+                ),
+        )
+        .withFeature(
+            e
+                .numeric('level', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription('Brightness of the LEDs'),
+        )
+        .withFeature(
+            e
+                .numeric('duration', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription(
+                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
+            'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
+            'Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
+                ),
+        ),
+    e
+        .composite('individual_led_effect', 'individual_led_effect', ea.STATE_SET)
+        .withFeature(
+            e
+                .enum('led', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7'])
+                .withDescription('Individual LED to target.'),
+        )
+        .withFeature(
+            e
+                .enum('effect', ea.STATE_SET, [
+                    'off',
+                    'solid',
+                    'fast_blink',
+                    'slow_blink',
+                    'pulse',
+                    'chase',
+                    'falling',
+                    'rising',
+                    'aurora',
+                    'clear_effect',
+                ])
+                .withDescription('Animation Effect to use for the LED'),
+        )
+        .withFeature(
+            e
+                .numeric('color', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription(
+                    'Calculated by using a hue color circle(value/255*360) If color = 255 display white',
+                ),
+        )
+        .withFeature(
+            e
+                .numeric('level', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription('Brightness of the LED'),
+        )
+        .withFeature(
+            e
+                .numeric('duration', ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription(
+                    '1-60 is in seconds calculated 61-120 is in minutes calculated by(value-60) ' +
+            'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
+            ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
+                ),
+        ),
+];
+
 const toZigbee = [
     tzLocal.light_onoff_brightness_inovelli,
     tz.power_on_behavior,
     tzLocal.inovelli_led_effect,
     tzLocal.inovelli_individual_led_effect,
-    tzLocal.inovelli_vzw31sn_parameters,
-    tzLocal.inovelli_vzw31sn_parameters_readOnly,
+    tzLocal.inovelli_parameters(VZM31_ATTRIBUTES),
+    tzLocal.inovelli_parameters_readOnly(VZM31_ATTRIBUTES),
 ];
 
-// Create Expose list with Inovelli Parameters
-Object.keys(ATTRIBUTES).forEach((key) => {
-    if (ATTRIBUTES[key].displayType === 'enum') {
-        const enumE = e
-            .enum(
-                key,
-                ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
-                Object.keys(ATTRIBUTES[key].values),
-            )
-            .withDescription(ATTRIBUTES[key].description);
-        exposesList.push(enumE);
-    } else if (
-        ATTRIBUTES[key].displayType === 'binary' ||
-    ATTRIBUTES[key].displayType === 'switch'
-    ) {
-        exposesList.push(
-            e
-                .binary(
-                    key,
-                    ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
-                    // @ts-expect-error
-                    ATTRIBUTES[key].values.Enabled,
-                    ATTRIBUTES[key].values.Disabled,
-                )
-                .withDescription(ATTRIBUTES[key].description),
-        );
-    } else {
-        const numeric = e
-            .numeric(key, ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL)
-            .withValueMin(ATTRIBUTES[key].min)
-            .withValueMax(ATTRIBUTES[key].max);
-
-        if (ATTRIBUTES[key].values) {
-            Object.keys(ATTRIBUTES[key].values).forEach((value) => {
-                numeric.withPreset(value, ATTRIBUTES[key].values[value], '');
-            });
-        }
-        if (ATTRIBUTES[key].unit) {
-            numeric.withUnit(ATTRIBUTES[key].unit);
-        }
-        numeric.withDescription(ATTRIBUTES[key].description);
-        exposesList.push(numeric);
-    }
-});
+// Populate exposes list from the attributes description
+attributesToExposeList(VZM31_ATTRIBUTES, exposesList);
+attributesToExposeList(VZM35_ATTRIBUTES, exposesListVZM35);
 
 // Put actions at the bottom of ui
 exposesList.push(
+    e.action([
+        'down_single',
+        'up_single',
+        'config_single',
+        'down_release',
+        'up_release',
+        'config_release',
+        'down_held',
+        'up_held',
+        'config_held',
+        'down_double',
+        'up_double',
+        'config_double',
+        'down_triple',
+        'up_triple',
+        'config_triple',
+        'down_quadruple',
+        'up_quadruple',
+        'config_quadruple',
+        'down_quintuple',
+        'up_quintuple',
+        'config_quintuple',
+    ]),
+);
+exposesListVZM35.push(
     e.action([
         'down_single',
         'up_single',
@@ -1342,7 +1641,7 @@ const definitions: Definition[] = [
             fz.ignore_basic_report,
             fz.electrical_measurement,
             fz.metering,
-            fzLocal.inovelli_vzm31sn,
+            fzLocal.inovelli(VZM31_ATTRIBUTES),
         ],
         ota: ota.inovelli,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1358,7 +1657,7 @@ const definitions: Definition[] = [
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, [
-                'manuSpecificInovelliVZM31SN',
+                'manuSpecificInovelli',
             ]);
             await endpoint.read('haElectricalMeasurement', [
                 'acPowerMultiplier',
@@ -1372,6 +1671,39 @@ const definitions: Definition[] = [
                 max: 3600,
                 change: 0,
             });
+        },
+    },
+    {
+        zigbeeModel: ['VZM35-SN'],
+        model: 'VZM35-SN',
+        vendor: 'Inovelli',
+        description: 'Fan controller',
+        fromZigbee: [
+            fzLocal.fan_state,
+            fzLocal.fan_mode,
+            fzLocal.inovelli(VZM35_ATTRIBUTES),
+        ],
+        toZigbee: [
+            tzLocal.fan_state,
+            tzLocal.fan_mode,
+            tzLocal.inovelli_led_effect,
+            tzLocal.inovelli_individual_led_effect,
+            tzLocal.inovelli_parameters(VZM35_ATTRIBUTES),
+            tzLocal.inovelli_parameters_readOnly(VZM35_ATTRIBUTES),
+        ],
+        exposes: exposesListVZM35,
+        ota: ota.inovelli,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genOnOff',
+                'genLevelCtrl',
+            ]);
+            // Bind for Button Event Reporting
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, [
+                'manuSpecificInovelli',
+            ]);
         },
     },
 ];
