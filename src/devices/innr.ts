@@ -670,6 +670,18 @@ const definitions: Definition[] = [
         exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy()],
     },
     {
+        zigbeeModel: ['OSP 210'],
+        model: 'OSP 210',
+        vendor: 'Innr',
+        description: 'Outdoor smart plug',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['OFL 120 C'],
         model: 'OFL 120 C',
         vendor: 'Innr',
