@@ -1,5 +1,24 @@
 # Changelog
 
+## [15.95.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.94.2...v15.95.0) (2023-10-16)
+
+
+### Features
+
+* **add:** 9290030520 ([#6288](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6288)) ([6db7bfa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6db7bfa16c42e2a3fdcc239e9edc475e34011cbb))
+* **add:** 929003498601 ([#6295](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6295)) ([b5a6a0b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b5a6a0beaab2af7603214d2d72eba5a6b12b42e3))
+* **add:** OSP 210 ([#6294](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6294)) ([3456444](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3456444feea924e62390f4d260aebb0383c1df45))
+* **add:** VZM35-SN ([#6290](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6290)) ([0b4b49c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0b4b49c8ae5bb32e5063c05ff1beb0c5a0665123))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_yfekcy3n` as TuYa DS04 ([#6296](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6296)) ([acf1004](https://github.com/Koenkk/zigbee-herdsman-converters/commit/acf1004dc68155b083e9a568fe19cc2325231ff3))
+* **detect:** Detect `_TZE200_jkbljri7` as TuYa MIR-HE200-TY ([#6293](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6293)) ([90913a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/90913a20323cdb1a2f3f15f5279576a97d8bd8be))
+* **detect:** Detect `FEB56-ZSN26YS1.3` as Nue / 3A HGZB-045 ([#6292](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6292)) ([cbe9760](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cbe976079e5cd20c8cb325d0a09dcee698eba2d0))
+* **detect:** Detect `TRADFRI bulb E26 CWS 810lm` as IKEA LED1924G9 ([#6291](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6291)) ([b1917d3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b1917d3dae6f8e051edde307ea81a69a562ee5ea))
+* **ignore:** Revert "fix: Fix incorrect Yookee D10110 cover position ([#6211](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6211))" ([#6289](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6289)) ([33c36fd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/33c36fd1587b073d53479dcdac9056316d870d8f))
+
 ## [15.94.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.94.1...v15.94.2) (2023-10-15)
 
 
