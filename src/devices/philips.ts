@@ -2745,6 +2745,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['LXC006'],
+        model: '929003498601',
+        vendor: 'Philips',
+        description: 'Play gradient lightstrip for PC (32-34)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LCX001'],
         model: '929002422702',
         vendor: 'Philips',
