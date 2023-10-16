@@ -93,7 +93,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.ignore_power_report],
     },
     {
-        zigbeeModel: ['FB56+ZSN08KJ2.3'],
+        zigbeeModel: ['FB56+ZSN08KJ2.3', 'FEB56-ZSN26YS1.3'],
         model: 'HGZB-045',
         vendor: 'Nue / 3A',
         description: 'Smart 4 key scene wall switch',
