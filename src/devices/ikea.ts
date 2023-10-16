@@ -612,10 +612,10 @@ const definitions: Definition[] = [
         meta: {supportsHueAndSaturation: false},
     },
     {
-        zigbeeModel: ['TRADFRI bulb E26 CWS 800lm', 'TRADFRI bulb E27 CWS 806lm', 'TRADFRI bulb E26 CWS 806lm'],
+        zigbeeModel: ['TRADFRI bulb E26 CWS 800lm', 'TRADFRI bulb E27 CWS 806lm', 'TRADFRI bulb E26 CWS 806lm', 'TRADFRI bulb E26 CWS 810lm'],
         model: 'LED1924G9',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27 CWS 800/806 lumen, dimmable, color, opal white',
+        description: 'TRADFRI bulb E26/E27 CWS 800/806/810 lumen, dimmable, color, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
         meta: {turnsOffAtBrightness1: true},
     },
