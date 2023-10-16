@@ -93,7 +93,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['LWO006'],
         model: '9290030520',
         vendor: 'Philips',
-        description: 'Philips Hue White Filament Globe G25',
+        description: 'Hue white filament globe G25',
         extend: philips.extend.light_onoff_brightness(),
     },
     {
