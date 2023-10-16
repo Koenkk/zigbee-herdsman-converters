@@ -679,7 +679,7 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
-        }, 
+        },
     },
     {
         zigbeeModel: ['OFL 120 C'],
