@@ -565,10 +565,11 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'ZD08', 'Door sensor', ['_TZ3000_7d8yme6f']),
             tuya.whitelabel('TuYa', 'MC500A', 'Door sensor', ['_TZ3000_2mbfxlzr']),
             tuya.whitelabel('TuYa', '19DZT', 'Door sensor', ['_TZ3000_n2egfsli']),
+            tuya.whitelabel('TuYa', 'DS04', 'Door sensor', ['_TZ3000_yfekcy3n']),
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()];
-            if (!device || !['_TZ3000_2mbfxlzr', '_TZ3000_n2egfsli'].includes(device.manufacturerName)) {
+            if (!device || !['_TZ3000_2mbfxlzr', '_TZ3000_n2egfsli', '_TZ3000_yfekcy3n'].includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
             exps.push(e.linkquality());
