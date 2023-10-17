@@ -433,7 +433,7 @@ export function validateValue(value: unknown, allowed: unknown[]) {
 export function normalizeCelsiusVersionOfFahrenheit(value: number) {
     const fahrenheit = (value * 1.8) + 32;
     const roundedFahrenheit = Number((Math.round(Number((fahrenheit * 2).toFixed(1))) / 2).toFixed(1));
-    return ((roundedFahrenheit - 32)/1.8).toFixed(2);
+    return Number(((roundedFahrenheit - 32)/1.8).toFixed(2));
 }
 
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: 'start' | 'stop') {
@@ -519,7 +519,7 @@ export function isString(value: unknown): value is string {
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
     property = property ? `'${property}'` : 'Value';
-    if (typeof value !== 'number') throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
+    if (typeof value !== 'number' || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
 }
 
 export function toNumber(value: unknown, property?: string): number {

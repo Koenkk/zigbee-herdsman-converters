@@ -328,6 +328,7 @@ const converters = {
 
             const invert = utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover;
+            utils.assertNumber(value);
             const position = invert ? 100 - value : value;
             await entity.command(
                 'genLevelCtrl',
@@ -463,6 +464,7 @@ const converters = {
         // Sets delay after motion detector changes from occupied to unoccupied
         key: ['occupancy_timeout'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             value *= 1;
             await entity.write('msOccupancySensing', {pirOToUDelay: value}, utils.getOptions(meta.mapped, entity));
             return {state: {occupancy_timeout: value}};
@@ -748,7 +750,7 @@ const converters = {
     light_colortemp_move: {
         key: ['colortemp_move', 'color_temp_move'],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'color_temp_move' && (value === 'stop' || !isNaN(value))) {
+            if (key === 'color_temp_move' && (value === 'stop' || utils.isNumber(value))) {
                 value = value === 'stop' ? value : Number(value);
                 const payload: KeyValueAny = {minimum: 0, maximum: 600};
                 if (value === 'stop' || value === 0) {
@@ -796,6 +798,7 @@ const converters = {
                 const result = await converters.light_color.convertSet(entity, key, value, meta);
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
+                utils.assertNumber(value);
                 const xy = libColor.ColorXY.fromMireds(value);
                 const payload = {
                     transtime: utils.getTransition(entity, key, meta).time,
@@ -1013,23 +1016,21 @@ const converters = {
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin};
 
             if (key === 'color_temp_percent') {
+                utils.assertNumber(value);
                 value = utils.mapNumberRange(value,
                     0, 100,
                     ((colorTempMin != null) ? colorTempMin : 154), ((colorTempMax != null) ? colorTempMax : 500),
                 ).toString();
             }
 
-            if (typeof value === 'string' && isNaN(value)) {
-                if (value.toLowerCase() in preset) {
-                    value = preset[value.toLowerCase()];
-                } else {
-                    throw new Error(`Unknown preset '${value}'`);
-                }
+            if (utils.isString(value) && value in preset) {
+                value = utils.getFromLookup(value, preset);
             }
 
             value = Number(value);
 
             // ensure value within range
+            utils.assertNumber(value);
             value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
 
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
@@ -1049,12 +1050,8 @@ const converters = {
             const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin, 'previous': 65535};
 
-            if (typeof value === 'string' && isNaN(value)) {
-                if (value.toLowerCase() in preset) {
-                    value = preset[value.toLowerCase()];
-                } else {
-                    throw new Error(`Unknown preset '${value}'`);
-                }
+            if (utils.isString(value) && value in preset) {
+                value = utils.getFromLookup(value, preset);
             }
 
             value = Number(value);
@@ -1254,7 +1251,8 @@ const converters = {
                      {"heatSetpoint": 16, "transitionTime": {"hour": 19, "minute": 30}}
                    ]}}
              */
-            const payload = {
+            utils.assertObject(value, key);
+            const payload: KeyValueAny = {
                 dayofweek: value.dayofweek,
                 transitions: value.transitions,
             };
@@ -1299,6 +1297,8 @@ const converters = {
                     // accept 24h time notation (e.g. 19:30)
                     if (typeof elem['transitionTime'] === 'string') {
                         const time = elem['transitionTime'].split(':');
+                        utils.assertNumber(time[0], 'transitionTime hour');
+                        utils.assertNumber(time[1], 'transitionTime minute');
                         if ((time.length != 2) || isNaN(time[0]) || isNaN(time[1])) {
                             meta.logger.warn(
                                 `weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem['transitionTime']}'!`,
@@ -1352,7 +1352,7 @@ const converters = {
                         if (!d.hasOwnProperty('day')) {
                             throw new Error(
                                 'weekly_schedule: expected dayofweek to be string or {"day": "str"}, ' +
-                                `but got '${JSON.strinify(d)}'!`,
+                                `but got '${JSON.stringify(d)}'!`,
                             );
                         }
                         d = d.day;
@@ -1490,6 +1490,7 @@ const converters = {
     thermostat_local_temperature_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             await entity.write('hvacThermostat', {localTemperatureCalibration: Math.round(value * 10)});
             return {state: {local_temperature_calibration: value}};
         },
@@ -1525,11 +1526,12 @@ const converters = {
         key: ['occupied_heating_setpoint'],
         options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
-            let result;
+            utils.assertNumber(value, key);
+            let result: number;
             if (meta.options.thermostat_unit === 'fahrenheit') {
                 result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
-                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+                result = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             }
             const occupiedHeatingSetpoint = result;
             await entity.write('hvacThermostat', {occupiedHeatingSetpoint});
@@ -1543,11 +1545,12 @@ const converters = {
         key: ['unoccupied_heating_setpoint'],
         options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
                 result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
-                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+                result = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             }
             const unoccupiedHeatingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedHeatingSetpoint});
@@ -1561,11 +1564,12 @@ const converters = {
         key: ['occupied_cooling_setpoint'],
         options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
                 result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
-                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+                result = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             }
             const occupiedCoolingSetpoint = result;
             await entity.write('hvacThermostat', {occupiedCoolingSetpoint});
@@ -1579,11 +1583,12 @@ const converters = {
         key: ['unoccupied_cooling_setpoint'],
         options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
                 result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
-                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+                result = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             }
             const unoccupiedCoolingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedCoolingSetpoint});
@@ -1596,6 +1601,7 @@ const converters = {
     thermostat_setpoint_raise_lower: {
         key: ['setpoint_raise_lower'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertObject(value, key);
             const payload = {mode: value.mode, amount: Math.round(value.amount) * 100};
             await entity.command('hvacThermostat', 'setpointRaiseLower', payload, utils.getOptions(meta.mapped, entity));
         },
@@ -1615,11 +1621,12 @@ const converters = {
     thermostat_min_heat_setpoint_limit: {
         key: ['min_heat_setpoint_limit'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
                 result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
-                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+                result = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             }
             const minHeatSetpointLimit = result;
             await entity.write('hvacThermostat', {minHeatSetpointLimit});
@@ -1632,11 +1639,12 @@ const converters = {
     thermostat_max_heat_setpoint_limit: {
         key: ['max_heat_setpoint_limit'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
                 result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
-                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+                result = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             }
             const maxHeatSetpointLimit = result;
             await entity.write('hvacThermostat', {maxHeatSetpointLimit});
@@ -1649,11 +1657,12 @@ const converters = {
     thermostat_min_cool_setpoint_limit: {
         key: ['min_cool_setpoint_limit'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
                 result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
-                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+                result = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             }
             const minCoolSetpointLimit = result;
             await entity.write('hvacThermostat', {minCoolSetpointLimit});
@@ -1666,11 +1675,12 @@ const converters = {
     thermostat_max_cool_setpoint_limit: {
         key: ['max_cool_setpoint_limit'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
                 result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
-                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+                result = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             }
             const maxCoolSetpointLimit = result;
             await entity.write('hvacThermostat', {maxCoolSetpointLimit});
@@ -1869,6 +1879,7 @@ const converters = {
     elko_local_temperature_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             await entity.write('hvacThermostat', {'elkoCalibration': Math.round(value * 10)});
             return {state: {local_temperature_calibration: value}};
         },
@@ -1952,21 +1963,10 @@ const converters = {
     livolo_switch_on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== 'string') {
-                return;
-            }
-
+            utils.assertString(value, key);
             const postfix = meta.endpoint_name || 'left';
-            let state = value.toLowerCase();
+            const state = value.toLowerCase() === 'on' ? 108 : 1;
             let channel = 1;
-
-            if (state === 'on') {
-                state = 108;
-            } else if (state === 'off') {
-                state = 1;
-            } else {
-                return;
-            }
 
             if (postfix === 'left') {
                 channel = 1.0;
@@ -2062,6 +2062,7 @@ const converters = {
     livolo_cover_position: {
         key: ['position'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             const position = 100 - value;
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
             const payload = {0x0401: {value: [position, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], type: 1}};
@@ -2121,7 +2122,7 @@ const converters = {
         key: ['state', 'brightness', 'brightness_percent'],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            if (meta.message && meta.message.hasOwnProperty('transition')) {
+            if (utils.isNumber(meta.message?.transition)) {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
@@ -2144,7 +2145,7 @@ const converters = {
         key: ['color_temp', 'color_temp_percent'],
         options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            if (meta.message && meta.message.hasOwnProperty('transition')) {
+            if (utils.isNumber(meta.message?.transition)) {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
@@ -2164,7 +2165,7 @@ const converters = {
         key: ['color'],
         options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            if (meta.message && meta.message.hasOwnProperty('transition')) {
+            if (utils.isNumber(meta.message?.transition)) {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
@@ -2368,6 +2369,7 @@ const converters = {
     GZCGQ11LM_detection_period: {
         key: ['detection_period'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             value *= 1;
             await entity.write('aqaraOpple', {0x0000: {value: [value], type: 0x21}}, manufacturerOptions.xiaomi);
             return {state: {detection_period: value}};
@@ -2379,6 +2381,7 @@ const converters = {
     aqara_detection_interval: {
         key: ['detection_interval'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             value *= 1;
             await entity.write('aqaraOpple', {0x0102: {value: [value], type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {detection_interval: value}};
@@ -2390,6 +2393,7 @@ const converters = {
     xiaomi_overload_protection: {
         key: ['overload_protection'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             value *= 1;
             await entity.write('aqaraOpple', {0x020b: {value: [value], type: 0x39}}, manufacturerOptions.xiaomi);
             return {state: {overload_protection: value}};
@@ -2493,25 +2497,27 @@ const converters = {
     xiaomi_switch_operation_mode_basic: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
+            utils.assertObject(value);
             let targetValue = value.hasOwnProperty('state') ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
             let attrId;
-            let attrValue;
+            let attrValue: number;
             if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
                 attrId = {left: 0xFF22, right: 0xFF23}[meta.endpoint_name];
                 // Allow usage of control_relay for 2 gang switches by mapping it to the default side.
                 if (targetValue === 'control_relay') {
                     targetValue = `control_${meta.endpoint_name}_relay`;
                 }
-                attrValue = {control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE}[targetValue];
+                attrValue = utils.getFromLookup(targetValue, {control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE});
 
                 if (attrId == null) {
                     throw new Error(`Unsupported endpoint ${meta.endpoint_name} for changing operation_mode.`);
                 }
             } else {
                 attrId = 0xFF22;
-                attrValue = {control_relay: 0x12, decoupled: 0xFE}[targetValue];
+                attrValue = utils.getFromLookup(targetValue, {control_relay: 0x12, decoupled: 0xFE});
             }
 
             if (attrValue == null) {
@@ -2519,7 +2525,7 @@ const converters = {
             }
 
             const endpoint = entity.getDevice().getEndpoint(1);
-            const payload = {};
+            const payload: KeyValueAny = {};
             payload[attrId] = {value: attrValue, type: 0x20};
             await endpoint.write('genBasic', payload, manufacturerOptions.xiaomi);
 
@@ -2697,7 +2703,7 @@ const converters = {
             if (key === 'osram_set_transition' || key === 'set_transition') {
                 if (value) {
                     utils.assertNumber(value, key);
-                    const transition = (value > 1) ? (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 10 : 1;
+                    const transition = (value > 1) ? Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 10 : 1;
                     const payload = {0x0012: {value: transition, type: 0x21}, 0x0013: {value: transition, type: 0x21}};
                     await entity.write('genLevelCtrl', payload);
                 }
@@ -2929,11 +2935,12 @@ const converters = {
     danfoss_thermostat_occupied_heating_setpoint: {
         key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             const payload = {
                 // 1: "User Interaction" Changes occupied heating setpoint and triggers an aggressive reaction
                 //   of the actuator as soon as control SW runs, to replicate the behavior of turning the dial on the eTRV.
                 setpointType: 1,
-                setpoint: (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100,
+                setpoint: Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100,
             };
             await entity.command('hvacThermostat', 'danfossSetpointCommand', payload, manufacturerOptions.danfoss);
         },
@@ -2944,11 +2951,12 @@ const converters = {
     danfoss_thermostat_occupied_heating_setpoint_scheduled: {
         key: ['occupied_heating_setpoint_scheduled'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             const payload = {
                 // 0: "Schedule Change" Just changes occupied heating setpoint. No special behavior,
                 //   the PID control setpoint will be update with the new setpoint.
                 setpointType: 0,
-                setpoint: (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100,
+                setpoint: Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100,
             };
             await entity.command('hvacThermostat', 'danfossSetpointCommand', payload, manufacturerOptions.danfoss);
         },
@@ -3191,8 +3199,9 @@ const converters = {
     ZMCSW032D_cover_position: {
         key: ['position', 'tilt'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
             if (meta.options.hasOwnProperty('time_close') && meta.options.hasOwnProperty('time_open')) {
-                const sleepSeconds = async (s) => {
+                const sleepSeconds = async (s: number) => {
                     return new Promise((resolve) => setTimeout(resolve, s * 1000));
                 };
 
@@ -3202,15 +3211,17 @@ const converters = {
                 } else if (value == 0) {
                     await entity.command('closuresWindowCovering', 'downClose', {}, utils.getOptions(meta.mapped, entity));
                 } else {
-                    if (oldPosition > value) {
+                    if (utils.isNumber(oldPosition) && oldPosition > value) {
                         const delta = oldPosition - value;
+                        utils.assertNumber(meta.options.time_open);
                         const mutiplicateur = meta.options.time_open / 100;
                         const timeBeforeStop = delta * mutiplicateur;
                         await entity.command('closuresWindowCovering', 'downClose', {}, utils.getOptions(meta.mapped, entity));
                         await sleepSeconds(timeBeforeStop);
                         await entity.command('closuresWindowCovering', 'stop', {}, utils.getOptions(meta.mapped, entity));
-                    } else if (oldPosition < value) {
+                    } else if (utils.isNumber(oldPosition) && oldPosition < value) {
                         const delta = value - oldPosition;
+                        utils.assertNumber(meta.options.time_close);
                         const mutiplicateur = meta.options.time_close / 100;
                         const timeBeforeStop = delta * mutiplicateur;
                         await entity.command('closuresWindowCovering', 'upOpen', {}, utils.getOptions(meta.mapped, entity));
@@ -3255,6 +3266,7 @@ const converters = {
                 const payload = {0x1004: {value: utils.getFromLookup(value, lookup), type: herdsman.Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='floor_sensor_calibration') {
+                utils.assertNumber(value);
                 const payload = {0x1005: {value: Math.round(value * 10), type: 0x28}}; // INT8S
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='dry_time') {
@@ -3269,9 +3281,11 @@ const converters = {
                 const payload = {0x1008: {value: utils.getFromLookup(value, lookup), type: herdsman.Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='window_open_check') {
+                utils.assertNumber(value);
                 const payload = {0x1009: {value: value * 2, type: 0x20}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='hysterersis') {
+                utils.assertNumber(value);
                 const payload = {0x100A: {value: value * 10, type: 0x20}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='display_auto_off_enabled') {
@@ -3370,11 +3384,11 @@ const converters = {
                 return {state: {brightness: zclData.level}};
             }
 
-            if (key === 'brightness' && meta.message.hasOwnProperty('color_temp')) {
+            if (key === 'brightness' && utils.isNumber(meta.message.color_temp)) {
                 const zclData = {colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254), transtime: 0};
                 const zclDataBrightness = {level: Number(value), transtime: 0};
 
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0});
                 await entity.command('lightingColorCtrl', 'moveToColorTemp', zclData, utils.getOptions(meta.mapped, entity));
                 await entity.command('genLevelCtrl', 'moveToLevel', zclDataBrightness, utils.getOptions(meta.mapped, entity));
 
@@ -3391,10 +3405,11 @@ const converters = {
             }
 
             if (key === 'color_temp') {
+                utils.assertNumber(value, key);
                 const zclData = {colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0};
                 const zclDataBrightness = {level: globalStore.getValue(entity, 'brightness') || 100, transtime: 0};
 
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0});
                 await entity.command('lightingColorCtrl', 'moveToColorTemp', zclData, utils.getOptions(meta.mapped, entity));
                 await entity.command('genLevelCtrl', 'moveToLevel', zclDataBrightness, utils.getOptions(meta.mapped, entity));
 
@@ -3676,7 +3691,8 @@ const converters = {
     eurotronic_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const val = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            utils.assertNumber(value, key);
+            const val = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             const payload = {0x4003: {value: val, type: 0x29}};
             await entity.write('hvacThermostat', payload, manufacturerOptions.eurotronic);
         },
@@ -3722,11 +3738,12 @@ const converters = {
                 value = 1;
             }
             const lookup = {
-                'OFF': '0',
-                'ON': '1',
+                'OFF': 0,
+                'ON': 1,
             };
             value = utils.getFromLookup(value, lookup);
             // Check for valid data
+            utils.assertNumber(value, key);
             if (((value >= 0) && value < 2) == false) value = 0;
 
             const payload = {
@@ -3742,11 +3759,8 @@ const converters = {
     ptvo_switch_trigger: {
         key: ['trigger', 'interval'],
         convertSet: async (entity, key, value, meta) => {
-            value = parseInt(value);
-            if (!value) {
-                return;
-            }
-
+            utils.assertNumber(value, key);
+            utils.assertEndpoint(entity);
             if (key === 'trigger') {
                 await entity.command('genOnOff', 'onWithTimedOff', {ctrlbits: 0, ontime: Math.round(value / 100), offwaittime: 0});
             } else if (key === 'interval') {
@@ -3754,6 +3768,7 @@ const converters = {
                     attribute: 'onOff',
                     minimumReportInterval: value,
                     maximumReportInterval: value,
+                    reportableChange: 0,
                 }]);
             }
         },
@@ -4844,7 +4859,9 @@ const converters = {
     schneider_thermostat_occupied_heating_setpoint: {
         key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            utils.assertNumber(value, key);
+            utils.assertEndpoint(entity);
+            const occupiedHeatingSetpoint = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             entity.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
             return {state: {occupied_heating_setpoint: value}};
         },
@@ -4852,6 +4869,7 @@ const converters = {
     schneider_thermostat_control_sequence_of_operation: {
         key: ['control_sequence_of_operation'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
             const val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
             entity.saveClusterAttributeKeyValue('hvacThermostat', {ctrlSeqeOfOper: val});
             return {state: {control_sequence_of_operation: value}};
@@ -4860,6 +4878,7 @@ const converters = {
     schneider_thermostat_pi_heating_demand: {
         key: ['pi_heating_demand'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
             entity.saveClusterAttributeKeyValue('hvacThermostat', {pIHeatingDemand: value});
             return {state: {pi_heating_demand: value}};
         },
@@ -4867,6 +4886,7 @@ const converters = {
     schneider_thermostat_keypad_lockout: {
         key: ['keypad_lockout'],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
             const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
             entity.write('hvacUserInterfaceCfg', {keypadLockout}, {sendWhen: 'active'});
             entity.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout});
@@ -5113,7 +5133,9 @@ const converters = {
     wiser_sed_occupied_heating_setpoint: {
         key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            utils.assertNumber(value, key);
+            utils.assertEndpoint(entity);
+            const occupiedHeatingSetpoint = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             entity.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint});
             return {state: {'occupied_heating_setpoint': value}};
         },
