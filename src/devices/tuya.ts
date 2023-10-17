@@ -2437,41 +2437,41 @@ const definitions: Definition[] = [
         toZigbee: [legacy.toZigbee.tuya_cover_control],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
-    {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_cpbo62rn'},
+{
+    fingerprint: [
+        {modelID: 'TS0601', manufacturerName: '_TZE200_cpbo62rn'},
+    ],
+    model: 'TS0601_cover_6',
+    vendor: 'TuYa',
+    description: 'Cover motor',
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [tuya.tz.datapoints],
+    exposes: [
+        e.text('work_state', ea.STATE),
+        e.cover_position().setAccess('position', ea.STATE_SET),
+        e.battery(),
+        e.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
+        e.enum('motor_direction', ea.STATE_SET, ['left', 'right']).withDescription('Motor side'),
+        e.enum('set_upper_limit', ea.STATE_SET, ['start', 'stop']).withDescription('Learning'),
+        e.enum('factory_reset', ea.STATE_SET, ['SET']).withDescription('Remove limits'),
+    ],
+    whiteLabel: [
+        tuya.whitelabel('TuYa', 'LY-108', 'Cover', ['_TZE200_cpbo62rn']),
+    ],
+    meta: {
+        tuyaDatapoints: [
+            [1, 'state', tuya.valueConverterBasic.lookup({'CLOSE': tuya.enum(0), 'STOP': tuya.enum(1), 'OPEN': tuya.enum(2)})],
+            [2, 'position', tuya.valueConverter.coverPosition],
+            [3, 'position', tuya.valueConverter.raw],
+            [4, 'opening_mode', tuya.valueConverterBasic.lookup({'tilt': tuya.enum(0), 'lift': tuya.enum(1)})],
+            [7, 'work_state', tuya.valueConverterBasic.lookup({'standby': tuya.enum(0), 'success': tuya.enum(1), 'learning': tuya.enum(2)})],
+            [13, 'battery', tuya.valueConverter.raw],
+            [101, 'motor_direction', tuya.valueConverterBasic.lookup({'left': tuya.enum(0), 'right': tuya.enum(1)})],
+            [102, 'set_upper_limit', tuya.valueConverterBasic.lookup({'start': tuya.enum(1), 'stop': tuya.enum(0)})],
+            [107, 'factory_reset', tuya.valueConverter.setLimit],
         ],
-        model: 'TS0601_cover_6',
-        vendor: 'TuYa',
-        description: 'Cover motor',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        exposes: [
-            e.text('work_state', ea.STATE),
-            e.cover_position().setAccess('position', ea.STATE_SET),
-            e.battery(),
-            e.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
-            e.enum('motor_direction', ea.STATE_SET, ['left', 'right']).withDescription('Motor side'),
-            e.enum('set_upper_limit', ea.STATE_SET, ['start', 'stop']).withDescription('Learning'),
-            e.enum('factory_reset', ea.STATE_SET, ['SET']).withDescription('Remove limits'),
-        ],
-        whiteLabel: [
-            tuya.whitelabel('TuYa', 'LY-108', 'Cover', ['_TZE200_cpbo62rn']),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, 'state', tuya.valueConverterBasic.lookup({'CLOSE': tuya.enum(0), 'STOP': tuya.enum(1), 'OPEN': tuya.enum(2)})],
-                [2, 'position', tuya.valueConverter.coverPosition],
-                [3, 'position', tuya.valueConverter.raw],
-                [4, 'opening_mode', tuya.valueConverterBasic.lookup({'tilt': tuya.enum(0), 'lift': tuya.enum(1)})],
-                [7, 'work_state', tuya.valueConverterBasic.lookup({'standby': tuya.enum(0), 'success': tuya.enum(1), 'learning': tuya.enum(2)})],
-                [13, 'battery', tuya.valueConverter.raw],
-                [101, 'motor_direction', tuya.valueConverterBasic.lookup({'left': tuya.enum(0), 'right': tuya.enum(1)})],
-                [102, 'set_upper_limit', tuya.valueConverterBasic.lookup({'start': tuya.enum(1), 'stop': tuya.enum(0)})],
-                [107, 'factory_reset', tuya.valueConverter.setLimit],
-            ],
-        },
     },
+},
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_zvo63cmo']),
         model: 'TS0601_cover_7',
@@ -2893,7 +2893,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Thermostatic radiator valve',
         whiteLabel: [
-            {vendor: 'Unknown/id3.pl', model: 'GTZ06'},
+            tuya.whitelabel('id3', 'GTZ06', 'Thermostatic radiator valve', ['_TZE200_z1tyspqw']),
         ],
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
