@@ -3199,7 +3199,8 @@ const definitions: Definition[] = [
                 .withPreset(['manual', 'away', 'auto']).setAccess('preset', ea.ALL),
             e.temperature_sensor_select(['internal', 'external']).withAccess(ea.ALL),
             e.binary('calibrated', ea.STATE, true, false)
-                .withDescription('Is the valve calibrated'),
+                .withDescription('Indicates if this valve is calibrated, use the calibrate option to calibrate'),
+            e.enum('calibrate', ea.STATE_SET, ['calibrate']).withDescription('Calibrates the valve'),
             e.child_lock().setAccess('state', ea.ALL),
             e.window_detection().setAccess('state', ea.ALL),
             e.binary('window_open', ea.STATE, true, false),
