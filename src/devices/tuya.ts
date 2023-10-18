@@ -747,7 +747,7 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         exposes: [e.carbon_monoxide(), e.co(), tuya.exposes.selfTestResult(), e.battery(), tuya.exposes.silence()],
         whiteLabel: [
-            tuya.whitelabel('Moes', 'ZC-HM'),
+            tuya.whitelabel({vendor: 'Moes', model: 'ZC-HM'}),
         ],
         meta: {
             tuyaDatapoints: [
