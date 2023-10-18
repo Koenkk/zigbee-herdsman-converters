@@ -3455,25 +3455,6 @@ const definitions: Definition[] = [
         },
         ota: ota.zigbeeOTA,
     },
-    {
-        zigbeeModel: ['LYWSD03MMC'],
-        model: 'LYWSD03MMC',
-        vendor: 'Xiaomi',
-        description: 'Temperature & humidity sensor',
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
-            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.temperature(endpoint);
-            await reporting.humidity(endpoint);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [e.temperature(), e.humidity(), e.battery()],
-        ota: ota.zigbeeOTA,
-    },
 ];
 
 module.exports = definitions;
