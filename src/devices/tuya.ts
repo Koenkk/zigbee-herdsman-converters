@@ -753,7 +753,7 @@ const definitions: Definition[] = [
                 [2, 'co', tuya.valueConverter.raw],
                 [9, 'self_test_result', tuya.valueConverter.selfTestResult],
                 [15, 'battery', tuya.valueConverter.raw],
-                [16, 'silence', tuya.valueConverter.raw]
+                [16, 'silence', tuya.valueConverter.raw],
             ],
         },
     },
