@@ -25,6 +25,13 @@ const definitions: Definition[] = [
         description: 'VALETO LED GU10 RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556]}),
     },
+    {
+        zigbeeModel: ['1005318'],
+        model: '1005318',
+        vendor: 'SLV',
+        description: 'VALETO LED E27 RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+    },
 ];
 
 module.exports = definitions;
