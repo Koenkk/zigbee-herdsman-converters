@@ -746,9 +746,7 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [e.carbon_monoxide(), e.co(), tuya.exposes.selfTestResult(), e.battery(), tuya.exposes.silence()],
-        whiteLabel: [
-            tuya.whitelabel({vendor: 'Moes', model: 'ZC-HM'}),
-        ],
+        whiteLabel: [{vendor: 'Moes', model: 'ZC-HM'}],
         meta: {
             tuyaDatapoints: [
                 [1, 'carbon_monoxide', tuya.valueConverter.trueFalse0],
