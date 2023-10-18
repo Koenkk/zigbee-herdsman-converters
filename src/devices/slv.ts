@@ -31,8 +31,7 @@ const definitions: Definition[] = [
         vendor: 'SLV', 
         description: 'VALETO LED E27 RGBW', 
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
-    };
-    
+    },
 ];
 
 module.exports = definitions;
