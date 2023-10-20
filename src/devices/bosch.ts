@@ -131,23 +131,23 @@ const tzLocal = {
                 return {state: {siren_duration: value}};
             }
             if (key === 'siren_and_light') {
-                const index = sirenLight[value];
+                const index = utils.getFromLookup(value, sirenLight);
                 await entity.write(0x0502, {0xa001: {value: index, type: 0x20}}, boschManufacturer);
                 return {state: {siren_and_light: value}};
             }
             if (key === 'siren_volume') {
-                const index = sirenVolume[value];
+                const index = utils.getFromLookup(value, sirenVolume);
                 await entity.write(0x0502, {0xa002: {value: index, type: 0x20}}, boschManufacturer);
                 return {state: {siren_volume: value}};
             }
             if (key === 'power_supply') {
-                const index = sirenPowerSupply[value];
+                const index = utils.getFromLookup(value, sirenPowerSupply);
                 await entity.write(0x0001, {0xa002: {value: index, type: 0x20}}, boschManufacturer);
                 return {state: {power_supply: value}};
             }
             if (key === 'alarm_on') {
                 const endpoint = meta.device.getEndpoint(1);
-                const index = outdoorSirenState[value];
+                const index = utils.getFromLookup(value, outdoorSirenState);
                 if (index == 0) {
                     await endpoint.command(0x0502, 0xf0, {data: 0}, boschManufacturer);
                     return {state: {alarm_on: value}};
@@ -723,7 +723,7 @@ const definitions: Definition[] = [
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
         exposes: [
-            exposes.enum('alarm_on', ea.STATE_SET, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'), 
+            e.enum('alarm_on', ea.STATE_SET, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'), 
             e.numeric('light_delay', ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1)
                 .withUnit('s').withDescription('Flashing light delay [s]'),
             e.numeric('siren_delay', ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1)
@@ -746,7 +746,7 @@ const definitions: Definition[] = [
             e.battery(),
             e.battery_voltage(),
             e.battery_low(), 
-            exposes.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in')
+            e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in')
         ], 
     },
     {
