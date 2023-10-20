@@ -725,13 +725,13 @@ const definitions: Definition[] = [
         exposes: [
             e.enum('alarm_on', ea.ALL, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'),
             //e.enum('alarm_on', ea.STATE_SET, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'), 
-            e.numeric('light_delay', ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1)
+            e.numeric('light_delay', ea.ALL).withValueMin(0).withValueMax(30).withValueStep(1)
                 .withUnit('s').withDescription('Flashing light delay [s]'),
-            e.numeric('siren_delay', ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1)
+            e.numeric('siren_delay', ea.ALL).withValueMin(0).withValueMax(30).withValueStep(1)
                 .withUnit('s').withDescription('Siren alarm delay [s]'),
-            e.numeric('siren_duration', ea.STATE_SET).withValueMin(1).withValueMax(15).withValueStep(1)
+            e.numeric('siren_duration', ea.ALL).withValueMin(1).withValueMax(15).withValueStep(1)
                 .withUnit('m').withDescription('Duration of the alarm siren [m]'),
-            e.numeric('light_duration', ea.STATE_SET).withValueMin(1).withValueMax(15).withValueStep(1)
+            e.numeric('light_duration', ea.ALL).withValueMin(1).withValueMax(15).withValueStep(1)
                 .withUnit('m').withDescription('Duration of the alarm light [m]'),
             e.enum('siren_volume', ea.ALL, Object.keys(sirenVolume)).withDescription('Volume of the alarm'),
             e.enum('siren_and_light', ea.ALL, Object.keys(sirenLight)).withDescription('Siren and Light behaviour during alarm '),
