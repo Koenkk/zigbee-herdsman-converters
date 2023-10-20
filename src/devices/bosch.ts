@@ -20,9 +20,9 @@ const sirenVolume = {
 };
 
 const sirenLight = {
-    'Only Light': 0x00,
-    'Only Siren': 0x01,
-    'Siren and Light': 0x02,
+    'only_light': 0x00,
+    'only_siren': 0x01,
+    'siren_and_light': 0x02,
 };
 
 const outdoorSirenState = {
@@ -31,9 +31,9 @@ const outdoorSirenState = {
 };
 
 const sirenPowerSupply = {
-    'Solar Panel': 0x01,
-    'AC Power Supply': 0x02,
-    'DC Power Supply': 0x03,
+    'solar_panel': 0x01,
+    'ac_power_supply': 0x02,
+    'dc_power_supply': 0x03,
 };
 
 // BMCT
@@ -99,7 +99,7 @@ const displayedTemperature = {
 // Radiator Thermostat II
 const tzLocal = {
     rbshoszbeu: {
-        key: ['light_delay', 'siren_delay', 'light_duration', 'siren_duration', 'siren_volume', 'alarm_on', 'power_supply', 'siren_and_light'],
+        key: ['light_delay', 'siren_delay', 'light_duration', 'siren_duration', 'siren_volume', 'alarm_state', 'power_source', 'siren_and_light'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'light_delay') {
                 const index = value;
@@ -131,20 +131,20 @@ const tzLocal = {
                 await entity.write(0x0502, {0xa002: {value: index, type: 0x20}}, boschManufacturer);
                 return {state: {siren_volume: value}};
             }
-            if (key === 'power_supply') {
+            if (key === 'power_source') {
                 const index = utils.getFromLookup(value, sirenPowerSupply);
                 await entity.write(0x0001, {0xa002: {value: index, type: 0x20}}, boschManufacturer);
-                return {state: {power_supply: value}};
+                return {state: {power_source: value}};
             }
-            if (key === 'alarm_on') {
+            if (key === 'alarm_state') {
                 const endpoint = meta.device.getEndpoint(1);
                 const index = utils.getFromLookup(value, outdoorSirenState);
                 if (index == 0) {
                     await endpoint.command(0x0502, 0xf0, {data: 0}, boschManufacturer);
-                    return {state: {alarm_on: value}};
+                    return {state: {alarm_state: value}};
                 } else {
                     await endpoint.command(0x0502, 0xf0, {data: 7}, boschManufacturer);
-                    return {state: {alarm_on: value}};
+                    return {state: {alarm_state: value}};
                 }
             }
         },
@@ -168,7 +168,7 @@ const tzLocal = {
             case 'siren_volume':
                 await entity.read(0x0502, [0xa002], boschManufacturer);
                 break;
-            case 'alarm_on':
+            case 'alarm_state':
                 await entity.read(0x0502, [0xf0], boschManufacturer);
                 break;
             default: // Unknown key
@@ -451,6 +451,7 @@ const tzLocal = {
 
 
 const fzLocal = {
+// take status of siren 
     ias_siren: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -712,18 +713,18 @@ const definitions: Definition[] = [
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
         exposes: [
-            e.enum('alarm_on', ea.ALL, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'),
+            e.binary('alarm_state', ea.ALL, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'),
             e.numeric('light_delay', ea.ALL).withValueMin(0).withValueMax(30).withValueStep(1)
-                .withUnit('s').withDescription('Flashing light delay [s]'),
+                .withUnit('s').withDescription('Flashing light delay ').withUnit('s'),
             e.numeric('siren_delay', ea.ALL).withValueMin(0).withValueMax(30).withValueStep(1)
-                .withUnit('s').withDescription('Siren alarm delay [s]'),
+                .withUnit('s').withDescription('Siren alarm delay ').withUnit('s'),
             e.numeric('siren_duration', ea.ALL).withValueMin(1).withValueMax(15).withValueStep(1)
-                .withUnit('m').withDescription('Duration of the alarm siren [m]'),
+                .withUnit('m').withDescription('Duration of the alarm siren ').withUnit('m'),
             e.numeric('light_duration', ea.ALL).withValueMin(1).withValueMax(15).withValueStep(1)
-                .withUnit('m').withDescription('Duration of the alarm light [m]'),
+                .withUnit('m').withDescription('Duration of the alarm light ').withUnit('m'),
             e.enum('siren_volume', ea.ALL, Object.keys(sirenVolume)).withDescription('Volume of the alarm'),
             e.enum('siren_and_light', ea.ALL, Object.keys(sirenLight)).withDescription('Siren and Light behaviour during alarm '),
-            e.enum('power_supply', ea.ALL, Object.keys(sirenPowerSupply)).withDescription('Volume of the alarm'),
+            e.enum('power_source', ea.ALL, Object.keys(sirenPowerSupply)).withDescription('Siren power source'),
             e.warning()
                 .removeFeature('strobe_level')
                 .removeFeature('strobe')
