@@ -700,8 +700,8 @@ const definitions: Definition[] = [
         model: 'BSIR-EZ',
         vendor: 'Bosch',
         description: 'Outdoor siren',
-        fromZigbee: [fz.ias_alarm_only_alarm_1, fzLocal.ias_siren, fz.battery, fz.power_source ],
-        toZigbee: [tzLocal.rbshoszbeu, tz.warning ],
+        fromZigbee: [fz.ias_alarm_only_alarm_1, fzLocal.ias_siren, fz.battery, fz.power_source],
+        toZigbee: [tzLocal.rbshoszbeu, tz.warning],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 4200}}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
