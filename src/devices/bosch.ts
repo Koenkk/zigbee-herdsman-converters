@@ -181,6 +181,9 @@ const tzLocal = {
             case 'power_supply':
                 await entity.read(0x0502, [0xa002], boschManufacturer);
                 break;
+            case 'alarm_on':
+                await entity.read(0x0502, [0xf0], boschManufacturer);
+                break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
             }
