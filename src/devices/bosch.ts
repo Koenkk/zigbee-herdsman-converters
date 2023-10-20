@@ -13,15 +13,6 @@ const ea = exposes.access;
 // Radiator Thermostat II
 const boschManufacturer = {manufacturerCode: 0x1209};
 
-const sirenSettings = {
-    'light_delay': 0xa004, // max 30s
-    'siren_delay': 0xa003, // max 30s
-    'light_duration': 0xa005, // 15m
-    'siren_duration': 0xa000, // 15m
-    'light_and_siren': 0xa001, // 
-    'siren_volume': 0xa002, // [1-low, 2 - medium, 3 - loud]
-};
-
 const sirenVolume = {
     'Low': 0x01,
     'Medium': 0x02,
@@ -151,11 +142,11 @@ const tzLocal = {
                 if (index == 0) {
                     await endpoint.command(0x0502, 0xf0, {data: 0}, boschManufacturer);
                     return {state: {alarm_on: value}};
-                    }
+                }
                 else {
                     await endpoint.command(0x0502, 0xf0, {data: 7}, boschManufacturer);
                     return {state: {alarm_on: value}};
-                    }
+                }
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -466,7 +457,7 @@ const fzLocal = {
         type: 'commandStatusChangeNotification',
         convert: async (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-            await msg.endpoint.command('ssIasZone', 'boschTestTamper', {data: 2},{manufacturerCode: 0x1209});
+            await msg.endpoint.command('ssIasZone', 'boschTestTamper', {data: 2}, {manufacturerCode: 0x1209});
             return {
                 alarm: (zoneStatus & 1) > 0,
                 tamper: (zoneStatus & 1<<2) > 0,
@@ -710,13 +701,12 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Outdoor siren',
         fromZigbee: [fz.ias_alarm_only_alarm_1, fzLocal.ias_siren, fz.battery, fz.power_source ],
-        toZigbee: [tzLocal.rbshoszbeu, tz.warning],
+        toZigbee: [tzLocal.rbshoszbeu, tz.warning ],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 4200}}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
-            //await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read(0x0502, [0xa000, 0xa001, 0xa002, 0xa003, 0xa004, 0xa005], boschManufacturer);
             device.defaultSendRequestWhen = 'immediate';
             device.save();
@@ -724,7 +714,6 @@ const definitions: Definition[] = [
         },
         exposes: [
             e.enum('alarm_on', ea.ALL, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'),
-            //e.enum('alarm_on', ea.STATE_SET, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'), 
             e.numeric('light_delay', ea.ALL).withValueMin(0).withValueMax(30).withValueStep(1)
                 .withUnit('s').withDescription('Flashing light delay [s]'),
             e.numeric('siren_delay', ea.ALL).withValueMin(0).withValueMax(30).withValueStep(1)
@@ -747,8 +736,8 @@ const definitions: Definition[] = [
             e.battery(),
             e.battery_voltage(),
             e.battery_low(),
-            e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in')
-        ], 
+            e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in'),
+        ],
     },
     {
         zigbeeModel: ['RBSH-WS-ZB-EU'],
