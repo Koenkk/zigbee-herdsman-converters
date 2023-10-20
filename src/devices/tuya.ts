@@ -451,7 +451,7 @@ const fzLocal = {
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
             if (result && ['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l', '_TZ3000_typdpbpg', '_TZ3000_hdopuwv6',
-                '_TZ3000_b28wrpvx', '_TZ3000_1h2x4akh'].includes(meta.device.manufacturerName)) {
+                '_TZ3000_b28wrpvx', '_TZ3000_1h2x4akh', '_TZ3000_cehuw1lw'].includes(meta.device.manufacturerName)) {
                 for (const key of ['power', 'current', 'voltage']) {
                     if (key in result) {
                         const value = result[key];
@@ -2003,13 +2003,19 @@ const definitions: Definition[] = [
          */
     },
     {
-        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_xabckq1v', '_TZ3000_czuyt8lz']),
+        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_nuombroo', '_TZ3000_xabckq1v', '_TZ3000_czuyt8lz']),
         model: 'TS004F',
         vendor: 'TuYa',
         description: 'Wireless switch with 4 buttons',
-        exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
-            '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold'])],
-        fromZigbee: [fz.battery, fz.tuya_on_off_action],
+        exposes: [
+            e.battery(),
+            e.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
+                'Operation mode: "command" - for group control, "event" - for clicks'),
+            e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
+                'brightness_move_down', '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
+                '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold'])],
+        fromZigbee: [fz.battery, fz.tuya_on_off_action, fz.tuya_operation_mode,
+            fz.command_on, fz.command_off, fz.command_step, fz.command_move],
         toZigbee: [tz.tuya_operation_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -2028,6 +2034,7 @@ const definitions: Definition[] = [
                     await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
                 }
             }
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
