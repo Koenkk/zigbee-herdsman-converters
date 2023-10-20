@@ -380,6 +380,25 @@ const definitions: Definition[] = [
             device.save();
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rjxqso4a'}],
+        model: 'ZC-HM',
+        vendor: 'Moes',
+        description: 'Carbon monoxide alarm',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.carbon_monoxide(), e.co(), tuya.exposes.selfTestResult(), e.battery(), tuya.exposes.silence()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'carbon_monoxide', tuya.valueConverter.trueFalse0],
+                [2, 'co', tuya.valueConverter.raw],
+                [9, 'self_test_result', tuya.valueConverter.selfTestResult],
+                [15, 'battery', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
 
 module.exports = definitions;

@@ -738,28 +738,6 @@ const definitions: Definition[] = [
         exposes: [e.carbon_monoxide(), e.co()],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_rjxqso4a']),
-        model: 'TS0601_co_sensor',
-        vendor: 'TuYa',
-        description: 'Carbon monoxide alarm',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [e.carbon_monoxide(), e.co(), tuya.exposes.selfTestResult(), e.battery(), tuya.exposes.silence()],
-        whiteLabel: [
-            tuya.whitelabel('Moes', 'ZC-HM', 'Carbon monoxide alarm', ['_TZE200_rjxqso4a']),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, 'carbon_monoxide', tuya.valueConverter.trueFalse0],
-                [2, 'co', tuya.valueConverter.raw],
-                [9, 'self_test_result', tuya.valueConverter.selfTestResult],
-                [15, 'battery', tuya.valueConverter.raw],
-                [16, 'silence', tuya.valueConverter.raw],
-            ],
-        },
-    },
-    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ggev5fsl', '_TZE200_u319yc66', '_TZE204_yojqa8xn']),
         model: 'TS0601_gas_sensor_1',
         vendor: 'TuYa',
