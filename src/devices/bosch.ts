@@ -733,9 +733,9 @@ const definitions: Definition[] = [
                 .withUnit('m').withDescription('Duration of the alarm siren [m]'),
             e.numeric('light_duration', ea.STATE_SET).withValueMin(1).withValueMax(15).withValueStep(1)
                 .withUnit('m').withDescription('Duration of the alarm light [m]'),
-            e.enum('siren_volume', ea.STATE_SET, Object.keys(sirenVolume)).withDescription('Volume of the alarm'),
-            e.enum('siren_and_light', ea.STATE_SET, Object.keys(sirenLight)).withDescription('Siren and Light behaviour during alarm '),
-            e.enum('power_supply', ea.STATE_SET, Object.keys(sirenPowerSupply)).withDescription('Volume of the alarm'),
+            e.enum('siren_volume', ea.ALL, Object.keys(sirenVolume)).withDescription('Volume of the alarm'),
+            e.enum('siren_and_light', ea.ALL, Object.keys(sirenLight)).withDescription('Siren and Light behaviour during alarm '),
+            e.enum('power_supply', ea.ALL, Object.keys(sirenPowerSupply)).withDescription('Volume of the alarm'),
             e.warning()
                 .removeFeature('strobe_level')
                 .removeFeature('strobe')
