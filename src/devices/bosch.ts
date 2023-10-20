@@ -723,7 +723,8 @@ const definitions: Definition[] = [
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
         exposes: [
-            e.enum('alarm_on', ea.STATE_SET, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'), 
+            e.binary('alarm_on', ea.ALL, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'),
+            //e.enum('alarm_on', ea.STATE_SET, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'), 
             e.numeric('light_delay', ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1)
                 .withUnit('s').withDescription('Flashing light delay [s]'),
             e.numeric('siren_delay', ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1)
