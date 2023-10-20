@@ -473,6 +473,14 @@ export const valueConverter = {
             return options.invert_cover ? 100 - v : v;
         },
     },
+    coverPositionInverted: {
+        to: async (v: number, meta: Tz.Meta) => {
+            return meta.options.invert_cover ? v : 100 - v;
+        },
+        from: (v: number, meta: Fz.Meta, options: KeyValue) => {
+            return options.invert_cover ? v : 100 - v;
+        },
+    },
     plus1: {
         from: (v: number) => v + 1,
         to: (v: number) => v - 1,
