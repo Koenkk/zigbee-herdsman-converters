@@ -178,6 +178,9 @@ const tzLocal = {
             case 'siren_volume':
                 await entity.read(0x0502, [0xa002], boschManufacturer);
                 break;
+            case 'alarm_on':
+                await entity.read(0x0502, [0xf0], boschManufacturer);
+                break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
             }
@@ -742,7 +745,8 @@ const definitions: Definition[] = [
             e.tamper(),
             e.battery(),
             e.battery_voltage(),
-            e.battery_low()
+            e.battery_low(),
+            e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in')
         ], 
     },
     {
