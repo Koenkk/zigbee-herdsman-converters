@@ -745,8 +745,7 @@ const definitions: Definition[] = [
             e.tamper(),
             e.battery(),
             e.battery_voltage(),
-            e.battery_low(), 
-            e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in')
+            e.battery_low()
         ], 
     },
     {
