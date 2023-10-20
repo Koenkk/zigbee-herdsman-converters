@@ -142,8 +142,7 @@ const tzLocal = {
                 if (index == 0) {
                     await endpoint.command(0x0502, 0xf0, {data: 0}, boschManufacturer);
                     return {state: {alarm_on: value}};
-                }
-                else {
+                } else {
                     await endpoint.command(0x0502, 0xf0, {data: 7}, boschManufacturer);
                     return {state: {alarm_on: value}};
                 }
