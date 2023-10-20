@@ -451,8 +451,8 @@ const tzLocal = {
 
 
 const fzLocal = {
-// take status of siren 
-    ias_siren: {
+
+    ias_siren: { // take status of siren - alarm,tamper,battery,ac_status (connected or not)
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: async (model, msg, publish, options, meta) => {
