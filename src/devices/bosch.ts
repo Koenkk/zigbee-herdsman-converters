@@ -181,9 +181,6 @@ const tzLocal = {
             case 'power_supply':
                 await entity.read(0x0502, [0xa002], boschManufacturer);
                 break;
-            case 'alarm_on':
-                await entity.read(0x0502, [0xf0], boschManufacturer);
-                break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
             }
@@ -726,7 +723,7 @@ const definitions: Definition[] = [
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
         exposes: [
-            e.enum('alarm_on', ea.STATE_SET, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'), 
+            e.numeric('alarm_on', ea.STATE_SET, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'), 
             e.numeric('light_delay', ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1)
                 .withUnit('s').withDescription('Flashing light delay [s]'),
             e.numeric('siren_delay', ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1)
