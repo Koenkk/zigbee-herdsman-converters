@@ -417,17 +417,20 @@ export const philipsFz = {
         convert: (model, msg, publish, options, meta) => {
             const buttonLookup: KeyValue = {1: 'button_1', 2: 'button_2', 3: 'button_3', 4: 'button_4', 20: 'dial'};
             const button = buttonLookup[msg.data['button']];
-            const typeLookup: KeyValue = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
-            const type = typeLookup[msg.data['type']];
             const direction = msg.data['unknown2'] <127 ? 'right' : 'left';
             const time = msg.data['time'];
             const payload: KeyValue = {};
 
             if (button === 'dial') {
+                const typeLookup: KeyValue = {1: 'step', 2: 'rotate'};
+                const type = typeLookup[msg.data['type']];
                 const adjustedTime = direction === 'right' ? time : 256 - time;
                 const dialType = 'rotate';
                 const speed = adjustedTime <= 25 ? 'step' : adjustedTime <= 75 ? 'slow' : 'fast';
                 payload.action = `${button}_${dialType}_${direction}_${speed}`;
+                payload.time = adjustedTime;
+                payload.direction = direction;
+                payload.type = type;
 
                 // simulated brightness
                 if (options.simulated_brightness) {
@@ -440,6 +443,8 @@ export const philipsFz = {
                     globalStore.putValue(msg.endpoint, 'brightness', payload.brightness);
                 }
             } else {
+                const typeLookup: KeyValue = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
+                const type = typeLookup[msg.data['type']];
                 payload.action = `${button}_${type}`;
                 // duration
                 if (type === 'press') globalStore.putValue(msg.endpoint, 'press_start', Date.now());
