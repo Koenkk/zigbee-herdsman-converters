@@ -569,6 +569,18 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['OSP 210'],
+        model: 'OSP 210',
+        vendor: 'Innr',
+        description: 'Outdoor smart plug',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SP 120'],
         model: 'SP 120',
         vendor: 'Innr',
