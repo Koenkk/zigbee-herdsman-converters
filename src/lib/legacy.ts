@@ -6728,8 +6728,9 @@ const toZigbee2 = {
         convertSet: async (entity, key, value: any, meta) => {
             if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value * 10);
+            } else {
+                await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
             }
-            await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
         },
     } as Tz.Converter,
     moes_thermostat_deadzone_temperature: {
@@ -6737,8 +6738,9 @@ const toZigbee2 = {
         convertSet: async (entity, key, value: any, meta) => {
             if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value * 10);
+            } else {
+                await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value);
             }
-            await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value);
         },
     } as Tz.Converter,
     moes_thermostat_calibration: {
@@ -6753,8 +6755,9 @@ const toZigbee2 = {
         convertSet: async (entity, key, value: any, meta) => {
             if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesMinTempLimit, value * 10);
+            } else {
+                await sendDataPointValue(entity, dataPoints.moesMinTempLimit, value);
             }
-            await sendDataPointValue(entity, dataPoints.moesMinTempLimit, value);
         },
     } as Tz.Converter,
     moes_thermostat_max_temperature_limit: {
@@ -6762,8 +6765,9 @@ const toZigbee2 = {
         convertSet: async (entity, key, value: any, meta) => {
             if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesMaxTempLimit, value * 10);
+            } else {
+                await sendDataPointValue(entity, dataPoints.moesMaxTempLimit, value);
             }
-            await sendDataPointValue(entity, dataPoints.moesMaxTempLimit, value);
         },
     } as Tz.Converter,
     moes_thermostat_mode: {
