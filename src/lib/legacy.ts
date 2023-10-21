@@ -6739,6 +6739,7 @@ const toZigbee2 = {
             if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value * 10);
             } else {
+                if (value <= 5) value = Math.round(value*10);
                 await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value);
             }
         },
