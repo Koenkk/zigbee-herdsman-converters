@@ -463,10 +463,10 @@ const definitions: Definition[] = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WW G95 CL 470lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WW G95 CL 470lm', 'TRADFRI bulb E26 WW G95 CL 450lm'],
         model: 'LED2102G3',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E27 WW 470 lumen, wireless dimmable warm white/globe clear',
+        description: 'TRADFRI bulb E26/E27 WW 450/470 lumen, wireless dimmable warm white/globe clear',
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
