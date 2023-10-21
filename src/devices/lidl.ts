@@ -102,12 +102,6 @@ const valueConverterLocal = {
             return result;
         },
     },
-    wateringResetFrostLock: {
-        to: (value: number) => {
-            utils.validateValue(value, ['RESET']);
-            return 0;
-        },
-    },
     wateringScheduleMode: {
         from: (value: number[]) => {
             const [scheduleMode, scheduleValue] = value;
@@ -463,7 +457,7 @@ const definitions: Definition[] = [
                 [11, 'battery', tuya.valueConverter.raw],
                 [108, 'frost_lock', tuya.valueConverter.onOff],
                 // there is no state reporting for reset
-                [109, 'reset_frost_lock', valueConverterLocal.wateringResetFrostLock, {optimistic: false}],
+                [109, 'reset_frost_lock', tuya.valueConverterBasic.lookup({'RESET': tuya.enum(0)}), {optimistic: false}],
                 [107, null, valueConverterLocal.wateringScheduleMode],
                 [107, 'schedule_periodic', valueConverterLocal.wateringSchedulePeriodic],
                 [107, 'schedule_weekday', valueConverterLocal.wateringScheduleWeekday],
