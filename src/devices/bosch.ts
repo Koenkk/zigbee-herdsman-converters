@@ -14,9 +14,9 @@ const ea = exposes.access;
 const boschManufacturer = {manufacturerCode: 0x1209};
 
 const sirenVolume = {
-    'Low': 0x01,
-    'Medium': 0x02,
-    'High': 0x03,
+    'low': 0x01,
+    'medium': 0x02,
+    'high': 0x03,
 };
 
 const sirenLight = {
@@ -713,15 +713,15 @@ const definitions: Definition[] = [
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
         exposes: [
-            e.enum('alarm_state', ea.ALL, Object.keys(outdoorSirenState)).withDescription('Alarm turn ON/OFF'),
+            e.binary('alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Alarm turn ON/OFF'),
             e.numeric('light_delay', ea.ALL).withValueMin(0).withValueMax(30).withValueStep(1)
-                .withUnit('s').withDescription('Flashing light delay ').withUnit('s'),
+                .withUnit('s').withDescription('Flashing light delay').withUnit('s'),
             e.numeric('siren_delay', ea.ALL).withValueMin(0).withValueMax(30).withValueStep(1)
-                .withUnit('s').withDescription('Siren alarm delay ').withUnit('s'),
+                .withUnit('s').withDescription('Siren alarm delay').withUnit('s'),
             e.numeric('siren_duration', ea.ALL).withValueMin(1).withValueMax(15).withValueStep(1)
-                .withUnit('m').withDescription('Duration of the alarm siren ').withUnit('m'),
+                .withUnit('m').withDescription('Duration of the alarm siren').withUnit('m'),
             e.numeric('light_duration', ea.ALL).withValueMin(1).withValueMax(15).withValueStep(1)
-                .withUnit('m').withDescription('Duration of the alarm light ').withUnit('m'),
+                .withUnit('m').withDescription('Duration of the alarm light').withUnit('m'),
             e.enum('siren_volume', ea.ALL, Object.keys(sirenVolume)).withDescription('Volume of the alarm'),
             e.enum('siren_and_light', ea.ALL, Object.keys(sirenLight)).withDescription('Siren and Light behaviour during alarm '),
             e.enum('power_source', ea.ALL, Object.keys(sirenPowerSupply)).withDescription('Siren power source'),
@@ -731,11 +731,7 @@ const definitions: Definition[] = [
                 .removeFeature('strobe_duty_cycle')
                 .removeFeature('level')
                 .removeFeature('duration'),
-            e.test(),
-            e.tamper(),
-            e.battery(),
-            e.battery_voltage(),
-            e.battery_low(),
+            e.test(), e.tamper(), e.battery(), e.battery_voltage(), e.battery_low(),
             e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in'),
         ],
     },
