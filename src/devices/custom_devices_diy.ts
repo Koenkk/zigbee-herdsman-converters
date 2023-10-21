@@ -535,10 +535,31 @@ const definitions: Definition[] = [
             } else {
                 // device configuration description from a device
                 const deviceConfigArray = deviceConfig.split(/[\r\n]+/);
-                let prevEp = -1;
+                const allEndpoints: { [key: number]: string } = {};
+                const allEndpointsSorted = [];
                 for (let i = 0; i < deviceConfigArray.length; i++) {
                     const epConfig = deviceConfigArray[i];
                     const epId = parseInt(epConfig.substr(0, 1), 16);
+                    if (epId <= 0) {
+                        continue;
+                    }
+                    allEndpoints[epId] = epConfig;
+                    allEndpointsSorted.push(epId);
+                }
+
+                for (const endpoint of device.endpoints) {
+                    if (allEndpoints.hasOwnProperty(endpoint.ID)) {
+                        continue;
+                    }
+                    allEndpointsSorted.push(endpoint.ID);
+                    allEndpoints[endpoint.ID] = '';
+                }
+                allEndpointsSorted.sort();
+
+                let prevEp = -1;
+                for (let i = 0; i < allEndpointsSorted.length; i++) {
+                    const epId = allEndpointsSorted[i];
+                    const epConfig = allEndpoints[epId];
                     if (epId <= 0) {
                         continue;
                     }
@@ -546,11 +567,11 @@ const definitions: Definition[] = [
                     const epValueAccessRights = epConfig.substr(1, 1);
                     const epStateType = ((epValueAccessRights === 'W') || (epValueAccessRights === '*'))?
                         ea.STATE_SET: ea.STATE;
-                    let valueConfig = epConfig.substr(2);
-                    valueConfig = valueConfig.split(',');
-                    let valueId = (valueConfig[0])? valueConfig[0]: '';
-                    let valueDescription = (valueConfig[1])? valueConfig[1]: '';
-                    let valueUnit = (valueConfig[2] !== undefined)? valueConfig[2]: '';
+                    const valueConfig = epConfig.substr(2);
+                    const valueConfigItems = (valueConfig)? valueConfig.split(','): [];
+                    let valueId = (valueConfigItems[0])? valueConfigItems[0]: '';
+                    let valueDescription = (valueConfigItems[1])? valueConfigItems[1]: '';
+                    let valueUnit = (valueConfigItems[2] !== undefined)? valueConfigItems[2]: '';
                     const exposeEpOptions: KeyValue = {};
                     if (valueId === '*') {
                         // GPIO output (Generic)
@@ -574,7 +595,7 @@ const definitions: Definition[] = [
                             exposeObj = e.contact();
                         }
                         expose.push(exposeObj.withEndpoint(epName));
-                    } else if (valueConfig) {
+                    } else if (valueConfigItems.length > 0) {
                         let valueName = undefined; // name in Z2M
                         let valueNumIndex = undefined;
                         const idxPos = valueId.search(/(\d+)$/);
@@ -590,7 +611,7 @@ const definitions: Definition[] = [
                         // 1: value name (if empty, use the EP name)
                         // 2: description (if empty or undefined, use the value name)
                         // 3: units (if undefined, use the key name)
-                        const infoLookup: KeyValue = {
+                        const infoLookup: { [key: string]: string } = {
                             'C': 'temperature',
                             '%': 'humidity',
                             'm': 'altitude',
