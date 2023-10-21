@@ -1,51 +1,14 @@
-import {Definition, Fz, OnEvent, Tz} from '../lib/types';
+import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
+import {tzLegrand, fzLegrand, readInitialBatteryState} from '../lib/legrand';
 const e = exposes.presets;
 const ea = exposes.access;
-
-const readInitialBatteryState: OnEvent = async (type, data, device, options) => {
-    if (['deviceAnnounce'].includes(type)) {
-        const endpoint = device.getEndpoint(1);
-        const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
-        await endpoint.read('genPowerCfg', ['batteryVoltage'], options);
-    }
-};
-
-const tzLocal = {
-    auto_mode: {
-        key: ['auto_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const mode = utils.getFromLookup(value, {'off': 0x00, 'auto': 0x02, 'on_override': 0x03});
-            const payload = {data: Buffer.from([mode])};
-            await entity.command('manuSpecificLegrandDevices3', 'command0', payload);
-            return {state: {'auto_mode': value}};
-        },
-    } as Tz.Converter,
-};
-
-const fzlocal = {
-    legrand_600087l: {
-        cluster: 'greenPower',
-        type: ['commandNotification'],
-        convert: (model, msg, publish, options, meta) => {
-            const commandID = msg.data.commandID;
-            const lookup: {[s: number]: string} = {0x34: 'stop', 0x35: 'up', 0x36: 'down'};
-            if (commandID === 224) return;
-            if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`GreenPower_3 error: missing command '${commandID}'`);
-            } else {
-                return {action: lookup[commandID]};
-            }
-        },
-    } as Fz.Converter,
-};
 
 const definitions: Definition[] = [
     {
@@ -100,7 +63,7 @@ const definitions: Definition[] = [
         extend: extend.switch(),
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power, tzLocal.auto_mode],
+        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power, tzLegrand.auto_mode],
         exposes: [
             e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             e.power().withAccess(ea.STATE_GET),
@@ -538,7 +501,7 @@ const definitions: Definition[] = [
         model: '600087L',
         vendor: 'Legrand',
         description: 'Wireless and batteryless blind control switch',
-        fromZigbee: [fzlocal.legrand_600087l],
+        fromZigbee: [fzLegrand.legrand_600087l],
         toZigbee: [],
         exposes: [e.action(['stop', 'up', 'down'])],
     },
