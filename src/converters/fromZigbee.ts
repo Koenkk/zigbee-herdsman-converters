@@ -5734,7 +5734,7 @@ const converters1 = {
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model, msg.data[1])) return;
-            
+
             let action;
             if (msg.data[2] == 253) {
                 const lookup: KeyValueAny = {0: 'single', 1: 'double', 2: 'hold'};
@@ -5743,11 +5743,11 @@ const converters1 = {
                 const lookup: KeyValueAny = {0: 'rotate_right', 1: 'rotate_left'};
                 action = lookup[msg.data[3]];
             }
-            
+
             // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
             // Send the defaultResponse here, otherwise the second button click delays.
             // https://github.com/Koenkk/zigbee2mqtt/issues/8149
-            msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]).catch((error) => {});
+            msg.endpoint.defaultResponse(msg.data[2], 0, 6, msg.data[1]).catch((error) => {});
 
             return {action};
         },
