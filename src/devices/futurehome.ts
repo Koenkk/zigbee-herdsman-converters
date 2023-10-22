@@ -37,9 +37,12 @@ const definition = {
                 'max guard',
             ])
             .withDescription(
-                `Max guard. Floor sensor must be installed. The thermostat will regulate according to the room sensor, but interrupt heating if the floor sensor exceeds the maximum guard temperature. Standard is 27°C.
-				
-				There is also a maximum guard when the thermostat is set to floor sensor. The thermostat regulates according to the floor sensor, but will interrupt heating if the floor sensor exceeds the maximum guard temperature. Standard is 27°C.`,
+                'Max guard. Floor sensor must be installed. The thermostat will regulate according to the room sensor, ' +
+                    'but interrupt heating if the floor sensor exceeds the maximum guard temperature. Standard is 27°C' +
+                    '\n\n' +
+                    'There is also a maximum guard when the thermostat is set to floor sensor. ' +
+                    'The thermostat regulates according to the floor sensor, but will interrupt heating if the floor sensor ' +
+                    'exceeds the maximum guard temperature. Standard is 27°C.',
             ),
         e
             .numeric('local_temperature_floor', ea.STATE)
