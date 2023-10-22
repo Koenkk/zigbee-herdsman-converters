@@ -6,7 +6,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
-import {tzLegrand, fzLegrand, readInitialBatteryState} from '../lib/legrand';
+import {tzLegrand, fzLegrand, readInitialBatteryState, _067776} from '../lib/legrand';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -133,20 +133,23 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify, fz.legrand_led_in_dark],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
+            fz.legrand_led_in_dark, fzLegrand.calibration_mode(false)],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark, tzLegrand.calibration_mode(false)],
         exposes: [
-            e.cover_position(),
+            _067776.getCover(),
             e.action(['moving', 'identify']),
             e.enum('identify', ea.SET, ['blink'])
                 .withDescription('Blinks the built-in LED to make it easier to identify the device'),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
+            _067776.getCalibrationModes(false),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
-            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionLiftPercentage(endpoint, {max: 120});
+            await reporting.currentPositionTiltPercentage(endpoint, {max: 120});
         },
     },
     {
@@ -183,20 +186,23 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch with level control (NLLV)',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify, fz.legrand_led_in_dark],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
+            fz.legrand_led_in_dark, fzLegrand.calibration_mode(true)],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark, tzLegrand.calibration_mode(true)],
         exposes: [
-            e.cover_position(),
+            _067776.getCover(),
             e.action(['moving', 'identify']),
             e.enum('identify', ea.SET, ['blink'])
                 .withDescription('Blinks the built-in LED to make it easier to identify the device'),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
+            _067776.getCalibrationModes(true),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
-            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionLiftPercentage(endpoint, {max: 120});
+            await reporting.currentPositionTiltPercentage(endpoint, {max: 120});
         },
     },
     {
