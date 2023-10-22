@@ -43,6 +43,7 @@ const definitions: Definition[] = [
         vendor: 'Candeo',
         description: 'Zigbee LED dimmer smart switch',
         extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
