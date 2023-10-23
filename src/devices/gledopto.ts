@@ -81,6 +81,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         description: 'Zigbee DIN Rail triac AC dimmer',
         extend: extend.light_onoff_brightness(),
+        meta: {disableDefaultResponse: true},
     },
     {
         fingerprint: [
