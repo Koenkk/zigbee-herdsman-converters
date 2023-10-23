@@ -4,7 +4,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {Definition, Fz, KeyValue} from '../lib/types';
+import {Definition, Fz, KeyValue, Tz} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
@@ -20,6 +20,25 @@ const fzLocal = {
             }
         },
     } as Fz.Converter,
+    child_lock: {
+        cluster: '64529',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const isLocked = msg.data['0'];
+            return {
+                child_lock: isLocked ? 'LOCK' : 'UNLOCK',
+            };
+        },
+    } as Fz.Converter,
+};
+
+const tzLocal = {
+    child_lock: {
+        key: ['child_lock'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read(64529, [0]);
+        },
+    } as Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -327,23 +346,24 @@ const definitions: Definition[] = [
         zigbeeModel: ['TRVZB'],
         model: 'TRVZB',
         vendor: 'SONOFF',
-        description: 'Zigbee thermostat',
+        description: 'Zigbee thermostatic radiator valve',
         exposes: [
             e.climate()
                 .withSetpoint('occupied_heating_setpoint', 4, 35, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
-                .withRunningState(['idle', 'heat'], ea.STATE_GET), e.battery(), e.battery_low()],
-        fromZigbee: [fz.thermostat, fz.battery],
+                .withRunningState(['idle', 'heat'], ea.STATE_GET), e.battery(), e.battery_low(), e.child_lock().setAccess('state', ea.STATE_GET)],
+        fromZigbee: [fz.thermostat, fz.battery, fzLocal.child_lock],
         toZigbee: [
             tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode, tz.thermostat_running_state],
+            tz.thermostat_system_mode, tz.thermostat_running_state, tzLocal.child_lock],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
+            await endpoint.read(64529, [0]);
         },
     },
 ];
