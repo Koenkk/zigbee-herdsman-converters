@@ -71,9 +71,9 @@ const definitions: Definition[] = [
             if (switchEndpoint == null) {
                 return;
             }
-            // This device doesn't support reporting.
-            // Therefore we read the on/off state every 5 seconds.
-            // This is the same way as the Hue bridge does it.
+               // This device doesn't support reporting.
+               // Therefore we read the on/off state every 5 seconds.
+               // This is the same way as the Hue bridge does it.
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
@@ -127,9 +127,9 @@ const definitions: Definition[] = [
             if (switchEndpoint == null) {
                 return;
             }
-            // This device doesn't support reporting.
-            // Therefore we read the on/off state every 5 seconds.
-            // This is the same way as the Hue bridge does it.
+               // This device doesn't support reporting.
+               // Therefore we read the on/off state every 5 seconds.
+               // This is the same way as the Hue bridge does it.
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
@@ -174,9 +174,9 @@ const definitions: Definition[] = [
             if (switchEndpoint == null) {
                 return;
             }
-            // This device doesn't support reporting.
-            // Therefore we read the on/off state every 5 seconds.
-            // This is the same way as the Hue bridge does it.
+               // This device doesn't support reporting.
+               // Therefore we read the on/off state every 5 seconds.
+               // This is the same way as the Hue bridge does it.
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
