@@ -1,7 +1,6 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
@@ -17,18 +16,18 @@ const definitions: Definition[] = [
         extend: extend.switch(),
     },
     {
-        // Busch-Jaeger 6735, 6736 and 6737 have been tested with the 6710 U (Power Adapter),
-        // 6711 U (Relay) and 6715 U (dimmer) back-ends. Unfortunately both the relay and the dimmer
-        // report as model 'RM01' with genLevelCtrl clusters, so we need to set up both of them
-        // as dimmable lights.
-        //
-        // The battery-powered version of the device ('RB01') is supported as well. These devices are
-        // sold as Busch-Jaeger 6735/01, 6736/01 and 6737/01.
-        //
-        // In order to manually capture scenes as described in the devices manual, the endpoint
-        // corresponding to the row needs to be unbound (https://www.zigbee2mqtt.io/information/binding.html)
-        // If that operation was successful, the switch will respond to button presses on that
-        // by blinking multiple times (vs. just blinking once if it's bound).
+           // Busch-Jaeger 6735, 6736 and 6737 have been tested with the 6710 U (Power Adapter),
+           // 6711 U (Relay) and 6715 U (dimmer) back-ends. Unfortunately both the relay and the dimmer
+           // report as model 'RM01' with genLevelCtrl clusters, so we need to set up both of them
+           // as dimmable lights.
+           //
+           // The battery-powered version of the device ('RB01') is supported as well. These devices are
+           // sold as Busch-Jaeger 6735/01, 6736/01 and 6737/01.
+           //
+           // In order to manually capture scenes as described in the devices manual, the endpoint
+           // corresponding to the row needs to be unbound (https://www.zigbee2mqtt.io/information/binding.html)
+           // If that operation was successful, the switch will respond to button presses on that
+           // by blinking multiple times (vs. just blinking once if it's bound).
         zigbeeModel: ['RM01', 'RB01'],
         model: '6735/6736/6737',
         vendor: 'Busch-Jaeger',
