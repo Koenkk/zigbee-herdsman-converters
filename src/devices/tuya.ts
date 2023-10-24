@@ -1846,7 +1846,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{manufacturerName: '_TZ2000_a476raq2'}],
-        zigbeeModel: ['TS0201', 'SNTZ003'],
+        zigbeeModel: ['TS0201', 'SNTZ003', 'TY0201'],
         model: 'TS0201',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with display',
