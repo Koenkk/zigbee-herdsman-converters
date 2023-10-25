@@ -1854,61 +1854,61 @@ const converters1 = {
             const result: KeyValueAny = {};
             const data = msg.data;
 
-            if (data.hasOwnProperty(0x0401)) { // Load
-                result.load = data[0x0401];
+            if (data.hasOwnProperty('elkoLoad')) { // Load
+                result.load = data['elkoLoad'];
             }
 
-            if (data.hasOwnProperty(0x0402)) { // Display text
-                result.display_text = data[0x0402];
+            if (data.hasOwnProperty('elkoDisplayText')) { // Display text
+                result.display_text = data['elkoDisplayText'];
             }
 
-            if (data.hasOwnProperty(0x0403)) { // Sensor
+            if (data.hasOwnProperty('elkoSensor')) { // Sensor
                 const sensorModeLookup: KeyValueAny = {'0': 'air', '1': 'floor', '3': 'supervisor_floor'};
-                result.sensor = sensorModeLookup[data[0x0403]];
+                result.sensor = sensorModeLookup[data['elkoSensor']];
             }
 
-            if (data.hasOwnProperty(0x0404)) { // Regulator time
-                result.regulator_time = data[0x0404];
+            if (data.hasOwnProperty('elkoRegulatorTime')) { // Regulator time
+                result.regulator_time = data['elkoRegulatorTime'];
             }
 
-            if (data.hasOwnProperty(0x0405)) { // Regulator mode
-                result.regulator_mode = data[0x0405] ? 'regulator' : 'thermostat';
+            if (data.hasOwnProperty('elkoRegulatorMode')) { // Regulator mode
+                result.regulator_mode = data['elkoRegulatorMode'] ? 'regulator' : 'thermostat';
             }
 
-            if (data.hasOwnProperty(0x0406)) { // Power status
-                result.system_mode = data[0x0406] ? 'heat' : 'off';
+            if (data.hasOwnProperty('elkoPowerStatus')) { // Power status
+                result.system_mode = data['elkoPowerStatus'] ? 'heat' : 'off';
             }
 
-            if (data.hasOwnProperty(0x0408)) { // Mean power
-                result.mean_power = data[0x0408];
+            if (data.hasOwnProperty('elkoMeanPower')) { // Mean power
+                result.mean_power = data['elkoMeanPower'];
             }
 
-            if (data.hasOwnProperty(0x0409)) { // External temp (floor)
-                result.floor_temp = utils.precisionRound(data[0x0409], 2) /100;
+            if (data.hasOwnProperty('elkoExternalTemp')) { // External temp (floor)
+                result.floor_temp = utils.precisionRound(data['elkoExternalTemp'], 2) /100;
             }
 
-            if (data.hasOwnProperty(0x0411)) { // Night switching
-                result.night_switching = data[0x0411] ? 'on' : 'off';
+            if (data.hasOwnProperty('elkoNightSwitching')) { // Night switching
+                result.night_switching = data['elkoNightSwitching'] ? 'on' : 'off';
             }
 
-            if (data.hasOwnProperty(0x0412)) { // Frost guard
-                result.frost_guard = data[0x0412] ? 'on' : 'off';
+            if (data.hasOwnProperty('elkoFrostGuard')) { // Frost guard
+                result.frost_guard = data['elkoFrostGuard'] ? 'on' : 'off';
             }
 
-            if (data.hasOwnProperty(0x0413)) { // Child lock
-                result.child_lock = data[0x0413] ? 'lock' : 'unlock';
+            if (data.hasOwnProperty('elkoChildLock')) { // Child lock
+                result.child_lock = data['elkoChildLock'] ? 'lock' : 'unlock';
             }
 
-            if (data.hasOwnProperty(0x0414)) { // Max floor temp
-                result.max_floor_temp = data[0x0414];
+            if (data.hasOwnProperty('elkoMaxFloorTemp')) { // Max floor temp
+                result.max_floor_temp = data['elkoMaxFloorTemp'];
             }
 
-            if (data.hasOwnProperty(0x0415)) { // Relay state
-                result.running_state = data[0x0415] ? 'heat' : 'idle';
+            if (data.hasOwnProperty('elkoRelayState')) { // Relay state
+                result.running_state = data['elkoRelayState'] ? 'heat' : 'idle';
             }
 
-            if (data.hasOwnProperty(0x0417)) { // Calibration
-                result.local_temperature_calibration = precisionRound(data[0x0417], 2) / 10;
+            if (data.hasOwnProperty('elkoCalibration')) { // Calibration
+                result.local_temperature_calibration = precisionRound(data['elkoCalibration'], 2) / 10;
             }
 
             return result;
