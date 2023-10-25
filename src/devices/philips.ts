@@ -2879,7 +2879,7 @@ const definitions: Definition[] = [
         e.enum('action_direction', ea.STATE, ['right', 'left']).withDescription('Direction in which the dial was turned'),
         e.enum('action_type', ea.STATE, ['step', 'rotate'])
             .withDescription('Type of the rotation, value in the first message is `step` and in the next messages value is `rotate`'),
-        e.numeric('time').withDescription('Raw value that represents the amount the dial was turned').withValueMin(0).withValueMax(255),
+        e.numeric('time', ea.STATE).withDescription('Raw value that represents the amount the dial was turned').withValueMin(0).withValueMax(255),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
