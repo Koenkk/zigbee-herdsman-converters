@@ -2876,9 +2876,10 @@ const definitions: Definition[] = [
             'button_4_press', 'button_4_press_release', 'button_4_hold', 'button_4_hold_release',
             'dial_rotate_left_step', 'dial_rotate_left_slow', 'dial_rotate_left_fast',
             'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast']),
-        e.action_direction(['right', 'left']),
-        e.action_type(['step', 'rotate']),
-        e.action_time(),
+        e.enum('action_direction', ea.STATE, ['right', 'left']).withDescription('Direction in which the dial was turned'),
+        e.enum('action_type', ea.STATE, ['step', 'rotate'])
+            .withDescription('Type of the rotation, value in the first message is `step` and in the next messages value is `rotate`'),
+        e.numeric('time').withDescription('Raw value that represents the amount the dial was turned').withValueMin(0).withValueMax(255),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
