@@ -422,15 +422,17 @@ export const philipsFz = {
             const payload: KeyValue = {};
 
             if (button === 'dial') {
-                const typeLookup: KeyValue = {1: 'step', 2: 'rotate'};
-                const type = typeLookup[msg.data['type']];
                 const adjustedTime = direction === 'right' ? time : 256 - time;
                 const dialType = 'rotate';
                 const speed = adjustedTime <= 25 ? 'step' : adjustedTime <= 75 ? 'slow' : 'fast';
                 payload.action = `${button}_${dialType}_${direction}_${speed}`;
-                payload.time = adjustedTime;
-                payload.direction = direction;
-                payload.type = type;
+
+                // extra raw info about dial turning
+                const typeLookup: KeyValue = {1: 'step', 2: 'rotate'};
+                const type = typeLookup[msg.data['type']];
+                payload.action_time = adjustedTime;
+                payload.action_direction = direction;
+                payload.action_type = type;
 
                 // simulated brightness
                 if (options.simulated_brightness) {

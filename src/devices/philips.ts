@@ -2875,7 +2875,10 @@ const definitions: Definition[] = [
             'button_3_press', 'button_3_press_release', 'button_3_hold', 'button_3_hold_release',
             'button_4_press', 'button_4_press_release', 'button_4_hold', 'button_4_hold_release',
             'dial_rotate_left_step', 'dial_rotate_left_slow', 'dial_rotate_left_fast',
-            'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast']),
+            'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast'],
+        e.action_direction(['right', 'left']),
+        e.action_type(['step', 'rotate']),
+        e.action_time()),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
