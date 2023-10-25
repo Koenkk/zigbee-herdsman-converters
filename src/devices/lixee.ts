@@ -839,7 +839,7 @@ const definitions: Definition[] = [
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 600;
                 utils.assertNumber(seconds);
-                const measurement_poll_chunk = options && options.measurement_poll_chunk ? options.measurement_poll_chunk : 1;
+                const measurement_poll_chunk = options && options.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
                 utils.assertNumber(measurement_poll_chunk);
 
                 const setTimer = () => {

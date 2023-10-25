@@ -1353,6 +1353,7 @@ const definitions: Definition[] = [
         },
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
+            utils.attachOutputCluster(device, 'genOta');
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
             device.save();
