@@ -5098,7 +5098,7 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.binary('status_indication', ea.STATE_SET, 'ON', 'OFF').withDescription('Light switch'),
-            tuya.exposes.switch(), 
+            tuya.exposes.switch(),
             e.power_on_behavior(['off', 'on']).withAccess(ea.STATE_SET),
             e.enum('fan_speed', ea.STATE_SET, ['minimum', 'medium', 'maximum']).withDescription('Speed off the fan'),
         ],
