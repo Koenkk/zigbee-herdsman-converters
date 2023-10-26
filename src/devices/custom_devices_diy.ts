@@ -1274,8 +1274,8 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.temperature(endpoint);
-            await reporting.humidity(endpoint);
+            await reporting.temperature(endpoint, {min: 10, max: 300, change: 10});
+            await reporting.humidity(endpoint, {min: 10, max: 300, change: 50});
             await reporting.batteryVoltage(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
