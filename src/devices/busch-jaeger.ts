@@ -1,7 +1,6 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
@@ -25,9 +24,10 @@ const definitions: Definition[] = [
             return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'relay': 0x12};
         },
         exposes: [e.light_brightness().withEndpoint('relay'),
-            e.action(['on_row_2', 'off_row_2', 'brightness_step_up_row_2', 'brightness_step_down_row_2', 'brightness_stop_row_2',
-              'on_row_3', 'off_row_3', 'brightness_step_up_row_3', 'brightness_step_down_row_3', 'brightness_stop_row_3',
-              'on_row_4', 'off_row_4', 'brightness_step_up_row_4', 'brightness_step_down_row_4', 'brightness_stop_row_4'])],
+            e.action(['on_row_1', 'off_row_1', 'brightness_step_up_row_1', 'brightness_step_down_row_1', 'brightness_stop_row_1',
+                'on_row_2', 'off_row_2', 'brightness_step_up_row_2', 'brightness_step_down_row_2', 'brightness_stop_row_2',
+                'on_row_3', 'off_row_3', 'brightness_step_up_row_3', 'brightness_step_down_row_3', 'brightness_stop_row_3',
+                'on_row_4', 'off_row_4', 'brightness_step_up_row_4', 'brightness_step_down_row_4', 'brightness_stop_row_4'])],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint10 = device.getEndpoint(0x0a);
@@ -70,9 +70,9 @@ const definitions: Definition[] = [
             if (switchEndpoint == null) {
                 return;
             }
-                  // This device doesn't support reporting.
-                  // Therefore we read the on/off state every 5 seconds.
-                  // This is the same way as the Hue bridge does it.
+            // This device doesn't support reporting.
+            // Therefore we read the on/off state every 5 seconds.
+            // This is the same way as the Hue bridge does it.
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
@@ -98,7 +98,8 @@ const definitions: Definition[] = [
             return {'row_1': 0x0a, 'row_2': 0x0b, 'relay': 0x12};
         },
         exposes: [e.light_brightness().withEndpoint('relay'),
-            e.action(['on_row_2', 'off_row_2', 'brightness_step_up_row_2', 'brightness_step_down_row_2', 'brightness_stop_row_2'])],
+            e.action(['on_row_1', 'off_row_1', 'brightness_step_up_row_1', 'brightness_step_down_row_1', 'brightness_stop_row_1',
+                'on_row_2', 'off_row_2', 'brightness_step_up_row_2', 'brightness_step_down_row_2', 'brightness_stop_row_2'])],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint10 = device.getEndpoint(0x0a);
@@ -125,9 +126,9 @@ const definitions: Definition[] = [
             if (switchEndpoint == null) {
                 return;
             }
-                  // This device doesn't support reporting.
-                  // Therefore we read the on/off state every 5 seconds.
-                  // This is the same way as the Hue bridge does it.
+            // This device doesn't support reporting.
+            // Therefore we read the on/off state every 5 seconds.
+            // This is the same way as the Hue bridge does it.
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
@@ -153,7 +154,7 @@ const definitions: Definition[] = [
             return {'row_1': 0x0a, 'relay': 0x12};
         },
         exposes: [e.light_brightness().withEndpoint('relay'),
-            e.action([/*'on_row_1', 'off_row_1', 'brightness_step_up_row_1', 'brightness_step_down_row_1', 'brightness_stop_row_1',*/])],
+            e.action(['on_row_1', 'off_row_1', 'brightness_step_up_row_1', 'brightness_step_down_row_1', 'brightness_stop_row_1'])],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint10 = device.getEndpoint(0x0a);
@@ -172,9 +173,9 @@ const definitions: Definition[] = [
             if (switchEndpoint == null) {
                 return;
             }
-                  // This device doesn't support reporting.
-                  // Therefore we read the on/off state every 5 seconds.
-                  // This is the same way as the Hue bridge does it.
+            // This device doesn't support reporting.
+            // Therefore we read the on/off state every 5 seconds.
+            // This is the same way as the Hue bridge does it.
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
@@ -200,9 +201,9 @@ const definitions: Definition[] = [
             return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d};
         },
         exposes: [e.action(['on_row_1', 'off_row_1', 'brightness_step_up_row_1', 'brightness_step_down_row_1', 'brightness_stop_row_1',
-              'on_row_2', 'off_row_2', 'brightness_step_up_row_2', 'brightness_step_down_row_2', 'brightness_stop_row_2',
-              'on_row_3', 'off_row_3', 'brightness_step_up_row_3', 'brightness_step_down_row_3', 'brightness_stop_row_3',
-              'on_row_4', 'off_row_4', 'brightness_step_up_row_4', 'brightness_step_down_row_4', 'brightness_stop_row_4'])],
+            'on_row_2', 'off_row_2', 'brightness_step_up_row_2', 'brightness_step_down_row_2', 'brightness_stop_row_2',
+            'on_row_3', 'off_row_3', 'brightness_step_up_row_3', 'brightness_step_down_row_3', 'brightness_stop_row_3',
+            'on_row_4', 'off_row_4', 'brightness_step_up_row_4', 'brightness_step_down_row_4', 'brightness_stop_row_4'])],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint10 = device.getEndpoint(0x0a);
@@ -238,7 +239,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
     },
     {
-        fingerprint: [{modelID: 'RB01', endpoints: [{ID: 10}, {ID: 11}]},],
+        fingerprint: [{modelID: 'RB01', endpoints: [{ID: 10}, {ID: 11}]}],
         model: '6736/01',
         vendor: 'Busch-Jaeger',
         description: 'Zigbee Light Link wall-mounted transmitter 2rows',
@@ -246,7 +247,7 @@ const definitions: Definition[] = [
             return {'row_1': 0x0a, 'row_2': 0x0b};
         },
         exposes: [e.action(['on_row_1', 'off_row_1', 'brightness_step_up_row_1', 'brightness_step_down_row_1', 'brightness_stop_row_1',
-            					'on_row_2', 'off_row_2', 'brightness_step_up_row_2', 'brightness_step_down_row_2', 'brightness_stop_row_2'])],
+            'on_row_2', 'off_row_2', 'brightness_step_up_row_2', 'brightness_step_down_row_2', 'brightness_stop_row_2'])],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint10 = device.getEndpoint(0x0a);
