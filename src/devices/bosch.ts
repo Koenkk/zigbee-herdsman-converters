@@ -922,7 +922,7 @@ const definitions: Definition[] = [
         description: 'Door/window contact II plus',
         fromZigbee: [fzLocal.bosch_contact],
         toZigbee: [],
-        exposes: [e.battery_low(), e.contact(), e.vibration, e.action(['single', 'long'])],
+        exposes: [e.battery_low(), e.contact(), e.vibration(), e.action(['single', 'long'])],
     },
     {
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
