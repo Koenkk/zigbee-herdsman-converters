@@ -2391,8 +2391,6 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE204_r0jdjrvi'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjzrowv2'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_axgvo9jh'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bv1jcqqu'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_7eue9vhc'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_gaj531w3'},
         ],
         model: 'TS0601_cover_1',
@@ -2418,7 +2416,6 @@ const definitions: Definition[] = [
             tuya.whitelabel('Shenzhen Golden Security Technology', 'GM46', 'Curtain motor', ['_TZE204_guvc7pdy']),
             {vendor: 'Quoya', model: 'AT8510-TY'},
             tuya.whitelabel('Somgoms', 'ZSTY-SM-1DMZG-US-W_1', 'Curtain switch', ['_TZE200_axgvo9jh']),
-            tuya.whitelabel('Zemismart', 'ZM25RX-08/30', 'Tubular motor', ['_TZE200_bv1jcqqu', '_TZE200_7eue9vhc']),
             tuya.whitelabel('HUARUI', 'CMD900LE', 'Lithium battery intelligent curtain opening and closing motor', ['_TZE200_zxxfv8wi']),
         ],
         fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
@@ -2499,6 +2496,45 @@ const definitions: Definition[] = [
                 // motor_direction doesn't work: https://github.com/Koenkk/zigbee2mqtt/issues/18103
                 // [5, 'motor_direction', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'reversed': tuya.enum(1)})],
                 [101, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_7eue9vhc'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_bv1jcqqu'},
+        ],
+        whiteLabel: [
+            tuya.whitelabel('Zemismart', 'ZM25RX-08/30', 'Tubular motor', ['_TZE200_bv1jcqqu', '_TZE200_7eue9vhc']),
+        ],
+        model: 'TS0601_cover_8',
+        vendor: 'TuYa',
+        description: 'Cover motor',
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.text('work_state', ea.STATE),
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.battery(),
+            // it also has `UPPER`/`LOWER` command that can be used to move motor over set limit, but it's not clear why :)
+            e.enum('program', ea.SET, ['SET BOTTOM', 'SET UPPER', 'RESET'/* , 'UPPER', 'LOWER' */]).withDescription('Set the upper/bottom limit'),
+            e.enum('motor_direction', ea.STATE_SET, ['NORMAL', 'REVERSED']).withDescription('Motor direction'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'position', tuya.valueConverter.coverPosition],
+                [5, 'motor_direction', tuya.valueConverterBasic.lookup({'NORMAL': tuya.enum(0), 'REVERSED': tuya.enum(1)})],
+                [7, 'work_state', tuya.valueConverterBasic.lookup({'standby': tuya.enum(0), 'success': tuya.enum(1), 'learning': tuya.enum(2)})],
+                [13, 'battery', tuya.valueConverter.raw],
+                [101, 'program', tuya.valueConverterBasic.lookup({
+                    'SET BOTTOM': tuya.enum(0), 'SET UPPER': tuya.enum(1), 'RESET': tuya.enum(4),
+                    'LOWER': tuya.enum(2), 'UPPER': tuya.enum(3),
+                })],
             ],
         },
     },
