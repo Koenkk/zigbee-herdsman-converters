@@ -61,7 +61,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['Thermostat_v0.1'],
+        zigbeeModel: ['Thermostat_v0.1', 'WheelThermostat_v1.0'],
         model: '02973.B',
         vendor: 'Vimar',
         description: 'Vimar IoT thermostat',
