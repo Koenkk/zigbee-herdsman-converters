@@ -2870,16 +2870,17 @@ const definitions: Definition[] = [
         description: 'Hue Tap dial switch',
         fromZigbee: [fz.ignore_command_step, philips.philipsFz.hue_tap_dial, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['button_1_press', 'button_1_press_release', 'button_1_hold', 'button_1_hold_release',
-            'button_2_press', 'button_2_press_release', 'button_2_hold', 'button_2_hold_release',
-            'button_3_press', 'button_3_press_release', 'button_3_hold', 'button_3_hold_release',
-            'button_4_press', 'button_4_press_release', 'button_4_hold', 'button_4_hold_release',
-            'dial_rotate_left_step', 'dial_rotate_left_slow', 'dial_rotate_left_fast',
-            'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast']),
-        e.enum('action_direction', ea.STATE, ['right', 'left']).withDescription('Direction in which the dial was turned'),
-        e.enum('action_type', ea.STATE, ['step', 'rotate'])
-            .withDescription('Type of the rotation, value in the first message is `step` and in the next messages value is `rotate`'),
-        e.numeric('time', ea.STATE).withDescription('Raw value that represents the amount the dial was turned').withValueMin(0).withValueMax(255),
+        exposes: [e.battery(), 
+            e.action(['button_1_press', 'button_1_press_release', 'button_1_hold', 'button_1_hold_release',
+                'button_2_press', 'button_2_press_release', 'button_2_hold', 'button_2_hold_release',
+                'button_3_press', 'button_3_press_release', 'button_3_hold', 'button_3_hold_release',
+                'button_4_press', 'button_4_press_release', 'button_4_hold', 'button_4_hold_release',
+                'dial_rotate_left_step', 'dial_rotate_left_slow', 'dial_rotate_left_fast',
+                'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast']),
+            e.enum('action_direction', ea.STATE, ['right', 'left']).withDescription('Direction in which the dial was turned'),
+            e.enum('action_type', ea.STATE, ['step', 'rotate'])
+                .withDescription('Type of the rotation, value in the first message is `step` and in the next messages value is `rotate`'),
+            e.numeric('time', ea.STATE).withDescription('Raw value that represents the amount the dial was turned').withValueMin(0).withValueMax(255),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
