@@ -222,6 +222,16 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
+    {
+        fingerprint: [{manufacturerName: 'MLI', modelID: 'GU10 white+color'}],
+        model: '45723',
+        vendor: 'Müller Licht',
+        description: 'Tint spotlight GU10 white+color',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
+        toZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}).toZigbee
+            .concat([tz.tint_scene]),
+        meta: {supportsEnhancedHue: false},
+    },
 ];
 
 module.exports = definitions;
