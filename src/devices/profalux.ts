@@ -40,11 +40,19 @@ const definitions: Definition[] = [
         description: 'Cover',
         fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        exposes: [e.cover_position()],
+        options: [e.binary('has_tilt', ea.SET, true, false).withDescription('Cover configured with tilt mode (BSO)')],
+        exposes: (device,options) => {
+            if (options == null || (options.hasOwnProperty('has_tilt') && options['has_tilt'])) {
+                return [ e.cover_position_tilt().setAccess('state', ea.ALL)]
+            } else {
+                return [ e.cover_position().setAccess('state', ea.ALL)]
+            }
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionTiltPercentage(endpoint);
         },
         endpoint: (device) => {
             return {default: 2};
@@ -73,7 +81,7 @@ const definitions: Definition[] = [
         // Newer remotes. These expose a bunch of things but they are bound to
         // the cover and don't seem to communicate with the coordinator, so
         // nothing is likely to be doable in Z2M.
-        zigbeeModel: ['MAI-ZTP20F', 'MAI-ZTP20C'],
+        zigbeeModel: ['MAI-ZTP20F', 'MAI-ZTP20C', 'MAI-ZTS'],
         model: 'MAI-ZTP20',
         vendor: 'Profalux',
         description: 'Cover remote',
