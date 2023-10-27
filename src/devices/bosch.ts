@@ -392,6 +392,7 @@ const fzLocal = {
             const lookup: KeyValue = {0: 'none', 1: 'single', 2: 'long'};
             const result = {
                 contact: !((zoneStatus & 1) > 0),
+                vibration: (zoneStatus & 1<<1) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
                 action: lookup[(zoneStatus >> 11) & 3],
             };
@@ -918,10 +919,10 @@ const definitions: Definition[] = [
         zigbeeModel: ['RBSH-SWDV-ZB'],
         model: 'BSEN-CV',
         vendor: 'Bosch',
-        description: 'Door/window contact II',
+        description: 'Door/window contact II plus',
         fromZigbee: [fzLocal.bosch_contact],
         toZigbee: [],
-        exposes: [e.battery_low(), e.contact(), e.action(['single', 'long'])],
+        exposes: [e.battery_low(), e.contact(), e.vibration(), e.action(['single', 'long'])],
     },
     {
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
