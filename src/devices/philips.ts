@@ -2870,7 +2870,7 @@ const definitions: Definition[] = [
         description: 'Hue Tap dial switch',
         fromZigbee: [fz.ignore_command_step, philips.philipsFz.hue_tap_dial, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), 
+        exposes: [e.battery(),
             e.action(['button_1_press', 'button_1_press_release', 'button_1_hold', 'button_1_hold_release',
                 'button_2_press', 'button_2_press_release', 'button_2_hold', 'button_2_hold_release',
                 'button_3_press', 'button_3_press_release', 'button_3_hold', 'button_3_hold_release',
