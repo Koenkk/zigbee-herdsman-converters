@@ -10,6 +10,13 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['ML-ST-D200-NF'],
+        model: 'ML-ST-D200-NF',
+        vendor: 'M-ELEC',
+        description: 'Stitchy Dim Neutral Free switchable wall module',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['ML-ST-BP-DIM'],
         model: 'ML-ST-BP-DIM',
         vendor: 'M-ELEC',
@@ -19,3 +26,4 @@ const definitions: Definition[] = [
 ];
 
 module.exports = definitions;
+
