@@ -2525,7 +2525,7 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(2), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(0)})],
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.coverPosition],
                 [5, 'motor_direction', tuya.valueConverterBasic.lookup({'NORMAL': tuya.enum(0), 'REVERSED': tuya.enum(1)})],
