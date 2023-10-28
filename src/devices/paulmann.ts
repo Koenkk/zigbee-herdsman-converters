@@ -176,12 +176,12 @@ const definitions: Definition[] = [
             'brightness_move_down', 'brightness_move_up', 'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*'])],
     },
     {
-        fingerprint: [{ modelID: 'RGB', manufacturerName: 'Paulmann Licht GmbH' }],
+        fingerprint: [{modelID: 'RGB', manufacturerName: 'Paulmann Licht GmbH'}],
         model: 'PLIR 08/23 150257',
         vendor: 'Paulmann',
         description: 'SimpLED SmartHome dimmable RGB LED-stripe',
-        extend: extend.light_onoff_brightness_color()
-    }
+        extend: extend.light_onoff_brightness_color(),
+    },
 ];
 
 module.exports = definitions;
