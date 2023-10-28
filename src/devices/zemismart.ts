@@ -119,9 +119,9 @@ const definitions: Definition[] = [
             e.text('work_state', ea.STATE),
             e.cover_position().setAccess('position', ea.STATE_SET),
             e.battery(),
-            e.enum('program', ea.SET, ['SET BOTTOM', 'SET UPPER', 'RESET']).withDescription('Set the upper/bottom limit'),
-            e.enum('program', ea.SET, ['UPPER', 'UPPER MICRO', 'LOWER', 'LOWER MICRO']).withDescription('Steps control (ignores set limit)'),
-            e.enum('motor_direction', ea.STATE_SET, ['NORMAL', 'REVERSED']).withDescription('Motor direction'),
+            e.enum('program', ea.SET, ['set_bottom', 'set_upper', 'reset']).withDescription('Set the upper/bottom limit'),
+            e.enum('click_control', ea.SET, ['upper', 'upper_micro', 'lower', 'lower_micro']).withDescription('Control motor in steps (ingores set limits; micro = small movement)'),
+            e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Motor direction'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -132,10 +132,12 @@ const definitions: Definition[] = [
                 [7, 'work_state', tuya.valueConverterBasic.lookup({'standby': tuya.enum(0), 'success': tuya.enum(1), 'learning': tuya.enum(2)})],
                 [13, 'battery', tuya.valueConverter.raw],
                 [101, 'program', tuya.valueConverterBasic.lookup({
-                    'SET BOTTOM': tuya.enum(0), 'SET UPPER': tuya.enum(1), 'RESET': tuya.enum(4),
-                    'LOWER': tuya.enum(2), 'UPPER': tuya.enum(3),
-                    'LOWER MICRO': tuya.enum(5), 'UPPER MICRO': tuya.enum(6),
-                })],
+                    'set_bottom': tuya.enum(0), 'set_upper': tuya.enum(1), 'reset': tuya.enum(4)
+                  }, null)],
+                  [101, 'click_control', tuya.valueConverterBasic.lookup({
+                    'lower': tuya.enum(2), 'upper': tuya.enum(3),
+                    'lower_micro': tuya.enum(5), 'upper_micro': tuya.enum(6),
+                  }, null)],
             ],
         },
     },
