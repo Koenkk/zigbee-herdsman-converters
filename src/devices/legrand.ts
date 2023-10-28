@@ -148,8 +148,11 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
-            await reporting.currentPositionLiftPercentage(endpoint, {max: 120});
-            await reporting.currentPositionTiltPercentage(endpoint, {max: 120});
+            let p = reporting.payload('currentPositionLiftPercentage', 1, 120, 1);
+            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
+
+            p = reporting.payload('currentPositionTiltPercentage', 1, 120, 1);
+            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
         },
     },
     {
@@ -201,8 +204,11 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
-            await reporting.currentPositionLiftPercentage(endpoint, {max: 120});
-            await reporting.currentPositionTiltPercentage(endpoint, {max: 120});
+            let p = reporting.payload('currentPositionLiftPercentage', 1, 120, 1);
+            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
+
+            p = reporting.payload('currentPositionTiltPercentage', 1, 120, 1);
+            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
         },
     },
     {
