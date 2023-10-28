@@ -2519,7 +2519,7 @@ const definitions: Definition[] = [
             e.text('work_state', ea.STATE),
             e.cover_position().setAccess('position', ea.STATE_SET),
             e.battery(),
-            // it also has `UPPER`/`LOWER` command that can be used to move motor over set limit, but it's not clear why :)
+            // it's also has `UPPER [MICRO]`/`LOWER [MICRO]` command that can be used to move motor over set limit, but it's not clear why :)
             e.enum('program', ea.SET, ['SET BOTTOM', 'SET UPPER', 'RESET'/* , 'UPPER', 'LOWER' */]).withDescription('Set the upper/bottom limit'),
             e.enum('motor_direction', ea.STATE_SET, ['NORMAL', 'REVERSED']).withDescription('Motor direction'),
         ],
@@ -2534,6 +2534,7 @@ const definitions: Definition[] = [
                 [101, 'program', tuya.valueConverterBasic.lookup({
                     'SET BOTTOM': tuya.enum(0), 'SET UPPER': tuya.enum(1), 'RESET': tuya.enum(4),
                     'LOWER': tuya.enum(2), 'UPPER': tuya.enum(3),
+                    'LOWER MICRO': tuya.enum(5), 'UPPER MICRO': tuya.enum(6),
                 })],
             ],
         },
