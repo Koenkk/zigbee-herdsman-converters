@@ -8,6 +8,7 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['MAI-ZTS'],
         fingerprint: [{manufacturerID: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 513, inputClusters: [0, 3, 21],
             outputClusters: [3, 4, 5, 6, 8, 256, 64544, 64545]}]}],
         model: 'NB102',
