@@ -2500,46 +2500,6 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_7eue9vhc'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bv1jcqqu'},
-        ],
-        whiteLabel: [
-            tuya.whitelabel('Zemismart', 'ZM25RX-08/30', 'Tubular motor', ['_TZE200_bv1jcqqu', '_TZE200_7eue9vhc']),
-        ],
-        model: 'TS0601_cover_8',
-        vendor: 'TuYa',
-        description: 'Cover motor',
-        onEvent: tuya.onEvent(),
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        options: [exposes.options.invert_cover()],
-        exposes: [
-            e.text('work_state', ea.STATE),
-            e.cover_position().setAccess('position', ea.STATE_SET),
-            e.battery(),
-            e.enum('program', ea.SET, ['SET BOTTOM', 'SET UPPER', 'RESET']).withDescription('Set the upper/bottom limit'),
-            e.enum('program', ea.SET, ['UPPER', 'UPPER MICRO', 'LOWER', 'LOWER MICRO']).withDescription('Steps control (ignores set limit)'),
-            e.enum('motor_direction', ea.STATE_SET, ['NORMAL', 'REVERSED']).withDescription('Motor direction'),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(2), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(0)})],
-                [2, 'position', tuya.valueConverter.coverPosition],
-                [3, 'position', tuya.valueConverter.coverPosition],
-                [5, 'motor_direction', tuya.valueConverterBasic.lookup({'NORMAL': tuya.enum(0), 'REVERSED': tuya.enum(1)})],
-                [7, 'work_state', tuya.valueConverterBasic.lookup({'standby': tuya.enum(0), 'success': tuya.enum(1), 'learning': tuya.enum(2)})],
-                [13, 'battery', tuya.valueConverter.raw],
-                [101, 'program', tuya.valueConverterBasic.lookup({
-                    'SET BOTTOM': tuya.enum(0), 'SET UPPER': tuya.enum(1), 'RESET': tuya.enum(4),
-                    'LOWER': tuya.enum(2), 'UPPER': tuya.enum(3),
-                    'LOWER MICRO': tuya.enum(5), 'UPPER MICRO': tuya.enum(6),
-                })],
-            ],
-        },
-    },
-    {
         zigbeeModel: ['kud7u2l'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'},
