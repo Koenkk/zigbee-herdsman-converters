@@ -2519,8 +2519,8 @@ const definitions: Definition[] = [
             e.text('work_state', ea.STATE),
             e.cover_position().setAccess('position', ea.STATE_SET),
             e.battery(),
-            // it's also has `UPPER [MICRO]`/`LOWER [MICRO]` command that can be used to move motor over set limit, but it's not clear why :)
-            e.enum('program', ea.SET, ['SET BOTTOM', 'SET UPPER', 'RESET'/* , 'UPPER', 'LOWER' */]).withDescription('Set the upper/bottom limit'),
+            e.enum('program', ea.SET, ['SET BOTTOM', 'SET UPPER', 'RESET']).withDescription('Set the upper/bottom limit'),
+            e.enum('program', ea.SET, ['UPPER', 'UPPER MICRO', 'LOWER', 'LOWER MICRO']).withDescription('Steps control (ignores set limit)'),
             e.enum('motor_direction', ea.STATE_SET, ['NORMAL', 'REVERSED']).withDescription('Motor direction'),
         ],
         meta: {
