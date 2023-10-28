@@ -4,6 +4,8 @@ import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
+const legrandOptions = {manufacturerCode: 4129, disableDefaultResponse: true};
+
 const shutterCalibrationModes = {
     'Classic (NLLV)': {ID: 0, onlyNLLV: true},
     'Specific (NLLV)': {ID: 1, onlyNLLV: true},
@@ -43,10 +45,10 @@ export const tzLegrand = {
                 const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
                 utils.validateValue(value, Object.keys(applicableModes));
                 const idx = applicableModes[value as string];
-                await entity.write('closuresWindowCovering', {'tuyaMotorReversal': idx});
+                await entity.write('closuresWindowCovering', {'calibrationMode': idx}, legrandOptions);
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read('closuresWindowCovering', [0xf002]);
+                await entity.read('closuresWindowCovering', ['calibrationMode'], legrandOptions);
             },
         } as Tz.Converter;
     },
@@ -72,7 +74,7 @@ export const fzLegrand = {
             cluster: 'closuresWindowCovering',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const attr = 'tuyaMotorReversal';
+                const attr = 'calibrationMode';
                 if (msg.data.hasOwnProperty(attr)) {
                     const idx = msg.data[attr];
                     const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
