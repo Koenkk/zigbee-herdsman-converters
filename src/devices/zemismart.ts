@@ -128,16 +128,16 @@ const definitions: Definition[] = [
                 [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(2), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(0)})],
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.coverPosition],
-                [5, 'motor_direction', tuya.valueConverterBasic.lookup({'NORMAL': tuya.enum(0), 'REVERSED': tuya.enum(1)})],
-                [7, 'work_state', tuya.valueConverterBasic.lookup({'standby': tuya.enum(0), 'success': tuya.enum(1), 'learning': tuya.enum(2)})],
+                [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
+                [7, 'work_state', tuya.valueConverter.tubularMotorWorkState],
                 [13, 'battery', tuya.valueConverter.raw],
                 [101, 'program', tuya.valueConverterBasic.lookup({
                     'set_bottom': tuya.enum(0), 'set_upper': tuya.enum(1), 'reset': tuya.enum(4)
-                  }, null)],
-                  [101, 'click_control', tuya.valueConverterBasic.lookup({
+                }, null)],
+                [101, 'click_control', tuya.valueConverterBasic.lookup({
                     'lower': tuya.enum(2), 'upper': tuya.enum(3),
                     'lower_micro': tuya.enum(5), 'upper_micro': tuya.enum(6),
-                  }, null)],
+                }, null)],
             ],
         },
     },

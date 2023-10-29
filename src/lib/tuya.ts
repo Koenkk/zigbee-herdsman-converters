@@ -484,6 +484,8 @@ export const valueConverter = {
             return options.invert_cover ? v : 100 - v;
         },
     },
+    tubularMotorDirection: valueConverterBasic.lookup({'normal': new Enum(0), 'reversed': new Enum(1)}),
+    tubularMotorWorkState: valueConverterBasic.lookup({'standby': new Enum(0), 'success': new Enum(1), 'learning': new Enum(2)}),
     plus1: {
         from: (v: number) => v + 1,
         to: (v: number) => v - 1,

@@ -2470,7 +2470,7 @@ const definitions: Definition[] = [
                 [2, 'position', tuya.valueConverter.coverPositionInverted],
                 [3, 'position', tuya.valueConverter.coverPositionInverted],
                 [4, 'opening_mode', tuya.valueConverterBasic.lookup({'tilt': tuya.enum(0), 'lift': tuya.enum(1)})],
-                [7, 'work_state', tuya.valueConverterBasic.lookup({'standby': tuya.enum(0), 'success': tuya.enum(1), 'learning': tuya.enum(2)})],
+                [7, 'work_state', tuya.valueConverter.tubularMotorWorkState],
                 [13, 'battery', tuya.valueConverter.raw],
                 [101, 'motor_direction', tuya.valueConverterBasic.lookup({'left': tuya.enum(0), 'right': tuya.enum(1)})],
                 [102, 'set_upper_limit', tuya.valueConverterBasic.lookup({'start': tuya.enum(1), 'stop': tuya.enum(0)})],
@@ -2622,7 +2622,7 @@ const definitions: Definition[] = [
                 [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.raw],
-                [5, 'motor_direction', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'reversed': tuya.enum(1)})],
+                [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
                 [7, null, null], // work_state, not useful, ignore
                 [101, 'opening_mode', tuya.valueConverterBasic.lookup({'tilt': tuya.enum(0), 'lift': tuya.enum(1)})],
                 [102, 'factory_reset', tuya.valueConverter.raw],
