@@ -759,7 +759,7 @@ const definitions: Definition[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yojqa8xn', '_TZE204_zougpkpy']),
         model: 'TS0601_gas_sensor_2',
-        vendor: 'DYGSM',
+        vendor: 'TuYa',
         description: 'Gas sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -773,21 +773,19 @@ const definitions: Definition[] = [
             e.binary('preheat', ea.STATE, true, false).withDescription('Indicates sensor preheat is active'),
         ],
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'DY-RQ500A', 'Gas sensor', ['_TZE204_zougpkpy']),
+            tuya.whitelabel('DYGSM', 'DY-RQ500A', 'Gas sensor', ['_TZE204_zougpkpy']),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'gas_detection_state', tuya.valueConverterBasic.lookup({ 'alarm': tuya.enum(0), 'normal': tuya.enum(1) })],
+                [1, 'gas_detection_state', tuya.valueConverterBasic.lookup({'alarm': tuya.enum(0), 'normal': tuya.enum(1)})],
                 [2, 'gas_value', tuya.valueConverter.divideBy10],
-                [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({
-                    'melody1': tuya.enum(0), 'melody2': tuya.enum(1), 'melody3': tuya.enum(2), 'melody4': tuya.enum(3),
-                    'melody5': tuya.enum(4),
-                })],
+                [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup(
+                    {'1': tuya.enum(0), '2': tuya.enum(1), '3': tuya.enum(2), '4': tuya.enum(3), '5': tuya.enum(4)})],
                 [7, 'alarm_time', tuya.valueConverter.raw],
                 [8, 'self_test', tuya.valueConverter.raw],
                 [9, 'self_test_result', tuya.valueConverter.selfTestResult],
                 [10, 'preheat', tuya.valueConverter.raw],
-                [13, null, null], // alarm_switch; ignore for now since it is unclear what it does 
+                [13, null, null], // alarm_switch; ignore for now since it is unclear what it does
                 [16, 'silence', tuya.valueConverter.raw],
             ],
         },
