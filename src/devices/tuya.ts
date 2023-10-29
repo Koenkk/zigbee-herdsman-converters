@@ -759,7 +759,7 @@ const definitions: Definition[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yojqa8xn', '_TZE204_zougpkpy']),
         model: 'TS0601_gas_sensor_2',
-        vendor: 'TuYa',
+        vendor: 'DYGSM',
         description: 'Gas sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -777,14 +777,17 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'gas', tuya.valueConverter.trueFalseEnum0],
+                [1, 'gas_detection_state', tuya.valueConverterBasic.lookup({ 'alarm': tuya.enum(0), 'normal': tuya.enum(1) })],
                 [2, 'gas_value', tuya.valueConverter.divideBy10],
-                [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'1': 0, '2': 1, '3': 2, '4': 3, '5': 4})],
+                [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({
+                    'melody1': tuya.enum(0), 'melody2': tuya.enum(1), 'melody3': tuya.enum(2), 'melody4': tuya.enum(3),
+                    'melody5': tuya.enum(4),
+                })],
                 [7, 'alarm_time', tuya.valueConverter.raw],
                 [8, 'self_test', tuya.valueConverter.raw],
                 [9, 'self_test_result', tuya.valueConverter.selfTestResult],
                 [10, 'preheat', tuya.valueConverter.raw],
-                [13, null, null], // alarm_switch; ignore for now since it is unclear what it does
+                [13, null, null], // alarm_switch; ignore for now since it is unclear what it does 
                 [16, 'silence', tuya.valueConverter.raw],
             ],
         },
@@ -2391,6 +2394,8 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE204_r0jdjrvi'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjzrowv2'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_axgvo9jh'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_bv1jcqqu'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_7eue9vhc'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_gaj531w3'},
         ],
         model: 'TS0601_cover_1',
@@ -2416,6 +2421,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Shenzhen Golden Security Technology', 'GM46', 'Curtain motor', ['_TZE204_guvc7pdy']),
             {vendor: 'Quoya', model: 'AT8510-TY'},
             tuya.whitelabel('Somgoms', 'ZSTY-SM-1DMZG-US-W_1', 'Curtain switch', ['_TZE200_axgvo9jh']),
+            tuya.whitelabel('Zemismart', 'ZM25RX-08/30', 'Tubular motor', ['_TZE200_bv1jcqqu', '_TZE200_7eue9vhc']),
             tuya.whitelabel('HUARUI', 'CMD900LE', 'Lithium battery intelligent curtain opening and closing motor', ['_TZE200_zxxfv8wi']),
         ],
         fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
@@ -2622,7 +2628,7 @@ const definitions: Definition[] = [
                 [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.raw],
-                [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
+                [5, 'motor_direction', tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'reversed': tuya.enum(1)})],
                 [7, null, null], // work_state, not useful, ignore
                 [101, 'opening_mode', tuya.valueConverterBasic.lookup({'tilt': tuya.enum(0), 'lift': tuya.enum(1)})],
                 [102, 'factory_reset', tuya.valueConverter.raw],
