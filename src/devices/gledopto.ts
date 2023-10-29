@@ -364,7 +364,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['GL-S-014P'],
         model: 'GL-S-014P',
         vendor: 'Gledopto',
-        description: 'Zigbee 5W MR16 Bulb RGB+CCT (pro)',
+        description: 'Zigbee 5W MR16 bulb RGB+CCT (pro)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 500]}),
     },
     {
