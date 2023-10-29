@@ -129,7 +129,7 @@ const definitions: Definition[] = [
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.coverPosition],
                 [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
-                [7, 'work_state', tuya.valueConverter.tubularMotorWorkState],
+                [7, 'work_state', tuya.valueConverterBasic.lookup({ 'moved_down': tuya.enum(0), 'moved_up': tuya.enum(1) })],
                 [13, 'battery', tuya.valueConverter.raw],
                 [101, 'program', tuya.valueConverterBasic.lookup({
                     'set_bottom': tuya.enum(0), 'set_upper': tuya.enum(1), 'reset': tuya.enum(4)

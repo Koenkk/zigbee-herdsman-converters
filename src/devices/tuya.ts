@@ -2470,7 +2470,7 @@ const definitions: Definition[] = [
                 [2, 'position', tuya.valueConverter.coverPositionInverted],
                 [3, 'position', tuya.valueConverter.coverPositionInverted],
                 [4, 'opening_mode', tuya.valueConverterBasic.lookup({'tilt': tuya.enum(0), 'lift': tuya.enum(1)})],
-                [7, 'work_state', tuya.valueConverter.tubularMotorWorkState],
+                [7, 'work_state', tuya.valueConverterBasic.lookup({'standby': tuya.enum(0), 'success': tuya.enum(1), 'learning': tuya.enum(2)})],
                 [13, 'battery', tuya.valueConverter.raw],
                 [101, 'motor_direction', tuya.valueConverterBasic.lookup({'left': tuya.enum(0), 'right': tuya.enum(1)})],
                 [102, 'set_upper_limit', tuya.valueConverterBasic.lookup({'start': tuya.enum(1), 'stop': tuya.enum(0)})],
