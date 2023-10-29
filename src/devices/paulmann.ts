@@ -177,7 +177,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'RGB', manufacturerName: 'Paulmann Licht GmbH'}],
-        model: 'PLIR 08/23 150257',
+        model: '150257',
         vendor: 'Paulmann',
         description: 'SimpLED SmartHome dimmable RGB LED-stripe',
         extend: extend.light_onoff_brightness_color(),
