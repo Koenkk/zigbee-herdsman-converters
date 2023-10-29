@@ -129,6 +129,13 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true},
     },
+    {
+        zigbeeModel: ['AD-81812'],
+        model: '81812',
+        vendor: 'AduroSmart',
+        description: 'Eria Tunable White A19 Smart Bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
+    },
 ];
 
 module.exports = definitions;
