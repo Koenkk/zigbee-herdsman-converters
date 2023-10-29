@@ -7,11 +7,11 @@ const ea = exposes.access;
 const legrandOptions = {manufacturerCode: 4129, disableDefaultResponse: true};
 
 const shutterCalibrationModes: {[k: number]: {description: string, onlyNLLV: boolean}} = {
-    0: {description: 'Classic (NLLV)', onlyNLLV: true},
-    1: {description: 'Specific (NLLV)', onlyNLLV: true},
-    2: {description: 'Up/Down/Stop', onlyNLLV: false},
-    3: {description: 'Temporal', onlyNLLV: false},
-    4: {description: 'Venetian (BSO)', onlyNLLV: false},
+    0: {description: 'classic_nllv', onlyNLLV: true},
+    1: {description: 'specific_nllv', onlyNLLV: true},
+    2: {description: 'up_down_stop', onlyNLLV: false},
+    3: {description: 'temporal', onlyNLLV: false},
+    4: {description: 'venetian_bso', onlyNLLV: false},
 };
 
 const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString => {
