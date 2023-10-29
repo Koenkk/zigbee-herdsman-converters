@@ -1,4 +1,4 @@
-import {Fz, Tz, OnEvent} from '../lib/types';
+import {Fz, Tz, OnEvent, KeyValueString} from '../lib/types';
 import * as exposes from './exposes';
 import * as utils from '../lib/utils';
 const e = exposes.presets;
@@ -6,18 +6,18 @@ const ea = exposes.access;
 
 const legrandOptions = {manufacturerCode: 4129, disableDefaultResponse: true};
 
-const shutterCalibrationModes = {
-    'Classic (NLLV)': {ID: 0, onlyNLLV: true},
-    'Specific (NLLV)': {ID: 1, onlyNLLV: true},
-    'Up/Down/Stop': {ID: 2, onlyNLLV: false},
-    'Temporal': {ID: 3, onlyNLLV: false},
-    'Venetian (BSO)': {ID: 4, onlyNLLV: false},
+const shutterCalibrationModes: {[k: number]: {description: string, onlyNLLV: boolean}} = {
+    0: {description: 'Classic (NLLV)', onlyNLLV: true},
+    1: {description: 'Specific (NLLV)', onlyNLLV: true},
+    2: {description: 'Up/Down/Stop', onlyNLLV: false},
+    3: {description: 'Temporal', onlyNLLV: false},
+    4: {description: 'Venetian (BSO)', onlyNLLV: false},
 };
 
-const getApplicableCalibrationModes = (isNLLVSwitch: boolean) => {
+const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString => {
     return Object.fromEntries(Object.entries(shutterCalibrationModes)
         .filter((e) => isNLLVSwitch ? true : e[1].onlyNLLV === false)
-        .map((e) => [e[0], e[1].ID]));
+        .map((e) => [e[0], e[1].description]));
 };
 
 export const readInitialBatteryState: OnEvent = async (type, data, device, options) => {
@@ -43,8 +43,8 @@ export const tzLegrand = {
             key: ['calibration_mode'],
             convertSet: async (entity, key, value, meta) => {
                 const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
-                utils.validateValue(value, Object.keys(applicableModes));
-                const idx = applicableModes[value as string];
+                utils.validateValue(value, Object.values(applicableModes));
+                const idx = utils.getKey(applicableModes, value);
                 await entity.write('closuresWindowCovering', {'calibrationMode': idx}, legrandOptions);
             },
             convertGet: async (entity, key, meta) => {
@@ -76,10 +76,10 @@ export const fzLegrand = {
             convert: (model, msg, publish, options, meta) => {
                 const attr = 'calibrationMode';
                 if (msg.data.hasOwnProperty(attr)) {
-                    const idx = msg.data[attr];
                     const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
-                    utils.validateValue(idx, Object.values(applicableModes));
-                    const calMode = utils.getKey(applicableModes, idx);
+                    const idx = msg.data[attr];
+                    utils.validateValue(String(idx), Object.keys(applicableModes));
+                    const calMode = applicableModes[idx];
                     return {calibration_mode: calMode};
                 }
             },
@@ -106,7 +106,7 @@ export const _067776 = {
     },
     getCalibrationModes: (isNLLVSwitch: boolean) => {
         const modes = getApplicableCalibrationModes(isNLLVSwitch);
-        return e.enum('calibration_mode', ea.ALL, Object.keys(modes))
+        return e.enum('calibration_mode', ea.ALL, Object.values(modes))
             .withDescription('Defines the calibration mode of the switch. (Caution: Changing modes requires a recalibration of the shutter switch!)');
     },
 };
