@@ -116,7 +116,7 @@ const definitions: Definition[] = [
                 {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
             ]},
         ],
-        zigbeeModel: ['DS01'],
+        zigbeeModel: ['DS01', 'SNZB-04'],
         model: 'SNZB-04',
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK06'}],

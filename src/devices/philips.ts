@@ -2088,7 +2088,7 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['RDM001', '9290030171'],
+        zigbeeModel: ['RDM001', '9290030171', 'RDM004'],
         model: '929003017102',
         vendor: 'Philips',
         description: 'Hue wall switch module',
