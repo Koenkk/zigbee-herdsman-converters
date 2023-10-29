@@ -759,7 +759,7 @@ const definitions: Definition[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yojqa8xn', '_TZE204_zougpkpy']),
         model: 'TS0601_gas_sensor_2',
-        vendor: 'TuYa',
+        vendor: 'DYGSM',
         description: 'Gas sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -767,7 +767,8 @@ const definitions: Definition[] = [
         exposes: [
             e.gas(), tuya.exposes.gasValue().withUnit('LEL'), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(),
             tuya.exposes.silence(),
-            e.enum('alarm_ringtone', ea.STATE_SET, ['1', '2', '3', '4', '5']).withDescription('Ringtone of the alarm'),
+            e.enum('alarm_ringtone', ea.STATE_SET, [
+            'melody1', 'melody2', 'melody3', 'melody4', 'melody5']).withDescription('Ringtone of the alarm'),
             e.numeric('alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(180).withValueStep(1)
                 .withUnit('s').withDescription('Alarm time'),
             e.binary('preheat', ea.STATE, true, false).withDescription('Indicates sensor preheat is active'),
@@ -777,9 +778,9 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'gas', tuya.valueConverter.trueFalseEnum0],
+                [1, 'gas_detection_state', tuya.valueConverterBasic.lookup({ 'alarm': tuya.enum(0), 'normal': tuya.enum(1) })],
                 [2, 'gas_value', tuya.valueConverter.divideBy10],
-                [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'1': 0, '2': 1, '3': 2, '4': 3, '5': 4})],
+                [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'melody1': tuya.enum(0), 'melody2': tuya.enum(1), 'melody3': tuya.enum(2), 'melody4': tuya.enum(3),'melody5': tuya.enum(4),})],
                 [7, 'alarm_time', tuya.valueConverter.raw],
                 [8, 'self_test', tuya.valueConverter.raw],
                 [9, 'self_test_result', tuya.valueConverter.selfTestResult],
