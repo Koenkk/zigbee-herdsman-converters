@@ -121,7 +121,7 @@ const definitions: Definition[] = [
             e.battery(),
             e.enum('program', ea.SET, ['set_bottom', 'set_upper', 'reset']).withDescription('Set the upper/bottom limit'),
             e.enum('click_control', ea.SET, ['upper', 'upper_micro', 'lower', 'lower_micro'])
-                .withDescription('Control motor in steps (ingores set limits; micro = small movement)'),
+                .withDescription('Control motor in steps (ingores set limits; normal/micro = 120deg/5deg movement)'),
             e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Motor direction'),
         ],
         meta: {
