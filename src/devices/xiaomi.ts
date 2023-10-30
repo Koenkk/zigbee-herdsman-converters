@@ -2850,6 +2850,16 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.remote.b186acn03'],
+        model: 'WXKG05LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 wireless switch',
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.battery, fz.aqara_opple],
+        toZigbee: [],
+        exposes: [e.action(['single', 'double', 'hold']), e.battery()],
+    },
+    {
         zigbeeModel: ['lumi.remote.b28ac1'],
         model: 'WXKG15LM',
         vendor: 'Xiaomi',
