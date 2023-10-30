@@ -1291,7 +1291,7 @@ const definitions: Definition[] = [
             {vendor: 'Moes', model: 'MS-105Z'},
             {vendor: 'Lerlink', model: 'X706U'},
             {vendor: 'Moes', model: 'ZS-EUD_1gang'},
-            tuya.whitelabel('Moes', 'ZS-SR-EUD-1', 'Star ring smart dimmer switch 1 gang', ['_TZE204_zenj4lxv', '_TZE204_hlx9tnzb']),
+            tuya.whitelabel('Moes', 'ZS-SR-EUD-1', 'Star ring smart dimmer switch 1 gang', ['_TZE204_hlx9tnzb']),
         ],
     },
     {
@@ -3071,7 +3071,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}, {vendor: 'BlitzWolf', model: 'BW-SHP15'},
             {vendor: 'AVATTO', model: 'MIUCOT10Z'}, {vendor: 'Neo', model: 'NAS-WR01B'}, {vendor: 'Neo', model: 'PLUG-001SPB2'},
-            tuya.whitelabel('TuYa', 'BSD29', 'Smart plug (with power monitoring by polling)', ['_TZ3000_okaz9tjs']),
+            tuya.whitelabel('TuYa', 'BSD29_1', 'Smart plug (with power monitoring by polling)', ['_TZ3000_okaz9tjs']),
         ],
         ota: ota.zigbeeOTA,
         extend: tuya.extend.switch({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true}),

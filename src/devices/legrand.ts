@@ -1,51 +1,14 @@
-import {Definition, Fz, OnEvent, Tz} from '../lib/types';
+import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
+import {tzLegrand, fzLegrand, readInitialBatteryState, _067776} from '../lib/legrand';
 const e = exposes.presets;
 const ea = exposes.access;
-
-const readInitialBatteryState: OnEvent = async (type, data, device, options) => {
-    if (['deviceAnnounce'].includes(type)) {
-        const endpoint = device.getEndpoint(1);
-        const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
-        await endpoint.read('genPowerCfg', ['batteryVoltage'], options);
-    }
-};
-
-const tzLocal = {
-    auto_mode: {
-        key: ['auto_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const mode = utils.getFromLookup(value, {'off': 0x00, 'auto': 0x02, 'on_override': 0x03});
-            const payload = {data: Buffer.from([mode])};
-            await entity.command('manuSpecificLegrandDevices3', 'command0', payload);
-            return {state: {'auto_mode': value}};
-        },
-    } as Tz.Converter,
-};
-
-const fzlocal = {
-    legrand_600087l: {
-        cluster: 'greenPower',
-        type: ['commandNotification'],
-        convert: (model, msg, publish, options, meta) => {
-            const commandID = msg.data.commandID;
-            const lookup: {[s: number]: string} = {0x34: 'stop', 0x35: 'up', 0x36: 'down'};
-            if (commandID === 224) return;
-            if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`GreenPower_3 error: missing command '${commandID}'`);
-            } else {
-                return {action: lookup[commandID]};
-            }
-        },
-    } as Fz.Converter,
-};
 
 const definitions: Definition[] = [
     {
@@ -100,7 +63,7 @@ const definitions: Definition[] = [
         extend: extend.switch(),
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power, tzLocal.auto_mode],
+        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power, tzLegrand.auto_mode],
         exposes: [
             e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             e.power().withAccess(ea.STATE_GET),
@@ -170,20 +133,26 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify, fz.legrand_led_in_dark],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
+            fz.legrand_led_in_dark, fzLegrand.calibration_mode(false)],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark, tzLegrand.calibration_mode(false)],
         exposes: [
-            e.cover_position(),
+            _067776.getCover(),
             e.action(['moving', 'identify']),
             e.enum('identify', ea.SET, ['blink'])
                 .withDescription('Blinks the built-in LED to make it easier to identify the device'),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
+            _067776.getCalibrationModes(false),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
-            await reporting.currentPositionLiftPercentage(endpoint);
+            let p = reporting.payload('currentPositionLiftPercentage', 1, 120, 1);
+            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
+
+            p = reporting.payload('currentPositionTiltPercentage', 1, 120, 1);
+            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
         },
     },
     {
@@ -220,20 +189,26 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch with level control (NLLV)',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify, fz.legrand_led_in_dark],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
+            fz.legrand_led_in_dark, fzLegrand.calibration_mode(true)],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark, tzLegrand.calibration_mode(true)],
         exposes: [
-            e.cover_position(),
+            _067776.getCover(),
             e.action(['moving', 'identify']),
             e.enum('identify', ea.SET, ['blink'])
                 .withDescription('Blinks the built-in LED to make it easier to identify the device'),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
+            _067776.getCalibrationModes(true),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
-            await reporting.currentPositionLiftPercentage(endpoint);
+            let p = reporting.payload('currentPositionLiftPercentage', 1, 120, 1);
+            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
+
+            p = reporting.payload('currentPositionTiltPercentage', 1, 120, 1);
+            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
         },
     },
     {
@@ -538,7 +513,7 @@ const definitions: Definition[] = [
         model: '600087L',
         vendor: 'Legrand',
         description: 'Wireless and batteryless blind control switch',
-        fromZigbee: [fzlocal.legrand_600087l],
+        fromZigbee: [fzLegrand.legrand_600087l],
         toZigbee: [],
         exposes: [e.action(['stop', 'up', 'down'])],
     },
