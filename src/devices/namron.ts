@@ -156,8 +156,23 @@ const definitions: Definition[] = [
         zigbeeModel: ['1402767'],
         model: '1402767',
         vendor: 'Namron',
-        description: 'Zigbee dimmer 2-pol 250W',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
+        description: 'Zigbee LED dimmer',
+        extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['1402768'],
+        model: '1402768',
+        vendor: 'Namron',
+        description: 'Zigbee LED dimmer',
+        extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
