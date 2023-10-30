@@ -1282,6 +1282,29 @@ const definitions: Definition[] = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['QUAD-ZIG-SW'],
+        model: 'QUAD-ZIG-SW',
+        vendor: 'smarthjemmet.dk',
+        description: '[FUGA compatible switch from Smarthjemmet.dk](https://smarthjemmet.dk)',
+        fromZigbee: [fz.ignore_basic_report, fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
+        toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        exposes: [
+            ...[e.enum('switch_type_1', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_1')],
+            ...[e.enum('switch_type_2', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_2')],
+            ...[e.enum('switch_type_3', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_3')],
+            ...[e.enum('switch_type_4', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_4')],
+            e.battery(), e.action(['single', 'double', 'triple', 'hold', 'release']), e.battery_voltage(),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {button_1: 2, button_2: 3, button_3: 4, button_4: 5};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
+        },
+    },
 ];
 
 module.exports = definitions;
