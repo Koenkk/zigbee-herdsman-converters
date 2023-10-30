@@ -333,7 +333,7 @@ const tzLocal = {
                 meta.logger.warn(`Unhandled key ${key}`);
             }
         },
-    } as Tz.Converter, 
+    } as Tz.Converter,
 };
 
 const fzLocal = {
