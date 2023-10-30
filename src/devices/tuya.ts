@@ -780,8 +780,8 @@ const definitions: Definition[] = [
             tuyaDatapoints: [
                 [1, 'gas', tuya.valueConverterBasic.lookup({True: tuya.enum(0), False: tuya.enum(1)})],
                 [2, 'gas_value', tuya.valueConverter.divideBy10],
-                [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'melody1': tuya.enum(0), 'melody2': tuya.enum(1), 
-                        'melody3': tuya.enum(2), 'melody4': tuya.enum(3),'melody5': tuya.enum(4)})],
+                [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'melody1': tuya.enum(0), 'melody2': tuya.enum(1),
+        'melody3': tuya.enum(2), 'melody4': tuya.enum(3),'melody5': tuya.enum(4)})],
                 [7, 'alarm_time', tuya.valueConverter.raw],
                 [8, 'self_test', tuya.valueConverter.raw],
                 [9, 'self_test_result', tuya.valueConverter.selfTestResult],
