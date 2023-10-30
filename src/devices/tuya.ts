@@ -6609,14 +6609,13 @@ const definitions: Definition[] = [
             e.numeric('motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(5).withValueStep(1).withDescription('Motion detection sensitivity'),
             e.numeric('static_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(5).withValueStep(1).withDescription('Static detection sensitivity'),
             e.numeric('fading_time', ea.STATE_SET).withValueMin(10).withValueMax(10000).withValueStep(1).withUnit('sec').withDescription('Time after which the device will check again for presence')
-    
         ],        
         meta: {
             tuyaDatapoints: [
                 [101, 'fading_time', tuya.valueConverter.raw],
             ],
+        },
     },
-    
 ];
 
 module.exports = definitions;
