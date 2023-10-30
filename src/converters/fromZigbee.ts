@@ -3751,13 +3751,6 @@ const converters1 = {
             }
         },
     } as Fz.Converter,
-    legrand_led_in_dark: {
-        cluster: 'manuSpecificLegrandDevices',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {led_in_dark: msg.data[1] === 1 ? 'ON' : 'OFF'};
-        },
-    } as Fz.Converter,
     xiaomi_power: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
