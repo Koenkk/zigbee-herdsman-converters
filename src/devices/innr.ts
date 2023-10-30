@@ -171,6 +171,9 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
+        endpoint: (device) => {
+            return {default: 1};
+        },
     },
     {
         zigbeeModel: ['RF 265'],
