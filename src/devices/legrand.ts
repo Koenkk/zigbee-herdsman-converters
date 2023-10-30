@@ -421,6 +421,9 @@ const definitions: Definition[] = [
         model: '412015',
         vendor: 'Legrand',
         description: 'DIN power consumption module',
+        whiteLabel: [
+            {vendor: 'Legrand', description: 'DIN power consumption module', model: '412172', fingerprint: [{modelID: ' Smart shedder module'}]},
+        ],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.ignore_basic_report, fz.ignore_genOta,
             fz.legrand_power_alarm, fz.legrand_led_in_dark],
@@ -430,9 +433,6 @@ const definitions: Definition[] = [
             e.power_apparent(),
             e.binary('power_alarm_active', ea.STATE, true, false),
             e.binary('power_alarm', ea.ALL, true, false).withDescription('Enable/disable the power alarm'),
-        ],
-        whiteLabel: [
-            {vendor: 'Legrand', description: 'DIN power consumption module', model: '412172', fingerprint: [{modelID: ' Smart shedder module'}]},
         ],
         onEvent: async (type, data, device, options, state) => {
             /**
