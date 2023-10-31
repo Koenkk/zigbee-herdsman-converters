@@ -3752,7 +3752,7 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'TS0004', 'Smart light switch - 4 gang with backlight and neutral wire', ['_TZ3000_nivavasg']),
+            tuya.whitelabel('TuYa', 'TS0004_switch_4_gang_with_backlight', 'Smart light switch - 4 gang with backlight and neutral wire', ['_TZ3000_nivavasg']),
         ],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
