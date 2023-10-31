@@ -3717,7 +3717,7 @@ const converters1 = {
             return payload;
         },
     } as Fz.Converter,
-    legrand_greenpower_254: {
+    legrand_greenpower: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
