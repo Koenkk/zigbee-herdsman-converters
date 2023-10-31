@@ -513,7 +513,7 @@ const definitions: Definition[] = [
         model: '600087L',
         vendor: 'Legrand',
         description: 'Wireless and batteryless blind control switch',
-        fromZigbee: [fzLegrand.legrand_600087l],
+        fromZigbee: [fz.legrand_greenpower],
         toZigbee: [],
         exposes: [e.action(['stop', 'up', 'down'])],
     },

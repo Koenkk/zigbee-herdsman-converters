@@ -3729,6 +3729,7 @@ const converters1 = {
                 0x12: 'daytime_day', 0x13: 'daytime_night', // ZLGP16, yes these commandIDs are lower than ZLGP15s'
                 0x14: 'press_1', 0x15: 'press_2', 0x16: 'press_3', 0x17: 'press_4', // ZLGP15
                 0x22: 'press_once', 0x20: 'press_twice', // ZLGP17, ZLGP18
+                0x34: 'stop', 0x35: 'up', 0x36: 'down', // 600087l
             };
             if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`GreenPower_254: missing command '${commandID}'`);

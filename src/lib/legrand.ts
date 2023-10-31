@@ -55,20 +55,6 @@ export const tzLegrand = {
 };
 
 export const fzLegrand = {
-    legrand_600087l: {
-        cluster: 'greenPower',
-        type: ['commandNotification'],
-        convert: (model, msg, publish, options, meta) => {
-            const commandID = msg.data.commandID;
-            const lookup: {[s: number]: string} = {0x34: 'stop', 0x35: 'up', 0x36: 'down'};
-            if (commandID === 224) return;
-            if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`GreenPower_3 error: missing command '${commandID}'`);
-            } else {
-                return {action: lookup[commandID]};
-            }
-        },
-    } as Fz.Converter,
     cluster_fc01: {
         cluster: 'manuSpecificLegrandDevices',
         type: ['readResponse'],
