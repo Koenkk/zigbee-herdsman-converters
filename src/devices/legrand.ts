@@ -504,7 +504,7 @@ const definitions: Definition[] = [
         model: 'ZLGP17/ZLGP18',
         vendor: 'Legrand',
         description: 'Wireless and batteryless (double) lighting control',
-        fromZigbee: [fz.legrand_zlgp17_zlgp18],
+        fromZigbee: [fz.legrand_greenpower],
         toZigbee: [],
         exposes: [e.action(['press_once', 'press_twice'])],
     },
