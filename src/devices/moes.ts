@@ -104,7 +104,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_aoclfnxz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_u9bfwha0'},],
+            {modelID: 'TS0601', manufacturerName: '_TZE204_u9bfwha0'}],
         model: 'BHT-002-GCLZB',
         vendor: 'Moes',
         description: 'Moes BHT series Thermostat',
