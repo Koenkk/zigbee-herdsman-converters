@@ -3376,6 +3376,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['LTD016'],
+        model: '9290031347',
+        vendor: 'Philips',
+        description: 'Hue white ambiance extra bright high lumen dimmable LED smart retrofit recessed 4" downlight',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LTD017'],
         model: '578526',
         vendor: 'Philips',
