@@ -3741,6 +3741,29 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: [
+            {modelID: 'TS0004', manufacturerName: '_TZ3000_nivavasg'},
+        ],
+        model: 'TS0004',
+        vendor: 'TuYa',
+        description: 'Smart light switch - 4 gang with backlight and neutral wire',
+        extend: tuya.extend.switch({powerOnBehavior2: true, backlightModeOffOn: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'TS0004', 'Smart light switch - 4 gang with backlight and neutral wire', ['_TZ3000_nivavasg']),
+        ],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['TS0726'],
         model: 'TS0726',
         vendor: 'TuYa',
