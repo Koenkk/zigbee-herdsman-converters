@@ -3732,7 +3732,7 @@ const converters1 = {
                 0x34: 'stop', 0x35: 'up', 0x36: 'down', // 600087l
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`GreenPower_254: missing command '${commandID}'`);
+                meta.logger.error(`Legrand GreenPower: missing command '${commandID}'`);
             } else {
                 return {action: lookup[commandID]};
             }
