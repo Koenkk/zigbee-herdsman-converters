@@ -3719,12 +3719,6 @@ const definitions: Definition[] = [
         toZigbee: [],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0004', manufacturerName: '_TZ3000_nivavasg'},
-            {modelID: 'TS0004', manufacturerName: '_TZ3000_gexniqbq'},
-            {modelID: 'TS0004', manufacturerName: '_TZ3000_mdj7kra9'},
-            {modelID: 'TS0004', manufacturerName: '_TZ3000_u3oupgdy'},
-        ],
         zigbeeModel: ['TS0004'],
         model: 'TS0004',
         vendor: 'TuYa',
@@ -3736,12 +3730,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('TuYa', 'DS-111', 'Smart light switch - 4 gang with neutral wire', ['_TZ3000_mdj7kra9']),
             tuya.whitelabel('MHCOZY', 'TYWB 4ch-RF', '4 channel relay', ['_TZ3000_u3oupgdy']),
-            tuya.whitelabel(
-                'Avatto',
-                'TS0004_switch_4_gang',
-                'Smart light switch - 4 gang with neutral wire',
-                ['_TZ3000_nivavasg', '_TZ3000_gexniqbq'],
-            ),
+            tuya.whitelabel('Avatto', 'TS0004_1', 'Smart light switch - 4 gang with neutral wire', ['_TZ3000_nivavasg', '_TZ3000_gexniqbq']),
         ],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
