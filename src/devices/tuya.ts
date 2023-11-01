@@ -3719,44 +3719,27 @@ const definitions: Definition[] = [
         toZigbee: [],
     },
     {
+        fingerprint: [
+            {modelID: 'TS0004', manufacturerName: '_TZ3000_nivavasg'},
+            {modelID: 'TS0004', manufacturerName: '_TZ3000_gexniqbq'},
+            {modelID: 'TS0004', manufacturerName: '_TZ3000_mdj7kra9'},
+            {modelID: 'TS0004', manufacturerName: '_TZ3000_u3oupgdy'},
+        ],
         zigbeeModel: ['TS0004'],
         model: 'TS0004',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang with neutral wire',
-        extend: tuya.extend.switch({powerOnBehavior2: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
+        extend: tuya.extend.switch({powerOnBehavior2: true, backlightModeOffOn: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         whiteLabel: [
             tuya.whitelabel('TuYa', 'DS-111', 'Smart light switch - 4 gang with neutral wire', ['_TZ3000_mdj7kra9']),
             tuya.whitelabel('MHCOZY', 'TYWB 4ch-RF', '4 channel relay', ['_TZ3000_u3oupgdy']),
-        ],
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
-        fingerprint: [
-            {modelID: 'TS0004', manufacturerName: '_TZ3000_nivavasg'},
-            {modelID: 'TS0004', manufacturerName: '_TZ3000_gexniqbq'},
-        ],
-        model: 'TS0004_switch_4_gang_with_backlight',
-        vendor: 'TuYa',
-        description: 'Smart light switch - 4 gang with backlight and neutral wire',
-        extend: tuya.extend.switch({powerOnBehavior2: true, backlightModeOffOn: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
-        },
-        whiteLabel: [
             tuya.whitelabel(
-                'TuYa',
-                'TS0004_switch_4_gang_with_backlight',
-                'Smart light switch - 4 gang with backlight and neutral wire',
+                'Avatto',
+                'TS0004_switch_4_gang',
+                'Smart light switch - 4 gang with neutral wire',
                 ['_TZ3000_nivavasg', '_TZ3000_gexniqbq'],
             ),
         ],
