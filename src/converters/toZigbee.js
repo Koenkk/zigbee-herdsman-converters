@@ -3913,7 +3913,7 @@ const converters = {
             }
         },
     },
-    legrand_settingEnableLedInDark: {
+    legrand_led_in_dark: {
         // connected power outlet is on attribute 2 and not 1
         key: ['led_in_dark'],
         convertSet: async (entity, key, value, meta) => {
@@ -3927,7 +3927,7 @@ const converters = {
             await entity.read('manuSpecificLegrandDevices', [0x0001], manufacturerOptions.legrand);
         },
     },
-    legrand_settingEnableLedIfOn: {
+    legrand_led_if_on: {
         key: ['led_if_on'],
         convertSet: async (entity, key, value, meta) => {
             // enable the LED when the light object is "doing something"
@@ -3942,7 +3942,7 @@ const converters = {
             await entity.read('manuSpecificLegrandDevices', [0x0002], manufacturerOptions.legrand);
         },
     },
-    legrand_deviceMode: {
+    legrand_device_mode: {
         key: ['device_mode'],
         convertSet: async (entity, key, value, meta) => {
             // enable the dimmer, requires a recent firmware on the device
@@ -3968,7 +3968,7 @@ const converters = {
             await entity.read('manuSpecificLegrandDevices', [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
         },
     },
-    legrand_cableOutletMode: {
+    legrand_cable_outlet_mode: {
         key: ['cable_outlet_mode'],
         convertSet: async (entity, key, value, meta) => {
             const mode = {
@@ -3987,7 +3987,7 @@ const converters = {
             await entity.read('manuSpecificLegrandDevices2', [0x0000], manufacturerOptions.legrand);
         },
     },
-    legrand_powerAlarm: {
+    legrand_power_alarm: {
         key: ['power_alarm'],
         convertSet: async (entity, key, value, meta) => {
             const enableAlarm = (value === 'DISABLE' || value === false ? false : true);

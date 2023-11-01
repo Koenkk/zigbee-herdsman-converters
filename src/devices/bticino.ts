@@ -5,6 +5,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
+import {fzLegrand} from '../lib/legrand';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -15,8 +16,8 @@ const definitions: Definition[] = [
         vendor: 'BTicino',
         description: 'Light switch with neutral',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input, fz.legrand_cluster_fc01, fz.legrand_led_in_dark],
-        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn, tz.legrand_identify],
+        fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input, fzLegrand.cluster_fc01],
+        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_led_if_on, tz.legrand_identify],
         exposes: [
             e.switch(),
             e.action(['identify', 'on', 'off']),
@@ -39,9 +40,9 @@ const definitions: Definition[] = [
         description: 'Dimmer switch with neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fz.legrand_cluster_fc01, fz.legrand_led_in_dark],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn,
-            tz.legrand_deviceMode, tz.legrand_identify, tz.ballast_config],
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_led_in_dark, tz.legrand_led_if_on,
+            tz.legrand_device_mode, tz.legrand_identify, tz.ballast_config],
         exposes: [
             e.light_brightness(),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
@@ -76,8 +77,8 @@ const definitions: Definition[] = [
         description: 'Shutter SW with level control',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.bticino_4027C_binary_input_moving,
-            fz.identify, fz.legrand_led_in_dark, fz.ignore_zclversion_read],
-        toZigbee: [tz.bticino_4027C_cover_state, tz.bticino_4027C_cover_position, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+            fz.identify, fzLegrand.cluster_fc01, fz.ignore_zclversion_read],
+        toZigbee: [tz.bticino_4027C_cover_state, tz.bticino_4027C_cover_position, tz.legrand_identify, tz.legrand_led_in_dark],
         exposes: [
             e.cover_position(),
             e.action(['moving', 'identify', '']),
@@ -98,8 +99,8 @@ const definitions: Definition[] = [
         description: 'DIN power consumption module (same as Legrand 412015)',
         vendor: 'BTicino',
         extend: extend.switch(),
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.legrand_device_mode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [
             e.switch()
                 .withState('state', true, 'On/off (works only if device is in "switch" mode)'),
@@ -121,8 +122,8 @@ const definitions: Definition[] = [
         model: 'L4531C',
         vendor: 'BTicino',
         description: 'Power socket with power consumption monitoring',
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_led_in_dark],
-        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_identify],
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01],
+        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_identify],
         exposes: [
             e.switch(),
             e.action(['identify']),

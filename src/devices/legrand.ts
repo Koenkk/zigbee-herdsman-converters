@@ -35,8 +35,8 @@ const definitions: Definition[] = [
         description: 'DIN dry contactor module',
         whiteLabel: [{vendor: 'BTicino', model: 'FC80AC'}],
         extend: extend.switch(),
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.legrand_device_mode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [
             e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             e.power().withAccess(ea.STATE_GET), e.enum('device_mode', ea.ALL, ['switch', 'auto'])
@@ -62,8 +62,8 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'BTicino', model: 'FC80CC'}],
         extend: extend.switch(),
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power, tzLegrand.auto_mode],
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.legrand_device_mode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power, tzLegrand.auto_mode],
         exposes: [
             e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             e.power().withAccess(ea.STATE_GET),
@@ -89,8 +89,8 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'BTicino', model: 'FC80RC'}],
         extend: extend.switch(),
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.legrand_device_mode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [
             e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             e.power().withAccess(ea.STATE_GET), e.enum('device_mode', ea.ALL, ['switch', 'auto'])
@@ -134,8 +134,8 @@ const definitions: Definition[] = [
         description: 'Netatmo wired shutter switch',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
-            fz.legrand_led_in_dark, fzLegrand.calibration_mode(false)],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark, tzLegrand.calibration_mode(false)],
+            fzLegrand.cluster_fc01, fzLegrand.calibration_mode(false)],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_led_in_dark, tzLegrand.calibration_mode(false)],
         exposes: [
             _067776.getCover(),
             e.action(['moving', 'identify']),
@@ -171,8 +171,8 @@ const definitions: Definition[] = [
         description: 'Netatmo wired shutter switch',
         ota: ota.zigbeeOTA,
         meta: {coverInverted: true},
-        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt, fz.legrand_led_in_dark],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt, fzLegrand.cluster_fc01],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_led_in_dark],
         exposes: [e.cover_position()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -190,8 +190,8 @@ const definitions: Definition[] = [
         description: 'Netatmo wired shutter switch with level control (NLLV)',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
-            fz.legrand_led_in_dark, fzLegrand.calibration_mode(true)],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark, tzLegrand.calibration_mode(true)],
+            fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_led_in_dark, tzLegrand.calibration_mode(true)],
         exposes: [
             _067776.getCover(),
             e.action(['moving', 'identify']),
@@ -280,9 +280,9 @@ const definitions: Definition[] = [
         description: 'Wired switch without neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fz.legrand_cluster_fc01,
-            fz.power_on_behavior, fz.legrand_led_in_dark],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn, tz.legrand_deviceMode,
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01,
+            fz.power_on_behavior],
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_led_in_dark, tz.legrand_led_if_on, tz.legrand_device_mode,
             tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
         exposes: [
             e.light_brightness(),
@@ -313,9 +313,9 @@ const definitions: Definition[] = [
         description: 'Wired switch without neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fz.legrand_cluster_fc01,
-            fz.power_on_behavior, fz.legrand_led_in_dark],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn, tz.legrand_deviceMode,
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01,
+            fz.power_on_behavior],
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_led_in_dark, tz.legrand_led_if_on, tz.legrand_device_mode,
             tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
         exposes: [
             e.light_brightness(),
@@ -345,8 +345,8 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Power socket with power consumption monitoring',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.power_on_behavior, fz.legrand_led_in_dark],
-        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.legrand_settingEnableLedIfOn, tz.power_on_behavior],
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.power_on_behavior, fzLegrand.cluster_fc01],
+        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_identify, tz.legrand_led_if_on, tz.power_on_behavior],
         exposes: [
             e.switch(),
             e.action(['identify']),
@@ -421,18 +421,18 @@ const definitions: Definition[] = [
         model: '412015',
         vendor: 'Legrand',
         description: 'DIN power consumption module',
+        whiteLabel: [
+            {vendor: 'Legrand', description: 'DIN power consumption module', model: '412172', fingerprint: [{modelID: ' Smart shedder module'}]},
+        ],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.ignore_basic_report, fz.ignore_genOta,
-            fz.legrand_power_alarm, fz.legrand_led_in_dark],
-        toZigbee: [tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.electrical_measurement_power, tz.legrand_powerAlarm],
+            fz.legrand_power_alarm, fzLegrand.cluster_fc01],
+        toZigbee: [tz.legrand_led_in_dark, tz.legrand_identify, tz.electrical_measurement_power, tz.legrand_power_alarm],
         exposes: [
             e.power().withAccess(ea.STATE_GET),
             e.power_apparent(),
             e.binary('power_alarm_active', ea.STATE, true, false),
             e.binary('power_alarm', ea.ALL, true, false).withDescription('Enable/disable the power alarm'),
-        ],
-        whiteLabel: [
-            {vendor: 'Legrand', description: 'DIN power consumption module', model: '412172', fingerprint: [{modelID: ' Smart shedder module'}]},
         ],
         onEvent: async (type, data, device, options, state) => {
             /**
@@ -524,8 +524,8 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Cable outlet with pilot wire and consumption measurement',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.legrand_cluster_fc01, fz.legrand_cable_outlet_mode, fz.on_off, fz.electrical_measurement, fz.power_on_behavior],
-        toZigbee: [tz.legrand_deviceMode, tz.legrand_cableOutletMode, tz.on_off, tz.electrical_measurement_power, tz.power_on_behavior],
+        fromZigbee: [fzLegrand.cluster_fc01, fz.legrand_cable_outlet_mode, fz.on_off, fz.electrical_measurement, fz.power_on_behavior],
+        toZigbee: [tz.legrand_device_mode, tz.legrand_cable_outlet_mode, tz.on_off, tz.electrical_measurement_power, tz.power_on_behavior],
         exposes: [
             e.binary('device_mode', ea.ALL, 'pilot_on', 'pilot_off'),
             e.enum('cable_outlet_mode', ea.ALL, ['comfort', 'comfort-1', 'comfort-2', 'eco', 'frost_protection', 'off']),
@@ -553,9 +553,9 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         meta: {multiEndpoint: true},
         fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.legrand_binary_input_on_off, fz.lighting_ballast_configuration,
-            fz.legrand_cluster_fc01, fz.power_on_behavior, fz.legrand_led_in_dark],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_identify, tz.legrand_deviceMode, tz.on_off, tz.legrand_settingEnableLedInDark,
-            tz.legrand_settingEnableLedIfOn, tz.ballast_config, tz.power_on_behavior],
+            fzLegrand.cluster_fc01, fz.power_on_behavior],
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_identify, tz.legrand_device_mode, tz.on_off, tz.legrand_led_in_dark,
+            tz.legrand_led_if_on, tz.ballast_config, tz.power_on_behavior],
         exposes: [
             e.light_brightness().withEndpoint('left'),
             e.light_brightness().withEndpoint('right'),
@@ -598,8 +598,8 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Outlet with power consumption monitoring',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_led_in_dark],
-        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_identify],
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01],
+        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_identify],
         exposes: [
             e.switch(),
             e.action(['identify']),
@@ -618,8 +618,8 @@ const definitions: Definition[] = [
         model: 'WNAL10/WNRL10',
         vendor: 'Legrand',
         description: 'Smart switch with Netatmo',
-        fromZigbee: [fz.on_off, fz.legrand_binary_input_on_off, fz.legrand_cluster_fc01, fz.legrand_led_in_dark],
-        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn],
+        fromZigbee: [fz.on_off, fz.legrand_binary_input_on_off, fzLegrand.cluster_fc01],
+        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_led_if_on],
         exposes: [
             e.switch(),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
@@ -639,10 +639,10 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Smart dimmer switch with Netatmo',
         extend: extend.light_onoff_brightness({noConfigure: true}),
-        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fz.legrand_cluster_fc01,
-            fz.power_on_behavior, fz.legrand_led_in_dark],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn,
-            tz.legrand_deviceMode, tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01,
+            fz.power_on_behavior],
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_led_in_dark, tz.legrand_led_if_on,
+            tz.legrand_device_mode, tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
         exposes: [
             e.light_brightness(),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
@@ -692,8 +692,8 @@ const definitions: Definition[] = [
         model: '067766',
         vendor: 'Legrand',
         description: 'Centralized ventilation switch',
-        fromZigbee: [fz.identify, fz.on_off, fz.power_on_behavior, fz.legrand_led_in_dark],
-        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.legrand_settingEnableLedIfOn, tz.power_on_behavior],
+        fromZigbee: [fz.identify, fz.on_off, fz.power_on_behavior, fzLegrand.cluster_fc01],
+        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_identify, tz.legrand_led_if_on, tz.power_on_behavior],
         exposes: [
             e.switch(),
             e.action(['identify']),
