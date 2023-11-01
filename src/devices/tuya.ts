@@ -3743,6 +3743,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'TS0004', manufacturerName: '_TZ3000_nivavasg'},
+            {modelID: 'TS0004', manufacturerName: '_TZ3000_gexniqbq'},
         ],
         model: 'TS0004_switch_4_gang_with_backlight',
         vendor: 'TuYa',
@@ -3756,7 +3757,7 @@ const definitions: Definition[] = [
                 'TuYa',
                 'TS0004_switch_4_gang_with_backlight',
                 'Smart light switch - 4 gang with backlight and neutral wire',
-                ['_TZ3000_nivavasg'],
+                ['_TZ3000_nivavasg', '_TZ3000_gexniqbq'],
             ),
         ],
         meta: {multiEndpoint: true},
