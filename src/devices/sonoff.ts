@@ -4,7 +4,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {Definition, Fz, KeyValue, Tz} from '../lib/types';
+import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
@@ -24,10 +24,14 @@ const fzLocal = {
         cluster: '64529',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const isLocked = msg.data['0'];
-            return {
-                child_lock: isLocked ? 'LOCK' : 'UNLOCK',
-            };
+            const result: KeyValueAny = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x0000)) {
+                result.child_lock = data[0x0000] ? 'LOCK' : 'UNLOCK';
+            }
+
+            return result;
         },
     } as Fz.Converter,
 };
