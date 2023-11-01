@@ -3508,6 +3508,13 @@ const definitions: Definition[] = [
         description: 'Hue white ambiance MR16 with Bluetooth',
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['LCX015'],
+        model: '9290036744',
+        vendor: 'Philips',
+        description: 'Hue Festavia gradient light string 250',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500], extraEffects: ['sparkle']}),
+    },
 ];
 
 module.exports = definitions;
