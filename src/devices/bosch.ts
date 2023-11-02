@@ -451,24 +451,6 @@ const tzLocal = {
 
 
 const fzLocal = {
-
-    ias_siren: { // take status of siren - alarm,tamper,battery,ac_status (connected or not)
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: async (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            await msg.endpoint.command('ssIasZone', 'boschTestTamper', {data: 2}, {manufacturerCode: 0x1209});
-            return {
-                alarm: (zoneStatus & 1) > 0,
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-                supervision_reports: (zoneStatus & 1<<4) > 0,
-                restore_reports: (zoneStatus & 1<<5) > 0,
-                ac_status: (zoneStatus & 1<<7) > 0,
-                test: (zoneStatus & 1<<8) > 0,
-            };
-        },
-    } as Fz.Converter,
     bmct: {
         cluster: '64672',
         type: ['attributeReport', 'readResponse'],
@@ -700,7 +682,7 @@ const definitions: Definition[] = [
         model: 'BSIR-EZ',
         vendor: 'Bosch',
         description: 'Outdoor siren',
-        fromZigbee: [fz.ias_alarm_only_alarm_1, fzLocal.ias_siren, fz.battery, fz.power_source],
+        fromZigbee: [fz.ias_alarm_only_alarm_1, fz.battery, fz.power_source],
         toZigbee: [tzLocal.rbshoszbeu, tz.warning],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 4200}}},
         configure: async (device, coordinatorEndpoint, logger) => {
