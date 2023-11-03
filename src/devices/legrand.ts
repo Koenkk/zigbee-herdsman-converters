@@ -143,6 +143,8 @@ const definitions: Definition[] = [
                 .withDescription('Blinks the built-in LED to make it easier to identify the device'),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
+                .withDescription('Enables the LED on activity'),
             _067776.getCalibrationModes(false),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -199,6 +201,8 @@ const definitions: Definition[] = [
                 .withDescription('Blinks the built-in LED to make it easier to identify the device'),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
+                .withDescription('Enables the LED on activity'),
             _067776.getCalibrationModes(true),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
