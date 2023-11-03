@@ -491,7 +491,7 @@ const definitions: Definition[] = [
         model: 'ZLGP14/ZLGP15/ZLGP16',
         vendor: 'Legrand',
         description: 'Wireless and batteryless scenario switch (home arrival/departure, 1-4 switches, daytime day/night)',
-        fromZigbee: [fz.legrand_greenpower_254],
+        fromZigbee: [fz.legrand_greenpower],
         toZigbee: [],
         exposes: [e.action([
             'home_arrival', 'home_departure', // ZLGP14
@@ -504,7 +504,7 @@ const definitions: Definition[] = [
         model: 'ZLGP17/ZLGP18',
         vendor: 'Legrand',
         description: 'Wireless and batteryless (double) lighting control',
-        fromZigbee: [fz.legrand_zlgp17_zlgp18],
+        fromZigbee: [fz.legrand_greenpower],
         toZigbee: [],
         exposes: [e.action(['press_once', 'press_twice'])],
     },
@@ -513,7 +513,7 @@ const definitions: Definition[] = [
         model: '600087L',
         vendor: 'Legrand',
         description: 'Wireless and batteryless blind control switch',
-        fromZigbee: [fzLegrand.legrand_600087l],
+        fromZigbee: [fz.legrand_greenpower],
         toZigbee: [],
         exposes: [e.action(['stop', 'up', 'down'])],
     },
