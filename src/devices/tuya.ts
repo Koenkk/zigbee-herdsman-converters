@@ -2188,7 +2188,7 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('Lonsonho', 'X703A', '3 Gang switch with backlight', ['_TZ3000_rhkfbfcv']),
-            tuya.whitelabel('Zemismart', 'ZM-L03E-Z', '3 gang switch with neutral', ['_TZ3000_empogkya']),
+            tuya.whitelabel('Zemismart', 'ZM-L03E-Z', '3 gang switch with neutral', ['_TZ3000_empogkya', '_TZ3000_lsunm46z']),
             tuya.whitelabel('TuYa', 'M10Z', '2 gang switch with 20A power socket', ['_TZ3000_lubfc1t5']),
         ],
     },
