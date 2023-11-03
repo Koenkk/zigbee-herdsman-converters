@@ -6485,6 +6485,31 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iuk8kupi']),
+        model: 'DCR-RQJ',
+        vendor: 'TuYa',
+        description: 'Carbon Monoxide Sensor Gas Leak Detector',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.gas(),
+            tuya.exposes.gasValue().withUnit('LEL %'),
+            e.carbon_monoxide(),
+            e.co(),
+        ],
+
+        meta: {
+            tuyaDatapoints: [
+                [1, 'gas', tuya.valueConverter.trueFalseEnum0],
+                [2, 'gas_value', tuya.valueConverter.raw],
+                [18, 'carbon_monoxide', tuya.valueConverter.trueFalseEnum0],
+                [19, 'co', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
 
 module.exports = definitions;
