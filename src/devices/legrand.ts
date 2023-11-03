@@ -135,7 +135,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
             fzLegrand.cluster_fc01, fzLegrand.calibration_mode(false)],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_led_in_dark, tzLegrand.calibration_mode(false)],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tzLegrand.led_mode, tzLegrand.calibration_mode(false)],
         exposes: [
             _067776.getCover(),
             e.action(['moving', 'identify']),
@@ -143,6 +143,8 @@ const definitions: Definition[] = [
                 .withDescription('Blinks the built-in LED to make it easier to identify the device'),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
+                .withDescription('Enables the LED on activity'),
             _067776.getCalibrationModes(false),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -172,7 +174,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         meta: {coverInverted: true},
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt, fzLegrand.cluster_fc01],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_led_in_dark],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tzLegrand.led_mode],
         exposes: [e.cover_position()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -191,7 +193,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
             fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_led_in_dark, tzLegrand.calibration_mode(true)],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
         exposes: [
             _067776.getCover(),
             e.action(['moving', 'identify']),
@@ -199,6 +201,8 @@ const definitions: Definition[] = [
                 .withDescription('Blinks the built-in LED to make it easier to identify the device'),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
+            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
+                .withDescription('Enables the LED on activity'),
             _067776.getCalibrationModes(true),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -282,7 +286,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01,
             fz.power_on_behavior],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_led_in_dark, tz.legrand_led_if_on, tz.legrand_device_mode,
+        toZigbee: [tz.light_onoff_brightness, tzLegrand.led_mode, tz.legrand_device_mode,
             tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
         exposes: [
             e.light_brightness(),
@@ -315,7 +319,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01,
             fz.power_on_behavior],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_led_in_dark, tz.legrand_led_if_on, tz.legrand_device_mode,
+        toZigbee: [tz.light_onoff_brightness, tzLegrand.led_mode, tz.legrand_device_mode,
             tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
         exposes: [
             e.light_brightness(),
@@ -346,7 +350,7 @@ const definitions: Definition[] = [
         description: 'Power socket with power consumption monitoring',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.power_on_behavior, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_identify, tz.legrand_led_if_on, tz.power_on_behavior],
+        toZigbee: [tz.on_off, tzLegrand.led_mode, tz.legrand_identify, tz.power_on_behavior],
         exposes: [
             e.switch(),
             e.action(['identify']),
@@ -427,7 +431,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.ignore_basic_report, fz.ignore_genOta,
             fz.legrand_power_alarm, fzLegrand.cluster_fc01],
-        toZigbee: [tz.legrand_led_in_dark, tz.legrand_identify, tz.electrical_measurement_power, tz.legrand_power_alarm],
+        toZigbee: [tzLegrand.led_mode, tz.legrand_identify, tz.electrical_measurement_power, tz.legrand_power_alarm],
         exposes: [
             e.power().withAccess(ea.STATE_GET),
             e.power_apparent(),
@@ -554,8 +558,8 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.legrand_binary_input_on_off, fz.lighting_ballast_configuration,
             fzLegrand.cluster_fc01, fz.power_on_behavior],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_identify, tz.legrand_device_mode, tz.on_off, tz.legrand_led_in_dark,
-            tz.legrand_led_if_on, tz.ballast_config, tz.power_on_behavior],
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_identify, tz.legrand_device_mode, tz.on_off, tzLegrand.led_mode,
+            tz.ballast_config, tz.power_on_behavior],
         exposes: [
             e.light_brightness().withEndpoint('left'),
             e.light_brightness().withEndpoint('right'),
@@ -599,7 +603,7 @@ const definitions: Definition[] = [
         description: 'Outlet with power consumption monitoring',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_identify],
+        toZigbee: [tz.on_off, tzLegrand.led_mode, tz.legrand_identify],
         exposes: [
             e.switch(),
             e.action(['identify']),
@@ -619,7 +623,7 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Smart switch with Netatmo',
         fromZigbee: [fz.on_off, fz.legrand_binary_input_on_off, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_led_if_on],
+        toZigbee: [tz.on_off, tzLegrand.led_mode],
         exposes: [
             e.switch(),
             e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
@@ -641,8 +645,8 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness({noConfigure: true}),
         fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01,
             fz.power_on_behavior],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_led_in_dark, tz.legrand_led_if_on,
-            tz.legrand_device_mode, tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
+        toZigbee: [tz.light_onoff_brightness, tzLegrand.led_mode, tz.legrand_device_mode, tz.legrand_identify,
+            tz.ballast_config, tz.power_on_behavior],
         exposes: [
             e.light_brightness(),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
@@ -693,7 +697,7 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Centralized ventilation switch',
         fromZigbee: [fz.identify, fz.on_off, fz.power_on_behavior, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_identify, tz.legrand_led_if_on, tz.power_on_behavior],
+        toZigbee: [tz.on_off, tzLegrand.led_mode, tz.legrand_identify, tz.power_on_behavior],
         exposes: [
             e.switch(),
             e.action(['identify']),

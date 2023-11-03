@@ -5,7 +5,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
-import {fzLegrand} from '../lib/legrand';
+import {fzLegrand, tzLegrand} from '../lib/legrand';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -17,7 +17,7 @@ const definitions: Definition[] = [
         description: 'Light switch with neutral',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_led_if_on, tz.legrand_identify],
+        toZigbee: [tz.on_off, tzLegrand.led_mode, tz.legrand_identify],
         exposes: [
             e.switch(),
             e.action(['identify', 'on', 'off']),
@@ -41,8 +41,7 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_led_in_dark, tz.legrand_led_if_on,
-            tz.legrand_device_mode, tz.legrand_identify, tz.ballast_config],
+        toZigbee: [tz.light_onoff_brightness, tzLegrand.led_mode, tz.legrand_device_mode, tz.legrand_identify, tz.ballast_config],
         exposes: [
             e.light_brightness(),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
@@ -78,7 +77,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.bticino_4027C_binary_input_moving,
             fz.identify, fzLegrand.cluster_fc01, fz.ignore_zclversion_read],
-        toZigbee: [tz.bticino_4027C_cover_state, tz.bticino_4027C_cover_position, tz.legrand_identify, tz.legrand_led_in_dark],
+        toZigbee: [tz.bticino_4027C_cover_state, tz.bticino_4027C_cover_position, tz.legrand_identify, tzLegrand.led_mode],
         exposes: [
             e.cover_position(),
             e.action(['moving', 'identify', '']),
@@ -123,7 +122,7 @@ const definitions: Definition[] = [
         vendor: 'BTicino',
         description: 'Power socket with power consumption monitoring',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tz.legrand_led_in_dark, tz.legrand_identify],
+        toZigbee: [tz.on_off, tzLegrand.led_mode, tz.legrand_identify],
         exposes: [
             e.switch(),
             e.action(['identify']),
