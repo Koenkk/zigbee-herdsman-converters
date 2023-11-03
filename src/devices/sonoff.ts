@@ -5,6 +5,7 @@ import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
@@ -125,9 +126,11 @@ const definitions: Definition[] = [
         fingerprint: [
             // ModelID is from the temperature/humidity sensor (SNZB-02) but this is SNZB-04, wrong modelID in firmware?
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'TH01', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
-            ]},
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'TH01', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
+                ],
+            },
         ],
         zigbeeModel: ['DS01', 'SNZB-04'],
         model: 'SNZB-04',
@@ -164,15 +167,21 @@ const definitions: Definition[] = [
         fingerprint: [
             // ModelID is from the button (SNZB-01) but this is SNZB-02, wrong modelID in firmware?
             // https://github.com/Koenkk/zigbee2mqtt/issues/4338
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'WB01', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
-            ]},
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
-            ]},
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'DS01', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
-            ]},
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'WB01', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
+                ],
+            },
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
+                ],
+            },
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'DS01', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
+                ],
+            },
         ],
         zigbeeModel: ['TH01'],
         model: 'SNZB-02',
@@ -217,9 +226,11 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
-            ]},
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
+                ],
+            },
         ],
         zigbeeModel: ['MS01', 'MSO1'],
         model: 'SNZB-03',
