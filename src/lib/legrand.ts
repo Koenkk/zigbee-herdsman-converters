@@ -4,7 +4,7 @@ import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const legrandOptions = {manufacturerCode: 4129, disableDefaultResponse: true};
+const legrandOptions = {manufacturerCode: 0x1021, disableDefaultResponse: true};
 
 const shutterCalibrationModes: {[k: number]: {description: string, onlyNLLV: boolean}} = {
     0: {description: 'classic_nllv', onlyNLLV: true},
@@ -20,11 +20,34 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
         .map((e) => [e[0], e[1].description]));
 };
 
+export const _067776 = {
+    getCover: () => {
+        const c = e.cover_position();
+        if (c.hasOwnProperty('features')) {
+            c.features.push(new exposes.Numeric('tilt', ea.ALL)
+                .withValueMin(0).withValueMax(100)
+                .withValueStep(25)
+                .withPreset('Closed', 0, 'Vertical')
+                .withPreset('25 %', 25, '25%')
+                .withPreset('50 %', 50, '50%')
+                .withPreset('75 %', 75, '75%')
+                .withPreset('Open', 100, 'Horizontal')
+                .withUnit('%')
+                .withDescription('Tilt percentage of that cover'));
+        }
+        return c;
+    },
+    getCalibrationModes: (isNLLVSwitch: boolean) => {
+        const modes = getApplicableCalibrationModes(isNLLVSwitch);
+        return e.enum('calibration_mode', ea.ALL, Object.values(modes))
+            .withDescription('Defines the calibration mode of the switch. (Caution: Changing modes requires a recalibration of the shutter switch!)');
+    },
+};
+
 export const readInitialBatteryState: OnEvent = async (type, data, device, options) => {
     if (['deviceAnnounce'].includes(type)) {
         const endpoint = device.getEndpoint(1);
-        const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
-        await endpoint.read('genPowerCfg', ['batteryVoltage'], options);
+        await endpoint.read('genPowerCfg', ['batteryVoltage'], legrandOptions);
     }
 };
 
@@ -55,6 +78,22 @@ export const tzLegrand = {
 };
 
 export const fzLegrand = {
+    calibration_mode: (isNLLVSwitch: boolean) => {
+        return {
+            cluster: 'closuresWindowCovering',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const attr = 'calibrationMode';
+                if (msg.data.hasOwnProperty(attr)) {
+                    const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
+                    const idx = msg.data[attr];
+                    utils.validateValue(String(idx), Object.keys(applicableModes));
+                    const calMode = applicableModes[idx];
+                    return {calibration_mode: calMode};
+                }
+            },
+        } as Fz.Converter;
+    },
     cluster_fc01: {
         cluster: 'manuSpecificLegrandDevices',
         type: ['readResponse'],
@@ -80,44 +119,4 @@ export const fzLegrand = {
             return payload;
         },
     } as Fz.Converter,
-    calibration_mode: (isNLLVSwitch: boolean) => {
-        return {
-            cluster: 'closuresWindowCovering',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                const attr = 'calibrationMode';
-                if (msg.data.hasOwnProperty(attr)) {
-                    const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
-                    const idx = msg.data[attr];
-                    utils.validateValue(String(idx), Object.keys(applicableModes));
-                    const calMode = applicableModes[idx];
-                    return {calibration_mode: calMode};
-                }
-            },
-        } as Fz.Converter;
-    },
-};
-
-export const _067776 = {
-    getCover: () => {
-        const c = e.cover_position();
-        if (c.hasOwnProperty('features')) {
-            c.features.push(new exposes.Numeric('tilt', ea.ALL)
-                .withValueMin(0).withValueMax(100)
-                .withValueStep(25)
-                .withPreset('Closed', 0, 'Vertical')
-                .withPreset('25 %', 25, '25%')
-                .withPreset('50 %', 50, '50%')
-                .withPreset('75 %', 75, '75%')
-                .withPreset('Open', 100, 'Horizontal')
-                .withUnit('%')
-                .withDescription('Tilt percentage of that cover'));
-        }
-        return c;
-    },
-    getCalibrationModes: (isNLLVSwitch: boolean) => {
-        const modes = getApplicableCalibrationModes(isNLLVSwitch);
-        return e.enum('calibration_mode', ea.ALL, Object.values(modes))
-            .withDescription('Defines the calibration mode of the switch. (Caution: Changing modes requires a recalibration of the shutter switch!)');
-    },
 };
