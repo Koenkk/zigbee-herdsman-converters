@@ -14,6 +14,11 @@ const shutterCalibrationModes: {[k: number]: {description: string, onlyNLLV: boo
     4: {description: 'venetian_bso', onlyNLLV: false},
 };
 
+const ledModes:{[k: number]: string} = {
+    1: 'led_in_dark',
+    2: 'led_if_on',
+};
+
 const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString => {
     return Object.fromEntries(Object.entries(shutterCalibrationModes)
         .filter((e) => isNLLVSwitch ? true : e[1].onlyNLLV === false)
@@ -75,6 +80,22 @@ export const tzLegrand = {
             },
         } as Tz.Converter;
     },
+    led_mode: {
+        key: ['led_in_dark', 'led_if_on'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.validateValue(key, Object.values(ledModes));
+            const idx = utils.getKey(ledModes, key);
+            const state = value === 'ON' || (value === 'OFF' ? false : !!value);
+            const payload = {[idx]: {value: state, type: 16}};
+            await entity.write('manuSpecificLegrandDevices', payload, legrandOptions);
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            utils.validateValue(key, Object.values(ledModes));
+            const idx = utils.getKey(ledModes, key);
+            await entity.read('manuSpecificLegrandDevices', [Number(idx)], legrandOptions);
+        },
+    } as Tz.Converter,
 };
 
 export const fzLegrand = {
