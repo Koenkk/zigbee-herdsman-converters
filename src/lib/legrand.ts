@@ -131,7 +131,7 @@ export const fzLegrand = {
                 else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
                 else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
                 else {
-                    meta.logger.warn(`device_mode ${option0} not recognized, please fix me`);
+                    meta.logger.warn(`Device_mode ${option0} not recognized, please fix me!`);
                     payload.device_mode = 'unknown';
                 }
             }
