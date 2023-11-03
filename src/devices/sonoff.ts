@@ -36,16 +36,44 @@ const fzLocal = {
             return result;
         },
     } as Fz.Converter,
+    open_window: {
+        cluster: '64529',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x6000)) {
+                result.open_window = data[0x6000] ? 'ON' : 'OFF';
+            }
+
+            return result;
+        },
+    } as Fz.Converter,
 };
 
 const tzLocal = {
     child_lock: {
         key: ['child_lock'],
         convertGet: async (entity, key, meta) => {
-            await entity.read(0xFC11, [0]);
+            await entity.read(0xFC11, [0x0000]);
         },
         convertSet: async (entity, key, value, meta) => {
-            await entity.write(0xFC11, {0: {value: value === 'LOCK' ? 1 : 0, type: Zcl.DataType.boolean}});
+            await entity.write(0xFC11, {0x0000: {value: value === 'LOCK' ? 1 : 0, type: Zcl.DataType.boolean}});
+            return {
+                state: {
+                    [key]: value,
+                },
+            };
+        },
+    } as Tz.Converter,
+    open_window: {
+        key: ['open_window'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read(0xFC11, [0x6000]);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(0xFC11, {0x6000: {value: value === 'ON' ? 1 : 0, type: Zcl.DataType.boolean}});
             return {
                 state: {
                     [key]: value,
@@ -376,18 +404,26 @@ const definitions: Definition[] = [
                 .withSetpoint('occupied_heating_setpoint', 4, 35, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
-                .withRunningState(['idle', 'heat'], ea.STATE_GET), e.battery(), e.battery_low(), e.child_lock().setAccess('state', ea.ALL)],
-        fromZigbee: [fz.thermostat, fz.battery, fzLocal.child_lock],
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
+            e.battery(),
+            e.battery_low(),
+            e.child_lock().setAccess('state', ea.ALL),
+            e.open_window()
+                .withLabel('Open window detection')
+                .withDescription('Sets temperature to 12°C when local temperature drops by more than 1.5°C in 4.5 minutes.')
+                .withAccess(ea.ALL),
+        ],
+        fromZigbee: [fz.thermostat, fz.battery, fzLocal.child_lock, fzLocal.open_window],
         toZigbee: [
             tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode, tz.thermostat_running_state, tzLocal.child_lock],
+            tz.thermostat_system_mode, tz.thermostat_running_state, tzLocal.child_lock, tzLocal.open_window],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
-            await endpoint.read(64529, [0]);
+            await endpoint.read(64529, [0x0000, 0x6000]);
         },
     },
 ];
