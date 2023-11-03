@@ -352,6 +352,24 @@ const definitions: Definition[] = [
             await reporting.onOff(ep);
         },
     },
+    {
+        zigbeeModel: ['SIN-4-FP-21_EQU'],
+        model: 'SIN-4-FP-21_EQU',
+        vendor: 'ADEO',
+        description: 'Equation pilot wire heating module',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fromZigbee_1.default.on_off, fromZigbee_1.default.metering],
+        toZigbee: [toZigbee_1.default.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
+            await reporting.onOff(ep, { min: 1, max: 3600, change: 0 });
+            await reporting.readMeteringMultiplierDivisor(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
+        },
+    },
 ];
 
 module.exports = definitions;
