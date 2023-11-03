@@ -8,6 +8,7 @@ import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
+import {Zcl} from 'zigbee-herdsman';
 
 const fzLocal = {
     router_config: {
@@ -40,7 +41,15 @@ const tzLocal = {
     child_lock: {
         key: ['child_lock'],
         convertGet: async (entity, key, meta) => {
-            await entity.read(64529, [0]);
+            await entity.read(0xFC11, [0]);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(0xFC11, {0: {value: value === 'LOCK' ? 1 : 0, type: Zcl.DataType.boolean}});
+            return {
+                state: {
+                    [key]: value,
+                },
+            };
         },
     } as Tz.Converter,
 };
@@ -356,7 +365,7 @@ const definitions: Definition[] = [
                 .withSetpoint('occupied_heating_setpoint', 4, 35, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
-                .withRunningState(['idle', 'heat'], ea.STATE_GET), e.battery(), e.battery_low(), e.child_lock().setAccess('state', ea.STATE_GET)],
+                .withRunningState(['idle', 'heat'], ea.STATE_GET), e.battery(), e.battery_low(), e.child_lock().setAccess('state', ea.ALL)],
         fromZigbee: [fz.thermostat, fz.battery, fzLocal.child_lock],
         toZigbee: [
             tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint,
