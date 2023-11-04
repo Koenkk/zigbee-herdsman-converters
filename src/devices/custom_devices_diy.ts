@@ -1305,6 +1305,23 @@ const definitions: Definition[] = [
             await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
         },
     },
+    {
+        zigbeeModel: ['ptvo_counter_2ch'],
+        model: 'ptvo_counter_2ch',
+        vendor: 'Custom devices (DiY)',
+        description: '[Configurable firmware](https://ptvo.info/zigbee-configurable-firmware-features/)',
+        fromZigbee: [fz.ignore_basic_report, fz.battery, fz.ptvo_switch_analog_input, fz.on_off],
+        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_analog_input, tz.on_off],
+        exposes: [e.battery(),
+          exposes.numeric('l3', ea.STATE_SET).withDescription('Counter value. Write zero or positive value to set a counter value. Write a negative value to set a wakeup interval in minutes'),
+          exposes.numeric('l5', ea.STATE_SET).withDescription('Counter value. Write zero or positive value to set a counter value. Write a negative value to set a wakeup interval in minutes'),
+          e.switch().withEndpoint('l6'),
+          e.battery_voltage(),     
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l3: 3, l5: 5, l6: 6};
+    },
 ];
 
 module.exports = definitions;
