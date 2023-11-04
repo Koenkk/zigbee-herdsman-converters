@@ -31,37 +31,31 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint10 = device.getEndpoint(0x0a);
-            if (endpoint10 != null) {
-                await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
-            }
+            await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
+           
             const endpoint11 = device.getEndpoint(0x0b);
-            if (endpoint11 != null) {
-                const index = endpoint11.outputClusters.indexOf(5);
-                if (index > -1) {
-                    endpoint11.outputClusters.splice(index, 1);
-                }
-                await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']);
+            let   index = endpoint11.outputClusters.indexOf(5);
+            if (index > -1) {
+                endpoint11.outputClusters.splice(index, 1);
             }
+            await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']);
+            
             const endpoint12 = device.getEndpoint(0x0c);
-            if (endpoint12 != null) {
-                const index = endpoint12.outputClusters.indexOf(5);
-                if (index > -1) {
-                    endpoint12.outputClusters.splice(index, 1);
-                }
-                await reporting.bind(endpoint12, coordinatorEndpoint, ['genLevelCtrl']);
+            index = endpoint12.outputClusters.indexOf(5);
+            if (index > -1) {
+                endpoint12.outputClusters.splice(index, 1);
             }
+            await reporting.bind(endpoint12, coordinatorEndpoint, ['genLevelCtrl']);
+            
             const endpoint13 = device.getEndpoint(0x0d);
-            if (endpoint13 != null) {
-                const index = endpoint13.outputClusters.indexOf(5);
-                if (index > -1) {
-                    endpoint13.outputClusters.splice(index, 1);
-                }
-                await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
+            index = endpoint13.outputClusters.indexOf(5);
+            if (index > -1) {
+                endpoint13.outputClusters.splice(index, 1);
             }
+            await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
+            
             const endpoint18 = device.getEndpoint(0x12);
-            if (endpoint18 != null) {
-                await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            }
+            await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);            
         },
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.command_on, fz.command_off, fz.command_step, fz.command_stop],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
@@ -103,21 +97,18 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint10 = device.getEndpoint(0x0a);
-            if (endpoint10 != null) {
-                await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
-            }
+            await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
+            
             const endpoint11 = device.getEndpoint(0x0b);
-            if (endpoint11 != null) {
-                const index = endpoint11.outputClusters.indexOf(5);
-                if (index > -1) {
-                    endpoint11.outputClusters.splice(index, 1);
-                }
-                await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']);
+            let index = endpoint11.outputClusters.indexOf(5);
+            if (index > -1) {
+                endpoint11.outputClusters.splice(index, 1);
             }
+            await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']);
+            
             const endpoint18 = device.getEndpoint(0x12);
-            if (endpoint18 != null) {
-                await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            }
+            await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            
         },
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.command_on, fz.command_off, fz.command_step, fz.command_stop],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
@@ -158,13 +149,11 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint10 = device.getEndpoint(0x0a);
-            if (endpoint10 != null) {
-                await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
-            }
+            await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
+            
             const endpoint18 = device.getEndpoint(0x12);
-            if (endpoint18 != null) {
-                await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            }
+            await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            
         },
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.command_on, fz.command_off, fz.command_step, fz.command_stop],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
@@ -207,33 +196,29 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint10 = device.getEndpoint(0x0a);
-            if (endpoint10 != null) {
-                await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
-            }
+            await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
+            
             const endpoint11 = device.getEndpoint(0x0b);
-            if (endpoint11 != null) {
-                const index = endpoint11.outputClusters.indexOf(5);
-                if (index > -1) {
-                    endpoint11.outputClusters.splice(index, 1);
-                }
-                await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']);
+            let index = endpoint11.outputClusters.indexOf(5);
+            if (index > -1) {
+                endpoint11.outputClusters.splice(index, 1);
             }
+            await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']);
+            
             const endpoint12 = device.getEndpoint(0x0c);
-            if (endpoint12 != null) {
-                const index = endpoint12.outputClusters.indexOf(5);
-                if (index > -1) {
-                    endpoint12.outputClusters.splice(index, 1);
-                }
-                await reporting.bind(endpoint12, coordinatorEndpoint, ['genLevelCtrl']);
+            index = endpoint12.outputClusters.indexOf(5);
+            if (index > -1) {
+                endpoint12.outputClusters.splice(index, 1);
             }
+            await reporting.bind(endpoint12, coordinatorEndpoint, ['genLevelCtrl']);
+            
             const endpoint13 = device.getEndpoint(0x0d);
-            if (endpoint13 != null) {
-                const index = endpoint13.outputClusters.indexOf(5);
-                if (index > -1) {
-                    endpoint13.outputClusters.splice(index, 1);
-                }
-                await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
+            index = endpoint13.outputClusters.indexOf(5);
+            if (index > -1) {
+                endpoint13.outputClusters.splice(index, 1);
             }
+            await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
+            
         },
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.command_on, fz.command_off, fz.command_step, fz.command_stop],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
@@ -251,17 +236,15 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint10 = device.getEndpoint(0x0a);
-            if (endpoint10 != null) {
-                await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
-            }
+            await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
+            
             const endpoint11 = device.getEndpoint(0x0b);
-            if (endpoint11 != null) {
-                const index = endpoint11.outputClusters.indexOf(5);
-                if (index > -1) {
-                    endpoint11.outputClusters.splice(index, 1);
-                }
-                await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']);
+            const index = endpoint11.outputClusters.indexOf(5);
+            if (index > -1) {
+                endpoint11.outputClusters.splice(index, 1);
             }
+            await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']);
+            
         },
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.command_on, fz.command_off, fz.command_step, fz.command_stop],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
@@ -278,9 +261,7 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint10 = device.getEndpoint(0x0a);
-            if (endpoint10 != null) {
-                await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
-            }
+            await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);            
         },
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.command_on, fz.command_off, fz.command_step, fz.command_stop],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
