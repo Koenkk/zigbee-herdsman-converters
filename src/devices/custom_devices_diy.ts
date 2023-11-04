@@ -1321,6 +1321,7 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l3: 3, l5: 5, l6: 6};
+        },
     },
 ];
 
