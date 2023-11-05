@@ -410,7 +410,7 @@ const definitions: Definition[] = [
             e.child_lock().setAccess('state', ea.ALL),
             e.open_window()
                 .withLabel('Open window detection')
-                .withDescription('Sets temperature to 12°C when local temperature drops by more than 1.5°C in 4.5 minutes.')
+                .withDescription('Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.')
                 .withAccess(ea.ALL),
         ],
         fromZigbee: [fz.thermostat, fz.battery, fzLocal.child_lock, fzLocal.open_window],
