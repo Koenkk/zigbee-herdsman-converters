@@ -403,6 +403,7 @@ const definitions: Definition[] = [
             e.climate()
                 .withSetpoint('occupied_heating_setpoint', 4, 35, 0.5)
                 .withLocalTemperature()
+                .withLocalTemperatureCalibration(-7.0, 7.0, 0.2)
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.battery(),
@@ -423,6 +424,7 @@ const definitions: Definition[] = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
+            await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read(64529, [0x0000, 0x6000]);
         },
     },
