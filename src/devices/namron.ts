@@ -447,7 +447,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['4512737', '4512738'],
         model: '4512737/4512738',
         vendor: 'Namron',
-        description: 'Touch termostat',
+        description: 'Touch thermostat',
         fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement,
             fz.namron_hvac_user_interface],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupancy,

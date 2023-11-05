@@ -103,7 +103,7 @@ const tzLocal = {
             };
         },
     } as Tz.Converter,
-    termostat_config: {
+    thermostat_config: {
         key: ['high_temperature', 'low_temperature', 'enable_temperature'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
@@ -253,7 +253,7 @@ const fzLocal = {
             return result;
         },
     } as Fz.Converter,
-    termostat_config: {
+    thermostat_config: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -1135,9 +1135,9 @@ const definitions: Definition[] = [
         vendor: 'Custom devices (DiY)',
         description: '[EFEKTA CO2 Smart Monitor, ws2812b indicator, can control the relay, binding](https://efektalab.com/CO2_Monitor)',
         fromZigbee: [fz.temperature, fz.humidity, fzLocal.co2, fzLocal.co2_config, fzLocal.temperature_config,
-            fzLocal.humidity_config, fzLocal.termostat_config, fzLocal.hydrostat_config, fzLocal.co2_gasstat_config],
+            fzLocal.humidity_config, fzLocal.thermostat_config, fzLocal.hydrostat_config, fzLocal.co2_gasstat_config],
         toZigbee: [tzLocal.co2_config, tzLocal.temperature_config, tzLocal.humidity_config,
-            tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.co2_gasstat_config],
+            tzLocal.thermostat_config, tzLocal.hydrostat_config, tzLocal.co2_gasstat_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msCO2'];
@@ -1186,9 +1186,9 @@ const definitions: Definition[] = [
         model: 'SNZB-02_EFEKTA',
         vendor: 'Custom devices (DiY)',
         description: 'Alternative firmware for the SONOFF SNZB-02 sensor from EfektaLab, DIY',
-        fromZigbee: [fz.SNZB02_temperature, fz.SNZB02_humidity, fz.battery, fzLocal.termostat_config,
+        fromZigbee: [fz.SNZB02_temperature, fz.SNZB02_humidity, fz.battery, fzLocal.thermostat_config,
             fzLocal.hydrostat_config, fzLocal.node_config],
-        toZigbee: [tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
+        toZigbee: [tzLocal.thermostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
