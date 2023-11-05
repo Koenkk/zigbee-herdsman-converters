@@ -503,7 +503,7 @@ function logUnexpectedDataValue(where: string, msg: KeyValueAny, dpValue: any, m
 // Contains all covers which need their position inverted by default
 // Default is 100 = open, 0 = closed; Devices listed here will use 0 = open, 100 = closed instead
 // Use manufacturerName to identify device!
-// Dont' invert _TZE200_cowvfni3: https://github.com/Koenkk/zigbee2mqtt/issues/6043
+// Don't invert _TZE200_cowvfni3: https://github.com/Koenkk/zigbee2mqtt/issues/6043
 const coverPositionInvert = ['_TZE200_wmcdj3aq', '_TZE200_nogaemzt', '_TZE200_xuzcvlku', '_TZE200_xaabybja', '_TZE200_rmymn92d',
     '_TZE200_gubdgai2', '_TZE200_r0jdjrvi'];
 
