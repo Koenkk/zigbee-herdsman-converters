@@ -42,16 +42,16 @@
     "buffer-crc32": "^0.2.13",
     "https-proxy-agent": "^7.0.2",
     "tar-stream": "^3.1.6",
-    "zigbee-herdsman": "^0.21.0"
+    "zigbee-herdsman": "^0.22.0"
   },
   "devDependencies": {
     "@types/buffer-crc32": "^0.2.3",
-    "@types/jest": "^29.5.6",
-    "@types/node": "^20.8.9",
+    "@types/jest": "^29.5.7",
+    "@types/node": "^20.8.10",
     "@types/tar-stream": "^3.1.2",
-    "@typescript-eslint/eslint-plugin": "^6.9.0",
-    "@typescript-eslint/parser": "^6.9.0",
-    "eslint": "^8.52.0",
+    "@typescript-eslint/eslint-plugin": "^6.9.1",
+    "@typescript-eslint/parser": "^6.9.1",
+    "eslint": "^8.53.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-jest": "^27.6.0",
     "fast-deep-equal": "*",
