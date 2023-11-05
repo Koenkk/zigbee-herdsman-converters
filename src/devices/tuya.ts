@@ -6320,7 +6320,7 @@ const definitions: Definition[] = [
         description: 'Wall-mount thermostat for 2-pipe fan-coil unit',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent({timeStart: '2000'}),
+        onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
