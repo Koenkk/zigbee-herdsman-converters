@@ -4,12 +4,12 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
-import {Zcl} from 'zigbee-herdsman';
 
 const fzLocal = {
     router_config: {
