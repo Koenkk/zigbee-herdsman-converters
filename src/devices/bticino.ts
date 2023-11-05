@@ -66,33 +66,6 @@ const definitions: Definition[] = [
         },
     },
     {
-        // Newer firmwares (e.g. 001f) Does support partial position reporting
-        // Old firmware of this device provides only three values: 0, 100 and 50, 50 means an indefinite position between 1 and 99.
-        // If you have an old Firmware set no_position_support to true
-        // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2214 - 1st very basic support
-        zigbeeModel: [' Shutter SW with level control\u0000'],
-        model: 'K4027C/L4027C/N4027C/NT4027C',
-        vendor: 'BTicino',
-        description: 'Shutter SW with level control',
-        ota: ota.zigbeeOTA,
-        fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.bticino_4027C_binary_input_moving,
-            fz.identify, fzLegrand.cluster_fc01, fz.ignore_zclversion_read],
-        toZigbee: [tz.bticino_4027C_cover_state, tz.bticino_4027C_cover_position, tz.legrand_identify, tzLegrand.led_mode],
-        exposes: [
-            e.cover_position(),
-            e.action(['moving', 'identify', '']),
-            e.enum('identify', ea.SET, ['blink'])
-                .withDescription('Blinks the built-in LED to make it easier to identify the device'),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-        },
-    },
-    {
         zigbeeModel: ['Bticino Din power consumption module '],
         model: 'F20T60A',
         description: 'DIN power consumption module (same as Legrand 412015)',

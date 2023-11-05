@@ -183,13 +183,16 @@ const definitions: Definition[] = [
         },
     },
     {
-        // Fingerprinting required due to conflict with potential whitelabel Bticino - K4027C/L4027C/N4027C/NT4027C
-        fingerprint: [
-            {modelID: ' Shutter SW with level control\u0000', manufacturerID: 4129},
-        ],
+        zigbeeModel: [' Shutter SW with level control\u0000'],
         model: '067776A',
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch with level control (NLLV)',
+        whiteLabel: [
+            {
+                model: 'K4027C/L4027C/N4027C/NT4027C', vendor: 'BTicino', description: 'Shutter SW with level control',
+                fingerprint: [{hardwareVersion: 13}],
+            },
+        ],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
             fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
