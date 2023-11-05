@@ -3306,7 +3306,7 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue Festavia gradient light string 250',
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500], extraEffects: ['sparkle']}),
-    },        
+    },
     {
         zigbeeModel: ['LCX017'],
         model: '929003674601',
