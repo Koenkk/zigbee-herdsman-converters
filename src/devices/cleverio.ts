@@ -43,6 +43,19 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [tz.battery_percentage_remaining],
     },
+    {
+        fingerprint: [{modelID: 'TS0207', manufacturerName: '_TYZB01_0eaduw43'}],
+        model: 'CZWS-100',
+        vendor: 'Cleverio',
+        description: 'Water leak detector',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fz.ignore_basic_report],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
+        exposes: [e.water_leak(), e.battery_low(), e.linkquality()],
+        },
 ];
 
 module.exports = definitions;
