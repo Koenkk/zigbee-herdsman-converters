@@ -3305,14 +3305,14 @@ const definitions: Definition[] = [
         model: '929003535301',
         vendor: 'Philips',
         description: 'Hue Festavia gradient light string 250',
-        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500], extraEffects: ['sparkle']}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500], extraEffects: ['sparkle', 'opal', 'glisten']}),
     },
     {
         zigbeeModel: ['LCX017'],
         model: '929003674601',
         vendor: 'Philips',
         description: 'Hue Festavia gradient light string 500',
-        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500], extraEffects: ['sparkle']}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500], extraEffects: ['sparkle', 'opal', 'glisten']}),
     },
     {
         zigbeeModel: ['LCX016'],
