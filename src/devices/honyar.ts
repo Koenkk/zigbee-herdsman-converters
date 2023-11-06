@@ -79,6 +79,66 @@ const definitions: Definition[] = [
             device.save();
         },
     },
+    {
+        zigbeeModel: ['HY0095'],
+        model: 'U2-86K11ND10-ZD',
+        vendor: 'honyar',
+        description: '1 gang switch',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch()],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    };
+    {
+        zigbeeModel: ['HY0096'],
+        model: 'U2-86K21ND10-ZD',
+        vendor: 'honyar',
+        description: '2 gang switch',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {configureKey: 1, multiEndpoint: true, disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+        },
+    };
+    {
+        zigbeeModel: ['HY0097'],
+        model: 'U2-86K31ND10-ZD',
+        vendor: 'honyar',
+        description: '3 gang switch',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.switch().withEndpoint('center')],
+    	endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {configureKey: 1, multiEndpoint: true, disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint3);
+        },  
+    };
 ];
 
 module.exports = definitions;
