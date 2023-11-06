@@ -460,7 +460,7 @@ const definitions: Definition[] = [
         description: 'Smoke detector with siren',
         whiteLabel: [
             {vendor: 'Frient', model: '94430', description: 'Smart Intelligent Smoke Alarm'},
-            {vendor: 'Cavius', model: '2103', description: 'RF SMOKE ALARM, 5 YEAR 65MM'}
+            {vendor: 'Cavius', model: '2103', description: 'RF SMOKE ALARM, 5 YEAR 65MM'},
         ],
         fromZigbee: [develco.fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
             fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
