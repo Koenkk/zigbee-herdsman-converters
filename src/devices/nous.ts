@@ -20,6 +20,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_lve3dvpy'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_c7emyjom'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_locansqn'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_eanjj2pa'}],
         model: 'SZ-T04',
         vendor: 'Nous',
