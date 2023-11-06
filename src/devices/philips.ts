@@ -1913,6 +1913,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003621101_01', '929003621101_02', '929003621101_03', '929003621101_04', '929003621101_05'],
+        model: '929003621101',
+        vendor: 'Signify Netherlands B.V.',
+        description: 'Hue White & Color ambience Centris ceiling light (4 spots)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['5060830P7_01', '5060830P7_02', '5060830P7_03', '5060830P7_04'],
         model: '5060830P7',
         vendor: 'Philips',
