@@ -46,7 +46,7 @@ const tzLocal = {
 const fzLocal = {
     schneider_powertag: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: async (model, msg, publish, options, meta) => {
             if (msg.type !== 'commandNotification') {
                 return;
