@@ -3,6 +3,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
+import * as utils from '../lib/utils';
 import extend from '../lib/extend';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
@@ -50,6 +51,20 @@ const fzLocal = {
             return result;
         },
     } as Fz.Converter,
+    frost_protection_temperature: {
+        cluster: '64529',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x6002)) {
+                result.frost_protection_temperature = data[0x6002] / 100;
+            }
+
+            return result;
+        },
+    } as Fz.Converter,
 };
 
 const tzLocal = {
@@ -74,6 +89,20 @@ const tzLocal = {
         },
         convertSet: async (entity, key, value, meta) => {
             await entity.write(0xFC11, {0x6000: {value: value === 'ON' ? 1 : 0, type: Zcl.DataType.boolean}});
+            return {
+                state: {
+                    [key]: value,
+                },
+            };
+        },
+    } as Tz.Converter,
+    frost_protection_temperature: {
+        key: ['frost_protection_temperature'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read(0xFC11, [0x6002]);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(0xFC11, {0x6002: {value: utils.toNumber(value) * 100, type: Zcl.DataType.int16}});
             return {
                 state: {
                     [key]: value,
@@ -405,7 +434,8 @@ const definitions: Definition[] = [
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration(-7.0, 7.0, 0.2)
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
-                .withRunningState(['idle', 'heat'], ea.STATE_GET),
+                .withRunningState(['idle', 'heat'], ea.STATE_GET)
+                .withFrostProtectionTemperature(4.0, 35.0, 0.5),
             e.battery(),
             e.battery_low(),
             e.child_lock().setAccess('state', ea.ALL),
@@ -414,10 +444,10 @@ const definitions: Definition[] = [
                 .withDescription('Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.')
                 .withAccess(ea.ALL),
         ],
-        fromZigbee: [fz.thermostat, fz.battery, fzLocal.child_lock, fzLocal.open_window],
+        fromZigbee: [fz.thermostat, fz.battery, fzLocal.child_lock, fzLocal.open_window, fzLocal.frost_protection_temperature],
         toZigbee: [
             tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode, tz.thermostat_running_state, tzLocal.child_lock, tzLocal.open_window],
+            tz.thermostat_system_mode, tz.thermostat_running_state, tzLocal.child_lock, tzLocal.open_window, tzLocal.frost_protection_temperature],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
@@ -425,7 +455,7 @@ const definitions: Definition[] = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read(64529, [0x0000, 0x6000]);
+            await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002]);
         },
     },
 ];
