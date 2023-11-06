@@ -3,6 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import * as ota from '../lib/ota';
 import tz from '../converters/toZigbee';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -358,8 +359,8 @@ const definitions: Definition[] = [
         vendor: 'ADEO',
         description: 'Equation pilot wire heating module',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fromZigbee_1.default.on_off, fromZigbee_1.default.metering],
-        toZigbee: [toZigbee_1.default.on_off],
+        fromZigbee: [fz.default.on_off, fz.default.metering],
+        toZigbee: [tz.default.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
