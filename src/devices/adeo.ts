@@ -359,8 +359,8 @@ const definitions: Definition[] = [
         vendor: 'ADEO',
         description: 'Equation pilot wire heating module',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.default.on_off, fz.default.metering],
-        toZigbee: [tz.default.on_off],
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
