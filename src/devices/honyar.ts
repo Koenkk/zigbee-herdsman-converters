@@ -82,7 +82,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['HY0095'],
         model: 'U2-86K11ND10-ZD',
-        vendor: 'honyar',
+        vendor: 'Honyar',
         description: '1 gang switch',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
@@ -97,7 +97,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['HY0096'],
         model: 'U2-86K21ND10-ZD',
-        vendor: 'honyar',
+        vendor: 'Honyar',
         description: '2 gang switch',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
@@ -118,7 +118,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['HY0097'],
         model: 'U2-86K31ND10-ZD',
-        vendor: 'honyar',
+        vendor: 'Honyar',
         description: '3 gang switch',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
