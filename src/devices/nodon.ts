@@ -4,11 +4,10 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
-import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 const e = exposes.presets;
 const ea = exposes.access;
 import tz from '../converters/toZigbee';
-import fz from '../converters/fromZigbee'; 
+import fz from '../converters/fromZigbee';
 const manufacturerOptions = {manufacturerCode: 0x128B};
 
 const fzLocal = {
@@ -172,10 +171,10 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering, fzLocal.fil_pilote_mode],
         toZigbee: [tz.on_off, tzLocal.fil_pilote_mode],
         exposes: [
-            e.switch(), 
-            e.power(), 
+            e.switch(),
+            e.power(),
             e.energy(),
-            e.enum('mode', ea.ALL, ['Comfort', 'Eco', 'Anti-Freeze', 'Stop', 'Comfort -1', 'Comfort -2'])
+            e.enum('mode', ea.ALL, ['Comfort', 'Eco', 'Anti-Freeze', 'Stop', 'Comfort -1', 'Comfort -2']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -196,10 +195,10 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering, fzLocal.fil_pilote_mode],
         toZigbee: [tz.on_off, tzLocal.fil_pilote_mode],
         exposes: [
-            e.switch(), 
-            e.power(), 
+            e.switch(),
+            e.power(),
             e.energy(),
-            e.enum('mode', ea.ALL, ['Comfort', 'Eco', 'Anti-Freeze', 'Stop', 'Comfort -1', 'Comfort -2'])
+            e.enum('mode', ea.ALL, ['Comfort', 'Eco', 'Anti-Freeze', 'Stop', 'Comfort -1', 'Comfort -2']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
