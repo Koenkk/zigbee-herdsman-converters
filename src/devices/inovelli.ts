@@ -23,6 +23,9 @@ const buttonLookup: { [key: number]: string } = {
     1: 'down',
     2: 'up',
     3: 'config',
+    4: 'aux_down',
+    5: 'aux_up',
+    6: 'aux_config',
 };
 
 const ledEffects: { [key: string]: number } = {
