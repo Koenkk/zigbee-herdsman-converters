@@ -3939,6 +3939,25 @@ const converters = {
             await entity.read('manuSpecificLegrandDevices', [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
         },
     },
+    equation_cable_outlet_mode: {
+        key: ['cable_outlet_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = {
+                'comfort': 0x01,
+                'comfort-1': 0x04,
+                'comfort-2': 0x05,
+                'eco': 0x02,
+                'frost_protection': 0x03,
+                'off': 0x00,
+            };
+            const payload = {data: Buffer.from([mode[value]])};
+            await entity.command(0xfc00, 'command0', payload);
+            return {state: {'cable_outlet_mode': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read(0xfc00, [0x0000], {manufacturerCode: 0x128b});
+        },
+    },
     legrand_cable_outlet_mode: {
         key: ['cable_outlet_mode'],
         convertSet: async (entity, key, value, meta) => {
