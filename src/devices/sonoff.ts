@@ -434,8 +434,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration(-7.0, 7.0, 0.2)
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
-                .withRunningState(['idle', 'heat'], ea.STATE_GET)
-                .withFrostProtectionTemperature(4.0, 35.0, 0.5),
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.battery(),
             e.battery_low(),
             e.child_lock().setAccess('state', ea.ALL),
@@ -443,6 +442,12 @@ const definitions: Definition[] = [
                 .withLabel('Open window detection')
                 .withDescription('Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.')
                 .withAccess(ea.ALL),
+            e.numeric('frost_protection_temperature', ea.ALL)
+                .withValueMin(4.0)
+                .withValueMax(35.0)
+                .withValueStep(0.5)
+                .withUnit('°C')
+                .withDescription('Minimum permitted temperature, when system mode is off, to prevent pipes freezing.'),
         ],
         fromZigbee: [fz.thermostat, fz.battery, fzLocal.child_lock, fzLocal.open_window, fzLocal.frost_protection_temperature],
         toZigbee: [

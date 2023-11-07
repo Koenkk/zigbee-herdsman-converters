@@ -542,13 +542,6 @@ export class Climate extends Base {
         this.features.push(schedule);
         return this;
     }
-
-    withFrostProtectionTemperature(min=4.0, max=35.0, step=0.5, access =a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('frost_protection_temperature', access)
-            .withValueMin(min).withValueMax(max).withValueStep(step).withUnit('°C').withDescription('Temperature at which to enable frost protection'));
-        return this;
-    }
 }
 /**
  * The access property is a 3-bit bitmask.
