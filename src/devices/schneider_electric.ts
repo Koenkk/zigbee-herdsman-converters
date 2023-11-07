@@ -710,7 +710,7 @@ const definitions: Definition[] = [
         model: '550D6001',
         vendor: 'Schneider Electric',
         description: 'LK FUGA wiser wireless battery 4 button switch',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
         endpoint: (device) => {
             return {'top': 21, 'bottom': 22};
@@ -719,11 +719,12 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         exposes: [e.action(['on_top', 'off_top', 'on_bottom', 'off_bottom', 'brightness_move_up_top', 'brightness_stop_top',
             'brightness_move_down_top', 'brightness_stop_top', 'brightness_move_up_bottom', 'brightness_stop_bottom',
-            'brightness_move_down_bottom', 'brightness_stop_bottom'])],
+            'brightness_move_down_bottom', 'brightness_stop_bottom']), e.battery()],
         configure: async (device, coordinatorEndpoint, logger) => {
             // When in 2-gang operation mode, unit operates out of endpoints 21 and 22, otherwise just 21
             const topButtonsEndpoint = device.getEndpoint(21);
-            await reporting.bind(topButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.bind(topButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            await reporting.batteryPercentageRemaining(topButtonsEndpoint);
             const bottomButtonsEndpoint = device.getEndpoint(22);
             await reporting.bind(bottomButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
