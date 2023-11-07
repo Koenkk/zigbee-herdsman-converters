@@ -18,14 +18,14 @@ const fzLocal = {
             const payload: KeyValueAny = {};
             const mode = msg.data['0'];
 
-            if (mode === 0x00) payload.mode = 'Stop';
-            else if (mode === 0x01) payload.mode = 'Comfort';
-            else if (mode === 0x02) payload.mode = 'Eco';
-            else if (mode === 0x03) payload.mode = 'Anti-Freeze';
-            else if (mode === 0x04) payload.mode = 'Comfort -1';
-            else if (mode === 0x05) payload.mode = 'Comfort -2';
+            if (mode === 0x00) payload.mode = 'stop';
+            else if (mode === 0x01) payload.mode = 'comfort';
+            else if (mode === 0x02) payload.mode = 'eco';
+            else if (mode === 0x03) payload.mode = 'anti-freeze';
+            else if (mode === 0x04) payload.mode = 'comfort_-1';
+            else if (mode === 0x05) payload.mode = 'comfort_-2';
             else {
-                meta.logger.warn(`Wrong Mode : ${mode}`);
+                meta.logger.warn(`wrong mode : ${mode}`);
                 payload.mode = 'unknown';
             }
             return payload;
@@ -38,12 +38,12 @@ const tzLocal = {
         key: ['mode'],
         convertSet: async (entity, key, value, meta) => {
             const mode = utils.getFromLookup(value, {
-                'Comfort': 0x01,
-                'Eco': 0x02,
-                'Anti-Freeze': 0x03,
-                'Stop': 0x00,
-                'Comfort -1': 0x04,
-                'Comfort -2': 0x05,
+                'comfort': 0x01,
+                'eco': 0x02,
+                'anti-freeze': 0x03,
+                'stop': 0x00,
+                'comfort_-1': 0x04,
+                'comfort_-2': 0x05,
             });
             const payload = {data: Buffer.from([mode])};
             await entity.command('manuSpecificNodOnFilPilote', 'setMode', payload);
@@ -174,7 +174,7 @@ const definitions: Definition[] = [
             e.switch(),
             e.power(),
             e.energy(),
-            e.enum('mode', ea.ALL, ['Comfort', 'Eco', 'Anti-Freeze', 'Stop', 'Comfort -1', 'Comfort -2']),
+            e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -198,7 +198,7 @@ const definitions: Definition[] = [
             e.switch(),
             e.power(),
             e.energy(),
-            e.enum('mode', ea.ALL, ['Comfort', 'Eco', 'Anti-Freeze', 'Stop', 'Comfort -1', 'Comfort -2']),
+            e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
