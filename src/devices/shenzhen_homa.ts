@@ -66,7 +66,7 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['HOMA1009'],
+        zigbeeModel: ['HOMA1009', '050'],
         model: 'HLD503-Z-CT',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver',
