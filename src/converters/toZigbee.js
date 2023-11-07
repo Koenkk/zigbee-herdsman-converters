@@ -3951,11 +3951,11 @@ const converters = {
                 'off': 0x00,
             };
             const payload = {data: Buffer.from([mode[value]])};
-            await entity.command(0xfc00, 'command0', payload);
+            await entity.command('manuSpecificUbisysDeviceSetup', 'command0', payload);
             return {state: {'cable_outlet_mode': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read(0xfc00, [0x0000], {manufacturerCode: 0x128b});
+            await entity.read('manuSpecificUbisysDeviceSetup', [0x0000], {manufacturerCode: 0x128b});
         },
     },
     legrand_cable_outlet_mode: {
