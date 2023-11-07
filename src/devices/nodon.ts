@@ -1,11 +1,60 @@
-import {Definition} from '../lib/types';
+import {Definition, Fz, Tz, KeyValueAny} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
+import * as utils from '../lib/utils';
+import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 const e = exposes.presets;
+const ea = exposes.access;
 import tz from '../converters/toZigbee';
-import fz from '../converters/fromZigbee';
+import fz from '../converters/fromZigbee'; 
+const manufacturerOptions = {manufacturerCode: 0x128B};
+
+const fzLocal = {
+    fil_pilote_mode: {
+        cluster: 'manuSpecificNodOnFilPilote',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            const mode = msg.data['0'];
+
+            if (mode === 0x00) payload.mode = 'Stop';
+            else if (mode === 0x01) payload.mode = 'Comfort';
+            else if (mode === 0x02) payload.mode = 'Eco';
+            else if (mode === 0x03) payload.mode = 'Anti-Freeze';
+            else if (mode === 0x04) payload.mode = 'Comfort -1';
+            else if (mode === 0x05) payload.mode = 'Comfort -2';
+            else {
+                meta.logger.warn(`Wrong Mode : ${mode}`);
+                payload.mode = 'unknown';
+            }
+            return payload;
+        },
+    } as Fz.Converter,
+};
+
+const tzLocal = {
+    fil_pilote_mode: {
+        key: ['mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = utils.getFromLookup(value, {
+                'Comfort': 0x01,
+                'Eco': 0x02,
+                'Anti-Freeze': 0x03,
+                'Stop': 0x00,
+                'Comfort -1': 0x04,
+                'Comfort -2': 0x05,
+            });
+            const payload = {data: Buffer.from([mode])};
+            await entity.command('manuSpecificNodOnFilPilote', 'setMode', payload);
+            return {state: {'mode': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificNodOnFilPilote', [0x0000], manufacturerOptions);
+        },
+    } as Tz.Converter,
+};
 
 const definitions: Definition[] = [
     {
@@ -115,21 +164,51 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['SIN-4-FP-20'],
+        model: 'SIN-4-FP-20',
+        vendor: 'NodOn',
+        description: 'Pilot wire heating module',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.on_off, fz.metering, fzLocal.fil_pilote_mode],
+        toZigbee: [tz.on_off, tzLocal.fil_pilote_mode],
+        exposes: [
+            e.switch(), 
+            e.power(), 
+            e.energy(),
+            e.enum('mode', ea.ALL, ['Comfort', 'Eco', 'Anti-Freeze', 'Stop', 'Comfort -1', 'Comfort -2'])
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnFilPilote']);
+            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
+            await reporting.readMeteringMultiplierDivisor(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
+            await ep.read('manuSpecificNodOnFilPilote', ['mode']);
+        },
+    },
+    {
         zigbeeModel: ['SIN-4-FP-21'],
         model: 'SIN-4-FP-21',
         vendor: 'NodOn',
         description: 'Pilot wire heating module',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
+        fromZigbee: [fz.on_off, fz.metering, fzLocal.fil_pilote_mode],
+        toZigbee: [tz.on_off, tzLocal.fil_pilote_mode],
+        exposes: [
+            e.switch(), 
+            e.power(), 
+            e.energy(),
+            e.enum('mode', ea.ALL, ['Comfort', 'Eco', 'Anti-Freeze', 'Stop', 'Comfort -1', 'Comfort -2'])
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnFilPilote']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
             await reporting.readMeteringMultiplierDivisor(ep);
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
+            await ep.read('manuSpecificNodOnFilPilote', ['mode']);
         },
     },
 ];
