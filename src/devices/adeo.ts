@@ -359,16 +359,22 @@ const definitions: Definition[] = [
         vendor: 'ADEO',
         description: 'Equation pilot wire heating module',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
+        fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.currentsummdelivered, tz.metering_power, tz.power_on_behavior, tz.equation_cable_outlet_mode],
+        exposes: [
+            e.enum('cable_outlet_mode', ea.ALL, ['comfort', 'comfort-1', 'comfort-2', 'eco', 'frost_protection', 'off']),
+	        e.switch().withState('state', true, 'Works only when the pilot wire is deactivated'),
+            e.energy().withAccess(ea.STATE_GET),
+	        e.power().withAccess(ea.STATE_GET),
+	        e.power_on_behavior().withDescription('Controls the behavior when the device is powered on. Works only when the pilot wire is deactivated'),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
             await reporting.readMeteringMultiplierDivisor(ep);
-            await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
+            await reporting.readMeteringMultiplierDivisor(ep);
         },
     },
 ];
