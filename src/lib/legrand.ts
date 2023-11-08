@@ -4,8 +4,6 @@ import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const legrandOptions = {manufacturerCode: 0x1021, disableDefaultResponse: true};
-
 const shutterCalibrationModes: {[k: number]: {description: string, onlyNLLV: boolean}} = {
     0: {description: 'classic_nllv', onlyNLLV: true},
     1: {description: 'specific_nllv', onlyNLLV: true},
@@ -24,6 +22,8 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
         .filter((e) => isNLLVSwitch ? true : e[1].onlyNLLV === false)
         .map((e) => [e[0], e[1].description]));
 };
+
+export const legrandOptions = {manufacturerCode: 0x1021, disableDefaultResponse: true};
 
 export const _067776 = {
     getCover: () => {
