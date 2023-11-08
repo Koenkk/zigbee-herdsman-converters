@@ -944,7 +944,10 @@ const definitions: Definition[] = [
         model: 'TS0503B',
         vendor: 'TuYa',
         description: 'Zigbee RGB light',
-        whiteLabel: [{vendor: 'BTF-Lighting', model: 'C03Z'}],
+        whiteLabel: [
+            {vendor: 'BTF-Lighting', model: 'C03Z'},
+            tuya.whitelabel('MiBoxer', 'FUT037Z', 'RGB led controller', ['_TZ3210_778drfdt']),
+        ],
         extend: tuya.extend.light_onoff_brightness_color(),
     },
     {
