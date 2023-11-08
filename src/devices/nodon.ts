@@ -1,9 +1,8 @@
-import {Definition, Fz, Tz, KeyValueAny} from '../lib/types';
+import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
-import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 import tz from '../converters/toZigbee';

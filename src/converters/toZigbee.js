@@ -21,7 +21,7 @@ const manufacturerOptions = {
     tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
     legrand: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
     viessmann: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
-    nodon: { manufacturerCode: herdsman.Zcl.ManufacturerCode.NODON },
+    nodon: {manufacturerCode: herdsman.Zcl.ManufacturerCode.NODON},
 };
 
 const converters = {
