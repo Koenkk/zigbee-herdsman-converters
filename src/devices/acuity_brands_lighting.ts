@@ -17,7 +17,7 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 370], disableColorTempStartup: true}),
     },
     {
-        zigbeeModel: ['ABL-LIGHT-Z-201'],
+        zigbeeModel: ['ABL-LIGHT-Z-202'],
         model: 'RB56AC',
         vendor: 'Acuity Brands Lighting (ABL)',
         description: 'Juno Retrobasics 4" and 6" LED smart adjustable downlight',
