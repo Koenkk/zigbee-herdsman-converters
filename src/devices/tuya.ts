@@ -778,7 +778,7 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'gas', tuya.valueConverter.trueFalse1],
+                [1, 'gas', tuya.valueConverter.trueFalseEnum0],
                 [2, 'gas_value', tuya.valueConverter.divideBy10],
                 [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'melody_1': tuya.enum(0), 'melody_2': tuya.enum(1),
                     'melody_3': tuya.enum(2), 'melody_4': tuya.enum(3), 'melody_5': tuya.enum(4)})],
