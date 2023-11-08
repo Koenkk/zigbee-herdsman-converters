@@ -768,7 +768,7 @@ const definitions: Definition[] = [
             e.gas(), tuya.exposes.gasValue().withUnit('LEL'), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(),
             tuya.exposes.silence(),
             e.enum('alarm_ringtone', ea.STATE_SET, [
-                'melody1', 'melody2', 'melody3', 'melody4', 'melody5']).withDescription('Ringtone of the alarm'),
+                'melody_1', 'melody_2', 'melody_3', 'melody_4', 'melody_5']).withDescription('Ringtone of the alarm'),
             e.numeric('alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(180).withValueStep(1)
                 .withUnit('s').withDescription('Alarm time'),
             e.binary('preheat', ea.STATE, true, false).withDescription('Indicates sensor preheat is active'),
@@ -778,10 +778,10 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'gas', tuya.valueConverterBasic.lookup({True: tuya.enum(0), False: tuya.enum(1)})],
+                [1, 'gas', tuya.valueConverter.trueFalse1],
                 [2, 'gas_value', tuya.valueConverter.divideBy10],
-                [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'melody1': tuya.enum(0), 'melody2': tuya.enum(1),
-                    'melody3': tuya.enum(2), 'melody4': tuya.enum(3), 'melody5': tuya.enum(4)})],
+                [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'melody_1': tuya.enum(0), 'melody_2': tuya.enum(1),
+                    'melody_3': tuya.enum(2), 'melody_4': tuya.enum(3), 'melody_5': tuya.enum(4)})],
                 [7, 'alarm_time', tuya.valueConverter.raw],
                 [8, 'self_test', tuya.valueConverter.raw],
                 [9, 'self_test_result', tuya.valueConverter.selfTestResult],
