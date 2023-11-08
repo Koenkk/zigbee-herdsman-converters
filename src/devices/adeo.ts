@@ -3,7 +3,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
 import tz from '../converters/toZigbee';
 const e = exposes.presets;
