@@ -6500,9 +6500,9 @@ const definitions: Definition[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'gas', tuya.valueConverter.trueFalseEnum0],
-                [2, 'gas_value', tuya.valueConverter.raw],
+                [2, 'gas_value', tuya.valueConverter.divideBy1000],
                 [18, 'carbon_monoxide', tuya.valueConverter.trueFalseEnum0],
-                [19, 'co', tuya.valueConverter.raw],
+                [19, 'co', tuya.valueConverter.divideBy100],
             ],
         },
     },
