@@ -1,12 +1,14 @@
-import {Definition, Fz, Tz} from '../lib/types';
+import {Definition, Fz, Tz, KeyValueAny} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
+import * as utils from '../lib/utils';
 import tz from '../converters/toZigbee';
 const e = exposes.presets;
 const ea = exposes.access;
+const manufacturerOptions = {manufacturerCode: 0x128B};
 
 const fzLocal = {
     LDSENK08: {
@@ -22,6 +24,26 @@ const fzLocal = {
             };
         },
     } as Fz.Converter,
+    fil_pilote_mode: {
+        cluster: 'manuSpecificNodOnFilPilote',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            const mode = msg.data['0'];
+
+            if (mode === 0x00) payload.mode = 'stop';
+            else if (mode === 0x01) payload.mode = 'comfort';
+            else if (mode === 0x02) payload.mode = 'eco';
+            else if (mode === 0x03) payload.mode = 'anti-freeze';
+            else if (mode === 0x04) payload.mode = 'comfort_-1';
+            else if (mode === 0x05) payload.mode = 'comfort_-2';
+            else {
+                meta.logger.warn(`wrong mode : ${mode}`);
+                payload.mode = 'unknown';
+            }
+            return payload;
+        },
+    } as Fz.Converter,
 };
 
 const tzLocal = {
@@ -30,6 +52,25 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             await entity.write('ssIasZone', {0x0013: {value, type: 0x20}});
             return {state: {sensitivity: value}};
+        },
+    } as Tz.Converter,
+    fil_pilote_mode: {
+        key: ['mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = utils.getFromLookup(value, {
+                'comfort': 0x01,
+                'eco': 0x02,
+                'anti-freeze': 0x03,
+                'stop': 0x00,
+                'comfort_-1': 0x04,
+                'comfort_-2': 0x05,
+            });
+            const payload = {data: Buffer.from([mode])};
+            await entity.command('manuSpecificNodOnFilPilote', 'setMode', payload);
+            return {state: {'mode': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificNodOnFilPilote', [0x0000], manufacturerOptions);
         },
     } as Tz.Converter,
 };
@@ -358,10 +399,14 @@ const definitions: Definition[] = [
         model: 'SIN-4-FP-21_EQU',
         vendor: 'ADEO',
         description: 'Equation pilot wire heating module',
-        ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
+        fromZigbee: [fz.on_off, fz.metering, fzLocal.fil_pilote_mode],
+        toZigbee: [tz.on_off, tzLocal.fil_pilote_mode],
+        exposes: [
+            e.switch(),
+            e.power(),
+            e.energy(),
+            e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
@@ -369,6 +414,7 @@ const definitions: Definition[] = [
             await reporting.readMeteringMultiplierDivisor(ep);
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
+            await ep.read('manuSpecificNodOnFilPilote', ['mode']);
         },
     },
 ];
