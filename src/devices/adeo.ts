@@ -3,6 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import * as ota from '../lib/ota';
 import tz from '../converters/toZigbee';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -179,6 +180,13 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
+        zigbeeModel: ['ZBEK-29'],
+        model: '84845509',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN Gdansk LED panel',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['ZBEK-28'],
         model: 'PEZ1-042-1020-C1D1',
         vendor: 'ADEO',
@@ -350,6 +358,24 @@ const definitions: Definition[] = [
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(ep);
+        },
+    },
+    {
+        zigbeeModel: ['SIN-4-FP-21_EQU'],
+        model: 'SIN-4-FP-21_EQU',
+        vendor: 'ADEO',
+        description: 'Equation pilot wire heating module',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
+            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
+            await reporting.readMeteringMultiplierDivisor(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
         },
     },
 ];

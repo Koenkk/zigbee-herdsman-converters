@@ -565,6 +565,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'MC500A', 'Door sensor', ['_TZ3000_2mbfxlzr']),
             tuya.whitelabel('TuYa', '19DZT', 'Door sensor', ['_TZ3000_n2egfsli']),
             tuya.whitelabel('TuYa', 'DS04', 'Door sensor', ['_TZ3000_yfekcy3n']),
+            tuya.whitelabel('Moes', 'ZSS-JM-GWM-C-MS', 'Smart door and window sensor', ['_TZ3000_decxrtwa']),
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()];
@@ -2786,7 +2787,6 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', [
             '_TZE200_bvu2wnxz', /* model: 'ME167', vendor: 'AVATTO' */
             '_TZE200_6rdj8dzm', /* model: 'ME167', vendor: 'AVATTO' */
-            '_TZE200_gd4rvykv', // Sanico
             '_TZE200_p3dbf6qs', /* model: 'ME168', vendor: 'AVATTO' */
             '_TZE200_rxntag7i', /* model: 'ME168', vendor: 'AVATTO' */
         ]),

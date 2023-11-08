@@ -190,7 +190,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             {
                 model: 'K4027C/L4027C/N4027C/NT4027C', vendor: 'BTicino', description: 'Shutter SW with level control',
-                fingerprint: [{hardwareVersion: 13}],
+                fingerprint: [{hardwareVersion: 9}, {hardwareVersion: 13}],
             },
         ],
         ota: ota.zigbeeOTA,
