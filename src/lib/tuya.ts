@@ -426,7 +426,7 @@ export const valueConverterBasic = {
         return {to: (v: number) => v * value, from: (v: number) => v / value};
     },
     trueFalse: (valueTrue: number | Enum) => {
-        return {from: (v: number) => v === valueTrue};
+        return {from: (v: number) => v === valueTrue.valueOf()};
     },
 };
 
