@@ -48,9 +48,11 @@ const definitions: Definition[] = [
         description: 'Multifunction relay switch',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(ep);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+            // NodOn Attribute
+            await endpoint.read('genOnOff', ['nodonTransitionTime']);
         },
         endpoint: (device) => {
             return {default: 1};
@@ -64,9 +66,9 @@ const definitions: Definition[] = [
         description: 'Multifunction relay switch',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(ep);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
         },
         endpoint: (device) => {
             return {default: 1};
