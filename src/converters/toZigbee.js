@@ -5145,7 +5145,7 @@ const converters = {
                 'comfort_-1': 0x04,
                 'comfort_-2': 0x05,
             });
-            const payload = {data: Buffer.from([mode])};
+            const payload = {mode: Buffer.from([mode])};
             await entity.command('manuSpecificNodOnFilPilote', 'setMode', payload);
             return {state: {'mode': value}};
         },
