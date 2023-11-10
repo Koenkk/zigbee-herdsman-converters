@@ -5,6 +5,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
+const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
