@@ -13,9 +13,15 @@ const definitions: Definition[] = [
         vendor: 'Vesternet',
         description: 'Zigbee dimmer',
         fromZigbee: extend.light_onoff_brightness().fromZigbee
-            .concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
-        toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.power_on_behavior]),
-        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
+            .concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta, fz.level_config]),
+        toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.power_on_behavior, tz.level_config]),
+        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy(), e.power_on_behavior(['off', 'on', 'previous']),
+            e.composite('level_config', 'level_config', ea.ALL)
+                .withFeature(e.numeric('on_level', ea.ALL)
+                    .withValueMin(1).withValueMax(254)
+                    .withPreset('previous', 255, 'Use previous value')
+                    .withDescription('Specifies the level that shall be applied, when an on/toggle command causes the light to turn on.'))
+        ],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9040A'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
