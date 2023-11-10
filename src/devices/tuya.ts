@@ -1464,7 +1464,7 @@ const definitions: Definition[] = [
         description: 'Curtain/blind switch',
         fromZigbee: [fz.cover_position_tilt, tuya.fz.indicator_mode, fz.tuya_cover_options, tuya.fz.backlight_mode_off_on],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal,
-            tuya.tz.backlight_indicator_mode_1, tuya.tz.backlight_indicator_mode_2],
+            tuya.tz.backlight_indicator_mode_2, tuya.tz.backlight_indicator_mode_1],
         meta: {coverInverted: true},
         whiteLabel: [
             {vendor: 'LoraTap', model: 'SC400'},
