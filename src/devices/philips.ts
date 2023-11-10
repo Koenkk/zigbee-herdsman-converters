@@ -3508,6 +3508,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003597701'],
+        model: '929003597701',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle square panel light 120x30',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['929003055701'],
         model: '929003055701',
         vendor: 'Philips',
