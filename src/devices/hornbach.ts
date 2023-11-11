@@ -77,7 +77,7 @@ const definitions: Definition[] = [
         model: '10454469',
         vendor: 'HORNBACH',
         description: 'FLAIR Viyu smart LED bulb CCT E27',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [220, 500]}),
     },
 ];
 
