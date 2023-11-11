@@ -17,7 +17,7 @@ export class LightWithOnLevel extends exposes.Light {
                     'either the on or off state, when an on/off/toggle command of the on/off cluster is used to turn the light on or off'))
             .withFeature(e.binary('execute_if_off', ea.ALL, true, false)
                 .withLabel('Enable level control')
-                .withDescription('this parameter activates or deactivates the "on_level" and "current_level_startup" features'))
+                .withDescription('this parameter activates or deactivates the "on_level" and "current_level_startup" features and force level to 1'))
             .withFeature(e.numeric('on_level', ea.ALL)
                 .withValueMin(1).withValueMax(254)
                 .withPreset('previous', 255, 'Use previous value')
