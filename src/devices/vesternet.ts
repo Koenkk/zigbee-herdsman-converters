@@ -9,23 +9,23 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 export class LightWithOnLevel extends exposes.Light {
-
-	 withOnLevel() {
-         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
+    withOnLevel() {
+        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const levelConfig = e.composite('level_config', 'level_config', ea.ALL)
-                .withFeature(e.numeric('on_off_transition_time', ea.ALL)
-                    .withDescription('Specifies the amount of time, in units of 0.1 seconds, which will be used during a transition to ' +
+            .withFeature(e.numeric('on_off_transition_time', ea.ALL)
+                .withDescription('Specifies the amount of time, in units of 0.1 seconds, which will be used during a transition to ' +
                     'either the on or off state, when an on/off/toggle command of the on/off cluster is used to turn the light on or off'))
-                .withFeature(e.binary('execute_if_off', ea.ALL, true, false)
-                    .withLabel('Enable level control').withDescription('this parameter activates or deactivates the "on_level" and "current_level_startup" features'))
-                .withFeature(e.numeric('on_level', ea.ALL)
-                    .withValueMin(1).withValueMax(254)
-                    .withPreset('previous', 255, 'Use previous value')
-                    .withDescription('Specifies the level that shall be applied, when an on/toggle command causes the light to turn on.'))
-				.withFeature(e.numeric('current_level_startup', ea.ALL)
-                    .withValueMin(1).withValueMax(254)
-                    .withPreset('previous', 255, 'Use previous value')
-                    .withDescription('Specifies the initial level to be applied after the device is supplied with power'))
+            .withFeature(e.binary('execute_if_off', ea.ALL, true, false)
+                .withLabel('Enable level control')
+                .withDescription('this parameter activates or deactivates the "on_level" and "current_level_startup" features'))
+            .withFeature(e.numeric('on_level', ea.ALL)
+                .withValueMin(1).withValueMax(254)
+                .withPreset('previous', 255, 'Use previous value')
+                .withDescription('Specifies the level that shall be applied, when an on/toggle command causes the light to turn on.'))
+            .withFeature(e.numeric('current_level_startup', ea.ALL)
+                .withValueMin(1).withValueMax(254)
+                .withPreset('previous', 255, 'Use previous value')
+                .withDescription('Specifies the initial level to be applied after the device is supplied with power'))
             .withDescription('Configure genLevelCtrl');
         this.features.push(levelConfig);
 
