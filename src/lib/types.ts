@@ -71,6 +71,7 @@ export interface DefinitionMeta {
     supportsEnhancedHue?: boolean | ((entity: Zh.Endpoint) => boolean),
     disableActionGroup?: boolean,
     supportsHueAndSaturation?: boolean,
+    attributes?: {[s: string]: any[]},
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => Promise<void>;
