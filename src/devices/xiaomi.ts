@@ -814,8 +814,16 @@ const definitions: Definition[] = [
         model: 'ZNXDD01LM',
         vendor: 'Xiaomi',
         description: 'Aqara ceiling light L1-350',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, colorTempRange: [153, 370]}),
-        ota: ota.zigbeeOTA,
+        toZigbee: xiaomiExtend.light_onoff_brightness_colortemp({
+            disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true,
+        }).toZigbee.concat([tz.xiaomi_switch_power_outage_memory]),
+        fromZigbee: xiaomiExtend.light_onoff_brightness_colortemp({
+            disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true,
+        }).fromZigbee.concat([fz.aqara_opple]),
+        exposes: xiaomiExtend.light_onoff_brightness_colortemp({
+            disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true,
+            colorTempRange: [153, 370],
+        }).exposes.concat([e.power_outage_memory(), e.device_temperature(), e.power_outage_count()]),
     },
     {
         zigbeeModel: ['lumi.light.cwac02', 'lumi.light.acn014'],
