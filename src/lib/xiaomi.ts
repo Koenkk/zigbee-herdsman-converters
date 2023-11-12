@@ -723,13 +723,11 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '1299':
             if (['ZNXDD01LM'].includes(model.model)) {
-                assertNumber(value);
                 // maximum color temp (6500)
             }
             break;
         case '1300':
             if (['ZNXDD01LM'].includes(model.model)) {
-                assertNumber(value);
                 // minimum color temp (2700)
             }
             break;
