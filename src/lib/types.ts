@@ -71,6 +71,7 @@ export interface DefinitionMeta {
     supportsEnhancedHue?: boolean | ((entity: Zh.Endpoint) => boolean),
     disableActionGroup?: boolean,
     supportsHueAndSaturation?: boolean,
+    // eslint-disable-next-line
     attributes?: {[s: string]: any[]},
 }
 

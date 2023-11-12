@@ -61,8 +61,9 @@ const daysLookup = {
 
 const handleAttributes = (model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => {
     const attributes = (model.meta === null) ? undefined : model.meta.attributes;
-    if (!attributes)
+    if (!attributes) {
         throw new Error('No attributes map defined');
+    }
     const result: KeyValueAny = {};
     Object.entries(msg.data).forEach(([key, value]) => {
         let found = false;
@@ -763,8 +764,9 @@ const tzLocal = {
         key: ['switch_type', 'interlock', 'power_on_behavior', 'operation_mode', 'mode', 'pulse_length'],
         convertSet: async (entity, key, value, meta) => {
             const attributes = (meta.mapped.meta === null) ? undefined : meta.mapped.meta.attributes;
-            if (!attributes)
+            if (!attributes) {
                 throw new Error('No attributes map defined');
+            }
             const at = attributes[key];
             if (at) {
                 const cl = at[1];
@@ -772,20 +774,21 @@ const tzLocal = {
                 const attrtype = at[3];
                 const lookup = at[4];
                 const val = (lookup) ? utils.getFromLookup(value, lookup) : ((attrtype == 0x10) ? ((value) ? 1 : 0) : value);
-                await entity.write(cl, { [attr]: { value: val, type: attrtype } }, { manufacturerCode: 0x115f });
+                await entity.write(cl, {[attr]: {value: val, type: attrtype}}, {manufacturerCode: 0x115f});
             } else {
                 meta.logger.info(`Attribute "${key}" not defined in attributes`);
             }
         },
         convertGet: async (entity, key, meta) => {
             const attributes = (meta.mapped.meta === null) ? undefined : meta.mapped.meta.attributes;
-            if (!attributes)
+            if (!attributes) {
                 throw new Error('No attributes map defined');
+            }
             const at = attributes[key];
             if (at) {
                 const cl = at[1];
                 const attr = at[2];
-                await entity.read(cl, [attr], { manufacturerCode: 0x115f });
+                await entity.read(cl, [attr], {manufacturerCode: 0x115f});
             } else {
                 meta.logger.info(`Attribute "${key}" not defined in attributes`);
             }
@@ -2607,14 +2610,14 @@ const definitions: Definition[] = [
                 'switch_type': [1, 'aqaraOpple', 0x000a, 0x20, {'toggle': 1, 'momentary': 2, 'none': 3}],
                 'interlock': [1, 'aqaraOpple', 0x02d0, 0x10],
                 'power_on_behavior': [1, 'aqaraOpple', 0x0517, 0x20, {'on': 0, 'previous': 1, 'off': 2, 'reverse': 3}],
-                'operation_mode': [, 'aqaraOpple', 0x0200, 0x20, {'decoupled': 0, 'control_relay': 1}],
+                'operation_mode': [undefined, 'aqaraOpple', 0x0200, 0x20, {'decoupled': 0, 'control_relay': 1}],
                 'mode': [1, 'aqaraOpple', 0x0289, 0x20, {'power': 0, 'pulse': 1, 'dry': 3}],
                 'pulse_length': [1, 'aqaraOpple', 0x00eb, 0x21],
-                'action': [, 'genMultistateInput', 'presentValue', 0x21, {'single': 1}],
+                'action': [undefined, 'genMultistateInput', 'presentValue', 0x21, {'single': 1}],
             },
         },
         endpoint: (device) => {
-            return { 'l1': 1, 'l2': 2 };
+            return {'l1': 1, 'l2': 2};
         },
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.power(), e.current(), e.energy(), e.voltage(), e.device_temperature(),
