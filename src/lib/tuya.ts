@@ -1130,6 +1130,11 @@ const tuyaExtend = {
             exposes.push(tuyaExposes.switchType());
         }
 
+        if (options.backlightModeOffOn) {
+            fromZigbee.push(tuyaFz.backlight_mode_off_on);
+            exposes.push(tuyaExposes.backlightModeOffOn());
+            toZigbee.push(tuyaTz.backlight_indicator_mode_2);
+        }
         if (options.backlightModeLowMediumHigh) {
             fromZigbee.push(tuyaFz.backlight_mode_low_medium_high);
             exposes.push(tuyaExposes.backlightModeLowMediumHigh());
@@ -1144,11 +1149,6 @@ const tuyaExtend = {
             fromZigbee.push(tuyaFz.indicator_mode);
             exposes.push(tuyaExposes.indicatorMode());
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
-        }
-        if (options.backlightModeOffOn) {
-            fromZigbee.push(tuyaFz.backlight_mode_off_on);
-            exposes.push(tuyaExposes.backlightModeOffOn());
-            toZigbee.push(tuyaTz.backlight_indicator_mode_2);
         }
 
         if (options.electricalMeasurements) {
