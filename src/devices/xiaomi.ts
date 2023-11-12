@@ -26,7 +26,9 @@ const xiaomiExtend = {
             colorTempRange: [153, 370], toZigbee: [], fromZigbee: [], exposes: [], ...options,
         };
         const fromZigbee = [
-            ...extend.light_onoff_brightness_colortemp(options).fromZigbee, ...options.fromZigbee];
+            ...extend.light_onoff_brightness_colortemp(options).fromZigbee,
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report, ...options.fromZigbee];
         const toZigbee = [
             ...extend.light_onoff_brightness_colortemp(options).toZigbee, ...options.toZigbee];
         const exposes = [
