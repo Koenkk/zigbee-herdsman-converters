@@ -28,7 +28,7 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, null, function(lookup) {
+                [1, null, function (lookup) {
                     return {
                         from: (v: number) => {
                             const smokeState = lookup.from(v);
@@ -54,6 +54,7 @@ const definitions: Definition[] = [
                 })],
             ],
         },
+    },
 ];
 
 module.exports = definitions;
