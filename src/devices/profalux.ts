@@ -41,17 +41,17 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         options: [],
-        exposes: (device,options) => {
-            const endpoint = device.getEndpoint(2);
+        exposes: (device, options) => {
+            const endpoint = device?.getEndpoint(2);
             // Motor can be configured using the associated remote:
             //  0: default hard cover         : 2xF Up + Down on the associated remote
             //  1: cover using tilt (aka BSO) : 2xF Stop + Up
             //  2: soft cover (aka store)     : 2xF Stop + Down
 
-            if (endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType') == 1) {
-                return [ e.cover_position_tilt().setAccess('state', ea.ALL)]
+            if ((device == null && options == null) || endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType') == 1) {
+                return [e.cover_position_tilt(), e.linkquality()];
             } else {
-                return [ e.cover_position().setAccess('state', ea.ALL)]
+                return [e.cover_position(), e.linkquality()];
             }
         },
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -60,10 +60,11 @@ const definitions: Definition[] = [
                 .catch((e) => {
                     console.warn(`Failed to read zigbee attributes: ${e}`);
                 });
-            // logger.debug(`Profalux '${device.ieeeAddr}' setup as cover type '${endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType')}'`);
+            const coverType = endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType');
+            // logger.debug(`Profalux '${device.ieeeAddr}' setup as cover type '${coverType)}'`);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
-            if (endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType') == 1) {
+            if (coverType == 1) {
                 await reporting.currentPositionTiltPercentage(endpoint);
             }
         },
@@ -94,7 +95,7 @@ const definitions: Definition[] = [
         // Newer remotes. These expose a bunch of things but they are bound to
         // the cover and don't seem to communicate with the coordinator, so
         // nothing is likely to be doable in Z2M.
-        zigbeeModel: ['MAI-ZTP20F', 'MAI-ZTP20C', 'MAI-ZTS'],
+        zigbeeModel: ['MAI-ZTP20F', 'MAI-ZTP20C'],
         model: 'MAI-ZTP20',
         vendor: 'Profalux',
         description: 'Cover remote',
