@@ -44,6 +44,7 @@ const definitions: Definition[] = [
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
+        ota: ota.zigbeeOTA,
     },
     {
         fingerprint: [
