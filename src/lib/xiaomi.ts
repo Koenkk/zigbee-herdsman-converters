@@ -359,7 +359,6 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             if (['RTCZCGQ11LM'].includes(model.model)) {
                 payload.monitoring_mode = getFromLookup(value, {0: 'undirected', 1: 'left_right'});
             } else if (['ZNXDD01LM'].includes(model.model)) {
-                assertNumber(value);
                 // const color_temp_min = (value & 0xffff); // 2700
                 // const color_temp_max = (value >> 16) & 0xffff; // 6500
             }
