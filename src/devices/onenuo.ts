@@ -1,6 +1,6 @@
 import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
-import {Definition} from "../lib/types";
+import {Definition} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -28,21 +28,21 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, null, function (lookup) {
+                [1, null, function(lookup) {
                     return {
                         from: (v: number) => {
                             const smokeState = lookup.from(v);
                             return {
                                 'smoke': (smokeState === 'alarm'),
-                                'smoke_state': smokeState
+                                'smoke_state': smokeState,
                             };
-                        }
-                    }
+                        },
+                    };
                 }(tuya.valueConverterBasic.lookup({
                     'alarm': tuya.enum(0),
                     'normal': tuya.enum(1),
                     'detecting': tuya.enum(2),
-                    'unknown': tuya.enum(3)
+                    'unknown': tuya.enum(3),
                 }))],
                 [15, 'battery', tuya.valueConverter.raw],
                 [16, 'silence', tuya.valueConverter.raw],
@@ -50,7 +50,7 @@ const definitions: Definition[] = [
                 [102, 'sensitivity', tuya.valueConverterBasic.lookup({
                     'low': tuya.enum(0),
                     'medium': tuya.enum(1),
-                    'high': tuya.enum(2)
+                    'high': tuya.enum(2),
                 })],
             ],
         },
