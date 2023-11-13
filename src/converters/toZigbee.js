@@ -2282,7 +2282,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
-                'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM', 'ZNQBKG31LM',
+                'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM', 'ZNQBKG31LM',
                 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'JWSP001A', 'SSWQD02LM', 'SSWQD03LM', 'XDD11LM',
                 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM',
             ].includes(meta.mapped.model)) {
@@ -2308,7 +2308,7 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
-                'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM', 'ZNQBKG31LM',
+                'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM', 'ZNQBKG31LM',
                 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'JWSP001A', 'SSWQD02LM', 'SSWQD03LM', 'XDD11LM',
                 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM',
             ].includes(meta.mapped.model)) {
@@ -2428,7 +2428,7 @@ const converters = {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG28LM', 'QBKG29LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
@@ -2444,7 +2444,7 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG28LM', 'QBKG29LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
