@@ -913,7 +913,6 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage(),
             e.energy(), e.device_temperature().withDescription('Device temperature'),],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
-        },
     },
     {
         zigbeeModel: ['4512750'],
