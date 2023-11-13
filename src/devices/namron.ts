@@ -926,7 +926,7 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.brightness(endpoint);
-        };
+        },
         exposes: [e.light_brightness()],
     },
 ];
