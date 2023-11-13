@@ -2587,9 +2587,9 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.child_lock(), 
+            e.child_lock(),
             e.open_window_temperature().withValueMin(5).withValueMax(30),
-            e.comfort_temperature().withValueMin(5).withValueMax(30), 
+            e.comfort_temperature().withValueMin(5).withValueMax(30),
             e.eco_temperature().withValueMin(5).withValueMax(30),
             e.holiday_temperature().withValueMin(5).withValueMax(30),
             e.climate().withPreset(['auto', 'manual', 'holiday', 'comfort']).withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
@@ -2622,16 +2622,15 @@ const definitions: Definition[] = [
                 'period and until the next period, e.g., `04:00/20 24:00/22` means that from 00:00 to 04:00 temperature will be 20 ' +
                 'degrees and from 04:00 to 00:00 temperature will be 22 degrees.'),
             ...tuya.exposes.scheduleAllDays(ea.STATE, 'HH:MM/C'),
-            //e.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('The current data request from the device.'),
+            // e.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('The current data request from the device.'),
             e.binary('valve', ea.STATE, 'CLOSED', 'OPEN'),
             e.enum('factory_reset', ea.STATE_SET, ['SET']).withDescription('Remove limits'),
             tuya.exposes.errorStatus(),
         ],
-        
         meta: {
             tuyaDatapoints: [
                 [49, 'running_state', tuya.valueConverterBasic.lookup({'heat': tuya.enum(1), 'idle': tuya.enum(0)})],
-                [2, 'preset', tuya.valueConverterBasic.lookup({'comfort': tuya.enum(3),'auto': tuya.enum(0), 'manual': tuya.enum(2), 'holiday': tuya.enum(1)})],
+                [2, 'preset', tuya.valueConverterBasic.lookup({'comf': tuya.enum(3), 'auto': tuya.enum(0), 'manual': tuya.enum(2), 'hol': tuya.enum(1)})],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [6, 'battery', tuya.valueConverter.raw],
@@ -2641,7 +2640,7 @@ const definitions: Definition[] = [
                 [14, 'open_window', tuya.valueConverter.onOff],
                 [16, 'open_window_temperature', tuya.valueConverter.divideBy10],
                 [17, 'open_window_time', tuya.valueConverter.raw],
-                [19, 'factory_reset',  tuya.valueConverter.setLimit],
+                [19, 'factory_reset', tuya.valueConverter.setLimit],
                 [21, 'holiday_temperature', tuya.valueConverter.raw],
                 [24, 'comfort_temperature', tuya.valueConverter.divideBy10],
                 [25, 'eco_temperature', tuya.valueConverter.divideBy10],
