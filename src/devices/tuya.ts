@@ -2576,15 +2576,13 @@ const definitions: Definition[] = [
                 .withFeature(e.text('holidays_schedule', ea.STATE_SET))],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE204_g2ki0ejr'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_g2ki0ejr']),
         model: 'BAB-1413_Pro',
         vendor: 'TuYa',
-        description: 'Thermostat Radiator Valve',
+        description: 'Thermostat radiator valve',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.child_lock(),
@@ -2622,7 +2620,6 @@ const definitions: Definition[] = [
                 'period and until the next period, e.g., `04:00/20 24:00/22` means that from 00:00 to 04:00 temperature will be 20 ' +
                 'degrees and from 04:00 to 00:00 temperature will be 22 degrees.'),
             ...tuya.exposes.scheduleAllDays(ea.STATE, 'HH:MM/C'),
-            // e.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('The current data request from the device.'),
             e.binary('valve', ea.STATE, 'CLOSED', 'OPEN'),
             e.enum('factory_reset', ea.STATE_SET, ['SET']).withDescription('Remove limits'),
             tuya.exposes.errorStatus(),
