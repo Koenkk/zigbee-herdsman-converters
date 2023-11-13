@@ -2659,7 +2659,7 @@ const definitions: Definition[] = [
                 [39, 'Switch Scale', tuya.valueConverter.raw],
                 [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
                 [48, 'valve_testing', tuya.valueConverter.raw],
-                [49, 'valve', tuya.valueConverterBasic.lookup({'OPEN': 1, 'CLOSE': 0})],               
+                [49, 'valve', tuya.valueConverterBasic.lookup({'OPEN': 1, 'CLOSE': 0})],
             ],
         },
     },
