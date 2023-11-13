@@ -40,11 +40,33 @@ const definitions: Definition[] = [
         description: 'Cover',
         fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        exposes: [e.cover_position()],
+        options: [],
+        exposes: (device, options) => {
+            const endpoint = device?.getEndpoint(2);
+            // Motor can be configured using the associated remote:
+            //  0: default hard cover         : 2xF Up + Down on the associated remote
+            //  1: cover using tilt (aka BSO) : 2xF Stop + Up
+            //  2: soft cover (aka store)     : 2xF Stop + Down
+
+            if ((device == null && options == null) || endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType') == 1) {
+                return [e.cover_position_tilt(), e.linkquality()];
+            } else {
+                return [e.cover_position(), e.linkquality()];
+            }
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
+            await endpoint.read('manuSpecificProfalux1', ['motorCoverType'])
+                .catch((e) => {
+                    console.warn(`Failed to read zigbee attributes: ${e}`);
+                });
+            const coverType = endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType');
+            // logger.debug(`Profalux '${device.ieeeAddr}' setup as cover type '${coverType)}'`);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
+            if (coverType == 1) {
+                await reporting.currentPositionTiltPercentage(endpoint);
+            }
         },
         endpoint: (device) => {
             return {default: 2};
