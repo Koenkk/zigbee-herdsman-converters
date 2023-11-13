@@ -276,7 +276,7 @@ export class Light extends Base {
 
     withLevelConfig(disableFeatures: string[] = []) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        const levelConfig = new Composite('level_config', 'level_config', access.ALL);
+        let levelConfig = new Composite('level_config', 'level_config', access.ALL);
         if (!disableFeatures.includes('on_off_transition_time')) {
             levelConfig = levelConfig.withFeature(new Numeric('on_off_transition_time', access.ALL)
                 .withLabel('ON/OFF transition time')
