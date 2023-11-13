@@ -281,21 +281,18 @@ export class Light extends Base {
             levelConfig = levelConfig.withFeature(new Numeric('on_off_transition_time', access.ALL)
                 .withLabel('ON/OFF transition time')
                 .withDescription('Represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster'));
-            )
         }
         if (!disableFeatures.includes('on_transition_time')) {
             levelConfig = levelConfig.withFeature(new Numeric('on_transition_time', access.ALL)
                 .withLabel('ON transition time')
                 .withPreset('disabled', 65535, 'Use on_off_transition_time value')
                 .withDescription('Represents the time taken to move the current level from the minimum level to the maximum level when an On command is received'));
-            );
         }
         if (!disableFeatures.includes('off_transition_time')) {
             levelConfig = levelConfig.withFeature(new Numeric('off_transition_time', access.ALL)
                 .withLabel('OFF transition time')
                 .withPreset('disabled', 65535, 'Use on_off_transition_time value')
                 .withDescription('Represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received'));
-            );
         }
         if (!disableFeatures.includes('execute_if_off')) {
             levelConfig = levelConfig.withFeature(new Binary('execute_if_off', access.ALL, true, false)
@@ -313,7 +310,6 @@ export class Light extends Base {
                 .withPreset('minimum', 0, 'Use minimum permitted value')
                 .withPreset('previous', 255, 'Use previous value')
                 .withDescription('Defines the desired startup level for a device when it is supplied with power'));
-            );
         }
         levelConfig = levelConfig.withDescription('Configure genLevelCtrl');
         this.features.push(levelConfig);
