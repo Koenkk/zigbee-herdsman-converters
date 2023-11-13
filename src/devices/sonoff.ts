@@ -65,6 +65,20 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
+    valve_motor_running_voltage: {
+        cluster: '64529',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x6007)) {
+                result.valve_motor_running_voltage = data[0x6007] / 1000;
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -108,6 +122,12 @@ const tzLocal = {
                     [key]: value,
                 },
             };
+        },
+    } satisfies Tz.Converter,
+    valve_motor_running_voltage: {
+        key: ['valve_motor_running_voltage'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read(0xFC11, [0x6007]);
         },
     } satisfies Tz.Converter,
 };
@@ -474,11 +494,29 @@ const definitions: Definition[] = [
                 .withUnit('°C')
                 .withDescription(
                     'Minimum temperature at which to automatically turn on the radiator, if system mode is off, to prevent pipes freezing.'),
+            e.numeric('valve_motor_running_voltage', ea.STATE_GET)
+                .withUnit('V')
+                .withDescription('Valve motor running voltage'),
         ],
-        fromZigbee: [fz.thermostat, fz.battery, fzLocal.child_lock, fzLocal.open_window, fzLocal.frost_protection_temperature],
+        fromZigbee: [
+            fz.thermostat,
+            fz.battery,
+            fzLocal.child_lock,
+            fzLocal.open_window,
+            fzLocal.frost_protection_temperature,
+            fzLocal.valve_motor_running_voltage
+        ],
         toZigbee: [
-            tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode, tz.thermostat_running_state, tzLocal.child_lock, tzLocal.open_window, tzLocal.frost_protection_temperature],
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tzLocal.child_lock,
+            tzLocal.open_window,
+            tzLocal.frost_protection_temperature,
+            tzLocal.valve_motor_running_voltage
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
