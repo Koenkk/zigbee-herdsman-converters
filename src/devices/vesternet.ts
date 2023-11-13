@@ -4,34 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import assert from 'assert';
 const e = exposes.presets;
-const ea = exposes.access;
-
-export class LightWithOnLevel extends exposes.Light {
-    withOnLevel() {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        const levelConfig = e.composite('level_config', 'level_config', ea.ALL)
-            .withFeature(e.numeric('on_off_transition_time', ea.ALL)
-                .withDescription('Specifies the amount of time, in units of 0.1 seconds, which will be used during a transition to ' +
-                    'either the on or off state, when an on/off/toggle command of the on/off cluster is used to turn the light on or off'))
-            .withFeature(e.binary('execute_if_off', ea.ALL, true, false)
-                .withLabel('Enable level control')
-                .withDescription('This parameter activates or deactivates the "on_level" and "current_level_startup" features and force level to 1'))
-            .withFeature(e.numeric('on_level', ea.ALL)
-                .withValueMin(1).withValueMax(254)
-                .withPreset('previous', 255, 'Use previous value')
-                .withDescription('Specifies the level that shall be applied, when an on/toggle command causes the light to turn on.'))
-            .withFeature(e.numeric('current_level_startup', ea.ALL)
-                .withValueMin(1).withValueMax(254)
-                .withPreset('previous', 255, 'Use previous value')
-                .withDescription('Specifies the initial level to be applied after the device is supplied with power'))
-            .withDescription('Configure genLevelCtrl');
-        this.features.push(levelConfig);
-
-        return this;
-    }
-}
 
 const definitions: Definition[] = [
     {
@@ -42,7 +15,7 @@ const definitions: Definition[] = [
         fromZigbee: extend.light_onoff_brightness().fromZigbee
             .concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
         toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.power_on_behavior]),
-        exposes: [new LightWithOnLevel().withBrightness().withOnLevel(),
+        exposes: [e.light_brightness().withLevelConfig(['on_transition_time', 'off_transition_time']),
             e.power(), e.voltage(), e.current(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9040A'}],
         configure: async (device, coordinatorEndpoint, logger) => {
