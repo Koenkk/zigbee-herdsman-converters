@@ -315,7 +315,7 @@ export class Light extends Base {
                 .withDescription('Defines the desired startup level for a device when it is supplied with power'));
             );
         }
-        levelConfig.withDescription('Configure genLevelCtrl');
+        levelConfig = levelConfig.withDescription('Configure genLevelCtrl');
         this.features.push(levelConfig);
         return this;
     }
