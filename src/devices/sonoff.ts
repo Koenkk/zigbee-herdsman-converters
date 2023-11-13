@@ -73,7 +73,63 @@ const fzLocal = {
             const data = msg.data;
 
             if (data.hasOwnProperty(0x6007)) {
-                result.valve_motor_running_voltage = data[0x6007] / 1000;
+                result.valve_motor_running_voltage = data[0x6007];
+            }
+
+            return result;
+        },
+    } as Fz.Converter,
+    valve_opening_limit_voltage: {
+        cluster: '64529',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x6005)) {
+                result.valve_opening_limit_voltage = data[0x6005];
+            }
+
+            return result;
+        },
+    } as Fz.Converter,
+    valve_closing_limit_voltage: {
+        cluster: '64529',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x6006)) {
+                result.valve_closing_limit_voltage = data[0x6006];
+            }
+
+            return result;
+        },
+    } as Fz.Converter,
+    idle_steps: {
+        cluster: '64529',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x6003)) {
+                result.idle_steps = data[0x6003];
+            }
+
+            return result;
+        },
+    } as Fz.Converter,
+    closing_steps: {
+        cluster: '64529',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x6004)) {
+                result.closing_steps = data[0x6004];
             }
 
             return result;
@@ -128,6 +184,30 @@ const tzLocal = {
         key: ['valve_motor_running_voltage'],
         convertGet: async (entity, key, meta) => {
             await entity.read(0xFC11, [0x6007]);
+        },
+    } as Tz.Converter,
+    valve_opening_limit_voltage: {
+        key: ['valve_opening_limit_voltage'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read(0xFC11, [0x6005]);
+        },
+    } as Tz.Converter,
+    valve_closing_limit_voltage: {
+        key: ['valve_closing_limit_voltage'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read(0xFC11, [0x6006]);
+        },
+    } as Tz.Converter,
+    idle_steps: {
+        key: ['idle_steps'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read(0xFC11, [0x6003]);
+        },
+    } as Tz.Converter,
+    closing_steps: {
+        key: ['closing_steps'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read(0xFC11, [0x6004]);
         },
     } as Tz.Converter,
 };
@@ -470,8 +550,18 @@ const definitions: Definition[] = [
                 .withDescription(
                     'Minimum temperature at which to automatically turn on the radiator, if system mode is off, to prevent pipes freezing.'),
             e.numeric('valve_motor_running_voltage', ea.STATE_GET)
-                .withUnit('V')
+                .withUnit('mV')
                 .withDescription('Valve motor running voltage'),
+            e.numeric('valve_opening_limit_voltage', ea.STATE_GET)
+                .withUnit('mV')
+                .withDescription('Valve opening limit voltage'),
+            e.numeric('valve_closing_limit_voltage', ea.STATE_GET)
+                .withUnit('mV')
+                .withDescription('Valve closing limit voltage'),
+            e.numeric('idle_steps', ea.STATE_GET)
+                .withDescription('Number of steps used for calibration (no-load steps)'),
+            e.numeric('closing_steps', ea.STATE_GET)
+                .withDescription('Number of steps it takes to close the valve'),
         ],
         fromZigbee: [
             fz.thermostat,
@@ -479,7 +569,11 @@ const definitions: Definition[] = [
             fzLocal.child_lock,
             fzLocal.open_window,
             fzLocal.frost_protection_temperature,
-            fzLocal.valve_motor_running_voltage
+            fzLocal.valve_motor_running_voltage,
+            fzLocal.valve_opening_limit_voltage,
+            fzLocal.valve_closing_limit_voltage,
+            fzLocal.idle_steps,
+            fzLocal.closing_steps,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -490,7 +584,11 @@ const definitions: Definition[] = [
             tzLocal.child_lock,
             tzLocal.open_window,
             tzLocal.frost_protection_temperature,
-            tzLocal.valve_motor_running_voltage
+            tzLocal.valve_motor_running_voltage,
+            tzLocal.valve_opening_limit_voltage,
+            tzLocal.valve_closing_limit_voltage,
+            tzLocal.idle_steps,
+            tzLocal.closing_steps,
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
