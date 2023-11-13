@@ -2592,7 +2592,7 @@ const definitions: Definition[] = [
             e.climate().withPreset(['auto', 'manual', 'holiday', 'comfort']).withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET, 'Only for Homeassistant')
-                .withRunningState(['idle', 'heat'], ea.STATE_SET, 'Only for Homeassistant'),
+                .withRunningState(['idle', 'heat'], ea.STATE_SET),
             tuya.exposes.frostProtection('When Anti-Freezing function is activated, the temperature in the house is kept '+
                     'at 8 °C, the device display "AF".press the pair button to cancel.'),
             e.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('s').withDescription('Setting '+
