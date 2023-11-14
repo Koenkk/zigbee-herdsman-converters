@@ -3399,7 +3399,7 @@ const converters1 = {
     } as Fz.Converter,
     enocean_ptm215z: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -3421,7 +3421,7 @@ const converters1 = {
     } as Fz.Converter,
     enocean_ptm215ze: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -3449,7 +3449,7 @@ const converters1 = {
     } as Fz.Converter,
     enocean_ptm216z: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -3674,31 +3674,6 @@ const converters1 = {
             }
         },
     } as Fz.Converter,
-    legrand_cluster_fc01: {
-        cluster: 'manuSpecificLegrandDevices',
-        type: ['readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload: KeyValueAny = {};
-
-            if (msg.data.hasOwnProperty('0')) {
-                const option0 = msg.data['0'];
-
-                if (option0 === 0x0001) payload.device_mode = 'pilot_off';
-                else if (option0 === 0x0002) payload.device_mode = 'pilot_on';
-                else if (option0 === 0x0003) payload.device_mode = 'switch';
-                else if (option0 === 0x0004) payload.device_mode = 'auto';
-                else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
-                else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
-                else {
-                    meta.logger.warn(`device_mode ${option0} not recognized, please fix me`);
-                    payload.device_mode = 'unknown';
-                }
-            }
-            if (msg.data.hasOwnProperty('1')) payload.led_when_off = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
-            if (msg.data.hasOwnProperty('2')) payload.led_when_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
-            return payload;
-        },
-    } as Fz.Converter,
     legrand_cable_outlet_mode: {
         cluster: 'manuSpecificLegrandDevices2',
         type: ['readResponse'],
@@ -3742,9 +3717,9 @@ const converters1 = {
             return payload;
         },
     } as Fz.Converter,
-    legrand_greenpower_254: {
+    legrand_greenpower: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -3753,34 +3728,14 @@ const converters1 = {
                 0x10: 'home_arrival', 0x11: 'home_departure', // ZLGP14
                 0x12: 'daytime_day', 0x13: 'daytime_night', // ZLGP16, yes these commandIDs are lower than ZLGP15s'
                 0x14: 'press_1', 0x15: 'press_2', 0x16: 'press_3', 0x17: 'press_4', // ZLGP15
+                0x22: 'press_once', 0x20: 'press_twice', // ZLGP17, ZLGP18
+                0x34: 'stop', 0x35: 'up', 0x36: 'down', // 600087l
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`GreenPower_254: missing command '${commandID}'`);
+                meta.logger.error(`Legrand GreenPower: missing command '${commandID}'`);
             } else {
                 return {action: lookup[commandID]};
             }
-        },
-    } as Fz.Converter,
-    legrand_zlgp17_zlgp18: {
-        cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
-        convert: (model, msg, publish, options, meta) => {
-            const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-            if (commandID === 224) return;
-            const lookup: KeyValueAny = {0x22: 'press_once', 0x20: 'press_twice'};
-            if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`ZLGP17/ZLGP18: missing command '${commandID}'`);
-            } else {
-                return {action: lookup[commandID]};
-            }
-        },
-    } as Fz.Converter,
-    legrand_led_in_dark: {
-        cluster: 'manuSpecificLegrandDevices',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {led_in_dark: msg.data[1] === 1 ? 'ON' : 'OFF'};
         },
     } as Fz.Converter,
     xiaomi_power: {
@@ -5295,7 +5250,7 @@ const converters1 = {
     } as Fz.Converter,
     hue_tap: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -5679,7 +5634,7 @@ const converters1 = {
     } as Fz.Converter,
     sunricher_switch2801K2: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -5694,7 +5649,7 @@ const converters1 = {
     } as Fz.Converter,
     sunricher_switch2801K4: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -6366,6 +6321,26 @@ const converters2 = {
                     publish(result);
                 }
             }
+        },
+    } as Fz.Converter,
+    nodon_fil_pilote_mode: {
+        cluster: 'manuSpecificNodOnFilPilote',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            const mode = msg.data['mode'];
+
+            if (mode === 0x00) payload.mode = 'stop';
+            else if (mode === 0x01) payload.mode = 'comfort';
+            else if (mode === 0x02) payload.mode = 'eco';
+            else if (mode === 0x03) payload.mode = 'anti-freeze';
+            else if (mode === 0x04) payload.mode = 'comfort_-1';
+            else if (mode === 0x05) payload.mode = 'comfort_-2';
+            else {
+                meta.logger.warn(`wrong mode : ${mode}`);
+                payload.mode = 'unknown';
+            }
+            return payload;
         },
     } as Fz.Converter,
 };

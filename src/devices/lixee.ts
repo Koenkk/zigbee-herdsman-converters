@@ -11,7 +11,6 @@ const e = exposes.presets;
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
 import {Buffer} from 'buffer';
-import herdsman from 'zigbee-herdsman';
 
 /* Start ZiPulses */
 
@@ -38,7 +37,7 @@ const tzSeMetering: Tz.Converter = {
         if (key === 'unitOfMeasure') {
             utils.assertString(value, 'unitOfMeasure');
             const val = unitsZiPulses.indexOf(value);
-            const payload = {768: {value: val, type: herdsman.Zcl.DataType.enum8}};
+            const payload = {768: {value: val, type: 48}};
             await entity.write('seMetering', payload);
             await entity.read('seMetering', [key]);
             return {state: {'unitOfMeasure': value}};

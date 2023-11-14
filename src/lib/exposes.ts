@@ -439,7 +439,7 @@ export class Climate extends Base {
         // For devices following the ZCL local_temperature_calibration is an int8, so min = -12.8 and max 12.7
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         this.features.push(new Numeric('local_temperature_calibration', access)
-            .withValueMin(min).withValueMax(max).withValueStep(step).withUnit('°C').withDescription('Offset to be used in the local_temperature'));
+            .withValueMin(min).withValueMax(max).withValueStep(step).withUnit('°C').withDescription('Offset to add/subtract to the local temperature'));
         return this;
     }
 

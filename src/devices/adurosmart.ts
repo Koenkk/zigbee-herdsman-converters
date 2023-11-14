@@ -130,7 +130,7 @@ const definitions: Definition[] = [
         meta: {applyRedFix: true},
     },
     {
-        zigbeeModel: ['AD-81812'],
+        zigbeeModel: ['AD-81812', 'AD-ColorTemperature3001'],
         model: '81812',
         vendor: 'AduroSmart',
         description: 'Eria tunable white A19 smart bulb',

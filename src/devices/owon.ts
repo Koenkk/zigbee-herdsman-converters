@@ -354,6 +354,23 @@ const definitions: Definition[] = [
             device.save();
         },
     },
+    {
+        zigbeeModel: ['SLC603'],
+        model: 'SLC603',
+        vendor: 'OWON',
+        description: 'Zigbee remote dimmer',
+        fromZigbee: [fz.battery, fz.command_toggle, fz.command_step, fz.command_step_color_temperature],
+        toZigbee: [],
+        exposes: [e.battery(), e.battery_low(), e.action(['toggle', 'brightness_step_up', 'brightness_step_down',
+            'color_temperature_step_up', 'color_temperature_step_down'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
+        },
+    },
 ];
 
 module.exports = definitions;

@@ -15,14 +15,38 @@ import {Definition, OnEvent, Fz, KeyValue, Tz, Extend} from '../lib/types';
 const {printNumbersAsHexSequence} = utils;
 const {fp1, manufacturerCode, trv} = xiaomi;
 
+interface xiaomi_options_light_onoff_brightness_colortemp extends Extend.options_light_onoff_brightness_colortemp {
+    disableAqaraOpple?: boolean, disableSwitchPowerOutageMemory?: boolean,
+}
+
 const xiaomiExtend = {
-    light_onoff_brightness_colortemp: (options:Extend.options_light_onoff_brightness_colortemp={disableColorTempStartup: true}): Extend => ({
-        ...extend.light_onoff_brightness_colortemp(options),
-        fromZigbee: extend.light_onoff_brightness_colortemp(options).fromZigbee.concat([
+    light_onoff_brightness_colortemp: (options: xiaomi_options_light_onoff_brightness_colortemp = {}): Extend => {
+        options = {
+            disableEffect: true, disableColorTempStartup: true, disablePowerOnBehavior: true,
+            colorTempRange: [153, 370], toZigbee: [], fromZigbee: [], exposes: [], ...options,
+        };
+        const fromZigbee = [
+            ...extend.light_onoff_brightness_colortemp(options).fromZigbee,
             fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
-            fz.ignore_pressure_report, fz.ignore_temperature_report,
-        ]),
-    }),
+            fz.ignore_pressure_report, fz.ignore_temperature_report, ...options.fromZigbee];
+        const toZigbee = [
+            ...extend.light_onoff_brightness_colortemp(options).toZigbee, ...options.toZigbee];
+        const exposes = [
+            ...extend.light_onoff_brightness_colortemp(options).exposes, ...options.exposes];
+
+        if (!options.disableSwitchPowerOutageMemory) {
+            toZigbee.push(tz.xiaomi_switch_power_outage_memory);
+            exposes.push(e.power_outage_memory());
+        }
+
+        if (!options.disableAqaraOpple) {
+            fromZigbee.push(fz.aqara_opple);
+            exposes.push(e.device_temperature());
+            exposes.push(e.power_outage_count());
+        }
+
+        return {fromZigbee, toZigbee, exposes};
+    },
 };
 
 const preventReset: OnEvent = async (type, data, device) => {
@@ -801,11 +825,12 @@ const definitions: Definition[] = [
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart LED bulb',
-        toZigbee: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disablePowerOnBehavior: true})
+        toZigbee: xiaomiExtend.light_onoff_brightness_colortemp({disableSwitchPowerOutageMemory: true})
             .toZigbee.concat([tz.xiaomi_light_power_outage_memory]),
-        fromZigbee: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disablePowerOnBehavior: true}).fromZigbee,
+        fromZigbee: xiaomiExtend.light_onoff_brightness_colortemp({disableSwitchPowerOutageMemory: true})
+            .fromZigbee,
         // power_on_behavior 'toggle' does not seem to be supported
-        exposes: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disablePowerOnBehavior: true})
+        exposes: xiaomiExtend.light_onoff_brightness_colortemp({disableSwitchPowerOutageMemory: true})
             .exposes.concat([e.power_outage_memory().withAccess(ea.STATE_SET)]),
         ota: ota.zigbeeOTA,
     },
@@ -814,7 +839,7 @@ const definitions: Definition[] = [
         model: 'ZNXDD01LM',
         vendor: 'Xiaomi',
         description: 'Aqara ceiling light L1-350',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, colorTempRange: [153, 370]}),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -822,21 +847,7 @@ const definitions: Definition[] = [
         model: 'ZNLDP13LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 smart LED bulb',
-        toZigbee: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disablePowerOnBehavior: true}).toZigbee.concat([
-            tz.xiaomi_switch_power_outage_memory,
-        ]),
-        fromZigbee: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disablePowerOnBehavior: true}).fromZigbee.concat([
-            fz.aqara_opple,
-        ]),
-        exposes: xiaomiExtend.light_onoff_brightness_colortemp({
-            disableEffect: true,
-            disablePowerOnBehavior: true,
-            colorTempRange: [153, 370],
-        }).exposes.concat([
-            e.power_outage_memory(),
-            e.device_temperature(),
-            e.power_outage_count(),
-        ]),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             device.type = 'Router';
@@ -850,8 +861,7 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX960',
         meta: {turnsOffAtBrightness1: true},
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disableColorTempStartup: true,
-            colorTempRange: [175, 370]}),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -860,8 +870,7 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX650',
         meta: {turnsOffAtBrightness1: true},
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disableColorTempStartup: true,
-            colorTempRange: [175, 370]}),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -870,8 +879,7 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX480',
         meta: {turnsOffAtBrightness1: true},
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disableColorTempStartup: true,
-            colorTempRange: [175, 370]}),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -879,15 +887,14 @@ const definitions: Definition[] = [
         model: 'JWSP001A',
         vendor: 'Xiaomi',
         description: 'Jiawen LED Driver & Dimmer',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disableColorTempStartup: true,
-            colorTempRange: [153, 370]}),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn02'],
         model: 'JWDL001A',
         vendor: 'Xiaomi',
         description: 'Aqara embedded spot led light',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['lumi.sensor_switch'],
@@ -1149,6 +1156,23 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.switch.n1acn1'],
+        model: 'QBKG30LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch H1 Pro (with neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple, fz.xiaomi_multistate_action],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
+        exposes: [e.switch(), e.power(), e.energy(), e.voltage(),
+            e.device_temperature(), e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
+            e.action(['single', 'double']),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode'),
+            e.power_outage_count()],
+        onEvent: preventReset,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.switch.n2acn1'],
         model: 'QBKG31LM',
         vendor: 'Xiaomi',
@@ -1168,7 +1192,8 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button').withEndpoint('left'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button').withEndpoint('right')],
+                .withDescription('Decoupled mode for right button').withEndpoint('right'),
+            e.power_outage_count()],
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
@@ -1196,7 +1221,8 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button').withEndpoint('right'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button').withEndpoint('center')],
+                .withDescription('Decoupled mode for right button').withEndpoint('center'),
+            e.power_outage_count()],
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
@@ -2708,8 +2734,7 @@ const definitions: Definition[] = [
         model: 'SSWQD02LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart dimmer controller t1 pro',
-        extend: extend.light_onoff_brightness_colortemp({
-            disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370]}),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {
@@ -2717,8 +2742,7 @@ const definitions: Definition[] = [
         model: 'SSWQD03LM',
         vendor: 'Xiaomi',
         description: 'Aqara spotlight T2',
-        extend: extend.light_onoff_brightness_colortemp({
-            disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370]}),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {

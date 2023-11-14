@@ -4,6 +4,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 const e = exposes.presets;
+const ea = exposes.access;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 
@@ -47,9 +48,11 @@ const definitions: Definition[] = [
         description: 'Multifunction relay switch',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(ep);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+            // NodOn Attribute
+            await endpoint.read('genOnOff', ['nodonTransitionTime']);
         },
         endpoint: (device) => {
             return {default: 1};
@@ -63,9 +66,9 @@ const definitions: Definition[] = [
         description: 'Multifunction relay switch',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(ep);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
         },
         endpoint: (device) => {
             return {default: 1};
@@ -113,6 +116,54 @@ const definitions: Definition[] = [
             await reporting.onOff(ep2);
         },
         ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['SIN-4-FP-20'],
+        model: 'SIN-4-FP-20',
+        vendor: 'NodOn',
+        description: 'Pilot wire heating module',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
+        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        exposes: [
+            e.switch(),
+            e.power(),
+            e.energy(),
+            e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnFilPilote']);
+            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
+            await reporting.readMeteringMultiplierDivisor(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
+            await ep.read('manuSpecificNodOnFilPilote', ['mode']);
+        },
+    },
+    {
+        zigbeeModel: ['SIN-4-FP-21'],
+        model: 'SIN-4-FP-21',
+        vendor: 'NodOn',
+        description: 'Pilot wire heating module',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
+        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        exposes: [
+            e.switch(),
+            e.power(),
+            e.energy(),
+            e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnFilPilote']);
+            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
+            await reporting.readMeteringMultiplierDivisor(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
+            await ep.read('manuSpecificNodOnFilPilote', ['mode']);
+        },
     },
 ];
 
