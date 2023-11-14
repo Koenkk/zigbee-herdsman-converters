@@ -898,7 +898,7 @@ const definitions: Definition[] = [
             await reporting.brightness(endpoint);
         },
         exposes: [e.light_brightness()],
-        },
+    },
 ];
 
 module.exports = definitions;
