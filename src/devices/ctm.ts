@@ -531,7 +531,7 @@ const tzLocal = {
         },
     } as Tz.Converter,
     ctm_thermostat_gets: {
-        key: ['mean_power', 'floor_temp', 'heating', 'frost_guard_setpoint', 'external_temp',
+        key: ['mean_power', 'floor_temp', 'running_state', 'frost_guard_setpoint', 'external_temp',
             'air_temp', 'floor_sensor_error', 'exteral_sensor_error',
         ],
         convertGet: async (entity, key, meta) => {
