@@ -133,12 +133,12 @@ const fzLocal = {
             if (data.hasOwnProperty(0x0403)) { // Sensor
                 const sensorModeLookup = {
                     0: 'air', 1: 'floor', 2: 'external', 3: 'regulator', 4: 'mv_air', 5: 'mv_external', 6: 'mv_regulator'};
-                result.sensor = sensorModeLookup[data[0x0403]];
+		result.sensor = utils.getFromLookup(data[0x0403], sensorModeLookup);
             }
 			if (data.hasOwnProperty('elkoSensor')) { // Sensor
                 const sensorModeLookup = {
                     0: 'air', 1: 'floor', 2: 'external', 3: 'regulator', 4: 'mv_air', 5: 'mv_external', 6: 'mv_regulator'};
-                result.sensor = sensorModeLookup[data['elkoSensor']];
+		result.sensor = utils.getFromLookup(data['elkoSensor'], sensorModeLookup);
             }
             if (data.hasOwnProperty(0x0405)) { // Regulator mode
                 result.regulator_mode = data[0x0405] ? 'regulator' : 'thermostat';
