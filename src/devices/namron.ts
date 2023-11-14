@@ -884,6 +884,21 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity()],
     },
+    {
+        zigbeeModel: ['4512750'],
+        model: '4512750',
+        vendor: 'Namron',
+        description: 'Namron Zigbee dimmer 2.0',
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat(),
+        toZigbee: extend.light_onoff_brightness().toZigbee,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.brightness(endpoint);
+        },
+        exposes: [e.light_brightness()],
+        },
 ];
 
 module.exports = definitions;
