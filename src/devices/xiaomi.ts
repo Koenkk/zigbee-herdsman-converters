@@ -2624,7 +2624,7 @@ const definitions: Definition[] = [
             e.enum('switch_type', ea.ALL, ['toggle', 'momentary', 'none']).withLabel('Switch type')
                 .withDescription('External switch type'),
             e.binary('interlock', ea.ALL, true, false)
-                .withDescription('Enabling prevents both relais being on at the same time (Interlock)'),
+                .withDescription('Enabling prevents both relays being on at the same time (Interlock)'),
             e.enum('power_on_behavior', ea.ALL, ['on', 'previous', 'off', 'reverse']).withLabel('Power-on behavior')
                 .withDescription('Controls the behavior when the device is powered on after power loss'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withLabel('Operation mode')
