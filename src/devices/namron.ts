@@ -905,7 +905,7 @@ const definitions: Definition[] = [
                 await reporting.rmsVoltage(endpoint, {change: 5});
                 await reporting.rmsCurrent(endpoint, {change: 50});
                 await reporting.activePower(endpoint, {change: 10});
-            await endpoint.read('genOnOff', ['onOff']);
+                await endpoint.read('genOnOff', 'onOff');
         
         },
         options: [exposes.options.measurement_poll_interval()],
