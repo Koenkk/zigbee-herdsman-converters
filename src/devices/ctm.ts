@@ -542,7 +542,7 @@ const tzLocal = {
             case 'floor_temp':
                 await entity.read('hvacThermostat', [0x0409]);
                 break;
-            case 'heating':
+            case 'running_state':
                 await entity.read('hvacThermostat', [0x0415]);
                 break;
             case 'frost_guard_setpoint':
