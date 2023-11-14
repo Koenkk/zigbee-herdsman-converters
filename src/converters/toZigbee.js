@@ -5142,12 +5142,12 @@ const converters = {
             const mode = utils.getFromLookup(value, {
                 'comfort': 0x01,
                 'eco': 0x02,
-                'anti-freeze': 0x03,
-                'stop': 0x00,
+                'anti-freeze': 0x00,
+                'stop': 0x03,
                 'comfort_-1': 0x04,
                 'comfort_-2': 0x05,
             });
-            const payload = {mode: Buffer.from([mode])};
+            const payload = {'mode': mode};
             await entity.command('manuSpecificNodOnFilPilote', 'setMode', payload);
             return {state: {'mode': value}};
         },
