@@ -1001,7 +1001,7 @@ const converters = {
             }
         },
     },
-    ikea_e2201g8_light_onoff_brightness: {
+    ikea_2201g8_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent', 'on_time'],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
