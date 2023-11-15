@@ -1030,6 +1030,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 1055 lumen, dimmable, white spectrum',
         extend: {...tradfriExtend.light_onoff_brightness_colortemp(), toZigbee: [tz.ikea_2201g8_light_onoff_brightness]},
+        meta: {turnsOffAtBrightness1: true}
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 CWS 470lm', 'TRADFRI bulb E12 CWS 450lm', 'TRADFRI bulb E17 CWS 440lm'],
