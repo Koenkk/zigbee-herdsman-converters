@@ -1,6 +1,6 @@
 import {Definition} from 'src/lib/types';
-import * as exposes from 'src/lib/exposes';
-import * as tuya from 'src/lib/tuya';
+import * as exposes from '../lib/exposes';
+import * as tuya from '../lib/tuya';
 
 const e = exposes.presets;
 const ea = exposes.access;
