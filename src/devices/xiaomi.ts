@@ -3125,10 +3125,9 @@ const definitions: Definition[] = [
         model: 'MCCGQ12LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 door & window contact sensor',
-        fromZigbee: [fz.xiaomi_contact, fz.aqara_opple],
+        fromZigbee: [fz.xiaomi_contact, fz.aqara_opple, fz.ias_contact_alarm_1],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+        exposes: [e.contact(), e.battery_low()],
         ota: ota.zigbeeOTA,
     },
     {
