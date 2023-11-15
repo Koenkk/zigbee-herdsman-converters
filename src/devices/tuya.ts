@@ -2183,7 +2183,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_rhkfbfcv', '_TZ3000_empogkya', '_TZ3000_lubfc1t5']),
+        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_rhkfbfcv', '_TZ3000_empogkya', '_TZ3000_lubfc1t5', '_TZ3000_lsunm46z']),
         model: 'TS0003_switch_3_gang_with_backlight',
         vendor: 'TuYa',
         description: '3-Gang switch with backlight',
