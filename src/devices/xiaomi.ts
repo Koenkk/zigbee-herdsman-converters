@@ -2714,6 +2714,14 @@ const definitions: Definition[] = [
             e.illuminance_lux().withAccess(ea.STATE_GET)],
     },
     {
+        zigbeeModel: ['lumi.light.acn128'],
+        model: 'TDL01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara spotlight T3',
+        extend: extend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.light.rgbac1'],
         model: 'ZNTGMK11LM',
         vendor: 'Xiaomi',
