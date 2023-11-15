@@ -890,7 +890,7 @@ const definitions: Definition[] = [
         vendor: 'Namron',
         description: 'Zigbee dimmer 2.0',
         extend: extend.light_onoff_brightness({noConfigure: true}),
-        whiteLabel: [{vendor: 'Namron', model: 'SR-ZG9001K2-DIM', description: 'Zigbee dimmer 2.0', fingerprint: [{modelID: '4512751'}]}],
+        whiteLabel: [{vendor: 'Namron', model: '4512751', description: 'Zigbee dimmer 2.0', fingerprint: [{modelID: '4512751'}]}],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
