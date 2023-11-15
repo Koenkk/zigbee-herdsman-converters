@@ -5036,8 +5036,8 @@ const converters2 = {
             const mode = utils.getFromLookup(value, {
                 'comfort': 0x01,
                 'eco': 0x02,
-                'anti-freeze': 0x00,
-                'stop': 0x03,
+                'anti-freeze': 0x03,
+                'stop': 0x00,
                 'comfort_-1': 0x04,
                 'comfort_-2': 0x05,
             });
