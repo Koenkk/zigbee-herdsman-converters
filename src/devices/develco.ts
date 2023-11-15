@@ -319,6 +319,7 @@ const definitions: Definition[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature(), e.ac_frequency()],
         options: [exposes.options.precision(`ac_frequency`)],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -347,6 +348,7 @@ const definitions: Definition[] = [
         description: 'Power plug (type G)',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
@@ -372,6 +374,7 @@ const definitions: Definition[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
