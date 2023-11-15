@@ -895,7 +895,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.brightness(endpoint);
         },
-        extend: extend.light_onoff_brightness(),
     },
 ];
 
