@@ -127,6 +127,7 @@ export namespace Tz {
         options: KeyValue,
         state: KeyValue,
         endpoint_name: string,
+        membersState?: KeyValue[],
     }
     export interface Converter {
         key: string[],

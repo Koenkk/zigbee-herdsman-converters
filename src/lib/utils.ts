@@ -151,8 +151,9 @@ export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta)
     return entity;
 }
 
-export function getKey<T>(object: {[s: string]: T}, value: T, fallback?: T, convertTo?: (v: unknown) => T) {
+export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T, fallback?: T, convertTo?: (v: unknown) => T) {
     for (const key in object) {
+        // @ts-expect-error
         if (object[key]===value) {
             return convertTo ? convertTo(key) : key;
         }
@@ -504,6 +505,11 @@ export function assertObject(value: unknown, property?: string): asserts value i
     }
 }
 
+export function assertArray(value: unknown, property?: string): asserts value is Array<unknown> {
+    property = property ? `'${property}'` : 'Value';
+    if (!Array.isArray(value)) throw new Error(`${property} is not an array, got ${typeof value} (${value.toString()})`);
+}
+
 export function assertString(value: unknown, property?: string): asserts value is string {
     property = property ? `'${property}'` : 'Value';
     if (typeof value !== 'string') throw new Error(`${property} is not a string, got ${typeof value} (${value.toString()})`);
@@ -511,6 +517,11 @@ export function assertString(value: unknown, property?: string): asserts value i
 
 export function isNumber(value: unknown): value is number {
     return typeof value === 'number';
+}
+
+// eslint-disable-next-line
+export function isObject(value: unknown): value is {[s: string]: any} {
+    return typeof value === 'object' && !Array.isArray(value);
 }
 
 export function isString(value: unknown): value is string {
@@ -532,19 +543,25 @@ export function toNumber(value: unknown, property?: string): number {
     return result;
 }
 
-export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}): V {
+export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V=undefined): V {
     let result = undefined;
     if (typeof value === 'string') {
         result = lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
     } else if (typeof value === 'number') {
         result = lookup[value];
     }
-    if (result === undefined) throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
-    return result;
+    if (result === undefined && defaultValue === undefined) {
+        throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
+    }
+    return result ?? defaultValue;
 }
 
 export function assertEndpoint(obj: unknown): asserts obj is Zh.Endpoint {
     if (obj?.constructor?.name?.toLowerCase() !== 'endpoint') throw new Error('Not an endpoint');
+}
+
+export function assertGroup(obj: unknown): asserts obj is Zh.Group {
+    if (obj?.constructor?.name?.toLowerCase() !== 'group') throw new Error('Not a group');
 }
 
 export function isEndpoint(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Endpoint {
