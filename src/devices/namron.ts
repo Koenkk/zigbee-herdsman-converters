@@ -896,12 +896,13 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.brightness(endpoint);
+        },
     },
     {
         zigbeeModel: ['4512766'],
         model: '4512766',
         vendor: 'Namron',
-        description: 'Zigbee Smart Plug 16A',
+        description: 'Zigbee smart plug 16A',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         exposes: [e.power(), e.current(), e.voltage(), e.switch()],
