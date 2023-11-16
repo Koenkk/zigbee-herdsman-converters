@@ -483,17 +483,22 @@ const converters2 = {
     warning: {
         key: ['warning'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertObject(value, key);
             const mode = {'stop': 0, 'burglar': 1, 'fire': 2, 'emergency': 3, 'police_panic': 4, 'fire_panic': 5, 'emergency_panic': 6};
             const level = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
             const strobeLevel = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
 
             const values = {
+                // @ts-expect-error
                 mode: value.mode || 'emergency',
+                // @ts-expect-error
                 level: value.level || 'medium',
+                // @ts-expect-error
                 strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
+                // @ts-expect-error
                 duration: value.hasOwnProperty('duration') ? value.duration : 10,
+                // @ts-expect-error
                 strobeDutyCycle: value.hasOwnProperty('strobe_duty_cycle') ? value.strobe_duty_cycle * 10 : 0,
+                // @ts-expect-error
                 strobeLevel: value.hasOwnProperty('strobe_level') ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
             };
 
@@ -4093,7 +4098,6 @@ const converters2 = {
             }
 
             const response = await entity.command('genScenes', 'store', {groupid, sceneid}, utils.getOptions(meta.mapped, entity));
-            utils.assertObject(response);
 
             if (isGroup) {
                 if (meta.membersState) {
@@ -4102,10 +4106,12 @@ const converters2 = {
                         utils.saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr], scenename);
                     }
                 }
+            // @ts-expect-error
             } else if (response.status === 0) {
                 // @ts-expect-error
                 utils.saveSceneState(entity, sceneid, groupid, meta.state, scenename);
             } else {
+                // @ts-expect-error
                 throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
             }
             meta.logger.info('Successfully stored scene');
