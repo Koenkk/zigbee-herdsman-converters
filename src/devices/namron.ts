@@ -915,7 +915,6 @@ const definitions: Definition[] = [
             await reporting.rmsVoltage(endpoint);
             await reporting.rmsCurrent(endpoint);
             await reporting.activePower(endpoint);
-            await reporting.temperature(endpoint);
         },
     },
 ];
