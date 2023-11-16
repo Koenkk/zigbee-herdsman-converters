@@ -32,7 +32,7 @@ export type Expose = exposes.Numeric | exposes.Binary | exposes.Enum | exposes.C
     exposes.Lock | exposes.Cover | exposes.Climate | exposes.Text;
 export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum | exposes.List | exposes.Text;
 export interface Fingerprint {
-    applicationVersion?: number, manufacturerID?: number, type?: 'EndDevice' | 'Router', dateCode?: number,
+    applicationVersion?: number, manufacturerID?: number, type?: 'EndDevice' | 'Router', dateCode?: string,
     hardwareVersion?: number, manufacturerName?: string, modelID?: string, powerSource?: 'Battery' | 'Mains (single phase)',
     softwareBuildID?: string, stackVersion?: number, zclVersion?: number, ieeeAddr?: RegExp,
     endpoints?: {ID?: number, profileID?: number, deviceID?: number, inputClusters?: number[], outputClusters?: number[]}[],
