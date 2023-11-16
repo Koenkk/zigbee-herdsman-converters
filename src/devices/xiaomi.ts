@@ -3326,6 +3326,41 @@ const definitions: Definition[] = [
             e.device_temperature(), e.power_outage_count()],
     },
     {
+        zigbeeModel: ['lumi.remote.acn009'],
+        model: 'WXKG22LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara wireless remote switch H1M (double rocker)',
+        fromZigbee: [fz.battery, fz.xiaomi_multistate_action, fz.aqara_opple, fz.command_toggle],
+        toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}, multiEndpoint: true},
+        exposes: [
+            e.battery(), e.battery_voltage(), e.action([
+                'single_left', 'single_right', 'single_both',
+                'double_left', 'double_right', 'double_both',
+                'triple_left', 'triple_right', 'triple_both',
+                'hold_left', 'hold_right', 'hold_both']),
+            e.enum('click_mode', ea.ALL, ['fast', 'multi'])
+                .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
+                    'multi: supports more events like double and hold'),
+            e.enum('operation_mode', ea.ALL, ['command', 'event'])
+                .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(3);
+            // set "event" mode
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            // turn on the "multiple clicks" mode, otherwise the only "single click" events.
+            // if value is 1 - there will be single clicks, 2 - multiple.
+            await endpoint1.write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            // TODO/BUG:
+            // Did not understand how to separate the left and right keys in command mode -
+            // the "toggleCommand" always arrives from the first endpoint
+        },
+    },
+    {
         zigbeeModel: ['lumi.remote.b286acn03'],
         model: 'WXKG04LM',
         vendor: 'Xiaomi',
