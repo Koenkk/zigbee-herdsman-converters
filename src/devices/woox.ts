@@ -48,7 +48,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aycxwiau'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bxdyeaa9'}],
         model: 'R7049',
         vendor: 'Woox',
         description: 'Smart smoke alarm',
