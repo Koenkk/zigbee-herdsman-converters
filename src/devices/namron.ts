@@ -898,6 +898,26 @@ const definitions: Definition[] = [
             await reporting.brightness(endpoint);
         },
     },
+    {
+        zigbeeModel: ['4512766'],
+        model: '4512766',
+        vendor: 'Namron',
+        description: 'Zigbee smart plug 16A',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.power(), e.current(), e.voltage(), e.switch()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.onOff(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
+        },
+    },
 ];
 
 module.exports = definitions;
