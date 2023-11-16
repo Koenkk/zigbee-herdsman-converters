@@ -1,4 +1,4 @@
-import {Fz, Tz, Definition} from '../lib/types';
+import {Tz, Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
@@ -17,7 +17,7 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['nodonTransitionTime']);
-        },    
+        },
     } as Tz.Converter,
 };
 
@@ -60,6 +60,7 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
         extend: extend.switch(),
+        toZigbee: [tzLocal.impulse_time],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
