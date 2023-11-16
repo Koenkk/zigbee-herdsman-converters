@@ -274,32 +274,45 @@ export class Light extends Base {
         return this;
     }
 
-    withLevelConfig() {
+    withLevelConfig(disableFeatures: string[] = []) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        const levelConfig = new Composite('level_config', 'level_config', access.ALL)
-            .withFeature(new Numeric('on_off_transition_time', access.ALL)
+        let levelConfig = new Composite('level_config', 'level_config', access.ALL);
+        if (!disableFeatures.includes('on_off_transition_time')) {
+            levelConfig = levelConfig.withFeature(new Numeric('on_off_transition_time', access.ALL)
                 .withLabel('ON/OFF transition time')
-                .withDescription('Represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster'),
-            )
-            .withFeature(new Numeric('on_transition_time', access.ALL)
+                .withDescription('Represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster'));
+        }
+        if (!disableFeatures.includes('on_transition_time')) {
+            levelConfig = levelConfig.withFeature(new Numeric('on_transition_time', access.ALL)
                 .withLabel('ON transition time')
                 .withPreset('disabled', 65535, 'Use on_off_transition_time value')
-                .withDescription('Represents the time taken to move the current level from the minimum level to the maximum level when an On command is received'),
-            )
-            .withFeature(new Numeric('off_transition_time', access.ALL)
+                .withDescription('Represents the time taken to move the current level from the minimum level to the maximum level when an On command is received'));
+        }
+        if (!disableFeatures.includes('off_transition_time')) {
+            levelConfig = levelConfig.withFeature(new Numeric('off_transition_time', access.ALL)
                 .withLabel('OFF transition time')
                 .withPreset('disabled', 65535, 'Use on_off_transition_time value')
-                .withDescription('Represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received'),
-            )
-            .withFeature(new Numeric('current_level_startup', access.ALL)
+                .withDescription('Represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received'));
+        }
+        if (!disableFeatures.includes('execute_if_off')) {
+            levelConfig = levelConfig.withFeature(new Binary('execute_if_off', access.ALL, true, false)
+                .withDescription('this setting can affect the "on_level", "current_level_startup" or "brightness" setting'));
+        }
+        if (!disableFeatures.includes('on_level')) {
+            levelConfig = levelConfig.withFeature(new Numeric('on_level', access.ALL)
+                .withValueMin(1).withValueMax(254)
+                .withPreset('previous', 255, 'Use previous value')
+                .withDescription('Specifies the level that shall be applied, when an on/toggle command causes the light to turn on.'));
+        }
+        if (!disableFeatures.includes('current_level_startup')) {
+            levelConfig = levelConfig.withFeature(new Numeric('current_level_startup', access.ALL)
                 .withValueMin(1).withValueMax(254)
                 .withPreset('minimum', 0, 'Use minimum permitted value')
                 .withPreset('previous', 255, 'Use previous value')
-                .withDescription('Defines the desired startup level for a device when it is supplied with power'),
-            )
-            .withDescription('Configure genLevelCtrl');
+                .withDescription('Defines the desired startup level for a device when it is supplied with power'));
+        }
+        levelConfig = levelConfig.withDescription('Configure genLevelCtrl');
         this.features.push(levelConfig);
-
         return this;
     }
 
@@ -439,7 +452,7 @@ export class Climate extends Base {
         // For devices following the ZCL local_temperature_calibration is an int8, so min = -12.8 and max 12.7
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         this.features.push(new Numeric('local_temperature_calibration', access)
-            .withValueMin(min).withValueMax(max).withValueStep(step).withUnit('°C').withDescription('Offset to be used in the local_temperature'));
+            .withValueMin(min).withValueMax(max).withValueStep(step).withUnit('°C').withDescription('Offset to add/subtract to the local temperature'));
         return this;
     }
 

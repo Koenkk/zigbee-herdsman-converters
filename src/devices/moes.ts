@@ -103,7 +103,8 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_aoclfnxz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_u9bfwha0'}],
         model: 'BHT-002-GCLZB',
         vendor: 'Moes',
         description: 'Moes BHT series Thermostat',
@@ -378,6 +379,25 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
             device.save();
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rjxqso4a'}],
+        model: 'ZC-HM',
+        vendor: 'Moes',
+        description: 'Carbon monoxide alarm',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.carbon_monoxide(), e.co(), tuya.exposes.selfTestResult(), e.battery(), tuya.exposes.silence()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'carbon_monoxide', tuya.valueConverter.trueFalse0],
+                [2, 'co', tuya.valueConverter.raw],
+                [9, 'self_test_result', tuya.valueConverter.selfTestResult],
+                [15, 'battery', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.raw],
+            ],
         },
     },
 ];

@@ -1854,61 +1854,61 @@ const converters1 = {
             const result: KeyValueAny = {};
             const data = msg.data;
 
-            if (data.hasOwnProperty(0x0401)) { // Load
-                result.load = data[0x0401];
+            if (data.hasOwnProperty('elkoLoad')) { // Load
+                result.load = data['elkoLoad'];
             }
 
-            if (data.hasOwnProperty(0x0402)) { // Display text
-                result.display_text = data[0x0402];
+            if (data.hasOwnProperty('elkoDisplayText')) { // Display text
+                result.display_text = data['elkoDisplayText'];
             }
 
-            if (data.hasOwnProperty(0x0403)) { // Sensor
+            if (data.hasOwnProperty('elkoSensor')) { // Sensor
                 const sensorModeLookup: KeyValueAny = {'0': 'air', '1': 'floor', '3': 'supervisor_floor'};
-                result.sensor = sensorModeLookup[data[0x0403]];
+                result.sensor = sensorModeLookup[data['elkoSensor']];
             }
 
-            if (data.hasOwnProperty(0x0404)) { // Regulator time
-                result.regulator_time = data[0x0404];
+            if (data.hasOwnProperty('elkoRegulatorTime')) { // Regulator time
+                result.regulator_time = data['elkoRegulatorTime'];
             }
 
-            if (data.hasOwnProperty(0x0405)) { // Regulator mode
-                result.regulator_mode = data[0x0405] ? 'regulator' : 'thermostat';
+            if (data.hasOwnProperty('elkoRegulatorMode')) { // Regulator mode
+                result.regulator_mode = data['elkoRegulatorMode'] ? 'regulator' : 'thermostat';
             }
 
-            if (data.hasOwnProperty(0x0406)) { // Power status
-                result.system_mode = data[0x0406] ? 'heat' : 'off';
+            if (data.hasOwnProperty('elkoPowerStatus')) { // Power status
+                result.system_mode = data['elkoPowerStatus'] ? 'heat' : 'off';
             }
 
-            if (data.hasOwnProperty(0x0408)) { // Mean power
-                result.mean_power = data[0x0408];
+            if (data.hasOwnProperty('elkoMeanPower')) { // Mean power
+                result.mean_power = data['elkoMeanPower'];
             }
 
-            if (data.hasOwnProperty(0x0409)) { // External temp (floor)
-                result.floor_temp = utils.precisionRound(data[0x0409], 2) /100;
+            if (data.hasOwnProperty('elkoExternalTemp')) { // External temp (floor)
+                result.floor_temp = utils.precisionRound(data['elkoExternalTemp'], 2) /100;
             }
 
-            if (data.hasOwnProperty(0x0411)) { // Night switching
-                result.night_switching = data[0x0411] ? 'on' : 'off';
+            if (data.hasOwnProperty('elkoNightSwitching')) { // Night switching
+                result.night_switching = data['elkoNightSwitching'] ? 'on' : 'off';
             }
 
-            if (data.hasOwnProperty(0x0412)) { // Frost guard
-                result.frost_guard = data[0x0412] ? 'on' : 'off';
+            if (data.hasOwnProperty('elkoFrostGuard')) { // Frost guard
+                result.frost_guard = data['elkoFrostGuard'] ? 'on' : 'off';
             }
 
-            if (data.hasOwnProperty(0x0413)) { // Child lock
-                result.child_lock = data[0x0413] ? 'lock' : 'unlock';
+            if (data.hasOwnProperty('elkoChildLock')) { // Child lock
+                result.child_lock = data['elkoChildLock'] ? 'lock' : 'unlock';
             }
 
-            if (data.hasOwnProperty(0x0414)) { // Max floor temp
-                result.max_floor_temp = data[0x0414];
+            if (data.hasOwnProperty('elkoMaxFloorTemp')) { // Max floor temp
+                result.max_floor_temp = data['elkoMaxFloorTemp'];
             }
 
-            if (data.hasOwnProperty(0x0415)) { // Relay state
-                result.running_state = data[0x0415] ? 'heat' : 'idle';
+            if (data.hasOwnProperty('elkoRelayState')) { // Relay state
+                result.running_state = data['elkoRelayState'] ? 'heat' : 'idle';
             }
 
-            if (data.hasOwnProperty(0x0417)) { // Calibration
-                result.local_temperature_calibration = precisionRound(data[0x0417], 2) / 10;
+            if (data.hasOwnProperty('elkoCalibration')) { // Calibration
+                result.local_temperature_calibration = precisionRound(data['elkoCalibration'], 2) / 10;
             }
 
             return result;
@@ -3399,7 +3399,7 @@ const converters1 = {
     } as Fz.Converter,
     enocean_ptm215z: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -3421,7 +3421,7 @@ const converters1 = {
     } as Fz.Converter,
     enocean_ptm215ze: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -3449,7 +3449,7 @@ const converters1 = {
     } as Fz.Converter,
     enocean_ptm216z: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -3674,31 +3674,6 @@ const converters1 = {
             }
         },
     } as Fz.Converter,
-    legrand_cluster_fc01: {
-        cluster: 'manuSpecificLegrandDevices',
-        type: ['readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload: KeyValueAny = {};
-
-            if (msg.data.hasOwnProperty('0')) {
-                const option0 = msg.data['0'];
-
-                if (option0 === 0x0001) payload.device_mode = 'pilot_off';
-                else if (option0 === 0x0002) payload.device_mode = 'pilot_on';
-                else if (option0 === 0x0003) payload.device_mode = 'switch';
-                else if (option0 === 0x0004) payload.device_mode = 'auto';
-                else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
-                else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
-                else {
-                    meta.logger.warn(`device_mode ${option0} not recognized, please fix me`);
-                    payload.device_mode = 'unknown';
-                }
-            }
-            if (msg.data.hasOwnProperty('1')) payload.led_when_off = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
-            if (msg.data.hasOwnProperty('2')) payload.led_when_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
-            return payload;
-        },
-    } as Fz.Converter,
     legrand_cable_outlet_mode: {
         cluster: 'manuSpecificLegrandDevices2',
         type: ['readResponse'],
@@ -3742,9 +3717,9 @@ const converters1 = {
             return payload;
         },
     } as Fz.Converter,
-    legrand_greenpower_254: {
+    legrand_greenpower: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -3753,34 +3728,14 @@ const converters1 = {
                 0x10: 'home_arrival', 0x11: 'home_departure', // ZLGP14
                 0x12: 'daytime_day', 0x13: 'daytime_night', // ZLGP16, yes these commandIDs are lower than ZLGP15s'
                 0x14: 'press_1', 0x15: 'press_2', 0x16: 'press_3', 0x17: 'press_4', // ZLGP15
+                0x22: 'press_once', 0x20: 'press_twice', // ZLGP17, ZLGP18
+                0x34: 'stop', 0x35: 'up', 0x36: 'down', // 600087l
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`GreenPower_254: missing command '${commandID}'`);
+                meta.logger.error(`Legrand GreenPower: missing command '${commandID}'`);
             } else {
                 return {action: lookup[commandID]};
             }
-        },
-    } as Fz.Converter,
-    legrand_zlgp17_zlgp18: {
-        cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
-        convert: (model, msg, publish, options, meta) => {
-            const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-            if (commandID === 224) return;
-            const lookup: KeyValueAny = {0x22: 'press_once', 0x20: 'press_twice'};
-            if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`ZLGP17/ZLGP18: missing command '${commandID}'`);
-            } else {
-                return {action: lookup[commandID]};
-            }
-        },
-    } as Fz.Converter,
-    legrand_led_in_dark: {
-        cluster: 'manuSpecificLegrandDevices',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {led_in_dark: msg.data[1] === 1 ? 'ON' : 'OFF'};
         },
     } as Fz.Converter,
     xiaomi_power: {
@@ -3862,7 +3817,7 @@ const converters1 = {
             }
 
             let buttonLookup: KeyValueNumberString = null;
-            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM'].includes(model.model)) {
+            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM', 'WXKG22LM'].includes(model.model)) {
                 buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             }
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
@@ -5295,7 +5250,7 @@ const converters1 = {
     } as Fz.Converter,
     hue_tap: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -5679,7 +5634,7 @@ const converters1 = {
     } as Fz.Converter,
     sunricher_switch2801K2: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -5694,7 +5649,7 @@ const converters1 = {
     } as Fz.Converter,
     sunricher_switch2801K4: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -5734,6 +5689,7 @@ const converters1 = {
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model, msg.data[1])) return;
+
             let action;
             if (msg.data[2] == 253) {
                 const lookup: KeyValueAny = {0: 'single', 1: 'double', 2: 'hold'};
@@ -5742,6 +5698,12 @@ const converters1 = {
                 const lookup: KeyValueAny = {0: 'rotate_right', 1: 'rotate_left'};
                 action = lookup[msg.data[3]];
             }
+
+            // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
+            // Send the defaultResponse here, otherwise the second button click delays.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/8149
+            msg.endpoint.defaultResponse(msg.data[2], 0, 6, msg.data[1]).catch((error) => {});
+
             return {action};
         },
     } as Fz.Converter,
@@ -6359,6 +6321,26 @@ const converters2 = {
                     publish(result);
                 }
             }
+        },
+    } as Fz.Converter,
+    nodon_fil_pilote_mode: {
+        cluster: 'manuSpecificNodOnFilPilote',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            const mode = msg.data['mode'];
+
+            if (mode === 0x00) payload.mode = 'anti-freeze';
+            else if (mode === 0x01) payload.mode = 'comfort';
+            else if (mode === 0x02) payload.mode = 'eco';
+            else if (mode === 0x03) payload.mode = 'stop';
+            else if (mode === 0x04) payload.mode = 'comfort_-1';
+            else if (mode === 0x05) payload.mode = 'comfort_-2';
+            else {
+                meta.logger.warn(`wrong mode : ${mode}`);
+                payload.mode = 'unknown';
+            }
+            return payload;
         },
     } as Fz.Converter,
 };

@@ -116,10 +116,10 @@ const definitions: Definition[] = [
             e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)],
     },
     {
-        zigbeeModel: ['ID Lock 150'],
+        zigbeeModel: ['ID Lock 150', 'ID Lock 202'],
         model: '0402946',
         vendor: 'Datek',
-        description: 'Zigbee module for ID lock 150',
+        description: 'Zigbee module for ID lock',
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event,
             fz.idlock, fz.idlock_fw, fz.lock_pin_code_response],
         toZigbee: [tz.lock, tz.lock_sound_volume, tz.idlock_master_pin_mode, tz.idlock_rfid_enable,

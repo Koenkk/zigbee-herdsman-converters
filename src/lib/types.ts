@@ -32,9 +32,9 @@ export type Expose = exposes.Numeric | exposes.Binary | exposes.Enum | exposes.C
     exposes.Lock | exposes.Cover | exposes.Climate | exposes.Text;
 export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum | exposes.List | exposes.Text;
 export interface Fingerprint {
-    modelID?: string, manufacturerName?: string, type?: 'EndDevice' | 'Router', manufacturerID?: number, applicationVersion?: number,
-    powerSource?: 'Battery' | 'Mains (single phase)', softwareBuildID?: string, ieeeAddr?: RegExp, dateCode?: string, stackVersion?: number,
-    zclVersion?: number, hardwareVersion?: number,
+    applicationVersion?: number, manufacturerID?: number, type?: 'EndDevice' | 'Router', dateCode?: number,
+    hardwareVersion?: number, manufacturerName?: string, modelID?: string, powerSource?: 'Battery' | 'Mains (single phase)',
+    softwareBuildID?: string, stackVersion?: number, zclVersion?: number, ieeeAddr?: RegExp,
     endpoints?: {ID?: number, profileID?: number, deviceID?: number, inputClusters?: number[], outputClusters?: number[]}[],
 }
 export type WhiteLabel =
@@ -150,7 +150,7 @@ export namespace Tuya {
     export interface DpValue {dp: number, datatype: number, data: Buffer | number[]}
     export interface ValueConverterSingle {
         to?: (value: unknown, meta?: Tz.Meta) => unknown,
-        from?: (value: unknown, meta?: Fz.Meta, options?: KeyValue, publish?: Publish) => number|string|boolean|KeyValue,
+        from?: (value: unknown, meta?: Fz.Meta, options?: KeyValue, publish?: Publish) => number|string|boolean|KeyValue|null,
     }
     export interface ValueConverterMulti {
         to?: (value: unknown, meta?: Tz.Meta) => unknown,

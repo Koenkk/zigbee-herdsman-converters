@@ -20,6 +20,7 @@ const manufacturerOptions = {
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INT},
     legrand: {manufacturerCode: Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
     viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
+    nodon: {manufacturerCode: Zcl.ManufacturerCode.NODON},
 };
 
 const converters1 = {
@@ -2220,8 +2221,9 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
-                'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM', 'ZNQBKG31LM',
-                'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM',
+                'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
+                'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'JWSP001A', 'SSWQD02LM', 'SSWQD03LM',
+                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM',
             ].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'LLKZMK11LM'].includes(meta.mapped.model)) {
@@ -2245,8 +2247,9 @@ const converters2 = {
         convertGet: async (entity, key, meta) => {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
-                'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM', 'ZNQBKG31LM',
-                'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM',
+                'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
+                'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'JWSP001A', 'SSWQD02LM', 'SSWQD03LM',
+                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM',
             ].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM', 'ZNCZ12LM'].includes(meta.mapped.model)) {
@@ -2367,7 +2370,7 @@ const converters2 = {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG28LM', 'QBKG29LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
@@ -2383,7 +2386,7 @@ const converters2 = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG28LM', 'QBKG29LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
@@ -3763,36 +3766,7 @@ const converters2 = {
             }
         },
     } as Tz.Converter,
-    legrand_settingEnableLedInDark: {
-        // connected power outlet is on attribute 2 and not 1
-        key: ['led_in_dark'],
-        convertSet: async (entity, key, value, meta) => {
-            // enable or disable the LED (blue) when permitJoin=false (LED off)
-            const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
-            const payload = {1: {value: enableLedIfOn, type: 16}};
-            await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
-            return {state: {'led_in_dark': value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLegrandDevices', [0x0001], manufacturerOptions.legrand);
-        },
-    } as Tz.Converter,
-    legrand_settingEnableLedIfOn: {
-        key: ['led_if_on'],
-        convertSet: async (entity, key, value, meta) => {
-            // enable the LED when the light object is "doing something"
-            // on the light switch, the LED is on when the light is on,
-            // on the shutter switch, the LED is on when the shutter is moving
-            const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
-            const payload = {2: {value: enableLedIfOn, type: 16}};
-            await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
-            return {state: {'led_if_on': value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLegrandDevices', [0x0002], manufacturerOptions.legrand);
-        },
-    } as Tz.Converter,
-    legrand_deviceMode: {
+    legrand_device_mode: {
         key: ['device_mode'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
@@ -3819,7 +3793,7 @@ const converters2 = {
             await entity.read('manuSpecificLegrandDevices', [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
         },
     } as Tz.Converter,
-    legrand_cableOutletMode: {
+    legrand_cable_outlet_mode: {
         key: ['cable_outlet_mode'],
         convertSet: async (entity, key, value, meta) => {
             const mode = {
@@ -3838,7 +3812,7 @@ const converters2 = {
             await entity.read('manuSpecificLegrandDevices2', [0x0000], manufacturerOptions.legrand);
         },
     } as Tz.Converter,
-    legrand_powerAlarm: {
+    legrand_power_alarm: {
         key: ['power_alarm'],
         convertSet: async (entity, key, value, meta) => {
             const enableAlarm = (value === 'DISABLE' || value === false ? false : true);
@@ -5048,6 +5022,25 @@ const converters2 = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('ssIasZone', [0x4000], {manufacturerCode: 4919});
+        },
+    } as Tz.Converter,
+    nodon_fil_pilote_mode: {
+        key: ['mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = utils.getFromLookup(value, {
+                'comfort': 0x01,
+                'eco': 0x02,
+                'anti-freeze': 0x00,
+                'stop': 0x03,
+                'comfort_-1': 0x04,
+                'comfort_-2': 0x05,
+            });
+            const payload = {'mode': mode};
+            await entity.command('manuSpecificNodOnFilPilote', 'setMode', payload);
+            return {state: {'mode': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificNodOnFilPilote', [0x0000], manufacturerOptions.nodon);
         },
     } as Tz.Converter,
     // #endregion

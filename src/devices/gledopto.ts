@@ -186,6 +186,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         description: 'Zigbee DIN Rail triac AC dimmer',
         extend: extend.light_onoff_brightness(),
+        meta: {disableDefaultResponse: true},
     },
     {
         fingerprint: [
@@ -463,6 +464,13 @@ const definitions: Definition[] = [
         description: 'Zigbee GU10 LED lamp',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
         meta: {turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['GL-S-014P'],
+        model: 'GL-S-014P',
+        vendor: 'Gledopto',
+        description: 'Zigbee 5W MR16 bulb RGB+CCT (pro)',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 500]}),
     },
     {
         zigbeeModel: ['GL-MC-001P'],

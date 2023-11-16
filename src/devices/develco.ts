@@ -293,6 +293,7 @@ const definitions: Definition[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.power_reactive(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
@@ -318,6 +319,7 @@ const definitions: Definition[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature(), e.ac_frequency()],
         options: [exposes.options.precision(`ac_frequency`)],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -346,6 +348,7 @@ const definitions: Definition[] = [
         description: 'Power plug (type G)',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
@@ -371,6 +374,7 @@ const definitions: Definition[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
@@ -458,6 +462,10 @@ const definitions: Definition[] = [
         model: 'SMSZB-120',
         vendor: 'Develco',
         description: 'Smoke detector with siren',
+        whiteLabel: [
+            {vendor: 'Frient', model: '94430', description: 'Smart Intelligent Smoke Alarm'},
+            {vendor: 'Cavius', model: '2103', description: 'RF SMOKE ALARM, 5 YEAR 65MM'},
+        ],
         fromZigbee: [develco.fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
             fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
@@ -517,6 +525,9 @@ const definitions: Definition[] = [
         model: 'HESZB-120',
         vendor: 'Develco',
         description: 'Fire detector with siren',
+        whiteLabel: [
+            {vendor: 'Frient', model: '94431', description: 'Smart Intelligent Heat Alarm'},
+        ],
         fromZigbee: [develco.fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
             fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],

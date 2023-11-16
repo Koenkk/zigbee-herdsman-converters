@@ -26,6 +26,20 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['929003598001'],
+        model: '929003598001',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance Surimu square panel 30x30',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['929003597601'],
+        model: '929003597601',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle square panel light',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['LCU001'],
         model: '8719514491229',
         vendor: 'Philips',
@@ -230,7 +244,7 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
-        zigbeeModel: ['915005996801', '915005996901', '929003574401'],
+        zigbeeModel: ['915005996801', '915005996901', '929003574401', '929003531602'],
         model: '915005996901',
         vendor: 'Philips',
         description: 'Hue white ambiance ceiling light Enrave L with Bluetooth',
@@ -1913,6 +1927,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003621101_01', '929003621101_02', '929003621101_03', '929003621101_04', '929003621101_05'],
+        model: '929003621101',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris ceiling light (4 spots)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['5060830P7_01', '5060830P7_02', '5060830P7_03', '5060830P7_04'],
         model: '5060830P7',
         vendor: 'Philips',
@@ -2046,6 +2067,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['LCO005'],
+        model: '9290031512',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance bulb',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['5045131P7'],
         model: '5045131P7',
         vendor: 'Philips',
@@ -2081,7 +2109,7 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['RDM001', '9290030171'],
+        zigbeeModel: ['RDM001', '9290030171', 'RDM004'],
         model: '929003017102',
         vendor: 'Philips',
         description: 'Hue wall switch module',
@@ -2863,12 +2891,18 @@ const definitions: Definition[] = [
         description: 'Hue Tap dial switch',
         fromZigbee: [fz.ignore_command_step, philips.philipsFz.hue_tap_dial, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['button_1_press', 'button_1_press_release', 'button_1_hold', 'button_1_hold_release',
-            'button_2_press', 'button_2_press_release', 'button_2_hold', 'button_2_hold_release',
-            'button_3_press', 'button_3_press_release', 'button_3_hold', 'button_3_hold_release',
-            'button_4_press', 'button_4_press_release', 'button_4_hold', 'button_4_hold_release',
-            'dial_rotate_left_step', 'dial_rotate_left_slow', 'dial_rotate_left_fast',
-            'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast']),
+        exposes: [e.battery(),
+            e.action(['button_1_press', 'button_1_press_release', 'button_1_hold', 'button_1_hold_release',
+                'button_2_press', 'button_2_press_release', 'button_2_hold', 'button_2_hold_release',
+                'button_3_press', 'button_3_press_release', 'button_3_hold', 'button_3_hold_release',
+                'button_4_press', 'button_4_press_release', 'button_4_hold', 'button_4_hold_release',
+                'dial_rotate_left_step', 'dial_rotate_left_slow', 'dial_rotate_left_fast',
+                'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast']),
+            e.enum('action_direction', ea.STATE, ['right', 'left']).withDescription('Direction in which the dial was turned'),
+            e.enum('action_type', ea.STATE, ['step', 'rotate'])
+                .withDescription('Type of the rotation, value in the first message is `step` and in the next messages value is `rotate`'),
+            e.numeric('action_time', ea.STATE)
+                .withDescription('Raw value that represents the amount the dial was turned').withValueMin(0).withValueMax(255),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -2977,6 +3011,13 @@ const definitions: Definition[] = [
         model: '929002966501',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance Surimu rectangle panel',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['929003598101'],
+        model: '929003598101',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance Surimu round panel',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
@@ -3285,7 +3326,20 @@ const definitions: Definition[] = [
         model: '929003535301',
         vendor: 'Philips',
         description: 'Hue Festavia gradient light string 250',
-        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500], extraEffects: ['sparkle']}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({
+            colorTempRange: [153, 500],
+            extraEffects: ['sparkle', 'opal', 'glisten'],
+        }),
+    },
+    {
+        zigbeeModel: ['LCX017'],
+        model: '929003674601',
+        vendor: 'Philips',
+        description: 'Hue Festavia gradient light string 500',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({
+            colorTempRange: [153, 500],
+            extraEffects: ['sparkle', 'opal', 'glisten'],
+        }),
     },
     {
         zigbeeModel: ['LCX016'],
@@ -3354,6 +3408,13 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue white E27 1100lm with Bluetooth',
         extend: philips.extend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['LTD016'],
+        model: '9290031347',
+        vendor: 'Philips',
+        description: 'Hue white ambiance extra bright high lumen dimmable LED smart retrofit recessed 4" downlight',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LTD017'],
@@ -3454,6 +3515,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003597701'],
+        model: '929003597701',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle square panel light 120x30',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['929003055701'],
         model: '929003055701',
         vendor: 'Philips',
@@ -3480,6 +3548,13 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue white ambiance MR16 with Bluetooth',
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['LCX015'],
+        model: '9290036744',
+        vendor: 'Philips',
+        description: 'Hue Festavia gradient light string 250',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500], extraEffects: ['sparkle']}),
     },
 ];
 

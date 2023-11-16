@@ -415,7 +415,7 @@ const definitions: Definition[] = [
         model: '4062172044776_1',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (only one device)',
-        extend: ledvance.extend.light_onoff_brightness(),
+        extend: ledvance.extend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
     {

@@ -106,6 +106,43 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_7eue9vhc', '_TZE200_bv1jcqqu']),
+        model: 'ZM25RX-08/30',
+        vendor: 'Zemismart',
+        description: 'Tubular motor',
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.text('work_state', ea.STATE),
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.battery(),
+            e.enum('program', ea.SET, ['set_bottom', 'set_upper', 'reset']).withDescription('Set the upper/bottom limit'),
+            e.enum('click_control', ea.SET, ['upper', 'upper_micro', 'lower', 'lower_micro'])
+                .withDescription('Control motor in steps (ignores set limits; normal/micro = 120deg/5deg movement)'),
+            e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Motor direction'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(2), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(0)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'position', tuya.valueConverter.coverPosition],
+                [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
+                [7, 'work_state', tuya.valueConverterBasic.lookup({'closing': tuya.enum(0), 'opening': tuya.enum(1)})],
+                [13, 'battery', tuya.valueConverter.raw],
+                [101, 'program', tuya.valueConverterBasic.lookup({
+                    'set_bottom': tuya.enum(0), 'set_upper': tuya.enum(1), 'reset': tuya.enum(4),
+                }, null)],
+                [101, 'click_control', tuya.valueConverterBasic.lookup({
+                    'lower': tuya.enum(2), 'upper': tuya.enum(3),
+                    'lower_micro': tuya.enum(5), 'upper_micro': tuya.enum(6),
+                }, null)],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iossyxra', '_TZE200_cxu0jkjk']),
         model: 'ZM-AM02_cover',
         vendor: 'Zemismart',

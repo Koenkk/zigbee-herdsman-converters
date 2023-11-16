@@ -94,7 +94,7 @@ const definitions: Definition[] = [
                 attribute: 'elkoLoad',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null,
+                reportableChange: 1,
             }]);
             // Power status
             await endpoint.configureReporting('hvacThermostat', [{

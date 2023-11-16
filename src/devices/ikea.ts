@@ -463,10 +463,10 @@ const definitions: Definition[] = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WW G95 CL 470lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WW G95 CL 470lm', 'TRADFRI bulb E26 WW G95 CL 450lm'],
         model: 'LED2102G3',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E27 WW 470 lumen, wireless dimmable warm white/globe clear',
+        description: 'TRADFRI bulb E26/E27 WW 450/470 lumen, wireless dimmable warm white/globe clear',
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
@@ -867,12 +867,11 @@ const definitions: Definition[] = [
         model: 'E1744',
         vendor: 'IKEA',
         description: 'SYMFONISK sound controller',
-        fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_stop, legacy.fz.E1744_play_pause, legacy.fz.E1744_skip, fz.battery],
+        fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_stop, legacy.fz.E1744_play_pause, legacy.fz.E1744_skip, fzLocal.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action([
             'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'toggle', 'brightness_step_up', 'brightness_step_down'])],
         ota: ota.tradfri,
-        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
@@ -1030,7 +1029,7 @@ const definitions: Definition[] = [
         model: 'LED2201G8',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 1055 lumen, dimmable, white spectrum',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 CWS 470lm', 'TRADFRI bulb E12 CWS 450lm', 'TRADFRI bulb E17 CWS 440lm'],

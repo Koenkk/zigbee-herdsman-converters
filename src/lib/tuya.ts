@@ -400,12 +400,15 @@ export class Bitmap extends Base {
 }
 
 export const valueConverterBasic = {
-    lookup: (map: {[s: (string)]: number | boolean | Enum | string}) => {
+    lookup: (map: {[s: (string)]: number | boolean | Enum | string}, fallbackValue?: number | boolean | KeyValue | string | null) => {
         return {
             to: (v: string) => utils.getFromLookup(v, map),
             from: (v: number) => {
                 const value = Object.entries(map).find((i) => i[1].valueOf() === v);
-                if (!value) throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(map)}`);
+                if (!value) {
+                    if (fallbackValue !== undefined) return fallbackValue;
+                    throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(map)}`);
+                }
                 return value[0];
             },
         };
@@ -423,7 +426,7 @@ export const valueConverterBasic = {
         return {to: (v: number) => v * value, from: (v: number) => v / value};
     },
     trueFalse: (valueTrue: number | Enum) => {
-        return {from: (v: number) => v === valueTrue};
+        return {from: (v: number) => v === valueTrue.valueOf()};
     },
 };
 
@@ -473,6 +476,15 @@ export const valueConverter = {
             return options.invert_cover ? 100 - v : v;
         },
     },
+    coverPositionInverted: {
+        to: async (v: number, meta: Tz.Meta) => {
+            return meta.options.invert_cover ? v : 100 - v;
+        },
+        from: (v: number, meta: Fz.Meta, options: KeyValue) => {
+            return options.invert_cover ? v : 100 - v;
+        },
+    },
+    tubularMotorDirection: valueConverterBasic.lookup({'normal': new Enum(0), 'reversed': new Enum(1)}),
     plus1: {
         from: (v: number) => v + 1,
         to: (v: number) => v - 1,
@@ -862,11 +874,11 @@ const tuyaTz = {
             'small_motion_detection_sensitivity', 'static_detection_distance', 'static_detection_sensitivity', 'keep_time', 'indicator',
             'motion_sensitivity', 'detection_distance_max', 'detection_distance_min', 'presence_sensitivity', 'sensitivity', 'illuminance_interval',
             'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity', 'fan_mode', 'deadzone_temperature',
-            'eco_mode', 'max_temperature_limit', 'min_temperature_limits', 'manual_modes',
+            'eco_mode', 'max_temperature_limit', 'min_temperature_limit', 'manual_mode',
             'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity', 'switch_type',
             'ph_max', 'ph_min', 'ec_max', 'ec_min', 'orp_max', 'orp_min', 'free_chlorine_max', 'free_chlorine_min', 'target_distance',
             'illuminance_treshold_max', 'illuminance_treshold_min', 'presence_illuminance_switch', 'light_switch', 'light_linkage',
-            'indicator_light', 'find_switch', 'detection_method',
+            'indicator_light', 'find_switch', 'detection_method', 'sensor', 'hysteresis', 'max_temperature_protection',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
@@ -1118,6 +1130,11 @@ const tuyaExtend = {
             exposes.push(tuyaExposes.switchType());
         }
 
+        if (options.backlightModeOffOn) {
+            fromZigbee.push(tuyaFz.backlight_mode_off_on);
+            exposes.push(tuyaExposes.backlightModeOffOn());
+            toZigbee.push(tuyaTz.backlight_indicator_mode_2);
+        }
         if (options.backlightModeLowMediumHigh) {
             fromZigbee.push(tuyaFz.backlight_mode_low_medium_high);
             exposes.push(tuyaExposes.backlightModeLowMediumHigh());
@@ -1132,11 +1149,6 @@ const tuyaExtend = {
             fromZigbee.push(tuyaFz.indicator_mode);
             exposes.push(tuyaExposes.indicatorMode());
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
-        }
-        if (options.backlightModeOffOn) {
-            fromZigbee.push(tuyaFz.backlight_mode_off_on);
-            exposes.push(tuyaExposes.backlightModeOffOn());
-            toZigbee.push(tuyaTz.backlight_indicator_mode_2);
         }
 
         if (options.electricalMeasurements) {

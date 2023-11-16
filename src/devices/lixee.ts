@@ -11,7 +11,6 @@ const e = exposes.presets;
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
 import {Buffer} from 'buffer';
-import herdsman from 'zigbee-herdsman';
 
 /* Start ZiPulses */
 
@@ -38,7 +37,7 @@ const tzSeMetering: Tz.Converter = {
         if (key === 'unitOfMeasure') {
             utils.assertString(value, 'unitOfMeasure');
             const val = unitsZiPulses.indexOf(value);
-            const payload = {768: {value: val, type: herdsman.Zcl.DataType.enum8}};
+            const payload = {768: {value: val, type: 48}};
             await entity.write('seMetering', payload);
             await entity.read('seMetering', [key]);
             return {state: {'unitOfMeasure': value}};
@@ -837,37 +836,42 @@ const definitions: Definition[] = [
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
             } else if (!globalStore.hasValue(device, 'interval')) {
-                const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
+                const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 600;
                 utils.assertNumber(seconds);
-                const measurement_poll_chunk = options && options.measurement_poll_chunk ? options.measurement_poll_chunk : 1;
+                const measurement_poll_chunk = options && options.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
                 utils.assertNumber(measurement_poll_chunk);
 
-                const interval = setInterval(async () => {
-                    const currentExposes = getCurrentConfig(device, options)
-                        .filter((e) => !endpoint.configuredReportings.some((r) => r.cluster.name == e.cluster && r.attribute.name == e.att));
+                const setTimer = () => {
+                    const timer = setTimeout(async () => {
+                        try {
+                            const currentExposes = getCurrentConfig(device, options)
+                                .filter((e) => !endpoint.configuredReportings.some((r) => r.cluster.name == e.cluster && r.attribute.name == e.att));
 
-                    for (const key in clustersDef) {
-                        if (Object.hasOwnProperty.call(clustersDef, key)) {
-                            // @ts-expect-error
-                            const cluster = clustersDef[key];
-
-                            const targ = currentExposes.filter((e) => e.cluster == cluster).map((e) => e.att);
-                            if (targ.length) {
-                                let i; let j;
-                                // Split array by chunks
-                                for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
-                                    await endpoint
-                                        .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
-                                        .catch((e) => {
-                                            // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                                            console.warn(`Failed to read zigbee attributes: ${e}`);
-                                        });
+                            for (const key in clustersDef) {
+                                if (Object.hasOwnProperty.call(clustersDef, key)) {
+                                    // @ts-expect-error
+                                    const cluster = clustersDef[key];
+                                    const targ = currentExposes.filter((e) => e.cluster == cluster).map((e) => e.att);
+                                    if (targ.length) {
+                                        let i; let j;
+                                        // Split array by chunks
+                                        for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
+                                            await endpoint
+                                                .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
+                                                .catch((e) => {
+                                                    // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                                                    console.warn(`Failed to read zigbee attributes: ${e}`);
+                                                });
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                }, seconds * 1000);
-                globalStore.putValue(device, 'interval', interval);
+                        } catch (error) {/* Do nothing*/}
+                        setTimer();
+                    }, seconds * 1000);
+                    globalStore.putValue(device, 'interval', timer);
+                };
+                setTimer();
             }
         },
     },

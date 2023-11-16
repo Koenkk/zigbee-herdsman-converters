@@ -23,6 +23,9 @@ const buttonLookup: { [key: number]: string } = {
     1: 'down',
     2: 'up',
     3: 'config',
+    4: 'aux_down',
+    5: 'aux_up',
+    6: 'aux_config',
 };
 
 const ledEffects: { [key: string]: number } = {
@@ -140,7 +143,7 @@ const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesLis
  * Common Attributes
  *
  * These attributes are shared between all devices with the manufacturer specific Inovelli cluster
- * Some of the discriptions, max, min or value properties may be overridden for each device
+ * Some of the descriptions, max, min or value properties may be overridden for each device
  */
 const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     dimmingSpeedUpRemote: {
@@ -832,7 +835,7 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
     },
     smartBulbMode: {
         ...COMMON_ATTRIBUTES.smartBulbMode,
-        description: 'Use this mode to syncronize and control other fan switches or controllers.',
+        description: 'Use this mode to synchronize and control other fan switches or controllers.',
         values: {'Disabled': 0, 'Remote Control Mode': 1},
     },
     nonNeutralAuxMediumGear: {

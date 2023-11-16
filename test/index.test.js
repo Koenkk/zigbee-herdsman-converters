@@ -567,7 +567,7 @@ describe('index.js', () => {
         }
     });
 
-    it('Check TuYa tuya.fz.datapoints calibration/presicion options', () => {
+    it('Check TuYa tuya.fz.datapoints calibration/precision options', () => {
         const TS0601_soil = index.definitions.find((d) => d.model == 'TS0601_soil');
         expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(
             ['temperature_precision', 'temperature_calibration']);

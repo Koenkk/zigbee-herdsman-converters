@@ -186,7 +186,7 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_jijr1sss'}],
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_jijr1sss', '_TZ3210_m3mxv66l']),
         model: '07502L',
         vendor: 'Immax',
         description: '4 in 1 multi sensor',
