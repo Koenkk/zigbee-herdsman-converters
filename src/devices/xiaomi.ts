@@ -3329,7 +3329,6 @@ const definitions: Definition[] = [
         zigbeeModel: ['lumi.remote.acn009'],
         model: 'WXKG22LM',
         vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'WXKG22LM'}],
         description: 'Aqara wireless remote switch H1M (double rocker)',
         fromZigbee: [fz.battery, fz.xiaomi_multistate_action, fz.aqara_opple, fz.command_toggle],
         toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
