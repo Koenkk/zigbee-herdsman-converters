@@ -8,6 +8,19 @@ const ea = exposes.access;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 
+const tzLocal = {
+    impulse_time: {
+        key: ['transition_time'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genOnOff', {nodonTransitionTime: value});
+            return {state: {nodonTransitionTime: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['nodonTransitionTime']);
+        },    
+    } as Tz.Converter,
+}
+
 const definitions: Definition[] = [
     {
         zigbeeModel: ['SIN-4-RS-20'],
@@ -51,12 +64,12 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
-            // NodOn Attribute
-            await endpoint.read('genOnOff', ['nodonTransitionTime']);
         },
         endpoint: (device) => {
             return {default: 1};
         },
+        exposes: [e.numeric('transition_time', ea.STATE).withUnit('s').withDescription('Impulse time')],
+]
         ota: ota.zigbeeOTA,
     },
     {
