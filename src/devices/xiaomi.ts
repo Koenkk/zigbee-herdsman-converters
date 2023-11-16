@@ -2714,6 +2714,14 @@ const definitions: Definition[] = [
             e.illuminance_lux().withAccess(ea.STATE_GET)],
     },
     {
+        zigbeeModel: ['lumi.light.acn128'],
+        model: 'TDL01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara spotlight T3',
+        extend: extend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.light.rgbac1'],
         model: 'ZNTGMK11LM',
         vendor: 'Xiaomi',
@@ -3117,10 +3125,9 @@ const definitions: Definition[] = [
         model: 'MCCGQ12LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 door & window contact sensor',
-        fromZigbee: [fz.xiaomi_contact, fz.aqara_opple],
+        fromZigbee: [fz.xiaomi_contact, fz.aqara_opple, fz.ias_contact_alarm_1],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+        exposes: [e.contact(), e.battery_low()],
         ota: ota.zigbeeOTA,
     },
     {
