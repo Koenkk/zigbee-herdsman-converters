@@ -186,11 +186,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        exposes: [
-            e.switch(),
-            e.power(),
-            e.energy(),
-        ],
+        exposes: [e.switch(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);

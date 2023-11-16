@@ -26,6 +26,13 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['929003598001'],
+        model: '929003598001',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance Surimu square panel 30x30',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929003597601'],
         model: '929003597601',
         vendor: 'Philips',
