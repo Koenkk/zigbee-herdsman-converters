@@ -33,7 +33,8 @@ export type Expose = exposes.Numeric | exposes.Binary | exposes.Enum | exposes.C
 export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum | exposes.List | exposes.Text;
 export interface Fingerprint {
     modelID?: string, manufacturerName?: string, type?: 'EndDevice' | 'Router', manufacturerID?: number, applicationVersion?: number,
-    powerSource?: 'Battery' | 'Mains (single phase)', softwareBuildID?: string, ieeeAddr?: RegExp,
+    powerSource?: 'Battery' | 'Mains (single phase)', softwareBuildID?: string, ieeeAddr?: RegExp, dateCode?: string, stackVersion?: number,
+    zclVersion?: number, hardwareVersion?: number,
     endpoints?: {ID?: number, profileID?: number, deviceID?: number, inputClusters?: number[], outputClusters?: number[]}[],
 }
 export type WhiteLabel =
@@ -78,7 +79,7 @@ export interface Extend {fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[], e
 
 export interface OnEventData {
     endpoint?: Zh.Endpoint,
-    meta?: {zclTransactionSequenceNumber?: number},
+    meta?: {zclTransactionSequenceNumber?: number, manufacturerCode?: number},
     cluster?: string,
     type?: string,
     data?: KeyValueAny,

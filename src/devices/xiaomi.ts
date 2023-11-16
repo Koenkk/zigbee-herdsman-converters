@@ -2798,7 +2798,6 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara S1 smart touch panel',
         fromZigbee: [fz.on_off, fz.ZNCJMB14LM],
-        // @ts-expect-error
         toZigbee: [tz.on_off, tz.ZNCJMB14LM],
         meta: {multiEndpoint: true},
         endpoint: (device) => {

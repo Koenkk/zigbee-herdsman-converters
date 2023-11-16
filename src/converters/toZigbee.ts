@@ -6,20 +6,20 @@ import * as utils from '../lib/utils';
 import * as light from '../lib/light';
 import * as legacy from '../lib/legacy';
 import * as exposes from '../lib/exposes';
-import herdsman from 'zigbee-herdsman';
+import {Zcl} from 'zigbee-herdsman';
 
 const manufacturerOptions = {
-    sunricher: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SHENZHEN_SUNRICH},
-    xiaomi: {manufacturerCode: herdsman.Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
-    osram: {manufacturerCode: herdsman.Zcl.ManufacturerCode.OSRAM},
-    eurotronic: {manufacturerCode: herdsman.Zcl.ManufacturerCode.JENNIC},
-    danfoss: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DANFOSS},
-    hue: {manufacturerCode: herdsman.Zcl.ManufacturerCode.PHILIPS},
-    ikea: {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
-    sinope: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SINOPE_TECH},
-    tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
-    legrand: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
-    viessmann: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
+    sunricher: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICH},
+    xiaomi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
+    osram: {manufacturerCode: Zcl.ManufacturerCode.OSRAM},
+    eurotronic: {manufacturerCode: Zcl.ManufacturerCode.JENNIC},
+    danfoss: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS},
+    hue: {manufacturerCode: Zcl.ManufacturerCode.PHILIPS},
+    ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
+    sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECH},
+    tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INT},
+    legrand: {manufacturerCode: Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
+    viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
 };
 
 const converters1 = {
@@ -187,7 +187,7 @@ const converters1 = {
             await entity.read('lightingColorCtrl', ['colorMode', 'colorTemperature']);
         },
     } as Tz.Converter,
-}
+};
 
 const converters2 = {
     // #region Generic converters
@@ -769,7 +769,7 @@ const converters2 = {
             if (key === 'ballast_power_on_level') {
                 await entity.write('lightingBallastCfg', {'powerOnLevel': value});
             }
-            return {state: {[key]: value}}
+            return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
             let result = {};
@@ -2135,78 +2135,6 @@ const converters2 = {
             }
         },
     } as Tz.Converter,
-    gledopto_light_onoff_brightness: {
-        key: ['state', 'brightness', 'brightness_percent'],
-        options: [exposes.options.transition()],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.isNumber(meta.message?.transition)) {
-                meta.message.transition = meta.message.transition * 3.3;
-            }
-
-            if (meta.mapped.model === 'GL-S-007ZS' || meta.mapped.model === 'GL-C-009') {
-                // https://github.com/Koenkk/zigbee2mqtt/issues/2757
-                // Device doesn't support ON with moveToLevelWithOnOff command
-                if (typeof meta.message.state === 'string' && meta.message.state.toLowerCase() === 'on') {
-                    await converters1.on_off.convertSet(entity, key, 'ON', meta);
-                    await utils.sleep(1000);
-                }
-            }
-
-            return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
-        },
-        convertGet: async (entity, key, meta) => {
-            return await converters.light_onoff_brightness.convertGet(entity, key, meta);
-        },
-    } as Tz.Converter,
-    gledopto_light_colortemp: {
-        key: ['color_temp', 'color_temp_percent'],
-        options: [exposes.options.color_sync(), exposes.options.transition()],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.isNumber(meta.message?.transition)) {
-                meta.message.transition = meta.message.transition * 3.3;
-            }
-
-            // Gledopto devices turn ON when they are OFF and color is set.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/3509
-            const state = {state: 'ON'};
-
-            const result = await converters1.light_colortemp.convertSet(entity, key, value, meta);
-            if (result) {
-                result.state = {...result.state, ...state};
-            }
-            return result;
-        },
-        convertGet: async (entity, key, meta) => {
-            return await converters1.light_colortemp.convertGet(entity, key, meta);
-        },
-    } as Tz.Converter,
-    gledopto_light_color: {
-        key: ['color'],
-        options: [exposes.options.color_sync(), exposes.options.transition()],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.isNumber(meta.message?.transition)) {
-                meta.message.transition = meta.message.transition * 3.3;
-            }
-
-            if (key === 'color' && !meta.message.transition) {
-                // Always provide a transition when setting color, otherwise CCT to RGB
-                // doesn't work properly (CCT leds stay on).
-                meta.message.transition = 0.4;
-            }
-
-            // Gledopto devices turn ON when they are OFF and color is set.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/3509
-            const state = {state: 'ON'};
-            const result = await converters1.light_color.convertSet(entity, key, value, meta);
-            if (result) {
-                result.state = {...result.state, ...state};
-            }
-            return result;
-        },
-        convertGet: async (entity, key, meta) => {
-            return await converters1.light_color.convertGet(entity, key, meta);
-        },
-    } as Tz.Converter,
     aqara_motion_sensitivity: {
         key: ['motion_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
@@ -3229,23 +3157,23 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'lcd_brightness') {
                 const lookup = {'low': 0, 'mid': 1, 'high': 2};
-                const payload = {0x1000: {value: utils.getFromLookup(value, lookup), type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x1000: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key === 'button_vibration_level') {
                 const lookup = {'off': 0, 'low': 1, 'high': 2};
-                const payload = {0x1001: {value: utils.getFromLookup(value, lookup), type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x1001: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key === 'floor_sensor_type') {
                 const lookup = {'10k': 1, '15k': 2, '50k': 3, '100k': 4, '12k': 5};
-                const payload = {0x1002: {value: utils.getFromLookup(value, lookup), type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x1002: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key === 'sensor') {
                 const lookup = {'air': 0, 'floor': 1, 'both': 2};
-                const payload = {0x1003: {value: utils.getFromLookup(value, lookup), type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x1003: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='powerup_status') {
                 const lookup = {'default': 0, 'last_status': 1};
-                const payload = {0x1004: {value: utils.getFromLookup(value, lookup), type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x1004: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='floor_sensor_calibration') {
                 utils.assertNumber(value);
@@ -3256,11 +3184,11 @@ const converters2 = {
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='mode_after_dry') {
                 const lookup = {'off': 0, 'manual': 1, 'auto': 2, 'away': 3};
-                const payload = {0x1007: {value: utils.getFromLookup(value, lookup), type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x1007: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='temperature_display') {
                 const lookup = {'room': 0, 'floor': 1};
-                const payload = {0x1008: {value: utils.getFromLookup(value, lookup), type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x1008: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='window_open_check') {
                 utils.assertNumber(value);
@@ -3272,7 +3200,7 @@ const converters2 = {
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='display_auto_off_enabled') {
                 const lookup = {'disabled': 0, 'enabled': 1};
-                const payload = {0x100B: {value: utils.getFromLookup(value, lookup), type: herdsman.Zcl.DataType.enum8}};
+                const payload = {0x100B: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='alarm_airtemp_overvalue') {
                 const payload = {0x2001: {value: value, type: 0x20}};
@@ -3518,49 +3446,6 @@ const converters2 = {
             }
         },
     } as Tz.Converter,
-    RM01_light_onoff_brightness: {
-        key: ['state', 'brightness', 'brightness_percent'],
-        options: [exposes.options.transition()],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_onoff_brightness.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error('OnOff and LevelControl not supported on this RM01 device.');
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_onoff_brightness.convertGet(endpoint, key, meta);
-            } else {
-                throw new Error('OnOff and LevelControl not supported on this RM01 device.');
-            }
-        },
-    } as Tz.Converter,
-    RM01_light_brightness_step: {
-        options: [exposes.options.transition()],
-        key: ['brightness_step', 'brightness_step_onoff'],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_brightness_step.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error('LevelControl not supported on this RM01 device.');
-            }
-        },
-    } as Tz.Converter,
-    RM01_light_brightness_move: {
-        key: ['brightness_move', 'brightness_move_onoff'],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.hasEndpoints(meta.device, [0x12])) {
-                const endpoint = meta.device.getEndpoint(0x12);
-                return await converters.light_brightness_move.convertSet(endpoint, key, value, meta);
-            } else {
-                throw new Error('LevelControl not supported on this RM01 device.');
-            }
-        },
-    } as Tz.Converter,
     aqara_opple_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -3604,31 +3489,6 @@ const converters2 = {
             });
 
             return {state: {interface_mode: value}};
-        },
-    } as Tz.Converter,
-    eurotronic_thermostat_system_mode: {
-        key: ['system_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const systemMode = utils.getKey(legacy.thermostatSystemModes, value, value, Number);
-            const hostFlags: KeyValueAny = {};
-            switch (systemMode) {
-            case 0: // off (window_open for eurotronic)
-                hostFlags['boost'] = false;
-                hostFlags['window_open'] = true;
-                break;
-            case 4: // heat (boost for eurotronic)
-                hostFlags['boost'] = true;
-                hostFlags['window_open'] = false;
-                break;
-            default:
-                hostFlags['boost'] = false;
-                hostFlags['window_open'] = false;
-                break;
-            }
-            await converters.eurotronic_host_flags.convertSet(entity, 'eurotronic_host_flags', hostFlags, meta);
-        },
-        convertGet: async (entity, key, meta) => {
-            await converters.eurotronic_host_flags.convertGet(entity, 'eurotronic_host_flags', meta);
         },
     } as Tz.Converter,
     eurotronic_host_flags: {
@@ -3815,42 +3675,6 @@ const converters2 = {
                 }
             }
             return;
-        },
-    } as Tz.Converter,
-    ptvo_switch_light_brightness: {
-        key: ['brightness', 'brightness_percent', 'transition'],
-        options: [exposes.options.transition()],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'transition') {
-                return;
-            }
-            const cluster = 'genLevelCtrl';
-            utils.assertEndpoint(entity);
-            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
-                const message = meta.message;
-
-                let brightness = undefined;
-                if (message.hasOwnProperty('brightness')) {
-                    brightness = Number(message.brightness);
-                } else if (message.hasOwnProperty('brightness_percent')) brightness = Math.round(Number(message.brightness_percent) * 2.55);
-
-                if ((brightness !== undefined) && (brightness === 0)) {
-                    message.state = 'off';
-                    message.brightness = 1;
-                }
-                return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
-            } else {
-                throw new Error('LevelControl not supported on this endpoint.');
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            const cluster = 'genLevelCtrl';
-            utils.assertEndpoint(entity);
-            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
-                return await converters.light_onoff_brightness.convertGet(entity, key, meta);
-            } else {
-                throw new Error('LevelControl not supported on this endpoint.');
-            }
         },
     } as Tz.Converter,
     tint_scene: {
@@ -4308,7 +4132,7 @@ const converters2 = {
                 // @ts-expect-error
                 utils.saveSceneState(entity, sceneid, groupid, meta.state, scenename);
             } else {
-                throw new Error(`Scene add not successful ('${herdsman.Zcl.Status[response.status]}')`);
+                throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
             }
             meta.logger.info('Successfully stored scene');
             return {state: {}};
@@ -4511,10 +4335,10 @@ const converters2 = {
                 } else if (response.status === 0) {
                     utils.saveSceneState(entity, sceneid, groupid, state, scenename);
                 } else {
-                    throw new Error(`Scene add not successful ('${herdsman.Zcl.Status[response.status]}')`);
+                    throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
                 }
             } else {
-                throw new Error(`Scene add unable to remove existing scene ('${herdsman.Zcl.Status[removeresp.status]}')`);
+                throw new Error(`Scene add unable to remove existing scene ('${Zcl.Status[removeresp.status]}')`);
             }
             meta.logger.info('Successfully added scene');
             return {state: {}};
@@ -4541,7 +4365,7 @@ const converters2 = {
                 utils.deleteSceneState(entity, sceneid, groupid);
             } else {
                 // @ts-expect-error
-                throw new Error(`Scene remove not successful ('${herdsman.Zcl.Status[response.status]}')`);
+                throw new Error(`Scene remove not successful ('${Zcl.Status[response.status]}')`);
             }
             meta.logger.info('Successfully removed scene');
         },
@@ -4563,7 +4387,7 @@ const converters2 = {
             } else if (response.status === 0) {
                 utils.deleteSceneState(entity);
             } else {
-                throw new Error(`Scene remove all not successful ('${herdsman.Zcl.Status[response.status]}')`);
+                throw new Error(`Scene remove all not successful ('${Zcl.Status[response.status]}')`);
             }
             meta.logger.info('Successfully removed all scenes');
         },
@@ -4844,11 +4668,11 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             const controlMode = utils.getKey(constants.wiserDimmerControlMode, value, value, Number);
             await entity.write('lightingBallastCfg', {'wiserControlMode': controlMode},
-                {manufacturerCode: herdsman.Zcl.ManufacturerCode.SCHNEIDER});
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER});
             return {state: {dimmer_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('lightingBallastCfg', ['wiserControlMode'], {manufacturerCode: herdsman.Zcl.ManufacturerCode.SCHNEIDER});
+            await entity.read('lightingBallastCfg', ['wiserControlMode'], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER});
         },
     } as Tz.Converter,
     schneider_temperature_measured_value: {
@@ -5274,28 +5098,111 @@ const converters3 = {
             return await converters2.light_onoff_brightness.convertGet(entity, key, meta);
         },
     } as Tz.Converter,
-    gledopto_light_color_colortemp: {
-        key: ['color', 'color_temp', 'color_temp_percent'],
-        options: [exposes.options.color_sync(), exposes.options.transition()],
+    RM01_light_onoff_brightness: {
+        key: ['state', 'brightness', 'brightness_percent'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            if (key == 'color') {
-                const result = await converters2.gledopto_light_color.convertSet(entity, key, value, meta);
-                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
-                    result.state.color_temp = Math.round(libColor.ColorXY.fromObject(result.state.color).toMireds());
-                }
-
-                return result;
-            } else if (key == 'color_temp' || key == 'color_temp_percent') {
-                const result = await converters2.gledopto_light_colortemp.convertSet(entity, key, value, meta);
-                result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).rounded(4).toObject();
-                return result;
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters2.light_onoff_brightness.convertSet(endpoint, key, value, meta);
+            } else {
+                throw new Error('OnOff and LevelControl not supported on this RM01 device.');
             }
         },
         convertGet: async (entity, key, meta) => {
-            return await converters2.light_color_colortemp.convertGet(entity, key, meta);
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters2.light_onoff_brightness.convertGet(endpoint, key, meta);
+            } else {
+                throw new Error('OnOff and LevelControl not supported on this RM01 device.');
+            }
         },
     } as Tz.Converter,
-}
+    RM01_light_brightness_step: {
+        options: [exposes.options.transition()],
+        key: ['brightness_step', 'brightness_step_onoff'],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters2.light_brightness_step.convertSet(endpoint, key, value, meta);
+            } else {
+                throw new Error('LevelControl not supported on this RM01 device.');
+            }
+        },
+    } as Tz.Converter,
+    RM01_light_brightness_move: {
+        key: ['brightness_move', 'brightness_move_onoff'],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.hasEndpoints(meta.device, [0x12])) {
+                const endpoint = meta.device.getEndpoint(0x12);
+                return await converters2.light_brightness_move.convertSet(endpoint, key, value, meta);
+            } else {
+                throw new Error('LevelControl not supported on this RM01 device.');
+            }
+        },
+    } as Tz.Converter,
+    ptvo_switch_light_brightness: {
+        key: ['brightness', 'brightness_percent', 'transition'],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'transition') {
+                return;
+            }
+            const cluster = 'genLevelCtrl';
+            utils.assertEndpoint(entity);
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                const message = meta.message;
+
+                let brightness = undefined;
+                if (message.hasOwnProperty('brightness')) {
+                    brightness = Number(message.brightness);
+                } else if (message.hasOwnProperty('brightness_percent')) brightness = Math.round(Number(message.brightness_percent) * 2.55);
+
+                if ((brightness !== undefined) && (brightness === 0)) {
+                    message.state = 'off';
+                    message.brightness = 1;
+                }
+                return await converters2.light_onoff_brightness.convertSet(entity, key, value, meta);
+            } else {
+                throw new Error('LevelControl not supported on this endpoint.');
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            const cluster = 'genLevelCtrl';
+            utils.assertEndpoint(entity);
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                return await converters2.light_onoff_brightness.convertGet(entity, key, meta);
+            } else {
+                throw new Error('LevelControl not supported on this endpoint.');
+            }
+        },
+    } as Tz.Converter,
+    eurotronic_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const systemMode = utils.getKey(legacy.thermostatSystemModes, value, value, Number);
+            const hostFlags: KeyValueAny = {};
+            switch (systemMode) {
+            case 0: // off (window_open for eurotronic)
+                hostFlags['boost'] = false;
+                hostFlags['window_open'] = true;
+                break;
+            case 4: // heat (boost for eurotronic)
+                hostFlags['boost'] = true;
+                hostFlags['window_open'] = false;
+                break;
+            default:
+                hostFlags['boost'] = false;
+                hostFlags['window_open'] = false;
+                break;
+            }
+            await converters2.eurotronic_host_flags.convertSet(entity, 'eurotronic_host_flags', hostFlags, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            await converters2.eurotronic_host_flags.convertGet(entity, 'eurotronic_host_flags', meta);
+        },
+    } as Tz.Converter,
+};
 
 const converters = {...converters1, ...converters2, ...converters3};
 
