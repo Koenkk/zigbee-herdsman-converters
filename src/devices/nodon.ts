@@ -1,4 +1,4 @@
-import {Tz, Definition} from '../lib/types';
+import {Fz, Tz, Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
@@ -20,6 +20,18 @@ const tzLocal = {
         },
     } as Tz.Converter,
 };
+
+const fzLocal = {
+    impulse_time: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('nodonTransitionTime')) {
+                return {transition_time : msg.data['nodonTransitionTime'] };
+            }
+        }
+    } as Fz.Converter,
+}
 
 const definitions: Definition[] = [
     {
@@ -60,7 +72,10 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
         extend: extend.switch(),
+        fromZigbee: [fzLocal.impulse_time],
         toZigbee: [tzLocal.impulse_time],
+        exposes: [e.numeric('transition_time', ea.STATE).withUnit('s').withDescription('Impulse time')],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -69,8 +84,6 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {default: 1};
         },
-        exposes: [e.numeric('transition_time', ea.STATE).withUnit('s').withDescription('Impulse time')],
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SIN-4-1-20_PRO'],
@@ -78,6 +91,7 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
         extend: extend.switch(),
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -86,7 +100,6 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {default: 1};
         },
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SIN-4-2-20'],
