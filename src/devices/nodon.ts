@@ -1,4 +1,4 @@
-import {Definition} from '../lib/types';
+import {Fz, Tz, Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
@@ -19,7 +19,7 @@ const tzLocal = {
             await entity.read('genOnOff', ['nodonTransitionTime']);
         },    
     } as Tz.Converter,
-}
+};
 
 const definitions: Definition[] = [
     {
@@ -69,7 +69,6 @@ const definitions: Definition[] = [
             return {default: 1};
         },
         exposes: [e.numeric('transition_time', ea.STATE).withUnit('s').withDescription('Impulse time')],
-]
         ota: ota.zigbeeOTA,
     },
     {
