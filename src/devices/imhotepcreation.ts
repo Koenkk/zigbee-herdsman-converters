@@ -105,50 +105,48 @@ const definitions: Definition[] = [
             return features;
         },
         configure: async (device, coordinatorEndpoint, logger) => {
-            if (typeof device !== 'undefined') {
-                for (let i = 1; i <= 20; i++) {
-                    const endpoint = device?.getEndpoint(i);
-                    if (typeof endpoint !== 'undefined') {
-                        await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
-                        await reporting.thermostatSystemMode(endpoint);
-                        await reporting.thermostatTemperature(endpoint);
-                        await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-                        await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
+            for (let i = 1; i <= 20; i++) {
+                const endpoint = device?.getEndpoint(i);
+                if (typeof endpoint !== 'undefined') {
+                    await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
+                    await reporting.thermostatSystemMode(endpoint);
+                    await reporting.thermostatTemperature(endpoint);
+                    await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+                    await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
 
-                        const thermostatMinHeatSetpointLimit = async (endpoint : Zh.Endpoint) => {
-                            const p = reporting.payload('minHeatSetpointLimit', 0, constants.repInterval.HOUR, 10);
-                            await endpoint.configureReporting('hvacThermostat', p);
-                        };
-                        const thermostatMaxHeatSetpointLimit= async (endpoint : Zh.Endpoint) => {
-                            const p = reporting.payload('maxHeatSetpointLimit', 0, constants.repInterval.HOUR, 10);
-                            await endpoint.configureReporting('hvacThermostat', p);
-                        };
-                        const thermostatMinCoolSetpointLimit = async (endpoint : Zh.Endpoint) => {
-                            const p = reporting.payload('minCoolSetpointLimit', 0, constants.repInterval.HOUR, 10);
-                            await endpoint.configureReporting('hvacThermostat', p);
-                        };
-                        const thermostatMaxCoolSetpointLimit= async (endpoint : Zh.Endpoint) => {
-                            const p = reporting.payload('maxCoolSetpointLimit', 0, constants.repInterval.HOUR, 10);
-                            await endpoint.configureReporting('hvacThermostat', p);
-                        };
-                        await thermostatMinHeatSetpointLimit(endpoint);
-                        await thermostatMaxHeatSetpointLimit(endpoint);
-                        await thermostatMinCoolSetpointLimit(endpoint);
-                        await thermostatMaxCoolSetpointLimit(endpoint);
+                    const thermostatMinHeatSetpointLimit = async (endpoint : Zh.Endpoint) => {
+                        const p = reporting.payload('minHeatSetpointLimit', 0, constants.repInterval.HOUR, 10);
+                        await endpoint.configureReporting('hvacThermostat', p);
+                    };
+                    const thermostatMaxHeatSetpointLimit= async (endpoint : Zh.Endpoint) => {
+                        const p = reporting.payload('maxHeatSetpointLimit', 0, constants.repInterval.HOUR, 10);
+                        await endpoint.configureReporting('hvacThermostat', p);
+                    };
+                    const thermostatMinCoolSetpointLimit = async (endpoint : Zh.Endpoint) => {
+                        const p = reporting.payload('minCoolSetpointLimit', 0, constants.repInterval.HOUR, 10);
+                        await endpoint.configureReporting('hvacThermostat', p);
+                    };
+                    const thermostatMaxCoolSetpointLimit= async (endpoint : Zh.Endpoint) => {
+                        const p = reporting.payload('maxCoolSetpointLimit', 0, constants.repInterval.HOUR, 10);
+                        await endpoint.configureReporting('hvacThermostat', p);
+                    };
+                    await thermostatMinHeatSetpointLimit(endpoint);
+                    await thermostatMaxHeatSetpointLimit(endpoint);
+                    await thermostatMinCoolSetpointLimit(endpoint);
+                    await thermostatMaxCoolSetpointLimit(endpoint);
 
-                        await endpoint.read('hvacThermostat', ['localTemp']);
-                        await endpoint.read('hvacThermostat', ['systemMode']);
-                        await endpoint.read('hvacThermostat', ['absMinHeatSetpointLimit']);
-                        await endpoint.read('hvacThermostat', ['absMaxHeatSetpointLimit']);
-                        await endpoint.read('hvacThermostat', ['minHeatSetpointLimit']);
-                        await endpoint.read('hvacThermostat', ['maxHeatSetpointLimit']);
-                        await endpoint.read('hvacThermostat', ['absMinCoolSetpointLimit']);
-                        await endpoint.read('hvacThermostat', ['absMaxCoolSetpointLimit']);
-                        await endpoint.read('hvacThermostat', ['minCoolSetpointLimit']);
-                        await endpoint.read('hvacThermostat', ['maxCoolSetpointLimit']);
-                        await endpoint.read('hvacThermostat', ['occupiedHeatingSetpoint']);
-                        await endpoint.read('hvacThermostat', ['occupiedCoolingSetpoint']);
-                    }
+                    await endpoint.read('hvacThermostat', ['localTemp']);
+                    await endpoint.read('hvacThermostat', ['systemMode']);
+                    await endpoint.read('hvacThermostat', ['absMinHeatSetpointLimit']);
+                    await endpoint.read('hvacThermostat', ['absMaxHeatSetpointLimit']);
+                    await endpoint.read('hvacThermostat', ['minHeatSetpointLimit']);
+                    await endpoint.read('hvacThermostat', ['maxHeatSetpointLimit']);
+                    await endpoint.read('hvacThermostat', ['absMinCoolSetpointLimit']);
+                    await endpoint.read('hvacThermostat', ['absMaxCoolSetpointLimit']);
+                    await endpoint.read('hvacThermostat', ['minCoolSetpointLimit']);
+                    await endpoint.read('hvacThermostat', ['maxCoolSetpointLimit']);
+                    await endpoint.read('hvacThermostat', ['occupiedHeatingSetpoint']);
+                    await endpoint.read('hvacThermostat', ['occupiedCoolingSetpoint']);
                 }
             }
         },
