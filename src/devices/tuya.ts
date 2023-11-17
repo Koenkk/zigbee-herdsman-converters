@@ -2228,6 +2228,23 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_qaa59zqd']),
+        model: 'TS0002_switch_module_4',
+        vendor: 'TuYa',
+        description: '2 gang mini switch',
+        whiteLabel: [{vendor: 'MOES', model: 'ZM-104B-M'}],
+        extend: tuya.extend.switch({switchType: true, endpoints: ['l1', 'l2']}),
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['TS0003'],
         model: 'TS0003',
         vendor: 'TuYa',
