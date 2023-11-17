@@ -25,7 +25,7 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "test": "set ZHC_TEST=true && jest test",
+    "test": "ZHC_TEST=true jest test",
     "test-watch": "ZHC_TEST=true jest test --watch",
     "clean": "rimraf index* devices lib converters tsconfig.tsbuildinfo",
     "build": "tsc",
