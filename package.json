@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "15.117.0",
+  "version": "15.119.0",
   "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "types": "index.d.ts",
@@ -29,6 +29,7 @@
     "test-watch": "ZHC_TEST=true jest test --watch",
     "clean": "rimraf index* devices lib converters tsconfig.tsbuildinfo",
     "build": "tsc",
+    "build-watch": "tsc --watch",
     "prepack": "npm run clean && npm run build"
   },
   "author": "Koen Kanters",
