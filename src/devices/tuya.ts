@@ -2164,6 +2164,18 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_veu2v775']),
+        model: 'TS0001_switch_module_2',
+        vendor: 'TuYa',
+        description: '1 gang mini switch module',
+        whiteLabel: [{vendor: 'MOES', model: 'ZM-104-M'}],
+        extend: tuya.extend.switch({switchType: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_54hjn4vs', '_TZ3000_aa5t61rh']),
         model: 'TS0002_switch_module_3',
         vendor: 'TuYa',
