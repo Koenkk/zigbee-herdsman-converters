@@ -5375,9 +5375,7 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-SEC02-U',
         vendor: 'TuYa',
         description: 'Zigbee 3.0 smart light switch module 2 gang',
-        toZigbee: [tz.on_off],
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        extend: tuya.extend.switch({switchType: true, endpoints: ['l1', 'l2']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
