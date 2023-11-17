@@ -74,7 +74,7 @@ const definitions: Definition[] = [
         extend: extend.switch(),
         fromZigbee: [fzLocal.impulse_time],
         toZigbee: [tzLocal.impulse_time],
-        exposes: [e.numeric('transition_time', ea.SET).withUnit('s').withDescription('Impulse time')],
+        exposes: [e.numeric('transition_time', ea.SET).withValueMin(0).withValueMax(5000).withUnit('ms').withDescription('Impulse time')],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
