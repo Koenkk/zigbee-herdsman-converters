@@ -1,5 +1,26 @@
 # Changelog
 
+## [15.120.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.119.0...v15.120.0) (2023-11-18)
+
+
+### Features
+
+* **add:** 4512767 ([#6496](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6496)) ([86b9423](https://github.com/Koenkk/zigbee-herdsman-converters/commit/86b9423985fbfaa17cbf40f605237ce57c7b5aa6))
+* **add:** CK-BL702-MSW-01(7010) ([#6501](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6501)) ([39e6dcf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/39e6dcf671a05119009d1a3c2a940cca57af7d21))
+* **add:** L2112 ([#6500](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6500)) ([9d53667](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d536676f728c82f899537305c98021e9074d91c))
+* **add:** YRD652HA20BP ([#6498](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6498)) ([80042cb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/80042cbad46f211b1487f335d50902d768e30aea))
+* Expose switch type for TuYa QS-Zigbee-SEC02-U ([#6494](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6494)) ([f22de41](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f22de4177303b62f1ee10e013f7a9189e1aa4a4b))
+* **ignore:** Add back E-Ctrl and BRI4P ([#6493](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6493)) ([ec34675](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ec346759248d31c32bd7adb63ecbbe5f777dafe9))
+
+
+### Bug Fixes
+
+* **detect:** detect `_TZ3000_saiqcn0y` as WSD500A ([#6491](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6491)) ([c2a0c4c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c2a0c4cd3134e840fe9daaa421688c3d2f1ebdeb))
+* **detect:** Detect `TRADFRI bulb E26 WW G95 CL 440lm` as IKEA LED2102G3 ([#6490](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6490)) ([d56edec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d56edec98aaf7c7bbe849f5d7259e1046f49e9fd))
+* Fix Namron 4512737/4512738 `window_open_check` min value ([#6502](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6502)) ([26a1ac6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/26a1ac689e6df800fcb6ba7211c64d192fdb20ee))
+* Fix text for QBKG32LM operation_mode ([#6505](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6505)) ([f27afb7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f27afb70ca8b068280efb87ded27097a7ccd77d9))
+* Fix Zemismart ZM25RX-08/30 state reverted ([#6503](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6503)) ([1605fd5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1605fd59ab863ff07d5670da7d3322d498824896))
+
 ## [15.119.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.118.0...v15.119.0) (2023-11-16)
 
 
