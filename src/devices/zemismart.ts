@@ -106,7 +106,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_bv1jcqqu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_7eue9vhc', '_TZE200_bv1jcqqu']),
         model: 'ZM25RX-08/30',
         vendor: 'Zemismart',
         description: 'Tubular motor',
