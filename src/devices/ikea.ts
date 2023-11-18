@@ -1239,7 +1239,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['ORMANAS LED Strip'],
         model: 'L2112',
         vendor: 'IKEA',
-        description: 'ORMANAS LED Strip',
+        description: 'ORMANAS LED strip',
         extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
     },
 ];
