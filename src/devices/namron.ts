@@ -517,7 +517,7 @@ const definitions: Definition[] = [
                 .withDescription('The temperature on the display.  Default: Room Temperature.'),
             e.numeric('window_open_check', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(1.5).withValueMax(4).withValueStep(0.5)
+                .withValueMin(0).withValueMax(4).withValueStep(0.5)
                 .withDescription('The threshold to detect window open, between 1.5 and 4 in 0.5 °C.  Default: 0 (disabled).'),
             e.numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
