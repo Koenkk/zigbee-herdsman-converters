@@ -156,7 +156,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['4512767'],
         model: '4512767',
         vendor: 'Namron',
-        description: 'Zigbee Smart Plug 16A',
+        description: 'Zigbee smart plug 16A',
         fromZigbee: [fz.metering, fz.electrical_measurement],
         exposes: [e.power(), e.current(), e.voltage(), e.energy()],
         extend: extend.switch(),
