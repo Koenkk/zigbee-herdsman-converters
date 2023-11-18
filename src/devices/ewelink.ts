@@ -19,6 +19,22 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['CK-BL702-MSW-01(7010)'],
+        model: 'CK-BL702-MSW-01(7010)',
+        vendor: 'eWeLink',
+        description: 'CMARS Zigbee smart plug',
+        extend: extend.switch(),
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+        onEvent: async (type, data, device) => {
+            device.skipDefaultResponse = true;
+        },
+    },
+    {
         zigbeeModel: ['SA-003-Zigbee'],
         model: 'SA-003-Zigbee',
         vendor: 'eWeLink',
