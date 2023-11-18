@@ -114,7 +114,11 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        options: [exposes.options.invert_cover()],
+        options: [
+            exposes.options.invert_cover(),
+            e.binary(`invert_cover_actions`, ea.SET, true, false)
+                .withDescription(`Inverts cover actions, false: OPEN=0,CLOSE=2, true: OPEN=2,CLOSE=0 (default false).`),
+        ],
         exposes: [
             e.text('work_state', ea.STATE),
             e.cover_position().setAccess('position', ea.STATE_SET),
@@ -127,7 +131,7 @@ const definitions: Definition[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverterBasic.lookup(
-                    (options) => options.invert_cover ?
+                    (options) => options.invert_cover_actions ?
                         {'OPEN': tuya.enum(2), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(0)} :
                         {'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)},
                 )],
