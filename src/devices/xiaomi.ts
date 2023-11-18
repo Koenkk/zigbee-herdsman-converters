@@ -1221,7 +1221,7 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button').withEndpoint('right'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button').withEndpoint('center'),
+                .withDescription('Decoupled mode for center button').withEndpoint('center'),
             e.power_outage_count()],
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
