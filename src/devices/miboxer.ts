@@ -14,7 +14,7 @@ const definitions: Definition[] = [
         extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
-        fingerprint: [{ modelID: 'TS0502B', manufacturerName: '_TZB210_lmqquxus' }],
+        fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZB210_lmqquxus'}],
         model: 'FUT035Z+',
         description: 'MiBoxer FUT035Z+ Dual white LED controller',
         vendor: 'MiBoxer',
