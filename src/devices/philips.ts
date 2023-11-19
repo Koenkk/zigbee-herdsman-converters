@@ -930,6 +930,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['LWA024'],
+        model: '9290018216A',
+        vendor: 'Philips',
+        description: 'Hue white A60 bulb E27 806lm bluetooth',
+        extend: philips.extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['LWA012'],
         model: '9290018217',
         vendor: 'Philips',
