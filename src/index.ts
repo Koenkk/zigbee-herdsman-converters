@@ -56,7 +56,6 @@ function validateDefinition(definition: Definition) {
         // @ts-expect-error
         assert.strictEqual(definition[field].constructor.name, expectedType, msg);
     }
-    // @ts-expect-error
     assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
@@ -67,14 +66,18 @@ function addDefinition(definition: Definition) {
             assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
         }
 
-        definition = {
-            ...extend,
-            ...definitionWithoutExtend,
-            meta: extend.meta || definitionWithoutExtend.meta ? {
-                ...extend.meta,
-                ...definitionWithoutExtend.meta,
-            } : undefined,
-        };
+        if (typeof definition.exposes === 'function') {
+            assert.fail(`'${definition.model}' has function exposes which is not allowed`);
+        }
+        const toZigbee = [...definition.toZigbee ?? [], ...extend.toZigbee];
+        const fromZigbee = [...definition.fromZigbee ?? [], ...extend.fromZigbee];
+        const exposes = [...definition.exposes ?? [], ...extend.exposes];
+        const meta = extend.meta || definitionWithoutExtend.meta ? {
+            ...extend.meta,
+            ...definitionWithoutExtend.meta,
+        } : undefined;
+
+        definition = {toZigbee, fromZigbee, exposes, meta, ...definitionWithoutExtend};
     }
 
     definition.toZigbee.push(
