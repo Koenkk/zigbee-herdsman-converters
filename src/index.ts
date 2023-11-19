@@ -3,8 +3,7 @@ import * as exposes from './lib/exposes';
 import toZigbee from './converters/toZigbee';
 import fromZigbee from './converters/fromZigbee';
 import assert from 'assert';
-import fs from 'fs';
-import path from 'path';
+import allDefinitions from './devices';
 import { Definition, Fingerprint, Zh, OnEventData, OnEventType } from './lib/types';
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
@@ -117,12 +116,8 @@ function addDefinition(definition: Definition) {
     }
 }
 
-// Load all definitions from devices folder
-const devicesPath = path.join(__dirname, 'devices');
-for (const file of fs.readdirSync(devicesPath).filter((f) => f.endsWith('.js'))) {
-    for (const definition of require(path.join(devicesPath, file))) {
-        addDefinition(definition);
-    }
+for (const definition of allDefinitions) {
+    addDefinition(definition);
 }
 
 function findByZigbeeModel(zigbeeModel: string) {
