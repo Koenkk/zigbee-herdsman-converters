@@ -4091,7 +4091,7 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7']),
         model: 'ZWT198',
         vendor: 'TuYa',
-        description: 'AVATTO Battery Wall-Mount Thermostat',
+        description: 'AVATTO battery wall-mount thermostat',
         fromZigbee: [tuya.fz.datapoints, fz.ignore_tuya_set_time],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEvent({timeStart: '1970'}),
