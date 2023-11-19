@@ -1061,6 +1061,13 @@ const definitions: Definition[] = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['TRADFRI_bulb_GU10_WS_345lm'],
+        model: 'LED2106R3',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['STARKVIND Air purifier', 'STARKVIND Air purifier table'],
         model: 'E2007',
         vendor: 'IKEA',
