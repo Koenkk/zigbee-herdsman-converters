@@ -4115,7 +4115,7 @@ const definitions: Definition[] = [
                 .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
             // Not working yet:
             // e.enum('schedule_mode', ea.STATE_SET, ['disabled','weekday/sat+sun','weekday+sat/sun','7day'])
-            // .withDescription('Schedule mode')
+            //     .withDescription('Schedule mode')
         ],
         meta: {
             tuyaDatapoints: [
@@ -4144,13 +4144,13 @@ const definitions: Definition[] = [
                 // Sat-Sun: 8:05 --> 20C, 23:00 --> 16C
                 // I wasn't able to find a proper converter or to create one, so i commented it out
                 // [109, 'dp109', tuya.valueConverter.raw],
-                
+
                 // unmapped DPs, still need to figure out what they do
                 // [103, 'dp103', tuya.valueConverter.trueFalse1],
                 // [105, 'dp105', tuya.valueConverter.trueFalse1],
                 // [110, 'dp110', tuya.valueConverter.raw],
                 // [111, 'dp111', tuya.valueConverter.trueFalse1]
-             ],
+            ],
         },
     },
     {
