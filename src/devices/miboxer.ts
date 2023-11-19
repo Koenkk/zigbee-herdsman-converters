@@ -18,7 +18,7 @@ const definitions: Definition[] = [
         model: 'FUT035Z+',
         description: 'MiBoxer FUT035Z+ Dual white LED controller',
         vendor: 'MiBoxer',
-        extend: tuya.extend.light_onoff_brightness_colortemp({ colorTempRange: [153, 500], noConfigure: true, disableEffect: true }),
+        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true, disableEffect: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await tuya.extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
