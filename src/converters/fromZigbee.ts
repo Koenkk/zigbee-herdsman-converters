@@ -6330,10 +6330,10 @@ const converters2 = {
             const payload: KeyValueAny = {};
             const mode = msg.data['mode'];
 
-            if (mode === 0x00) payload.mode = 'anti-freeze';
+            if (mode === 0x00) payload.mode = 'stop';
             else if (mode === 0x01) payload.mode = 'comfort';
             else if (mode === 0x02) payload.mode = 'eco';
-            else if (mode === 0x03) payload.mode = 'stop';
+            else if (mode === 0x03) payload.mode = 'anti-freeze';
             else if (mode === 0x04) payload.mode = 'comfort_-1';
             else if (mode === 0x05) payload.mode = 'comfort_-2';
             else {
