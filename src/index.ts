@@ -61,23 +61,31 @@ function validateDefinition(definition: Definition) {
 
 function addDefinition(definition: Definition) {
     if ('extend' in definition) {
-        const {extend, ...definitionWithoutExtend} = definition;
-        if (extend.hasOwnProperty('configure') && extend.configure !== undefined && definition.hasOwnProperty('configure')) {
-            assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
-        }
-
         if (typeof definition.exposes === 'function') {
             assert.fail(`'${definition.model}' has function exposes which is not allowed`);
         }
-        const toZigbee = [...definition.toZigbee ?? [], ...extend.toZigbee];
-        const fromZigbee = [...definition.fromZigbee ?? [], ...extend.fromZigbee];
-        const exposes = [...definition.exposes ?? [], ...extend.exposes];
-        const meta = extend.meta || definitionWithoutExtend.meta ? {
-            ...extend.meta,
-            ...definitionWithoutExtend.meta,
-        } : undefined;
 
-        definition = {toZigbee, fromZigbee, exposes, meta, ...definitionWithoutExtend};
+        const {extend, ...definitionWithoutExtend} = definition;
+        const toZigbee = [...definition.toZigbee ?? []];
+        const fromZigbee = [...definition.fromZigbee ?? []];
+        const exposes = [...definition.exposes ?? []];
+        let meta = definitionWithoutExtend.meta;
+        let configure = definitionWithoutExtend.configure;
+
+        for (const ext of Array.isArray(extend) ? extend: [extend]) {
+            if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
+            if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
+            if (ext.exposes) exposes.push(...ext.exposes);
+            if (ext.meta) meta = {...ext.meta, ...meta};
+            if (ext.configure) {
+                if (configure) {
+                    assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
+                }
+                configure = ext.configure;
+            }
+        }
+
+        definition = {toZigbee, fromZigbee, exposes, meta, configure, ...definitionWithoutExtend};
     }
 
     definition.toZigbee.push(

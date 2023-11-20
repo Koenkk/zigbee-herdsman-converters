@@ -556,6 +556,18 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
     return result ?? defaultValue;
 }
 
+export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string=undefined): string {
+    for (const entry of Object.entries(lookup)) {
+        if (entry[1] === value) {
+            return entry[0];
+        }
+    }
+    if (defaultValue === undefined) {
+        throw new Error(`Expected one of: ${Object.values(lookup).join(', ')}, got: '${value}'`);
+    }
+    return defaultValue;
+}
+
 export function assertEndpoint(obj: unknown): asserts obj is Zh.Endpoint {
     if (obj?.constructor?.name?.toLowerCase() !== 'endpoint') throw new Error('Not an endpoint');
 }

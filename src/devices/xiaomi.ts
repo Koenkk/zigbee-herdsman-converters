@@ -10,6 +10,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 import * as globalStore from '../lib/store';
 import * as xiaomi from '../lib/xiaomi';
+import xiaomiExtend2 from '../lib/extend/xiaomi';
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz, Extend} from '../lib/types';
 const {printNumbersAsHexSequence} = utils;
@@ -2559,6 +2560,7 @@ const definitions: Definition[] = [
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.power(), e.current(), e.energy(), e.voltage(), e.device_temperature(),
         ],
+        extend: [xiaomiExtend2.switchType],
         ota: ota.zigbeeOTA,
     },
     {

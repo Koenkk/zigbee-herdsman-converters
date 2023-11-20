@@ -2,7 +2,10 @@ import * as exposes from './exposes';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as light from './light';
-import {Extend} from './types';
+import {Expose, Fz, Tz, Extend} from './types';
+import {Enum, access} from './exposes';
+import {KeyValue} from './types';
+import {getFromLookupByValue, isString, getFromLookup} from './utils';
 const e = exposes.presets;
 
 const extend = {
@@ -143,6 +146,38 @@ const extend = {
         }
 
         return result;
+    },
+
+    enumLookup: (args: {
+        name: string, lookup: KeyValue, cluster: string, attribute: string | {id: number, type: number}, description: string,
+        zigbeeOptions?: {manufacturerCode: number},
+    }): Extend => {
+        const {name, lookup, cluster, attribute, description, zigbeeOptions} = args;
+        const attributeKey = isString(attribute) ? attribute : attribute.id;
+        const expose: Expose = new Enum(name, access.ALL, Object.keys(lookup)).withDescription(description);
+        const fromZigbee: Fz.Converter[] = [{
+            cluster,
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (attributeKey in msg.data) {
+                    return {[expose.property]: getFromLookupByValue(lookup, msg.data[attributeKey])};
+                }
+            },
+        }];
+        const toZigbee: Tz.Converter[] = [{
+            key: [name],
+            convertSet: async (entity, key, value, meta) => {
+                const payloadValue = getFromLookup(value, lookup);
+                const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.id]: {value: payloadValue, type: attribute.type}};
+                await entity.write(cluster, payload, zigbeeOptions);
+                return {state: {[key]: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                // @ts-expect-error TODO fix zh type
+                await entity.read(cluster, [attributeKey], zigbeeOptions);
+            },
+        }];
+        return {exposes: [expose], fromZigbee, toZigbee};
     },
 };
 
