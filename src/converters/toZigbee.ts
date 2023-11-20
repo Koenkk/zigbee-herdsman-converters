@@ -5211,14 +5211,14 @@ const getAttributeSetter = (keys: string[]) => {
             if (!attributes) {
                 throw new Error('No attributes map defined');
             }
-            const at = attributes[key];
-            if (at) {
-                const cl = at[1];
-                const attr = at[2];
-                const attrtype = at[3];
-                const lookup = at[4];
+            const attr = attributes[key];
+            if (attr) {
+                const cl = attr[1];
+                const attrname = attr[2];
+                const attrtype = attr[3];
+                const lookup = attr[4];
                 const val = (lookup) ? utils.getFromLookup(value, lookup) : ((attrtype == 0x10) ? ((value) ? 1 : 0) : value);
-                await entity.write(cl, {[attr]: {value: val, type: attrtype}}, {manufacturerCode: 0x115f});
+                await entity.write(cl, {[attrname]: {value: val, type: attrtype}}, {manufacturerCode: 0x115f});
             } else {
                 meta.logger.info(`Attribute "${key}" not defined in attributes`);
             }
@@ -5228,11 +5228,11 @@ const getAttributeSetter = (keys: string[]) => {
             if (!attributes) {
                 throw new Error('No attributes map defined');
             }
-            const at = attributes[key];
-            if (at) {
-                const cl = at[1];
-                const attr = at[2];
-                await entity.read(cl, [attr], {manufacturerCode: 0x115f});
+            const attr = attributes[key];
+            if (attr) {
+                const cl = attr[1];
+                const attrname = attr[2];
+                await entity.read(cl, [attrname], {manufacturerCode: 0x115f});
             } else {
                 meta.logger.info(`Attribute "${key}" not defined in attributes`);
             }

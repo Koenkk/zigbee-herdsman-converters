@@ -3,7 +3,7 @@ import {
     calibrateAndPrecisionRoundOptions, addActionGroup, postfixWithEndpointName, getKey,
     batteryVoltageToPercentage,
 } from '../lib/utils';
-import {Fz, KeyValueAny, KeyValueNumberString, Definition, Publish, KeyValue} from '../lib/types';
+import {Fz, KeyValueAny, KeyValueNumberString} from '../lib/types';
 import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
 import * as libColor from '../lib/color';
