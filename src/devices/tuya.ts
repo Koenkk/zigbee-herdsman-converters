@@ -4091,16 +4091,16 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7']),
         model: 'ZWT198',
         vendor: 'TuYa',
-        description: 'ONNDO smart thermostat',
-        fromZigbee: [tuya.fz.datapoints],
+        description: 'AVATTO battery wall-mount thermostat',
+        fromZigbee: [tuya.fz.datapoints, fz.ignore_tuya_set_time],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent({timeStart: '2000'}),
+        onEvent: tuya.onEvent({timeStart: '1970'}),
         configure: tuya.configureMagicPacket,
         exposes: [
             e.child_lock(),
             e.climate()
                 .withSystemMode(['off', 'heat'], ea.STATE_SET)
-                .withPreset(['auto', 'manual'])
+                .withPreset(['auto', 'manual', 'temporary program'])
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withLocalTemperature(ea.STATE)
@@ -4122,15 +4122,13 @@ const definitions: Definition[] = [
                 [1, 'system_mode', tuya.valueConverterBasic.lookup({'heat': true, 'off': false})],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
-                [4, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1)})],
+                [4, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1), 'temporary program': tuya.enum(2)})],
                 [9, 'child_lock', tuya.valueConverter.lockUnlock],
                 [15, 'upper_temp', tuya.valueConverter.divideBy10],
                 [19, 'local_temperature_calibration', tuya.valueConverter.divideBy10],
                 [101, 'running_state', tuya.valueConverterBasic.lookup({'heat': tuya.enum(1), 'idle': tuya.enum(0)})],
                 [102, 'frost_protection', tuya.valueConverter.onOff],
-                [104, 'schedule_mode', tuya.valueConverterBasic.lookup(
-                    {'disabled': 0, 'weekday/sat+sun': 1, 'weekday+sat/sun': 2, '7day': 3},
-                )],
+                [104, 'schedule_mode', tuya.valueConverterBasic.lookup({'disabled': 0, 'weekday/sat+sun': 1, 'weekday+sat/sun': 2, '7day': 3})],
                 [107, 'deadzone_temperature', tuya.valueConverter.divideBy10],
                 // These are the schedule values in bytes, 8 periods in total (4 bytes per period).
                 // For each period:
@@ -6670,4 +6668,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

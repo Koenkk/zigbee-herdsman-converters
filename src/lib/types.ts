@@ -100,7 +100,8 @@ export type Definition = {
         updateToLatest: (device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) => Promise<number>;
     }
 } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
-    & ({ extend: Extend } |
+    & ({ extend: Extend, fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
+        exposes?: (Expose[] | ((device: Zh.Device, options: KeyValue) => Expose[])) } |
     { fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[], exposes: (Expose[] | ((device: Zh.Device, options: KeyValue) => Expose[])) });
 
 export namespace Fz {

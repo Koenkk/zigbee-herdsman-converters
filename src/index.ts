@@ -3,8 +3,7 @@ import * as exposes from './lib/exposes';
 import toZigbee from './converters/toZigbee';
 import fromZigbee from './converters/fromZigbee';
 import assert from 'assert';
-import fs from 'fs';
-import path from 'path';
+import allDefinitions from './devices';
 import { Definition, Fingerprint, Zh, OnEventData, OnEventType } from './lib/types';
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
@@ -57,7 +56,6 @@ function validateDefinition(definition: Definition) {
         // @ts-expect-error
         assert.strictEqual(definition[field].constructor.name, expectedType, msg);
     }
-    // @ts-expect-error
     assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
@@ -68,14 +66,18 @@ function addDefinition(definition: Definition) {
             assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
         }
 
-        definition = {
-            ...extend,
-            ...definitionWithoutExtend,
-            meta: extend.meta || definitionWithoutExtend.meta ? {
-                ...extend.meta,
-                ...definitionWithoutExtend.meta,
-            } : undefined,
-        };
+        if (typeof definition.exposes === 'function') {
+            assert.fail(`'${definition.model}' has function exposes which is not allowed`);
+        }
+        const toZigbee = [...definition.toZigbee ?? [], ...extend.toZigbee];
+        const fromZigbee = [...definition.fromZigbee ?? [], ...extend.fromZigbee];
+        const exposes = [...definition.exposes ?? [], ...extend.exposes];
+        const meta = extend.meta || definitionWithoutExtend.meta ? {
+            ...extend.meta,
+            ...definitionWithoutExtend.meta,
+        } : undefined;
+
+        definition = {toZigbee, fromZigbee, exposes, meta, ...definitionWithoutExtend};
     }
 
     definition.toZigbee.push(
@@ -117,12 +119,8 @@ function addDefinition(definition: Definition) {
     }
 }
 
-// Load all definitions from devices folder
-const devicesPath = path.join(__dirname, 'devices');
-for (const file of fs.readdirSync(devicesPath).filter((f) => f.endsWith('.js'))) {
-    for (const definition of require(path.join(devicesPath, file))) {
-        addDefinition(definition);
-    }
+for (const definition of allDefinitions) {
+    addDefinition(definition);
 }
 
 function findByZigbeeModel(zigbeeModel: string) {
