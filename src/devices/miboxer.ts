@@ -3,7 +3,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 const e = exposes.presets;
 import * as tuya from '../lib/tuya';
-import * as reporting from '../lib/reporting';
 
 const definitions: Definition[] = [
     {
@@ -12,20 +11,6 @@ const definitions: Definition[] = [
         description: 'RGBW LED controller',
         vendor: 'MiBoxer',
         extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
-    },
-    {
-        fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZB210_lmqquxus'}],
-        model: 'FUT035Z+',
-        description: 'MiBoxer FUT035Z+ Dual white LED controller',
-        vendor: 'MiBoxer',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true, disableEffect: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await tuya.extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.brightness(device.getEndpoint(1));
-        },
     },
     {
         fingerprint: [{modelID: 'TS1002', manufacturerName: '_TZ3000_xwh1e22x'}],
