@@ -954,6 +954,34 @@ const definitions: Definition[] = [
             return {default: 32};
         },
     },
+    {
+        zigbeeModel: ['ZHOT101 - ZigBee Occupancy, Temperature & Light Sensor'],
+        model: 'ZHOT101 - ZigBee Occupancy, Temperature & Light Sensor',
+        vendor: 'Develco Products A/S',
+        description: 'Motion sensor',
+        fromZigbee: [fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [tz.identify],
+        exposes: [e.temperature(), e.illuminance_lux(), e.battery_low(), /*e.battery(),*/ e.tamper(), e.occupancy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint39 = device.getEndpoint(39);
+            await reporting.bind(endpoint39, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.illuminance(endpoint39,
+                { min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 500 });
+    
+            const endpoint38 = device.getEndpoint(38);
+            await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint38,
+                { min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 100 });
+    
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg']);
+            // NOTE: It just times out every time I try it, but batteryLow alarm seems to be reporting
+            //await reporting.batteryVoltage(endpoint1, { min: constants.repInterval.HOUR, max: 43200, change: 100 });
+    
+            const endpoint35 = device.getEndpoint(35);
+            await reporting.bind(endpoint35, coordinatorEndpoint, ['ssIasZone']);
+        },
+    },
 ];
 
 export default definitions;
