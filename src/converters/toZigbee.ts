@@ -5237,7 +5237,7 @@ const getAttributeSetter = (keys: string[]) => {
                 meta.logger.info(`Attribute "${key}" not defined in attributes`);
             }
         },
-    } as Tz.Converter
+    } as Tz.Converter;
 };
 
 const converters = {...converters1, ...converters2, ...converters3, getAttributeSetter};

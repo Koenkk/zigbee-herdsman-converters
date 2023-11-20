@@ -52,7 +52,7 @@ const getAttributeGetter = (cluster: string | number) => {
         convert: (model, msg, publish, options, meta) => {
             return handleAttributes(model, msg, publish, options, meta);
         },
-    } as Fz.Converter
+    } as Fz.Converter;
 };
 
 const converters1 = {
