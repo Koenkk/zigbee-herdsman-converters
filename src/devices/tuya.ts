@@ -2235,18 +2235,6 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_veu2v775']),
-        model: 'TS0001_switch_module_2',
-        vendor: 'TuYa',
-        description: '1 gang mini switch module',
-        whiteLabel: [{vendor: 'MOES', model: 'ZM-104-M'}],
-        extend: tuya.extend.switch({switchType: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
         fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_54hjn4vs', '_TZ3000_aa5t61rh']),
         model: 'TS0002_switch_module_3',
         vendor: 'TuYa',
@@ -2347,12 +2335,13 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_tqlv4ug4', '_TZ3000_gjrubzje', '_TZ3000_tygpxwqa', '_TZ3000_4rbqgcuv']),
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_tqlv4ug4', '_TZ3000_gjrubzje', '_TZ3000_tygpxwqa', '_TZ3000_4rbqgcuv', '_TZ3000_veu2v775']),
         model: 'TS0001_switch_module',
         vendor: 'TuYa',
         description: '1 gang switch module',
         whiteLabel: [
             {vendor: 'OXT', model: 'SWTZ21'},
+            {vendor: 'MOES', model: 'ZM-104-M'},
             tuya.whitelabel('AVATTO', 'ZWSM16-1-Zigbee', '1 gang switch module', ['_TZ3000_4rbqgcuv']),
         ],
         extend: tuya.extend.switch({switchType: true}),
