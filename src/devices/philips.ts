@@ -26,6 +26,13 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['929003598001'],
+        model: '929003598001',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance Surimu square panel 30x30',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929003597601'],
         model: '929003597601',
         vendor: 'Philips',
@@ -920,6 +927,13 @@ const definitions: Definition[] = [
         model: '929001821618',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27 bluetooth',
+        extend: philips.extend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['LWA024'],
+        model: '9290018216A',
+        vendor: 'Philips',
+        description: 'Hue white A60 bulb E27 806lm bluetooth',
         extend: philips.extend.light_onoff_brightness(),
     },
     {
@@ -3508,6 +3522,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003597701'],
+        model: '929003597701',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle square panel light 120x30',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['929003055701'],
         model: '929003055701',
         vendor: 'Philips',
@@ -3544,4 +3565,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

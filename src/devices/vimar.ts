@@ -37,6 +37,12 @@ const definitions: Definition[] = [
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(10);
+            const binds = ['closuresWindowCovering'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
     },
     {
         zigbeeModel: ['Window_Cov_Module_v1.0'],
@@ -87,4 +93,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

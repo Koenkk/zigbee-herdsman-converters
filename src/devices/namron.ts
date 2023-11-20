@@ -153,6 +153,30 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['4512767'],
+        model: '4512767',
+        vendor: 'Namron',
+        description: 'Zigbee smart plug 16A',
+        fromZigbee: [fz.metering, fz.electrical_measurement],
+        exposes: [e.power(), e.current(), e.voltage(), e.energy()],
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            const binds = [
+                'seMetering', 'haElectricalMeasurement', 'genOnOff',
+            ];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.onOff(endpoint);
+            // Metering
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2v
+            await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - z2m displays only the first decimals, so change of 10 (0,01)
+            await reporting.activePower(endpoint, {min: 10, change: 15}); // W - Min change of 1,5W
+            await reporting.currentSummDelivered(endpoint, {min: 300}); // Report KWH every 5min
+        },
+    },
+    {
         zigbeeModel: ['1402767'],
         model: '1402767',
         vendor: 'Namron',
@@ -493,7 +517,7 @@ const definitions: Definition[] = [
                 .withDescription('The temperature on the display.  Default: Room Temperature.'),
             e.numeric('window_open_check', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(1.5).withValueMax(4).withValueStep(0.5)
+                .withValueMin(0).withValueMax(4).withValueStep(0.5)
                 .withDescription('The threshold to detect window open, between 1.5 and 4 in 0.5 °C.  Default: 0 (disabled).'),
             e.numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
@@ -884,6 +908,41 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity()],
     },
+    {
+        zigbeeModel: ['4512750', '4512751'],
+        model: '4512750',
+        vendor: 'Namron',
+        description: 'Zigbee dimmer 2.0',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        whiteLabel: [{vendor: 'Namron', model: '4512751', description: 'Zigbee dimmer 2.0', fingerprint: [{modelID: '4512751'}]}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['4512766'],
+        model: '4512766',
+        vendor: 'Namron',
+        description: 'Zigbee smart plug 16A',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.power(), e.current(), e.voltage(), e.switch()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.onOff(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
+        },
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

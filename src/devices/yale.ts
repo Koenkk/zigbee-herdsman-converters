@@ -86,6 +86,13 @@ const definitions: Definition[] = [
         extend: lockExtend(),
     },
     {
+        zigbeeModel: ['YRD652 TSDB', 'YRD652L TSDB'],
+        model: 'YRD652HA20BP',
+        vendor: 'Yale',
+        description: 'Assure lock SL',
+        extend: lockExtend(),
+    },
+    {
         zigbeeModel: ['0600000001'],
         model: 'YMF30',
         vendor: 'Yale',
@@ -228,4 +235,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

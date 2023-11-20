@@ -1268,8 +1268,8 @@ const definitions: Definition[] = [
         model: 'LYWSD03MMC',
         vendor: 'Custom devices (DiY)',
         description: 'Xiaomi temperature & humidity sensor with custom firmware',
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [],
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.hvac_user_interface],
+        toZigbee: [tz.thermostat_temperature_display_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
@@ -1279,7 +1279,11 @@ const definitions: Definition[] = [
             await reporting.batteryVoltage(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.temperature(), e.humidity(), e.battery()],
+        exposes: [
+            e.temperature(), e.humidity(), e.battery(),
+            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the screen'),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1305,6 +1309,27 @@ const definitions: Definition[] = [
             await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
         },
     },
+    {
+        zigbeeModel: ['ptvo_counter_2ch'],
+        model: 'ptvo_counter_2ch',
+        vendor: 'Custom devices (DiY)',
+        description: '2 channel counter',
+        fromZigbee: [fz.ignore_basic_report, fz.battery, fz.ptvo_switch_analog_input, fz.on_off],
+        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_analog_input, tz.on_off],
+        exposes: [e.battery(),
+            e.enum('l3', ea.ALL, ['set']).withDescription('Counter value. Write zero or positive value to set a counter value. ' +
+                'Write a negative value to set a wakeup interval in minutes'),
+            e.enum('l5', ea.ALL, ['set']).withDescription('Counter value. Write zero or positive value to set a counter value. ' +
+                'Write a negative value to set a wakeup interval in minutes'),
+            e.switch().withEndpoint('l6'),
+            e.battery_voltage(),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l3: 3, l5: 5, l6: 6};
+        },
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

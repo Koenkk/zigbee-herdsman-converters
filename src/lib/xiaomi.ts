@@ -204,7 +204,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             }
             break;
         case '9':
-            if (['ZNLDP13LM'].includes(model.model)) {
+            if (['ZNLDP13LM', 'ZNXDD01LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
             }
             break;
@@ -224,7 +224,17 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             }
             break;
         case '12':
-            if (['ZNLDP13LM'].includes(model.model)) {
+            if (['ZNLDP13LM', 'ZNXDD01LM'].includes(model.model)) {
+                // We don't know what the value means for these devices.
+            }
+            break;
+        case '13':
+            if (['ZNXDD01LM'].includes(model.model)) {
+                // We don't know what the value means for these devices.
+            }
+            break;
+        case '17':
+            if (['ZNXDD01LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
             }
             break;
@@ -321,6 +331,8 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 payload.battery = precisionRound(battery, 2);
             } else if (['RTCZCGQ11LM'].includes(model.model)) {
                 payload.presence = getFromLookup(value, {0: false, 1: true, 255: null});
+            } else if (['ZNXDD01LM'].includes(model.model)) {
+                payload.brightness = value;
             }
             break;
         case '102':
@@ -339,11 +351,16 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 } else {
                     payload.motion_sensitivity = getFromLookup(value, {1: 'low', 2: 'medium', 3: 'high'});
                 }
+            } else if (['ZNXDD01LM'].includes(model.model)) {
+                payload.color_temp = value;
             }
             break;
         case '103':
             if (['RTCZCGQ11LM'].includes(model.model)) {
                 payload.monitoring_mode = getFromLookup(value, {0: 'undirected', 1: 'left_right'});
+            } else if (['ZNXDD01LM'].includes(model.model)) {
+                // const color_temp_min = (value & 0xffff); // 2700
+                // const color_temp_max = (value >> 16) & 0xffff; // 6500
             }
             break;
         case '105':
@@ -400,7 +417,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             }
             break;
         case '154':
-            if (['ZNLDP13LM'].includes(model.model)) {
+            if (['ZNLDP13LM', 'ZNXDD01LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
             }
             break;
@@ -452,6 +469,11 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '166':
             if (['JT-BZ-01AQ/A'].includes(model.model)) {
                 payload.linkage_alarm = value === 1;
+            }
+            break;
+        case '238':
+            if (['ZNXDD01LM'].includes(model.model)) {
+                // We don't know what the value means for these devices.
             }
             break;
         case '240':
@@ -698,6 +720,16 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '1289':
             payload.dimmer_mode = getFromLookup(value, {3: 'rgbw', 1: 'dual_ct'});
+            break;
+        case '1299':
+            if (['ZNXDD01LM'].includes(model.model)) {
+                // maximum color temp (6500)
+            }
+            break;
+        case '1300':
+            if (['ZNXDD01LM'].includes(model.model)) {
+                // minimum color temp (2700)
+            }
             break;
         case '65281':
             {

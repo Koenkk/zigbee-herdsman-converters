@@ -3,7 +3,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import * as ota from '../lib/ota';
 import tz from '../converters/toZigbee';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -365,19 +364,26 @@ const definitions: Definition[] = [
         model: 'SIN-4-FP-21_EQU',
         vendor: 'ADEO',
         description: 'Equation pilot wire heating module',
-        ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
+        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
+        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        exposes: [
+            e.switch(),
+            e.power(),
+            e.energy(),
+            e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnFilPilote']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
             await reporting.readMeteringMultiplierDivisor(ep);
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
+            const p = reporting.payload('mode', 0, 120, 0, {min: 1, max: 3600, change: 0});
+            await ep.configureReporting('manuSpecificNodOnFilPilote', p);
         },
     },
 ];
 
+export default definitions;
 module.exports = definitions;

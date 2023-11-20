@@ -3817,7 +3817,7 @@ const converters1 = {
             }
 
             let buttonLookup: KeyValueNumberString = null;
-            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM'].includes(model.model)) {
+            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM', 'WXKG22LM'].includes(model.model)) {
                 buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             }
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
@@ -6321,6 +6321,26 @@ const converters2 = {
                     publish(result);
                 }
             }
+        },
+    } as Fz.Converter,
+    nodon_fil_pilote_mode: {
+        cluster: 'manuSpecificNodOnFilPilote',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            const mode = msg.data['mode'];
+
+            if (mode === 0x00) payload.mode = 'anti-freeze';
+            else if (mode === 0x01) payload.mode = 'comfort';
+            else if (mode === 0x02) payload.mode = 'eco';
+            else if (mode === 0x03) payload.mode = 'stop';
+            else if (mode === 0x04) payload.mode = 'comfort_-1';
+            else if (mode === 0x05) payload.mode = 'comfort_-2';
+            else {
+                meta.logger.warn(`wrong mode : ${mode}`);
+                payload.mode = 'unknown';
+            }
+            return payload;
         },
     } as Fz.Converter,
 };
