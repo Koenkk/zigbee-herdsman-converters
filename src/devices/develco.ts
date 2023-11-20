@@ -977,7 +977,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg']);
             // NOTE: It just times out every time I try it, but batteryLow alarm seems to be reporting
             // await reporting.batteryVoltage(endpoint1, { min: constants.repInterval.HOUR, max: 43200, change: 100 });
-            
+
             const endpoint35 = device.getEndpoint(35);
             await reporting.bind(endpoint35, coordinatorEndpoint, ['ssIasZone']);
         },
