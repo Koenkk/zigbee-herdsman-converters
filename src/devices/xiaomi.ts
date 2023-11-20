@@ -11,7 +11,7 @@ const ea = exposes.access;
 import * as globalStore from '../lib/store';
 import * as xiaomi from '../lib/xiaomi';
 import * as utils from '../lib/utils';
-import {Definition, OnEvent, Fz, KeyValue, KeyValueAny, Tz, Extend, Publish} from '../lib/types';
+import {Definition, OnEvent, Fz, KeyValue, Tz, Extend} from '../lib/types';
 const {printNumbersAsHexSequence} = utils;
 const {fp1, manufacturerCode, trv} = xiaomi;
 
@@ -81,34 +81,6 @@ const daysLookup = {
     0x40: 'sun',
     0x55: 'mon-wed-fri-sun',
     0x2a: 'tue-thu-sat',
-};
-
-const handleAttributes = (model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => {
-    const attributes = (model.meta === null) ? undefined : model.meta.attributes;
-    if (!attributes) {
-        throw new Error('No attributes map defined');
-    }
-    const result: KeyValueAny = {};
-    Object.entries(msg.data).forEach(([key, value]) => {
-        let found = false;
-        Object.entries(attributes).forEach(([name, at]) => {
-            const ep = at[0];
-            const cl = at[1];
-            const attr = at[2];
-            const attrtype = at[3];
-            const lookup = at[4];
-            if ((!ep || ep == msg.endpoint.ID) && cl == msg.cluster && (attr == key || attr == parseInt(key))) {
-                const attrname = (!ep) ? utils.postfixWithEndpointName(name, msg, model, meta) : name;
-                const val = (lookup) ? utils.getKey(lookup, value) : ((attrtype == 0x10) ? (value == 1) : value);
-                result[attrname] = val;
-                found = true;
-            }
-        });
-        if (!found) {
-            meta.logger.debug(`Not found attribute for ${key}: value ${value}`);
-        }
-    });
-    return result;
 };
 
 
@@ -396,22 +368,6 @@ const fzLocal = {
                 action: value < 0 ? 'rotate_left' : 'rotate_right',
                 action_angle: Math.floor(value * 100) / 100,
             };
-        },
-    } as Fz.Converter,
-    attributes: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        options: [],
-        convert: (model, msg, publish, options, meta) => {
-            return handleAttributes(model, msg, publish, options, meta);
-        },
-    } as Fz.Converter,
-    attributes_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [],
-        convert: (model, msg, publish, options, meta) => {
-            return handleAttributes(model, msg, publish, options, meta);
         },
     } as Fz.Converter,
 };
@@ -782,40 +738,6 @@ const tzLocal = {
             };
             globalStore.putValue(meta.device, 'opModeSwitchTask', {callback, newMode: value});
             meta.logger.info('Now give your cube a forceful throw motion (Careful not to drop it)!');
-        },
-    } as Tz.Converter,
-    attributes: {
-        key: ['switch_type', 'interlock', 'power_on_behavior', 'operation_mode', 'mode', 'pulse_length'],
-        convertSet: async (entity, key, value, meta) => {
-            const attributes = (meta.mapped.meta === null) ? undefined : meta.mapped.meta.attributes;
-            if (!attributes) {
-                throw new Error('No attributes map defined');
-            }
-            const at = attributes[key];
-            if (at) {
-                const cl = at[1];
-                const attr = at[2];
-                const attrtype = at[3];
-                const lookup = at[4];
-                const val = (lookup) ? utils.getFromLookup(value, lookup) : ((attrtype == 0x10) ? ((value) ? 1 : 0) : value);
-                await entity.write(cl, {[attr]: {value: val, type: attrtype}}, {manufacturerCode: 0x115f});
-            } else {
-                meta.logger.info(`Attribute "${key}" not defined in attributes`);
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            const attributes = (meta.mapped.meta === null) ? undefined : meta.mapped.meta.attributes;
-            if (!attributes) {
-                throw new Error('No attributes map defined');
-            }
-            const at = attributes[key];
-            if (at) {
-                const cl = at[1];
-                const attr = at[2];
-                await entity.read(cl, [attr], {manufacturerCode: 0x115f});
-            } else {
-                meta.logger.info(`Attribute "${key}" not defined in attributes`);
-            }
         },
     } as Tz.Converter,
 };
@@ -2628,8 +2550,8 @@ const definitions: Definition[] = [
         model: 'LLKZMK12LM',
         vendor: 'Xiaomi',
         description: 'Aqara dual relay module T2',
-        fromZigbee: [fz.on_off, fz.aqara_opple, fz.xiaomi_power, fzLocal.attributes, fzLocal.attributes_multistate],
-        toZigbee: [tz.on_off, tzLocal.attributes],
+        fromZigbee: [fz.on_off, fz.aqara_opple, fz.xiaomi_power, fz.getAttributeGetter('aqaraOpple'), fz.getAttributeGetter('genMultistateInput')],
+        toZigbee: [tz.on_off, tz.getAttributeSetter(['switch_type', 'interlock', 'power_on_behavior', 'operation_mode', 'mode', 'pulse_length'])],
         meta: {
             multiEndpoint: true,
             attributes: {
