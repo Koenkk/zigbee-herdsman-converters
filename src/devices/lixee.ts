@@ -446,6 +446,25 @@ const tarifsDef = {
             'PPOINTE1',
         ],
     },
+	stand_H_SUPER_CREUSES: {
+        fname: 'Standard - Heures Super Creuses',
+        currentTarf: 'H SUPER CREUSES', excluded: [
+            'EASF07',
+            'EASF08',
+            'EASF09',
+            'EASF10',
+            'DPM1',
+            'DPM2',
+            'DPM3',
+            'FPM1',
+            'FPM2',
+            'FPM3',
+            'NJOURF',
+            'NJOURF+1',
+            'PJOURF+1',
+            'PPOINTE1',
+        ],
+    },
     stand_TEMPO: {
         fname: 'Standard - TEMPO',
         currentTarf: 'TEMPO', excluded: [
@@ -708,6 +727,9 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue, logger: Logger =
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_HPHC.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_HPHC.excluded.includes(a.exposes.name));
         break;
+	case linkyMode == linkyModeDef.standard && tarifsDef.stand_H_SUPER_CREUSES.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.stand_H_SUPER_CREUSES.excluded.includes(a.exposes.name));
+        break;	
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_BASE.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_BASE.excluded.includes(a.exposes.name));
         break;
