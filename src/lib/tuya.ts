@@ -35,7 +35,7 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-export function onEvent(options: {queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000'}): OnEvent {
+export function onEvent(options?: {queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000'}): OnEvent {
     return async (type, data, device, settings, state) => {
         options = {queryOnDeviceAnnounce: false, timeStart: '1970', ...options};
 
@@ -245,7 +245,7 @@ async function sendDataPointValue(entity: Zh.Group | Zh.Endpoint, dp: number, va
     return await sendDataPoints(entity, [dpValueFromNumberValue(dp, value)], cmd, seq);
 }
 
-async function sendDataPointBool(entity: Zh.Group | Zh.Endpoint, dp: number, value: boolean, cmd?: string, seq?: number) {
+export async function sendDataPointBool(entity: Zh.Group | Zh.Endpoint, dp: number, value: boolean, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromBool(dp, value)], cmd, seq);
 }
 
@@ -400,12 +400,15 @@ export class Bitmap extends Base {
 }
 
 export const valueConverterBasic = {
-    lookup: (map: {[s: (string)]: number | boolean | Enum | string}) => {
+    lookup: (map: {[s: (string)]: number | boolean | Enum | string}, fallbackValue?: number | boolean | KeyValue | string | null) => {
         return {
             to: (v: string) => utils.getFromLookup(v, map),
             from: (v: number) => {
                 const value = Object.entries(map).find((i) => i[1].valueOf() === v);
-                if (!value) throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(map)}`);
+                if (!value) {
+                    if (fallbackValue !== undefined) return fallbackValue;
+                    throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(map)}`);
+                }
                 return value[0];
             },
         };
@@ -423,7 +426,7 @@ export const valueConverterBasic = {
         return {to: (v: number) => v * value, from: (v: number) => v / value};
     },
     trueFalse: (valueTrue: number | Enum) => {
-        return {from: (v: number) => v === valueTrue};
+        return {from: (v: number) => v === valueTrue.valueOf()};
     },
 };
 
@@ -439,6 +442,8 @@ export const valueConverter = {
     onOff: valueConverterBasic.lookup({'ON': true, 'OFF': false}),
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
+    switchType: valueConverterBasic.lookup({'momentary': new Enum(0), 'toggle': new Enum(1), 'state': new Enum(2)}),
+    backlightMode: valueConverterBasic.lookup({'off': new Enum(0), 'normal': new Enum(1), 'inverted': new Enum(2)}),
     lightType: valueConverterBasic.lookup({'led': 0, 'incandescent': 1, 'halogen': 2}),
     countdown: valueConverterBasic.raw(),
     scale0_254to0_1000: valueConverterBasic.scale(0, 254, 0, 1000),
@@ -452,6 +457,10 @@ export const valueConverter = {
     switchMode: valueConverterBasic.lookup({'switch': new Enum(0), 'scene': new Enum(1)}),
     lightMode: valueConverterBasic.lookup({'normal': new Enum(0), 'on': new Enum(1), 'off': new Enum(2), 'flash': new Enum(3)}),
     raw: valueConverterBasic.raw(),
+    localTemperatureCalibration: {
+        from: (value: number) => value > 4000 ? value - 4096 : value,
+        to: (value: number) => value < 0 ? 4096 + value : value,
+    },
     setLimit: {
         to: (v: number) => {
             if (!v) throw new Error('Limit cannot be unset, use factory_reset');
@@ -467,6 +476,15 @@ export const valueConverter = {
             return options.invert_cover ? 100 - v : v;
         },
     },
+    coverPositionInverted: {
+        to: async (v: number, meta: Tz.Meta) => {
+            return meta.options.invert_cover ? v : 100 - v;
+        },
+        from: (v: number, meta: Fz.Meta, options: KeyValue) => {
+            return options.invert_cover ? v : 100 - v;
+        },
+    },
+    tubularMotorDirection: valueConverterBasic.lookup({'normal': new Enum(0), 'reversed': new Enum(1)}),
     plus1: {
         from: (v: number) => v + 1,
         to: (v: number) => v - 1,
@@ -568,7 +586,7 @@ export const valueConverter = {
     },
     thermostatScheduleDaySingleDP: {
         from: (v: number[]) => {
-            // day splitted to 10 min segments = total 144 segments
+            // day split to 10 min segments = total 144 segments
             const maxPeriodsInDay = 10;
             const periodSize = 3;
             const schedule = [];
@@ -623,7 +641,7 @@ export const valueConverter = {
                 throw new Error('Invalid "working_day" property, need to set it before');
             }
 
-            // day splitted to 10 min segments = total 144 segments
+            // day split to 10 min segments = total 144 segments
             const maxPeriodsInDay = 10;
             utils.assertString(v.schedule, 'schedule');
             const schedule = v.schedule.split(' ');
@@ -836,8 +854,8 @@ const tuyaTz = {
     } as Tz.Converter,
     datapoints: {
         key: [
-            'temperature_unit', 'temperature_calibration', 'humidity_calibration', 'alarm_switch',
-            'state', 'brightness', 'min_brightness', 'max_brightness', 'power_on_behavior', 'position',
+            'temperature_unit', 'temperature_calibration', 'humidity_calibration', 'alarm_switch', 'tamper_alarm_switch',
+            'state', 'brightness', 'min_brightness', 'max_brightness', 'power_on_behavior', 'position', 'alarm_melody', 'alarm_mode',
             'countdown', 'light_type', 'silence', 'self_test', 'child_lock', 'open_window', 'open_window_temperature', 'frost_protection',
             'system_mode', 'heating_stop', 'current_heating_setpoint', 'local_temperature_calibration', 'preset', 'boost_timeset_countdown',
             'holiday_start_stop', 'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'working_day',
@@ -855,7 +873,12 @@ const tuyaTz = {
             'large_motion_detection_distance', 'large_motion_detection_sensitivity', 'small_motion_detection_distance',
             'small_motion_detection_sensitivity', 'static_detection_distance', 'static_detection_sensitivity', 'keep_time', 'indicator',
             'motion_sensitivity', 'detection_distance_max', 'detection_distance_min', 'presence_sensitivity', 'sensitivity', 'illuminance_interval',
-            'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity',
+            'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity', 'fan_mode', 'deadzone_temperature',
+            'eco_mode', 'max_temperature_limit', 'min_temperature_limit', 'manual_mode',
+            'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity', 'switch_type',
+            'ph_max', 'ph_min', 'ec_max', 'ec_min', 'orp_max', 'orp_min', 'free_chlorine_max', 'free_chlorine_min', 'target_distance',
+            'illuminance_treshold_max', 'illuminance_treshold_min', 'presence_illuminance_switch', 'light_switch', 'light_linkage',
+            'indicator_light', 'find_switch', 'detection_method', 'sensor', 'hysteresis', 'max_temperature_protection',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
@@ -1045,8 +1068,8 @@ const tuyaFz = {
             for (const dpValue of msg.data.dpValues) {
                 const dpId = dpValue.dp;
                 const dpEntry = datapoints.find((d) => d[0] === dpId);
+                const value = getDataValue(dpValue);
                 if (dpEntry?.[2]?.from) {
-                    const value = getDataValue(dpValue);
                     if (dpEntry[1]) {
                         result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish);
                     } else {
@@ -1054,7 +1077,7 @@ const tuyaFz = {
                     }
                 } else {
                     meta.logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' ` +
-                        `with data ${JSON.stringify(dpValue)}`);
+                        `with value ${value}`);
                 }
             }
 
@@ -1107,6 +1130,11 @@ const tuyaExtend = {
             exposes.push(tuyaExposes.switchType());
         }
 
+        if (options.backlightModeOffOn) {
+            fromZigbee.push(tuyaFz.backlight_mode_off_on);
+            exposes.push(tuyaExposes.backlightModeOffOn());
+            toZigbee.push(tuyaTz.backlight_indicator_mode_2);
+        }
         if (options.backlightModeLowMediumHigh) {
             fromZigbee.push(tuyaFz.backlight_mode_low_medium_high);
             exposes.push(tuyaExposes.backlightModeLowMediumHigh());
@@ -1121,11 +1149,6 @@ const tuyaExtend = {
             fromZigbee.push(tuyaFz.indicator_mode);
             exposes.push(tuyaExposes.indicatorMode());
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
-        }
-        if (options.backlightModeOffOn) {
-            fromZigbee.push(tuyaFz.backlight_mode_off_on);
-            exposes.push(tuyaExposes.backlightModeOffOn());
-            toZigbee.push(tuyaTz.backlight_indicator_mode_2);
         }
 
         if (options.electricalMeasurements) {

@@ -25,11 +25,10 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht GmbH'}],
-        zigbeeModel: ['RGBW'],
-        model: '948.47',
+        model: '948.47/29165',
         vendor: 'Paulmann',
-        description: 'RGBW wall light',
-        extend: extend.light_onoff_brightness_color({supportsHueAndSaturation: true}),
+        description: 'RGBW light',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454], supportsHueAndSaturation: true}),
     },
     {
         zigbeeModel: ['H036-0007'],
@@ -176,6 +175,14 @@ const definitions: Definition[] = [
             'on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move', 'brightness_stop',
             'brightness_move_down', 'brightness_move_up', 'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*'])],
     },
+    {
+        fingerprint: [{modelID: 'RGB', manufacturerName: 'Paulmann Licht GmbH'}],
+        model: '150257',
+        vendor: 'Paulmann',
+        description: 'SimpLED SmartHome dimmable RGB LED-stripe',
+        extend: extend.light_onoff_brightness_color(),
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -52,7 +52,7 @@ const definitions: Definition[] = [
         exposes: [e.lock(), e.battery(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user()],
     },
     {
-        zigbeeModel: ['SMARTCODE_DEADBOLT_10_W3', 'SMARTCODE_DEADBOLT_10T_W3'],
+        zigbeeModel: ['SMARTCODE_DEADBOLT_10_W3', 'SMARTCODE_DEADBOLT_10T_W3', 'SMARTCODE_DEADBOLT_10_W3_L'],
         model: '99140-031',
         vendor: 'Kwikset',
         description: 'SmartCode traditional electronic deadbolt',
@@ -120,4 +120,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

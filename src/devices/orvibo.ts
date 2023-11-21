@@ -23,7 +23,7 @@ const tzLocal = {
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['ccb9f56837ab41dcad366fb1452096b6'],
+        zigbeeModel: ['ccb9f56837ab41dcad366fb1452096b6', '250bccf66c41421b91b5e3242942c164'],
         model: 'DD10Z',
         vendor: 'ORVIBO',
         description: 'Smart spotlight',
@@ -91,7 +91,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['8643db61de35494d93e72c1289b526a3'],
         model: 'RL804CZB',
-        vendor: 'Orvibo',
+        vendor: 'ORVIBO',
         description: 'Zigbee LED controller RGB + CCT or RGBW',
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
@@ -245,7 +245,16 @@ const definitions: Definition[] = [
         zigbeeModel: ['093199ff04984948b4c78167c8e7f47e'],
         model: 'W40CZ',
         vendor: 'ORVIBO',
-        description: 'Smart curtain motor ',
+        description: 'Smart curtain motor',
+        fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position()],
+    },
+    {
+        zigbeeModel: ['428f8caf93574815be1a98fa6732c3ea'],
+        model: 'W45CZ',
+        vendor: 'ORVIBO',
+        description: 'Smart curtain motor',
         fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
@@ -515,4 +524,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

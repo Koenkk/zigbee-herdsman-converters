@@ -3,8 +3,11 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
+import * as utils from '../lib/utils';
 import extend from '../lib/extend';
-import {Definition, Fz, KeyValue} from '../lib/types';
+import {Zcl} from 'zigbee-herdsman';
+import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
@@ -20,6 +23,93 @@ const fzLocal = {
             }
         },
     } as Fz.Converter,
+    child_lock: {
+        cluster: '64529',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x0000)) {
+                result.child_lock = data[0x0000] ? 'LOCK' : 'UNLOCK';
+            }
+
+            return result;
+        },
+    } as Fz.Converter,
+    open_window: {
+        cluster: '64529',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x6000)) {
+                result.open_window = data[0x6000] ? 'ON' : 'OFF';
+            }
+
+            return result;
+        },
+    } as Fz.Converter,
+    frost_protection_temperature: {
+        cluster: '64529',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x6002)) {
+                result.frost_protection_temperature = data[0x6002] / 100;
+            }
+
+            return result;
+        },
+    } as Fz.Converter,
+};
+
+const tzLocal = {
+    child_lock: {
+        key: ['child_lock'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read(0xFC11, [0x0000]);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(0xFC11, {0x0000: {value: value === 'LOCK' ? 1 : 0, type: Zcl.DataType.boolean}});
+            return {
+                state: {
+                    [key]: value,
+                },
+            };
+        },
+    } as Tz.Converter,
+    open_window: {
+        key: ['open_window'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read(0xFC11, [0x6000]);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(0xFC11, {0x6000: {value: value === 'ON' ? 1 : 0, type: Zcl.DataType.boolean}});
+            return {
+                state: {
+                    [key]: value,
+                },
+            };
+        },
+    } as Tz.Converter,
+    frost_protection_temperature: {
+        key: ['frost_protection_temperature'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read(0xFC11, [0x6002]);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(0xFC11, {0x6002: {value: utils.toNumber(value) * 100, type: Zcl.DataType.int16}});
+            return {
+                state: {
+                    [key]: value,
+                },
+            };
+        },
+    } as Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -93,11 +183,13 @@ const definitions: Definition[] = [
         fingerprint: [
             // ModelID is from the temperature/humidity sensor (SNZB-02) but this is SNZB-04, wrong modelID in firmware?
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'TH01', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
-            ]},
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'TH01', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
+                ],
+            },
         ],
-        zigbeeModel: ['DS01'],
+        zigbeeModel: ['DS01', 'SNZB-04'],
         model: 'SNZB-04',
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK06'}],
@@ -132,15 +224,21 @@ const definitions: Definition[] = [
         fingerprint: [
             // ModelID is from the button (SNZB-01) but this is SNZB-02, wrong modelID in firmware?
             // https://github.com/Koenkk/zigbee2mqtt/issues/4338
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'WB01', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
-            ]},
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
-            ]},
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'DS01', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
-            ]},
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'WB01', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
+                ],
+            },
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
+                ],
+            },
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'DS01', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
+                ],
+            },
         ],
         zigbeeModel: ['TH01'],
         model: 'SNZB-02',
@@ -185,9 +283,11 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
-            ]},
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
+                ],
+            },
         ],
         zigbeeModel: ['MS01', 'MSO1'],
         model: 'SNZB-03',
@@ -294,7 +394,6 @@ const definitions: Definition[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
                 await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
                 await reporting.humidity(endpoint);
-                await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
                 await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
                 logger.error(`Configure failed: ${e}`);
@@ -342,30 +441,50 @@ const definitions: Definition[] = [
         toZigbee: [],
         ota: ota.zigbeeOTA,
         exposes: [e.occupancy()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['TRVZB'],
         model: 'TRVZB',
         vendor: 'SONOFF',
-        description: 'Zigbee thermostat',
+        description: 'Zigbee thermostatic radiator valve',
         exposes: [
             e.climate()
                 .withSetpoint('occupied_heating_setpoint', 4, 35, 0.5)
                 .withLocalTemperature()
+                .withLocalTemperatureCalibration(-7.0, 7.0, 0.2)
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
-                .withRunningState(['idle', 'heat'], ea.STATE_GET), e.battery(), e.battery_low()],
-        fromZigbee: [fz.thermostat, fz.battery],
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
+            e.battery(),
+            e.battery_low(),
+            e.child_lock().setAccess('state', ea.ALL),
+            e.open_window()
+                .withLabel('Open window detection')
+                .withDescription('Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.')
+                .withAccess(ea.ALL),
+            e.numeric('frost_protection_temperature', ea.ALL)
+                .withValueMin(4.0)
+                .withValueMax(35.0)
+                .withValueStep(0.5)
+                .withUnit('°C')
+                .withDescription(
+                    'Minimum temperature at which to automatically turn on the radiator, if system mode is off, to prevent pipes freezing.'),
+        ],
+        fromZigbee: [fz.thermostat, fz.battery, fzLocal.child_lock, fzLocal.open_window, fzLocal.frost_protection_temperature],
         toZigbee: [
             tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode, tz.thermostat_running_state],
+            tz.thermostat_system_mode, tz.thermostat_running_state, tzLocal.child_lock, tzLocal.open_window, tzLocal.frost_protection_temperature],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
+            await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
+            await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002]);
         },
     },
 ];
 
+export default definitions;
 module.exports = definitions;

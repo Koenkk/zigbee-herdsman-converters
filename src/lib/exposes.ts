@@ -274,32 +274,45 @@ export class Light extends Base {
         return this;
     }
 
-    withLevelConfig() {
+    withLevelConfig(disableFeatures: string[] = []) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        const levelConfig = new Composite('level_config', 'level_config', access.ALL)
-            .withFeature(new Numeric('on_off_transition_time', access.ALL)
+        let levelConfig = new Composite('level_config', 'level_config', access.ALL);
+        if (!disableFeatures.includes('on_off_transition_time')) {
+            levelConfig = levelConfig.withFeature(new Numeric('on_off_transition_time', access.ALL)
                 .withLabel('ON/OFF transition time')
-                .withDescription('Represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster'),
-            )
-            .withFeature(new Numeric('on_transition_time', access.ALL)
+                .withDescription('Represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster'));
+        }
+        if (!disableFeatures.includes('on_transition_time')) {
+            levelConfig = levelConfig.withFeature(new Numeric('on_transition_time', access.ALL)
                 .withLabel('ON transition time')
                 .withPreset('disabled', 65535, 'Use on_off_transition_time value')
-                .withDescription('Represents the time taken to move the current level from the minimum level to the maximum level when an On command is received'),
-            )
-            .withFeature(new Numeric('off_transition_time', access.ALL)
+                .withDescription('Represents the time taken to move the current level from the minimum level to the maximum level when an On command is received'));
+        }
+        if (!disableFeatures.includes('off_transition_time')) {
+            levelConfig = levelConfig.withFeature(new Numeric('off_transition_time', access.ALL)
                 .withLabel('OFF transition time')
                 .withPreset('disabled', 65535, 'Use on_off_transition_time value')
-                .withDescription('Represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received'),
-            )
-            .withFeature(new Numeric('current_level_startup', access.ALL)
+                .withDescription('Represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received'));
+        }
+        if (!disableFeatures.includes('execute_if_off')) {
+            levelConfig = levelConfig.withFeature(new Binary('execute_if_off', access.ALL, true, false)
+                .withDescription('this setting can affect the "on_level", "current_level_startup" or "brightness" setting'));
+        }
+        if (!disableFeatures.includes('on_level')) {
+            levelConfig = levelConfig.withFeature(new Numeric('on_level', access.ALL)
+                .withValueMin(1).withValueMax(254)
+                .withPreset('previous', 255, 'Use previous value')
+                .withDescription('Specifies the level that shall be applied, when an on/toggle command causes the light to turn on.'));
+        }
+        if (!disableFeatures.includes('current_level_startup')) {
+            levelConfig = levelConfig.withFeature(new Numeric('current_level_startup', access.ALL)
                 .withValueMin(1).withValueMax(254)
                 .withPreset('minimum', 0, 'Use minimum permitted value')
                 .withPreset('previous', 255, 'Use previous value')
-                .withDescription('Defines the desired startup level for a device when it is supplied with power'),
-            )
-            .withDescription('Configure genLevelCtrl');
+                .withDescription('Defines the desired startup level for a device when it is supplied with power'));
+        }
+        levelConfig = levelConfig.withDescription('Configure genLevelCtrl');
         this.features.push(levelConfig);
-
         return this;
     }
 
@@ -439,7 +452,7 @@ export class Climate extends Base {
         // For devices following the ZCL local_temperature_calibration is an int8, so min = -12.8 and max 12.7
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         this.features.push(new Numeric('local_temperature_calibration', access)
-            .withValueMin(min).withValueMax(max).withValueStep(step).withUnit('°C').withDescription('Offset to be used in the local_temperature'));
+            .withValueMin(min).withValueMax(max).withValueStep(step).withUnit('°C').withDescription('Offset to add/subtract to the local temperature'));
         return this;
     }
 
@@ -675,6 +688,8 @@ export const presets = {
     light_brightness_colortemp_colorxy: (colorTempRange?: Range) => new Light().withBrightness().withColorTemp(colorTempRange).withColorTempStartup(colorTempRange).withColor(['xy']),
     light_brightness_colorxy: () => new Light().withBrightness().withColor((['xy'])),
     light_colorhs: () => new Light().withColor(['hs']),
+    light_color_options: () => new Composite('color_options', 'color_options', access.ALL).withDescription('Advanced color behavior')
+        .withFeature(new Binary('execute_if_off', access.SET, true, false).withDescription('Controls whether color and color temperature can be set while light is off')),
     linkquality: () => new Numeric('linkquality', access.STATE).withUnit('lqi').withDescription('Link quality (signal strength)').withValueMin(0).withValueMax(255),
     local_temperature: () => new Numeric('local_temperature', access.STATE_GET).withUnit('°C').withDescription('Current temperature measured on the device'),
     lock: () => new Lock().withState('state', 'LOCK', 'UNLOCK', 'State of the lock').withLockState('lock_state', 'Actual state of the lock'),
@@ -687,7 +702,7 @@ export const presets = {
     min_heat_setpoint_limit: (min: number, max: number, step: number) => new Numeric('min_heat_setpoint_limit', access.ALL).withUnit('°C').withDescription('Minimum Heating set point limit').withValueMin(min).withValueMax(max).withValueStep(step),
     max_temperature: () => new Numeric('max_temperature', access.STATE_SET).withUnit('°C').withDescription('Maximum temperature').withValueMin(15).withValueMax(35),
     max_temperature_limit: () => new Numeric('max_temperature_limit', access.STATE_SET).withUnit('°C').withDescription('Maximum temperature limit. Cuts the thermostat out regardless of air temperature if the external floor sensor exceeds this temperature. Only used by the thermostat when in AL sensor mode.').withValueMin(0).withValueMax(35),
-    min_temperature_limit: () => new Numeric('min_temperature_limit', access.STATE_SET).withUnit('°C').withDescription('Minimum temperature limit for frost protection. Turns the thermostat on regardless of setpoint if the tempreature drops below this.').withValueMin(1).withValueMax(5),
+    min_temperature_limit: () => new Numeric('min_temperature_limit', access.STATE_SET).withUnit('°C').withDescription('Minimum temperature limit for frost protection. Turns the thermostat on regardless of setpoint if the temperature drops below this.').withValueMin(1).withValueMax(5),
     min_temperature: () => new Numeric('min_temperature', access.STATE_SET).withUnit('°C').withDescription('Minimum temperature').withValueMin(1).withValueMax(15),
     noise: () => new Numeric('noise', access.STATE).withUnit('dBA').withDescription('The measured noise value'),
     noise_detected: () => new Binary('noise_detected', access.STATE, true, false).withDescription('Indicates whether the device detected noise'),
@@ -708,7 +723,7 @@ export const presets = {
     power_reactive: () => new Numeric('power_reactive', access.STATE).withUnit('VAR').withDescription('Instantaneous measured reactive power'),
     presence: () => new Binary('presence', access.STATE, true, false).withDescription('Indicates whether the device detected presence'),
     pressure: () => new Numeric('pressure', access.STATE).withUnit('hPa').withDescription('The measured atmospheric pressure'),
-    programming_operation_mode: () => new Enum('programming_operation_mode', access.ALL, ['setpoint', 'schedule', 'schedule_with_preheat', 'eco']).withDescription('Controls how programming affects the thermostat. Possible values: setpoint (only use specified setpoint), schedule (follow programmed setpoint schedule), schedule_with_preheat (follow programmed setpoint schedule with pre-heating). Changing this value does not clear programmed schedules.'),
+    programming_operation_mode: (values=['setpoint', 'schedule', 'schedule_with_preheat', 'eco']) => new Enum('programming_operation_mode', access.ALL, ['setpoint', 'schedule', 'schedule_with_preheat', 'eco']).withDescription('Controls how programming affects the thermostat. Possible values: setpoint (only use specified setpoint), schedule (follow programmed setpoint schedule), schedule_with_preheat (follow programmed setpoint schedule with pre-heating). Changing this value does not clear programmed schedules.'),
     smoke: () => new Binary('smoke', access.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
     soil_moisture: () => new Numeric('soil_moisture', access.STATE).withUnit('%').withDescription('Measured soil moisture value'),
     sos: () => new Binary('sos', access.STATE, true, false).withLabel('SOS').withDescription('SOS alarm'),
@@ -728,7 +743,7 @@ export const presets = {
     voc_index: () => new Numeric('voc_index', access.STATE).withLabel('VOC index').withDescription('VOC index'),
     voltage: () => new Numeric('voltage', access.STATE).withUnit('V').withDescription('Measured electrical potential value'),
     voltage_phase_b: () => new Numeric('voltage_phase_b', access.STATE).withLabel('Voltage phase B').withUnit('V').withDescription('Measured electrical potential value on phase B'),
-    voltage_phase_c: () => new Numeric('voltage_phase_c', access.STATE).withLabel('Voltage phase C').withDescription('Measured electrical potential value on phase C'),
+    voltage_phase_c: () => new Numeric('voltage_phase_c', access.STATE).withLabel('Voltage phase C').withUnit('V').withDescription('Measured electrical potential value on phase C'),
     water_leak: () => new Binary('water_leak', access.STATE, true, false).withDescription('Indicates whether the device detected a water leak'),
     rain: () => new Binary('rain', access.STATE, true, false).withDescription('Indicates whether the device detected rainfall'),
     warning: () => new Composite('warning', 'warning', access.SET)

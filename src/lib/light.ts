@@ -9,7 +9,7 @@ async function readColorTempMinMax(endpoint: Zh.Endpoint) {
     await endpoint.read('lightingColorCtrl', ['colorTempPhysicalMin', 'colorTempPhysicalMax']);
 }
 
-function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta, additionalAttributes: string[]=[]) {
+export function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta, additionalAttributes: string[]=[]) {
     /**
       * Not all bulbs support the same features, we need to take care we read what is supported.
       * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation

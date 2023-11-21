@@ -23,6 +23,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_zr9c0day'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_0dvm9mva'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_h4cgnbzg'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_gd4rvykv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_exfrnlow'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9m4kmbfu'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3yp57tby'},
@@ -59,4 +60,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

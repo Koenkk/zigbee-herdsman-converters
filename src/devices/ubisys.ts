@@ -22,7 +22,7 @@ const manufacturerOptions = {
     ubisysNull: {manufacturerCode: null},
 };
 
-const ubisysOnEventReadCurrentSummDelivered = async function(type: OnEventType, data: OnEventData, devic: Zh.Device) {
+const ubisysOnEventReadCurrentSummDelivered = async function(type: OnEventType, data: OnEventData, device: Zh.Device) {
     if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
         try {
             await data.endpoint.read('seMetering', ['currentSummDelivered']);
@@ -534,6 +534,17 @@ const ubisys = {
         } as Tz.Converter,
         thermostat_vacation_mode: {
             key: ['vacation_mode'],
+            convertSet: async (entity, key, value, meta) => {
+                /* Both Ubisys H1 and H10 use hvacThermostat cluster with the ubisys manufacturerCode for custom attributes
+                 *  0x0005 is used on both but with different functions and data types which is rather annoying
+                 *  manually massaging of the writeAttribute is needed :(
+                 */
+                if (typeof value === 'boolean') {
+                    await entity.write('hvacThermostat', {0x0005: {value: value, type: Zcl.DataType.boolean}}, manufacturerOptions.ubisys);
+                } else {
+                    meta.logger.error('vacation_mode must be a boolean!');
+                }
+            },
             convertGet: async (entity, key, meta) => {
                 await entity.read('hvacThermostat', ['occupancy']);
             },
@@ -892,10 +903,11 @@ const definitions: Definition[] = [
                 .withSystemMode(['off', 'heat'], ea.ALL)
                 .withRunningMode(['off', 'heat'])
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withSetpoint('unoccupied_heating_setpoint', 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET)
                 .withWeeklySchedule(['heat']),
-            e.binary('vacation_mode', ea.STATE_GET, true, false)
+            e.binary('vacation_mode', ea.ALL, true, false)
                 .withDescription('When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -986,4 +998,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

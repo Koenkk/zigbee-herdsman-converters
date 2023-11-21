@@ -36,27 +36,8 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
-            // Configure reporing of currentPositionLiftPercentage always fails.
+            // Configure reporting of currentPositionLiftPercentage always fails.
             // https://github.com/Koenkk/zigbee2mqtt/issues/3216
-        },
-    },
-    {
-        zigbeeModel: ['TS0003'],
-        model: 'ZM-L03E-Z',
-        vendor: 'Zemismart',
-        description: 'Smart light switch - 3 gang with neutral wire',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
-        whiteLabel: [{vendor: 'BSEED', model: 'TS0003', description: 'Zigbee switch'}],
-        meta: {multiEndpoint: true, disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -122,6 +103,43 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(1));
             await reporting.onOff(device.getEndpoint(2));
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_7eue9vhc', '_TZE200_bv1jcqqu']),
+        model: 'ZM25RX-08/30',
+        vendor: 'Zemismart',
+        description: 'Tubular motor',
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.text('work_state', ea.STATE),
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.battery(),
+            e.enum('program', ea.SET, ['set_bottom', 'set_upper', 'reset']).withDescription('Set the upper/bottom limit'),
+            e.enum('click_control', ea.SET, ['upper', 'upper_micro', 'lower', 'lower_micro'])
+                .withDescription('Control motor in steps (ignores set limits; normal/micro = 120deg/5deg movement)'),
+            e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Motor direction'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'position', tuya.valueConverter.coverPosition],
+                [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
+                [7, 'work_state', tuya.valueConverterBasic.lookup({'closing': tuya.enum(0), 'opening': tuya.enum(1)})],
+                [13, 'battery', tuya.valueConverter.raw],
+                [101, 'program', tuya.valueConverterBasic.lookup({
+                    'set_bottom': tuya.enum(0), 'set_upper': tuya.enum(1), 'reset': tuya.enum(4),
+                }, null)],
+                [101, 'click_control', tuya.valueConverterBasic.lookup({
+                    'lower': tuya.enum(2), 'upper': tuya.enum(3),
+                    'lower_micro': tuya.enum(5), 'upper_micro': tuya.enum(6),
+                }, null)],
+            ],
         },
     },
     {
@@ -227,4 +245,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -1,25 +1,22 @@
-'use strict';
-
-const configureKey = require('./lib/configureKey');
-const exposes = require('./lib/exposes');
-const toZigbee = require('./converters/toZigbee');
-const fromZigbee = require('./converters/fromZigbee');
-const assert = require('assert');
-const tz = require('./converters/toZigbee');
-const fs = require('fs');
-const path = require('path');
+import * as configureKey from './lib/configureKey';
+import * as exposes from './lib/exposes';
+import toZigbee from './converters/toZigbee';
+import fromZigbee from './converters/fromZigbee';
+import assert from 'assert';
+import allDefinitions from './devices';
+import { Definition, Fingerprint, Zh, OnEventData, OnEventType } from './lib/types';
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
 const lookup = new Map();
-const definitions = [];
+const definitions: Definition[] = [];
 
-function arrayEquals(as, bs) {
+function arrayEquals<T>(as: T[], bs: T[]) {
     if (as.length !== bs.length) return false;
     for (const a of as) if (!bs.includes(a)) return false;
     return true;
 }
 
-function addToLookup(zigbeeModel, definition) {
+function addToLookup(zigbeeModel: string, definition: Definition) {
     zigbeeModel = zigbeeModel ? zigbeeModel.toLowerCase() : null;
     if (!lookup.has(zigbeeModel)) {
         lookup.set(zigbeeModel, []);
@@ -30,7 +27,7 @@ function addToLookup(zigbeeModel, definition) {
     }
 }
 
-function getFromLookup(zigbeeModel) {
+function getFromLookup(zigbeeModel: string) {
     zigbeeModel = zigbeeModel ? zigbeeModel.toLowerCase() : null;
     if (lookup.has(zigbeeModel)) {
         return lookup.get(zigbeeModel);
@@ -48,35 +45,45 @@ const converterRequiredFields = {
     toZigbee: 'Array',
 };
 
-function validateDefinition(definition) {
+function validateDefinition(definition: Definition) {
     for (const [field, expectedType] of Object.entries(converterRequiredFields)) {
+        // @ts-expect-error
         assert.notStrictEqual(null, definition[field], `Converter field ${field} is null`);
+        // @ts-expect-error
         assert.notStrictEqual(undefined, definition[field], `Converter field ${field} is undefined`);
+        // @ts-expect-error
         const msg = `Converter field ${field} expected type doenst match to ${definition[field]}`;
+        // @ts-expect-error
         assert.strictEqual(definition[field].constructor.name, expectedType, msg);
     }
     assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
-function addDefinition(definition) {
-    const {extend, ...definitionWithoutExtend} = definition;
-    if (extend) {
+function addDefinition(definition: Definition) {
+    if ('extend' in definition) {
+        const {extend, ...definitionWithoutExtend} = definition;
         if (extend.hasOwnProperty('configure') && extend.configure !== undefined && definition.hasOwnProperty('configure')) {
             assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
         }
 
-        definition = {
-            ...extend,
-            ...definitionWithoutExtend,
-            meta: extend.meta || definitionWithoutExtend.meta ? {
-                ...extend.meta,
-                ...definitionWithoutExtend.meta,
-            } : undefined,
-        };
+        if (typeof definition.exposes === 'function') {
+            assert.fail(`'${definition.model}' has function exposes which is not allowed`);
+        }
+        const toZigbee = [...definition.toZigbee ?? [], ...extend.toZigbee];
+        const fromZigbee = [...definition.fromZigbee ?? [], ...extend.fromZigbee];
+        const exposes = [...definition.exposes ?? [], ...extend.exposes];
+        const meta = extend.meta || definitionWithoutExtend.meta ? {
+            ...extend.meta,
+            ...definitionWithoutExtend.meta,
+        } : undefined;
+
+        definition = {toZigbee, fromZigbee, exposes, meta, ...definitionWithoutExtend};
     }
 
-    definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.scene_rename, tz.read, tz.write,
-        tz.command, tz.factory_reset);
+    definition.toZigbee.push(
+        toZigbee.scene_store, toZigbee.scene_recall, toZigbee.scene_add, toZigbee.scene_remove, toZigbee.scene_remove_all, 
+        toZigbee.scene_rename, toZigbee.read, toZigbee.write,
+        toZigbee.command, toZigbee.factory_reset);
 
     if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
         definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);
@@ -99,28 +106,24 @@ function addDefinition(definition) {
         }
     }
 
-    if (definition.hasOwnProperty('fingerprint')) {
+    if ('fingerprint' in definition) {
         for (const fingerprint of definition.fingerprint) {
             addToLookup(fingerprint.modelID, definition);
         }
     }
 
-    if (definition.hasOwnProperty('zigbeeModel')) {
+    if ('zigbeeModel' in definition) {
         for (const zigbeeModel of definition.zigbeeModel) {
             addToLookup(zigbeeModel, definition);
         }
     }
 }
 
-// Load all definitions from devices folder
-const devicesPath = path.join(__dirname, 'devices');
-for (const file of fs.readdirSync(devicesPath).filter((f) => f.endsWith('.js'))) {
-    for (const definition of require(path.join(devicesPath, file))) {
-        addDefinition(definition);
-    }
+for (const definition of allDefinitions) {
+    addDefinition(definition);
 }
 
-function findByZigbeeModel(zigbeeModel) {
+function findByZigbeeModel(zigbeeModel: string) {
     if (!zigbeeModel) {
         return null;
     }
@@ -130,10 +133,10 @@ function findByZigbeeModel(zigbeeModel) {
     return candidates ? candidates[candidates.length-1] : null;
 }
 
-function findByDevice(device) {
+function findByDevice(device: Zh.Device) {
     let definition = findDefinition(device);
     if (definition && definition.whiteLabel) {
-        const match = definition.whiteLabel.find((w) => w.fingerprint && w.fingerprint.find((f) => isFingerprintMatch(f, device)));
+        const match = definition.whiteLabel.find((w) => 'fingerprint' in w && w.fingerprint.find((f) => isFingerprintMatch(f, device)));
         if (match) {
             definition = {
                 ...definition,
@@ -146,7 +149,7 @@ function findByDevice(device) {
     return definition;
 }
 
-function findDefinition(device) {
+function findDefinition(device: Zh.Device): Definition {
     if (!device) {
         return null;
     }
@@ -158,7 +161,7 @@ function findDefinition(device) {
         return candidates[0];
     } else {
         // First try to match based on fingerprint, return the first matching one.
-        const fingerprintMatch = {priority: null, definition: null};
+        const fingerprintMatch: {priority: number, definition: Definition} = {priority: null, definition: null};
         for (const candidate of candidates) {
             if (candidate.hasOwnProperty('fingerprint')) {
                 for (const fingerprint of candidate.fingerprint) {
@@ -186,7 +189,7 @@ function findDefinition(device) {
     return null;
 }
 
-function isFingerprintMatch(fingerprint, device) {
+function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device) {
     let match =
         (!fingerprint.applicationVersion || device.applicationVersion === fingerprint.applicationVersion) &&
         (!fingerprint.manufacturerID || device.manufacturerID === fingerprint.manufacturerID) &&
@@ -219,7 +222,7 @@ function isFingerprintMatch(fingerprint, device) {
     return match;
 }
 
-function findByModel(model){
+function findByModel(model: string){
     /*
     Search device description by definition model name.
     Useful when redefining, expanding device descriptions in external converters.
@@ -244,7 +247,7 @@ module.exports = {
     addDeviceDefinition: addDefinition,
     // Can be used to handle events for devices which are not fully paired yet (no modelID).
     // Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
-    onEvent: async (type, data, device) => {
+    onEvent: async (type: OnEventType, data: OnEventData, device: Zh.Device) => {
         // support Legrand security protocol
         // when pairing, a powered device will send a read frame to every device on the network
         // it expects at least one answer. The payload contains the number of seconds

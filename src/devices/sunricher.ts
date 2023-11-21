@@ -14,7 +14,7 @@ const ea = exposes.access;
 const fzLocal = {
     sunricher_SRZGP2801K45C: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -427,7 +427,7 @@ const definitions: Definition[] = [
             e.numeric('floor_sensor_calibration', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(-3).withValueMax(3).withValueStep(0.1)
-                .withDescription('The tempearatue calibration for the exernal floor sensor, between -3 and 3 in 0.1°C.  Default: 0.'),
+                .withDescription('The tempearatue calibration for the external floor sensor, between -3 and 3 in 0.1°C.  Default: 0.'),
             e.numeric('dry_time', ea.ALL)
                 .withUnit('min')
                 .withValueMin(5).withValueMax(100)
@@ -626,4 +626,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

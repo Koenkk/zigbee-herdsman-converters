@@ -103,7 +103,8 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_aoclfnxz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_u9bfwha0'}],
         model: 'BHT-002-GCLZB',
         vendor: 'Moes',
         description: 'Moes BHT series Thermostat',
@@ -113,7 +114,7 @@ const definitions: Definition[] = [
             legacy.tz.moes_thermostat_deadzone_temperature, legacy.tz.moes_thermostat_max_temperature_limit,
             legacy.tz.moes_thermostat_min_temperature_limit, legacy.tz.moes_thermostat_program_schedule],
         whiteLabel: [
-            tuya.whitelabel('Moes', 'BHT-006GBZB', 'Smart heating thermostat', ['_TZE204_aoclfnxz']),
+            tuya.whitelabel('Moes', 'BHT-002/BHT-006', 'Smart heating thermostat', ['_TZE204_aoclfnxz']),
         ],
         exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(), e.min_temperature_limit(),
             e.climate().withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
@@ -282,7 +283,8 @@ const definitions: Definition[] = [
         model: 'BRT-100-TRV',
         vendor: 'Moes',
         description: 'Thermostatic radiator valve',
-        ota: ota.zigbeeOTA,
+        // ota: ota.zigbeeOTA,
+        // OTA available but bricks device https://github.com/Koenkk/zigbee2mqtt/issues/18840
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, legacy.fz.moesS_thermostat],
         toZigbee: [legacy.tz.moesS_thermostat_current_heating_setpoint, legacy.tz.moesS_thermostat_child_lock,
@@ -320,14 +322,6 @@ const definitions: Definition[] = [
             e.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('s')
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100)
                 .withValueMax(900).withValueStep(100)],
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_7hcgjxpc'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_rcggc0ys'}],
-        model: 'ZLD-RCW',
-        vendor: 'Moes',
-        description: 'RGB+CCT Zigbee LED Controller',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
@@ -387,6 +381,50 @@ const definitions: Definition[] = [
             device.save();
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rjxqso4a'}],
+        model: 'ZC-HM',
+        vendor: 'Moes',
+        description: 'Carbon monoxide alarm',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.carbon_monoxide(), e.co(), tuya.exposes.selfTestResult(), e.battery(), tuya.exposes.silence()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'carbon_monoxide', tuya.valueConverter.trueFalse0],
+                [2, 'co', tuya.valueConverter.raw],
+                [9, 'self_test_result', tuya.valueConverter.selfTestResult],
+                [15, 'battery', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_vawy74yh'}],
+        model: 'ZSS-HM-SSD01',
+        vendor: 'Moes',
+        description: 'Smoke sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.smoke(), e.battery(), tuya.exposes.batteryState(),
+            e.binary('silence', ea.STATE_SET, 'ON', 'OFF'),
+            e.enum('self_test', ea.STATE, ['checking', 'check_success', 'check_failure']),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'smoke', tuya.valueConverter.trueFalse0],
+                [9, 'self_test', tuya.valueConverterBasic.lookup({'checking': 0, 'check_success': 1, 'check_failure': 2})],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
+                [15, 'battery', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.onOff],
+            ],
+        },
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

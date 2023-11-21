@@ -1,18 +1,19 @@
-const exposes = require('../lib/exposes');
-const legacy = require('../lib/legacy');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
-const reporting = require('../lib/reporting');
+import {Definition, Fz, Tz, KeyValue, Publish} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import * as legacy from '../lib/legacy';
+import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
-const tuya = require('../lib/tuya');
-const globalStore = require('../lib/store');
-const ota = require('../lib/ota');
-const utils = require('../lib/utils');
+import * as tuya from '../lib/tuya';
+import * as globalStore from '../lib/store';
+import * as ota from '../lib/ota';
+import * as utils from '../lib/utils';
 
 const valueConverterLocal = {
     wateringState: {
-        from: (value, meta, options, publish) => {
+        from: (value: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
             const result = {
                 state: value ? 'ON' : 'OFF',
                 ...(value ? {} : {
@@ -36,15 +37,19 @@ const valueConverterLocal = {
                 const now = new Date();
                 const timeslot = [1, 2, 3, 4, 5, 6]
                     .map((slotNumber) => utils.getObjectProperty(meta.state, `schedule_slot_${slotNumber}`, {}))
+                    // @ts-expect-error
                     .find((ts) =>ts.state === 'ON' && ts.start_hour === now.getHours() && ts.start_minute === now.getMinutes() && ts.timer > 0);
 
                 if (timeslot) {
+                    // @ts-expect-error
                     const iterationDuration = timeslot.timer + timeslot.pause;
                     // automatic watering detected
                     globalStore.putValue(meta.device, 'watering_timer_active_time_slot', {
                         timeslot_start_timestamp: now.getTime(),
                         // end of last watering excluding last pause
+                        // @ts-expect-error
                         timeslot_end_timestamp: now.getTime() + (timeslot.iterations * iterationDuration - timeslot.pause) * 60 * 1000,
+                        // @ts-expect-error
                         timer: timeslot.timer,
                         iteration_inverval: null, // will be set in the next step
                         iteration_start_timestamp: 0, // will be set in the next step
@@ -60,6 +65,7 @@ const valueConverterLocal = {
                     // time slot execution is already completed
                     (Date.now() > (ts.timeslot_end_timestamp - 5000)) ||
                     // scheduling was interrupted by turning watering on manually
+                    // @ts-expect-error
                     (result.state === 'ON' && result.state != meta.state.state && meta.state.time_left > 0)
                 ) {
                     // reporting is no longer necessary
@@ -96,14 +102,8 @@ const valueConverterLocal = {
             return result;
         },
     },
-    wateringResetFrostLock: {
-        to: (value) => {
-            utils.validateValue(value, ['RESET']);
-            return 0;
-        },
-    },
     wateringScheduleMode: {
-        from: (value) => {
+        from: (value: number[]) => {
             const [scheduleMode, scheduleValue] = value;
             const isWeekday = scheduleMode === 0;
             return {
@@ -123,7 +123,7 @@ const valueConverterLocal = {
         },
     },
     wateringSchedulePeriodic: {
-        to: (value) => {
+        to: (value: number) => {
             if (!utils.isInRange(0, 7, value)) throw new Error(`Invalid value: ${value} (expected ${0} to ${7})`);
             // Note: mode value of 0 switches to disabled weekday scheduler
             const scheduleMode = value > 0 ? 1 : 0;
@@ -131,12 +131,14 @@ const valueConverterLocal = {
         },
     },
     wateringScheduleWeekday: {
-        to: (value, meta) => {
+        to: (value: KeyValue, meta: Tz.Meta) => {
             // map each day to ON/OFF and use current state as default to allow partial updates
             const dayValues = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                // @ts-expect-error
                 .map((dayName) => utils.getObjectProperty(value, dayName, utils.getObjectProperty(meta.state.schedule_weekday, dayName, 'OFF')));
 
             const scheduleValue = dayValues.reduce((dayConfig, value, index) => {
+                // @ts-expect-error
                 return dayConfig | (value === 'ON' ? 1 << index : 0);
             }, 0);
 
@@ -146,8 +148,8 @@ const valueConverterLocal = {
             return [scheduleMode, scheduleValue];
         },
     },
-    wateringScheduleSlot: (timeSlotNumber) => ({
-        from: (buffer) => {
+    wateringScheduleSlot: (timeSlotNumber: number) => ({
+        from: (buffer: Buffer) => {
             return {
                 state: buffer.readUInt8(0) === 1 ? 'ON' : 'OFF',
                 start_hour: utils.numberWithinRange(buffer.readUInt8(1), 0, 23), // device reports non-valid value 255 initially
@@ -157,16 +159,16 @@ const valueConverterLocal = {
                 iterations: utils.numberWithinRange(buffer.readUInt8(9), 1, 9), // device reports non-valid value 0 initially
             };
         },
-        to: (value, meta) => {
+        to: (value: KeyValue, meta: Tz.Meta) => {
             // use default values from current config to allow partial updates
-            const timeslot = utils.getObjectProperty(meta.state, `schedule_slot_${timeSlotNumber}`, {});
+            const timeslot = utils.getObjectProperty(meta.state, `schedule_slot_${timeSlotNumber}`, {}) as KeyValue;
 
-            const state = utils.getObjectProperty(value, 'state', timeslot.state ?? false);
-            const startHour = utils.getObjectProperty(value, 'start_hour', timeslot.start_hour ?? 23);
-            const startMinute = utils.getObjectProperty(value, 'start_minute', timeslot.start_minute ?? 59);
-            const duratonInMin = utils.getObjectProperty(value, 'timer', timeslot.timer ?? 1);
-            const iterations = utils.getObjectProperty(value, 'iterations', timeslot.iterations ?? 1);
-            const pauseInMin = utils.getObjectProperty(value, 'pause', timeslot.pause ?? 0);
+            const state = utils.getObjectProperty(value, 'state', timeslot.state ?? false) as number;
+            const startHour = utils.getObjectProperty(value, 'start_hour', timeslot.start_hour ?? 23) as number;
+            const startMinute = utils.getObjectProperty(value, 'start_minute', timeslot.start_minute ?? 59) as number;
+            const duratonInMin = utils.getObjectProperty(value, 'timer', timeslot.timer ?? 1) as number;
+            const iterations = utils.getObjectProperty(value, 'iterations', timeslot.iterations ?? 1) as number;
+            const pauseInMin = utils.getObjectProperty(value, 'pause', timeslot.pause ?? 0) as number;
 
             if (!utils.isInRange(0, 23, startHour)) throw new Error(`Invalid start hour value ${startHour} (expected ${0} to ${23})`);
             if (!utils.isInRange(0, 59, startMinute)) throw new Error(`Invalid start minute value: ${startMinute} (expected ${0} to ${59})`);
@@ -176,6 +178,7 @@ const valueConverterLocal = {
             if (iterations > 1 && pauseInMin === 0) throw new Error(`Pause value must be at least 1 minute when using multiple iterations`);
 
             return [
+                // @ts-expect-error
                 state === 'ON' ? 1 : 0, // time slot enabled or not
                 startHour, // start hour
                 startMinute, // start minute
@@ -191,7 +194,7 @@ const valueConverterLocal = {
     }),
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         fingerprint: [
             {manufacturerName: '_TZ3000_kdi2o9m6'}, // EU
@@ -212,10 +215,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_j1v25l17'}, // EU
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ynmowqk2'}, // FR
-        ],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_j1v25l17', '_TZ3000_ynmowqk2', '_TZ3000_3uimvkn6']),
         model: 'HG08673',
         vendor: 'Lidl',
         description: 'Silvercrest smart plug with power monitoring (EU, FR)',
@@ -235,6 +235,9 @@ module.exports = [
         },
         options: [exposes.options.measurement_poll_interval().withDescription('Only the energy value is polled for this device.')],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, false, true),
+        whiteLabel: [
+            tuya.whitelabel('Lidl', 'HG08673-BS', 'Silvercrest smart plug with power monitoring (BS)', ['_TZ3000_3uimvkn6']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_rco1yzb1'}],
@@ -353,8 +356,8 @@ module.exports = [
         model: 'HG06467',
         vendor: 'Lidl',
         description: 'Melinera smart LED string lights',
-        toZigbee: [tz.on_off, tz.legacy.silvercrest_smart_led_string],
-        fromZigbee: [fz.on_off, fz.legacy.silvercrest_smart_led_string],
+        toZigbee: [tz.on_off, legacy.tz.silvercrest_smart_led_string],
+        fromZigbee: [fz.on_off, legacy.fz.silvercrest_smart_led_string],
         exposes: [e.light_brightness_colorhs().setAccess('brightness', ea.STATE_SET).setAccess('color_hs', ea.STATE_SET)],
     },
     {
@@ -375,8 +378,10 @@ module.exports = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: async (type, data, device) => {
+            // @ts-expect-error
             await tuya.onEventSetLocalTime(type, data, device);
 
+            // @ts-expect-error
             if (type === 'deviceInterview' && data.status === 'successful') {
                 // dirty hack: reset frost guard & frost alarm to get the initial state
                 // wait 10 seconds to ensure configure is done
@@ -402,43 +407,43 @@ module.exports = [
         exposes: [
             e.battery(),
             tuya.exposes.switch(),
-            exposes.numeric('timer', ea.STATE_SET).withValueMin(1).withValueMax(599).withUnit('min')
+            e.numeric('timer', ea.STATE_SET).withValueMin(1).withValueMax(599).withUnit('min')
                 .withDescription('Auto off after specific time for manual watering.'),
-            exposes.numeric('time_left', ea.STATE).withUnit('min')
+            e.numeric('time_left', ea.STATE).withUnit('min')
                 .withDescription('Remaining time until the watering turns off.'),
-            exposes.binary('frost_lock', ea.STATE, 'ON', 'OFF')
+            e.binary('frost_lock', ea.STATE, 'ON', 'OFF')
                 .withDescription(
                     'Indicates if the frost guard is currently active. ' +
                     'If the temperature drops below 5° C, device activates frost guard and disables irrigation. ' +
                     'You need to reset the frost guard to activate irrigation again. Note: There is no way to enable frost guard manually.',
                 ),
-            exposes.enum('reset_frost_lock', ea.SET, ['RESET']).withDescription('Resets frost lock to make the device workable again.'),
-            exposes.enum('schedule_mode', ea.STATE, ['OFF', 'WEEKDAY', 'PERIODIC'])
+            e.enum('reset_frost_lock', ea.SET, ['RESET']).withDescription('Resets frost lock to make the device workable again.'),
+            e.enum('schedule_mode', ea.STATE, ['OFF', 'WEEKDAY', 'PERIODIC'])
                 .withDescription('Scheduling mode that is currently in use.'),
-            exposes.numeric('schedule_periodic', ea.STATE_SET).withValueMin(0).withValueMax(7).withUnit('day')
+            e.numeric('schedule_periodic', ea.STATE_SET).withValueMin(0).withValueMax(7).withUnit('day')
                 .withDescription('Watering by periodic interval: Irrigate every n days'),
-            exposes.composite('schedule_weekday', 'schedule_weekday', ea.STATE_SET)
+            e.composite('schedule_weekday', 'schedule_weekday', ea.STATE_SET)
                 .withDescription('Watering by weekday: Irrigate individually for each day.')
-                .withFeature(exposes.binary('monday', ea.STATE_SET, 'ON', 'OFF'))
-                .withFeature(exposes.binary('tuesday', ea.STATE_SET, 'ON', 'OFF'))
-                .withFeature(exposes.binary('wednesday', ea.STATE_SET, 'ON', 'OFF'))
-                .withFeature(exposes.binary('thursday', ea.STATE_SET, 'ON', 'OFF'))
-                .withFeature(exposes.binary('friday', ea.STATE_SET, 'ON', 'OFF'))
-                .withFeature(exposes.binary('saturday', ea.STATE_SET, 'ON', 'OFF'))
-                .withFeature(exposes.binary('sunday', ea.STATE_SET, 'ON', 'OFF')),
+                .withFeature(e.binary('monday', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(e.binary('tuesday', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(e.binary('wednesday', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(e.binary('thursday', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(e.binary('friday', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(e.binary('saturday', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(e.binary('sunday', ea.STATE_SET, 'ON', 'OFF')),
             ...[1, 2, 3, 4, 5, 6].map((timeSlotNumber) =>
-                exposes.composite(`schedule_slot_${timeSlotNumber}`, `schedule_slot_${timeSlotNumber}`, ea.STATE_SET)
+                e.composite(`schedule_slot_${timeSlotNumber}`, `schedule_slot_${timeSlotNumber}`, ea.STATE_SET)
                     .withDescription(`Watering time slot ${timeSlotNumber}`)
-                    .withFeature(exposes.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('On/off state of the time slot'))
-                    .withFeature(exposes.numeric('start_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23)
+                    .withFeature(e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('On/off state of the time slot'))
+                    .withFeature(e.numeric('start_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23)
                         .withDescription('Starting time (hour)'))
-                    .withFeature(exposes.numeric('start_minute', ea.STATE_SET).withUnit('min').withValueMin(0).withValueMax(59)
+                    .withFeature(e.numeric('start_minute', ea.STATE_SET).withUnit('min').withValueMin(0).withValueMax(59)
                         .withDescription('Starting time (minute)'))
-                    .withFeature(exposes.numeric('timer', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(599)
+                    .withFeature(e.numeric('timer', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(599)
                         .withDescription('Auto off after specific time for scheduled watering.'))
-                    .withFeature(exposes.numeric('pause', ea.STATE_SET).withUnit('min').withValueMin(0).withValueMax(599)
+                    .withFeature(e.numeric('pause', ea.STATE_SET).withUnit('min').withValueMin(0).withValueMax(599)
                         .withDescription('Pause after each iteration.'))
-                    .withFeature(exposes.numeric('iterations', ea.STATE_SET).withValueMin(1).withValueMax(9)
+                    .withFeature(e.numeric('iterations', ea.STATE_SET).withValueMin(1).withValueMax(9)
                         .withDescription('Number of watering iterations. Works only if there is a pause.')),
             ),
         ],
@@ -452,7 +457,7 @@ module.exports = [
                 [11, 'battery', tuya.valueConverter.raw],
                 [108, 'frost_lock', tuya.valueConverter.onOff],
                 // there is no state reporting for reset
-                [109, 'reset_frost_lock', valueConverterLocal.wateringResetFrostLock, {optimistic: false}],
+                [109, 'reset_frost_lock', tuya.valueConverterBasic.lookup({'RESET': tuya.enum(0)}), {optimistic: false}],
                 [107, null, valueConverterLocal.wateringScheduleMode],
                 [107, 'schedule_periodic', valueConverterLocal.wateringSchedulePeriodic],
                 [107, 'schedule_weekday', valueConverterLocal.wateringScheduleWeekday],
@@ -517,37 +522,37 @@ module.exports = [
         },
         exposes: [
             e.child_lock(), e.comfort_temperature(), e.eco_temperature(), e.battery_voltage(),
-            exposes.numeric('current_heating_setpoint_auto', ea.STATE_SET).withValueMin(0.5).withValueMax(29.5)
+            e.numeric('current_heating_setpoint_auto', ea.STATE_SET).withValueMin(0.5).withValueMax(29.5)
                 .withValueStep(0.5).withUnit('°C').withDescription('Temperature setpoint automatic'),
-            exposes.climate().withSetpoint('current_heating_setpoint', 0.5, 29.5, 0.5, ea.STATE_SET)
+            e.climate().withSetpoint('current_heating_setpoint', 0.5, 29.5, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-12.5, 5.5, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
                 .withPreset(['schedule', 'manual', 'holiday', 'boost']),
-            exposes.numeric('detectwindow_temperature', ea.STATE_SET).withUnit('°C').withDescription('Open window detection temperature')
+            e.numeric('detectwindow_temperature', ea.STATE_SET).withUnit('°C').withDescription('Open window detection temperature')
                 .withValueMin(-10).withValueMax(35),
-            exposes.numeric('detectwindow_timeminute', ea.STATE_SET).withUnit('min').withDescription('Open window time in minute')
+            e.numeric('detectwindow_timeminute', ea.STATE_SET).withUnit('min').withDescription('Open window time in minute')
                 .withValueMin(0).withValueMax(1000),
-            exposes.binary('binary_one', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary one'),
-            exposes.binary('binary_two', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary two'),
-            exposes.binary('away_mode', ea.STATE, 'ON', 'OFF').withDescription('Away mode'),
-            exposes.composite('away_setting', 'away_setting', ea.STATE_SET)
+            e.binary('binary_one', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary one'),
+            e.binary('binary_two', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary two'),
+            e.binary('away_mode', ea.STATE, 'ON', 'OFF').withDescription('Away mode'),
+            e.composite('away_setting', 'away_setting', ea.STATE_SET)
                 .withFeature(e.away_preset_days()).setAccess('away_preset_days', ea.ALL)
                 .withFeature(e.away_preset_temperature()).setAccess('away_preset_temperature', ea.ALL)
-                .withFeature(exposes.numeric('away_preset_year', ea.ALL).withUnit('year').withDescription('Start away year 20xx'))
-                .withFeature(exposes.numeric('away_preset_month', ea.ALL).withUnit('month').withDescription('Start away month'))
-                .withFeature(exposes.numeric('away_preset_day', ea.ALL).withUnit('day').withDescription('Start away day'))
-                .withFeature(exposes.numeric('away_preset_hour', ea.ALL).withUnit('hour').withDescription('Start away hours'))
-                .withFeature(exposes.numeric('away_preset_minute', ea.ALL).withUnit('min').withDescription('Start away minutes')),
+                .withFeature(e.numeric('away_preset_year', ea.ALL).withUnit('year').withDescription('Start away year 20xx'))
+                .withFeature(e.numeric('away_preset_month', ea.ALL).withUnit('month').withDescription('Start away month'))
+                .withFeature(e.numeric('away_preset_day', ea.ALL).withUnit('day').withDescription('Start away day'))
+                .withFeature(e.numeric('away_preset_hour', ea.ALL).withUnit('hour').withDescription('Start away hours'))
+                .withFeature(e.numeric('away_preset_minute', ea.ALL).withUnit('min').withDescription('Start away minutes')),
             ...['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
-                const expose = exposes.composite(day, day, ea.STATE_SET);
+                const expose = e.composite(day, day, ea.STATE_SET);
                 [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach((i) => {
-                    expose.withFeature(exposes.numeric(`${day}_temp_${i}`, ea.ALL).withValueMin(0.5)
+                    expose.withFeature(e.numeric(`${day}_temp_${i}`, ea.ALL).withValueMin(0.5)
                         .withValueMax(29.5).withValueStep(0.5).withUnit('°C').withDescription(`Temperature ${i}`));
-                    expose.withFeature(exposes.enum(`${day}_hour_${i}`, ea.STATE_SET,
+                    expose.withFeature(e.enum(`${day}_hour_${i}`, ea.STATE_SET,
                         ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09',
                             '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
                             '20', '21', '22', '23', '24']).withDescription(`Hour TO for temp ${i}`));
-                    expose.withFeature(exposes.enum(`${day}_minute_${i}`, ea.STATE_SET, ['00', '15', '30', '45'])
+                    expose.withFeature(e.enum(`${day}_minute_${i}`, ea.STATE_SET, ['00', '15', '30', '45'])
                         .withDescription(`Minute TO for temp ${i}`));
                 });
                 return expose;
@@ -555,3 +560,6 @@ module.exports = [
         ],
     },
 ];
+
+export default definitions;
+module.exports = definitions;

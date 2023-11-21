@@ -85,7 +85,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['AD-Dimmer'],
         model: '81849',
         vendor: 'AduroSmart',
-        description: 'ERIA build-in multi dimmer module 300W',
+        description: 'ERIA built-in multi dimmer module 300W',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
@@ -129,6 +129,14 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true},
     },
+    {
+        zigbeeModel: ['AD-81812', 'AD-ColorTemperature3001'],
+        model: '81812/81814',
+        vendor: 'AduroSmart',
+        description: 'Eria tunable white A19/BR30 smart bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

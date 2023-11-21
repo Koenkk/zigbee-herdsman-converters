@@ -38,7 +38,7 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
         throw new Error(`No images found in the ${useBetaChannel ? 'beta' : 'production'} channel for the device '${device.modelID}'`,
         );
     }
-    // version in the firmare removes the zero padding and support hex versioning
+    // version in the firmware removes the zero padding and support hex versioning
     return {
         // @ts-expect-error
         fileVersion: parseFloat(image.version, image.version.match(/[A-F]/) ? 16 : 10),

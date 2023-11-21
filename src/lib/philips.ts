@@ -47,9 +47,11 @@ const knownEffects = {
     '0380': 'colorloop',
     '0980': 'sunrise',
     '0a80': 'sparkle',
+    '0b80': 'opal',
+    '0c80': 'glisten',
 };
 
-const extend = {
+export const extend = {
     light_onoff_brightness: (options: Extend.options_light_onoff_brightness & {disableHueEffects?: boolean}={}) => {
         options = {disableHueEffects: false, ...options};
         if (!options.disableHueEffects) options.disableEffect = true;
@@ -402,10 +404,12 @@ const hueEffects = {
     'colorloop': '21000103',
     'sunrise': '21000109',
     'sparkle': '2100010a',
+    'opal': '2100010b',
+    'glisten': '2100010c',
     'stop_hue_effect': '200000',
 };
 
-const philipsFz = {
+export const philipsFz = {
     hue_tap_dial: {
         cluster: 'manuSpecificPhilips',
         type: 'commandHueNotification',
@@ -413,8 +417,6 @@ const philipsFz = {
         convert: (model, msg, publish, options, meta) => {
             const buttonLookup: KeyValue = {1: 'button_1', 2: 'button_2', 3: 'button_3', 4: 'button_4', 20: 'dial'};
             const button = buttonLookup[msg.data['button']];
-            const typeLookup: KeyValue = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
-            const type = typeLookup[msg.data['type']];
             const direction = msg.data['unknown2'] <127 ? 'right' : 'left';
             const time = msg.data['time'];
             const payload: KeyValue = {};
@@ -424,6 +426,13 @@ const philipsFz = {
                 const dialType = 'rotate';
                 const speed = adjustedTime <= 25 ? 'step' : adjustedTime <= 75 ? 'slow' : 'fast';
                 payload.action = `${button}_${dialType}_${direction}_${speed}`;
+
+                // extra raw info about dial turning
+                const typeLookup: KeyValue = {1: 'step', 2: 'rotate'};
+                const type = typeLookup[msg.data['type']];
+                payload.action_time = adjustedTime;
+                payload.action_direction = direction;
+                payload.action_type = type;
 
                 // simulated brightness
                 if (options.simulated_brightness) {
@@ -436,6 +445,8 @@ const philipsFz = {
                     globalStore.putValue(msg.endpoint, 'brightness', payload.brightness);
                 }
             } else {
+                const typeLookup: KeyValue = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
+                const type = typeLookup[msg.data['type']];
                 payload.action = `${button}_${type}`;
                 // duration
                 if (type === 'press') globalStore.putValue(msg.endpoint, 'press_start', Date.now());

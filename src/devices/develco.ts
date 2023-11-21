@@ -26,7 +26,7 @@ const develcoLedControlMap = {
     0xFF: 'both',
 };
 
-// develco specific convertors
+// develco specific converters
 const develco = {
     configure: {
         read_sw_hw_version: async (device: Zh.Device, logger: Logger) => {
@@ -105,7 +105,6 @@ const develco = {
                 if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
                     result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] =
                         constants.develcoInterfaceMode.hasOwnProperty(msg.data['develcoInterfaceMode']) ?
-                            // @ts-expect-error
                             constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
                             msg.data['develcoInterfaceMode'];
                 }
@@ -169,15 +168,15 @@ const develco = {
         voc_battery: {
             cluster: 'genPowerCfg',
             type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
+            convert: async (model, msg, publish, options, meta) => {
                 /*
                  * Per the technical documentation for AQSZB-110:
                  * To detect low battery the system can monitor the "BatteryVoltage" by setting up a reporting interval of every 12 hour.
                  * When a voltage of 2.5V is measured the battery should be replaced.
                  * Low batt LED indication–RED LED will blink twice every 60 second.
                  */
-                const result = fz.battery.convert(model, msg, publish, options, meta);
-                result.battery_low = (result.voltage <= 2500);
+                const result = await fz.battery.convert(model, msg, publish, options, meta);
+                if (result) result.battery_low = (result.voltage <= 2500);
                 return result;
             },
         } as Fz.Converter,
@@ -294,6 +293,7 @@ const definitions: Definition[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.power_reactive(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
@@ -319,6 +319,7 @@ const definitions: Definition[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature(), e.ac_frequency()],
         options: [exposes.options.precision(`ac_frequency`)],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -347,6 +348,7 @@ const definitions: Definition[] = [
         description: 'Power plug (type G)',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
@@ -372,6 +374,7 @@ const definitions: Definition[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
@@ -448,7 +451,7 @@ const definitions: Definition[] = [
             e.voltage_phase_c()],
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'seMetering' && data.data['divisor']) {
-                // Device sends wrong divisior (512) while it should be fixed to 1000
+                // Device sends wrong divisor (512) while it should be fixed to 1000
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
                 data.endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
             }
@@ -459,6 +462,10 @@ const definitions: Definition[] = [
         model: 'SMSZB-120',
         vendor: 'Develco',
         description: 'Smoke detector with siren',
+        whiteLabel: [
+            {vendor: 'Frient', model: '94430', description: 'Smart Intelligent Smoke Alarm'},
+            {vendor: 'Cavius', model: '2103', description: 'RF SMOKE ALARM, 5 YEAR 65MM'},
+        ],
         fromZigbee: [develco.fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
             fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
@@ -518,6 +525,9 @@ const definitions: Definition[] = [
         model: 'HESZB-120',
         vendor: 'Develco',
         description: 'Fire detector with siren',
+        whiteLabel: [
+            {vendor: 'Frient', model: '94431', description: 'Smart Intelligent Heat Alarm'},
+        ],
         fromZigbee: [develco.fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
             fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
@@ -645,7 +655,7 @@ const definitions: Definition[] = [
             const dynExposes = [];
             dynExposes.push(e.occupancy());
             if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
-                dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('second').
+                dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').
                     withValueMin(20).withValueMax(65535));
             }
             dynExposes.push(e.temperature());
@@ -946,4 +956,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;
