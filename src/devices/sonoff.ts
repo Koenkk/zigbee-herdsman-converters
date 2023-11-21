@@ -441,7 +441,6 @@ const definitions: Definition[] = [
         toZigbee: [],
         ota: ota.zigbeeOTA,
         exposes: [e.occupancy()],
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['TRVZB'],
