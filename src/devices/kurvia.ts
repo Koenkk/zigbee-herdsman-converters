@@ -11,6 +11,7 @@ const definitions: Definition[] = [
         vendor: 'KURVIA',
         description: 'GU10 GRBWC built from AliExpress',
         extend: extendData,
+        // FIXME: This doesn't satisfy the constraints of Tz.Converter[] and may be an unsafe assertion
         toZigbee: ([tz.on_off] as Tz.Converter[]).concat(extendData.toZigbee),
         meta: {applyRedFix: true, supportsEnhancedHue: false},
     },
