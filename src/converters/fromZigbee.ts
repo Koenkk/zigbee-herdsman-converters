@@ -6164,7 +6164,7 @@ const converters2 = {
             // also trigger movement, because there is no illuminance without movement
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1925
             msg.data.occupancy = 1;
-            const payload = await converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta);
+            const payload = await converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (payload) {
                 // DEPRECATED: remove illuminance_lux here.
                 const illuminance = msg.data['measuredValue'];
@@ -6209,7 +6209,7 @@ const converters2 = {
                 const sidelookup: KeyValueAny = {5: 'right', 7: 'right', 40: 'left', 56: 'left'};
                 if (sidelookup[value]) {
                     msg.data.occupancy = 1;
-                    const payload = await converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta);
+                    const payload = await converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
                     if (payload) {
                         payload.action_side = sidelookup[value];
                         payload.side = sidelookup[value]; /* legacy: remove this line (replaced by action_side) */
