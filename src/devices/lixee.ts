@@ -121,7 +121,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     lixee_private_fz: {
         cluster: 'liXeePrivate', // 0xFF66
         type: ['attributeReport', 'readResponse'],
@@ -197,7 +197,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     lixee_metering: {
         cluster: 'seMetering', // 0x0702
         type: ['attributeReport', 'readResponse'],
@@ -261,7 +261,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 

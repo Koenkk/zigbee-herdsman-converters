@@ -20,7 +20,7 @@ const fzLocal = {
                 return {[property]: currentLevel > 0 ? 'ON' : 'OFF'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [

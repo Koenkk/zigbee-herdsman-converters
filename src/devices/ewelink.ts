@@ -14,7 +14,7 @@ const fzLocal = {
             if (msg.endpoint.ID != 1) return;
             return {rain: (zoneStatus & 1) > 0};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [

@@ -41,7 +41,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -93,7 +93,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.namron_panelheater.convertGet ${key}`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [

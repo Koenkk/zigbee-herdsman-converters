@@ -169,7 +169,7 @@ const philipsTz = {
             const payload = {data: Buffer.from(scene, 'hex')};
             await entity.command('manuSpecificPhilips2', 'multiColor', payload);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     gradient: (opts = {reverse: false}) => {
         return {
             key: ['gradient'],
@@ -182,7 +182,7 @@ const philipsTz = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificPhilips2', ['state']);
             },
-        } as Tz.Converter;
+        } satisfies Tz.Converter;
     },
     effect: {
         key: ['effect'],
@@ -194,7 +194,7 @@ const philipsTz = {
                 return await tz.effect.convertSet(entity, key, value, meta);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     hue_power_on_behavior: {
         key: ['hue_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -281,7 +281,7 @@ const philipsTz = {
 
             return {state: {hue_power_on_behavior: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     hue_power_on_error: {
         key: ['hue_power_on_brightness', 'hue_power_on_color_temperature', 'hue_power_on_color'],
         convertSet: async (entity, key, value, meta) => {
@@ -289,7 +289,7 @@ const philipsTz = {
                 throw new Error(`Provide a value for 'hue_power_on_behavior'`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     hue_motion_sensitivity: {
         // motion detect sensitivity, philips specific
         key: ['motion_sensitivity'],
@@ -303,7 +303,7 @@ const philipsTz = {
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', [48], manufacturerOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     hue_motion_led_indication: {
         key: ['led_indication'],
         convertSet: async (entity, key, value, meta) => {
@@ -314,7 +314,7 @@ const philipsTz = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genBasic', [0x0033], manufacturerOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 export {philipsTz as tz};
 
@@ -456,7 +456,7 @@ export const philipsFz = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     gradient: (opts = {reverse: false}) => {
         return {
             cluster: 'manuSpecificPhilips2',
@@ -471,7 +471,7 @@ export const philipsFz = {
                 }
                 return {};
             },
-        } as Fz.Converter;
+        } satisfies Fz.Converter;
     },
 };
 
