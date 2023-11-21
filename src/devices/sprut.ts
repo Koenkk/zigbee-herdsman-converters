@@ -93,9 +93,6 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     co2_mh_z19b_config: {
-        // FIXME: There is no "key" on type Converter
-        // @ts-expect-error
-        key: ['co2_autocalibration', 'co2_manual_calibration'],
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -108,9 +105,6 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     th_heater: {
-        // FIXME: There is no "key" on type Converter
-        // @ts-expect-error
-        key: ['th_heater'],
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
