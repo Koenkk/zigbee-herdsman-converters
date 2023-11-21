@@ -5217,10 +5217,12 @@ const getAttributeSetter = (keys: string[]) => {
                 const attrname = attr[2];
                 const attrtype = attr[3];
                 const lookup = attr[4];
-                const val = (lookup) ? utils.getFromLookup(value, lookup) : ((attrtype == 0x10) ? ((value) ? 1 : 0) : value);
+                const val = (lookup) ?
+                    ((typeof lookup == 'number') ? utils.toNumber(value) * utils.toNumber(lookup) : utils.getFromLookup(value, lookup)) :
+                    ((attrtype == 0x10) ? ((value) ? 1 : 0) : value);
                 await entity.write(cl, {[attrname]: {value: val, type: attrtype}}, {manufacturerCode: 0x115f});
             } else {
-                meta.logger.info(`Attribute "${key}" not defined in attributes`);
+                meta.logger.debug(`Attribute "${key}" not defined in attributes`);
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -5234,7 +5236,7 @@ const getAttributeSetter = (keys: string[]) => {
                 const attrname = attr[2];
                 await entity.read(cl, [attrname], {manufacturerCode: 0x115f});
             } else {
-                meta.logger.info(`Attribute "${key}" not defined in attributes`);
+                meta.logger.debug(`Attribute "${key}" not defined in attributes`);
             }
         },
     } as Tz.Converter;

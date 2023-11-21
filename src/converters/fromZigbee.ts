@@ -37,7 +37,9 @@ const getAttributeGetter = (cluster: string | number) => {
                     const lookup = attr[4];
                     if ((!ep || ep == msg.endpoint.ID) && cl == msg.cluster && (attrname == key || attrname == parseInt(key))) {
                         const attrname = (!ep) ? utils.postfixWithEndpointName(name, msg, model, meta) : name;
-                        const val = (lookup) ? utils.getKey(lookup, value) : ((attrtype == 0x10) ? (value == 1) : value);
+                        const val = (lookup) ?
+                            ((typeof lookup == 'number') ? utils.toNumber(value)/utils.toNumber(lookup) : utils.getKey(lookup, value)) :
+                            ((attrtype == 0x10) ? (value == 1) : value);
                         result[attrname] = val;
                         found = true;
                     }

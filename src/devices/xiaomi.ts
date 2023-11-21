@@ -981,8 +981,38 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'RLS-K01D'}],
         description: 'Aqara Zigbee 3.0 LED strip T1',
-        extend: extend.light_onoff_brightness_colortemp_color(
-            {disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370]}),
+        meta: {
+            attributes: {
+                'power_on_behavior': [1, 'aqaraOpple', 0x0517, 0x20, {'on': 0, 'previous': 1, 'off': 2}],
+                'length': [1, 'aqaraOpple', 0x051b, 0x20, 5],
+                'minimum': [1, 'aqaraOpple', 0x0515, 0x20],
+                'maximum': [1, 'aqaraOpple', 0x0516, 0x20],
+                'audio': [1, 'aqaraOpple', 0x051c, 0x20, {'OFF': 0, 'ON': 1}],
+                'audio_sensitivity': [1, 'aqaraOpple', 0x051e, 0x20, {'low': 0, 'medium': 1, 'high': 2}],
+                'audio_effect': [1, 'aqaraOpple', 0x051d, 0x23, {'random': 0, 'blink': 1, 'rainbow': 2, 'wave': 3}],
+            },
+        },
+        extend: extend.light_onoff_brightness_colortemp_color({
+            disableEffect: true,
+            disablePowerOnBehavior: true,
+            disableColorTempStartup: true,
+            colorTempRange: [153, 370],
+            fromZigbee: [fz.getAttributeGetter('aqaraOpple')],
+            toZigbee: [tz.getAttributeSetter(['power_on_behavior', 'length', 'minimum', 'maximum',
+                'audio', 'audio_sensitivity', 'audio_effect'])],
+            exposes: [
+                e.power_on_behavior(['off', 'on', 'previous']),
+                e.numeric('length', ea.ALL).withValueMin(1).withValueMax(10).withValueStep(0.2).withUnit('m')
+                    .withDescription('LED strip length'),
+                e.numeric('minimum', ea.ALL).withValueMin(0).withValueMax(99).withUnit('%')
+                    .withDescription('Minimum brightness level'),
+                e.numeric('maximum', ea.ALL).withValueMin(1).withValueMax(100).withUnit('%')
+                    .withDescription('Maximum brightness level'),
+                e.binary('audio', ea.ALL, 'ON', 'OFF').withDescription('Enabling audio'),
+                e.enum('audio_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Audio sensitivity'),
+                e.enum('audio_effect', ea.ALL, ['random', 'blink', 'rainbow', 'wave']).withDescription('Audio effect'),
+            ],
+        }),
         ota: ota.zigbeeOTA,
     },
     {
