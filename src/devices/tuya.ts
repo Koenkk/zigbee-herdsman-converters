@@ -2701,7 +2701,8 @@ const definitions: Definition[] = [
         meta: {
             tuyaDatapoints: [
                 [49, 'running_state', tuya.valueConverterBasic.lookup({'heat': tuya.enum(1), 'idle': tuya.enum(0)})],
-                [2, 'preset', tuya.valueConverterBasic.lookup({'comf': tuya.enum(3), 'aut': tuya.enum(0), 'man': tuya.enum(2), 'hol': tuya.enum(1)})],
+                [2, 'preset', tuya.valueConverterBasic.lookup({'comfort': tuya.enum(3), 'auto': tuya.enum(0), 
+                'manual': tuya.enum(2), 'holiday': tuya.enum(1)})],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [6, 'battery', tuya.valueConverter.raw],
