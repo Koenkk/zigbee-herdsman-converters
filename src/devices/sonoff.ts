@@ -370,6 +370,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.action(['single', 'double', 'long']), e.battery_low(), e.battery_voltage()],
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
@@ -385,6 +386,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_low(), e.battery_voltage()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
                 const endpoint = device.getEndpoint(1);
@@ -406,6 +408,23 @@ const definitions: Definition[] = [
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+        },
+    },
+    {
+        zigbeeModel: ['SNZB-03P'],
+        model: 'SNZB-03P',
+        vendor: 'SONOFF',
+        description: 'Zigbee PIR sensor',
+        fromZigbee: [fz.occupancy],
+        toZigbee: [],
+        ota: ota.zigbeeOTA,
+        exposes: [e.occupancy(), e.battery_low(), e.battery()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -420,8 +439,8 @@ const definitions: Definition[] = [
         description: 'Zigbee occupancy sensor',
         fromZigbee: [fz.occupancy],
         toZigbee: [],
-        exposes: [e.occupancy()],
         ota: ota.zigbeeOTA,
+        exposes: [e.occupancy()],
     },
     {
         zigbeeModel: ['TRVZB'],
