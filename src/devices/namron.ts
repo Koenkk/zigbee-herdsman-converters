@@ -923,7 +923,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['4512766'],
+        zigbeeModel: ['4512766', '4512767'],
         model: '4512766',
         vendor: 'Namron',
         description: 'Zigbee smart plug 16A',
