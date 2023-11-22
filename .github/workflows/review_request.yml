@@ -8,5 +8,5 @@ jobs:
     steps:
       - uses: ethanis/nitpicker@v1
         with:
-          nitpicks: .github/nitpicks.yml
+          nitpicks: './.github/nitpicks.yml'
           token: '${{ secrets.GITHUB_TOKEN }}'
