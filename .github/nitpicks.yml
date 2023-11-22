@@ -1,8 +1,3 @@
-files:
-  'src/devices/vesternet.ts':
-    - martyn-vesternet
-
-
 - markdown: |
     Since you are the file owner, could you check this @martyn-vesternet?
   pathFilter:
