@@ -10,6 +10,19 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['5121.10'],
+        model: '5121.10',
+        vendor: 'Iluminize',
+        description: 'Rotary dimmer with integrated Zigbee 3.0 dimming actuator',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['5120.2210'],
         model: '5120.2210',
         vendor: 'Iluminize',
