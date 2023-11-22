@@ -185,12 +185,12 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'Dimmable Light', manufacturerName: 'Paulmann lamp'},
-            {modelID: 'Dimmable Light ', manufacturerName: 'Paulmann lamp '}
+            {modelID: 'Dimmable Light ', manufacturerName: 'Paulmann lamp '},
         ],
         model: '501.22',
         vendor: 'Paulmann',
         description: 'Paulmann White E27 LED Bulb, Dimmable',
-        extend: extend.light_onoff_brightness()
+        extend: extend.light_onoff_brightness(),
     },
 ];
 
