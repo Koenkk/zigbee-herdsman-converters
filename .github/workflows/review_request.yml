@@ -1,0 +1,12 @@
+name: review_request
+
+on: [pull_request]
+
+jobs:
+  review-request:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ethanis/nitpicker@v1
+        with:
+          nitpicks: '.github/nitpicks.yml'
+          token: '${{ secrets.GITHUB_TOKEN }}'
