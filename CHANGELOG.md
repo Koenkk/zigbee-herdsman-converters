@@ -1,5 +1,22 @@
 # Changelog
 
+## [15.123.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.122.0...v15.123.0) (2023-11-22)
+
+
+### Features
+
+* Add new fingerprint to SNZB-03 ([#6542](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6542)) ([f906b26](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f906b2644ccc4a5a3cfb9933482622710b7b50d6))
+* Add new Tariff names for LiXee ([#6531](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6531)) ([c276f74](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c276f7441286ab76040998134038b034f1e6f019))
+* **add:** 5121.10 ([#6541](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6541)) ([523349e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/523349e729608df702dd6a19b96d66a7ec7e92c4))
+* **add:** ZB-R01 https://github.com/Koenkk/zigbee2mqtt/issues/19653 ([bb508d2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bb508d228e5b34d5bf5ef1fdb54b9fbeb50e1621))
+
+
+### Bug Fixes
+
+* **ignore:** Revert "fix: Fix Vesternet VES-ZB-SWI-015 configure failing ([#6412](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6412))" ([#6540](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6540)) ([139c6c8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/139c6c8b49822f5516e10163b82e36cbd790b81a))
+* **ignore:** Update `as` assertions to `satisfies` ([#6527](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6527)) ([14cd7e6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14cd7e63a8bbce9f937a0bed8bbe6eb8a31862d5))
+* Various fixes for TuYa BAB-1413_Pro ([#6534](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6534)) ([6468cac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6468cacb4c064753e40fb3024c806194d7f98306))
+
 ## [15.122.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.121.0...v15.122.0) (2023-11-21)
 
 
