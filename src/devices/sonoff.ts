@@ -288,6 +288,12 @@ const definitions: Definition[] = [
                     {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
                 ],
             },
+            {
+                // SNZB-O3 OUVOPO Wireless Motion Sensor (2023)
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'SNZB-03', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
+                ],
+            },
         ],
         zigbeeModel: ['MS01', 'MSO1'],
         model: 'SNZB-03',
