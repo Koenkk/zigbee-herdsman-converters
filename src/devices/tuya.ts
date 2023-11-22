@@ -2663,12 +2663,15 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.child_lock(),
-            e.open_window_temperature().withValueMin(5).withValueMax(30),
-            e.comfort_temperature().withValueMin(5).withValueMax(30),
-            e.eco_temperature().withValueMin(5).withValueMax(30),
-            e.holiday_temperature().withValueMin(5).withValueMax(30),
-            e.climate().withPreset(['auto', 'manual', 'holiday', 'comfort']).withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
+            e.battery(), e.child_lock(),
+            e.max_temperature().withValueMin(15).withValueMax(45),
+            e.min_temperature().withValueMin(5).withValueMax(15),
+            e.window_detection(),
+            e.open_window_temperature().withValueMin(5).withValueMax(25),
+            e.comfort_temperature().withValueMin(5).withValueMax(35),
+            e.eco_temperature().withValueMin(5).withValueMax(35),
+            e.holiday_temperature().withValueMin(5).withValueMax(35),
+            e.climate().withPreset(['auto', 'manual', 'holiday', 'comfort']).withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET, 'Only for Homeassistant')
                 .withRunningState(['idle', 'heat'], ea.STATE_SET),
@@ -2677,16 +2680,7 @@ const definitions: Definition[] = [
             e.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('s').withDescription('Setting '+
                     'minimum 0 - maximum 465 seconds boost time. The boost function is activated. The remaining '+
                     'time for the function will be counted down in seconds ( 465 to 0 ).').withValueMin(0).withValueMax(465),
-            e.text('holiday_start_stop', ea.STATE_SET).withDescription('The holiday mode will automatically start ' +
-                'at the set time starting point and run the holiday temperature. Can be defined in the following format: ' +
-                '`startYear/startMonth/startDay startHours:startMinutes | endYear/endMonth/endDay endHours:endMinutes`. ' +
-                'For example: `2022/10/01 16:30 | 2022/10/21 18:10`. After the end of holiday mode, it switches to "auto" ' +
-                'mode and uses schedule.'),
-            e.enum('working_day', ea.STATE_SET, ['mon_sun', 'mon_fri+sat+sun', 'separate']).withDescription('`mon_sun` ' +
-                '- schedule for Monday used for each day (define it only for Monday). `mon_fri+sat+sun` - schedule for ' +
-                'workdays used from Monday (define it only for Monday), Saturday and Sunday are defined separately. `separate` ' +
-                '- schedule for each day is defined separately.'),
-            e.composite('schedule', 'schedule', ea.SET).withFeature(e.enum('week_day', ea.SET, ['monday', 'tuesday',
+            e.composite('schedule', 'schedule', ea.STATE_SET).withFeature(e.enum('week_day', ea.SET, ['monday', 'tuesday',
                 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])).withFeature(e.text('schedule', ea.SET))
                 .withDescription('Schedule will work with "auto" preset. In this mode, the device executes ' +
                 'a preset week programming temperature time and temperature. Before using these properties, check `working_day` ' +
@@ -2713,20 +2707,21 @@ const definitions: Definition[] = [
                 [7, 'child_lock', tuya.valueConverter.lockUnlock],
                 [9, 'max_temperature_limit', tuya.valueConverter.divideBy10],
                 [10, 'min_temperature_limit', tuya.valueConverter.divideBy10],
-                [14, 'open_window', tuya.valueConverter.onOff],
+                [14, 'window_detection', tuya.valueConverter.onOff],
                 [16, 'open_window_temperature', tuya.valueConverter.divideBy10],
                 [17, 'open_window_time', tuya.valueConverter.raw],
+                [18, 'backlight', tuya.valueConverter.raw],
                 [19, 'factory_reset', tuya.valueConverter.setLimit],
                 [21, 'holiday_temperature', tuya.valueConverter.raw],
                 [24, 'comfort_temperature', tuya.valueConverter.divideBy10],
                 [25, 'eco_temperature', tuya.valueConverter.divideBy10],
-                [28, 'schedule_monday', tuya.valueConverter.thermostatScheduleDaySingleDP],
-                [29, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDaySingleDP],
-                [30, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDaySingleDP],
-                [31, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDaySingleDP],
-                [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDaySingleDP],
-                [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDaySingleDP],
-                [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDaySingleDP],
+                [28, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [29, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [30, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [31, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [32, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [33, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [34, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDP],
                 [35, 'error_status', tuya.valueConverter.raw],
                 [36, 'frost_protection', tuya.valueConverter.onOff],
                 [37, 'boost_heating', tuya.valueConverter.onOff],
