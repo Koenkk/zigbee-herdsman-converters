@@ -6,6 +6,7 @@ jobs:
   review-request:
     runs-on: ubuntu-latest
     steps:
+      - run: cat 
       - uses: ethanis/nitpicker@v1
         with:
           nitpicks: './.github/nitpicks.yml'
