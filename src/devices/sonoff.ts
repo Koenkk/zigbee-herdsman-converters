@@ -22,7 +22,7 @@ const fzLocal = {
                 result.light_indicator_level = msg.data['currentLevel'];
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     child_lock: {
         cluster: '64529',
         type: ['attributeReport', 'readResponse'],
@@ -36,7 +36,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     open_window: {
         cluster: '64529',
         type: ['attributeReport', 'readResponse'],
@@ -50,7 +50,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     frost_protection_temperature: {
         cluster: '64529',
         type: ['attributeReport', 'readResponse'],
@@ -64,7 +64,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -81,7 +81,7 @@ const tzLocal = {
                 },
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     open_window: {
         key: ['open_window'],
         convertGet: async (entity, key, meta) => {
@@ -95,7 +95,7 @@ const tzLocal = {
                 },
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     frost_protection_temperature: {
         key: ['frost_protection_temperature'],
         convertGet: async (entity, key, meta) => {
@@ -109,7 +109,7 @@ const tzLocal = {
                 },
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [

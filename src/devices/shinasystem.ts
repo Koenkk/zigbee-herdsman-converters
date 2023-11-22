@@ -26,7 +26,7 @@ const fzLocal = {
                 occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     DMS300_OUT: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -41,7 +41,7 @@ const fzLocal = {
                 occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ISM300Z3_on_off: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -55,7 +55,7 @@ const fzLocal = {
                 return {operation_mode: utils.getFromLookup(value, lookup)};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -157,7 +157,7 @@ const tzLocal = {
             }
             await endpoint.write('genAnalogInput', payload);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ISM300Z3_on_off: {
         key: ['state', 'operation_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -188,7 +188,7 @@ const tzLocal = {
                 await entity.read('genOnOff', ['onOff']);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ISM300Z3_rf_pairing: {
         key: ['rf_pairing'],
         convertSet: async (entity, key, value, meta) => {
@@ -196,7 +196,7 @@ const tzLocal = {
             const payload = {0x9001: {value: utils.getFromLookup(value, lookup), type: 0x20}}; // INT8U
             await entity.write('genOnOff', payload);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [

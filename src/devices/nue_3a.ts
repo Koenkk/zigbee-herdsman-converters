@@ -22,7 +22,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     LXN59_cover_state_via_onoff: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -31,7 +31,7 @@ const fzLocal = {
                 return {state: msg.data['onOff'] === 1 ? 'CLOSE' : 'OPEN'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [

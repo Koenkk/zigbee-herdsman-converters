@@ -197,7 +197,7 @@ const fzLocal = {
 
             return state;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_voc_index: {
         cluster: 'msIkeaVocIndexMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -206,7 +206,7 @@ const fzLocal = {
                 return {voc_index: msg.data['measuredValue']};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -231,7 +231,7 @@ const fzLocal = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
     // https://github.com/Koenkk/zigbee2mqtt/issues/13335
     styrbar_on: {
@@ -244,7 +244,7 @@ const fzLocal = {
                 return {action: 'on'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     styrbar_arrow_release: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowRelease',
@@ -261,7 +261,7 @@ const fzLocal = {
                 return result;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_dots_click_v1: {
         // For remotes with firmware 1.0.012 (20211214)
         cluster: 64639,
@@ -278,7 +278,7 @@ const fzLocal = {
 
             return {action: `dots_${button}_${action}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_dots_click_v2: {
         // For remotes with firmware 1.0.32 (20221219)
         cluster: 'heimanSpecificScenes',
@@ -301,7 +301,7 @@ const fzLocal = {
 
             return {action: `dots_${button}_${action}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_volume_click: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
@@ -309,7 +309,7 @@ const fzLocal = {
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             return {action: `volume_${direction}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_volume_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
@@ -317,7 +317,7 @@ const fzLocal = {
             const direction = msg.data.movemode === 1 ? 'down_hold' : 'up_hold';
             return {action: `volume_${direction}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_track_click: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
@@ -326,7 +326,7 @@ const fzLocal = {
             const direction = msg.data.stepmode === 1 ? 'previous' : 'next';
             return {action: `track_${direction}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -357,25 +357,25 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['fanMode']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     air_purifier_fan_speed: {
         key: ['fan_speed'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['fanSpeed']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     air_purifier_pm25: {
         key: ['pm25', 'air_quality'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['particulateMatter25Measurement']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     air_purifier_replace_filter: {
         key: ['replace_filter', 'filter_age'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     air_purifier_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
@@ -387,7 +387,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['childLock']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     air_purifier_led_enable: {
         key: ['led_enable'],
         convertSet: async (entity, key, value, meta) => {
@@ -397,7 +397,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['controlPanelLight']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [

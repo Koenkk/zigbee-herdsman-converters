@@ -16,7 +16,7 @@ const jetHome = {
                 const action = utils.getFromLookup(value, actionLookup);
                 return {action: utils.postfixWithEndpointName(action, msg, model, meta)};
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
     },
 };
 

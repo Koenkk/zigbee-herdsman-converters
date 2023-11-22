@@ -31,7 +31,7 @@ const fzLocal = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [

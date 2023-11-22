@@ -20,7 +20,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -30,7 +30,7 @@ const tzLocal = {
             await entity.write('ssIasZone', {0x0013: {value, type: 0x20}});
             return {state: {sensitivity: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
