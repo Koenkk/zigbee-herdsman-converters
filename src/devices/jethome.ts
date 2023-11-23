@@ -13,8 +13,9 @@ const jetHome = {
             cluster: 'genMultistateInput',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const actionLookup = {0: 'release', 1: 'single', 2: 'double', 3: 'triple', 4: 'hold', 257: 'single', 258: 'double',
-                    513: 'single', 514: 'double'};
+                const actionLookup = {0: 'release', 1: 'single', 2: 'double', 3: 'triple', 4: 'hold', 256: 'release', 257: 'single', 258: 'double',
+                    259: 'triple', 260: 'hold', 512: 'release', 513: 'single', 514: 'double', 515: 'triple', 516: 'hold', 1024: 'release',
+                    1025: 'single', 1026: 'double', 1027: 'triple', 1028: 'hold'};
                 const value = msg.data['presentValue'];
                 const action = utils.getFromLookup(value, actionLookup);
                 return {action: utils.postfixWithEndpointName(action, msg, model, meta)};
