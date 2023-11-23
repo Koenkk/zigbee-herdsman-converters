@@ -12,6 +12,7 @@ import {
 import * as exposes from './exposes';
 import * as globalStore from './store';
 import {Fz, Definition, KeyValue, KeyValueAny} from './types';
+import extend from './extend';
 
 declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -1345,6 +1346,51 @@ export const trv = {
 };
 
 export const manufacturerCode = 0x115f;
+
+const xiaomiExtend = {
+    switchType: extend.enumLookup({
+        name: 'switch_type',
+        lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
+        cluster: 'aqaraOpple',
+        attribute: {id: 0x000a, type: 0x20},
+        description: 'External switch type',
+        zigbeeOptions: {manufacturerCode},
+    }),
+};
+
+export {xiaomiExtend as extend};
+
+export const fromZigbee = {
+    xiaomi_basic: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        options: numericAttributes2Options,
+        convert: async (model, msg, publish, options, meta) => {
+            return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+        },
+    } satisfies Fz.Converter,
+    xiaomi_basic_raw: {
+        cluster: 'genBasic',
+        type: ['raw'],
+        options: numericAttributes2Options,
+        convert: async (model, msg, publish, options, meta) => {
+            let payload = {};
+            if (Buffer.isBuffer(msg.data)) {
+                const dataObject = buffer2DataObject(meta, model, msg.data);
+                payload = await numericAttributes2Payload(msg, meta, model, options, dataObject);
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter,
+    aqara_opple: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        options: numericAttributes2Options,
+        convert: async (model, msg, publish, options, meta) => {
+            return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+        },
+    } satisfies Fz.Converter,
+};
 
 exports.buffer2DataObject = buffer2DataObject;
 exports.numericAttributes2Payload = numericAttributes2Payload;
