@@ -114,11 +114,7 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        options: [
-            exposes.options.invert_cover(),
-            e.binary(`invert_cover_actions`, ea.SET, true, false)
-                .withDescription(`Inverts cover actions, false: OPEN=0,CLOSE=2, true: OPEN=2,CLOSE=0 (default false).`),
-        ],
+        options: [exposes.options.invert_cover()],
         exposes: [
             e.text('work_state', ea.STATE),
             e.cover_position().setAccess('position', ea.STATE_SET),
@@ -131,22 +127,25 @@ const definitions: Definition[] = [
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverterBasic.lookup(
-                    (options) => options.invert_cover_actions ?
+                    (options) => options.invert_cover ?
                         {'OPEN': tuya.enum(2), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(0)} :
                         {'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)},
                 )],
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.coverPosition],
                 [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
-                [7, 'work_state', tuya.valueConverterBasic.lookup({'closing': tuya.enum(0), 'opening': tuya.enum(1)})],
+                [7, 'work_state', tuya.valueConverterBasic.lookup(
+                    (options) => options.invert_cover ?
+                        {'opening': tuya.enum(1), 'closing': tuya.enum(0)} :
+                        {'opening': tuya.enum(0), 'closing': tuya.enum(1)},
+                )],
                 [13, 'battery', tuya.valueConverter.raw],
-                [101, 'program', tuya.valueConverterBasic.lookup({
-                    'set_bottom': tuya.enum(0), 'set_upper': tuya.enum(1), 'reset': tuya.enum(4),
-                }, null)],
-                [101, 'click_control', tuya.valueConverterBasic.lookup({
-                    'lower': tuya.enum(2), 'upper': tuya.enum(3),
-                    'lower_micro': tuya.enum(5), 'upper_micro': tuya.enum(6),
-                }, null)],
+                [101, 'program', tuya.valueConverterBasic.lookup((options) => options.invert_cover ?
+                    {'set_bottom': tuya.enum(0), 'set_upper': tuya.enum(1), 'reset': tuya.enum(4)} :
+                    {'set_bottom': tuya.enum(1), 'set_upper': tuya.enum(0), 'reset': tuya.enum(4)}, null)],
+                [101, 'click_control', tuya.valueConverterBasic.lookup((options) => options.invert_cover ?
+                    {'lower': tuya.enum(2), 'upper': tuya.enum(3), 'lower_micro': tuya.enum(5), 'upper_micro': tuya.enum(6)} :
+                    {'lower': tuya.enum(3), 'upper': tuya.enum(2), 'lower_micro': tuya.enum(6), 'upper_micro': tuya.enum(5)}, null)],
             ],
         },
     },
