@@ -76,25 +76,25 @@ const configureRemote: Configure = async (device, coordinatorEndpoint, logger) =
 };
 
 const tradfriExtend = {
-    light_onoff_brightness: (options: Extend.options_light_onoff_brightness = {}) => ({
+    light_onoff_brightness: (options: Extend.options_light_onoff_brightness = {}): Extend => ({
         ...extend.light_onoff_brightness(options),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
-    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp = {colorTempRange: [250, 454]}) => ({
+    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp = {colorTempRange: [250, 454]}): Extend => ({
         ...extend.light_onoff_brightness_colortemp(options),
         exposes: [...extend.light_onoff_brightness_colortemp(options).exposes, e.light_color_options()],
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
     light_onoff_brightness_colortemp_color: (
-        options: Extend.options_light_onoff_brightness_colortemp_color = {disableColorTempStartup: true, colorTempRange: [250, 454]}) => ({
+        options: Extend.options_light_onoff_brightness_colortemp_color = {disableColorTempStartup: true, colorTempRange: [250, 454]}): Extend => ({
         ...extend.light_onoff_brightness_colortemp_color(options),
         exposes: [...extend.light_onoff_brightness_colortemp_color(options).exposes, e.light_color_options()],
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
-    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color = {}) => ({
+    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color = {}): Extend => ({
         ...extend.light_onoff_brightness_color(options),
         exposes: [...extend.light_onoff_brightness_color(options).exposes, e.light_color_options()],
         ota: ota.tradfri,
