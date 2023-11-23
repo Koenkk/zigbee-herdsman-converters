@@ -69,7 +69,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'ZGRC-KEY-013', softwareBuildID: '2.5.3_r20'}, {modelID: 'ZGRC-KEY-013', softwareBuildID: '2.7.6_r25'}],
+        fingerprint: [{modelID: 'ZGRC-KEY-013', softwareBuildID: '2.7.6_r25'}],
         model: 'VES-ZB-REM-013',
         vendor: 'Vesternet',
         description: 'Zigbee remote control - 12 button',
@@ -78,6 +78,25 @@ const definitions: Definition[] = [
             e.action(['on_*', 'off_*', 'stop_*', 'brightness_move_up_*', 'brightness_move_down_*', 'brightness_stop_*', 'recall_*'])],
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}, publishDuplicateTransaction: true},
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K12-DIM-Z4'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genScenes', 'genPowerCfg']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genScenes']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genScenes']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genScenes']);
+            await reporting.batteryPercentageRemaining(device.getEndpoint(1));
+        },
+    },
+    {
+        fingerprint: [{modelID: 'ZGRC-KEY-013', softwareBuildID: '2.7.6_r25'}],
+        model: 'VES-ZB-REM-013',
+        vendor: 'Vesternet',
+        description: 'Zigbee remote control - 12 button',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_recall, fz.battery, fz.ignore_genOta],
+        exposes: [e.battery(),
+            e.action(['on_*', 'off_*', 'stop_*', 'brightness_move_up_*', 'brightness_move_down_*', 'brightness_stop_*', 'recall_*'])],
+        toZigbee: [],
+        meta: {multiEndpoint: true, battery: {dontDividePercentage: false}, publishDuplicateTransaction: true},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K12-DIM-Z4'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genScenes', 'genPowerCfg']);
