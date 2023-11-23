@@ -3563,6 +3563,13 @@ const definitions: Definition[] = [
         description: 'Hue Festavia gradient light string 250',
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500], extraEffects: ['sparkle']}),
     },
+    {
+        zigbeeModel: ['LWA024'],
+        model: '9290018217A',
+        vendor: 'Philips',
+        description: 'Philips Hue White B22 Bulb 800 with Bluetooth', 
+        extend: philips.extend.light_onoff_brightness(),
+    },
 ];
 
 export default definitions;
