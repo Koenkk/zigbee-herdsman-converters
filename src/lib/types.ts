@@ -83,7 +83,18 @@ export interface Extend {
     meta?: DefinitionMeta,
     ota?: DefinitionOta,
     onEvent?: OnEvent,
-    isModernExtend?: boolean,
+    isModernExtend?: false,
+}
+
+export interface ModernExtend {
+    fromZigbee?: Fz.Converter[],
+    toZigbee?: Tz.Converter[],
+    exposes?: Expose[],
+    configure?: Configure,
+    meta?: DefinitionMeta,
+    ota?: DefinitionOta,
+    onEvent?: OnEvent,
+    isModernExtend: true,
 }
 
 export interface OnEventData {
@@ -111,7 +122,7 @@ export type Definition = {
     onEvent?: OnEvent,
     ota?: DefinitionOta,
 } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
-    & ({ extend: Extend | Extend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
+    & ({ extend: Extend | ModernExtend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
         exposes?: (Expose[] | ((device: Zh.Device, options: KeyValue) => Expose[])) } |
     { fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[], exposes: (Expose[] | ((device: Zh.Device, options: KeyValue) => Expose[])) });
 

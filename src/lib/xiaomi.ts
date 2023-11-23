@@ -1347,14 +1347,14 @@ export const trv = {
 
 export const manufacturerCode = 0x115f;
 
-const xiaomiExtend = {
+export const xiaomiExtend = {
     switchType: extend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
         cluster: 'aqaraOpple',
         attribute: {id: 0x000a, type: 0x20},
         description: 'External switch type',
-        zigbeeOptions: {manufacturerCode},
+        zigbeeCommandOptions: {manufacturerCode},
     }),
 };
 
