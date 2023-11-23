@@ -21,7 +21,7 @@ const fzLocal = {
                 return {contact: msg.data['onOff'] === 0};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [

@@ -61,31 +61,75 @@ function validateDefinition(definition: Definition) {
 
 function addDefinition(definition: Definition) {
     if ('extend' in definition) {
-        if (typeof definition.exposes === 'function') {
-            assert.fail(`'${definition.model}' has function exposes which is not allowed`);
-        }
-
-        const {extend, ...definitionWithoutExtend} = definition;
-        const toZigbee = [...definition.toZigbee ?? []];
-        const fromZigbee = [...definition.fromZigbee ?? []];
-        const exposes = [...definition.exposes ?? []];
-        let meta = definitionWithoutExtend.meta;
-        let configure = definitionWithoutExtend.configure;
-
-        for (const ext of Array.isArray(extend) ? extend: [extend]) {
-            if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
-            if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
-            if (ext.exposes) exposes.push(...ext.exposes);
-            if (ext.meta) meta = {...ext.meta, ...meta};
-            if (ext.configure) {
-                if (configure) {
-                    assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
-                }
-                configure = ext.configure;
+        if (Array.isArray(definition.extend)) {
+            // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
+            let {extend, toZigbee, fromZigbee, exposes, meta, configure, onEvent, ota, ...definitionWithoutExtend} = definition;
+            if (typeof exposes === 'function') {
+                assert.fail(`'${definition.model}' has function exposes which is not allowed`);
             }
-        }
 
-        definition = {toZigbee, fromZigbee, exposes, meta, configure, ...definitionWithoutExtend};
+            toZigbee = [...toZigbee ?? []];
+            fromZigbee = [...fromZigbee ?? []];
+            exposes = [...exposes ?? []];
+
+            for (const ext of extend) {
+                if (!ext.isModernExtend) {
+                    assert.fail(`'${definition.model}' has legacy extend in modern extend`);
+                }
+                if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
+                if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
+                if (ext.exposes) exposes.push(...ext.exposes);
+                if (ext.meta) meta = {...ext.meta, ...meta};
+                if (ext.configure) {
+                    if (configure) {
+                        assert.fail(`'${definition.model}' has multiple 'configure', this is not allowed`);
+                    }
+                    configure = ext.configure;
+                }
+                if (ext.ota) {
+                    if (ota) {
+                        assert.fail(`'${definition.model}' has multiple 'ota', this is not allowed`);
+                    }
+                    ota = ext.ota;
+                }
+                if (ext.onEvent) {
+                    if (onEvent) {
+                        assert.fail(`'${definition.model}' has multiple 'onEvent', this is not allowed`);
+                    }
+                    onEvent = ext.onEvent;
+                }
+            }
+            definition = {toZigbee, fromZigbee, exposes, meta, configure, onEvent, ota, ...definitionWithoutExtend};
+        } else {
+            // Legacy extend, overrides properties, e.g. when both extend and definition has toZigbee, definition toZigbee will be used
+            const {extend, ...definitionWithoutExtend} = definition;
+
+            if (extend.isModernExtend) {
+                assert.fail(`'${definition.model}' has modern extend in legacy extend`);
+            }
+            if (extend.configure && definition.configure) {
+                assert.fail(`'${definition.model}' has configure in extend and definition, this is not allowed`);
+            }
+            if (extend.ota && definition.ota) {
+                assert.fail(`'${definition.model}' has OTA in extend and definition, this is not allowed`);
+            }
+            if (extend.onEvent && definition.onEvent) {
+                assert.fail(`'${definition.model}' has onEvent in extend and definition, this is not allowed`);
+            }
+            if (typeof definition.exposes === 'function') {
+                assert.fail(`'${definition.model}' has function exposes which is not allowed`);
+            }
+    
+            const toZigbee = [...definition.toZigbee ?? [], ...extend.toZigbee];
+            const fromZigbee = [...definition.fromZigbee ?? [], ...extend.fromZigbee];
+            const exposes = [...definition.exposes ?? [], ...extend.exposes];
+            const meta = extend.meta || definitionWithoutExtend.meta ? {
+                ...extend.meta,
+                ...definitionWithoutExtend.meta,
+            } : undefined;
+    
+            definition = {...extend, toZigbee, fromZigbee, exposes, meta, ...definitionWithoutExtend};
+        }
     }
 
     definition.toZigbee.push(

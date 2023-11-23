@@ -92,7 +92,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {co2: Math.floor(msg.data.measuredValue)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_s1_pm25: {
         cluster: 'pm25Measurement',
         type: ['attributeReport', 'readResponse'],
@@ -101,7 +101,7 @@ const fzLocal = {
                 return {pm25: msg.data['measuredValue'] / 1000};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_trv: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -190,7 +190,7 @@ const fzLocal = {
             });
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_feeder: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -274,7 +274,7 @@ const fzLocal = {
             });
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_fp1_region_events: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -327,11 +327,10 @@ const fzLocal = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     CTPR01_action_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
-        options: [],
         convert: (model, msg, publish, options, meta) => {
             const value = msg.data['presentValue'];
             let payload;
@@ -358,11 +357,10 @@ const fzLocal = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     CTPR01_action_analog: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
-        options: [],
         convert: (model, msg, publish, options, meta) => {
             const value = msg.data['presentValue'];
             return {
@@ -370,7 +368,7 @@ const fzLocal = {
                 action_angle: Math.floor(value * 100) / 100,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -386,7 +384,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x010C], {manufacturerCode});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     aqara_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
             'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_settings'],
@@ -525,7 +523,7 @@ const tzLocal = {
                 await entity.read('aqaraOpple', [utils.getFromLookup(key, dict)], {manufacturerCode: 0x115F});
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     VOCKQJK11LM_display_unit: {
         key: ['display_unit'],
         convertSet: async (entity, key, value, meta) => {
@@ -536,7 +534,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     aqara_feeder: {
         key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
         convertSet: async (entity, key, value, meta) => {
@@ -611,7 +609,7 @@ const tzLocal = {
             }
             return {state: {[key]: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     aqara_fp1_region_upsert: {
         key: ['region_upsert'],
         convertSet: async (entity, key, value, meta) => {
@@ -675,7 +673,7 @@ const tzLocal = {
 
             await entity.write('aqaraOpple', payload, {manufacturerCode});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     aqara_fp1_region_delete: {
         key: ['region_delete'],
         convertSet: async (entity, key, value, meta) => {
@@ -721,7 +719,7 @@ const tzLocal = {
 
             await entity.write('aqaraOpple', payload, {manufacturerCode});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     CTPR01_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -740,7 +738,7 @@ const tzLocal = {
             globalStore.putValue(meta.device, 'opModeSwitchTask', {callback, newMode: value});
             meta.logger.info('Now give your cube a forceful throw motion (Careful not to drop it)!');
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [

@@ -177,7 +177,7 @@ const extend = {
                 await entity.read(cluster, [attributeKey], zigbeeOptions);
             },
         }];
-        return {exposes: [expose], fromZigbee, toZigbee};
+        return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
     },
 };
 

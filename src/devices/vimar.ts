@@ -19,6 +19,23 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['DimmerSwitch_v1.0'],
+        model: '14595.0',
+        vendor: 'Vimar',
+        description: 'IoT connected dimmer mechanism 220-240V',
+        extend: extend.light_onoff_brightness({noConfigure: true, disablePowerOnBehavior: true}),
+        endpoint: (device) => {
+            return {default: 11};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(11);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['2_Way_Switch_v1.0', 'On_Off_Switch_v1.0'],
         model: '14592.0',
         vendor: 'Vimar',

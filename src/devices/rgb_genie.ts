@@ -17,7 +17,7 @@ const fzLocal = {
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ZB1026_command_off: {
         cluster: 'genOnOff',
         type: 'commandOff',
@@ -26,7 +26,7 @@ const fzLocal = {
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [

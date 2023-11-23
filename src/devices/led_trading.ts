@@ -23,7 +23,7 @@ const fzLocal = {
                 return {action: utils.getFromLookup(commandID, lookup)};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [

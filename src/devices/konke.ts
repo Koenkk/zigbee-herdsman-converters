@@ -20,7 +20,7 @@ const fzLocal = {
             };
             return {action: utils.getFromLookup(msg.data.sceneid, payload)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
