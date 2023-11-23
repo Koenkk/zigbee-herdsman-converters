@@ -189,7 +189,7 @@ const definitions: Definition[] = [
         ],
         model: '501.22',
         vendor: 'Paulmann',
-        description: 'Paulmann White E27 LED Bulb, Dimmable',
+        description: 'White E27 LED bulb, dimmable',
         extend: extend.light_onoff_brightness(),
     },
 ];
