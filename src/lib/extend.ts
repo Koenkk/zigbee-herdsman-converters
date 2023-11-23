@@ -151,7 +151,7 @@ const legacyExtend = {
 
 const modernExtend = {
     enumLookup: (args: {
-        name: string, lookup: KeyValue, cluster: string, attribute: string | {id: number, type: number}, description: string,
+        name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
         zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean,
     }): ModernExtend => {
         const {name, lookup, cluster, attribute, description, zigbeeCommandOptions} = args;
@@ -182,7 +182,7 @@ const modernExtend = {
         return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
     },
     numeric: (args: {
-        name: string, cluster: string, attribute: string | {id: number, type: number}, description: string,
+        name: string, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
         zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, unit?: string,
     }): ModernExtend => {
         const {name, cluster, attribute, description, zigbeeCommandOptions} = args;
