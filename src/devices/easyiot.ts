@@ -5,7 +5,7 @@ import {Fz, Tz} from '../lib/types';
 const ea = exposes.access;
 const e = exposes.presets;
 
-export const fzEasyiot = {
+const fzLocal = {
     easyiot_ir_recv_command: {
         cluster: 'tunneling',
         type: ['transferDataResp'],
@@ -13,19 +13,17 @@ export const fzEasyiot = {
             meta.logger.debug(`"easyiot_ir_recv_command" received (msg:${JSON.stringify(msg.data)})`);
             const hexString = msg.data.data.toString('hex');
             meta.logger.debug(`"easyiot_ir_recv_command" received command ${hexString}`);
-
-            return {recv_command: hexString};
+            return {last_received_command: hexString};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
-export const tzEasyiot = {
+const tzLocal = {
     easyiot_ir_send_command: {
         key: ['send_command'],
         convertSet: async (entity, key, value, meta) => {
             if (!value) {
-                meta.logger.error(`There is no IR code to send`);
-                return;
+                throw new Error(`There is no IR code to send`);
             }
 
             meta.logger.debug(`Sending IR code: ${value}`);
@@ -40,12 +38,6 @@ export const tzEasyiot = {
     } as Tz.Converter,
 };
 
-
-export const presetsEasyiot = {
-    ir01_recv_command: () => e.text('recv_command', ea.STATE).withDescription('Received infrared control command'),
-    ir01_send_command: () => e.text('send_command', ea.SET).withDescription('Send infrared control command'),
-};
-
 const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'ZB-IR01', manufacturerName: 'easyiot'}],
@@ -53,11 +45,12 @@ const definitions: Definition[] = [
         vendor: 'easyiot',
         description: 'This is an infrared remote control equipped with a local code library,' +
             'supporting devices such as air conditioners, televisions, projectors, and more.',
-        fromZigbee: [
-            fzEasyiot.easyiot_ir_recv_command,
+        fromZigbee: [fzLocal.easyiot_ir_recv_command],
+        toZigbee: [tzLocal.easyiot_ir_send_command],
+        exposes: [
+            e.text('last_received_command', ea.STATE).withDescription('Received infrared control command'),
+            e.text('send_command', ea.SET).withDescription('Send infrared control command'),
         ],
-        toZigbee: [tzEasyiot.easyiot_ir_send_command],
-        exposes: [presetsEasyiot.ir01_send_command(), presetsEasyiot.ir01_recv_command()],
     },
 ];
 
