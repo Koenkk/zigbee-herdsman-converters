@@ -14,7 +14,6 @@ const defaultSimulatedBrightness = 255;
 const e = exposes.presets;
 const ea = exposes.access;
 
-
 const converters1 = {
     // #region Generic/recommended converters
     fan: {
