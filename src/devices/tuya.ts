@@ -6464,14 +6464,12 @@ const definitions: Definition[] = [
             e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
             e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
                 .withDescription('Detection threshold for the strength of object energy'),
-            e.numeric('entry_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
-                .withDescription('Sensitivity threshold triggered for the first time when the target enters the detection range'),
-            e.numeric('illuminance_threshold', ea.STATE_SET).withValueMin(0).withValueMax(420).withValueStep(0.1).withUnit('lx')
-                .withDescription('Illumination threshold for local (automatic) switching mode operation'),
             e.numeric('detection_range', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
                 .withDescription('Maximum distance detected by the sensor'),
             e.numeric('shield_range', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
                 .withDescription('Nearest distance detected by the sensor'),
+            e.numeric('entry_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
+                .withDescription('Sensitivity threshold triggered for the first time when the target enters the detection range'),
             e.numeric('entry_distance_indentation', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
                 .withDescription('Indent the distance inward based on the dectection distance'),
             e.numeric('entry_filter_time', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('s')
@@ -6484,6 +6482,8 @@ const definitions: Definition[] = [
                 .withDescription('Remotely control the breaker in standard mode'),
             e.enum('breaker_mode', ea.STATE_SET, ['standard', 'local'])
                 .withDescription('Breaker mode: standard is remotely controlled, local is automatic'),
+            e.numeric('illuminance_threshold', ea.STATE_SET).withValueMin(0).withValueMax(420).withValueStep(0.1).withUnit('lx')
+                .withDescription('Illumination threshold for local (automatic) switching mode operation'),
             e.enum('status_indication', ea.STATE_SET, ['OFF', 'ON'])
                 .withDescription('Indicator light will flash when human presence is detected'),
         ],
