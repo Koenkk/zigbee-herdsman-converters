@@ -5,7 +5,7 @@ import * as light from './light';
 import {Fz, Tz, Extend, ModernExtend} from './types';
 import {Enum, Numeric, access, Binary} from './exposes';
 import {KeyValue} from './types';
-import {getFromLookupByValue, isString, getFromLookup, postfixWithEndpointName} from './utils';
+import {getFromLookupByValue, isString, getFromLookup, postfixWithEndpointName, toNumber} from './utils';
 const e = exposes.presets;
 
 const legacyExtend = {
@@ -186,7 +186,7 @@ const modernExtend = {
     numeric: (args: {
         name: string, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
         zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, unit?: string,
-        valueMin?: number, valueMax?: number, valueStep?: number,
+        valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
     }): ModernExtend => {
         const {name, cluster, attribute, description, zigbeeCommandOptions} = args;
         const attributeKey = isString(attribute) ? attribute : attribute.id;
@@ -202,7 +202,8 @@ const modernExtend = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data) {
-                    return {[expose.property]: msg.data[attributeKey]};
+                    const val = (args.scale) ? toNumber(msg.data[attributeKey]) / toNumber(args.scale) : msg.data[attributeKey];
+                    return {[expose.property]: val};
                 }
             },
         }];
@@ -210,7 +211,8 @@ const modernExtend = {
         const toZigbee: Tz.Converter[] = [{
             key: [name],
             convertSet: args.readOnly ? undefined : async (entity, key, value, meta) => {
-                const payload = isString(attribute) ? {[attribute]: value} : {[attribute.id]: {value, type: attribute.type}};
+                const val = (args.scale) ? toNumber(value) * toNumber(args.scale) : value;
+                const payload = isString(attribute) ? {[attribute]: val} : {[attribute.id]: {value: val, type: attribute.type}};
                 await entity.write(cluster, payload, zigbeeCommandOptions);
                 return {state: {[key]: value}};
             },

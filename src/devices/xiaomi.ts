@@ -11,6 +11,7 @@ const ea = exposes.access;
 import * as globalStore from '../lib/store';
 import * as xiaomi from '../lib/xiaomi';
 import * as utils from '../lib/utils';
+import * as light from '../lib/light';
 import {Definition, OnEvent, Fz, KeyValue, Tz, Extend} from '../lib/types';
 const {printNumbersAsHexSequence} = utils;
 const {fp1, manufacturerCode, trv} = xiaomi;
@@ -979,42 +980,103 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'RLS-K01D'}],
         description: 'Aqara Zigbee 3.0 LED strip T1',
-        meta: {
-            attributes: {
-                'power_on_behavior': [1, 'aqaraOpple', 0x0517, 0x20, {'on': 0, 'previous': 1, 'off': 2}],
-                'length': [1, 'aqaraOpple', 0x051b, 0x20, 5],
-                'minimum': [1, 'aqaraOpple', 0x0515, 0x20],
-                'maximum': [1, 'aqaraOpple', 0x0516, 0x20],
-                'audio': [1, 'aqaraOpple', 0x051c, 0x20, {'OFF': 0, 'ON': 1}],
-                'audio_sensitivity': [1, 'aqaraOpple', 0x051e, 0x20, {'low': 0, 'medium': 1, 'high': 2}],
-                'audio_effect': [1, 'aqaraOpple', 0x051d, 0x23, {'random': 0, 'blink': 1, 'rainbow': 2, 'wave': 3}],
-                'preset': [1, 'aqaraOpple', 0x051f, 0x23],
-                'speed': [1, 'aqaraOpple', 0x0520, 0x20],
-            },
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+        toZigbee: [
+            tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
+            tz.light_colortemp_move, tz.light_brightness_step, tz.light_colortemp_step, tz.light_hue_saturation_move,
+            tz.light_hue_saturation_step, tz.level_config, tz.light_color_options, tz.light_color_mode,
+        ],
+        exposes: [
+            e.light_brightness_colortemp_colorxy([153, 370]).removeFeature('color_temp_startup'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await light.configure(device, coordinatorEndpoint, logger, true);
         },
-        extend: extend.light_onoff_brightness_colortemp_color({
-            disableEffect: true,
-            disablePowerOnBehavior: true,
-            disableColorTempStartup: true,
-            colorTempRange: [153, 370],
-            fromZigbee: [fz.getAttributeGetter('aqaraOpple')],
-            toZigbee: [tz.getAttributeSetter(['power_on_behavior', 'length', 'minimum', 'maximum',
-                'audio', 'audio_sensitivity', 'audio_effect', 'preset', 'speed'])],
-            exposes: [
-                e.power_on_behavior(['off', 'on', 'previous']),
-                e.numeric('length', ea.ALL).withValueMin(1).withValueMax(10).withValueStep(0.2).withUnit('m')
-                    .withDescription('LED strip length'),
-                e.numeric('minimum', ea.ALL).withValueMin(0).withValueMax(99).withUnit('%')
-                    .withDescription('Minimum brightness level'),
-                e.numeric('maximum', ea.ALL).withValueMin(1).withValueMax(100).withUnit('%')
-                    .withDescription('Maximum brightness level'),
-                e.binary('audio', ea.ALL, 'ON', 'OFF').withDescription('Enabling audio'),
-                e.enum('audio_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Audio sensitivity'),
-                e.enum('audio_effect', ea.ALL, ['random', 'blink', 'rainbow', 'wave']).withDescription('Audio effect'),
-                e.numeric('preset', ea.ALL).withValueMin(0).withValueMax(32).withDescription('Saved preset index (0-6 default presets)'),
-                e.numeric('speed', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Preset speed'),
-            ],
-        }),
+        extend: [
+            extend.enumLookup({
+                name: 'power_on_behavior',
+                lookup: {'on': 0, 'previous': 1, 'off': 2},
+                cluster: 'aqaraOpple',
+                attribute: {id: 0x0517, type: 0x20},
+                description: 'Controls the behavior when the device is powered on after power loss',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            extend.numeric({
+                name: 'length',
+                valueMin: 1,
+                valueMax: 10,
+                valueStep: 0.2,
+                scale: 5,
+                unit: 'm',
+                cluster: 'aqaraOpple',
+                attribute: {id: 0x051b, type: 0x20},
+                description: 'LED strip length',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            extend.numeric({
+                name: 'minimum',
+                valueMin: 0,
+                valueMax: 99,
+                unit: '%',
+                cluster: 'aqaraOpple',
+                attribute: {id: 0x0515, type: 0x20},
+                description: 'Minimum brightness level',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            extend.numeric({
+                name: 'maximum',
+                valueMin: 1,
+                valueMax: 100,
+                unit: '%',
+                cluster: 'aqaraOpple',
+                attribute: {id: 0x0516, type: 0x20},
+                description: 'Maximum brightness level',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            extend.binary({
+                name: 'audio',
+                valueOn: 1,
+                valueOff: 0,
+                cluster: 'aqaraOpple',
+                attribute: {id: 0x051c, type: 0x20},
+                description: 'Enabling audio',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            extend.enumLookup({
+                name: 'audio_sensitivity',
+                lookup: {'low': 0, 'medium': 1, 'high': 2},
+                cluster: 'aqaraOpple',
+                attribute: {id: 0x051e, type: 0x20},
+                description: 'Audio sensitivity',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            extend.enumLookup({
+                name: 'audio_effect',
+                lookup: {'random': 0, 'blink': 1, 'rainbow': 2, 'wave': 3},
+                cluster: 'aqaraOpple',
+                attribute: {id: 0x051d, type: 0x23},
+                description: 'Audio effect',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            extend.numeric({
+                name: 'preset',
+                valueMin: 1,
+                valueMax: 32,
+                cluster: 'aqaraOpple',
+                attribute: {id: 0x051f, type: 0x23},
+                description: 'Preset index (0-6 default presets)',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            extend.numeric({
+                name: 'speed',
+                valueMin: 1,
+                valueMax: 100,
+                cluster: 'aqaraOpple',
+                attribute: {id: 0x0520, type: 0x20},
+                description: 'Effect speed',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+        ],
         ota: ota.zigbeeOTA,
     },
     {

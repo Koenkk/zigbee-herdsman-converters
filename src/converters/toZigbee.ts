@@ -5202,46 +5202,7 @@ const converters3 = {
     } satisfies Tz.Converter,
 };
 
-const getAttributeSetter = (keys: string[]) => {
-    return {
-        key: keys,
-        convertSet: async (entity, key, value, meta) => {
-            const attributes = (meta.mapped.meta === null) ? undefined : meta.mapped.meta.attributes;
-            if (!attributes) {
-                throw new Error('No attributes map defined');
-            }
-            const attr = attributes[key];
-            if (attr) {
-                const cl = attr[1];
-                const attrname = attr[2];
-                const attrtype = attr[3];
-                const lookup = attr[4];
-                const val = (lookup) ?
-                    ((typeof lookup == 'number') ? utils.toNumber(value) * utils.toNumber(lookup) : utils.getFromLookup(value, lookup)) :
-                    ((attrtype == 0x10) ? ((value) ? 1 : 0) : value);
-                await entity.write(cl, {[attrname]: {value: val, type: attrtype}}, {manufacturerCode: 0x115f});
-            } else {
-                meta.logger.debug(`Attribute "${key}" not defined in attributes`);
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            const attributes = (meta.mapped.meta === null) ? undefined : meta.mapped.meta.attributes;
-            if (!attributes) {
-                throw new Error('No attributes map defined');
-            }
-            const attr = attributes[key];
-            if (attr) {
-                const cl = attr[1];
-                const attrname = attr[2];
-                await entity.read(cl, [attrname], {manufacturerCode: 0x115f});
-            } else {
-                meta.logger.debug(`Attribute "${key}" not defined in attributes`);
-            }
-        },
-    } as Tz.Converter;
-};
-
-const converters = {...converters1, ...converters2, ...converters3, getAttributeSetter};
+const converters = {...converters1, ...converters2, ...converters3};
 
 export default converters;
 module.exports = converters;
