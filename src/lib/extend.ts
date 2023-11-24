@@ -158,7 +158,7 @@ const modernExtend = {
         const attributeKey = isString(attribute) ? attribute : attribute.id;
         const expose = new Enum(name, args.readOnly ? access.STATE_GET : access.ALL, Object.keys(lookup)).withDescription(description);
         const fromZigbee: Fz.Converter[] = [{
-            cluster,
+            cluster: cluster.toString(),
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data) {
@@ -192,7 +192,7 @@ const modernExtend = {
         if (args.unit) expose = expose.withUnit(args.unit);
 
         const fromZigbee: Fz.Converter[] = [{
-            cluster,
+            cluster: cluster.toString(),
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data) {
