@@ -3,9 +3,9 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as light from './light';
 import {Fz, Tz, Extend, ModernExtend} from './types';
-import {Enum, Numeric, access} from './exposes';
+import {Enum, Numeric, access, Binary} from './exposes';
 import {KeyValue} from './types';
-import {getFromLookupByValue, isString, getFromLookup} from './utils';
+import {getFromLookupByValue, isString, getFromLookup, postfixWithEndpointName} from './utils';
 const e = exposes.presets;
 
 const legacyExtend = {
@@ -152,17 +152,19 @@ const legacyExtend = {
 const modernExtend = {
     enumLookup: (args: {
         name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
-        zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean,
+        zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, endpoint?: string, 
     }): ModernExtend => {
         const {name, lookup, cluster, attribute, description, zigbeeCommandOptions} = args;
         const attributeKey = isString(attribute) ? attribute : attribute.id;
-        const expose = new Enum(name, args.readOnly ? access.STATE_GET : access.ALL, Object.keys(lookup)).withDescription(description);
+        let expose = new Enum(name, args.readOnly ? access.STATE_GET : access.ALL, Object.keys(lookup)).withDescription(description);
+        if (args.endpoint) expose = expose.withEndpoint(args.endpoint);
         const fromZigbee: Fz.Converter[] = [{
             cluster,
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                if (attributeKey in msg.data) {
-                    return {[expose.property]: getFromLookupByValue(lookup, msg.data[attributeKey])};
+                const attrname = (args.endpoint) ? postfixWithEndpointName(name, msg, model, meta) : name;
+                if (attributeKey in msg.data && attrname == expose.property) {
+                    return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
                 }
             },
         }];
@@ -184,12 +186,16 @@ const modernExtend = {
     numeric: (args: {
         name: string, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
         zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, unit?: string,
+        valueMin?: number, valueMax?: number, valueStep?: number,
     }): ModernExtend => {
         const {name, cluster, attribute, description, zigbeeCommandOptions} = args;
         const attributeKey = isString(attribute) ? attribute : attribute.id;
 
         let expose = new Numeric(name, args.readOnly ? access.STATE_GET : access.ALL).withDescription(description);
         if (args.unit) expose = expose.withUnit(args.unit);
+        if (args.valueMin) expose = expose.withValueMin(args.valueMin);
+        if (args.valueMax) expose = expose.withValueMax(args.valueMax);
+        if (args.valueStep) expose = expose.withValueStep(args.valueStep);
 
         const fromZigbee: Fz.Converter[] = [{
             cluster,
@@ -205,6 +211,38 @@ const modernExtend = {
             key: [name],
             convertSet: args.readOnly ? undefined : async (entity, key, value, meta) => {
                 const payload = isString(attribute) ? {[attribute]: value} : {[attribute.id]: {value, type: attribute.type}};
+                await entity.write(cluster, payload, zigbeeCommandOptions);
+                return {state: {[key]: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                // @ts-expect-error TODO fix zh type
+                await entity.read(cluster, [attributeKey], zigbeeCommandOptions);
+            },
+        }];
+        return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+    },
+    binary: (args: {
+        name: string, valueOn: string | number | boolean, valueOff: string | number | boolean,
+        cluster: string | number, attribute: string | {id: number, type: number}, description: string,
+        zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean,
+    }): ModernExtend => {
+        const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions} = args;
+        const attributeKey = isString(attribute) ? attribute : attribute.id;
+        const expose = new Binary(name, args.readOnly ? access.STATE_GET : access.ALL, 'ON', 'OFF').withDescription(description);
+        const fromZigbee: Fz.Converter[] = [{
+            cluster,
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (attributeKey in msg.data) {
+                    return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], {'ON': valueOn, 'OFF': valueOff})};
+                }
+            },
+        }];
+        const toZigbee: Tz.Converter[] = [{
+            key: [name],
+            convertSet: args.readOnly ? undefined : async (entity, key, value, meta) => {
+                const payloadValue = getFromLookup(value, {'ON': valueOn, 'OFF': valueOff});
+                const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.id]: {value: payloadValue, type: attribute.type}};
                 await entity.write(cluster, payload, zigbeeCommandOptions);
                 return {state: {[key]: value}};
             },
