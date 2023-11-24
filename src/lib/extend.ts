@@ -152,7 +152,7 @@ const legacyExtend = {
 const modernExtend = {
     enumLookup: (args: {
         name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
-        zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, endpoint?: string, 
+        zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, endpoint?: string,
     }): ModernExtend => {
         const {name, lookup, cluster, attribute, description, zigbeeCommandOptions} = args;
         const attributeKey = isString(attribute) ? attribute : attribute.id;
@@ -196,7 +196,7 @@ const modernExtend = {
             .withValueMax((args.valueMax) ? args.valueMax : 100)
             .withValueStep((args.valueStep) ? args.valueStep : 1);
         if (args.unit) expose = expose.withUnit(args.unit);
-        
+
         const fromZigbee: Fz.Converter[] = [{
             cluster,
             type: ['attributeReport', 'readResponse'],
