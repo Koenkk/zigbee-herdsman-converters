@@ -9,7 +9,6 @@ import * as constants from '../lib/constants';
 import * as libColor from '../lib/color';
 import * as utils from '../lib/utils';
 import * as exposes from '../lib/exposes';
-import * as xiaomi from '../lib/xiaomi';
 
 const defaultSimulatedBrightness = 255;
 const e = exposes.presets;
@@ -3783,35 +3782,6 @@ const converters1 = {
         options: [exposes.options.calibration('power', 'percentual'), exposes.options.precision('power')],
         convert: (model, msg, publish, options, meta) => {
             return {power: calibrateAndPrecisionRoundOptions(msg.data['presentValue'], options, 'power')};
-        },
-    } satisfies Fz.Converter,
-    xiaomi_basic: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        options: xiaomi.numericAttributes2Options,
-        convert: async (model, msg, publish, options, meta) => {
-            return await xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
-        },
-    } satisfies Fz.Converter,
-    xiaomi_basic_raw: {
-        cluster: 'genBasic',
-        type: ['raw'],
-        options: xiaomi.numericAttributes2Options,
-        convert: async (model, msg, publish, options, meta) => {
-            let payload = {};
-            if (Buffer.isBuffer(msg.data)) {
-                const dataObject = xiaomi.buffer2DataObject(meta, model, msg.data);
-                payload = await xiaomi.numericAttributes2Payload(msg, meta, model, options, dataObject);
-            }
-            return payload;
-        },
-    } satisfies Fz.Converter,
-    aqara_opple: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        options: xiaomi.numericAttributes2Options,
-        convert: async (model, msg, publish, options, meta) => {
-            return await xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     } satisfies Fz.Converter,
     xiaomi_on_off_action: {
