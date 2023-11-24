@@ -2673,8 +2673,7 @@ const definitions: Definition[] = [
             e.holiday_temperature().withValueMin(5).withValueMax(35),
             e.climate().withPreset(['auto', 'manual', 'holiday', 'comfort']).withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
-                .withSystemMode(['off', 'heat'], ea.STATE_SET, 'Only for Homeassistant')
-                .withRunningState(['idle', 'heat'], ea.STATE_SET),
+                .withSystemMode(['off', 'heat'], ea.STATE_SET, 'Only for Homeassistant'),
             tuya.exposes.frostProtection('When Anti-Freezing function is activated, the temperature in the house is kept '+
                     'at 8 °C, the device display "AF".press the pair button to cancel.'),
             e.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('s').withDescription('Setting '+
@@ -2698,7 +2697,7 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [49, 'running_state', tuya.valueConverterBasic.lookup({'heat': tuya.enum(1), 'idle': tuya.enum(0)})],
+                [49, 'system_mode', tuya.valueConverterBasic.lookup({'heat': tuya.enum(1), 'off': tuya.enum(0)})],
                 [2, 'preset', tuya.valueConverterBasic.lookup({'comfort': tuya.enum(3), 'auto': tuya.enum(0),
                     'manual': tuya.enum(2), 'holiday': tuya.enum(1)})],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
