@@ -191,12 +191,12 @@ const modernExtend = {
         const {name, cluster, attribute, description, zigbeeCommandOptions} = args;
         const attributeKey = isString(attribute) ? attribute : attribute.id;
 
-        let expose = new Numeric(name, args.readOnly ? access.STATE_GET : access.ALL).withDescription(description);
+        let expose = new Numeric(name, args.readOnly ? access.STATE_GET : access.ALL).withDescription(description)
+            .withValueMin((args.valueMin) ? args.valueMin : 0)
+            .withValueMax((args.valueMax) ? args.valueMax : 100)
+            .withValueStep((args.valueStep) ? args.valueStep : 1);
         if (args.unit) expose = expose.withUnit(args.unit);
-        if (args.valueMin) expose = expose.withValueMin(args.valueMin);
-        if (args.valueMax) expose = expose.withValueMax(args.valueMax);
-        if (args.valueStep) expose = expose.withValueStep(args.valueStep);
-
+        
         const fromZigbee: Fz.Converter[] = [{
             cluster,
             type: ['attributeReport', 'readResponse'],
