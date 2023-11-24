@@ -27,7 +27,7 @@ const fzLocal = {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
             return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     occupancy_level: {
         cluster: 'msOccupancySensing',
         type: ['readResponse', 'attributeReport'],
@@ -36,7 +36,7 @@ const fzLocal = {
                 return {occupancy_level: msg.data['sprutOccupancyLevel']};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     voc: {
         cluster: 'sprutVoc',
         type: ['readResponse', 'attributeReport'],
@@ -45,7 +45,7 @@ const fzLocal = {
                 return {voc: msg.data['voc']};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     noise: {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
@@ -54,7 +54,7 @@ const fzLocal = {
                 return {noise: msg.data['noise'].toFixed(2)};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     noise_detected: {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
@@ -63,37 +63,36 @@ const fzLocal = {
                 return {noise_detected: msg.data['noiseDetected'] === 1};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     occupancy_timeout: {
         cluster: 'msOccupancySensing',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             return {occupancy_timeout: msg.data['pirOToUDelay']};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     noise_timeout: {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             return {noise_timeout: msg.data['noiseAfterDetectDelay']};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     occupancy_sensitivity: {
         cluster: 'msOccupancySensing',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             return {occupancy_sensitivity: msg.data['sprutOccupancySensitivity']};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     noise_detect_level: {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             return {noise_detect_level: msg.data['noiseDetectLevel']};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     co2_mh_z19b_config: {
-        key: ['co2_autocalibration', 'co2_manual_calibration'],
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -104,9 +103,8 @@ const fzLocal = {
                 return {co2_manual_calibration: switchActionValues[msg.data['sprutCO2Calibration']]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     th_heater: {
-        key: ['th_heater'],
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -114,7 +112,7 @@ const fzLocal = {
                 return {th_heater: switchActionValues[msg.data['sprutHeater']]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -159,7 +157,7 @@ const tzLocal = {
                 break;
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     occupancy_timeout: {
         key: ['occupancy_timeout'],
         convertSet: async (entity, key, value, meta) => {
@@ -170,7 +168,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     noise_timeout: {
         key: ['noise_timeout'],
         convertSet: async (entity, key, value, meta) => {
@@ -182,7 +180,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('sprutNoise', ['noiseAfterDetectDelay']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     occupancy_sensitivity: {
         key: ['occupancy_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
@@ -195,7 +193,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['sprutOccupancySensitivity'], manufacturerOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     noise_detect_level: {
         key: ['noise_detect_level'],
         convertSet: async (entity, key, value, meta) => {
@@ -208,7 +206,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('sprutNoise', ['noiseDetectLevel'], manufacturerOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     temperature_offset: {
         key: ['temperature_offset'],
         convertSet: async (entity, key, value, meta) => {
@@ -219,7 +217,7 @@ const tzLocal = {
             await entity.write('msTemperatureMeasurement', {'sprutTemperatureOffset': newValue}, options);
             return {state: {[key]: number}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     co2_mh_z19b_config: {
         key: ['co2_autocalibration', 'co2_manual_calibration'],
         convertSet: async (entity, key, value, meta) => {
@@ -235,7 +233,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('msCO2', [getFromLookup(key, co2Lookup)], manufacturerOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     th_heater: {
         key: ['th_heater'],
         convertSet: async (entity, key, value, meta) => {
@@ -250,7 +248,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('msRelativeHumidity', ['sprutHeater'], manufacturerOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [

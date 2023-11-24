@@ -32,7 +32,7 @@ const tzLocal1 = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_onoff_brightness.convertGet(entity, key, meta);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     gledopto_light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
         options: [exposes.options.color_sync(), exposes.options.transition()],
@@ -54,7 +54,7 @@ const tzLocal1 = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_colortemp.convertGet(entity, key, meta);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     gledopto_light_color: {
         key: ['color'],
         options: [exposes.options.color_sync(), exposes.options.transition()],
@@ -81,7 +81,7 @@ const tzLocal1 = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_color.convertGet(entity, key, meta);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const tzLocal = {
@@ -94,7 +94,6 @@ const tzLocal = {
                 const result = await tzLocal1.gledopto_light_color.convertSet(entity, key, value, meta);
                 utils.assertObject(result);
                 if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
-                    // @ts-expect-error
                     result.state.color_temp = Math.round(libColor.ColorXY.fromObject(result.state.color).toMireds());
                 }
 
@@ -102,7 +101,6 @@ const tzLocal = {
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await tzLocal1.gledopto_light_colortemp.convertSet(entity, key, value, meta);
                 utils.assertObject(result);
-                // @ts-expect-error
                 result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).rounded(4).toObject();
                 return result;
             }
@@ -110,7 +108,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_color_colortemp.convertGet(entity, key, meta);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const gledoptoExtend = {

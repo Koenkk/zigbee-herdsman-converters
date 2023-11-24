@@ -14,7 +14,7 @@ const fzLocal = {
             if (msg.endpoint.ID != 1) return;
             return {rain: (zoneStatus & 1) > 0};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -48,6 +48,21 @@ const definitions: Definition[] = [
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'SA-003-Zigbee', endpoints: [
+                    {ID: 1, profileID: 49246, deviceID: 16, inputClusters: [0, 3, 4, 5, 6], outputClusters: [0]},
+                ],
+            },
+        ],
+        model: 'ZB-R01',
+        vendor: 'eWeLink',
+        description: 'Zigbee repeater',
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        exposes: [],
     },
     {
         zigbeeModel: ['SA-030-1'],

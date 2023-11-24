@@ -182,6 +182,16 @@ const definitions: Definition[] = [
         description: 'SimpLED SmartHome dimmable RGB LED-stripe',
         extend: extend.light_onoff_brightness_color(),
     },
+    {
+        fingerprint: [
+            {modelID: 'Dimmable Light', manufacturerName: 'Paulmann lamp'},
+            {modelID: 'Dimmable Light ', manufacturerName: 'Paulmann lamp '},
+        ],
+        model: '501.22',
+        vendor: 'Paulmann',
+        description: 'White E27 LED bulb, dimmable',
+        extend: extend.light_onoff_brightness(),
+    },
 ];
 
 export default definitions;

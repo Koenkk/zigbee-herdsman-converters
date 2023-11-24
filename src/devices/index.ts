@@ -57,6 +57,7 @@ import dlink from './dlink';
 import dnake from './dnake';
 import dresden_elektronik from './dresden_elektronik';
 import easyaccess from './easyaccess';
+import easyiot from './easyiot';
 import eatonhalo_led from './eatonhalo_led';
 import echostar from './echostar';
 import ecodim from './ecodim';
@@ -345,6 +346,7 @@ export default [
     ...dnake,
     ...dresden_elektronik,
     ...easyaccess,
+    ...easyiot,
     ...eatonhalo_led,
     ...echostar,
     ...ecodim,

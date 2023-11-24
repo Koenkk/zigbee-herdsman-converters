@@ -62,13 +62,20 @@ function validateDefinition(definition: Definition) {
 function addDefinition(definition: Definition) {
     if ('extend' in definition) {
         const {extend, ...definitionWithoutExtend} = definition;
-        if (extend.hasOwnProperty('configure') && extend.configure !== undefined && definition.hasOwnProperty('configure')) {
-            assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
-        }
 
+        if (extend.configure && definition.configure) {
+            assert.fail(`'${definition.model}' has configure in extend and definition, this is not allowed`);
+        }
+        if (extend.ota && definition.ota) {
+            assert.fail(`'${definition.model}' has OTA in extend and definition, this is not allowed`);
+        }
+        if (extend.onEvent && definition.onEvent) {
+            assert.fail(`'${definition.model}' has onEvent in extend and definition, this is not allowed`);
+        }
         if (typeof definition.exposes === 'function') {
             assert.fail(`'${definition.model}' has function exposes which is not allowed`);
         }
+
         const toZigbee = [...definition.toZigbee ?? [], ...extend.toZigbee];
         const fromZigbee = [...definition.fromZigbee ?? [], ...extend.fromZigbee];
         const exposes = [...definition.exposes ?? [], ...extend.exposes];
@@ -77,7 +84,7 @@ function addDefinition(definition: Definition) {
             ...definitionWithoutExtend.meta,
         } : undefined;
 
-        definition = {toZigbee, fromZigbee, exposes, meta, ...definitionWithoutExtend};
+        definition = {...extend, toZigbee, fromZigbee, exposes, meta, ...definitionWithoutExtend};
     }
 
     definition.toZigbee.push(

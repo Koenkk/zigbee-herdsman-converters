@@ -48,7 +48,7 @@ export const fzZosung = {
             const irMsg = messagesGet(msg.endpoint, seq);
             meta.logger.debug(`IRCode to send: ${JSON.stringify(irMsg)} (seq:${seq})`);
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     zosung_send_ir_code_02: {
         cluster: 'zosungIRTransmit',
         type: ['commandZosungSendIRCode02'],
@@ -70,7 +70,7 @@ export const fzZosung = {
                 {disableDefaultResponse: true});
             meta.logger.debug(`Sent IRCode part: ${part} (sum: ${sum}, seq:${seq})`);
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     zosung_send_ir_code_04: {
         cluster: 'zosungIRTransmit',
         type: ['commandZosungSendIRCode04'],
@@ -86,7 +86,7 @@ export const fzZosung = {
             messagesClear(msg.endpoint, seq);
             meta.logger.debug(`IRCode has been successfully sent. (seq:${seq})`);
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     zosung_send_ir_code_00: {
         cluster: 'zosungIRTransmit',
         type: ['commandZosungSendIRCode00'],
@@ -117,7 +117,7 @@ export const fzZosung = {
                 {disableDefaultResponse: true});
             meta.logger.debug(`"IR-Message-Code00" transfer started.`);
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     zosung_send_ir_code_03: {
         cluster: 'zosungIRTransmit',
         type: ['zosungSendIRCode03Resp'],
@@ -157,7 +157,7 @@ export const fzZosung = {
                 meta.logger.error(`Unexpected IR code position: ${JSON.stringify(msg.data)}, expecting: ${rcv.position}.`);
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     zosung_send_ir_code_05: {
         cluster: 'zosungIRTransmit',
         type: ['zosungSendIRCode05Resp'],
@@ -177,7 +177,7 @@ export const fzZosung = {
                 learned_ir_code: learnedIRCode,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 export const tzZosung = {
@@ -214,7 +214,7 @@ export const tzZosung = {
                 {disableDefaultResponse: true});
             meta.logger.debug(`Sending IR code initiated.`);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     zosung_learn_ir_code: {
         key: ['learn_ir_code'],
         convertSet: async (entity, key, value, meta) => {
@@ -226,7 +226,7 @@ export const tzZosung = {
                 {disableDefaultResponse: true});
             meta.logger.debug(`IR Code Learning started.`);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 
