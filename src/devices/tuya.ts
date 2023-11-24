@@ -799,6 +799,7 @@ const definitions: Definition[] = [
             {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
             {modelID: 'TS000F', manufacturerName: '_TZ3000_mx3vgyea'},
             {modelID: 'TS000F', manufacturerName: '_TZ3000_skueekg3'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_skueekg3'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ng23zjs'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_rmjr4ufz'},
