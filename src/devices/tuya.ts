@@ -6449,12 +6449,12 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e', '_TZE204_iaeejhvf']),
         model: 'MTG075-ZB-RL',
         vendor: 'TuYa',
-        description: '5.8G human presence sensor with relay',
+        description: '2.4G/5.8G human presence sensor with relay',
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'MTG275-ZB-RL', '24G MmWave radar human presence motion sensor', ['_TZE204_dtzziy1e']),
+            tuya.whitelabel('TuYa', 'MTG275-ZB-RL', '2.4G/5.8G MmWave radar human presence motion sensor', ['_TZE204_dtzziy1e']),
         ],
         configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
@@ -6462,24 +6462,30 @@ const definitions: Definition[] = [
         exposes: [
             e.presence(), e.illuminance_lux(),
             e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
-            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription('Sensitivity of the radar'),
-            e.numeric('entry_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription('Entry sensitivity'),
-            e.numeric('illuminance_threshold', ea.STATE_SET).withValueMin(0).withValueMax(420).withValueStep(0.1).withUnit('lx')
-                .withDescription('Illumination threshold for switching on'),
-            e.numeric('detection_range', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1)
-                .withUnit('m').withDescription('Detection range'),
+            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
+                .withDescription('Detection threshold for the strength of object energy'),
+            e.numeric('detection_range', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
+                .withDescription('Maximum distance detected by the sensor'),
             e.numeric('shield_range', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
-                .withDescription('Shield range of the radar'),
+                .withDescription('Nearest distance detected by the sensor'),
+            e.numeric('entry_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
+                .withDescription('Sensitivity threshold triggered for the first time when the target enters the detection range'),
             e.numeric('entry_distance_indentation', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
-                .withDescription('Entry distance indentation'),
+                .withDescription('Indent the distance inward based on the dectection distance'),
             e.numeric('entry_filter_time', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('s')
-                .withDescription('Entry filter time'),
+                .withDescription('Sensitivity threshold triggered for the first time when the target enters the detection range '),
             e.numeric('departure_delay', ea.STATE_SET).withValueMin(0).withValueMax(600).withValueStep(1).withUnit('s').
-                withDescription('Turn off delay'),
-            e.numeric('block_time', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('s').withDescription('Block time'),
-            e.binary('breaker_status', ea.STATE_SET, 'ON', 'OFF').withDescription('Breaker status changes with breaker_mode->standard'),
-            e.enum('breaker_mode', ea.STATE_SET, ['standard', 'local']).withDescription('Status breaker mode: standard is external, local is auto'),
-            e.enum('status_indication', ea.STATE_SET, ['OFF', 'ON']).withDescription('Led backlight when triggered'),
+                withDescription('Confirmation time after the target disappears'),
+            e.numeric('block_time', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('s')
+                .withDescription('Time for the target to be detected again after switching from manned(occupy) to unmanned(unoccupy) mode'),
+            e.binary('breaker_status', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Remotely control the breaker in standard mode'),
+            e.enum('breaker_mode', ea.STATE_SET, ['standard', 'local'])
+                .withDescription('Breaker mode: standard is remotely controlled, local is automatic'),
+            e.numeric('illuminance_threshold', ea.STATE_SET).withValueMin(0).withValueMax(420).withValueStep(0.1).withUnit('lx')
+                .withDescription('Illumination threshold for local (automatic) switching mode operation'),
+            e.enum('status_indication', ea.STATE_SET, ['OFF', 'ON'])
+                .withDescription('Indicator light will flash when human presence is detected'),
         ],
         meta: {
             tuyaDatapoints: [
