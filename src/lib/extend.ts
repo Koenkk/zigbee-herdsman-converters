@@ -150,6 +150,17 @@ const legacyExtend = {
 };
 
 const modernExtend = {
+    lightBrightnessColortempColor: (args: {
+        disableEffect: boolean, supportsHueAndSaturation: boolean, disableColorTempStartup: boolean, preferHueAndSaturation: boolean,
+        disablePowerOnBehavior: boolean,
+    }): ModernExtend => {
+        args = {
+            disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
+            disablePowerOnBehavior: false, ...args,
+        };
+        const result = legacyExtend.light_onoff_brightness_colortemp_color(args);
+        return {...result, isModernExtend: true};
+    },
     enumLookup: (args: {
         name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
         zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean,
