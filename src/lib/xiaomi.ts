@@ -11,7 +11,7 @@ import {
 
 import * as exposes from './exposes';
 import * as globalStore from './store';
-import {Fz, Definition, KeyValue, KeyValueAny, ModernExtend} from './types';
+import {Fz, Definition, KeyValue, KeyValueAny} from './types';
 import extend from './extend';
 
 declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
