@@ -121,6 +121,13 @@ export function addActionGroup(payload: KeyValue, msg: Fz.Message, definition: D
     }
 }
 
+export function getEndpointName(msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
+    if (!definition.endpoint) {
+        throw new Error(`Definition '${definition.model}' has not endpoint defined`);
+    }
+    return getKey(definition.endpoint(meta.device), msg.endpoint.ID);
+}
+
 export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
