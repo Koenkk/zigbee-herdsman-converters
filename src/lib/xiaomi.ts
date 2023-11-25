@@ -1356,6 +1356,22 @@ export const xiaomiExtend = {
         description: 'External switch type',
         zigbeeCommandOptions: {manufacturerCode},
     }),
+    power_on_behavior: extend.enumLookup({
+        name: 'power_on_behavior',
+        lookup: {'on': 0, 'previous': 1, 'off': 2},
+        cluster: 'aqaraOpple',
+        attribute: {id: 0x0517, type: 0x20},
+        description: 'Controls the behavior when the device is powered on after power loss',
+        zigbeeCommandOptions: {manufacturerCode},
+    }),
+    power_on_behavior_with_toggle: extend.enumLookup({
+        name: 'power_on_behavior',
+        lookup: {'on': 0, 'previous': 1, 'off': 2, 'toggle': 3},
+        cluster: 'aqaraOpple',
+        attribute: {id: 0x0517, type: 0x20},
+        description: 'Controls the behavior when the device is powered on after power loss',
+        zigbeeCommandOptions: {manufacturerCode},
+    }),
 };
 
 export {xiaomiExtend as extend};

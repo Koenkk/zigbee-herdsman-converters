@@ -993,14 +993,7 @@ const definitions: Definition[] = [
             await light.configure(device, coordinatorEndpoint, logger, true);
         },
         extend: [
-            extend.enumLookup({
-                name: 'power_on_behavior',
-                lookup: {'on': 0, 'previous': 1, 'off': 2},
-                cluster: 'aqaraOpple',
-                attribute: {id: 0x0517, type: 0x20},
-                description: 'Controls the behavior when the device is powered on after power loss',
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
+            xiaomi.extend.power_on_behavior,
             extend.numeric({
                 name: 'length',
                 valueMin: 1,
@@ -1014,7 +1007,7 @@ const definitions: Definition[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             extend.numeric({
-                name: 'minimum',
+                name: 'min_brightness',
                 valueMin: 0,
                 valueMax: 99,
                 unit: '%',
@@ -1024,7 +1017,7 @@ const definitions: Definition[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             extend.numeric({
-                name: 'maximum',
+                name: 'max_brightness',
                 valueMin: 1,
                 valueMax: 100,
                 unit: '%',
@@ -2665,14 +2658,7 @@ const definitions: Definition[] = [
                 description: 'Enabling prevents both relays being on at the same time (Interlock)',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            extend.enumLookup({
-                name: 'power_on_behavior',
-                lookup: {'on': 0, 'previous': 1, 'off': 2, 'reverse': 3},
-                cluster: 'aqaraOpple',
-                attribute: {id: 0x0517, type: 0x20},
-                description: 'Controls the behavior when the device is powered on after power loss',
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
+            xiaomi.extend.power_on_behavior_with_toggle,
             extend.enumLookup({
                 name: 'operation_mode',
                 lookup: {'decoupled': 0, 'control_relay': 1},
