@@ -6505,6 +6505,23 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0001',
+                manufacturerName: '_TZ3000_w0ypwa1f',
+            },
+        ],
+        model: 'TS0001',
+        vendor: 'TuYa',
+        description: 'Smart water/gas valve',
+        extend: tuya.extend.switch({indicatorMode: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+                    await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+                    const endpoint = device.getEndpoint(1);
+                    await endpoint.read('genOnOff', ['onOff', 'moesStartUpOnOff']);
+        },
+    };
 ];
 
 module.exports = definitions;
