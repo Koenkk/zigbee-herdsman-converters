@@ -40,7 +40,7 @@ const fzLocal = {
                 return {action: utils.getFromLookup(commandID, lookup)};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 async function syncTime(endpoint: Zh.Endpoint) {
@@ -626,4 +626,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

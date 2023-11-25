@@ -165,6 +165,25 @@ const definitions: Definition[] = [
             await ep.read('manuSpecificNodOnFilPilote', ['mode']);
         },
     },
+    {
+        zigbeeModel: ['SIN-4-1-21'],
+        model: 'SIN-4-1-21',
+        vendor: 'NodOn',
+        description: 'Multifunction relay switch zith metering',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
+            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
+            await reporting.readMeteringMultiplierDivisor(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
+        },
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

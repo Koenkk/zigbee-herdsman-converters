@@ -3,7 +3,7 @@ import {
     calibrateAndPrecisionRoundOptions, addActionGroup, postfixWithEndpointName, getKey,
     batteryVoltageToPercentage,
 } from '../lib/utils';
-import {Fz, KeyValueAny, KeyValueNumberString} from '../lib/types';
+import {Fz, KeyValueAny, KeyValueNumberString, Option} from '../lib/types';
 import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
 import * as libColor from '../lib/color';
@@ -26,7 +26,7 @@ const converters1 = {
                 return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -175,7 +175,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     thermostat_weekly_schedule: {
         cluster: 'hvacThermostat',
         type: ['commandGetWeeklyScheduleRsp'],
@@ -201,7 +201,7 @@ const converters1 = {
 
             return {[postfixWithEndpointName('weekly_schedule', msg, model, meta)]: {days, transitions}};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     hvac_user_interface: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],
@@ -217,7 +217,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     lock_operation_event: {
         cluster: 'closuresDoorLock',
         type: 'commandOperationEventNotification',
@@ -248,7 +248,7 @@ const converters1 = {
                 action_source_name: constants.lockSourceName[msg.data['opereventsrc']],
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     lock_programming_event: {
         cluster: 'closuresDoorLock',
         type: 'commandProgrammingEventNotification',
@@ -269,7 +269,7 @@ const converters1 = {
                 action_source_name: constants.lockSourceName[msg.data['programeventsrc']],
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     lock: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
@@ -296,7 +296,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     lock_pin_code_response: {
         cluster: 'closuresDoorLock',
         type: ['commandGetPinCodeRsp'],
@@ -317,7 +317,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     lock_user_status_response: {
         cluster: 'closuresDoorLock',
         type: ['commandGetUserStatusRsp'],
@@ -338,14 +338,14 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     linkquality_from_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {linkquality: msg.linkquality};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -393,7 +393,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -405,7 +405,7 @@ const converters1 = {
                 return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     device_temperature: {
         cluster: 'genDeviceTempCfg',
         type: ['attributeReport', 'readResponse'],
@@ -416,7 +416,7 @@ const converters1 = {
                 return {device_temperature: calibrateAndPrecisionRoundOptions(value, options, 'device_temperature')};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     humidity: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -432,7 +432,7 @@ const converters1 = {
                 return {[property]: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     pm25: {
         cluster: 'pm25Measurement',
         type: ['attributeReport', 'readResponse'],
@@ -441,7 +441,7 @@ const converters1 = {
                 return {pm25: msg.data['measuredValue']};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     soil_moisture: {
         cluster: 'msSoilMoisture',
         type: ['attributeReport', 'readResponse'],
@@ -450,7 +450,7 @@ const converters1 = {
             const soilMoisture = parseFloat(msg.data['measuredValue']) / 100.0;
             return {soil_moisture: calibrateAndPrecisionRoundOptions(soilMoisture, options, 'soil_moisture')};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -464,7 +464,7 @@ const converters1 = {
                 illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     pressure: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -479,14 +479,14 @@ const converters1 = {
             }
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     co2: {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {co2: Math.floor(msg.data.measuredValue * 1000000)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     occupancy: {
         // This is for occupancy sensor that send motion start AND stop messages
         cluster: 'msOccupancySensing',
@@ -499,7 +499,7 @@ const converters1 = {
                 return payload;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     occupancy_with_timeout: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
@@ -534,7 +534,7 @@ const converters1 = {
             utils.noOccupancySince(msg.endpoint, options, publish, 'start');
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     occupancy_timeout: {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
@@ -543,7 +543,7 @@ const converters1 = {
                 return {occupancy_timeout: msg.data.pirOToUDelay};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -553,7 +553,7 @@ const converters1 = {
                 return {[property]: msg.data['currentLevel']};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     level_config: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -618,7 +618,7 @@ const converters1 = {
                 return result;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     color_colortemp: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -678,7 +678,7 @@ const converters1 = {
             //       we use assign here so we do not lose other attributes.
             return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, meta.logger));
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     meter_identification: {
         cluster: 'haMeterIdentification',
         type: ['readResponse'],
@@ -697,7 +697,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     metering: {
         /**
          * When using this converter also add the following to the configure method of the device:
@@ -705,8 +705,9 @@ const converters1 = {
          */
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
+        // FIXME: Why are we expecting errors here? Sounds like a codesmell
         options: (definition) => {
-            const result: KeyValueAny = [];
+            const result: Option[] = [];
             // @ts-expect-error
             if (definition.exposes.find((e) => e.name === 'power')) {
                 result.push(exposes.options.precision('power'), exposes.options.calibration('power', 'percentual'));
@@ -751,7 +752,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     electrical_measurement: {
         /**
          * When using this converter also add the following to the configure method of the device:
@@ -802,7 +803,7 @@ const converters1 = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     on_off: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -819,7 +820,7 @@ const converters1 = {
                 return payload;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     on_off_force_multiendpoint: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -840,7 +841,7 @@ const converters1 = {
                 return payload;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     on_off_skip_duplicate_transaction: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -860,7 +861,7 @@ const converters1 = {
                 return payload;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     power_on_behavior: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -871,7 +872,7 @@ const converters1 = {
                 return {[property]: lookup[msg.data['startUpOnOff']]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_no_alarm: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'commandStatusChangeNotification'],
@@ -882,7 +883,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_siren: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -898,7 +899,7 @@ const converters1 = {
                 test: (zoneStatus & 1<<8) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_water_leak_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -910,7 +911,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_water_leak_alarm_1_report: {
         cluster: 'ssIasZone',
         type: 'attributeReport',
@@ -922,7 +923,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_vibration_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -934,7 +935,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_vibration_alarm_1_with_timeout: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -963,7 +964,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_gas_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -975,7 +976,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_gas_alarm_2: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -987,7 +988,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_smoke_alarm_1: {
         cluster: 'ssIasZone',
         type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
@@ -1005,7 +1006,7 @@ const converters1 = {
                 battery_defect: (zoneStatus & 1<<9) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_contact_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1021,7 +1022,7 @@ const converters1 = {
                 [batteryLowProperty]: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_contact_alarm_1_report: {
         cluster: 'ssIasZone',
         type: 'attributeReport',
@@ -1033,7 +1034,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_carbon_monoxide_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1045,7 +1046,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_carbon_monoxide_alarm_1_gas_alarm_2: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1062,7 +1063,7 @@ const converters1 = {
                 battery_defect: (zoneStatus & 1 << 9) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_sos_alarm_2: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1074,7 +1075,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_occupancy_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1086,7 +1087,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_occupancy_alarm_1_report: {
         cluster: 'ssIasZone',
         type: 'attributeReport',
@@ -1098,7 +1099,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_occupancy_alarm_2: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1110,7 +1111,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_alarm_only_alarm_1: {
         cluster: 'ssIasZone',
         type: 'attributeReport',
@@ -1120,7 +1121,7 @@ const converters1 = {
                 alarm: (zoneStatus & 1) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_occupancy_only_alarm_2: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1130,7 +1131,7 @@ const converters1 = {
                 occupancy: (zoneStatus & 1<<1) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_occupancy_alarm_1_with_timeout: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1153,7 +1154,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_store: {
         cluster: 'genScenes',
         type: 'commandStore',
@@ -1163,7 +1164,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_recall: {
         cluster: 'genScenes',
         type: 'commandRecall',
@@ -1173,7 +1174,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_panic: {
         cluster: 'ssIasAce',
         type: 'commandPanic',
@@ -1183,7 +1184,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_arm: {
         cluster: 'ssIasAce',
         type: 'commandArm',
@@ -1197,7 +1198,7 @@ const converters1 = {
             if (msg.groupID) payload.action_group = msg.groupID;
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_cover_stop: {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',
@@ -1207,7 +1208,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_cover_open: {
         cluster: 'closuresWindowCovering',
         type: 'commandUpOpen',
@@ -1217,7 +1218,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_cover_close: {
         cluster: 'closuresWindowCovering',
         type: 'commandDownClose',
@@ -1227,7 +1228,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -1237,7 +1238,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_off: {
         cluster: 'genOnOff',
         type: 'commandOff',
@@ -1247,7 +1248,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_off_with_effect: {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
@@ -1257,7 +1258,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_toggle: {
         cluster: 'genOnOff',
         type: 'commandToggle',
@@ -1267,7 +1268,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_move_to_level: {
         cluster: 'genLevelCtrl',
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
@@ -1292,7 +1293,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_move: {
         cluster: 'genLevelCtrl',
         type: ['commandMove', 'commandMoveWithOnOff'],
@@ -1329,7 +1330,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_step: {
         cluster: 'genLevelCtrl',
         type: ['commandStep', 'commandStepWithOnOff'],
@@ -1358,7 +1359,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_stop: {
         cluster: 'genLevelCtrl',
         type: ['commandStop', 'commandStopWithOnOff'],
@@ -1374,7 +1375,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_move_color_temperature: {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveColorTemp'],
@@ -1386,7 +1387,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_step_color_temperature: {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
@@ -1405,7 +1406,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_ehanced_move_to_hue_and_saturation: {
         cluster: 'lightingColorCtrl',
         type: 'commandEnhancedMoveToHueAndSaturation',
@@ -1422,7 +1423,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_step_hue: {
         cluster: 'lightingColorCtrl',
         type: ['commandStepHue'],
@@ -1437,7 +1438,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_step_saturation: {
         cluster: 'lightingColorCtrl',
         type: ['commandStepSaturation'],
@@ -1452,7 +1453,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_color_loop_set: {
         cluster: 'lightingColorCtrl',
         type: 'commandColorLoopSet',
@@ -1482,7 +1483,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_move_to_color_temp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
@@ -1496,7 +1497,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_move_to_color: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColor',
@@ -1513,7 +1514,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_move_hue: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
@@ -1525,7 +1526,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_move_to_saturation: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToSaturation',
@@ -1539,7 +1540,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_move_to_hue: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToHue',
@@ -1554,7 +1555,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_emergency: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
@@ -1564,7 +1565,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_on_state: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -1573,7 +1574,7 @@ const converters1 = {
             const property = postfixWithEndpointName('state', msg, model, meta);
             return {[property]: 'ON'};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_off_state: {
         cluster: 'genOnOff',
         type: 'commandOff',
@@ -1582,14 +1583,14 @@ const converters1 = {
             const property = postfixWithEndpointName('state', msg, model, meta);
             return {[property]: 'OFF'};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     identify: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {action: postfixWithEndpointName(`identify`, msg, model, meta)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     cover_position_tilt: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
@@ -1621,7 +1622,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     cover_position_via_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -1633,7 +1634,7 @@ const converters1 = {
             const state = options.invert_cover ? (position > 0 ? 'CLOSE' : 'OPEN') : (position > 0 ? 'OPEN' : 'CLOSE');
             return {state: state, position: position};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     cover_state_via_onoff: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1642,7 +1643,7 @@ const converters1 = {
                 return {state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     curtain_position_analog_output: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
@@ -1652,7 +1653,7 @@ const converters1 = {
             position = options.invert_cover ? 100 - position : position;
             return {position};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     lighting_ballast_configuration: {
         cluster: 'lightingBallastCfg',
         type: ['attributeReport', 'readResponse'],
@@ -1705,7 +1706,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     checkin_presence: {
         cluster: 'genPollCtrl',
         type: ['commandCheckIn'],
@@ -1722,7 +1723,7 @@ const converters1 = {
 
             return {presence: true};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_enroll: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
@@ -1736,7 +1737,7 @@ const converters1 = {
                 zone_id: zoneId,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_wd: {
         cluster: 'ssIasWd',
         type: ['attributeReport', 'readResponse'],
@@ -1745,7 +1746,7 @@ const converters1 = {
             if (msg.data.hasOwnProperty('maxDuration')) result['max_duration'] = msg.data.maxDuration;
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     power_source: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -1773,7 +1774,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     // #endregion
 
     // #region Non-generic converters
@@ -1835,7 +1836,7 @@ const converters1 = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     namron_hvac_user_interface: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],
@@ -1846,7 +1847,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     elko_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -1913,7 +1914,7 @@ const converters1 = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_smoke_alarm_1_develco: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -1927,7 +1928,7 @@ const converters1 = {
                 test: (zoneStatus & 1<<8) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ts0201_temperature_humidity_alarm: {
         cluster: 'manuSpecificTuya_2',
         type: ['attributeReport', 'readResponse'],
@@ -1956,7 +1957,7 @@ const converters1 = {
             return result;
         },
 
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tuya_led_controller: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -1995,7 +1996,7 @@ const converters1 = {
 
             return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, meta.logger));
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     wiser_device_info: {
         cluster: 'wiserDeviceInfo',
         type: 'attributeReport',
@@ -2029,7 +2030,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tuya_doorbell_button: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -2043,7 +2044,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     terncy_knob: {
         cluster: 'manuSpecificClusterAduroSmart',
         type: ['attributeReport', 'readResponse'],
@@ -2054,7 +2055,7 @@ const converters1 = {
                 return {action: 'rotate', action_direction: direction, action_number: number};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     DTB190502A1: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -2072,7 +2073,7 @@ const converters1 = {
                 led_state: lookupLED[msg.data['41363']],
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ZNMS12LM_low_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -2081,7 +2082,7 @@ const converters1 = {
                 return {battery_low: msg.data['batteryAlarmMask'] === 1};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_lock_report: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -2115,7 +2116,7 @@ const converters1 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ZigUP: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -2145,14 +2146,14 @@ const converters1 = {
                 [`${ds18b20Id}`]: ds18b20Value,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     terncy_contact: {
         cluster: 'genBinaryInput',
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             return {contact: (msg.data['presentValue']==0)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     terncy_temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -2161,7 +2162,7 @@ const converters1 = {
             const temperature = parseFloat(msg.data['measuredValue']) / 10.0;
             return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ts0216_siren: {
         cluster: 'ssIasWd',
         type: ['attributeReport', 'readResponse'],
@@ -2176,7 +2177,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tuya_cover_options_2: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
@@ -2193,7 +2194,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tuya_cover_options: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
@@ -2220,7 +2221,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     WSZ01_on_off_action: {
         cluster: 65029,
         type: 'raw',
@@ -2228,7 +2229,7 @@ const converters1 = {
             const clickMapping: KeyValueNumberString = {0: 'release', 1: 'single', 2: 'double', 3: 'hold'};
             return {action: `${clickMapping[msg.data[6]]}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tuya_on_off_action: {
         cluster: 'genOnOff',
         type: 'raw',
@@ -2252,7 +2253,7 @@ const converters1 = {
             msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]).catch((error) => {});
             return {action: `${button}${clickMapping[msg.data[3]]}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tuya_switch_scene: {
         cluster: 'genOnOff',
         type: 'raw',
@@ -2264,7 +2265,7 @@ const converters1 = {
             msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]).catch((error) => {});
             return {action: 'switch_scene', action_scene: msg.data[3]};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     livolo_switch_state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -2275,7 +2276,7 @@ const converters1 = {
                 state_right: status & 2 ? 'ON' : 'OFF',
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     livolo_socket_state: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2286,7 +2287,7 @@ const converters1 = {
                 return {state: status & 1 ? 'ON' : 'OFF'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     livolo_new_switch_state: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2297,7 +2298,7 @@ const converters1 = {
                 return {state: status & 1 ? 'ON' : 'OFF'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     livolo_new_switch_state_2gang: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2313,7 +2314,7 @@ const converters1 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     livolo_new_switch_state_4gang: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2340,7 +2341,7 @@ const converters1 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     livolo_curtain_switch_state: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2356,7 +2357,7 @@ const converters1 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     livolo_dimmer_state: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2379,7 +2380,7 @@ const converters1 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     livolo_cover_state: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2424,7 +2425,7 @@ const converters1 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     livolo_pir_state: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2439,7 +2440,7 @@ const converters1 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     easycode_action: {
         cluster: 'closuresDoorLock',
         type: 'raw',
@@ -2457,7 +2458,7 @@ const converters1 = {
                 return {action: lookup[msg.data[3]]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     easycodetouch_action: {
         cluster: 'closuresDoorLock',
         type: 'raw',
@@ -2469,7 +2470,7 @@ const converters1 = {
                 meta.logger.warn('Unknown lock status with source ' + msg.data[3] + ' and event code ' + msg.data[4]);
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     livolo_switch_state_raw: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2554,7 +2555,7 @@ const converters1 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ptvo_switch_uart: {
         cluster: 'genMultistateValue',
         type: ['attributeReport', 'readResponse'],
@@ -2579,7 +2580,7 @@ const converters1 = {
             }
             return {'action': data};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ptvo_switch_analog_input: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
@@ -2650,7 +2651,7 @@ const converters1 = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     keypad20states: {
         cluster: 'genOnOff',
         type: ['readResponse', 'attributeReport'],
@@ -2661,7 +2662,7 @@ const converters1 = {
                 return {[button]: state};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     keypad20_battery: {
         cluster: 'genPowerCfg',
         type: ['readResponse', 'attributeReport'],
@@ -2673,7 +2674,7 @@ const converters1 = {
                 // voltage: voltage / 1000.0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     plaid_battery: {
         cluster: 'genPowerCfg',
         type: ['readResponse', 'attributeReport'],
@@ -2688,7 +2689,7 @@ const converters1 = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     heiman_ir_remote: {
         cluster: 'heimanSpecificInfraRedRemote',
         type: ['commandStudyKeyRsp', 'commandCreateIdRsp', 'commandGetIdAndKeyCodeListRsp'],
@@ -2741,7 +2742,7 @@ const converters1 = {
             }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     meazon_meter: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
@@ -2810,7 +2811,7 @@ const converters1 = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     danfoss_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -2919,7 +2920,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     danfoss_thermostat_setpoint_scheduled: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -2931,7 +2932,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     danfoss_icon_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -2948,7 +2949,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     danfoss_icon_regulator: {
         cluster: 'haDiagnostic',
         type: ['attributeReport', 'readResponse'],
@@ -2974,7 +2975,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     orvibo_raw_1: {
         cluster: 23,
         type: 'raw',
@@ -3010,7 +3011,7 @@ const converters1 = {
                 return {action: `${button}_${action}`};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     orvibo_raw_2: {
         cluster: 23,
         type: 'raw',
@@ -3036,7 +3037,7 @@ const converters1 = {
                 return {action: `${button}_${action}`};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tint_scene: {
         cluster: 'genBasic',
         type: 'write',
@@ -3045,7 +3046,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tint404011_move_to_color_temp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
@@ -3079,7 +3080,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ZNMS11LM_closuresDoorLock_report: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
@@ -3146,7 +3147,7 @@ const converters1 = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ZNMS12LM_ZNMS13LM_closuresDoorLock_report: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
@@ -3281,7 +3282,7 @@ const converters1 = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     restorable_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -3294,14 +3295,14 @@ const converters1 = {
                 return {};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     E1524_E1810_toggle: {
         cluster: 'genOnOff',
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
             return {action: postfixWithEndpointName('toggle', msg, model, meta)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_arrow_click: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowSingle',
@@ -3315,7 +3316,7 @@ const converters1 = {
             const direction = msg.data.value === 257 ? 'left' : 'right';
             return {action: `arrow_${direction}_click`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_arrow_hold: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowHold',
@@ -3325,7 +3326,7 @@ const converters1 = {
             globalStore.putValue(msg.endpoint, 'direction', direction);
             return {action: `arrow_${direction}_hold`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_arrow_release: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowRelease',
@@ -3341,7 +3342,7 @@ const converters1 = {
                 return result;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     E1524_E1810_levelctrl: {
         cluster: 'genLevelCtrl',
         type: [
@@ -3360,7 +3361,7 @@ const converters1 = {
             };
             return {action: lookup[msg.type]};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ewelink_action: {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff', 'commandToggle'],
@@ -3368,14 +3369,14 @@ const converters1 = {
             const lookup: KeyValueAny = {'commandToggle': 'single', 'commandOn': 'double', 'commandOff': 'long'};
             return {action: lookup[msg.type]};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     diyruz_contact: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {contact: msg.data['onOff'] !== 0};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     diyruz_rspm: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -3389,14 +3390,14 @@ const converters1 = {
                 action: msg.data['41367'] === 1 ? 'hold' : 'release',
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     K4003C_binary_input: {
         cluster: 'genBinaryInput',
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             return {action: msg.data.presentValue === 1 ? 'off' : 'on'};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     enocean_ptm215z: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommissioningNotification'],
@@ -3418,7 +3419,7 @@ const converters1 = {
             const action = lookup.hasOwnProperty(commandID) ? lookup[commandID] : `unknown_${commandID}`;
             return {action};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     enocean_ptm215ze: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommissioningNotification'],
@@ -3446,7 +3447,7 @@ const converters1 = {
                 return {action: lookup[commandID]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     enocean_ptm216z: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommissioningNotification'],
@@ -3473,7 +3474,7 @@ const converters1 = {
                 return {action: lookup[ID]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     lifecontrolVoc: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -3490,7 +3491,7 @@ const converters1 = {
                 eco2, voc,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     _8840100H_water_leak_alarm: {
         cluster: 'haApplianceEventsAlerts',
         type: 'commandAlertsNotification',
@@ -3500,7 +3501,7 @@ const converters1 = {
                 water_leak: (alertStatus & 1<<12) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     E1E_G7F_action: {
         cluster: 64528,
         type: ['raw'],
@@ -3527,7 +3528,7 @@ const converters1 = {
                 return {action: lookup[msg.data[5]]}; // Just output the data from the above lookup list
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     diyruz_freepad_clicks: {
         cluster: 'genMultistateInput',
         type: ['readResponse', 'attributeReport'],
@@ -3538,21 +3539,21 @@ const converters1 = {
             const action = lookup[clicks] ? lookup[clicks] : `many_${clicks}`;
             return {action: `${button}_${action}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     kmpcil_res005_occupancy: {
         cluster: 'genBinaryInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {occupancy: (msg.data['presentValue']===1)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     kmpcil_res005_on_off: {
         cluster: 'genBinaryOutput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {state: (msg.data['presentValue']==0) ? 'OFF' : 'ON'};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     _3310_humidity: {
         cluster: 'manuSpecificCentraliteHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -3561,7 +3562,7 @@ const converters1 = {
             const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
             return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     smartthings_acceleration: {
         cluster: 'manuSpecificSamsungAccelerometer',
         type: ['attributeReport', 'readResponse'],
@@ -3584,7 +3585,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     byun_smoke_false: {
         cluster: 'pHMeasurement',
         type: ['attributeReport'],
@@ -3593,7 +3594,7 @@ const converters1 = {
                 return {smoke: false};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     byun_smoke_true: {
         cluster: 'ssIasZone',
         type: ['commandStatusChangeNotification'],
@@ -3602,7 +3603,7 @@ const converters1 = {
                 return {smoke: true};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     byun_gas_false: {
         cluster: 1034,
         type: ['raw'],
@@ -3611,7 +3612,7 @@ const converters1 = {
                 return {gas: false};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     byun_gas_true: {
         cluster: 'ssIasZone',
         type: ['commandStatusChangeNotification'],
@@ -3620,7 +3621,7 @@ const converters1 = {
                 return {gas: true};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     hue_smart_button_event: {
         cluster: 'manuSpecificPhilips',
         type: 'commandHueNotification',
@@ -3629,14 +3630,14 @@ const converters1 = {
             const lookup: KeyValueAny = {0: 'press', 1: 'hold', 2: 'release', 3: 'release'};
             return {action: lookup[msg.data['type']]};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     legrand_binary_input_moving: {
         cluster: 'genBinaryInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {action: msg.data.presentValue ? 'moving' : 'stopped'};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     legrand_binary_input_on_off: {
         cluster: 'genBinaryInput',
         type: ['attributeReport', 'readResponse'],
@@ -3645,7 +3646,7 @@ const converters1 = {
             const property = multiEndpoint ? postfixWithEndpointName('state', msg, model, meta) : 'state';
             return {[property]: msg.data.presentValue ? 'ON' : 'OFF'};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bticino_4027C_binary_input_moving: {
         cluster: 'genBinaryInput',
         type: ['attributeReport', 'readResponse'],
@@ -3655,7 +3656,7 @@ const converters1 = {
                 {action: msg.data.presentValue ? 'stopped' : 'moving', position: 50} :
                 {action: msg.data.presentValue ? 'stopped' : 'moving'};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     legrand_scenes: {
         cluster: 'genScenes',
         type: 'commandRecall',
@@ -3663,7 +3664,7 @@ const converters1 = {
             const lookup: KeyValueAny = {0xfff7: 'enter', 0xfff6: 'leave', 0xfff4: 'sleep', 0xfff5: 'wakeup'};
             return {action: lookup[msg.data.groupid] ? lookup[msg.data.groupid] : 'default'};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     legrand_master_switch_center: {
         cluster: 'manuSpecificLegrandDevices',
         type: 'raw',
@@ -3673,7 +3674,7 @@ const converters1 = {
                 return {action: 'center'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     legrand_cable_outlet_mode: {
         cluster: 'manuSpecificLegrandDevices2',
         type: ['readResponse'],
@@ -3693,7 +3694,7 @@ const converters1 = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     legrand_power_alarm: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -3716,7 +3717,7 @@ const converters1 = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     legrand_greenpower: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommissioningNotification'],
@@ -3737,7 +3738,7 @@ const converters1 = {
                 return {action: lookup[commandID]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_power: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
@@ -3745,7 +3746,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             return {power: calibrateAndPrecisionRoundOptions(msg.data['presentValue'], options, 'power')};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -3753,7 +3754,7 @@ const converters1 = {
         convert: async (model, msg, publish, options, meta) => {
             return await xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_basic_raw: {
         cluster: 'genBasic',
         type: ['raw'],
@@ -3766,7 +3767,7 @@ const converters1 = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_opple: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -3774,7 +3775,7 @@ const converters1 = {
         convert: async (model, msg, publish, options, meta) => {
             return await xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_on_off_action: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
@@ -3805,7 +3806,7 @@ const converters1 = {
 
             return {action: `${action}${button}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_multistate_action: {
         cluster: 'genMultistateInput',
         type: ['attributeReport'],
@@ -3817,7 +3818,7 @@ const converters1 = {
             }
 
             let buttonLookup: KeyValueNumberString = null;
-            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM'].includes(model.model)) {
+            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM', 'WXKG22LM'].includes(model.model)) {
                 buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             }
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
@@ -3845,7 +3846,7 @@ const converters1 = {
                 return {action};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_occupancy_illuminance: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
@@ -3883,7 +3884,7 @@ const converters1 = {
                 return payload;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     RTCGQ13LM_occupancy: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
@@ -3920,7 +3921,7 @@ const converters1 = {
             utils.noOccupancySince(msg.endpoint, options, publish, 'start');
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_WXKG01LM_action: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -3969,14 +3970,14 @@ const converters1 = {
                 publish({action: payload});
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_contact: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {contact: msg.data['onOff'] === 0};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     W2_module_carbon_monoxide: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -3986,7 +3987,7 @@ const converters1 = {
                 carbon_monoxide: (zoneStatus & 1<<8) > 8,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_temperature: {
         cluster: 'msTemperatureMeasurement',
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
@@ -4000,7 +4001,7 @@ const converters1 = {
                 return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_WXKG11LM_action: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -4017,7 +4018,7 @@ const converters1 = {
                 return {action: actionLookup[clicks]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_status_change_notification_action: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -4025,7 +4026,7 @@ const converters1 = {
             const lookup: KeyValueAny = {0: 'off', 1: 'single', 2: 'double', 3: 'hold'};
             return {action: lookup[msg.data.zonestatus]};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ptvo_multistate_action: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -4035,7 +4036,7 @@ const converters1 = {
             const action = actionLookup[value];
             return {action: postfixWithEndpointName(action, msg, model, meta)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     konke_action: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -4044,7 +4045,7 @@ const converters1 = {
             const lookup: KeyValueAny = {128: 'single', 129: 'double', 130: 'hold'};
             return lookup[value] ? {action: lookup[value]} : null;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_curtain_position: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
@@ -4061,7 +4062,7 @@ const converters1 = {
             position = options.invert_cover ? 100 - position : position;
             return {position};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_curtain_position_tilt: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
@@ -4082,7 +4083,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_curtain_hagl04_status: {
         cluster: 'genMultistateOutput',
         type: ['attributeReport'],
@@ -4105,7 +4106,7 @@ const converters1 = {
                 };
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_curtain_hagl07_status: {
         cluster: 'genMultistateOutput',
         type: ['attributeReport'],
@@ -4128,7 +4129,7 @@ const converters1 = {
                 };
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_curtain_acn002_status: {
         cluster: 'genMultistateOutput',
         type: ['attributeReport'],
@@ -4152,7 +4153,7 @@ const converters1 = {
                 };
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_operation_mode_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -4177,7 +4178,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     qlwz_letv8key_switch: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -4190,7 +4191,7 @@ const converters1 = {
                 return {action: `${action}_${button}`};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_opple_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -4213,7 +4214,7 @@ const converters1 = {
                 return {action: `button_${button}_${actionLookup[value]}`};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_opple_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -4221,7 +4222,7 @@ const converters1 = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             return {action: 'button_2_single'};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_opple_off: {
         cluster: 'genOnOff',
         type: 'commandOff',
@@ -4229,7 +4230,7 @@ const converters1 = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             return {action: 'button_1_single'};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_opple_step: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
@@ -4238,7 +4239,7 @@ const converters1 = {
             const button = msg.data.stepmode === 0 ? '4' : '3';
             return {action: `button_${button}_single`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_opple_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
@@ -4253,7 +4254,7 @@ const converters1 = {
                 return payload;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_opple_move: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
@@ -4263,7 +4264,7 @@ const converters1 = {
             globalStore.putValue(msg.endpoint, 'button', {button, start: Date.now()});
             return {action: `button_${button}_hold`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_opple_step_color_temp: {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
@@ -4279,7 +4280,7 @@ const converters1 = {
             }
             return {action: `button_${action}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_opple_move_color_temp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveColorTemp',
@@ -4300,7 +4301,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     keen_home_smart_vent_pressure: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -4309,7 +4310,7 @@ const converters1 = {
             const pressure = msg.data.hasOwnProperty('measuredValue') ? msg.data.measuredValue : parseFloat(msg.data['32']) / 1000.0;
             return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     U02I007C01_contact: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -4320,7 +4321,7 @@ const converters1 = {
                 contact: !((zoneStatus & 1) > 0),
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     U02I007C01_water_leak: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -4331,7 +4332,7 @@ const converters1 = {
                 water_leak: (zoneStatus & 1) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     heiman_hcho: {
         cluster: 'heimanSpecificFormaldehydeMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -4340,7 +4341,7 @@ const converters1 = {
                 return {hcho: parseFloat(msg.data['measuredValue']) / 100.0};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     heiman_air_quality: {
         cluster: 'heimanSpecificAirQuality',
         type: ['attributeReport', 'readResponse'],
@@ -4359,14 +4360,14 @@ const converters1 = {
             if (msg.data['pm10measuredValue']) result['pm10'] = msg.data['pm10measuredValue'];
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     scenes_recall_scene_65024: {
         cluster: 65024,
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
             return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     color_stop_raw: {
         cluster: 'lightingColorCtrl',
         type: ['raw'],
@@ -4375,7 +4376,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     MFKZQ01LM_action_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -4425,7 +4426,7 @@ const converters1 = {
 
             return result ? result : null;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     MFKZQ01LM_action_analog: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
@@ -4445,7 +4446,7 @@ const converters1 = {
             if (!isLegacyEnabled(options)) delete result.angle;
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tradfri_occupancy: {
         cluster: 'genOnOff',
         type: 'commandOnWithTimedOff',
@@ -4474,7 +4475,7 @@ const converters1 = {
 
             return {occupancy: true, illuminance_above_threshold: onlyWhenOnFlag};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     almond_click: {
         cluster: 'ssIasAce',
         type: ['commandArm'],
@@ -4497,7 +4498,7 @@ const converters1 = {
                 return {action: lookup[action]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     SAGE206612_state: {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff'],
@@ -4519,7 +4520,7 @@ const converters1 = {
                 list.push(timer);
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ZMCSW032D_cover_position: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
@@ -4601,7 +4602,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     PGC410EU_presence: {
         cluster: 'manuSpecificSmartThingsArrivalSensor',
         type: 'commandArrivalSensorNotify',
@@ -4618,7 +4619,7 @@ const converters1 = {
 
             return {presence: true};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     STS_PRS_251_presence: {
         cluster: 'genBinaryInput',
         type: ['attributeReport', 'readResponse'],
@@ -4635,7 +4636,7 @@ const converters1 = {
 
             return {presence: true};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     E1745_requested_brightness: {
         // Possible values are 76 (30%) or 254 (100%)
         cluster: 'genLevelCtrl',
@@ -4646,7 +4647,7 @@ const converters1 = {
                 requested_brightness_percent: mapNumberRange(msg.data.level, 0, 254, 0, 100),
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_bulb_interval: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -4660,7 +4661,7 @@ const converters1 = {
                 };
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     heiman_scenes: {
         cluster: 'heimanSpecificScenes',
         type: ['commandAtHome', 'commandGoOut', 'commandCinema', 'commandRepast', 'commandSleep'],
@@ -4674,7 +4675,7 @@ const converters1 = {
             };
             if (lookup.hasOwnProperty(msg.type)) return {action: lookup[msg.type]};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     javis_lock_report: {
         cluster: 'genBasic',
         type: 'attributeReport',
@@ -4711,7 +4712,7 @@ const converters1 = {
                 action_source_name: lookup[data[5]],
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     diyruz_freepad_config: {
         cluster: 'genOnOffSwitchCfg',
         type: ['readResponse'],
@@ -4725,7 +4726,7 @@ const converters1 = {
                 [`switch_actions_${button}`]: switchActionsLookup[switchActions],
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     diyruz_geiger: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -4735,7 +4736,7 @@ const converters1 = {
                 radiation_dose_per_hour: msg.data['61442'],
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     diyruz_geiger_config: {
         cluster: 'msIlluminanceLevelSensing',
         type: 'readResponse',
@@ -4761,7 +4762,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     diyruz_airsense_config_co2: {
         cluster: 'msCO2',
         type: 'readResponse',
@@ -4781,7 +4782,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     diyruz_airsense_config_temp: {
         cluster: 'msTemperatureMeasurement',
         type: 'readResponse',
@@ -4792,7 +4793,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     diyruz_airsense_config_pres: {
         cluster: 'msPressureMeasurement',
         type: 'readResponse',
@@ -4804,7 +4805,7 @@ const converters1 = {
             return result;
         },
 
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     diyruz_airsense_config_hum: {
         cluster: 'msRelativeHumidity',
         type: 'readResponse',
@@ -4815,7 +4816,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     diyruz_zintercom_config: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
@@ -4847,7 +4848,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     JTQJBF01LMBW_gas_density: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -4860,7 +4861,7 @@ const converters1 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     JTQJBF01LMBW_sensitivity: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
@@ -4877,7 +4878,7 @@ const converters1 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     DJT11LM_vibration: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
@@ -4950,21 +4951,21 @@ const converters1 = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     DJT12LM_vibration: {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'vibration'};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     CC2530ROUTER_led: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {led: msg.data['onOff'] === 1};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     CC2530ROUTER_meta: {
         cluster: 'genBinaryValue',
         type: ['attributeReport', 'readResponse'],
@@ -4976,14 +4977,14 @@ const converters1 = {
                 rssi: data['presentValue'],
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     KAMI_contact: {
         cluster: 'ssIasZone',
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
             return {contact: msg.data[7] === 0};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     KAMI_occupancy: {
         cluster: 'msOccupancySensing',
         type: ['raw'],
@@ -4992,7 +4993,7 @@ const converters1 = {
                 return {action: 'motion'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     DNCKAT_S00X_buttons: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -5008,7 +5009,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_on_off_ignore_endpoint_4_5_6: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -5019,7 +5020,7 @@ const converters1 = {
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     hue_motion_sensitivity: {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
@@ -5029,7 +5030,7 @@ const converters1 = {
                 return {motion_sensitivity: lookup[msg.data['48']]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     hue_motion_led_indication: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -5038,7 +5039,7 @@ const converters1 = {
                 return {led_indication: msg.data['51'] === 1};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     hue_wall_switch_device_mode: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -5048,7 +5049,7 @@ const converters1 = {
                 return {device_mode: values[msg.data['52']]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     CCTSwitch_D0001_levelctrl: {
         cluster: 'genLevelCtrl',
         options: [exposes.options.legacy()],
@@ -5120,7 +5121,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     CCTSwitch_D0001_lighting: {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveToColorTemp', 'commandMoveColorTemp'],
@@ -5205,7 +5206,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     hue_wall_switch: {
         cluster: 'manuSpecificPhilips',
         type: 'commandHueNotification',
@@ -5216,7 +5217,7 @@ const converters1 = {
             const type = typeLookup[msg.data['type']];
             return {action: `${button}_${type}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     hue_dimmer_switch: {
         cluster: 'manuSpecificPhilips',
         type: 'commandHueNotification',
@@ -5247,7 +5248,7 @@ const converters1 = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     hue_tap: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommissioningNotification'],
@@ -5267,7 +5268,7 @@ const converters1 = {
                 return {action: lookup[commandID]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tuya_relay_din_led_indicator: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -5283,7 +5284,7 @@ const converters1 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_keypad: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -5295,7 +5296,7 @@ const converters1 = {
                 restore_reports: (zoneStatus & 1<<5) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     itcmdr_clicks: {
         cluster: 'genMultistateInput',
         type: ['readResponse', 'attributeReport'],
@@ -5306,7 +5307,7 @@ const converters1 = {
             const action = lookup[clicks] ? lookup[clicks] : `many`;
             return {action};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ZB003X_attr: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
@@ -5323,7 +5324,7 @@ const converters1 = {
                 return {keep_time: keeptimelookup[value]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ZB003X_occupancy: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -5331,7 +5332,7 @@ const converters1 = {
             const zoneStatus = msg.data.zonestatus;
             return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     idlock: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
@@ -5357,7 +5358,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     idlock_fw: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -5368,7 +5369,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     schneider_pilot_mode: {
         cluster: 'schneiderSpecificPilotMode',
         type: ['attributeReport', 'readResponse'],
@@ -5380,7 +5381,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     schneider_ui_action: {
         cluster: 'wiserDeviceInfo',
         type: 'attributeReport',
@@ -5418,7 +5419,7 @@ const converters1 = {
                 return result;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     schneider_temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -5428,7 +5429,7 @@ const converters1 = {
             const property = postfixWithEndpointName('local_temperature', msg, model, meta);
             return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     wiser_smart_thermostat_client: {
         cluster: 'hvacThermostat',
         type: 'read',
@@ -5442,7 +5443,7 @@ const converters1 = {
                 await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response, {srcEndpoint: 11});
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     wiser_smart_setpoint_command_client: {
         cluster: 'hvacThermostat',
         type: ['command', 'commandWiserSmartSetSetpoint'],
@@ -5460,7 +5461,7 @@ const converters1 = {
             meta.logger.debug(`received wiser setpoint command with value: '${msg.data['setpoint']}'`);
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ZNCJMB14LM: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -5532,7 +5533,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     rc_110_level_to_scene: {
         cluster: 'genLevelCtrl',
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
@@ -5540,14 +5541,14 @@ const converters1 = {
             const scenes: KeyValueAny = {2: '1', 52: '2', 102: '3', 153: '4', 194: '5', 254: '6'};
             return {action: `scene_${scenes[msg.data.level]}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     xiaomi_tvoc: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {voc: msg.data.presentValue};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     heiman_doorbell_button: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -5564,7 +5565,7 @@ const converters1 = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_knob_rotation: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -5581,7 +5582,7 @@ const converters1 = {
                 };
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     sihas_people_cnt: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
@@ -5595,7 +5596,7 @@ const converters1 = {
                 return result;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     sihas_action: {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff', 'commandToggle'],
@@ -5620,7 +5621,7 @@ const converters1 = {
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
             return {action: `${button}${lookup[msg.type]}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tuya_operation_mode: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -5631,7 +5632,7 @@ const converters1 = {
                 return {operation_mode: lookup[value]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     sunricher_switch2801K2: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommissioningNotification'],
@@ -5646,7 +5647,7 @@ const converters1 = {
                 return {action: lookup[commandID]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     sunricher_switch2801K4: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommissioningNotification'],
@@ -5669,7 +5670,7 @@ const converters1 = {
                 return {action: lookup[commandID]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_stop_move_raw: {
         cluster: 'lightingColorCtrl',
         type: 'raw',
@@ -5683,7 +5684,7 @@ const converters1 = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tuya_multi_action: {
         cluster: 'genOnOff',
         type: 'raw',
@@ -5706,7 +5707,7 @@ const converters1 = {
 
             return {action};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     led_on_motion: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
@@ -5717,7 +5718,7 @@ const converters1 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     hw_version: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -5726,7 +5727,7 @@ const converters1 = {
             if (msg.data.hasOwnProperty('hwVersion')) result['hw_version'] = msg.data.hwVersion;
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     SNZB02_temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -5741,7 +5742,7 @@ const converters1 = {
                 return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     SNZB02_humidity: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -5755,7 +5756,7 @@ const converters1 = {
                 return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     awox_colors: {
         cluster: 'lightingColorCtrl',
         type: ['raw'],
@@ -5777,7 +5778,7 @@ const converters1 = {
                 return {action: color};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     awox_refreshColored: {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveHue'],
@@ -5788,7 +5789,7 @@ const converters1 = {
                 };
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     awox_refresh: {
         cluster: 'genLevelCtrl',
         type: ['raw'],
@@ -5802,7 +5803,7 @@ const converters1 = {
                 return {action: 'refresh_long'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
@@ -5810,167 +5811,167 @@ const converters1 = {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_basic_report: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_illuminance_report: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_occupancy_report: {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_temperature_report: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_humidity_report: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_pressure_report: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_analog_report: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_multistate_report: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_power_report: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_light_brightness_report: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_light_color_colortemp_report: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_closuresWindowCovering_report: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_thermostat_report: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_iaszone_attreport: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_iaszone_statuschange: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_iaszone_report: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_iasace_commandgetpanelstatus: {
         cluster: 'ssIasAce',
         type: ['commandGetPanelStatus'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_genIdentify: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_command_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_command_off: {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_command_step: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_command_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_poll_ctrl: {
         cluster: 'genPollCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_genLevelCtrl_report: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_genOta: {
         cluster: 'genOta',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_haDiagnostic: {
         cluster: 'haDiagnostic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_zclversion_read: {
         cluster: 'genBasic',
         type: 'read',
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_time_read: {
         cluster: 'genTime',
         type: 'read',
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_tuya_set_time: {
         cluster: 'manuSpecificTuya',
         type: ['commandMcuSyncTime'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_tuya_raw: {
         cluster: 'manuSpecificTuya',
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ignore_electrical_measurement: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     // #endregion
 };
 
@@ -5984,7 +5985,7 @@ const converters2 = {
             payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     metering_datek: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
@@ -5997,7 +5998,7 @@ const converters2 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     JTYJGD01LMBW_smoke: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -6007,7 +6008,7 @@ const converters2 = {
             if (result) result.test = (zoneStatus & 1<<1) > 0;
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     EKO09738_metering: {
         /**
          * Elko EKO09738 and EKO09716 reports power in mW, scale to W
@@ -6021,7 +6022,7 @@ const converters2 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     command_on_presence: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -6030,7 +6031,7 @@ const converters2 = {
             const payload2 = await converters1.command_on.convert(model, msg, publish, options, meta);
             return {...payload1, ...payload2};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ias_ace_occupancy_with_timeout: {
         cluster: 'ssIasAce',
         type: 'commandGetPanelStatus',
@@ -6039,7 +6040,7 @@ const converters2 = {
             msg.data.occupancy = 1;
             return converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta);
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     SP600_power: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
@@ -6064,7 +6065,7 @@ const converters2 = {
                 return converters1.metering.convert(model, msg, publish, options, meta);
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     stelpro_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -6079,7 +6080,7 @@ const converters2 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     viessmann_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -6116,7 +6117,7 @@ const converters2 = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     eurotronic_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -6154,7 +6155,7 @@ const converters2 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     RTCGQ11LM_illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -6163,7 +6164,7 @@ const converters2 = {
             // also trigger movement, because there is no illuminance without movement
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1925
             msg.data.occupancy = 1;
-            const payload = await converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta);
+            const payload = await converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (payload) {
                 // DEPRECATED: remove illuminance_lux here.
                 const illuminance = msg.data['measuredValue'];
@@ -6172,7 +6173,7 @@ const converters2 = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     terncy_raw: {
         cluster: 'manuSpecificClusterAduroSmart',
         type: 'raw',
@@ -6208,7 +6209,7 @@ const converters2 = {
                 const sidelookup: KeyValueAny = {5: 'right', 7: 'right', 40: 'left', 56: 'left'};
                 if (sidelookup[value]) {
                     msg.data.occupancy = 1;
-                    const payload = await converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta);
+                    const payload = await converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
                     if (payload) {
                         payload.action_side = sidelookup[value];
                         payload.side = sidelookup[value]; /* legacy: remove this line (replaced by action_side) */
@@ -6218,7 +6219,7 @@ const converters2 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ZM35HQ_attr: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
@@ -6239,7 +6240,7 @@ const converters2 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     schneider_lighting_ballast_configuration: {
         cluster: 'lightingBallastCfg',
         type: ['attributeReport', 'readResponse'],
@@ -6251,7 +6252,7 @@ const converters2 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     wiser_lighting_ballast_configuration: {
         cluster: 'lightingBallastCfg',
         type: ['attributeReport', 'readResponse'],
@@ -6262,7 +6263,7 @@ const converters2 = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     wiser_smart_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -6322,13 +6323,13 @@ const converters2 = {
                 }
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     nodon_fil_pilote_mode: {
         cluster: 'manuSpecificNodOnFilPilote',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
-            const mode = msg.data['0'];
+            const mode = msg.data['mode'];
 
             if (mode === 0x00) payload.mode = 'stop';
             else if (mode === 0x01) payload.mode = 'comfort';
@@ -6342,7 +6343,7 @@ const converters2 = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const converters = {...converters1, ...converters2};

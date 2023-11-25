@@ -37,7 +37,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     thermostat_ui: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],
@@ -55,7 +55,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -101,7 +101,7 @@ const tzLocal = {
             }
             return {state: {[key]: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     thermostat_ui: {
         key: ['brightness', 'brightness_standby'],
         convertGet: async (entity, key, meta) => {
@@ -137,7 +137,7 @@ const tzLocal = {
             }
             return {state: {[key]: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -512,4 +512,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

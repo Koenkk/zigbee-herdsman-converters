@@ -26,7 +26,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genBasic', [0x1337]);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     node_config: {
         key: ['report_delay'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -41,7 +41,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     local_time: {
         key: ['local_time'],
         convertSet: async (entity, key, value, meta) => {
@@ -51,7 +51,7 @@ const tzLocal = {
             await firstEndpoint.write('genTime', {time: time});
             return {state: {local_time: time}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     co2_config: {
         key: ['auto_brightness', 'forced_recalibration', 'factory_reset_co2', 'long_chart_period', 'set_altitude',
             'manual_forced_recalibration', 'light_indicator', 'light_indicator_level'],
@@ -74,7 +74,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     temperature_config: {
         key: ['temperature_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -88,7 +88,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     humidity_config: {
         key: ['humidity_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -102,7 +102,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     thermostat_config: {
         key: ['high_temperature', 'low_temperature', 'enable_temperature'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -119,7 +119,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     hydrostat_config: {
         key: ['high_humidity', 'low_humidity', 'enable_humidity'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -136,7 +136,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     co2_gasstat_config: {
         key: ['high_gas', 'low_gas', 'enable_gas'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -153,7 +153,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     multi_zig_sw_switch_type: {
         key: ['switch_type_1', 'switch_type_2', 'switch_type_3', 'switch_type_4'],
         convertGet: async (entity, key, meta) => {
@@ -165,7 +165,7 @@ const tzLocal = {
             await entity.write('genOnOffSwitchCfg', payload);
             return {state: {[`${key}`]: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -177,7 +177,7 @@ const fzLocal = {
             if (msg.data['4919']) result['transmit_power'] = msg.data['4919'];
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     node_config: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -188,7 +188,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     co2: {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
@@ -198,7 +198,7 @@ const fzLocal = {
                 return {co2: calibrateAndPrecisionRoundOptions(co2, options, 'co2')};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     co2_config: {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
@@ -230,7 +230,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     temperature_config: {
         cluster: 'msTemperatureMeasurement',
         type: 'readResponse',
@@ -241,7 +241,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     humidity_config: {
         cluster: 'msRelativeHumidity',
         type: 'readResponse',
@@ -252,7 +252,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     thermostat_config: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -269,7 +269,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     hydrostat_config: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -286,7 +286,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     co2_gasstat_config: {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
@@ -303,7 +303,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     humidity2: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -321,7 +321,7 @@ const fzLocal = {
                 return {[property]: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     illuminance2: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -339,7 +339,7 @@ const fzLocal = {
                 [property2]: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     pressure2: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -357,7 +357,7 @@ const fzLocal = {
             const property = (multiEndpoint)? postfixWithEndpointName('pressure', msg, model, meta): 'pressure';
             return {[property]: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     multi_zig_sw_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -366,7 +366,7 @@ const fzLocal = {
             const battery = (voltage - 2200) / 8;
             return {battery: battery > 100 ? 100 : battery, voltage: voltage};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     multi_zig_sw_switch_buttons: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -377,7 +377,7 @@ const fzLocal = {
             const action = actionLookup[value];
             return {action: button + '_' + action};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     multi_zig_sw_switch_config: {
         cluster: 'genOnOffSwitchCfg',
         type: ['readResponse', 'attributeReport'],
@@ -386,7 +386,7 @@ const fzLocal = {
             const {switchType} = msg.data;
             return {[`switch_type_${channel}`]: getKey(switchTypesList, switchType)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 function ptvoGetMetaOption(device: Zh.Device, key: string, defaultValue: unknown) {
@@ -1331,4 +1331,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

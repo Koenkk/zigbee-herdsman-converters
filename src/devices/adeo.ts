@@ -20,7 +20,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -30,7 +30,7 @@ const tzLocal = {
             await entity.write('ssIasZone', {0x0013: {value, type: 0x20}});
             return {state: {sensitivity: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -374,14 +374,16 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnFilPilote']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
             await reporting.readMeteringMultiplierDivisor(ep);
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
-            await ep.read('manuSpecificNodOnFilPilote', ['mode']);
+            const p = reporting.payload('mode', 0, 120, 0, {min: 1, max: 3600, change: 0});
+            await ep.configureReporting('manuSpecificNodOnFilPilote', p);
         },
     },
 ];
 
+export default definitions;
 module.exports = definitions;

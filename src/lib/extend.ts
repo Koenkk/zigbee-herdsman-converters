@@ -45,7 +45,7 @@ const extend = {
 
         return result;
     },
-    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp={}) => {
+    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp={}): Extend => {
         options = {
             disableEffect: false, disableColorTempStartup: false, disablePowerOnBehavior: false,
             toZigbee: [], fromZigbee: [], exposes: [], ...options,
@@ -78,7 +78,7 @@ const extend = {
 
         return result;
     },
-    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color={}) => {
+    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color={}): Extend => {
         options = {
             disableEffect: false, supportsHueAndSaturation: false, preferHueAndSaturation: false, disablePowerOnBehavior: false,
             toZigbee: [], fromZigbee: [], exposes: [], ...options,
@@ -106,7 +106,7 @@ const extend = {
 
         return result;
     },
-    light_onoff_brightness_colortemp_color: (options: Extend.options_light_onoff_brightness_colortemp_color={}) => {
+    light_onoff_brightness_colortemp_color: (options: Extend.options_light_onoff_brightness_colortemp_color={}): Extend => {
         options = {
             disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
             disablePowerOnBehavior: false, toZigbee: [], fromZigbee: [], exposes: [], ...options,

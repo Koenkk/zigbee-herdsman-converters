@@ -9,7 +9,9 @@ const definitions: Definition[] = [
         model: 'A319463',
         vendor: 'LS Deutschland GmbH',
         description: 'Home base',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
+        fromZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}).fromZigbee,
+        toZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}).toZigbee,
+        configure: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}).configure,
         exposes: (device, options) => {
             if (!device) return [e.light_brightness_colortemp_colorxy([153, 454]), e.linkquality()];
             return [e.linkquality(), ...device.endpoints.filter((ep) => ep.ID !== 242).map((ep) => {
@@ -23,4 +25,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

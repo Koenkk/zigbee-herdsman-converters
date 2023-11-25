@@ -21,7 +21,7 @@ const fzLocal = {
             };
             return {[utils.postfixWithEndpointName('action', msg, model, meta)]: lookup[msg.type]};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -521,4 +521,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

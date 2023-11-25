@@ -18,7 +18,7 @@ const fzLocal = {
                 key_4: msg.data['41364'] === 1 ? 'ON' : 'OFF',
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -55,4 +55,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

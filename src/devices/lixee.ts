@@ -121,7 +121,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     lixee_private_fz: {
         cluster: 'liXeePrivate', // 0xFF66
         type: ['attributeReport', 'readResponse'],
@@ -197,7 +197,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     lixee_metering: {
         cluster: 'seMetering', // 0x0702
         type: ['attributeReport', 'readResponse'],
@@ -261,7 +261,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 
@@ -434,6 +434,25 @@ const tarifsDef = {
             'EASF10',
             'EASD03',
             'EASD04',
+            'DPM1',
+            'DPM2',
+            'DPM3',
+            'FPM1',
+            'FPM2',
+            'FPM3',
+            'NJOURF',
+            'NJOURF+1',
+            'PJOURF+1',
+            'PPOINTE1',
+        ],
+    },
+    stand_H_SUPER_CREUSES: {
+        fname: 'Standard - Heures Super Creuses',
+        currentTarf: 'H SUPER CREUSES', excluded: [
+            'EASF07',
+            'EASF08',
+            'EASF09',
+            'EASF10',
             'DPM1',
             'DPM2',
             'DPM3',
@@ -711,6 +730,9 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue, logger: Logger =
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_BASE.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_BASE.excluded.includes(a.exposes.name));
         break;
+    case linkyMode == linkyModeDef.standard && tarifsDef.stand_H_SUPER_CREUSES.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.stand_H_SUPER_CREUSES.excluded.includes(a.exposes.name));
+        break;
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_TEMPO.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_TEMPO.excluded.includes(a.exposes.name));
         break;
@@ -897,4 +919,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

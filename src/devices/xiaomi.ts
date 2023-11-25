@@ -26,7 +26,9 @@ const xiaomiExtend = {
             colorTempRange: [153, 370], toZigbee: [], fromZigbee: [], exposes: [], ...options,
         };
         const fromZigbee = [
-            ...extend.light_onoff_brightness_colortemp(options).fromZigbee, ...options.fromZigbee];
+            ...extend.light_onoff_brightness_colortemp(options).fromZigbee,
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report, ...options.fromZigbee];
         const toZigbee = [
             ...extend.light_onoff_brightness_colortemp(options).toZigbee, ...options.toZigbee];
         const exposes = [
@@ -89,7 +91,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {co2: Math.floor(msg.data.measuredValue)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_s1_pm25: {
         cluster: 'pm25Measurement',
         type: ['attributeReport', 'readResponse'],
@@ -98,7 +100,7 @@ const fzLocal = {
                 return {pm25: msg.data['measuredValue'] / 1000};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_trv: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -187,7 +189,7 @@ const fzLocal = {
             });
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_feeder: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -271,7 +273,7 @@ const fzLocal = {
             });
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     aqara_fp1_region_events: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -324,11 +326,10 @@ const fzLocal = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     CTPR01_action_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
-        options: [],
         convert: (model, msg, publish, options, meta) => {
             const value = msg.data['presentValue'];
             let payload;
@@ -355,11 +356,10 @@ const fzLocal = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     CTPR01_action_analog: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
-        options: [],
         convert: (model, msg, publish, options, meta) => {
             const value = msg.data['presentValue'];
             return {
@@ -367,7 +367,7 @@ const fzLocal = {
                 action_angle: Math.floor(value * 100) / 100,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -383,7 +383,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x010C], {manufacturerCode});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     aqara_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
             'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_settings'],
@@ -522,7 +522,7 @@ const tzLocal = {
                 await entity.read('aqaraOpple', [utils.getFromLookup(key, dict)], {manufacturerCode: 0x115F});
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     VOCKQJK11LM_display_unit: {
         key: ['display_unit'],
         convertSet: async (entity, key, value, meta) => {
@@ -533,7 +533,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     aqara_feeder: {
         key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
         convertSet: async (entity, key, value, meta) => {
@@ -608,7 +608,7 @@ const tzLocal = {
             }
             return {state: {[key]: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     aqara_fp1_region_upsert: {
         key: ['region_upsert'],
         convertSet: async (entity, key, value, meta) => {
@@ -672,7 +672,7 @@ const tzLocal = {
 
             await entity.write('aqaraOpple', payload, {manufacturerCode});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     aqara_fp1_region_delete: {
         key: ['region_delete'],
         convertSet: async (entity, key, value, meta) => {
@@ -718,7 +718,7 @@ const tzLocal = {
 
             await entity.write('aqaraOpple', payload, {manufacturerCode});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     CTPR01_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -737,7 +737,7 @@ const tzLocal = {
             globalStore.putValue(meta.device, 'opModeSwitchTask', {callback, newMode: value});
             meta.logger.info('Now give your cube a forceful throw motion (Careful not to drop it)!');
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -1154,6 +1154,23 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.switch.n1acn1'],
+        model: 'QBKG30LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch H1 Pro (with neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple, fz.xiaomi_multistate_action],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
+        exposes: [e.switch(), e.power(), e.energy(), e.voltage(),
+            e.device_temperature(), e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
+            e.action(['single', 'double']),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode'),
+            e.power_outage_count()],
+        onEvent: preventReset,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.switch.n2acn1'],
         model: 'QBKG31LM',
         vendor: 'Xiaomi',
@@ -1173,7 +1190,8 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button').withEndpoint('left'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button').withEndpoint('right')],
+                .withDescription('Decoupled mode for right button').withEndpoint('right'),
+            e.power_outage_count()],
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
@@ -1201,7 +1219,8 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button').withEndpoint('right'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button').withEndpoint('center')],
+                .withDescription('Decoupled mode for center button').withEndpoint('center'),
+            e.power_outage_count()],
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
@@ -2693,6 +2712,14 @@ const definitions: Definition[] = [
             e.illuminance_lux().withAccess(ea.STATE_GET)],
     },
     {
+        zigbeeModel: ['lumi.light.acn128'],
+        model: 'TDL01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara spotlight T3',
+        extend: extend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.light.rgbac1'],
         model: 'ZNTGMK11LM',
         vendor: 'Xiaomi',
@@ -2802,7 +2829,6 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara S1 smart touch panel',
         fromZigbee: [fz.on_off, fz.ZNCJMB14LM],
-        // @ts-expect-error
         toZigbee: [tz.on_off, tz.ZNCJMB14LM],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -3096,10 +3122,9 @@ const definitions: Definition[] = [
         model: 'MCCGQ12LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 door & window contact sensor',
-        fromZigbee: [fz.xiaomi_contact, fz.aqara_opple],
+        fromZigbee: [fz.xiaomi_contact, fz.aqara_opple, fz.ias_contact_alarm_1],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+        exposes: [e.contact(), e.battery_low()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -3298,6 +3323,41 @@ const definitions: Definition[] = [
             e.device_temperature(), e.power_outage_count()],
     },
     {
+        zigbeeModel: ['lumi.remote.acn009'],
+        model: 'WXKG22LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara wireless remote switch H1M (double rocker)',
+        fromZigbee: [fz.battery, fz.xiaomi_multistate_action, fz.aqara_opple, fz.command_toggle],
+        toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}, multiEndpoint: true},
+        exposes: [
+            e.battery(), e.battery_voltage(), e.action([
+                'single_left', 'single_right', 'single_both',
+                'double_left', 'double_right', 'double_both',
+                'triple_left', 'triple_right', 'triple_both',
+                'hold_left', 'hold_right', 'hold_both']),
+            e.enum('click_mode', ea.ALL, ['fast', 'multi'])
+                .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
+                    'multi: supports more events like double and hold'),
+            e.enum('operation_mode', ea.ALL, ['command', 'event'])
+                .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(3);
+            // set "event" mode
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            // turn on the "multiple clicks" mode, otherwise the only "single click" events.
+            // if value is 1 - there will be single clicks, 2 - multiple.
+            await endpoint1.write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            // TODO/BUG:
+            // Did not understand how to separate the left and right keys in command mode -
+            // the "toggleCommand" always arrives from the first endpoint
+        },
+    },
+    {
         zigbeeModel: ['lumi.remote.b286acn03'],
         model: 'WXKG04LM',
         vendor: 'Xiaomi',
@@ -3471,4 +3531,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

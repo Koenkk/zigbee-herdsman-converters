@@ -14,10 +14,26 @@ const fzLocal = {
             if (msg.endpoint.ID != 1) return;
             return {rain: (zoneStatus & 1) > 0};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['CK-BL702-MSW-01(7010)'],
+        model: 'CK-BL702-MSW-01(7010)',
+        vendor: 'eWeLink',
+        description: 'CMARS Zigbee smart plug',
+        extend: extend.switch(),
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+        onEvent: async (type, data, device) => {
+            device.skipDefaultResponse = true;
+        },
+    },
     {
         zigbeeModel: ['SA-003-Zigbee'],
         model: 'SA-003-Zigbee',
@@ -32,6 +48,21 @@ const definitions: Definition[] = [
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'SA-003-Zigbee', endpoints: [
+                    {ID: 1, profileID: 49246, deviceID: 16, inputClusters: [0, 3, 4, 5, 6], outputClusters: [0]},
+                ],
+            },
+        ],
+        model: 'ZB-R01',
+        vendor: 'eWeLink',
+        description: 'Zigbee repeater',
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        exposes: [],
     },
     {
         zigbeeModel: ['SA-030-1'],
@@ -184,4 +215,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

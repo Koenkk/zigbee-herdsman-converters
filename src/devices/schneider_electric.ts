@@ -23,7 +23,7 @@ const tzLocal = {
             await entity.write(0x0102, {0xe000: {value, type: 0x21}}, {manufacturerCode: 0x105e});
             return {state: {lift_duration: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     indicator_mode: {
         key: ['indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -40,7 +40,7 @@ const tzLocal = {
             const endpoint = entity.getDevice().getEndpoint(21);
             await endpoint.read(0xFF17, [0x0000], {manufacturerCode: 0x105e});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -194,7 +194,7 @@ const fzLocal = {
 
             return ret;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     indicator_mode: {
         cluster: 'clipsalWiserSwitchConfigurationClusterServer',
         type: ['attributeReport', 'readResponse'],
@@ -206,7 +206,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -1200,4 +1200,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

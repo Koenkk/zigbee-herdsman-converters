@@ -15,7 +15,8 @@ const definitions: Definition[] = [
         fromZigbee: extend.light_onoff_brightness().fromZigbee
             .concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
         toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.power_on_behavior]),
-        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
+        exposes: [e.light_brightness().withLevelConfig(['on_transition_time', 'off_transition_time']),
+            e.power(), e.voltage(), e.current(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9040A'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -118,18 +119,16 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            const endpoint11 = device.getEndpoint(11);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(endpoint11, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint1);
             await reporting.onOff(endpoint2);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint11);
-            await reporting.activePower(endpoint11);
-            await reporting.rmsCurrent(endpoint11, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint11, {min: 10});
-            await reporting.readMeteringMultiplierDivisor(endpoint11);
-            await reporting.currentSummDelivered(endpoint11);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint1);
+            await reporting.activePower(endpoint1);
+            await reporting.rmsCurrent(endpoint1, {min: 10, change: 10});
+            await reporting.rmsVoltage(endpoint1, {min: 10});
+            await reporting.readMeteringMultiplierDivisor(endpoint1);
+            await reporting.currentSummDelivered(endpoint1);
         },
     },
     {
@@ -190,4 +189,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;
