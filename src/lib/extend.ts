@@ -229,8 +229,8 @@ const modernExtend = {
             key: [name],
             convertSet: readOnly ? undefined : async (entity, key, value, meta) => {
                 assertNumber(value, key);
-                if (scale !== undefined) value = value * scale;
-                const payload = isString(attribute) ? {[attribute]: value} : {[attribute.id]: {value, type: attribute.type}};
+                const payloadValue = scale === undefined ? value : value * scale;
+                const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.id]: {value: payloadValue, type: attribute.type}};
                 await entity.write(cluster, payload, zigbeeCommandOptions);
                 return {state: {[key]: value}};
             },
