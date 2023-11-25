@@ -1308,7 +1308,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_fjjbhx9d', '_TZE200_e3oitdyu', '_TZE200_gwkapsoq', '_TZE204_zenj4lxv']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_fjjbhx9d', '_TZE200_e3oitdyu', '_TZE200_gwkapsoq', '_TZE204_zenj4lxv', '_TZE204_bxoo2swd']),
         model: 'TS0601_dimmer_2',
         vendor: 'TuYa',
         description: '2 gang smart dimmer',
@@ -1347,6 +1347,7 @@ const definitions: Definition[] = [
             {vendor: 'Moes', model: 'ZS-EUD_2gang'},
             {vendor: 'Moes', model: 'MS-105B'}, // _TZE200_e3oitdyu
             tuya.whitelabel('Moes', 'ZS-SR-EUD-2', 'Star ring smart dimmer switch 2 gangs', ['_TZE204_zenj4lxv']),
+            tuya.whitelabel('Moes', 'ZM-105B-M-MS', 'Zigbee Smart Dimmer Switch Module Timer Diy Breaker 2 Gang', ['_TZE204_bxoo2swd']),
         ],
     },
     {
