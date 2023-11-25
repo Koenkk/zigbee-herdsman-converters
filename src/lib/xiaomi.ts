@@ -11,7 +11,7 @@ import {
 
 import * as exposes from './exposes';
 import * as globalStore from './store';
-import {Fz, Definition, KeyValue, KeyValueAny} from './types';
+import {Fz, Definition, KeyValue, KeyValueAny, ModernExtend} from './types';
 import extend from './extend';
 
 declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
@@ -1348,29 +1348,41 @@ export const trv = {
 export const manufacturerCode = 0x115f;
 
 export const xiaomiExtend = {
-    switchType: extend.enumLookup({
+    switchType: (args?: KeyValueAny) => extend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
         cluster: 'aqaraOpple',
         attribute: {id: 0x000a, type: 0x20},
         description: 'External switch type',
         zigbeeCommandOptions: {manufacturerCode},
+        ...args,
     }),
-    power_on_behavior: extend.enumLookup({
+    powerOnBehavior: (args?: KeyValueAny) => extend.enumLookup({
         name: 'power_on_behavior',
         lookup: {'on': 0, 'previous': 1, 'off': 2},
         cluster: 'aqaraOpple',
         attribute: {id: 0x0517, type: 0x20},
         description: 'Controls the behavior when the device is powered on after power loss',
         zigbeeCommandOptions: {manufacturerCode},
+        ...args,
     }),
-    power_on_behavior_with_toggle: extend.enumLookup({
-        name: 'power_on_behavior',
-        lookup: {'on': 0, 'previous': 1, 'off': 2, 'toggle': 3},
+    operationMode: (args?: KeyValueAny) => extend.enumLookup({
+        name: 'operation_mode',
+        lookup: {'decoupled': 0, 'control_relay': 1},
         cluster: 'aqaraOpple',
-        attribute: {id: 0x0517, type: 0x20},
-        description: 'Controls the behavior when the device is powered on after power loss',
+        attribute: {id: 0x0200, type: 0x20},
+        description: 'Decoupled mode for relay',
         zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    action: (args?: KeyValueAny) => extend.enumLookup({
+        name: 'action',
+        lookup: {'single': 1},
+        cluster: 'genMultistateInput',
+        attribute: 'presentValue',
+        description: 'Input',
+        readOnly: true,
+        ...args,
     }),
 };
 

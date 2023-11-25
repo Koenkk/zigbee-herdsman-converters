@@ -983,7 +983,7 @@ const definitions: Definition[] = [
             extend.lightBrightnessColortempColor({
                 disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370],
             }),
-            xiaomi.extend.power_on_behavior,
+            xiaomi.extend.powerOnBehavior(),
             extend.numeric({
                 name: 'length',
                 valueMin: 1,
@@ -2638,7 +2638,18 @@ const definitions: Definition[] = [
             e.power(), e.current(), e.energy(), e.voltage(), e.device_temperature(),
         ],
         extend: [
-            xiaomi.extend.switchType,
+            xiaomi.extend.switchType(),
+            xiaomi.extend.powerOnBehavior({
+                lookup: {'on': 0, 'previous': 1, 'off': 2, 'toggle': 3},
+            }),
+            xiaomi.extend.operationMode({
+                description: 'Decoupled mode for 1st relay',
+                endpoint: 'l1',
+            }),
+            xiaomi.extend.operationMode({
+                description: 'Decoupled mode for 2nd relay',
+                endpoint: 'l2',
+            }),
             extend.binary({
                 name: 'interlock',
                 valueOn: true,
@@ -2647,25 +2658,6 @@ const definitions: Definition[] = [
                 attribute: {id: 0x02d0, type: 0x10},
                 description: 'Enabling prevents both relays being on at the same time (Interlock)',
                 zigbeeCommandOptions: {manufacturerCode},
-            }),
-            xiaomi.extend.power_on_behavior_with_toggle,
-            extend.enumLookup({
-                name: 'operation_mode',
-                lookup: {'decoupled': 0, 'control_relay': 1},
-                cluster: 'aqaraOpple',
-                attribute: {id: 0x0200, type: 0x20},
-                description: 'Decoupled mode for 1st relay',
-                zigbeeCommandOptions: {manufacturerCode},
-                endpoint: 'l1',
-            }),
-            extend.enumLookup({
-                name: 'operation_mode',
-                lookup: {'decoupled': 0, 'control_relay': 1},
-                cluster: 'aqaraOpple',
-                attribute: {id: 0x0200, type: 0x20},
-                description: 'Decoupled mode for 2nd relay',
-                zigbeeCommandOptions: {manufacturerCode},
-                endpoint: 'l2',
             }),
             extend.enumLookup({
                 name: 'mode',
@@ -2685,23 +2677,13 @@ const definitions: Definition[] = [
                 description: 'Impulse length in Dry mode with impulse',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            extend.enumLookup({
-                name: 'action',
-                lookup: {'single': 1},
-                cluster: 'genMultistateInput',
-                attribute: 'presentValue',
+            xiaomi.extend.action({
                 description: '1st input',
                 endpoint: 'l1',
-                readOnly: true,
             }),
-            extend.enumLookup({
-                name: 'action',
-                lookup: {'single': 1},
-                cluster: 'genMultistateInput',
-                attribute: 'presentValue',
+            xiaomi.extend.action({
                 description: '2nd input',
                 endpoint: 'l2',
-                readOnly: true,
             }),
         ],
         ota: ota.zigbeeOTA,
