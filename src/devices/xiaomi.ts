@@ -980,19 +980,10 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'RLS-K01D'}],
         description: 'Aqara Zigbee 3.0 LED strip T1',
-        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
-        toZigbee: [
-            tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
-            tz.light_colortemp_move, tz.light_brightness_step, tz.light_colortemp_step, tz.light_hue_saturation_move,
-            tz.light_hue_saturation_step, tz.level_config, tz.light_color_options, tz.light_color_mode,
-        ],
-        exposes: [
-            e.light_brightness_colortemp_colorxy([153, 370]).removeFeature('color_temp_startup'),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await light.configure(device, coordinatorEndpoint, logger, true);
-        },
         extend: [
+            extend.lightBrightnessColortempColor({
+                disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370],
+            }),
             xiaomi.extend.power_on_behavior,
             extend.numeric({
                 name: 'length',

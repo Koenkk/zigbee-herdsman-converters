@@ -150,10 +150,7 @@ const legacyExtend = {
 };
 
 const modernExtend = {
-    lightBrightnessColortempColor: (args: {
-        disableEffect: boolean, supportsHueAndSaturation: boolean, disableColorTempStartup: boolean, preferHueAndSaturation: boolean,
-        disablePowerOnBehavior: boolean,
-    }): ModernExtend => {
+    lightBrightnessColortempColor: (args: Extend.options_light_onoff_brightness_colortemp_color={}): ModernExtend => {
         args = {
             disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
             disablePowerOnBehavior: false, ...args,
