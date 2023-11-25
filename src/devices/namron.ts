@@ -971,7 +971,7 @@ const definitions: Definition[] = [
         await reporting.onOff(endpoint2);
         await reporting.currentSummDelivered(endpoint1);
         },
-        },
+    },
 ];
 
 export default definitions;
