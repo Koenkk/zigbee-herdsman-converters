@@ -150,6 +150,17 @@ const legacyExtend = {
 };
 
 const modernExtend = {
+    lightBrightnessColortempColor: (args: {
+        disableEffect: boolean, supportsHueAndSaturation: boolean, disableColorTempStartup: boolean, preferHueAndSaturation: boolean,
+        disablePowerOnBehavior: boolean,
+    }): ModernExtend => {
+        args = {
+            disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
+            disablePowerOnBehavior: false, ...args,
+        };
+        const result = legacyExtend.light_onoff_brightness_colortemp_color(args);
+        return {...result, isModernExtend: true};
+    },
     enumLookup: (args: {
         name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
         zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, endpoint?: string,
@@ -159,7 +170,7 @@ const modernExtend = {
         let expose = new Enum(name, args.readOnly ? access.STATE_GET : access.ALL, Object.keys(lookup)).withDescription(description);
         if (args.endpoint) expose = expose.withEndpoint(args.endpoint);
         const fromZigbee: Fz.Converter[] = [{
-            cluster,
+            cluster: cluster.toString(),
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const attrname = (args.endpoint) ? postfixWithEndpointName(name, msg, model, meta) : name;
@@ -198,7 +209,7 @@ const modernExtend = {
         if (args.unit) expose = expose.withUnit(args.unit);
 
         const fromZigbee: Fz.Converter[] = [{
-            cluster,
+            cluster: cluster.toString(),
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data) {
