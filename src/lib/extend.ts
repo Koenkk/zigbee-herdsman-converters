@@ -2,7 +2,7 @@ import * as exposes from './exposes';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as light from './light';
-import {Fz, Tz, Extend, ModernExtend} from './types';
+import {Fz, Tz, Extend, ModernExtend, Range} from './types';
 import {Enum, Numeric, access, Binary} from './exposes';
 import {KeyValue} from './types';
 import {getFromLookupByValue, isString, getFromLookup, postfixWithEndpointName, toNumber} from './utils';
@@ -150,7 +150,10 @@ const legacyExtend = {
 };
 
 const modernExtend = {
-    lightBrightnessColortempColor: (args: Extend.options_light_onoff_brightness_colortemp_color={}): ModernExtend => {
+    lightBrightnessColortempColor: (args: {
+        disableEffect?: boolean, supportsHueAndSaturation?: boolean, disableColorTempStartup?: boolean, preferHueAndSaturation?: boolean,
+        disablePowerOnBehavior?: boolean, colorTempRange?: Range,
+    }): ModernExtend => {
         args = {
             disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
             disablePowerOnBehavior: false, ...args,
