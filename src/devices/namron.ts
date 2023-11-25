@@ -947,7 +947,7 @@ const definitions: Definition[] = [
         model: '4512768',
         vendor: 'Namron',
         description: 'Zigbee 2 channel switch Namron',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta,],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
         e.power_on_behavior(['off', 'on', 'previous']),
