@@ -2,10 +2,10 @@ import * as exposes from './exposes';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as light from './light';
-import {Fz, Tz, Extend, ModernExtend} from './types';
+import {Fz, Tz, Extend, ModernExtend, Range} from './types';
 import {Enum, Numeric, access} from './exposes';
 import {KeyValue} from './types';
-import {getFromLookupByValue, isString, getFromLookup, getEndpointName, assertNumber} from './utils';
+import {getFromLookupByValue, isString, getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName} from './utils';
 const e = exposes.presets;
 
 const legacyExtend = {
@@ -151,8 +151,8 @@ const legacyExtend = {
 
 const modernExtend = {
     lightBrightnessColortempColor: (args: {
-        disableEffect: boolean, supportsHueAndSaturation: boolean, disableColorTempStartup: boolean, preferHueAndSaturation: boolean,
-        disablePowerOnBehavior: boolean,
+        disableEffect?: boolean, supportsHueAndSaturation?: boolean, disableColorTempStartup?: boolean, preferHueAndSaturation?: boolean,
+        disablePowerOnBehavior?: boolean, colorTempRange?: Range,
     }): ModernExtend => {
         args = {
             disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
@@ -278,6 +278,28 @@ const modernExtend = {
         }];
 
         return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+    },
+    actionEnumLookup: (args: {
+        lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, postfixWithEndpointName: boolean,
+    }): ModernExtend => {
+        const {lookup, attribute, cluster} = args;
+        const attributeKey = isString(attribute) ? attribute : attribute.id;
+
+        const expose = new Enum('action', access.STATE, Object.keys(lookup)).withDescription('Triggered action (e.g. a button click)');
+
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: cluster.toString(),
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (attributeKey in msg.data) {
+                    let value = getFromLookupByValue(lookup, msg.data[attributeKey]);
+                    if (args.postfixWithEndpointName) value = postfixWithEndpointName(value, msg, model, meta);
+                    return {[expose.property]: value};
+                }
+            },
+        }];
+
+        return {exposes: [expose], fromZigbee, isModernExtend: true};
     },
 };
 
