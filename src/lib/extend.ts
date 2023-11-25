@@ -195,9 +195,9 @@ const modernExtend = {
     numeric: (args: {
         name: string, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
         zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, unit?: string, min?: number, max?: number,
-        step?: number, convertFromZigbee?: (attributeValue: number) => number, convertToZigbee?: (value: unknown) => number
+        step?: number, fromZigbee?: (attributeValue: number) => number, toZigbee?: (value: unknown) => number
     }): ModernExtend => {
-        const {name, cluster, attribute, description, zigbeeCommandOptions, convertFromZigbee, convertToZigbee} = args;
+        const {name, cluster, attribute, description, zigbeeCommandOptions} = args;
         const attributeKey = isString(attribute) ? attribute : attribute.id;
 
         let expose = new Numeric(name, args.readOnly ? access.STATE_GET : access.ALL).withDescription(description);
@@ -211,7 +211,7 @@ const modernExtend = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data) {
-                    return {[expose.property]: convertFromZigbee ? convertFromZigbee(msg.data[attributeKey]) : msg.data[attributeKey]};
+                    return {[expose.property]: args.fromZigbee ? args.fromZigbee(msg.data[attributeKey]) : msg.data[attributeKey]};
                 }
             },
         }];
@@ -219,7 +219,7 @@ const modernExtend = {
         const toZigbee: Tz.Converter[] = [{
             key: [name],
             convertSet: args.readOnly ? undefined : async (entity, key, value, meta) => {
-                if (convertToZigbee) value = convertToZigbee(value);
+                if (args.toZigbee) value = args.toZigbee(value);
                 const payload = isString(attribute) ? {[attribute]: value} : {[attribute.id]: {value, type: attribute.type}};
                 await entity.write(cluster, payload, zigbeeCommandOptions);
                 return {state: {[key]: value}};
