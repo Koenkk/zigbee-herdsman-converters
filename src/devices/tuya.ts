@@ -846,11 +846,12 @@ const definitions: Definition[] = [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_iedbgyxt'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_h3noz0a5'},
             {modelID: 'TS0001', manufacturerName: '_TYZB01_4tlksk8a'}, {modelID: 'TS0011', manufacturerName: '_TYZB01_rifa0wlb'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ucujjts'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_h8ngtlxy'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_w0ypwa1f'},
         ],
         model: 'ZN231392',
         vendor: 'TuYa',
         description: 'Smart water/gas valve',
-        extend: tuya.extend.switch(),
+        extend: tuya.extend.switch({indicatorMode: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
@@ -6746,23 +6747,6 @@ const definitions: Definition[] = [
                 [18, 'carbon_monoxide', tuya.valueConverter.trueFalseEnum0],
                 [19, 'co', tuya.valueConverter.divideBy100],
             ],
-        },
-    },
-    {
-        fingerprint: [
-            {
-                modelID: 'TS0001',
-                manufacturerName: '_TZ3000_w0ypwa1f',
-            },
-        ],
-        model: 'TS0001',
-        vendor: 'TuYa',
-        description: 'Smart water/gas valve',
-        extend: tuya.extend.switch({indicatorMode: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-                    await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-                    const endpoint = device.getEndpoint(1);
-                    await endpoint.read('genOnOff', ['onOff', 'moesStartUpOnOff']);
         },
     },
 ];
