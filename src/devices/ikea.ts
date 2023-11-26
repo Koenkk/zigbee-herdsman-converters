@@ -1267,7 +1267,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['heimanSpecificScenes']);
             await reporting.batteryVoltage(endpoint1);
         },
-    }
+    },
 
 ];
 
