@@ -942,6 +942,24 @@ const definitions: Definition[] = [
             await reporting.activePower(endpoint);
         },
     },
+    {
+        zigbeeModel: ['4512772', '4512773'],
+        model: '451277(2/3)',
+        vendor: 'Namron',
+        description: 'Zigbee Kanalbryter',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        exposes: [e.battery(), e.action([
+            'on_l1', 'off_l1', 'brightness_move_up_l1', 'brightness_move_down_l1', 'brightness_stop_l1',
+            'on_l2', 'off_l2', 'brightness_move_up_l2', 'brightness_move_down_l2', 'brightness_stop_l2',
+            'on_l3', 'off_l3', 'brightness_move_up_l3', 'brightness_move_down_l3', 'brightness_stop_l3',
+            'on_l4', 'off_l4', 'brightness_move_up_l4', 'brightness_move_down_l4', 'brightness_stop_l4'])],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4};
+        },
+        ota: ota.zigbeeOTA,
+    },
 ];
 
 export default definitions;
