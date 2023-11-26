@@ -986,7 +986,7 @@ const definitions: Definition[] = [
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
-            await reporting.onOff(endpoint)
+            await reporting.onOff(endpoint);
         },
         ota: ota.zigbeeOTA,
     },
