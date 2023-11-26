@@ -4,7 +4,8 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
-import extend from '../lib/extend';
+import legacyExtend from '../lib/extend';
+import extend from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
 
@@ -51,20 +52,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
-    frost_protection_temperature: {
-        cluster: '64529',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            const data = msg.data;
-
-            if (data.hasOwnProperty(0x6002)) {
-                result.frost_protection_temperature = data[0x6002] / 100;
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -96,20 +83,6 @@ const tzLocal = {
             };
         },
     } satisfies Tz.Converter,
-    frost_protection_temperature: {
-        key: ['frost_protection_temperature'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read(0xFC11, [0x6002]);
-        },
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write(0xFC11, {0x6002: {value: utils.toNumber(value) * 100, type: Zcl.DataType.int16}});
-            return {
-                state: {
-                    [key]: value,
-                },
-            };
-        },
-    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -118,7 +91,7 @@ const definitions: Definition[] = [
         model: 'BASICZBR3',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch',
-        extend: extend.switch({disablePowerOnBehavior: true}),
+        extend: legacyExtend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
     },
     {
@@ -127,7 +100,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
-        extend: extend.switch(),
+        extend: legacyExtend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -144,7 +117,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
-        extend: extend.switch(),
+        extend: legacyExtend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -160,7 +133,7 @@ const definitions: Definition[] = [
         model: 'ZBMINI',
         vendor: 'SONOFF',
         description: 'Zigbee two way smart switch',
-        extend: extend.switch({disablePowerOnBehavior: true}),
+        extend: legacyExtend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             // Has Unknown power source: https://github.com/Koenkk/zigbee2mqtt/issues/5362, force it here.
             device.powerSource = 'Mains (single phase)';
@@ -172,7 +145,7 @@ const definitions: Definition[] = [
         model: 'S31ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
-        extend: extend.switch({disablePowerOnBehavior: true}),
+        extend: legacyExtend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -318,14 +291,14 @@ const definitions: Definition[] = [
         model: 'S26R2ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
-        extend: extend.switch({disablePowerOnBehavior: true}),
+        extend: legacyExtend.switch({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['S40LITE'],
         model: 'S40ZBTPB',
         vendor: 'SONOFF',
         description: '15A Zigbee smart plug',
-        extend: extend.switch({disablePowerOnBehavior: true}),
+        extend: legacyExtend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -361,7 +334,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
-        extend: extend.switch(),
+        extend: legacyExtend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -467,20 +440,12 @@ const definitions: Definition[] = [
                 .withLabel('Open window detection')
                 .withDescription('Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.')
                 .withAccess(ea.ALL),
-            e.numeric('frost_protection_temperature', ea.ALL)
-                .withValueMin(4.0)
-                .withValueMax(35.0)
-                .withValueStep(0.5)
-                .withUnit('°C')
-                .withDescription(
-                    'Minimum temperature at which to automatically turn on the radiator, if system mode is off, to prevent pipes freezing.'),
         ],
         fromZigbee: [
             fz.thermostat,
             fz.battery,
             fzLocal.child_lock,
             fzLocal.open_window,
-            fzLocal.frost_protection_temperature,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -490,9 +455,20 @@ const definitions: Definition[] = [
             tz.thermostat_running_state,
             tzLocal.child_lock,
             tzLocal.open_window,
-            tzLocal.frost_protection_temperature,
         ],
         extend: [
+            extend.numeric({
+                name: 'frost_protection_temperature',
+                cluster: 0xFC11,
+                attribute: {id: 0x6002, type: 0x29},
+                description: 'XXX Minimum temperature at which to automatically turn on the radiator, ' +
+                    'if system mode is off, to prevent pipes freezing.',
+                valueMin: 4.0,
+                valueMax: 35.0,
+                valueStep: 0.5,
+                unit: '°C',
+                scale: 100,
+            }),
             extend.numeric({
                 name: 'idle_steps',
                 cluster: 0xFC11,
