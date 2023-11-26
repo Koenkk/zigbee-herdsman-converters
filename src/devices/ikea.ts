@@ -1249,6 +1249,26 @@ const definitions: Definition[] = [
         description: 'ORMANAS LED strip',
         extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
     },
+    {
+        zigbeeModel: ['SOMRIG shortcut button'],
+        model: 'E2213',
+        vendor: 'IKEA',
+        description: 'SOMRIG shortcut button',
+        fromZigbee: [fz.battery],
+        toZigbee: [tz.battery_percentage_remaining],
+        exposes: [
+            e.battery().withAccess(ea.STATE_GET),
+        ],
+        ota: ota.tradfri,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['heimanSpecificScenes', 'genPollCtrl']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['heimanSpecificScenes']);
+            await reporting.batteryVoltage(endpoint1);
+        },
+    }
+
 ];
 
 export default definitions;
