@@ -941,7 +941,7 @@ const definitions: Definition[] = [
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
                 .withSystemMode(['off', 'heat', 'auto'])
-                .withRunningState(['idle', 'heat'], ea.ALL),
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.humidity(),
             e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
             e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
