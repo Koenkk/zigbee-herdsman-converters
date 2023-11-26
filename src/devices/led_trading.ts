@@ -10,7 +10,7 @@ const e = exposes.presets;
 const fzLocal = {
     led_trading_9133: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -23,7 +23,7 @@ const fzLocal = {
                 return {action: utils.getFromLookup(commandID, lookup)};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -85,4 +85,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

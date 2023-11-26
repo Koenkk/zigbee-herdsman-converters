@@ -72,6 +72,14 @@ const definitions: Definition[] = [
         description: 'FLAIR Viyu smart LED bulb CCT E27 filament',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [250, 454]}),
     },
+    {
+        zigbeeModel: ['VIYU_A60_806_CCT_10454469'],
+        model: '10454469',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu smart LED bulb CCT E27',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [220, 500]}),
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

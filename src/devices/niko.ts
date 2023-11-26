@@ -20,7 +20,7 @@ const local = {
                 }
                 return state;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         switch_action: {
             cluster: 'manuSpecificNiko2',
             type: ['attributeReport', 'readResponse'],
@@ -62,7 +62,7 @@ const local = {
                 }
                 return state;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         switch_status_led: {
             cluster: 'manuSpecificNiko1',
             type: ['attributeReport', 'readResponse'],
@@ -76,7 +76,7 @@ const local = {
                 }
                 return state;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         outlet: {
             cluster: 'manuSpecificNiko1',
             type: ['attributeReport', 'readResponse'],
@@ -90,7 +90,7 @@ const local = {
                 }
                 return state;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
     },
     tz: {
         switch_operation_mode: {
@@ -120,7 +120,7 @@ const local = {
                     ['switchOperationMode'],
                 );
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         switch_led_enable: {
             key: ['led_enable'],
             convertSet: async (entity, key, value, meta) => {
@@ -131,7 +131,7 @@ const local = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNiko1', ['outletLedState']);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         switch_led_state: {
             key: ['led_state'],
             convertSet: async (entity, key, value, meta) => {
@@ -142,7 +142,7 @@ const local = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNiko1', ['outletLedColor']);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         outlet_child_lock: {
             key: ['child_lock'],
             convertSet: async (entity, key, value, meta) => {
@@ -153,7 +153,7 @@ const local = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNiko1', ['outletChildLock']);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         outlet_led_enable: {
             key: ['led_enable'],
             convertSet: async (entity, key, value, meta) => {
@@ -163,7 +163,7 @@ const local = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNiko1', ['outletLedState']);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
     },
 };
 
@@ -428,4 +428,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

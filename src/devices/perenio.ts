@@ -36,7 +36,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     switch_type: {
         cluster: 'genMultistateValue',
         type: ['attributeReport', 'readResponse'],
@@ -55,7 +55,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     smart_plug: {
         cluster: '64635',
         type: ['attributeReport', 'readResponse'],
@@ -120,7 +120,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzPerenio = {
@@ -141,7 +141,7 @@ const tzPerenio = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genMultistateValue', ['presentValue']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     default_state: {
         key: ['default_on_off_state'],
         convertSet: async (entity, key, val, meta) => {
@@ -157,7 +157,7 @@ const tzPerenio = {
         convertGet: async (entity, key, meta) => {
             await entity.read(64635, [0]);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     alarms_reset: {
         key: ['alarm_voltage_min', 'alarm_voltage_max', 'alarm_power_max', 'alarm_consumed_energy'],
         convertSet: async (entity, key, val, meta) => {
@@ -167,7 +167,7 @@ const tzPerenio = {
         convertGet: async (entity, key, meta) => {
             await entity.read(64635, [1]);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     alarms_limits: {
         key: ['voltage_min', 'voltage_max', 'power_max', 'consumed_energy_limit'],
         convertSet: async (entity, key, val, meta) => {
@@ -203,7 +203,7 @@ const tzPerenio = {
                 break;
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     on_off_mod: {
         key: ['state', 'on_time', 'off_wait_time'],
         convertSet: async (entity, key, value, meta) => {
@@ -242,7 +242,7 @@ const tzPerenio = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -416,4 +416,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

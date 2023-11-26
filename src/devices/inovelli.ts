@@ -23,6 +23,9 @@ const buttonLookup: { [key: number]: string } = {
     1: 'down',
     2: 'up',
     3: 'config',
+    4: 'aux_down',
+    5: 'aux_up',
+    6: 'aux_config',
 };
 
 const ledEffects: { [key: string]: number } = {
@@ -140,7 +143,7 @@ const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesLis
  * Common Attributes
  *
  * These attributes are shared between all devices with the manufacturer specific Inovelli cluster
- * Some of the discriptions, max, min or value properties may be overridden for each device
+ * Some of the descriptions, max, min or value properties may be overridden for each device
  */
 const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     dimmingSpeedUpRemote: {
@@ -832,7 +835,7 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
     },
     smartBulbMode: {
         ...COMMON_ATTRIBUTES.smartBulbMode,
-        description: 'Use this mode to syncronize and control other fan switches or controllers.',
+        description: 'Use this mode to synchronize and control other fan switches or controllers.',
         values: {'Disabled': 0, 'Remote Control Mode': 1},
     },
     nonNeutralAuxMediumGear: {
@@ -889,7 +892,7 @@ const tzLocal = {
                 manufacturerCode: INOVELLI,
             });
         },
-    }) as Tz.Converter,
+    }) satisfies Tz.Converter,
     inovelli_parameters_readOnly: (ATTRIBUTES: {[s: string]: Attribute})=>({
         key: Object.keys(ATTRIBUTES).filter((a) => ATTRIBUTES[a].readOnly),
         convertGet: async (entity, key, meta) => {
@@ -897,8 +900,7 @@ const tzLocal = {
                 manufacturerCode: INOVELLI,
             });
         },
-        convertSet: undefined,
-    }) as Tz.Converter,
+    }) satisfies Tz.Converter,
     inovelli_led_effect: {
         key: ['led_effect'],
         convertSet: async (entity, key, values, meta) => {
@@ -919,7 +921,7 @@ const tzLocal = {
             );
             return {state: {[key]: values}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     inovelli_individual_led_effect: {
         key: ['individual_led_effect'],
         convertSet: async (entity, key, values, meta) => {
@@ -942,7 +944,7 @@ const tzLocal = {
             );
             return {state: {[key]: values}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     /**
      * Inovelli VZM31SN has a default transition property that the device should
      * fallback to if a transition is not specified by passing 0xffff
@@ -1148,7 +1150,7 @@ const tzLocal = {
                 await tz.on_off.convertGet(entity, key, meta);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     fan_mode: {
         key: ['fan_mode'],
         convertSet: async (entity, key, value :string, meta) => {
@@ -1171,7 +1173,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', ['currentLevel']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     fan_state: {
         key: ['fan_state'],
         convertSet: async (entity, key, value, meta) => {
@@ -1201,7 +1203,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 /*
@@ -1306,7 +1308,7 @@ const fzLocal = {
                 }, {});
             }
         },
-    }) as Fz.Converter,
+    }) satisfies Fz.Converter,
     fan_mode: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -1325,7 +1327,7 @@ const fzLocal = {
             }
             return msg.data;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     fan_state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1335,7 +1337,7 @@ const fzLocal = {
             }
             return msg.data;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const exposesList: Expose[] = [
@@ -1708,4 +1710,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

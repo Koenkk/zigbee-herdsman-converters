@@ -18,7 +18,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 
@@ -28,7 +28,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('ssIasZone', ['zoneState']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -358,4 +358,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

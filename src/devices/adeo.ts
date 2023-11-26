@@ -20,7 +20,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -30,7 +30,7 @@ const tzLocal = {
             await entity.write('ssIasZone', {0x0013: {value, type: 0x20}});
             return {state: {sensitivity: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -176,6 +176,13 @@ const definitions: Definition[] = [
         model: '84845506',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN Gdansk',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-29'],
+        model: '84845509',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN Gdansk LED panel',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
@@ -352,6 +359,31 @@ const definitions: Definition[] = [
             await reporting.onOff(ep);
         },
     },
+    {
+        zigbeeModel: ['SIN-4-FP-21_EQU'],
+        model: 'SIN-4-FP-21_EQU',
+        vendor: 'ADEO',
+        description: 'Equation pilot wire heating module',
+        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
+        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        exposes: [
+            e.switch(),
+            e.power(),
+            e.energy(),
+            e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnFilPilote']);
+            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
+            await reporting.readMeteringMultiplierDivisor(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
+            const p = reporting.payload('mode', 0, 120, 0, {min: 1, max: 3600, change: 0});
+            await ep.configureReporting('manuSpecificNodOnFilPilote', p);
+        },
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

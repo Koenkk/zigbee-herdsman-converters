@@ -426,7 +426,7 @@ export const valueConverterBasic = {
         return {to: (v: number) => v * value, from: (v: number) => v / value};
     },
     trueFalse: (valueTrue: number | Enum) => {
-        return {from: (v: number) => v === valueTrue};
+        return {from: (v: number) => v === valueTrue.valueOf()};
     },
 };
 
@@ -782,8 +782,10 @@ const tuyaTz = {
             await entity.write('genOnOff', {moesStartUpOnOff});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['moesStartUpOnOff']),
-    } as Tz.Converter,
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['moesStartUpOnOff']);
+        },
+    } satisfies Tz.Converter,
     power_on_behavior_2: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -791,8 +793,10 @@ const tuyaTz = {
             await entity.write('manuSpecificTuya_3', {powerOnBehavior});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => await entity.read('manuSpecificTuya_3', ['powerOnBehavior']),
-    } as Tz.Converter,
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificTuya_3', ['powerOnBehavior']);
+        },
+    } satisfies Tz.Converter,
     switch_type: {
         key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {
@@ -800,8 +804,10 @@ const tuyaTz = {
             await entity.write('manuSpecificTuya_3', {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => await entity.read('manuSpecificTuya_3', ['switchType']),
-    } as Tz.Converter,
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificTuya_3', ['switchType']);
+        },
+    } satisfies Tz.Converter,
     backlight_indicator_mode_1: {
         key: ['backlight_mode', 'indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -811,8 +817,10 @@ const tuyaTz = {
             await entity.write('genOnOff', {tuyaBacklightMode});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['tuyaBacklightMode']),
-    } as Tz.Converter,
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['tuyaBacklightMode']);
+        },
+    } satisfies Tz.Converter,
     backlight_indicator_mode_2: {
         key: ['backlight_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -820,15 +828,17 @@ const tuyaTz = {
             await entity.write('genOnOff', {tuyaBacklightSwitch});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['tuyaBacklightSwitch']),
-    } as Tz.Converter,
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['tuyaBacklightSwitch']);
+        },
+    } satisfies Tz.Converter,
     child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
             const v = utils.getFromLookup(value, {'lock': true, 'unlock': false});
             await entity.write('genOnOff', {0x8000: {value: v, type: 0x10}});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     min_brightness: {
         key: ['min_brightness'],
         convertSet: async (entity, key, value, meta) => {
@@ -843,7 +853,7 @@ const tuyaTz = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', [0xfc00]);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     color_power_on_behavior: {
         key: ['color_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -851,7 +861,7 @@ const tuyaTz = {
             await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {mode: v*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
             return {state: {color_power_on_behavior: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     datapoints: {
         key: [
             'temperature_unit', 'temperature_calibration', 'humidity_calibration', 'alarm_switch', 'tamper_alarm_switch',
@@ -878,7 +888,7 @@ const tuyaTz = {
             'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity', 'switch_type',
             'ph_max', 'ph_min', 'ec_max', 'ec_min', 'orp_max', 'orp_min', 'free_chlorine_max', 'free_chlorine_min', 'target_distance',
             'illuminance_treshold_max', 'illuminance_treshold_min', 'presence_illuminance_switch', 'light_switch', 'light_linkage',
-            'indicator_light', 'find_switch', 'detection_method',
+            'indicator_light', 'find_switch', 'detection_method', 'sensor', 'hysteresis', 'max_temperature_protection',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
@@ -920,14 +930,14 @@ const tuyaTz = {
             }
             return {state};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     do_not_disturb: {
         key: ['do_not_disturb'],
         convertSet: async (entity, key, value, meta) => {
             await entity.command('lightingColorCtrl', 'tuyaDoNotDisturb', {enable: value ? 1 : 0});
             return {state: {do_not_disturb: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 export {tuyaTz as tz};
 
@@ -943,7 +953,7 @@ const tuyaFz = {
             const payload = {payloadSize: 1, payload: 1};
             await msg.endpoint.command('manuSpecificTuya', 'mcuGatewayConnectionStatus', payload, {});
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     power_on_behavior_1: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -954,7 +964,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     power_on_behavior_2: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
@@ -966,7 +976,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     power_outage_memory: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -977,7 +987,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     switch_type: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
@@ -987,7 +997,7 @@ const tuyaFz = {
                 return {switch_type: lookup[msg.data['switchType']]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     backlight_mode_low_medium_high: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -998,7 +1008,7 @@ const tuyaFz = {
                 return {backlight_mode: backlightLookup[value]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     backlight_mode_off_normal_inverted: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1007,7 +1017,7 @@ const tuyaFz = {
                 return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'normal', 2: 'inverted'})};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     backlight_mode_off_on: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1016,7 +1026,7 @@ const tuyaFz = {
                 return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightSwitch'], {0: 'OFF', 1: 'ON'})};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     indicator_mode: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1025,7 +1035,7 @@ const tuyaFz = {
                 return {indicator_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'})};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     child_lock: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1035,7 +1045,7 @@ const tuyaFz = {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     min_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -1046,7 +1056,7 @@ const tuyaFz = {
                 return {[property]: value};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     datapoints: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
@@ -1091,7 +1101,7 @@ const tuyaFz = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 export {tuyaFz as fz};
 
@@ -1130,6 +1140,11 @@ const tuyaExtend = {
             exposes.push(tuyaExposes.switchType());
         }
 
+        if (options.backlightModeOffOn) {
+            fromZigbee.push(tuyaFz.backlight_mode_off_on);
+            exposes.push(tuyaExposes.backlightModeOffOn());
+            toZigbee.push(tuyaTz.backlight_indicator_mode_2);
+        }
         if (options.backlightModeLowMediumHigh) {
             fromZigbee.push(tuyaFz.backlight_mode_low_medium_high);
             exposes.push(tuyaExposes.backlightModeLowMediumHigh());
@@ -1144,11 +1159,6 @@ const tuyaExtend = {
             fromZigbee.push(tuyaFz.indicator_mode);
             exposes.push(tuyaExposes.indicatorMode());
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
-        }
-        if (options.backlightModeOffOn) {
-            fromZigbee.push(tuyaFz.backlight_mode_off_on);
-            exposes.push(tuyaExposes.backlightModeOffOn());
-            toZigbee.push(tuyaTz.backlight_indicator_mode_2);
         }
 
         if (options.electricalMeasurements) {

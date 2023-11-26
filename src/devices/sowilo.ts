@@ -12,4 +12,5 @@ const definition: Definition[] = [
     },
 ];
 
+export default definition;
 module.exports = definition;

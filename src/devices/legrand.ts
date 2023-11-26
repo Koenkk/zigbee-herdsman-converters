@@ -6,7 +6,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
-import {tzLegrand, fzLegrand, readInitialBatteryState, _067776} from '../lib/legrand';
+import {tzLegrand, fzLegrand, readInitialBatteryState, _067776, legrandOptions} from '../lib/legrand';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -118,8 +118,7 @@ const definitions: Definition[] = [
             await readInitialBatteryState(type, data, device, options, state);
             if (data.type === 'commandCheckin' && data.cluster === 'genPollCtrl') {
                 const endpoint = device.getEndpoint(1);
-                const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
-                await endpoint.command('genPollCtrl', 'fastPollStop', {}, options);
+                await endpoint.command('genPollCtrl', 'fastPollStop', {}, legrandOptions);
             }
         },
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -151,10 +150,10 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
             let p = reporting.payload('currentPositionLiftPercentage', 1, 120, 1);
-            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
+            await endpoint.configureReporting('closuresWindowCovering', p, legrandOptions);
 
             p = reporting.payload('currentPositionTiltPercentage', 1, 120, 1);
-            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
+            await endpoint.configureReporting('closuresWindowCovering', p, legrandOptions);
         },
     },
     {
@@ -183,13 +182,16 @@ const definitions: Definition[] = [
         },
     },
     {
-        // Fingerprinting required due to conflict with potential whitelabel Bticino - K4027C/L4027C/N4027C/NT4027C
-        fingerprint: [
-            {modelID: ' Shutter SW with level control\u0000', manufacturerID: 4129},
-        ],
+        zigbeeModel: [' Shutter SW with level control\u0000'],
         model: '067776A',
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch with level control (NLLV)',
+        whiteLabel: [
+            {
+                model: 'K4027C/L4027C/N4027C/NT4027C', vendor: 'BTicino', description: 'Shutter SW with level control',
+                fingerprint: [{hardwareVersion: 9}, {hardwareVersion: 13}],
+            },
+        ],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
             fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
@@ -209,10 +211,10 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
             let p = reporting.payload('currentPositionLiftPercentage', 1, 120, 1);
-            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
+            await endpoint.configureReporting('closuresWindowCovering', p, legrandOptions);
 
             p = reporting.payload('currentPositionTiltPercentage', 1, 120, 1);
-            await endpoint.configureReporting('closuresWindowCovering', p, {manufacturerCode: 4129});
+            await endpoint.configureReporting('closuresWindowCovering', p, legrandOptions);
         },
     },
     {
@@ -411,8 +413,7 @@ const definitions: Definition[] = [
             if (data.type === 'commandCheckin' && data.cluster === 'genPollCtrl') {
                 // TODO current solution is a work around, it would be cleaner to answer to the request
                 const endpoint = device.getEndpoint(1);
-                const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
-                await endpoint.command('genPollCtrl', 'fastPollStop', {}, options);
+                await endpoint.command('genPollCtrl', 'fastPollStop', {}, legrandOptions);
             }
         },
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -715,4 +716,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

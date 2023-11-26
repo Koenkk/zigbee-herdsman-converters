@@ -4,8 +4,6 @@ import * as utils from '../lib/utils';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const legrandOptions = {manufacturerCode: 0x1021, disableDefaultResponse: true};
-
 const shutterCalibrationModes: {[k: number]: {description: string, onlyNLLV: boolean}} = {
     0: {description: 'classic_nllv', onlyNLLV: true},
     1: {description: 'specific_nllv', onlyNLLV: true},
@@ -24,6 +22,8 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
         .filter((e) => isNLLVSwitch ? true : e[1].onlyNLLV === false)
         .map((e) => [e[0], e[1].description]));
 };
+
+export const legrandOptions = {manufacturerCode: 0x1021, disableDefaultResponse: true};
 
 export const _067776 = {
     getCover: () => {
@@ -65,7 +65,7 @@ export const tzLegrand = {
             await entity.command('manuSpecificLegrandDevices3', 'command0', payload);
             return {state: {'auto_mode': value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     calibration_mode: (isNLLVSwitch: boolean) => {
         return {
             key: ['calibration_mode'],
@@ -78,7 +78,7 @@ export const tzLegrand = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('closuresWindowCovering', ['calibrationMode'], legrandOptions);
             },
-        } as Tz.Converter;
+        } satisfies Tz.Converter;
     },
     led_mode: {
         key: ['led_in_dark', 'led_if_on'],
@@ -95,7 +95,7 @@ export const tzLegrand = {
             const idx = utils.getKey(ledModes, key);
             await entity.read('manuSpecificLegrandDevices', [Number(idx)], legrandOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 export const fzLegrand = {
@@ -113,7 +113,7 @@ export const fzLegrand = {
                     return {calibration_mode: calMode};
                 }
             },
-        } as Fz.Converter;
+        } satisfies Fz.Converter;
     },
     cluster_fc01: {
         cluster: 'manuSpecificLegrandDevices',
@@ -139,5 +139,5 @@ export const fzLegrand = {
             if (msg.data.hasOwnProperty('2')) payload.led_if_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };

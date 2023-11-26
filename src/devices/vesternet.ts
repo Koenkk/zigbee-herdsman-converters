@@ -15,7 +15,8 @@ const definitions: Definition[] = [
         fromZigbee: extend.light_onoff_brightness().fromZigbee
             .concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
         toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.power_on_behavior]),
-        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
+        exposes: [e.light_brightness().withLevelConfig(['on_transition_time', 'off_transition_time']),
+            e.power(), e.voltage(), e.current(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9040A'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -188,4 +189,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

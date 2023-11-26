@@ -21,10 +21,24 @@ const fzLocal = {
                 return {contact: msg.data['onOff'] === 0};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['929003598001'],
+        model: '929003598001',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance Surimu square panel 30x30',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['929003597601'],
+        model: '929003597601',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle square panel light',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
     {
         zigbeeModel: ['LCU001'],
         model: '8719514491229',
@@ -913,6 +927,13 @@ const definitions: Definition[] = [
         model: '929001821618',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27 bluetooth',
+        extend: philips.extend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['LWA024'],
+        model: '9290018216A',
+        vendor: 'Philips',
+        description: 'Hue white A60 bulb E27 806lm bluetooth',
         extend: philips.extend.light_onoff_brightness(),
     },
     {
@@ -1908,6 +1929,13 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['5060731P7_01', '5060731P7_02', '5060731P7_03', '5060731P7_04', '5060731P7_05'],
         model: '5060731P7',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris ceiling light (4 spots)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['929003621101_01', '929003621101_02', '929003621101_03', '929003621101_04', '929003621101_05'],
+        model: '929003621101',
         vendor: 'Philips',
         description: 'Hue White & Color ambience Centris ceiling light (4 spots)',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
@@ -3305,7 +3333,20 @@ const definitions: Definition[] = [
         model: '929003535301',
         vendor: 'Philips',
         description: 'Hue Festavia gradient light string 250',
-        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500], extraEffects: ['sparkle']}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({
+            colorTempRange: [153, 500],
+            extraEffects: ['sparkle', 'opal', 'glisten'],
+        }),
+    },
+    {
+        zigbeeModel: ['LCX017'],
+        model: '929003674601',
+        vendor: 'Philips',
+        description: 'Hue Festavia gradient light string 500',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({
+            colorTempRange: [153, 500],
+            extraEffects: ['sparkle', 'opal', 'glisten'],
+        }),
     },
     {
         zigbeeModel: ['LCX016'],
@@ -3481,6 +3522,13 @@ const definitions: Definition[] = [
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003597701'],
+        model: '929003597701',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle square panel light 120x30',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['929003055701'],
         model: '929003055701',
         vendor: 'Philips',
@@ -3517,4 +3565,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

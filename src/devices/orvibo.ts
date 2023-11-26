@@ -18,7 +18,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', ['currentLevel']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -524,4 +524,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

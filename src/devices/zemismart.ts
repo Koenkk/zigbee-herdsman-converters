@@ -121,12 +121,12 @@ const definitions: Definition[] = [
             e.battery(),
             e.enum('program', ea.SET, ['set_bottom', 'set_upper', 'reset']).withDescription('Set the upper/bottom limit'),
             e.enum('click_control', ea.SET, ['upper', 'upper_micro', 'lower', 'lower_micro'])
-                .withDescription('Control motor in steps (ingores set limits; normal/micro = 120deg/5deg movement)'),
+                .withDescription('Control motor in steps (ignores set limits; normal/micro = 120deg/5deg movement)'),
             e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Motor direction'),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(2), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(0)})],
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.coverPosition],
                 [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
@@ -245,4 +245,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;
