@@ -6,6 +6,7 @@ import * as ota from '../lib/ota';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import mextend from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as globalStore from '../lib/store';
@@ -980,11 +981,11 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'RLS-K01D'}],
         description: 'Aqara Zigbee 3.0 LED strip T1',
         extend: [
-            extend.lightBrightnessColortempColor({
+            mextend.lightBrightnessColortempColor({
                 disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370],
             }),
             xiaomi.extend.powerOnBehavior(),
-            extend.numeric({
+            mextend.numeric({
                 name: 'length',
                 valueMin: 1,
                 valueMax: 10,
@@ -996,7 +997,7 @@ const definitions: Definition[] = [
                 description: 'LED strip length',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            extend.numeric({
+            mextend.numeric({
                 name: 'min_brightness',
                 valueMin: 0,
                 valueMax: 99,
@@ -1006,7 +1007,7 @@ const definitions: Definition[] = [
                 description: 'Minimum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            extend.numeric({
+            mextend.numeric({
                 name: 'max_brightness',
                 valueMin: 1,
                 valueMax: 100,
@@ -1016,16 +1017,16 @@ const definitions: Definition[] = [
                 description: 'Maximum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            extend.binary({
+            mextend.binary({
                 name: 'audio',
-                valueOn: 1,
-                valueOff: 0,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
                 cluster: 'aqaraOpple',
                 attribute: {id: 0x051c, type: 0x20},
                 description: 'Enabling audio',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            extend.enumLookup({
+            mextend.enumLookup({
                 name: 'audio_sensitivity',
                 lookup: {'low': 0, 'medium': 1, 'high': 2},
                 cluster: 'aqaraOpple',
@@ -1033,7 +1034,7 @@ const definitions: Definition[] = [
                 description: 'Audio sensitivity',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            extend.enumLookup({
+            mextend.enumLookup({
                 name: 'audio_effect',
                 lookup: {'random': 0, 'blink': 1, 'rainbow': 2, 'wave': 3},
                 cluster: 'aqaraOpple',
@@ -1041,7 +1042,7 @@ const definitions: Definition[] = [
                 description: 'Audio effect',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            extend.numeric({
+            mextend.numeric({
                 name: 'preset',
                 valueMin: 1,
                 valueMax: 32,
@@ -1050,7 +1051,7 @@ const definitions: Definition[] = [
                 description: 'Preset index (0-6 default presets)',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            extend.numeric({
+            mextend.numeric({
                 name: 'speed',
                 valueMin: 1,
                 valueMax: 100,
@@ -2650,16 +2651,16 @@ const definitions: Definition[] = [
                 description: 'Decoupled mode for 2nd relay',
                 endpoint: 'l2',
             }),
-            extend.binary({
+            mextend.binary({
                 name: 'interlock',
-                valueOn: true,
-                valueOff: false,
+                valueOn: ['ON', true],
+                valueOff: ['OFF', false],
                 cluster: 'aqaraOpple',
                 attribute: {id: 0x02d0, type: 0x10},
                 description: 'Enabling prevents both relays being on at the same time (Interlock)',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            extend.enumLookup({
+            mextend.enumLookup({
                 name: 'mode',
                 lookup: {'power': 0, 'pulse': 1, 'dry': 3},
                 cluster: 'aqaraOpple',
@@ -2667,7 +2668,7 @@ const definitions: Definition[] = [
                 description: 'Work mode: Power mode, Dry mode with impulse, Dry mode',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            extend.numeric({
+            mextend.numeric({
                 name: 'pulse_length',
                 valueMin: 200,
                 valueMax: 2000,
@@ -2677,13 +2678,11 @@ const definitions: Definition[] = [
                 description: 'Impulse length in Dry mode with impulse',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            xiaomi.extend.action({
-                description: '1st input',
-                endpoint: 'l1',
-            }),
-            xiaomi.extend.action({
-                description: '2nd input',
-                endpoint: 'l2',
+            mextend.actionEnumLookup({
+                lookup: {'single': 1},
+                cluster: 'genMultistateInput',
+                attribute: 'presentValue',
+                postfixWithEndpointName: true,
             }),
         ],
         ota: ota.zigbeeOTA,

@@ -32,7 +32,7 @@ const extend = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data && (!endpoint || getEndpointName(msg, model, meta) === endpoint)) {
-                    return {[expose.property]: getFromLookupByValue(lookup, msg.data[attributeKey])};
+                    return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
                 }
             },
         }];
@@ -136,7 +136,7 @@ const extend = {
         return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
     },
     actionEnumLookup: (args: {
-        lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, postfixWithEndpointName: boolean,
+        lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, postfixWithEndpointName?: boolean,
     }): ModernExtend => {
         const {lookup, attribute, cluster} = args;
         const attributeKey = isString(attribute) ? attribute : attribute.id;
@@ -148,7 +148,7 @@ const extend = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data) {
-                    let value = getFromLookupByValue(lookup, msg.data[attributeKey]);
+                    let value = getFromLookupByValue(msg.data[attributeKey], lookup);
                     if (args.postfixWithEndpointName) value = postfixWithEndpointName(value, msg, model, meta);
                     return {[expose.property]: value};
                 }
