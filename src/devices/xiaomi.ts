@@ -885,7 +885,7 @@ const definitions: Definition[] = [
         model: 'JWSP001A',
         vendor: 'Xiaomi',
         description: 'Jiawen LED Driver & Dimmer',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn02'],
