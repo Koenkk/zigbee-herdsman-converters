@@ -3,8 +3,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import legacyExtend from '../lib/extend';
-import extend from '../lib/modernExtend';
+import extend from '../lib/extend';
+import modernExtend from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
 
@@ -90,7 +90,7 @@ const definitions: Definition[] = [
         model: 'BASICZBR3',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch',
-        extend: legacyExtend.switch({disablePowerOnBehavior: true}),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
     },
     {
@@ -99,7 +99,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
-        extend: legacyExtend.switch(),
+        extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -116,7 +116,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
-        extend: legacyExtend.switch(),
+        extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -132,7 +132,7 @@ const definitions: Definition[] = [
         model: 'ZBMINI',
         vendor: 'SONOFF',
         description: 'Zigbee two way smart switch',
-        extend: legacyExtend.switch({disablePowerOnBehavior: true}),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             // Has Unknown power source: https://github.com/Koenkk/zigbee2mqtt/issues/5362, force it here.
             device.powerSource = 'Mains (single phase)';
@@ -144,7 +144,7 @@ const definitions: Definition[] = [
         model: 'S31ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
-        extend: legacyExtend.switch({disablePowerOnBehavior: true}),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -290,14 +290,14 @@ const definitions: Definition[] = [
         model: 'S26R2ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
-        extend: legacyExtend.switch({disablePowerOnBehavior: true}),
+        extend: extend.switch({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['S40LITE'],
         model: 'S40ZBTPB',
         vendor: 'SONOFF',
         description: '15A Zigbee smart plug',
-        extend: legacyExtend.switch({disablePowerOnBehavior: true}),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -333,7 +333,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
-        extend: legacyExtend.switch(),
+        extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -456,11 +456,11 @@ const definitions: Definition[] = [
             tzLocal.open_window,
         ],
         extend: [
-            extend.numeric({
+            modernExtend.numeric({
                 name: 'frost_protection_temperature',
                 cluster: 0xFC11,
                 attribute: {id: 0x6002, type: 0x29},
-                description: 'XXX Minimum temperature at which to automatically turn on the radiator, ' +
+                description: 'Minimum temperature at which to automatically turn on the radiator, ' +
                     'if system mode is off, to prevent pipes freezing.',
                 valueMin: 4.0,
                 valueMax: 35.0,
@@ -468,21 +468,21 @@ const definitions: Definition[] = [
                 unit: '°C',
                 scale: 100,
             }),
-            extend.numeric({
+            modernExtend.numeric({
                 name: 'idle_steps',
                 cluster: 0xFC11,
                 attribute: {id: 0x6003, type: 0x21},
                 description: 'Number of steps used for calibration (no-load steps)',
                 readOnly: true,
             }),
-            extend.numeric({
+            modernExtend.numeric({
                 name: 'closing_steps',
                 cluster: 0xFC11,
                 attribute: {id: 0x6004, type: 0x21},
                 description: 'Number of steps it takes to close the valve',
                 readOnly: true,
             }),
-            extend.numeric({
+            modernExtend.numeric({
                 name: 'valve_opening_limit_voltage',
                 cluster: 0xFC11,
                 attribute: {id: 0x6005, type: 0x21},
@@ -490,7 +490,7 @@ const definitions: Definition[] = [
                 unit: 'mV',
                 readOnly: true,
             }),
-            extend.numeric({
+            modernExtend.numeric({
                 name: 'valve_closing_limit_voltage',
                 cluster: 0xFC11,
                 attribute: {id: 0x6006, type: 0x21},
@@ -498,7 +498,7 @@ const definitions: Definition[] = [
                 unit: 'mV',
                 readOnly: true,
             }),
-            extend.numeric({
+            modernExtend.numeric({
                 name: 'valve_motor_running_voltage',
                 cluster: 0xFC11,
                 attribute: {id: 0x6007, type: 0x21},
