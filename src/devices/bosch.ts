@@ -930,7 +930,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['RBSH-RTH0-ZB-EU'],
         model: 'BTH-RM230Z',
         vendor: 'Bosch',
-        description: 'Room Thermostat II 230V',
+        description: 'Room thermostat II 230V',
         fromZigbee: [fz.humidity, fz.thermostat, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
             tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tz.thermostat_running_state,
