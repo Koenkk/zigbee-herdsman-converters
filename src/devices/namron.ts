@@ -944,9 +944,10 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['4512772', '4512773'],
-        model: '451277(2/3)',
+        model: '4512773',
         vendor: 'Namron',
-        description: 'Zigbee Kanalbryter',
+        description: 'Zigbee Kanalbryter Sort',
+        whiteLabel: [{vendor: 'Namron', model: '4512772', description: 'Zigbee Kanalbryter Hvit', fingerprint: [{modelID: '4512772'}]}],
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
         toZigbee: [],
         meta: {multiEndpoint: true},
