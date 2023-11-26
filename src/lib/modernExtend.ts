@@ -76,7 +76,7 @@ const extend = {
                     let value = msg.data[attributeKey];
                     assertNumber(value);
                     if (scale !== undefined) value = value / scale;
-                    return {[expose.property]: msg.data[attributeKey]};
+                    return {[expose.property]: value};
                 }
             },
         }];
