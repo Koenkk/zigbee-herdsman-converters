@@ -4,7 +4,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import modernExtend from '../lib/modernExtend';
+import * as modernExtend from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
 
