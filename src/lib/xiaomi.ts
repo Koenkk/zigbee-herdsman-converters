@@ -12,7 +12,7 @@ import {
 import * as exposes from './exposes';
 import * as globalStore from './store';
 import {Fz, Definition, KeyValue, KeyValueAny} from './types';
-import extend from './modernExtend';
+import * as modernExtend from './modernExtend';
 
 declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -1347,8 +1347,8 @@ export const trv = {
 
 export const manufacturerCode = 0x115f;
 
-export const xiaomiExtend = {
-    switchType: extend.enumLookup({
+export const xiaomiModernExtend = {
+    switchType: modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
         cluster: 'aqaraOpple',
@@ -1358,7 +1358,7 @@ export const xiaomiExtend = {
     }),
 };
 
-export {xiaomiExtend as extend};
+export {xiaomiModernExtend as modernExtend};
 
 export const fromZigbee = {
     xiaomi_basic: {
