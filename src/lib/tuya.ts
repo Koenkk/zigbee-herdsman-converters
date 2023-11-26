@@ -440,6 +440,13 @@ export const valueConverter = {
     trueFalseEnum0: valueConverterBasic.trueFalse(new Enum(0)),
     trueFalseEnum1: valueConverterBasic.trueFalse(new Enum(1)),
     onOff: valueConverterBasic.lookup({'ON': true, 'OFF': false}),
+    onOffWithDelay: {
+        to: async (value: string) => {
+            await utils.sleep(200);
+            return value === "ON" ? true : false;
+        },
+        from: (value: boolean) => value ? "ON" : "OFF",
+    },
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
     switchType: valueConverterBasic.lookup({'momentary': new Enum(0), 'toggle': new Enum(1), 'state': new Enum(2)}),
