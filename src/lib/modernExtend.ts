@@ -5,17 +5,19 @@ import {Enum, Numeric, access} from './exposes';
 import {KeyValue} from './types';
 import {getFromLookupByValue, isString, getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName} from './utils';
 
-function switch_(args?: {disablePowerOnBehavior?: boolean}): ModernExtend {
+interface SwitchArgs {disablePowerOnBehavior?: boolean}
+function switch_(args?: SwitchArgs): ModernExtend {
     args = {disablePowerOnBehavior: false, ...args};
     const result = legacyExtend.switch(args);
     return {...result, isModernExtend: true};
 }
 export {switch_ as switch};
 
-export function lightOnOffBrightnessColortempColor(args?: {
+interface LightOnOffBrightnessColortempColorArgs {
     disableEffect?: boolean, supportsHueAndSaturation?: boolean, disableColorTempStartup?: boolean, preferHueAndSaturation?: boolean,
     disablePowerOnBehavior?: boolean, colorTempRange?: Range,
-}): ModernExtend {
+}
+export function lightOnOffBrightnessColortempColor(args?: LightOnOffBrightnessColortempColorArgs): ModernExtend {
     args = {
         disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
         disablePowerOnBehavior: false, ...args,
@@ -24,10 +26,11 @@ export function lightOnOffBrightnessColortempColor(args?: {
     return {...result, isModernExtend: true};
 }
 
-export function enumLookup(args: {
+interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, endpoint?: string,
-}): ModernExtend {
+}
+export function enumLookup(args: EnumLookupArgs): ModernExtend {
     const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpoint, readOnly} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
 
@@ -61,11 +64,12 @@ export function enumLookup(args: {
     return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
 }
 
-export function numeric(args: {
+interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, unit?: string, endpoint?: string,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
-}): ModernExtend {
+}
+export function numeric(args: NumericArgs): ModernExtend {
     const {name, cluster, attribute, description, zigbeeCommandOptions, unit, readOnly, valueMax, valueMin, valueStep, endpoint, scale} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
 
@@ -107,11 +111,12 @@ export function numeric(args: {
     return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
 }
 
-export function binary(args: {
+interface BinaryArgs {
     name: string, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], cluster: string | number,
     attribute: string | {id: number, type: number}, description: string, zigbeeCommandOptions?: {manufacturerCode: number},
     readOnly?: boolean, endpoint?: string,
-}): ModernExtend {
+}
+export function binary(args: BinaryArgs): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, readOnly, endpoint} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
 
@@ -145,9 +150,10 @@ export function binary(args: {
     return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
 }
 
-export function actionEnumLookup(args: {
+interface ActionEnumLookupArgs {
     lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, postfixWithEndpointName: boolean,
-}): ModernExtend {
+}
+export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     const {lookup, attribute, cluster} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
 
