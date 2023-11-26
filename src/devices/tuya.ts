@@ -6764,7 +6764,7 @@ const definitions: Definition[] = [
                     const endpoint = device.getEndpoint(1);
                     await endpoint.read('genOnOff', ['onOff', 'moesStartUpOnOff']);
         },
-    };
+    },
 ];
 
 export default definitions;
