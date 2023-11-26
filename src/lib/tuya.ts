@@ -34,6 +34,37 @@ function convertStringToHexArray(value: string) {
     }
     return asciiKeys;
 }
+function zwt198FormattedScheduleToRaw(key: string, input: string, number: number, payload: number[], meta: Tz.Meta) {
+    const items = input.trim().split(/\s+/);
+    let message = '';
+
+    if (items.length != number) {
+        message = 'Wrong number of items for '+ key +' :' + items.length;
+    } else {
+        for (let i = 0; i < number; i++) {
+            const hourTemperature = items[i].split('/');
+            const hourMinute = hourTemperature[0].split(':', 2);
+            const hour = parseInt(hourMinute[0]);
+            const minute = parseInt(hourMinute[1]);
+            const temperature = parseInt(hourTemperature[1]);
+
+            if (!utils.isNumber(hour) || !utils.isNumber(temperature) || !utils.isNumber(minute) ||
+                hour < 0 || hour >= 24 ||
+                minute < 0 || minute >= 60 ||
+                temperature < 5 || temperature >= 35) {
+                message = 'Invalid hour, minute or temperature (5<t<35) in '+ key +' of: `' + items[i]+'`; Format is `hh:m/cc.c` or `hh:mm/cc.c°C`';
+                break;
+            }
+            const temperature10 =parseInt(hourTemperature[1])*10;
+
+            payload.push(hour);
+            payload.push(minute);
+            payload.push((temperature10 >> 8) & 0xFF);
+            payload.push( temperature10 & 0xFF);
+        }
+    }
+    return message;
+}
 
 export function onEvent(options?: {queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000'}): OnEvent {
     return async (type, data, device, settings, state) => {
@@ -768,6 +799,63 @@ export const valueConverter = {
             if (v === 0) return {'battery_low': false};
             if (v === 1) return {'battery_low': true};
             return {'error': v};
+        },
+    },
+    ZWT198_backlightMode: valueConverterBasic.lookup({
+        'off': new Enum(0),
+        'low': new Enum(1),
+        'medium': new Enum(2),
+        'high': new Enum(3)}),
+
+    ZWT198_workdaySetting: valueConverterBasic.lookup({
+        'disabled': new Enum(0),
+        '6-1': new Enum(1),
+        '5-2': new Enum(2),
+        '7': new Enum(3)}),
+
+    ZWT198_localTempCalibration: {
+        from: (v: number) => {
+            if (v > 0x7FFFFFFF) v -= 0x100000000;
+            return v / 10;
+        },
+        to: (v: number) => {
+            if (v > 0) return v * 10;
+            if (v < 0) return v * 10 + 0x100000000;
+            return v;
+        },
+    },
+    ZWT198_tuya_thermostat_schedule: {
+        from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
+            const programmingMode = [];
+
+            for (let i=0; i<8; i++) {
+                const start=i*4;
+
+                const time = value[start].toString().padStart(2, '0')+':'+ value[start+1].toString().padStart(2, '0');
+                const temp = (value[start+2]*256+value[start+3])/10;
+                const tempStr = temp.toFixed(1)+'°C';
+                programmingMode.push(time+'/'+tempStr);
+            }
+            return {
+                schedule_weekday: programmingMode.slice(0, 6).join(' '),
+                schedule_holiday: programmingMode.slice(6, 8).join(' '),
+            };
+        },
+        to: async (v: KeyValue, meta: Tz.Meta) => {
+            const dpId = 109;
+            const payload:number[] = [];
+
+            const resultWeekday = zwt198FormattedScheduleToRaw('schedule_weekday', v.schedule_weekday as string, 6, payload, meta);
+            const resultHoliday = zwt198FormattedScheduleToRaw('schedule_holiday', v.schedule_holiday as string, 2, payload, meta);
+
+            v['message_weekday']= (resultWeekday.length ? resultWeekday : 'Workdays schedule format OK');
+            v['message_holiday']= (resultHoliday.length ? resultHoliday : 'Holidays schedule format OK');
+
+            if (resultWeekday.length==0 && resultHoliday.length==0) {
+                const entity = meta.device.endpoints[0];
+                const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+                await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
+            }
         },
     },
 };
