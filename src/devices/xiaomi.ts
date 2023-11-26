@@ -2558,7 +2558,7 @@ const definitions: Definition[] = [
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.power(), e.current(), e.energy(), e.voltage(), e.device_temperature(),
         ],
-        extend: [xiaomi.extend.switchType],
+        extend: [xiaomi.modernExtend.switchType],
         ota: ota.zigbeeOTA,
     },
     {
