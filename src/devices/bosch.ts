@@ -957,20 +957,20 @@ const definitions: Definition[] = [
             await reporting.thermostatKeypadLockMode(endpoint);
             await reporting.humidity(endpoint);
 
-                        // report operating_mode (system_mode)
+            // report operating_mode (system_mode)
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4007, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
+                reportableChange: 1
             }], boschManufacturer);
-
+            
             // report pi_heating_demand (valve opening)
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4020, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
+                reportableChange: 1
             }], boschManufacturer);
 
             // report window_open
@@ -978,7 +978,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
+                reportableChange: 1
             }], boschManufacturer);
 
             // report boost as it's disabled by thermostat after 5 minutes
@@ -986,12 +986,10 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
+                reportableChange: 1
             }], boschManufacturer);
-            
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4042, 0x4043], boschManufacturer);
-            
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], boschManufacturer);
         },
