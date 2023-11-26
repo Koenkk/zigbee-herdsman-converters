@@ -3,7 +3,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import * as utils from '../lib/utils';
 import legacyExtend from '../lib/extend';
 import extend from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
