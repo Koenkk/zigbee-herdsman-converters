@@ -443,9 +443,9 @@ export const valueConverter = {
     onOffWithDelay: {
         to: async (value: string) => {
             await utils.sleep(200);
-            return value === "ON" ? true : false;
+            return value === 'ON' ? true : false;
         },
-        from: (value: boolean) => value ? "ON" : "OFF",
+        from: (value: boolean) => value ? 'ON' : 'OFF',
     },
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
