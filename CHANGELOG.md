@@ -1,5 +1,13 @@
 # Changelog
 
+## [15.125.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.125.0...v15.125.1) (2023-11-26)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_chbyv06x` as TuYa TS0601_gas_sensor_2 ([#6563](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6563)) ([d0aafe2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0aafe21dfadd399a98cc9176d2276d318cbf2a7))
+* **ignore:** Revert "feat(add): ZB-R01 https://github.com/Koenkk/zigbee2mqtt/issues/19653" ([b061446](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b061446cfe2ec9d1ff2cf6a19669c8e29fb55b47))
+
 ## [15.125.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.124.0...v15.125.0) (2023-11-24)
 
 
