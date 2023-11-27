@@ -1,5 +1,21 @@
 # Changelog
 
+## [15.126.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.125.1...v15.126.0) (2023-11-26)
+
+
+### Features
+
+* **add:** 4512768 ([#6561](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6561)) ([3f41409](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f4140942d850c8dc019d6a0a03c12bbc538dc3c))
+* Support EDF tariff for LiXee ([#6569](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6569)) ([a9fc43f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a9fc43f3eae9bf5e656703612cbfaf291234e1bb))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_saiqcn0y` as TuYa TH02Z https://github.com/Koenkk/zigbee-herdsman-converters/issues/6515 ([3598a89](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3598a899366cc46e88a937a2cde23b8a197f3bc2))
+* **detect:** Detect `_TZ3000_w0ypwa1f` as TuYa ZN231392 ([#6570](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6570)) ([f8d5865](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f8d58651463cbc6fab5b2297f1d42c0fac698269))
+* Disable unsupported power_on_behaviour for Xioami JWSP001A ([#6558](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6558)) ([0303e10](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0303e10fe9e9c933816938da66377018438cf22c))
+* Improvements for Bosch BTH-RM230Z ([#6562](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6562)) ([6ae4215](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6ae42156a87fe9b709d02a698a408dcc8aa9128b))
+
 ## [15.125.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.125.0...v15.125.1) (2023-11-26)
 
 
