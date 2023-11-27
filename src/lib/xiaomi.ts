@@ -1375,13 +1375,10 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    action: (args?: KeyValue) => modernExtend.enumLookup({
-        name: 'action',
+    action: (args?: KeyValue) => modernExtend.actionEnumLookup({
         lookup: {'single': 1},
         cluster: 'genMultistateInput',
         attribute: 'presentValue',
-        description: 'Input',
-        readOnly: true,
         ...args,
     }),
 };

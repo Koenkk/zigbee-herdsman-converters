@@ -2678,10 +2678,7 @@ const definitions: Definition[] = [
                 description: 'Impulse length in Dry mode with impulse',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            modernExtend.actionEnumLookup({
-                lookup: {'single': 1},
-                cluster: 'genMultistateInput',
-                attribute: 'presentValue',
+            xiaomi.modernExtend.action({
                 postfixWithEndpointName: true,
             }),
         ],

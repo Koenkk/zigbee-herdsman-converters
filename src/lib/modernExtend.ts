@@ -210,7 +210,7 @@ export function binary(args: BinaryArgs): ModernExtend {
 }
 
 export interface ActionEnumLookupArgs {
-    lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, postfixWithEndpointName: boolean,
+    lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, postfixWithEndpointName?: boolean,
 }
 export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     const {lookup, attribute, cluster} = args;
