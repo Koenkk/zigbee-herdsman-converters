@@ -2638,17 +2638,9 @@ const definitions: Definition[] = [
         ],
         extend: [
             xiaomi.modernExtend.switchType(),
-            xiaomi.modernExtend.powerOnBehavior({
-                lookup: {'on': 0, 'previous': 1, 'off': 2, 'toggle': 3},
-            }),
-            xiaomi.modernExtend.operationMode({
-                description: 'Decoupled mode for 1st relay',
-                endpoint: 'l1',
-            }),
-            xiaomi.modernExtend.operationMode({
-                description: 'Decoupled mode for 2nd relay',
-                endpoint: 'l2',
-            }),
+            xiaomi.modernExtend.powerOnBehavior({lookup: {'on': 0, 'previous': 1, 'off': 2, 'toggle': 3}}),
+            xiaomi.modernExtend.operationMode({description: 'Decoupled mode for 1st relay', endpoint: 'l1'}),
+            xiaomi.modernExtend.operationMode({description: 'Decoupled mode for 2nd relay', endpoint: 'l2'}),
             modernExtend.binary({
                 name: 'interlock',
                 valueOn: ['ON', true],
@@ -2676,9 +2668,7 @@ const definitions: Definition[] = [
                 description: 'Impulse length in Dry mode with impulse',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            xiaomi.modernExtend.action({
-                postfixWithEndpointName: true,
-            }),
+            xiaomi.modernExtend.action({postfixWithEndpointName: true}),
         ],
         ota: ota.zigbeeOTA,
     },
