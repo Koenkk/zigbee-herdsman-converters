@@ -12,7 +12,7 @@ import {
 import * as exposes from './exposes';
 import * as globalStore from './store';
 import {Fz, Definition, KeyValue, KeyValueAny} from './types';
-import extend from './modernExtend';
+import * as modernExtend from './modernExtend';
 
 declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -1347,8 +1347,8 @@ export const trv = {
 
 export const manufacturerCode = 0x115f;
 
-export const xiaomiExtend = {
-    switchType: (args?: KeyValueAny) => extend.enumLookup({
+export const xiaomiModernExtend = {
+    switchType: (args?: ActionEnumLookupArgs) => extend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
         cluster: 'aqaraOpple',
@@ -1357,7 +1357,7 @@ export const xiaomiExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    powerOnBehavior: (args?: KeyValueAny) => extend.enumLookup({
+    powerOnBehavior: (args?: ActionEnumLookupArgs) => extend.enumLookup({
         name: 'power_on_behavior',
         lookup: {'on': 0, 'previous': 1, 'off': 2},
         cluster: 'aqaraOpple',
@@ -1366,7 +1366,7 @@ export const xiaomiExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    operationMode: (args?: KeyValueAny) => extend.enumLookup({
+    operationMode: (args?: ActionEnumLookupArgs) => extend.enumLookup({
         name: 'operation_mode',
         lookup: {'decoupled': 0, 'control_relay': 1},
         cluster: 'aqaraOpple',
@@ -1375,7 +1375,7 @@ export const xiaomiExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    action: (args?: KeyValueAny) => extend.enumLookup({
+    action: (args?: ActionEnumLookupArgs) => extend.enumLookup({
         name: 'action',
         lookup: {'single': 1},
         cluster: 'genMultistateInput',
@@ -1386,7 +1386,7 @@ export const xiaomiExtend = {
     }),
 };
 
-export {xiaomiExtend as extend};
+export {xiaomiModernExtend as modernExtend};
 
 export const fromZigbee = {
     xiaomi_basic: {
