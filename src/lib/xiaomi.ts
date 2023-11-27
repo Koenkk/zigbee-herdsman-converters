@@ -1348,7 +1348,7 @@ export const trv = {
 export const manufacturerCode = 0x115f;
 
 export const xiaomiModernExtend = {
-    switchType: (args?: modernExtend.EnumLookupArgs) => modernExtend.enumLookup({
+    switchType: modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
         cluster: 'aqaraOpple',
