@@ -1258,15 +1258,15 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.occupancy(), e.battery(), e.illuminance()],
         configure: async (device, cordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1)
-            const endpoint2 = device.getEndpoint(2)
-            const endpoint3 = device.getEndpoint(3)
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint1, cordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint1)
+            await reporting.batteryPercentageRemaining(endpoint1);
             await reporting.bind(endpoint2, cordinatorEndpoint, ['msOccupancySensing']);
-            await reporting.occupancy(endpoint2)
+            await reporting.occupancy(endpoint2);
             await reporting.bind(endpoint3, cordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint3)
+            await reporting.illuminance(endpoint3);
         },
     },
 ];
