@@ -1253,7 +1253,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['VALLHORN Wireless Motion Sensor'],
         model: 'E2134',
         vendor: 'IKEA',
-        description: 'VALLHORN Wireless Motion Sensor',
+        description: 'VALLHORN wireless motion sensor',
         fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery(), e.illuminance()],
