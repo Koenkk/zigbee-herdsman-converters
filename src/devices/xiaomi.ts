@@ -981,9 +981,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'RLS-K01D'}],
         description: 'Aqara Zigbee 3.0 LED strip T1',
         extend: [
-            modernExtend.light({
-                effect: false, powerOnBehaviour: false, colorTemp: {startup: false, range: [153, 370]},
-            }),
+            modernExtend.light({effect: false, powerOnBehaviour: false, colorTemp: {startup: false, range: [153, 370]}}),
             xiaomi.modernExtend.powerOnBehavior(),
             modernExtend.numeric({
                 name: 'length',
