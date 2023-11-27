@@ -5,8 +5,7 @@ import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as modernExtend from '../lib/modernExtend';
-import {Zcl} from 'zigbee-herdsman';
-import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
+import {Definition, Fz, KeyValue} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -23,65 +22,6 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
-    child_lock: {
-        cluster: '64529',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            const data = msg.data;
-
-            if (data.hasOwnProperty(0x0000)) {
-                result.child_lock = data[0x0000] ? 'LOCK' : 'UNLOCK';
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter,
-    open_window: {
-        cluster: '64529',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            const data = msg.data;
-
-            if (data.hasOwnProperty(0x6000)) {
-                result.open_window = data[0x6000] ? 'ON' : 'OFF';
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter,
-};
-
-const tzLocal = {
-    child_lock: {
-        key: ['child_lock'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read(0xFC11, [0x0000]);
-        },
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write(0xFC11, {0x0000: {value: value === 'LOCK' ? 1 : 0, type: Zcl.DataType.boolean}});
-            return {
-                state: {
-                    [key]: value,
-                },
-            };
-        },
-    } satisfies Tz.Converter,
-    open_window: {
-        key: ['open_window'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read(0xFC11, [0x6000]);
-        },
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write(0xFC11, {0x6000: {value: value === 'ON' ? 1 : 0, type: Zcl.DataType.boolean}});
-            return {
-                state: {
-                    [key]: value,
-                },
-            };
-        },
-    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -434,17 +374,10 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.battery(),
             e.battery_low(),
-            e.child_lock().setAccess('state', ea.ALL),
-            e.open_window()
-                .withLabel('Open window detection')
-                .withDescription('Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.')
-                .withAccess(ea.ALL),
         ],
         fromZigbee: [
             fz.thermostat,
             fz.battery,
-            fzLocal.child_lock,
-            fzLocal.open_window,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -452,10 +385,24 @@ const definitions: Definition[] = [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tzLocal.child_lock,
-            tzLocal.open_window,
         ],
         extend: [
+            modernExtend.binary({
+                name: 'child_lock',
+                cluster: 0xFC11,
+                attribute: {id: 0x0000, type: 0x10},
+                description: 'Enables/disables physical input on the device',
+                valueOn: ['LOCK', 0x01],
+                valueOff: ['UNLOCK', 0x00],
+            }),
+            modernExtend.binary({
+                name: 'open_window',
+                cluster: 0xFC11,
+                attribute: {id: 0x6000, type: 0x10},
+                description: 'Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.',
+                valueOn: ['ON', 0x01],
+                valueOff: ['OFF', 0x00],
+            }),
             modernExtend.numeric({
                 name: 'frost_protection_temperature',
                 cluster: 0xFC11,
