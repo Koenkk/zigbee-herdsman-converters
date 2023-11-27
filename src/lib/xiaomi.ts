@@ -1348,7 +1348,7 @@ export const trv = {
 export const manufacturerCode = 0x115f;
 
 export const xiaomiModernExtend = {
-    switchType: (args?: KeyValue) => modernExtend.enumLookup({
+    switchType: (args?: modernExtend.EnumLookupArgs) => modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
         cluster: 'aqaraOpple',
@@ -1357,7 +1357,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    powerOnBehavior: (args?: KeyValue) => modernExtend.enumLookup({
+    powerOnBehavior: (args?: modernExtend.EnumLookupArgs) => modernExtend.enumLookup({
         name: 'power_on_behavior',
         lookup: {'on': 0, 'previous': 1, 'off': 2},
         cluster: 'aqaraOpple',
@@ -1366,7 +1366,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    operationMode: (args?: KeyValue) => modernExtend.enumLookup({
+    operationMode: (args?: modernExtend.EnumLookupArgs) => modernExtend.enumLookup({
         name: 'operation_mode',
         lookup: {'decoupled': 0, 'control_relay': 1},
         cluster: 'aqaraOpple',
@@ -1375,7 +1375,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    action: (args?: KeyValue) => modernExtend.actionEnumLookup({
+    action: (args?: modernExtend.ActionEnumLookupArgs) => modernExtend.actionEnumLookup({
         lookup: {'single': 1},
         cluster: 'genMultistateInput',
         attribute: 'presentValue',
