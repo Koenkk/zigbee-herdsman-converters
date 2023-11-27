@@ -24,7 +24,7 @@ function switch_(args?: SwitchArgs): ModernExtend {
 }
 export {switch_ as switch};
 
-interface LightArgs {
+export interface LightArgs {
     effect?: boolean, powerOnBehaviour?: boolean, colorTemp?: {startup?: boolean, range: Range},
     color?: boolean | {modes: ('xy' | 'hs')[]}
 }
@@ -85,7 +85,7 @@ export function light(args?: LightArgs): ModernExtend {
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-interface EnumLookupArgs {
+export interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, endpoint?: string,
 }
@@ -123,7 +123,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
     return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
 }
 
-interface NumericArgs {
+export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, unit?: string, endpoint?: string,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
@@ -170,7 +170,7 @@ export function numeric(args: NumericArgs): ModernExtend {
     return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
 }
 
-interface BinaryArgs {
+export interface BinaryArgs {
     name: string, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], cluster: string | number,
     attribute: string | {id: number, type: number}, description: string, zigbeeCommandOptions?: {manufacturerCode: number},
     readOnly?: boolean, endpoint?: string,
@@ -209,7 +209,7 @@ export function binary(args: BinaryArgs): ModernExtend {
     return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
 }
 
-interface ActionEnumLookupArgs {
+export interface ActionEnumLookupArgs {
     lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, postfixWithEndpointName: boolean,
 }
 export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
