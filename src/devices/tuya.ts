@@ -760,7 +760,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yojqa8xn', '_TZE204_zougpkpy']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yojqa8xn', '_TZE204_zougpkpy', '_TZE204_chbyv06x']),
         model: 'TS0601_gas_sensor_2',
         vendor: 'TuYa',
         description: 'Gas sensor',
@@ -778,6 +778,7 @@ const definitions: Definition[] = [
         ],
         whiteLabel: [
             tuya.whitelabel('DYGSM', 'DY-RQ500A', 'Gas sensor', ['_TZE204_zougpkpy']),
+            tuya.whitelabel('DYGSM', 'DY-RQ500A', 'Gas sensor', ['_TZE204_chbyv06x']),
         ],
         meta: {
             tuyaDatapoints: [
@@ -845,11 +846,12 @@ const definitions: Definition[] = [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_iedbgyxt'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_h3noz0a5'},
             {modelID: 'TS0001', manufacturerName: '_TYZB01_4tlksk8a'}, {modelID: 'TS0011', manufacturerName: '_TYZB01_rifa0wlb'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ucujjts'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_h8ngtlxy'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_w0ypwa1f'},
         ],
         model: 'ZN231392',
         vendor: 'TuYa',
         description: 'Smart water/gas valve',
-        extend: tuya.extend.switch(),
+        extend: tuya.extend.switch({indicatorMode: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
@@ -1966,7 +1968,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'TH02Z', 'Temperature and humidity sensor', ['_TZ3000_fllyghyj']),
+            tuya.whitelabel('TuYa', 'TH02Z', 'Temperature and humidity sensor', ['_TZ3000_fllyghyj', '_TZ3000_saiqcn0y']),
         ],
     },
     {
