@@ -1,5 +1,21 @@
 # Changelog
 
+## [15.128.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.127.0...v15.128.0) (2023-11-28)
+
+
+### Features
+
+* **add:** EMIZB-141 ([#6582](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6582)) ([b7b6788](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b7b678862a3871b53606022daf6bd1e1ad8f3e06))
+* Support `invert_cover` for Zemismart ZM25RX-08/30 ([#6492](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6492)) ([ea29d3d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ea29d3d969ea2e711c549122eb9bc26d28b79034))
+* Support schedule for Avatto ZWT198 and other improvements ([#6571](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6571)) ([d18f537](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d18f537b9152ffc274bf5cc7af7d88ce5fdfa003))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_18ejxno0` as Moes ZS-US2-WH-MS https://github.com/Koenkk/zigbee2mqtt/issues/19897 ([8ac28b8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ac28b82fa7c3ce4dfcc207bbf58ff2502be19ee))
+* Fixes for TuYa `_TZE204_5toc8efa` ([#6581](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6581)) ([bbc21c2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bbc21c2f880407005d26d9e0bad650dad1845aaa))
+* Read SONOFF TRVZB attributes during `configure` ([#6580](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6580)) ([9e56d19](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e56d19a1389c0f37b1770e46fdda829e0543051))
+
 ## [15.127.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.126.0...v15.127.0) (2023-11-27)
 
 
