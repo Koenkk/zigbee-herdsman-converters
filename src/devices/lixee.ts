@@ -486,6 +486,28 @@ const tarifsDef = {
             'PPOINTE1',
         ],
     },
+    stand_ZEN_FLEX: {
+        fname: 'Standard - ZEN Flex',
+        currentTarf: 'ZEN Flex', excluded: [
+            'EASF05',
+            'EASF06',
+            'EASF07',
+            'EASF08',
+            'EASF09',
+            'EASF10',
+            'EASD03',
+            'EASD04',
+            'DPM1',
+            'DPM2',
+            'DPM3',
+            'FPM1',
+            'FPM2',
+            'FPM3',
+            'NJOURF',
+            'NJOURF+1',
+            'PJOURF+1',
+        ],
+    },
 };
 
 
@@ -735,6 +757,9 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue, logger: Logger =
         break;
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_TEMPO.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_TEMPO.excluded.includes(a.exposes.name));
+        break;
+    case linkyMode == linkyModeDef.standard && tarifsDef.stand_ZEN_FLEX.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.stand_ZEN_FLEX.excluded.includes(a.exposes.name));
         break;
     default:
         break;

@@ -760,7 +760,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yojqa8xn', '_TZE204_zougpkpy']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yojqa8xn', '_TZE204_zougpkpy', '_TZE204_chbyv06x']),
         model: 'TS0601_gas_sensor_2',
         vendor: 'TuYa',
         description: 'Gas sensor',
@@ -778,6 +778,7 @@ const definitions: Definition[] = [
         ],
         whiteLabel: [
             tuya.whitelabel('DYGSM', 'DY-RQ500A', 'Gas sensor', ['_TZE204_zougpkpy']),
+            tuya.whitelabel('DYGSM', 'DY-RQ500A', 'Gas sensor', ['_TZE204_chbyv06x']),
         ],
         meta: {
             tuyaDatapoints: [
@@ -799,6 +800,7 @@ const definitions: Definition[] = [
             {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
             {modelID: 'TS000F', manufacturerName: '_TZ3000_mx3vgyea'},
             {modelID: 'TS000F', manufacturerName: '_TZ3000_skueekg3'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_skueekg3'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ng23zjs'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_rmjr4ufz'},
@@ -844,11 +846,12 @@ const definitions: Definition[] = [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_iedbgyxt'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_h3noz0a5'},
             {modelID: 'TS0001', manufacturerName: '_TYZB01_4tlksk8a'}, {modelID: 'TS0011', manufacturerName: '_TYZB01_rifa0wlb'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ucujjts'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_h8ngtlxy'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_w0ypwa1f'},
         ],
         model: 'ZN231392',
         vendor: 'TuYa',
         description: 'Smart water/gas valve',
-        extend: tuya.extend.switch(),
+        extend: tuya.extend.switch({indicatorMode: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
@@ -1965,7 +1968,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'TH02Z', 'Temperature and humidity sensor', ['_TZ3000_fllyghyj']),
+            tuya.whitelabel('TuYa', 'TH02Z', 'Temperature and humidity sensor', ['_TZ3000_fllyghyj', '_TZ3000_saiqcn0y']),
         ],
     },
     {
@@ -2699,6 +2702,7 @@ const definitions: Definition[] = [
         meta: {
             tuyaDatapoints: [
                 [49, 'running_state', tuya.valueConverterBasic.lookup({'heat': tuya.enum(1), 'idle': tuya.enum(0)})],
+                [49, 'system_mode', tuya.valueConverterBasic.lookup({'heat': tuya.enum(1), 'off': tuya.enum(0)})],
                 [2, 'preset', tuya.valueConverterBasic.lookup({'comfort': tuya.enum(3), 'auto': tuya.enum(0),
                     'manual': tuya.enum(2), 'holiday': tuya.enum(1)})],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
@@ -6449,12 +6453,12 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e', '_TZE204_iaeejhvf']),
         model: 'MTG075-ZB-RL',
         vendor: 'TuYa',
-        description: '5.8G human presence sensor with relay',
+        description: '2.4G/5.8G human presence sensor with relay',
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'MTG275-ZB-RL', '24G MmWave radar human presence motion sensor', ['_TZE204_dtzziy1e']),
+            tuya.whitelabel('TuYa', 'MTG275-ZB-RL', '2.4G/5.8G MmWave radar human presence motion sensor', ['_TZE204_dtzziy1e']),
         ],
         configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
@@ -6462,24 +6466,30 @@ const definitions: Definition[] = [
         exposes: [
             e.presence(), e.illuminance_lux(),
             e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
-            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription('Sensitivity of the radar'),
-            e.numeric('entry_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription('Entry sensitivity'),
-            e.numeric('illuminance_threshold', ea.STATE_SET).withValueMin(0).withValueMax(420).withValueStep(0.1).withUnit('lx')
-                .withDescription('Illumination threshold for switching on'),
-            e.numeric('detection_range', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1)
-                .withUnit('m').withDescription('Detection range'),
+            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
+                .withDescription('Detection threshold for the strength of object energy'),
+            e.numeric('detection_range', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
+                .withDescription('Maximum distance detected by the sensor'),
             e.numeric('shield_range', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
-                .withDescription('Shield range of the radar'),
+                .withDescription('Nearest distance detected by the sensor'),
+            e.numeric('entry_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
+                .withDescription('Sensitivity threshold triggered for the first time when the target enters the detection range'),
             e.numeric('entry_distance_indentation', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
-                .withDescription('Entry distance indentation'),
+                .withDescription('Indent the distance inward based on the dectection distance'),
             e.numeric('entry_filter_time', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('s')
-                .withDescription('Entry filter time'),
+                .withDescription('Sensitivity threshold triggered for the first time when the target enters the detection range '),
             e.numeric('departure_delay', ea.STATE_SET).withValueMin(0).withValueMax(600).withValueStep(1).withUnit('s').
-                withDescription('Turn off delay'),
-            e.numeric('block_time', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('s').withDescription('Block time'),
-            e.binary('breaker_status', ea.STATE_SET, 'ON', 'OFF').withDescription('Breaker status changes with breaker_mode->standard'),
-            e.enum('breaker_mode', ea.STATE_SET, ['standard', 'local']).withDescription('Status breaker mode: standard is external, local is auto'),
-            e.enum('status_indication', ea.STATE_SET, ['OFF', 'ON']).withDescription('Led backlight when triggered'),
+                withDescription('Confirmation time after the target disappears'),
+            e.numeric('block_time', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('s')
+                .withDescription('Time for the target to be detected again after switching from manned(occupy) to unmanned(unoccupy) mode'),
+            e.binary('breaker_status', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Remotely control the breaker in standard mode'),
+            e.enum('breaker_mode', ea.STATE_SET, ['standard', 'local'])
+                .withDescription('Breaker mode: standard is remotely controlled, local is automatic'),
+            e.numeric('illuminance_threshold', ea.STATE_SET).withValueMin(0).withValueMax(420).withValueStep(0.1).withUnit('lx')
+                .withDescription('Illumination threshold for local (automatic) switching mode operation'),
+            e.enum('status_indication', ea.STATE_SET, ['OFF', 'ON'])
+                .withDescription('Indicator light will flash when human presence is detected'),
         ],
         meta: {
             tuyaDatapoints: [
