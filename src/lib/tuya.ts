@@ -34,41 +34,6 @@ function convertStringToHexArray(value: string) {
     }
     return asciiKeys;
 }
-function zwt198FormattedScheduleToRaw(key: string, input: string, number: number, payload: number[], meta: Tz.Meta) {
-    const items = input.trim().split(/\s+/);
-
-    if (items.length != number) {
-        throw new Error('Wrong number of items for '+ key +' :' + items.length);
-    } else {
-        for (let i = 0; i < number; i++) {
-            const timeTemperature = items[i].split('/');
-            if (timeTemperature.length != 2) {
-                throw new Error('Invalid schedule: wrong transition format: ' + items[i]);
-            }
-            const hourMinute = timeTemperature[0].split(':', 2);
-            const hour = parseInt(hourMinute[0]);
-            const minute = parseInt(hourMinute[1]);
-            const temperature = parseFloat(timeTemperature[1]);
-
-            if (!utils.isNumber(hour) || !utils.isNumber(temperature) || !utils.isNumber(minute) ||
-                hour < 0 || hour >= 24 ||
-                minute < 0 || minute >= 60 ||
-                temperature < 5 || temperature >= 35) {
-                throw new Error('Invalid hour, minute or temperature (5<t<35) in ' + key + ' of: `' +
-                    items[i]+'`; Format is `hh:m/cc.c` or `hh:mm/cc.c°C`');
-            }
-            const temperature10 =Math.round(temperature*10);
-
-            payload.push(
-                hour,
-                minute,
-                (temperature10 >> 8) & 0xFF,
-                temperature10 & 0xFF,
-            );
-        }
-    }
-    return;
-}
 
 export function onEvent(options?: {queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000'}): OnEvent {
     return async (type, data, device, settings, state) => {
@@ -478,7 +443,8 @@ export const valueConverter = {
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
     switchType: valueConverterBasic.lookup({'momentary': new Enum(0), 'toggle': new Enum(1), 'state': new Enum(2)}),
-    backlightMode: valueConverterBasic.lookup({'off': new Enum(0), 'normal': new Enum(1), 'inverted': new Enum(2)}),
+    backlightModeOffNormalInverted: valueConverterBasic.lookup({'off': new Enum(0), 'normal': new Enum(1), 'inverted': new Enum(2)}),
+    backlightModeOffLowMediumHigh: valueConverterBasic.lookup({'off': new Enum(0), 'low': new Enum(1), 'medium': new Enum(2), 'high': new Enum(3)}),
     lightType: valueConverterBasic.lookup({'led': 0, 'incandescent': 1, 'halogen': 2}),
     countdown: valueConverterBasic.raw(),
     scale0_254to0_1000: valueConverterBasic.scale(0, 254, 0, 1000),
@@ -492,6 +458,7 @@ export const valueConverter = {
     switchMode: valueConverterBasic.lookup({'switch': new Enum(0), 'scene': new Enum(1)}),
     lightMode: valueConverterBasic.lookup({'normal': new Enum(0), 'on': new Enum(1), 'off': new Enum(2), 'flash': new Enum(3)}),
     raw: valueConverterBasic.raw(),
+    workingDay: valueConverterBasic.lookup({'disabled': new Enum(0), '6-1': new Enum(1), '5-2': new Enum(2), '7': new Enum(3)}),
     localTemperatureCalibration: {
         from: (value: number) => value > 4000 ? value - 4096 : value,
         to: (value: number) => value < 0 ? 4096 + value : value,
@@ -596,6 +563,17 @@ export const valueConverter = {
         from: (v: number) => v,
         to: (v: number) => {
             if (v < 0) return v + 0x100000000;
+            return v;
+        },
+    },
+    localTempCalibration3: {
+        from: (v: number) => {
+            if (v > 0x7FFFFFFF) v -= 0x100000000;
+            return v / 10;
+        },
+        to: (v: number) => {
+            if (v > 0) return v * 10;
+            if (v < 0) return v * 10 + 0x100000000;
             return v;
         },
     },
@@ -762,6 +740,81 @@ export const valueConverter = {
             },
         };
     },
+    ZWT198_schedule: {
+        from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
+            const programmingMode = [];
+
+            for (let i=0; i<8; i++) {
+                const start=i*4;
+
+                const time = value[start].toString().padStart(2, '0')+':'+ value[start+1].toString().padStart(2, '0');
+                const temp = (value[start+2]*256+value[start+3])/10;
+                const tempStr = temp.toFixed(1)+'°C';
+                programmingMode.push(time+'/'+tempStr);
+            }
+            return {
+                schedule_weekday: programmingMode.slice(0, 6).join(' '),
+                schedule_holiday: programmingMode.slice(6, 8).join(' '),
+            };
+        },
+        to: async (v: string, meta: Tz.Meta) => {
+            const dpId = 109;
+            const payload:number[] = [];
+            let weekdayFormat: string;
+            let holidayFormat: string;
+
+            if (meta.message.hasOwnProperty('schedule_weekday')) {
+                weekdayFormat = v;
+                holidayFormat = meta.state['schedule_holiday'] as string;
+            } else {
+                weekdayFormat = meta.state['schedule_weekday'] as string;
+                holidayFormat = v;
+            }
+
+            function scheduleToRaw(key: string, input: string, number: number, payload: number[], meta: Tz.Meta) {
+                const items = input.trim().split(/\s+/);
+
+                if (items.length != number) {
+                    throw new Error('Wrong number of items for '+ key +' :' + items.length);
+                } else {
+                    for (let i = 0; i < number; i++) {
+                        const timeTemperature = items[i].split('/');
+                        if (timeTemperature.length != 2) {
+                            throw new Error('Invalid schedule: wrong transition format: ' + items[i]);
+                        }
+                        const hourMinute = timeTemperature[0].split(':', 2);
+                        const hour = parseInt(hourMinute[0]);
+                        const minute = parseInt(hourMinute[1]);
+                        const temperature = parseFloat(timeTemperature[1]);
+
+                        if (!utils.isNumber(hour) || !utils.isNumber(temperature) || !utils.isNumber(minute) ||
+                            hour < 0 || hour >= 24 ||
+                            minute < 0 || minute >= 60 ||
+                            temperature < 5 || temperature >= 35) {
+                            throw new Error('Invalid hour, minute or temperature (5<t<35) in ' + key + ' of: `' +
+                                items[i]+'`; Format is `hh:m/cc.c` or `hh:mm/cc.c°C`');
+                        }
+                        const temperature10 =Math.round(temperature*10);
+
+                        payload.push(
+                            hour,
+                            minute,
+                            (temperature10 >> 8) & 0xFF,
+                            temperature10 & 0xFF,
+                        );
+                    }
+                }
+                return;
+            }
+
+            scheduleToRaw('schedule_weekday', weekdayFormat, 6, payload, meta);
+            scheduleToRaw('schedule_holiday', holidayFormat, 2, payload, meta);
+
+            const entity = meta.device.endpoints[0];
+            const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+            await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
+        },
+    },
     TV02SystemMode: {
         to: async (v: number, meta: Tz.Meta) => {
             const entity = meta.device.endpoints[0];
@@ -803,68 +856,6 @@ export const valueConverter = {
             if (v === 0) return {'battery_low': false};
             if (v === 1) return {'battery_low': true};
             return {'error': v};
-        },
-    },
-    ZWT198_backlightMode: valueConverterBasic.lookup({
-        'off': new Enum(0),
-        'low': new Enum(1),
-        'medium': new Enum(2),
-        'high': new Enum(3)}),
-
-    ZWT198_workdaySetting: valueConverterBasic.lookup({
-        'disabled': new Enum(0),
-        '6-1': new Enum(1),
-        '5-2': new Enum(2),
-        '7': new Enum(3)}),
-
-    ZWT198_localTempCalibration: {
-        from: (v: number) => {
-            if (v > 0x7FFFFFFF) v -= 0x100000000;
-            return v / 10;
-        },
-        to: (v: number) => {
-            if (v > 0) return v * 10;
-            if (v < 0) return v * 10 + 0x100000000;
-            return v;
-        },
-    },
-    ZWT198_tuya_thermostat_schedule: {
-        from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
-            const programmingMode = [];
-
-            for (let i=0; i<8; i++) {
-                const start=i*4;
-
-                const time = value[start].toString().padStart(2, '0')+':'+ value[start+1].toString().padStart(2, '0');
-                const temp = (value[start+2]*256+value[start+3])/10;
-                const tempStr = temp.toFixed(1)+'°C';
-                programmingMode.push(time+'/'+tempStr);
-            }
-            return {
-                schedule_weekday: programmingMode.slice(0, 6).join(' '),
-                schedule_holiday: programmingMode.slice(6, 8).join(' '),
-            };
-        },
-        to: async (v: string, meta: Tz.Meta) => {
-            const dpId = 109;
-            const payload:number[] = [];
-            let weekdayFormat: string;
-            let holidayFormat: string;
-
-            if (meta.message.hasOwnProperty('schedule_weekday')) {
-                weekdayFormat = v;
-                holidayFormat = meta.state['schedule_holiday'] as string;
-            } else {
-                weekdayFormat = meta.state['schedule_weekday'] as string;
-                holidayFormat = v;
-            }
-
-            zwt198FormattedScheduleToRaw('schedule_weekday', weekdayFormat, 6, payload, meta);
-            zwt198FormattedScheduleToRaw('schedule_holiday', holidayFormat, 2, payload, meta);
-
-            const entity = meta.device.endpoints[0];
-            const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
-            await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
         },
     },
 };
@@ -971,8 +962,8 @@ const tuyaTz = {
             'scale_protection', 'error', 'radar_scene', 'radar_sensitivity', 'tumble_alarm_time', 'tumble_switch', 'fall_sensitivity',
             'min_temperature', 'max_temperature', 'window_detection', 'boost_heating', 'alarm_ringtone', 'alarm_time', 'fan_speed',
             'reverse_direction', 'border', 'click_control', 'motor_direction', 'opening_mode', 'factory_reset', 'set_upper_limit', 'set_bottom_limit',
-            'motor_speed', 'timer', 'reset_frost_lock', 'schedule_periodic', 'schedule_weekday', 'schedule_holiday', 'backlight_mode', 'calibration',
-            'motor_steering', 'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program', 'light_mode', 'switch_mode',
+            'motor_speed', 'timer', 'reset_frost_lock', 'schedule_periodic', 'schedule_weekday', 'backlight_mode', 'calibration', 'motor_steering',
+            'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program', 'light_mode', 'switch_mode',
             ...[1, 2, 3, 4, 5, 6].map((no) => `schedule_slot_${no}`), 'minimum_range', 'maximum_range', 'detection_delay', 'fading_time',
             'radar_sensitivity', 'entry_sensitivity', 'illumin_threshold', 'detection_range', 'shield_range', 'entry_distance_indentation',
             'entry_filter_time', 'departure_delay', 'block_time', 'status_indication', 'breaker_mode', 'breaker_status',
