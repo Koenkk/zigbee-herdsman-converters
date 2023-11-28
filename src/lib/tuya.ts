@@ -1224,83 +1224,89 @@ const tuyaExtend = {
 export {tuyaExtend as extend};
 
 
+function getModernExtendForDP(name: string, attribute: {dp: number, type: number}, converter: Tuya.ValueConverterSingle, expose: Expose): ModernExtend {
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
+        options: (definition) => {
+            const result = [];
+            if (name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
+                const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(name) ? 'percentual' : 'absolute';
+                result.push(exposes.options.precision(name), exposes.options.calibration(name, type));
+            }
+            return result;
+        },
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            for (const dpValue of msg.data.dpValues) {
+                if (dpValue.dp == attribute.dp) {
+                    result[expose.property] = converter.from(getDataValue(dpValue));
+                    break;
+                }
+            }
+
+            // Apply calibrateAndPrecisionRoundOptions
+            const keys = Object.keys(utils.calibrateAndPrecisionRoundOptionsDefaultPrecision);
+            for (const entry of Object.entries(result)) {
+                if (keys.includes(entry[0])) {
+                    const number = utils.toNumber(entry[1], entry[0]);
+                    result[entry[0]] = utils.calibrateAndPrecisionRoundOptions(number, options, entry[0]);
+                }
+            }
+            return result;
+        },
+    }];
+
+    const toZigbee: Tz.Converter[] = [{
+        key: [name],
+        convertSet: async (entity, key, value, meta) => {
+            // A set converter is only called once; therefore we need to loop
+            const state: KeyValue = {};
+            for (const [attr, value] of Object.entries(meta.message)) {
+                const convertedValue = await converter.to(value);
+                const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+                if (convertedValue === undefined) {
+                    // conversion done inside converter, ignore.
+                } else if (attribute.type == dataTypes.bool) {
+                    await sendDataPointBool(entity, attribute.dp, convertedValue as boolean, sendCommand, 1);
+                } else if (attribute.type == dataTypes.number) {
+                    await sendDataPointValue(entity, attribute.dp, convertedValue as number, sendCommand, 1);
+                } else if (attribute.type == dataTypes.string) {
+                    await sendDataPointStringBuffer(entity, attribute.dp, convertedValue as string, sendCommand, 1);
+                } else if (attribute.type == dataTypes.raw) {
+                    await sendDataPointRaw(entity, attribute.dp, convertedValue as number[], sendCommand, 1);
+                } else if (attribute.type == dataTypes.enum) {
+                    await sendDataPointEnum(entity, attribute.dp, convertedValue as number, sendCommand, 1);
+                } else if (attribute.type == dataTypes.bitmap) {
+                    await sendDataPointBitmap(entity, attribute.dp, convertedValue as number, sendCommand, 1);
+                } else {
+                    throw new Error(`Don't know how to send type '${typeof convertedValue}'`);
+                }
+
+                state[key] = value;
+            }
+            return {state};
+        },
+    }];
+
+    return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+}
+
 export interface TuyaEnumLookupArgs {
     name: string, lookup: KeyValue, attribute: {dp: number, type: number}, description: string,
-    readOnly?: boolean,
+    readOnly?: boolean, endpoint?: string,
 }
 
 const tuyaModernExtend = {
     enumLookup(args: TuyaEnumLookupArgs): ModernExtend {
-        const {name, lookup, attribute, description, readOnly} = args;
+        const {name, lookup, attribute, description, readOnly, endpoint} = args;
         let expose = new exposes.Enum(name, readOnly ? ea.STATE : ea.STATE_SET, Object.keys(lookup)).withDescription(description);
-    
-        const fromZigbee: Fz.Converter[] = [{
-            cluster: 'manuSpecificTuya',
-            type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
-            options: (definition) => {
-                const result = [];
-                if (name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
-                    const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(name) ? 'percentual' : 'absolute';
-                    result.push(exposes.options.precision(name), exposes.options.calibration(name, type));
-                }
-                return result;
-            },
-            convert: (model, msg, publish, options, meta) => {
-                const result: KeyValue = {};
-                for (const dpValue of msg.data.dpValues) {
-                    if (dpValue.dp == attribute.dp) {
-                        result[expose.property] = utils.getFromLookupByValue(getDataValue(dpValue), lookup);
-                        break;
-                    }
-                }
-    
-                // Apply calibrateAndPrecisionRoundOptions
-                const keys = Object.keys(utils.calibrateAndPrecisionRoundOptionsDefaultPrecision);
-                for (const entry of Object.entries(result)) {
-                    if (keys.includes(entry[0])) {
-                        const number = utils.toNumber(entry[1], entry[0]);
-                        result[entry[0]] = utils.calibrateAndPrecisionRoundOptions(number, options, entry[0]);
-                    }
-                }
-                return result;
-            },
-        }];
-    
-        const toZigbee: Tz.Converter[] = [{
-            key: [name],
-            convertSet: async (entity, key, value, meta) => {
-                // A set converter is only called once; therefore we need to loop
-                const state: KeyValue = {};
-                for (const [attr, value] of Object.entries(meta.message)) {
-                    const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
-                        `${attr}_${meta.endpoint_name}` : attr;
-                    const convertedValue = utils.getFromLookup(value, lookup);
-                    const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
-                    if (convertedValue === undefined) {
-                        // conversion done inside converter, ignore.
-                    } else if (attribute.type == dataTypes.bool) {
-                        await sendDataPointBool(entity, attribute.dp, convertedValue as boolean, sendCommand, 1);
-                    } else if (attribute.type == dataTypes.number) {
-                        await sendDataPointValue(entity, attribute.dp, convertedValue as number, sendCommand, 1);
-                    } else if (attribute.type == dataTypes.string) {
-                        await sendDataPointStringBuffer(entity, attribute.dp, convertedValue as string, sendCommand, 1);
-                    } else if (attribute.type == dataTypes.raw) {
-                        await sendDataPointRaw(entity, attribute.dp, convertedValue as number[], sendCommand, 1);
-                    } else if (attribute.type == dataTypes.enum) {
-                        await sendDataPointEnum(entity, attribute.dp, convertedValue as number, sendCommand, 1);
-                    } else if (attribute.type == dataTypes.bitmap) {
-                        await sendDataPointBitmap(entity, attribute.dp, convertedValue as number, sendCommand, 1);
-                    } else {
-                        throw new Error(`Don't know how to send type '${typeof convertedValue}'`);
-                    }
-    
-                    state[key] = value;
-                }
-                return {state};
-            },
-        }];
-    
-        return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+        if (endpoint) expose = expose.withEndpoint(endpoint);
+
+        return getModernExtendForDP(name, attribute, {
+            from: (value) => utils.getFromLookupByValue(value, lookup),
+            to: (value) => utils.getFromLookup(value, lookup),
+        }, expose);
     }
 };
 export {tuyaModernExtend as modernExtend};
