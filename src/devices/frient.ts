@@ -9,7 +9,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['EMIZB-141'],
         model: 'EMIZB-141',
         vendor: 'frient',
-        description: 'Smart Powermeter Zigbee Bridge',
+        description: 'Smart powermeter Zigbee bridge',
         fromZigbee: [fz.metering, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.power(), e.energy()],
