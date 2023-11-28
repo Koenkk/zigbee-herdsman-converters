@@ -399,15 +399,17 @@ export class Bitmap extends Base {
     }
 }
 
+type LookupMap = {[s: (string)]: number | boolean | Enum | string};
 export const valueConverterBasic = {
-    lookup: (map: {[s: (string)]: number | boolean | Enum | string}, fallbackValue?: number | boolean | KeyValue | string | null) => {
+    lookup: (map: LookupMap | ((options: KeyValue) => LookupMap), fallbackValue?: number | boolean | KeyValue | string | null) => {
         return {
-            to: (v: string) => utils.getFromLookup(v, map),
-            from: (v: number) => {
-                const value = Object.entries(map).find((i) => i[1].valueOf() === v);
+            to: (v: string, meta: Tz.Meta) => utils.getFromLookup(v, map instanceof Function ? map(meta.options) : map),
+            from: (v: number, _meta: Fz.Meta, options: KeyValue) => {
+                const m = map instanceof Function ? map(options) : map;
+                const value = Object.entries(m).find((i) => i[1].valueOf() === v);
                 if (!value) {
                     if (fallbackValue !== undefined) return fallbackValue;
-                    throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(map)}`);
+                    throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(m)}`);
                 }
                 return value[0];
             },
