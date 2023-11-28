@@ -768,10 +768,6 @@ export const presets = {
         .withFeature(new Enum('state', access.SET, ['system_is_armed', 'system_is_disarmed']).withDescription('Set Squawk state'))
         .withFeature(new Enum('level', access.SET, ['low', 'medium', 'high', 'very_high']).withDescription('Sound level'))
         .withFeature(new Binary('strobe', access.SET, true, false).withDescription('Turn on/off the strobe (light) for Squawk')),
-    zwt198_backlightModeOffLowMediumHigh: () => new Enum('backlight_mode', access.STATE_SET, ['off', 'low', 'medium', 'high'])
-        .withDescription('Intensity of the backlight'),
-    zwt198_workdaySetting: () => new Enum('working_day', access.STATE_SET, ['disabled', '6-1', '5-2', '7'])
-        .withDescription('Workday setting'),
 };
 
 exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
