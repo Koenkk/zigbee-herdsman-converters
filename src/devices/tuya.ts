@@ -560,16 +560,8 @@ const definitions: Definition[] = [
             e.zwt198_workdaySetting(),
             e.zwt198_backlightModeOffLowMediumHigh(),
 
-            e.composite('schedule', 'schedule', ea.STATE_SET)
-                .withDescription('Schedule split into 2 parts, includes error check')
-                .withFeature(
-                    e.text('schedule_weekday', ea.STATE_SET).withDescription('Workdays (6 times `hh:mm/cc.c°C`)'))
-                .withFeature(
-                    e.text('message_weekday', ea.STATE).withDescription('Messages from the schedule format'))
-                .withFeature(
-                    e.text('schedule_holiday', ea.STATE_SET).withDescription('Holidays (2 times `hh:mm/cc.c°C)`'))
-                .withFeature(
-                    e.text('message_holiday', ea.STATE).withDescription('Messages from the schedule format')),
+            e.text('schedule_weekday', ea.STATE_SET).withDescription('Workdays (6 times `hh:mm/cc.c°C`)'),
+            e.text('schedule_holiday', ea.STATE_SET).withDescription('Holidays (2 times `hh:mm/cc.c°C)`'),
 
             // ============== exposes for found, but not functional datapoints:
             /*
@@ -603,9 +595,12 @@ const definitions: Definition[] = [
                 [102, 'frost_protection', tuya.valueConverter.onOff],
                 [103, 'factory_reset', tuya.valueConverter.onOff],
                 [104, 'working_day', tuya.valueConverter.ZWT198_workdaySetting],
-
                 [107, 'deadzone_temperature', tuya.valueConverter.divideBy10],
-                [109, 'schedule', tuya.valueConverter.ZWT198_tuya_thermostat_schedule],
+
+                [109, null, tuya.valueConverter.ZWT198_tuya_thermostat_schedule],
+                [109, 'schedule_weekday', tuya.valueConverter.ZWT198_tuya_thermostat_schedule],
+                [109, 'schedule_holiday', tuya.valueConverter.ZWT198_tuya_thermostat_schedule],
+
                 [110, 'backlight_mode', tuya.valueConverter.ZWT198_backlightMode],
 
                 // ============== found but not functional datapoints:

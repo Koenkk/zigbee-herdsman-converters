@@ -36,34 +36,38 @@ function convertStringToHexArray(value: string) {
 }
 function zwt198FormattedScheduleToRaw(key: string, input: string, number: number, payload: number[], meta: Tz.Meta) {
     const items = input.trim().split(/\s+/);
-    let message = '';
 
     if (items.length != number) {
-        message = 'Wrong number of items for '+ key +' :' + items.length;
+        throw new Error('Wrong number of items for '+ key +' :' + items.length);
     } else {
         for (let i = 0; i < number; i++) {
-            const hourTemperature = items[i].split('/');
-            const hourMinute = hourTemperature[0].split(':', 2);
+            const timeTemperature = items[i].split('/');
+            if (timeTemperature.length != 2) {
+                throw new Error('Invalid schedule: wrong transition format: ' + items[i]);
+            }
+            const hourMinute = timeTemperature[0].split(':', 2);
             const hour = parseInt(hourMinute[0]);
             const minute = parseInt(hourMinute[1]);
-            const temperature = parseInt(hourTemperature[1]);
+            const temperature = parseFloat(timeTemperature[1]);
 
             if (!utils.isNumber(hour) || !utils.isNumber(temperature) || !utils.isNumber(minute) ||
                 hour < 0 || hour >= 24 ||
                 minute < 0 || minute >= 60 ||
                 temperature < 5 || temperature >= 35) {
-                message = 'Invalid hour, minute or temperature (5<t<35) in '+ key +' of: `' + items[i]+'`; Format is `hh:m/cc.c` or `hh:mm/cc.c°C`';
-                break;
+                throw new Error('Invalid hour, minute or temperature (5<t<35) in ' + key + ' of: `' +
+                    items[i]+'`; Format is `hh:m/cc.c` or `hh:mm/cc.c°C`');
             }
-            const temperature10 =parseInt(hourTemperature[1])*10;
+            const temperature10 =Math.round(temperature*10);
 
-            payload.push(hour);
-            payload.push(minute);
-            payload.push((temperature10 >> 8) & 0xFF);
-            payload.push( temperature10 & 0xFF);
+            payload.push(
+                hour,
+                minute,
+                (temperature10 >> 8) & 0xFF,
+                temperature10 & 0xFF,
+            );
         }
     }
-    return message;
+    return;
 }
 
 export function onEvent(options?: {queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000'}): OnEvent {
@@ -841,21 +845,26 @@ export const valueConverter = {
                 schedule_holiday: programmingMode.slice(6, 8).join(' '),
             };
         },
-        to: async (v: KeyValue, meta: Tz.Meta) => {
+        to: async (v: string, meta: Tz.Meta) => {
             const dpId = 109;
             const payload:number[] = [];
+            let weekdayFormat: string;
+            let holidayFormat: string;
 
-            const resultWeekday = zwt198FormattedScheduleToRaw('schedule_weekday', v.schedule_weekday as string, 6, payload, meta);
-            const resultHoliday = zwt198FormattedScheduleToRaw('schedule_holiday', v.schedule_holiday as string, 2, payload, meta);
-
-            v['message_weekday']= (resultWeekday.length ? resultWeekday : 'Workdays schedule format OK');
-            v['message_holiday']= (resultHoliday.length ? resultHoliday : 'Holidays schedule format OK');
-
-            if (resultWeekday.length==0 && resultHoliday.length==0) {
-                const entity = meta.device.endpoints[0];
-                const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
-                await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
+            if (meta.message.hasOwnProperty('schedule_weekday')) {
+                weekdayFormat = v;
+                holidayFormat = meta.state['schedule_holiday'] as string;
+            } else {
+                weekdayFormat = meta.state['schedule_weekday'] as string;
+                holidayFormat = v;
             }
+
+            zwt198FormattedScheduleToRaw('schedule_weekday', weekdayFormat, 6, payload, meta);
+            zwt198FormattedScheduleToRaw('schedule_holiday', holidayFormat, 2, payload, meta);
+
+            const entity = meta.device.endpoints[0];
+            const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+            await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
         },
     },
 };
@@ -962,8 +971,8 @@ const tuyaTz = {
             'scale_protection', 'error', 'radar_scene', 'radar_sensitivity', 'tumble_alarm_time', 'tumble_switch', 'fall_sensitivity',
             'min_temperature', 'max_temperature', 'window_detection', 'boost_heating', 'alarm_ringtone', 'alarm_time', 'fan_speed',
             'reverse_direction', 'border', 'click_control', 'motor_direction', 'opening_mode', 'factory_reset', 'set_upper_limit', 'set_bottom_limit',
-            'motor_speed', 'timer', 'reset_frost_lock', 'schedule_periodic', 'schedule_weekday', 'backlight_mode', 'calibration', 'motor_steering',
-            'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program', 'light_mode', 'switch_mode',
+            'motor_speed', 'timer', 'reset_frost_lock', 'schedule_periodic', 'schedule_weekday', 'schedule_holiday', 'backlight_mode', 'calibration',
+            'motor_steering', 'mode', 'lower', 'upper', 'delay', 'reverse', 'touch', 'program', 'light_mode', 'switch_mode',
             ...[1, 2, 3, 4, 5, 6].map((no) => `schedule_slot_${no}`), 'minimum_range', 'maximum_range', 'detection_delay', 'fading_time',
             'radar_sensitivity', 'entry_sensitivity', 'illumin_threshold', 'detection_range', 'shield_range', 'entry_distance_indentation',
             'entry_filter_time', 'departure_delay', 'block_time', 'status_indication', 'breaker_mode', 'breaker_status',
