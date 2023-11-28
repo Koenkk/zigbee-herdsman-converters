@@ -6,6 +6,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 import * as ota from '../lib/ota';
+import * as modernExtend from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -579,25 +580,28 @@ const definitions: Definition[] = [
         model: 'SP 120',
         vendor: 'Innr',
         description: 'Smart plug',
-        fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
-        toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            // Gives UNSUPPORTED_ATTRIBUTE on reporting.readEletricalMeasurementMultiplierDivisors.
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acCurrentDivisor: 1000,
-                acCurrentMultiplier: 1,
-            });
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            // Gives UNSUPPORTED_ATTRIBUTE on reporting.readMeteringMultiplierDivisor.
-            endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 100});
-            await reporting.currentSummDelivered(endpoint);
-        },
-        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy()],
+        extend: [
+            modernExtend.switch(),
+        ],
+        // fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
+        // toZigbee: [tz.on_off],
+        // configure: async (device, coordinatorEndpoint, logger) => {
+        //     const endpoint = device.getEndpoint(1);
+        //     await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+        //     await reporting.onOff(endpoint);
+        //     // Gives UNSUPPORTED_ATTRIBUTE on reporting.readEletricalMeasurementMultiplierDivisors.
+        //     endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+        //         acCurrentDivisor: 1000,
+        //         acCurrentMultiplier: 1,
+        //     });
+        //     await reporting.activePower(endpoint);
+        //     await reporting.rmsCurrent(endpoint);
+        //     await reporting.rmsVoltage(endpoint);
+        //     // Gives UNSUPPORTED_ATTRIBUTE on reporting.readMeteringMultiplierDivisor.
+        //     endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 100});
+        //     await reporting.currentSummDelivered(endpoint);
+        // },
+        // exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy()],
     },
     {
         zigbeeModel: ['SP 110'],

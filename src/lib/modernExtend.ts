@@ -1,18 +1,48 @@
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
-import {Fz, Tz, ModernExtend, Range} from './types';
+import {Fz, Tz, ModernExtend, Range, Zh, Logger} from './types';
 import {Enum, Numeric, access, Light, Binary, presets as exposePresets} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
 import {configure as lightConfigure} from './light';
 import {getFromLookupByValue, isString, getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName, isObject} from './utils';
+import {repInterval} from './constants';
+
+const DefaultReportingItemValues = {
+    minimumReportInterval: 0,
+    maximumReportInterval: repInterval.DAYS_1,
+    reportableChange: 1,
+};
+
+async function setupAttributes(
+    device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, cluster: string, attributes: string[], logger: Logger,
+) {
+    const endpoints = device.endpoints.filter((ep) => ep.getInputClusters().find((c) => c.name === cluster));
+    if (endpoints.length === 0) {
+        throw new Error(`Device ${device.ieeeAddr} has no input cluster ${cluster}`);
+    }
+    for (const endpoint of endpoints) {
+        logger.debug(`Reading and setup reporting for ${device.ieeeAddr}/${endpoint} ${cluster} - ${JSON.stringify(attributes)}`);
+        endpoint.bind(cluster, coordinatorEndpoint);
+        const items = attributes.map((attribute) => {
+            return {...DefaultReportingItemValues, attribute};
+        });
+        endpoint.configureReporting(cluster, items);
+        endpoint.read(cluster, attributes);
+    }
+}
 
 interface SwitchArgs {powerOnBehavior?: boolean}
 function switch_(args?: SwitchArgs): ModernExtend {
     args = {powerOnBehavior: true, ...args};
 
     const exposes: Expose[] = [exposePresets.switch()];
-    const fromZigbee: Fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
+    const fromZigbee: Fz.Converter[] = [fz.on_off];
     const toZigbee: Tz.Converter[] = [tz.on_off];
+
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        const attributes = args.powerOnBehavior ? ['onOff'] : ['onOff', 'startUpOnOff'];
+        await setupAttributes(device, coordinatorEndpoint, 'genOnOff', attributes, logger);
+    };
 
     if (args.powerOnBehavior) {
         exposes.push(exposePresets.power_on_behavior(['off', 'on', 'toggle', 'previous']));
@@ -20,7 +50,7 @@ function switch_(args?: SwitchArgs): ModernExtend {
         toZigbee.push(tz.power_on_behavior);
     }
 
-    return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 export {switch_ as switch};
 
