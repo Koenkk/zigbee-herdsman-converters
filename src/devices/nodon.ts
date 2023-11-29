@@ -204,8 +204,8 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Multifunction relay switch with metering',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
+        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fz.metering, fzLocal.impulse_time],
+        toZigbee: [tz.on_off, tzLocal.impulse_time],
         exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
