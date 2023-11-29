@@ -208,7 +208,7 @@ export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, dev
 
 // Clear device variable "message_number" which is used in valueConverter.onOffWithDelay
 export async function onEventClearMessageNumber(type: OnEventType, data: KeyValue, device: Zh.Device) {
-    if (type === "message") {
+    if (type === 'message') {
         globalStore.clearValue(device, 'message_number');
     }
 }
@@ -451,15 +451,15 @@ export const valueConverter = {
         to: async (value: string, meta: Tz.Meta) => {
             const {device} = meta
 
-            if (!globalStore.hasValue(device, 'message_number')) {
-                globalStore.putValue(device, 'message_number', 0);
+            if (!globalStore.hasValue(device, 'messageNumber')) {
+                globalStore.putValue(device, 'messageNumber', 0);
             }
-            let message_number = globalStore.getValue(device, 'message_number');
-            globalStore.putValue(device, 'message_number', message_number + 1)
-            await utils.sleep(message_number * 80);
-            return value === "ON" ? true : false;
+            const messageNumber = globalStore.getValue(device, 'messageNumber');
+            globalStore.putValue(device, 'messageNumber', messageNumber + 1);
+            await utils.sleep(messageNumber * 80);
+            return value === 'ON' ? true : false;
         },
-        from: (value: boolean) => value ? "ON" : "OFF",
+        from: (value: boolean) => value ? 'ON' : 'OFF',
     },
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
