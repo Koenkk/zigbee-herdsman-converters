@@ -71,7 +71,6 @@ const definitions: Definition[] = [
         model: 'SIN-4-1-20',
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fzLocal.impulse_time],
         toZigbee: [tz.on_off, tzLocal.impulse_time],
         exposes: [
@@ -94,7 +93,6 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-1-20_PRO'],
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fzLocal.impulse_time],
         toZigbee: [tz.on_off, tzLocal.impulse_time],
         exposes: [
@@ -163,7 +161,6 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
         toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
         exposes: [
-            e.switch(),
             e.power(),
             e.energy(),
             e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
@@ -187,7 +184,6 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
         toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
         exposes: [
-            e.switch(),
             e.power(),
             e.energy(),
             e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
@@ -206,11 +202,11 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-1-21'],
         model: 'SIN-4-1-21',
         vendor: 'NodOn',
-        description: 'Multifunction relay switch zith metering',
+        description: 'Multifunction relay switch with metering',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
+        exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
