@@ -47,7 +47,7 @@ const definitions: Definition[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             await reporting.currentPositionTiltPercentage(endpoint);
         },
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -63,7 +63,7 @@ const definitions: Definition[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             await reporting.currentPositionTiltPercentage(endpoint);
         },
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -72,9 +72,13 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
         extend: extend.switch(),
-        fromZigbee: [fzLocal.impulse_time],
-        toZigbee: [tzLocal.impulse_time],
-        exposes: [e.numeric('transition_time', ea.SET).withValueMin(0).withValueMax(5000).withUnit('ms').withDescription('Impulse time')],
+        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fzLocal.impulse_time],
+        toZigbee: [tz.on_off, tzLocal.impulse_time],
+        exposes: [
+            e.switch(),
+            e.action(['identify', 'on', 'off', 'toggle']),
+            e.power_on_behavior(),
+        ],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -86,11 +90,18 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['SIN-4-1-20_PRO'],
         model: 'SIN-4-1-20_PRO',
+        zigbeeModel: ['SIN-4-1-20_PRO'],
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
         extend: extend.switch(),
+        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fzLocal.impulse_time],
+        toZigbee: [tz.on_off, tzLocal.impulse_time],
+        exposes: [
+            e.switch(),
+            e.action(['identify', 'on', 'off', 'toggle']),
+            e.power_on_behavior(),
+        ],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
