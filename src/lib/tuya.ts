@@ -449,7 +449,7 @@ export const valueConverter = {
     onOff: valueConverterBasic.lookup({'ON': true, 'OFF': false}),
     onOffWithDelay: {
         to: async (value: string, meta: Tz.Meta) => {
-            const {device} = meta
+            const {device} = meta;
 
             if (!globalStore.hasValue(device, 'messageNumber')) {
                 globalStore.putValue(device, 'messageNumber', 0);
