@@ -27,11 +27,11 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('nodonTransitionTime')) {
-                return {transition_time : msg.data['nodonTransitionTime'] };
+                return {transition_time: msg.data['nodonTransitionTime']};
             }
-        }
+        },
     } as Fz.Converter,
-}
+};
 
 const definitions: Definition[] = [
     {
@@ -159,12 +159,12 @@ const definitions: Definition[] = [
         description: 'Pilot wire heating module',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior, fz.nodon_fil_pilote_mode],
-        toZigbee: [tz.on_off, tz.power_on_behavior,  tz.nodon_fil_pilote_mode],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tz.nodon_fil_pilote_mode],
         exposes: [
             e.power(),
             e.energy(),
             e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
-            e.power_on_behavior()
+            e.power_on_behavior(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -183,12 +183,12 @@ const definitions: Definition[] = [
         description: 'Pilot wire heating module',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior, fz.nodon_fil_pilote_mode],
-        toZigbee: [tz.on_off, tz.power_on_behavior,  tz.nodon_fil_pilote_mode],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tz.nodon_fil_pilote_mode],
         exposes: [
             e.power(),
             e.energy(),
             e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
-            e.power_on_behavior()
+            e.power_on_behavior(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -206,8 +206,8 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Multifunction relay switch with metering',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fz.metering, fz.power_on_behavior, fzLocal.impulse_time],
-        toZigbee: [tz.on_off, tz.power_on_behavior, tzLocal.impulse_time],
+        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
