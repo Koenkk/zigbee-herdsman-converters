@@ -71,8 +71,8 @@ const definitions: Definition[] = [
         model: 'SIN-4-1-20',
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fzLocal.impulse_time],
-        toZigbee: [tz.on_off, tzLocal.impulse_time],
+        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fz.power_on_behavior, fzLocal.impulse_time],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tzLocal.impulse_time],
         exposes: [
             e.switch(),
             e.action(['identify', 'on', 'off', 'toggle']),
@@ -93,8 +93,8 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-1-20_PRO'],
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fzLocal.impulse_time],
-        toZigbee: [tz.on_off, tzLocal.impulse_time],
+        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fz.power_on_behavior, fzLocal.impulse_time],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tzLocal.impulse_time],
         exposes: [
             e.switch(),
             e.action(['identify', 'on', 'off', 'toggle']),
@@ -158,12 +158,13 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Pilot wire heating module',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
-        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior, fz.nodon_fil_pilote_mode],
+        toZigbee: [tz.on_off, tz.power_on_behavior,  tz.nodon_fil_pilote_mode],
         exposes: [
             e.power(),
             e.energy(),
             e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+            e.power_on_behavior()
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -181,12 +182,13 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Pilot wire heating module',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
-        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior, fz.nodon_fil_pilote_mode],
+        toZigbee: [tz.on_off, tz.power_on_behavior,  tz.nodon_fil_pilote_mode],
         exposes: [
             e.power(),
             e.energy(),
             e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+            e.power_on_behavior()
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -204,8 +206,8 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Multifunction relay switch with metering',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fz.metering, fzLocal.impulse_time],
-        toZigbee: [tz.on_off, tzLocal.impulse_time],
+        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fz.metering, fz.power_on_behavior, fzLocal.impulse_time],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tzLocal.impulse_time],
         exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
