@@ -206,6 +206,13 @@ export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, dev
     }
 }
 
+// Clear device variable "message_number" which is used in valueConverter.onOffWithDelay
+export async function onEventClearMessageNumber(type: OnEventType, data: KeyValue, device: Zh.Device) {
+    if (type === "message") {
+        globalStore.clearValue(device, 'message_number');
+    }
+}
+
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd='dataRequest', seq?:number) {
     if (seq === undefined) {
@@ -441,11 +448,18 @@ export const valueConverter = {
     trueFalseEnum1: valueConverterBasic.trueFalse(new Enum(1)),
     onOff: valueConverterBasic.lookup({'ON': true, 'OFF': false}),
     onOffWithDelay: {
-        to: async (value: string) => {
-            await utils.sleep(200);
-            return value === 'ON' ? true : false;
+        to: async (value: string, meta: Tz.Meta) => {
+            const {device} = meta
+
+            if (!globalStore.hasValue(device, 'message_number')) {
+                globalStore.putValue(device, 'message_number', 0);
+            }
+            let message_number = globalStore.getValue(device, 'message_number');
+            globalStore.putValue(device, 'message_number', message_number + 1)
+            await utils.sleep(message_number * 80);
+            return value === "ON" ? true : false;
         },
-        from: (value: boolean) => value ? 'ON' : 'OFF',
+        from: (value: boolean) => value ? "ON" : "OFF",
     },
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
@@ -1242,6 +1256,7 @@ exports.sendDataPointEnum = sendDataPointEnum;
 exports.onEventSetTime = onEventSetTime;
 exports.onEventSetLocalTime = onEventSetLocalTime;
 exports.onEventMeasurementPoll = onEventMeasurementPoll;
+exports.onEventClearMessageNumber = onEventClearMessageNumber;
 exports.skip = skip;
 exports.configureMagicPacket = configureMagicPacket;
 exports.fingerprint = fingerprint;

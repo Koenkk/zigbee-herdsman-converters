@@ -5810,6 +5810,7 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
+        onEvent: tuya.onEventClearMessageNumber,
         exposes: [
             tuya.exposes.switch().withEndpoint('l1'),
             tuya.exposes.switch().withEndpoint('l2'),
