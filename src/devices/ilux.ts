@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: '900008-WW',
         vendor: 'ilux',
         description: 'Dimmable A60 E27 LED Bulb',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 

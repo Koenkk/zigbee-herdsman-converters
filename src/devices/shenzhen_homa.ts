@@ -1,6 +1,8 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -44,7 +46,7 @@ const definitions: Definition[] = [
         model: 'HOMA1001_CT',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver CT',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         fingerprint: [
@@ -56,14 +58,14 @@ const definitions: Definition[] = [
         model: 'HOMA1001_SC',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver SC',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['HOMA1008', '00A'],
         model: 'HLD812-Z-SC',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['HOMA1009', '050'],
@@ -77,14 +79,14 @@ const definitions: Definition[] = [
         model: 'HLC610-Z',
         vendor: 'Shenzhen Homa',
         description: 'Wireless dimmable controller',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['HOMA1031'],
         model: 'HLC821-Z-SC',
         vendor: 'Shenzhen Homa',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['HOMA1005'],
@@ -103,7 +105,7 @@ const definitions: Definition[] = [
         model: 'HLC833-Z-SC',
         vendor: 'Shenzhen Homa',
         description: 'Wireless dimmable controller',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 

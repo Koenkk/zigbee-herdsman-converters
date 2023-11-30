@@ -4,6 +4,8 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -12,7 +14,7 @@ const definitions: Definition[] = [
         model: 'ZBT-DIMLight-GLS0800',
         vendor: 'Leedarson',
         description: 'LED E27 warm white',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-GLS0904'],
@@ -40,7 +42,7 @@ const definitions: Definition[] = [
         model: 'M350STW1',
         vendor: 'Leedarson',
         description: 'LED PAR16 50 GU10',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['LED_E27_ORD'],
@@ -54,7 +56,7 @@ const definitions: Definition[] = [
         model: 'A806S-Q1R',
         vendor: 'Leedarson',
         description: 'LED E27 tunable white',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['LED_E27_OWDT'],

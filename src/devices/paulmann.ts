@@ -2,6 +2,8 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -21,7 +23,7 @@ const definitions: Definition[] = [
         model: '968.93',
         vendor: 'Paulmann',
         description: 'URail rail adapter smart home Zigbee on/off/dimm',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht GmbH'}],
@@ -56,7 +58,7 @@ const definitions: Definition[] = [
         model: '50044/50045',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Dimmer or LED-stripe',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['500.47'],
@@ -109,7 +111,7 @@ const definitions: Definition[] = [
         model: '929.60',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee LED-Modul Coin 1x6W White',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['371000001'],
@@ -145,14 +147,14 @@ const definitions: Definition[] = [
         model: '500.45',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Pendulum Light Aptare',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['500.48'],
         model: '500.48',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee YourLED dim/switch controller max. 60 W',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         fingerprint: [{manufacturerName: 'Paulmann Licht GmbH', modelID: 'Dimmable'}],
@@ -160,7 +162,7 @@ const definitions: Definition[] = [
         model: '93999',
         vendor: 'Paulmann',
         description: 'Plug Shine Zigbee controller',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['RemoteControl'],
@@ -190,7 +192,7 @@ const definitions: Definition[] = [
         model: '501.22',
         vendor: 'Paulmann',
         description: 'White E27 LED bulb, dimmable',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 

@@ -4,6 +4,8 @@ import fz from '../converters/fromZigbee';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -31,7 +33,7 @@ const definitions: Definition[] = [
         model: 'BN-600110',
         vendor: 'Dresden Elektronik',
         description: 'Zigbee 3.0 dimm actuator',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
         ota: ota.zigbeeOTA,
     },
     {

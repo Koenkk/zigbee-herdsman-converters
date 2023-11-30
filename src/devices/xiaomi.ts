@@ -2846,7 +2846,7 @@ const definitions: Definition[] = [
         model: 'HLQDQ01LM',
         vendor: 'Xiaomi',
         description: 'Aqara zigbee LED-controller ',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
         ota: ota.zigbeeOTA,
     },
     {

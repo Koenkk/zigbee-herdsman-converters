@@ -5,6 +5,8 @@ import tz from '../converters/toZigbee';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -14,7 +16,7 @@ const definitions: Definition[] = [
         model: 'FWGU10Bulb02UK',
         vendor: 'Hive',
         description: 'GU10 warm white',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['MOT003'],
@@ -56,21 +58,21 @@ const definitions: Definition[] = [
         model: 'HALIGHTDIMWWE27',
         vendor: 'Hive',
         description: 'Active smart bulb white LED (E27)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['FWCLBulb01UK'],
         model: 'HALIGHTDIMWWE14',
         vendor: 'Hive',
         description: 'Active smart bulb white LED (E14)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['FWBulb02UK'],
         model: 'HALIGHTDIMWWB22',
         vendor: 'Hive',
         description: 'Active smart bulb white LED (B22)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['TWBulb02UK'],

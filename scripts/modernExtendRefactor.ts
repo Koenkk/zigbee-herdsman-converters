@@ -49,6 +49,12 @@ project.getSourceFiles().forEach((sourceFile) => {
             }
         }
 
+        const extendImport = sourceFile.getImportDeclarations()
+            .find((d) => d.getModuleSpecifierSourceFile()?.getBaseName() === 'extend.ts');
+        if (!sourceFile.getFullText().includes('extend.') && extendImport) {
+            extendImport.remove();
+        }
+
         sourceFile.saveSync();
     }
 });
