@@ -43,4 +43,6 @@ const DefaultTz = [
 ];
 
 describe('ModernExtend', () => {
+    test('dummy', () => {
+    })
 });
