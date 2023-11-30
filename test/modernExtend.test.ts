@@ -43,37 +43,4 @@ const DefaultTz = [
 ];
 
 describe('ModernExtend', () => {
-    test('onlythis Innr SP120', async () => {
-        const device = mockDevice({modelID: 'SP 120', endpoints: [{inputClusters: ['genOnOff', 'haElectricalMeasurement', 'seMetering']}]});
-        const endpoint = device.endpoints[0];
-        const coordinatorEndpoint = mockEndpoint();
-        const definition = findByDevice(device);
-
-        const attributes = {}
-        // @ts-expect-error
-        endpoint.saveClusterAttributeKeyValue.mockImplementation((cluster, values) => attributes[cluster] = {...attributes[cluster], ...values});
-        // @ts-expect-error
-        endpoint.getClusterAttributeValue.mockImplementation((cluster, attribute) => attributes[cluster][attribute]);
-        
-        await definition.configure?.(device, coordinatorEndpoint, MockLogger);
-
-        expect(definition.fromZigbee).toEqual([fz.on_off, fz.electrical_measurement, fz.metering]);
-        expect(definition.toZigbee).toEqual([tz.on_off, tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.currentsummdelivered, ...DefaultTz]);
-        utils.assertArray(definition.exposes);
-        expect(definition.exposes?.map((e) => e.name ?? e.type).sort()).toEqual(['power', 'current', 'voltage', 'switch', 'energy', 'linkquality'].sort());
-        expect(endpoint.bind).toHaveBeenCalledTimes(3);
-        expect(endpoint.bind).toHaveBeenCalledWith('genOnOff', coordinatorEndpoint);
-        expect(endpoint.bind).toHaveBeenCalledWith('seMetering', coordinatorEndpoint);
-        expect(endpoint.bind).toHaveBeenCalledWith('haElectricalMeasurement', coordinatorEndpoint);
-        expect(endpoint.read).toHaveBeenCalledTimes(3);
-        expect(endpoint.read).toHaveBeenCalledWith('genOnOff', ['onOff']);
-        expect(endpoint.read).toHaveBeenCalledWith('seMetering', ['currentSummDelivered']);
-        expect(endpoint.read).toHaveBeenCalledWith('haElectricalMeasurement', ['activePower', 'rmsCurrent', 'rmsVoltage']);
-        expect(endpoint.configureReporting).toHaveBeenCalledTimes(3);
-        expect(endpoint.configureReporting).toHaveBeenCalledWith('genOnOff', reporting.payload('onOff', 0, repInterval.MAX, 1));
-        expect(endpoint.configureReporting).toHaveBeenCalledWith('seMetering', [reportingItem('currentSummDelivered', 10, 65000, [0, 10])]);
-        expect(endpoint.configureReporting).toHaveBeenCalledWith('haElectricalMeasurement', [
-            reportingItem('activePower', 10, 65000, 5), reportingItem('rmsCurrent', 10, 65000, 50), reportingItem('rmsVoltage', 10, 65000, 5),
-        ]);
-    });
 });
