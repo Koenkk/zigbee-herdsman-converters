@@ -43,7 +43,7 @@ const DefaultTz = [
 ];
 
 describe('ModernExtend', () => {
-    test('onlythis Innr SP120', async () => {
+    test('Innr SP120', async () => {
         const device = mockDevice({modelID: 'SP 120', endpoints: [{inputClusters: ['genOnOff', 'haElectricalMeasurement', 'seMetering']}]});
         const endpoint = device.endpoints[0];
         const coordinatorEndpoint = mockEndpoint();
