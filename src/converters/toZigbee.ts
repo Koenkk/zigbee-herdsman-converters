@@ -615,6 +615,31 @@ const converters2 = {
             await entity.read('msOccupancySensing', ['pirOToUDelay']);
         },
     } satisfies Tz.Converter,
+    occupancy_ult_timeout: {
+        // Sets delay after motion detector changes from occupied to unoccupied
+        key: ['occupancy_ult_timeout'],
+        convertSet: async (entity, key, value, meta) => {
+            value *= 1;
+            await entity.write('msOccupancySensing', { ultrasonicOToUDelay: value }, utils.getOptions(meta.mapped, entity));
+            return { state: { occupancy_timeout: value } };
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msOccupancySensing', ['ultrasonicOToUDelay']);
+        },
+    } satisfies Tz.Converter,
+    occupancy_ult_sensitivity: {
+        key: ['occupancy_ult_sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = { 'low': 1, 'medium': 2, 'high': 3 };
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+            await entity.write('msOccupancySensing', { ultrasonicUToOThreshold: lookup[value]}, utils.getOptions(meta.mapped, entity));
+            return { state: { occupancy_ult_sensitivity: value } };
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msOccupancySensing', ['ultrasonicUToOThreshold']);
+        },
+    } satisfies Tz.Converter,
     level_config: {
         key: ['level_config'],
         convertSet: async (entity, key, value, meta) => {
