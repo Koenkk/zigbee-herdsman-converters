@@ -175,7 +175,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     bmct: {
         key: [
             'device_type',
@@ -254,7 +254,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bcmt.convertGet ${key}`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     bwa1: {
         key: ['alarm_on_motion', 'test'],
         convertSet: async (entity, key, value, meta) => {
@@ -273,7 +273,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     bosch_thermostat: {
         key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature'],
         convertSet: async (entity, key, value, meta) => {
@@ -338,7 +338,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_thermostat.convertGet ${key}`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     bosch_userInterface: {
         key: ['display_orientation', 'display_ontime', 'display_brightness', 'child_lock', 'displayed_temperature'],
         convertSet: async (entity, key, value, meta) => {
@@ -387,7 +387,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_userInterface.convertGet ${key}`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     bosch_twinguard: {
         key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
         convertSet: async (entity, key, value, meta) => {
@@ -446,7 +446,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 
@@ -454,7 +454,6 @@ const fzLocal = {
     bmct: {
         cluster: '64672',
         type: ['attributeReport', 'readResponse'],
-        options: [],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
@@ -471,11 +470,10 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bwa1_alarm_on_motion: {
         cluster: '64684',
         type: ['attributeReport', 'readResponse'],
-        options: [],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
@@ -484,7 +482,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bosch_contact: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -500,7 +498,7 @@ const fzLocal = {
             if (result.action === 'none') delete result.action;
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bosch_ignore_dst: {
         cluster: 'genTime',
         type: 'read',
@@ -515,7 +513,7 @@ const fzLocal = {
                 await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bosch_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -543,7 +541,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bosch_userInterface: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],
@@ -568,11 +566,10 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bosch_twinguard_sensitivity: {
         cluster: 'manuSpecificBosch',
         type: ['attributeReport', 'readResponse'],
-        options: [],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty(0x4003)) {
@@ -580,7 +577,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bosch_twinguard_measurements: {
         cluster: 'manuSpecificBosch3',
         type: ['attributeReport', 'readResponse'],
@@ -607,11 +604,10 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bosch_twinguard_pre_alarm: {
         cluster: 'manuSpecificBosch5',
         type: ['attributeReport', 'readResponse'],
-        options: [],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty('pre_alarm')) {
@@ -619,11 +615,10 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bosch_twinguard_heartbeat: {
         cluster: 'manuSpecificBosch7',
         type: ['attributeReport', 'readResponse'],
-        options: [],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty('heartbeat')) {
@@ -631,11 +626,10 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bosch_twinguard_alarm_state: {
         cluster: 'manuSpecificBosch8',
         type: ['attributeReport', 'readResponse'],
-        options: [],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const lookup: KeyValue = {
@@ -654,11 +648,10 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     bosch_twinguard_smoke_alarm_state: {
         cluster: 'genAlarms',
         type: ['commandAlarm', 'readResponse'],
-        options: [],
         convert: async (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const lookup: KeyValue = {
@@ -674,7 +667,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -935,19 +928,22 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['RBSH-RTH0-ZB-EU'],
-        model: 'RBSH-RTH0',
+        model: 'BTH-RM230Z',
         vendor: 'Bosch',
-        description: 'Room thermostat II',
+        description: 'Room thermostat II 230V',
         fromZigbee: [fz.humidity, fz.thermostat, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tzLocal.bosch_thermostat, tzLocal.bosch_userInterface],
+            tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tz.thermostat_running_state,
+            tzLocal.bosch_thermostat, tzLocal.bosch_userInterface],
         exposes: [
-            e.numeric('humidity', ea.STATE).withUnit('%').withDescription('Measured relative humidity'),
             e.climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'auto']),
+                .withSystemMode(['off', 'heat', 'auto'])
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
+            e.humidity(),
+            e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
             e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
             e.child_lock().setAccess('state', ea.ALL),
             e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
@@ -955,14 +951,44 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity']);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
             await reporting.humidity(endpoint);
+
+            // report operating_mode (system_mode)
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4007, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], boschManufacturer);
+            // report pi_heating_demand (valve opening)
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4020, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], boschManufacturer);
+            // report window_open
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], boschManufacturer);
+            // report boost as it's disabled by thermostat after 5 minutes
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], boschManufacturer);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], boschManufacturer);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4042, 0x4043], boschManufacturer);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
-            await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x403a, 0x403b], boschManufacturer);
+            await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], boschManufacturer);
         },
     },
     {

@@ -52,7 +52,7 @@ const fzLocal = {
                 return attributes;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 

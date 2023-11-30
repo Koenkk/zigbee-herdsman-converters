@@ -31,7 +31,7 @@ const bitron = {
 
                 return result;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
     },
     tz: {
         thermostat_hysteresis: {
@@ -53,7 +53,7 @@ const bitron = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('hvacThermostat', ['fourNoksHysteresisHigh', 'fourNoksHysteresisLow'], manufacturerOptions);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
     },
 };
 
@@ -250,11 +250,13 @@ const definitions: Definition[] = [
         ],
         exposes: (device, options) => {
             const dynExposes = [];
-            let ctrlSeqeOfOper = (device?.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') ?? null) as number;
+            let ctrlSeqeOfOper = (device?.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') ?? null);
             const modes = [];
 
+            if (typeof ctrlSeqeOfOper === 'string') ctrlSeqeOfOper = parseInt(ctrlSeqeOfOper) ?? null;
+
             // NOTE: ctrlSeqeOfOper defaults to 2 for this device (according to the manual)
-            if (ctrlSeqeOfOper == null) ctrlSeqeOfOper = 2;
+            if (ctrlSeqeOfOper === null || isNaN(ctrlSeqeOfOper)) ctrlSeqeOfOper = 2;
 
             // NOTE: set cool and/or heat support based on ctrlSeqeOfOper (see lib/constants -> thermostatControlSequenceOfOperations)
             // WARN: a restart of zigbee2mqtt is required after changing ctrlSeqeOfOper for expose data to be re-calculated

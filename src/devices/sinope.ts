@@ -25,7 +25,7 @@ const fzLocal = {
                 tamper: (zoneStatus & 1<<2) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -108,7 +108,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     tank_level: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
@@ -139,7 +139,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     sinope: {
         cluster: 'manuSpecificSinope',
         type: ['attributeReport', 'readResponse'],
@@ -236,7 +236,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 const tzLocal = {
     thermostat_occupancy: {
@@ -250,7 +250,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['SinopeOccupancy'], manuSinope);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     backlight_autodim: {
         key: ['backlight_auto_dim'],
         convertSet: async (entity, key, value, meta) => {
@@ -262,7 +262,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['SinopeBacklight'], manuSinope);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     main_cycle_output: {
         key: ['main_cycle_output'],
         convertSet: async (entity, key, value, meta) => {
@@ -273,7 +273,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['SinopeMainCycleOutput'], manuSinope);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     aux_cycle_output: {
         // TH1400ZB specific
         key: ['aux_cycle_output'],
@@ -285,7 +285,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['SinopeAuxCycleOutput']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     enable_outdoor_temperature: { // DEPRECATED: Use Second Display Mode or control via the timeout
         key: ['enable_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
@@ -301,7 +301,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['outdoorTempToDisplayTimeout'], manuSinope);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     second_display_mode: {
         key: ['second_display_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -312,7 +312,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['secondScreenBehavior']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     thermostat_outdoor_temperature: {
         key: ['thermostat_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
@@ -325,7 +325,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['outdoorTempToDisplay'], manuSinope);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     outdoor_temperature_timeout: {
         key: ['outdoor_temperature_timeout'],
         convertSet: async (entity, key, value, meta) => {
@@ -338,7 +338,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['outdoorTempToDisplayTimeout']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     thermostat_time: {
         key: ['thermostat_time'],
         convertSet: async (entity, key, value, meta) => {
@@ -352,7 +352,7 @@ const tzLocal = {
                 await entity.write('manuSpecificSinope', {currentTimeToDisplay: value}, manuSinope);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     floor_control_mode: {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_control_mode'],
@@ -371,7 +371,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['floorControlMode']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ambiant_max_heat_setpoint: {
         // TH1300ZB and TH1400ZB specific
         key: ['ambiant_max_heat_setpoint'],
@@ -386,7 +386,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['ambiantMaxHeatSetpointLimit']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     floor_min_heat_setpoint: {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_min_heat_setpoint'],
@@ -401,7 +401,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['floorMinHeatSetpointLimit']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     floor_max_heat_setpoint: {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_max_heat_setpoint'],
@@ -416,7 +416,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['floorMaxHeatSetpointLimit']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     temperature_sensor: {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_temperature_sensor'],
@@ -435,7 +435,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['temperatureSensor']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     time_format: {
         key: ['time_format'],
         convertSet: async (entity, key, value, meta) => {
@@ -453,7 +453,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['timeFormatToDisplay'], manuSinope);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     connected_load: {
         // TH1400ZB and SW2500ZB
         key: ['connected_load'],
@@ -464,7 +464,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['connectedLoad']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     aux_connected_load: {
         // TH1400ZB specific
         key: ['aux_connected_load'],
@@ -475,7 +475,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['auxConnectedLoad']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     pump_protection: {
         // TH1400ZB specific
         key: ['pump_protection'],
@@ -491,7 +491,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['pumpProtection']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     led_intensity_on: {
         // DM25x0ZB and SW2500ZB
         key: ['led_intensity_on'],
@@ -505,7 +505,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['ledIntensityOn']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     led_intensity_off: {
         // DM25x0ZB and SW2500ZB
         key: ['led_intensity_off'],
@@ -519,7 +519,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['ledIntensityOff']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     led_color_on: {
         // DM25x0ZB and SW2500ZB
         key: ['led_color_on'],
@@ -531,7 +531,7 @@ const tzLocal = {
             const valueHex = r + g * 256 + (b * 256 ** 2);
             await entity.write('manuSpecificSinope', {ledColorOn: valueHex});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     led_color_off: {
         // DM25x0ZB and SW2500ZB
         key: ['led_color_off'],
@@ -543,7 +543,7 @@ const tzLocal = {
             const valueHex = r + g * 256 + b * 256 ** 2;
             await entity.write('manuSpecificSinope', {ledColorOff: valueHex});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     minimum_brightness: {
         // DM25x0ZB
         key: ['minimum_brightness'],
@@ -557,7 +557,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['minimumBrightness']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     timer_seconds: {
         // DM25x0ZB and SW2500ZB
         key: ['timer_seconds'],
@@ -571,7 +571,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['dimmerTimmer']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     keypad_lockout: {
         // SW2500ZB
         key: ['keypad_lockout'],
@@ -583,7 +583,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['keypadLockout']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     low_water_temp_protection: {
         // RM3500ZB specific
         key: ['low_water_temp_protection'],
@@ -594,7 +594,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['drConfigWaterTempMin']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 const definitions: Definition[] = [
     {

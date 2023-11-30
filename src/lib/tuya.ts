@@ -399,15 +399,17 @@ export class Bitmap extends Base {
     }
 }
 
+type LookupMap = {[s: (string)]: number | boolean | Enum | string};
 export const valueConverterBasic = {
-    lookup: (map: {[s: (string)]: number | boolean | Enum | string}, fallbackValue?: number | boolean | KeyValue | string | null) => {
+    lookup: (map: LookupMap | ((options: KeyValue) => LookupMap), fallbackValue?: number | boolean | KeyValue | string | null) => {
         return {
-            to: (v: string) => utils.getFromLookup(v, map),
-            from: (v: number) => {
-                const value = Object.entries(map).find((i) => i[1].valueOf() === v);
+            to: (v: string, meta: Tz.Meta) => utils.getFromLookup(v, map instanceof Function ? map(meta.options) : map),
+            from: (v: number, _meta: Fz.Meta, options: KeyValue) => {
+                const m = map instanceof Function ? map(options) : map;
+                const value = Object.entries(m).find((i) => i[1].valueOf() === v);
                 if (!value) {
                     if (fallbackValue !== undefined) return fallbackValue;
-                    throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(map)}`);
+                    throw new Error(`Value '${v}' is not allowed, expected one of ${Object.values(m)}`);
                 }
                 return value[0];
             },
@@ -443,7 +445,8 @@ export const valueConverter = {
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
     switchType: valueConverterBasic.lookup({'momentary': new Enum(0), 'toggle': new Enum(1), 'state': new Enum(2)}),
-    backlightMode: valueConverterBasic.lookup({'off': new Enum(0), 'normal': new Enum(1), 'inverted': new Enum(2)}),
+    backlightModeOffNormalInverted: valueConverterBasic.lookup({'off': new Enum(0), 'normal': new Enum(1), 'inverted': new Enum(2)}),
+    backlightModeOffLowMediumHigh: valueConverterBasic.lookup({'off': new Enum(0), 'low': new Enum(1), 'medium': new Enum(2), 'high': new Enum(3)}),
     lightType: valueConverterBasic.lookup({'led': 0, 'incandescent': 1, 'halogen': 2}),
     countdown: valueConverterBasic.raw(),
     scale0_254to0_1000: valueConverterBasic.scale(0, 254, 0, 1000),
@@ -457,6 +460,7 @@ export const valueConverter = {
     switchMode: valueConverterBasic.lookup({'switch': new Enum(0), 'scene': new Enum(1)}),
     lightMode: valueConverterBasic.lookup({'normal': new Enum(0), 'on': new Enum(1), 'off': new Enum(2), 'flash': new Enum(3)}),
     raw: valueConverterBasic.raw(),
+    workingDay: valueConverterBasic.lookup({'disabled': new Enum(0), '6-1': new Enum(1), '5-2': new Enum(2), '7': new Enum(3)}),
     localTemperatureCalibration: {
         from: (value: number) => value > 4000 ? value - 4096 : value,
         to: (value: number) => value < 0 ? 4096 + value : value,
@@ -561,6 +565,17 @@ export const valueConverter = {
         from: (v: number) => v,
         to: (v: number) => {
             if (v < 0) return v + 0x100000000;
+            return v;
+        },
+    },
+    localTempCalibration3: {
+        from: (v: number) => {
+            if (v > 0x7FFFFFFF) v -= 0x100000000;
+            return v / 10;
+        },
+        to: (v: number) => {
+            if (v > 0) return v * 10;
+            if (v < 0) return v * 10 + 0x100000000;
             return v;
         },
     },
@@ -727,6 +742,81 @@ export const valueConverter = {
             },
         };
     },
+    ZWT198_schedule: {
+        from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
+            const programmingMode = [];
+
+            for (let i=0; i<8; i++) {
+                const start=i*4;
+
+                const time = value[start].toString().padStart(2, '0')+':'+ value[start+1].toString().padStart(2, '0');
+                const temp = (value[start+2]*256+value[start+3])/10;
+                const tempStr = temp.toFixed(1)+'°C';
+                programmingMode.push(time+'/'+tempStr);
+            }
+            return {
+                schedule_weekday: programmingMode.slice(0, 6).join(' '),
+                schedule_holiday: programmingMode.slice(6, 8).join(' '),
+            };
+        },
+        to: async (v: string, meta: Tz.Meta) => {
+            const dpId = 109;
+            const payload:number[] = [];
+            let weekdayFormat: string;
+            let holidayFormat: string;
+
+            if (meta.message.hasOwnProperty('schedule_weekday')) {
+                weekdayFormat = v;
+                holidayFormat = meta.state['schedule_holiday'] as string;
+            } else {
+                weekdayFormat = meta.state['schedule_weekday'] as string;
+                holidayFormat = v;
+            }
+
+            function scheduleToRaw(key: string, input: string, number: number, payload: number[], meta: Tz.Meta) {
+                const items = input.trim().split(/\s+/);
+
+                if (items.length != number) {
+                    throw new Error('Wrong number of items for '+ key +' :' + items.length);
+                } else {
+                    for (let i = 0; i < number; i++) {
+                        const timeTemperature = items[i].split('/');
+                        if (timeTemperature.length != 2) {
+                            throw new Error('Invalid schedule: wrong transition format: ' + items[i]);
+                        }
+                        const hourMinute = timeTemperature[0].split(':', 2);
+                        const hour = parseInt(hourMinute[0]);
+                        const minute = parseInt(hourMinute[1]);
+                        const temperature = parseFloat(timeTemperature[1]);
+
+                        if (!utils.isNumber(hour) || !utils.isNumber(temperature) || !utils.isNumber(minute) ||
+                            hour < 0 || hour >= 24 ||
+                            minute < 0 || minute >= 60 ||
+                            temperature < 5 || temperature >= 35) {
+                            throw new Error('Invalid hour, minute or temperature (5<t<35) in ' + key + ' of: `' +
+                                items[i]+'`; Format is `hh:m/cc.c` or `hh:mm/cc.c°C`');
+                        }
+                        const temperature10 =Math.round(temperature*10);
+
+                        payload.push(
+                            hour,
+                            minute,
+                            (temperature10 >> 8) & 0xFF,
+                            temperature10 & 0xFF,
+                        );
+                    }
+                }
+                return;
+            }
+
+            scheduleToRaw('schedule_weekday', weekdayFormat, 6, payload, meta);
+            scheduleToRaw('schedule_holiday', holidayFormat, 2, payload, meta);
+
+            const entity = meta.device.endpoints[0];
+            const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+            await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
+        },
+    },
     TV02SystemMode: {
         to: async (v: number, meta: Tz.Meta) => {
             const entity = meta.device.endpoints[0];
@@ -782,8 +872,10 @@ const tuyaTz = {
             await entity.write('genOnOff', {moesStartUpOnOff});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['moesStartUpOnOff']),
-    } as Tz.Converter,
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['moesStartUpOnOff']);
+        },
+    } satisfies Tz.Converter,
     power_on_behavior_2: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -791,8 +883,10 @@ const tuyaTz = {
             await entity.write('manuSpecificTuya_3', {powerOnBehavior});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => await entity.read('manuSpecificTuya_3', ['powerOnBehavior']),
-    } as Tz.Converter,
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificTuya_3', ['powerOnBehavior']);
+        },
+    } satisfies Tz.Converter,
     switch_type: {
         key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {
@@ -800,8 +894,10 @@ const tuyaTz = {
             await entity.write('manuSpecificTuya_3', {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => await entity.read('manuSpecificTuya_3', ['switchType']),
-    } as Tz.Converter,
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificTuya_3', ['switchType']);
+        },
+    } satisfies Tz.Converter,
     backlight_indicator_mode_1: {
         key: ['backlight_mode', 'indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -811,8 +907,10 @@ const tuyaTz = {
             await entity.write('genOnOff', {tuyaBacklightMode});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['tuyaBacklightMode']),
-    } as Tz.Converter,
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['tuyaBacklightMode']);
+        },
+    } satisfies Tz.Converter,
     backlight_indicator_mode_2: {
         key: ['backlight_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -820,15 +918,17 @@ const tuyaTz = {
             await entity.write('genOnOff', {tuyaBacklightSwitch});
             return {state: {[key]: value}};
         },
-        convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['tuyaBacklightSwitch']),
-    } as Tz.Converter,
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['tuyaBacklightSwitch']);
+        },
+    } satisfies Tz.Converter,
     child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
             const v = utils.getFromLookup(value, {'lock': true, 'unlock': false});
             await entity.write('genOnOff', {0x8000: {value: v, type: 0x10}});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     min_brightness: {
         key: ['min_brightness'],
         convertSet: async (entity, key, value, meta) => {
@@ -843,7 +943,7 @@ const tuyaTz = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', [0xfc00]);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     color_power_on_behavior: {
         key: ['color_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -851,7 +951,7 @@ const tuyaTz = {
             await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {mode: v*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
             return {state: {color_power_on_behavior: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     datapoints: {
         key: [
             'temperature_unit', 'temperature_calibration', 'humidity_calibration', 'alarm_switch', 'tamper_alarm_switch',
@@ -920,14 +1020,14 @@ const tuyaTz = {
             }
             return {state};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     do_not_disturb: {
         key: ['do_not_disturb'],
         convertSet: async (entity, key, value, meta) => {
             await entity.command('lightingColorCtrl', 'tuyaDoNotDisturb', {enable: value ? 1 : 0});
             return {state: {do_not_disturb: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 export {tuyaTz as tz};
 
@@ -943,7 +1043,7 @@ const tuyaFz = {
             const payload = {payloadSize: 1, payload: 1};
             await msg.endpoint.command('manuSpecificTuya', 'mcuGatewayConnectionStatus', payload, {});
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     power_on_behavior_1: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -954,7 +1054,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     power_on_behavior_2: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
@@ -966,7 +1066,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     power_outage_memory: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -977,7 +1077,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     switch_type: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
@@ -987,7 +1087,7 @@ const tuyaFz = {
                 return {switch_type: lookup[msg.data['switchType']]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     backlight_mode_low_medium_high: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -998,7 +1098,7 @@ const tuyaFz = {
                 return {backlight_mode: backlightLookup[value]};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     backlight_mode_off_normal_inverted: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1007,7 +1107,7 @@ const tuyaFz = {
                 return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'normal', 2: 'inverted'})};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     backlight_mode_off_on: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1016,7 +1116,7 @@ const tuyaFz = {
                 return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightSwitch'], {0: 'OFF', 1: 'ON'})};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     indicator_mode: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1025,7 +1125,7 @@ const tuyaFz = {
                 return {indicator_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'})};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     child_lock: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -1035,7 +1135,7 @@ const tuyaFz = {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     min_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -1046,7 +1146,7 @@ const tuyaFz = {
                 return {[property]: value};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     datapoints: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
@@ -1091,7 +1191,7 @@ const tuyaFz = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 export {tuyaFz as fz};
 

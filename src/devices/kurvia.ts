@@ -1,4 +1,4 @@
-import {Definition, Tz} from '../lib/types';
+import {Definition} from '../lib/types';
 import tz from '../converters/toZigbee';
 import extend from '../lib/extend';
 
@@ -11,7 +11,7 @@ const definitions: Definition[] = [
         vendor: 'KURVIA',
         description: 'GU10 GRBWC built from AliExpress',
         extend: extendData,
-        toZigbee: ([tz.on_off] as Tz.Converter[]).concat(extendData.toZigbee),
+        toZigbee: [tz.on_off, ...extendData.toZigbee],
         meta: {applyRedFix: true, supportsEnhancedHue: false},
     },
 ];

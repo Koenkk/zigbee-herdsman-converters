@@ -17,7 +17,7 @@ const fzLocal = {
                 return fz.temperature.convert(model, msg, publish, options, meta);
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     PC321_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
@@ -85,7 +85,7 @@ const fzLocal = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [

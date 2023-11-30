@@ -75,7 +75,7 @@ const ubisys = {
                     };
                 }
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         dimmer_setup_genLevelCtrl: {
             cluster: 'genLevelCtrl',
             type: ['attributeReport', 'readResponse'],
@@ -84,7 +84,7 @@ const ubisys = {
                     return {minimum_on_level: msg.data.ubisysMinimumOnLevel};
                 }
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         configure_device_setup: {
             cluster: 'manuSpecificUbisysDeviceSetup',
             type: ['attributeReport', 'readResponse'],
@@ -100,7 +100,7 @@ const ubisys = {
                 }
                 return {configure_device_setup: result};
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         thermostat_vacation_mode: {
             cluster: 'hvacThermostat',
             type: ['attributeReport', 'readResponse'],
@@ -109,7 +109,7 @@ const ubisys = {
                     return {vacation_mode: msg.data.occupancy === 0};
                 }
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
     },
     tz: {
         configure_j1: {
@@ -269,7 +269,7 @@ const ubisys = {
                     'ubisysStartupSteps',
                 ], manufacturerOptions.ubisys));
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         dimmer_setup: {
             key: ['capabilities_forward_phase_control',
                 'capabilities_reverse_phase_control',
@@ -298,7 +298,7 @@ const ubisys = {
                 await entity.read('manuSpecificUbisysDimmerSetup', ['status'], manufacturerOptions.ubisysNull);
                 await entity.read('manuSpecificUbisysDimmerSetup', ['mode'], manufacturerOptions.ubisysNull);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         dimmer_setup_genLevelCtrl: {
             key: ['minimum_on_level'],
             convertSet: async (entity, key, value, meta) => {
@@ -310,7 +310,7 @@ const ubisys = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('genLevelCtrl', ['ubisysMinimumOnLevel'], manufacturerOptions.ubisys);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         configure_device_setup: {
             key: ['configure_device_setup'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
@@ -531,7 +531,7 @@ const ubisys = {
                 await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions'],
                     manufacturerOptions.ubisysNull);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         thermostat_vacation_mode: {
             key: ['vacation_mode'],
             convertSet: async (entity, key, value, meta) => {
@@ -548,7 +548,7 @@ const ubisys = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('hvacThermostat', ['occupancy']);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
     },
 };
 

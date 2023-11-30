@@ -209,6 +209,9 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
+        endpoint: (device) => {
+            return {default: 1};
+        },
     },
     {
         zigbeeModel: ['RB 285 C'],
