@@ -1,28 +1,162 @@
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
-import {Fz, Tz, ModernExtend, Range} from './types';
-import {Enum, Numeric, access, Light, Binary, presets as exposePresets} from './exposes';
+import {Fz, Tz, ModernExtend, Range, Zh, Logger} from './types';
+import {Enum, Numeric, access, Light, Binary, presets as e, access as ea} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
 import {configure as lightConfigure} from './light';
-import {getFromLookupByValue, isString, getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName, isObject} from './utils';
+import {ConfigureReportingItem} from 'zigbee-herdsman/dist/controller/model/endpoint';
+import {getFromLookupByValue, isString, getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName, isObject, isEndpoint} from './utils';
+import {repInterval} from './constants';
 
-interface SwitchArgs {powerOnBehavior?: boolean}
+const DefaultReportingItemValues = {
+    minimumReportInterval: 0,
+    maximumReportInterval: repInterval.MAX,
+    reportableChange: 1,
+};
+
+function getEndpointsWithInputCluster(device: Zh.Device, cluster: string) {
+    if (!device.endpoints) {
+        throw new Error(device.ieeeAddr + ' ' + device.endpoints);
+    }
+    const endpoints = device.endpoints.filter((ep) => ep.getInputClusters().find((c) => c.name === cluster));
+    if (endpoints.length === 0) {
+        throw new Error(`Device ${device.ieeeAddr} has no input cluster ${cluster}`);
+    }
+    return endpoints;
+}
+
+async function setupAttributes(
+    entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string, attributes: (string|ConfigureReportingItem)[], logger: Logger,
+    readOnly=false,
+) {
+    const endpoints = isEndpoint(entity) ? [entity] : getEndpointsWithInputCluster(entity, cluster);
+    const ieeeAddr = isEndpoint(entity) ? entity.deviceIeeeAddress : entity.ieeeAddr;
+    for (const endpoint of endpoints) {
+        const msg = readOnly ? `Reading` : `Reading and setup reporting`;
+        logger.debug(`${msg} for ${ieeeAddr}/${endpoint.ID} ${cluster} ${JSON.stringify(attributes)}`);
+        const items = attributes.map((attribute) => ({...DefaultReportingItemValues, ...(isString(attribute) ? {attribute} : attribute)}));
+        if (!readOnly) {
+            await endpoint.bind(cluster, coordinatorEndpoint);
+            await endpoint.configureReporting(cluster, items);
+        }
+        await endpoint.read(cluster, attributes.map((a) => isString(a) ? a : (isObject(a.attribute) ? a.attribute.ID : a.attribute)));
+    }
+}
+
+export interface SwitchArgs {powerOnBehavior?: boolean}
 function switch_(args?: SwitchArgs): ModernExtend {
     args = {powerOnBehavior: true, ...args};
 
-    const exposes: Expose[] = [exposePresets.switch()];
-    const fromZigbee: Fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
+    const exposes: Expose[] = [e.switch()];
+    const fromZigbee: Fz.Converter[] = [fz.on_off];
     const toZigbee: Tz.Converter[] = [tz.on_off];
 
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        await setupAttributes(device, coordinatorEndpoint, 'genOnOff', ['onOff'], logger);
+        if (args.powerOnBehavior) {
+            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', ['startUpOnOff'], logger, true);
+        }
+    };
+
     if (args.powerOnBehavior) {
-        exposes.push(exposePresets.power_on_behavior(['off', 'on', 'toggle', 'previous']));
+        exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
     }
 
-    return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 export {switch_ as switch};
+
+type MultiplierDivisor = {multiplier?: number, divisor?: number}
+interface ElectricalMeasurementArgs {
+    cluster?: 'both' | 'metering' | 'electrical',
+    current?: MultiplierDivisor,
+    power?: MultiplierDivisor,
+    voltage?: MultiplierDivisor,
+    energy?: MultiplierDivisor
+}
+export function electricalMeasurements(args?: ElectricalMeasurementArgs): ModernExtend {
+    args = {cluster: 'both', ...args};
+    if (args.cluster === 'metering' && (args.power?.divisor !== args.energy?.divisor || args.power?.multiplier !== args.energy?.multiplier)) {
+        throw new Error(`When cluster is metering, power and energy divisor/multiplier should be equal`);
+    }
+
+    let exposes: Expose[];
+    let fromZigbee: Fz.Converter[];
+    let toZigbee: Tz.Converter[];
+
+    const configureLookup = {
+        haElectricalMeasurement: {
+            // Report change with every 5W change
+            power: {attribute: 'activePower', divisor: 'acPowerDivisor', multiplier: 'acPowerMultiplier', forced: args.power, change: 5},
+            // Report change with every 0.05A change
+            current: {attribute: 'rmsCurrent', divisor: 'acCurrentDivisor', multiplier: 'acCurrentMultiplier', forced: args.current, change: 0.05},
+            // Report change with every 5V change
+            voltage: {attribute: 'rmsVoltage', divisor: 'acVoltageDivisor', multiplier: 'acVoltageMultiplier', forced: args.voltage, change: 5},
+        },
+        seMetering: {
+            // Report change with every 5W change
+            power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 5},
+            // Report change with every 0.1kWh change
+            energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1},
+        },
+    };
+
+    if (args.cluster === 'both') {
+        exposes = [e.power().withAccess(ea.ALL), e.voltage().withAccess(ea.ALL), e.current().withAccess(ea.ALL), e.energy().withAccess(ea.ALL)];
+        fromZigbee = [fz.electrical_measurement, fz.metering];
+        toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.currentsummdelivered];
+        delete configureLookup.seMetering.power;
+    } else if (args.cluster === 'metering') {
+        exposes = [e.power().withAccess(ea.ALL), e.energy().withAccess(ea.ALL)];
+        fromZigbee = [fz.metering];
+        toZigbee = [tz.metering_power, tz.currentsummdelivered];
+        delete configureLookup.haElectricalMeasurement;
+    } else if (args.cluster === 'electrical') {
+        exposes = [e.power().withAccess(ea.ALL), e.voltage().withAccess(ea.ALL), e.current().withAccess(ea.ALL)];
+        fromZigbee = [fz.electrical_measurement];
+        toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent];
+        delete configureLookup.seMetering;
+    }
+
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        for (const [cluster, properties] of Object.entries(configureLookup)) {
+            for (const endpoint of getEndpointsWithInputCluster(device, cluster)) {
+                const items: ConfigureReportingItem[] = [];
+                for (const property of Object.values(properties)) {
+                    // In case multiplier or divisor was provided, use that instead of reading from device.
+                    if (property.forced) {
+                        endpoint.saveClusterAttributeKeyValue(cluster, {
+                            [property.divisor]: property.forced.divisor ?? 1,
+                            [property.multiplier]: property.forced.multiplier ?? 1,
+                        });
+                        endpoint.save();
+                    } else {
+                        await endpoint.read(cluster, [property.divisor, property.multiplier]);
+                    }
+
+                    const divisor = endpoint.getClusterAttributeValue(cluster, property.divisor);
+                    assertNumber(divisor, property.divisor);
+                    const multiplier = endpoint.getClusterAttributeValue(cluster, property.multiplier);
+                    assertNumber(multiplier, property.multiplier);
+                    let reportableChange: number | [number, number] = property.change * (divisor / multiplier);
+                    // currentSummDelivered data type is uint48, so reportableChange also is uint48
+                    if (property.attribute === 'currentSummDelivered') reportableChange = [0, reportableChange];
+                    items.push({
+                        attribute: property.attribute,
+                        minimumReportInterval: repInterval.SECONDS_10,
+                        maximumReportInterval: repInterval.MAX,
+                        reportableChange,
+                    });
+                }
+                await setupAttributes(endpoint, coordinatorEndpoint, cluster, items, logger);
+            }
+        }
+    };
+
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+}
 
 export interface LightArgs {
     effect?: boolean, powerOnBehaviour?: boolean, colorTemp?: {startup?: boolean, range: Range},
@@ -68,12 +202,12 @@ export function light(args?: LightArgs): ModernExtend {
     const exposes: Expose[] = [lightExpose];
 
     if (args.effect) {
-        exposes.push(exposePresets.effect());
+        exposes.push(e.effect());
         toZigbee.push(tz.effect);
     }
 
     if (args.powerOnBehaviour) {
-        exposes.push(exposePresets.power_on_behavior(['off', 'on', 'toggle', 'previous']));
+        exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
     }
@@ -115,7 +249,6 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            // @ts-expect-error TODO fix zh type
             await entity.read(cluster, [attributeKey], zigbeeCommandOptions);
         },
     }];
@@ -162,7 +295,6 @@ export function numeric(args: NumericArgs): ModernExtend {
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            // @ts-expect-error TODO fix zh type
             await entity.read(cluster, [attributeKey], zigbeeCommandOptions);
         },
     }];
@@ -201,7 +333,6 @@ export function binary(args: BinaryArgs): ModernExtend {
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            // @ts-expect-error TODO fix zh type
             await entity.read(cluster, [attributeKey], zigbeeCommandOptions);
         },
     }];

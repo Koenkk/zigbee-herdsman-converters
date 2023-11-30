@@ -4,7 +4,7 @@ import toZigbee from './converters/toZigbee';
 import fromZigbee from './converters/fromZigbee';
 import assert from 'assert';
 import allDefinitions from './devices';
-import { Definition, Fingerprint, Zh, OnEventData, OnEventType } from './lib/types';
+import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure } from './lib/types';
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
 const lookup = new Map();
@@ -63,7 +63,7 @@ function addDefinition(definition: Definition) {
     if ('extend' in definition) {
         if (Array.isArray(definition.extend)) {
             // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
-            let {extend, toZigbee, fromZigbee, exposes, meta, configure, onEvent, ota, ...definitionWithoutExtend} = definition;
+            let {extend, toZigbee, fromZigbee, exposes, meta, configure: definitionConfigure, onEvent, ota, ...definitionWithoutExtend} = definition;
             if (typeof exposes === 'function') {
                 assert.fail(`'${definition.model}' has function exposes which is not allowed`);
             }
@@ -71,6 +71,7 @@ function addDefinition(definition: Definition) {
             toZigbee = [...toZigbee ?? []];
             fromZigbee = [...fromZigbee ?? []];
             exposes = [...exposes ?? []];
+            const configures: Configure[] = definitionConfigure ? [definitionConfigure] : [];
 
             for (const ext of extend) {
                 if (!ext.isModernExtend) {
@@ -80,12 +81,7 @@ function addDefinition(definition: Definition) {
                 if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
                 if (ext.exposes) exposes.push(...ext.exposes);
                 if (ext.meta) meta = {...ext.meta, ...meta};
-                if (ext.configure) {
-                    if (configure) {
-                        assert.fail(`'${definition.model}' has multiple 'configure', this is not allowed`);
-                    }
-                    configure = ext.configure;
-                }
+                if (ext.configure) configures.push(ext.configure);
                 if (ext.ota) {
                     if (ota) {
                         assert.fail(`'${definition.model}' has multiple 'ota', this is not allowed`);
@@ -97,6 +93,15 @@ function addDefinition(definition: Definition) {
                         assert.fail(`'${definition.model}' has multiple 'onEvent', this is not allowed`);
                     }
                     onEvent = ext.onEvent;
+                }
+            }
+
+            let configure: Configure = null;
+            if (configures.length !== 0) {
+                configure = async (device, coordinatorEndpoint, logger) => {
+                    for (const func of configures) {
+                        await func(device, coordinatorEndpoint, logger);
+                    }
                 }
             }
             definition = {toZigbee, fromZigbee, exposes, meta, configure, onEvent, ota, ...definitionWithoutExtend};

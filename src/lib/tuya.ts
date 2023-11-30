@@ -347,7 +347,6 @@ export const skip = {
 export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => {
     try {
         const endpoint = device.endpoints[0];
-        // @ts-expect-error
         await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
     } catch (e) {
         // Fails for some TuYa devices with UNSUPPORTED_ATTRIBUTE, ignore that.
