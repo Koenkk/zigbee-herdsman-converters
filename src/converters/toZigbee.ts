@@ -4018,7 +4018,6 @@ const converters2 = {
                 time_report: ['closuresDoorLock', 0x0056],
             };
             const v = utils.getFromLookup(key, payloads);
-            // @ts-expect-error
             await entity.read(v[0], [v[1]]);
         },
     } satisfies Tz.Converter,
@@ -4510,7 +4509,6 @@ const converters2 = {
         convertGet: async (entity, key, meta) => {
             // Apparently, reading values may interfere with a commandStatusChangeNotification for changed occupancy.
             // Therefore, read "zoneStatus" as well.
-            // @ts-expect-error
             await entity.read('ssIasZone', ['currentZoneSensitivityLevel', 61441, 'zoneStatus'], {sendWhen: 'active'});
         },
     } satisfies Tz.Converter,

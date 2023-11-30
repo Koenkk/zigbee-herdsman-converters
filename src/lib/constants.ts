@@ -5,10 +5,10 @@ export const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').ge
 export const defaultBindGroup = 901;
 
 export const repInterval = {
-    DAYS_1: 86400,
     HOUR: 3600,
-    MAX: 62000,
+    MAX: 65000,
     MINUTE: 60,
+    SECONDS_10: 10,
     MINUTES_10: 600,
     MINUTES_15: 900,
     MINUTES_30: 1800,

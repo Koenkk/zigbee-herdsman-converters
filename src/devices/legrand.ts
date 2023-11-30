@@ -49,7 +49,6 @@ const definitions: Definition[] = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
             // Read configuration values that are not sent periodically as well as current power (activePower).
-            // @ts-expect-error
             await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
         },
     },
