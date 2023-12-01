@@ -6295,7 +6295,7 @@ const converters2 = {
         },
     } satisfies Fz.Converter,
     nodon_pilot_wire_mode: {
-        cluster: 'manuSpecificNodOnFilPilote',
+        cluster: 'manuSpecificNodOnPilotWire',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};

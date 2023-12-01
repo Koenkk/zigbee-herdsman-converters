@@ -5041,11 +5041,11 @@ const converters2 = {
                 'comfort_-2': 0x05,
             });
             const payload = {'mode': mode};
-            await entity.command('manuSpecificNodOnFilPilote', 'setMode', payload);
+            await entity.command('manuSpecificNodOnPilotWire', 'setMode', payload);
             return {state: {'pilot_wire_mode': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificNodOnFilPilote', [0x0000], manufacturerOptions.nodon);
+            await entity.read('manuSpecificNodOnPilotWire', [0x0000], manufacturerOptions.nodon);
         },
     } satisfies Tz.Converter,
     // #endregion
