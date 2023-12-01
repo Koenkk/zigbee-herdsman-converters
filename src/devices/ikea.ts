@@ -1299,9 +1299,9 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fzLocal.ikea_dots_click_v2_somrig],
         toZigbee: [tz.battery_percentage_remaining],
         exposes: [
-            e.battery().withAccess(ea.STATE_GET),e.action(['dots_1_initial_press',
-            'dots_2_initial_press', 'dots_1_long_press', 'dots_2_long_press',
-            'dots_1_short_release', 'dots_2_short_release', 'dots_1_long_release',])
+            e.battery().withAccess(ea.STATE_GET), e.action(['dots_1_initial_press',
+                'dots_2_initial_press', 'dots_1_long_press', 'dots_2_long_press',
+                'dots_1_short_release', 'dots_2_short_release', 'dots_1_long_release'])
         ],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
