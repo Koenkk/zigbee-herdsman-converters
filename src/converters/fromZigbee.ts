@@ -3674,22 +3674,22 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    legrand_cable_outlet_mode: {
+    legrand_pilot_wire_mode: {
         cluster: 'manuSpecificLegrandDevices2',
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
             const mode = msg.data['0'];
 
-            if (mode === 0x00) payload.cable_outlet_mode = 'comfort';
-            else if (mode === 0x01) payload.cable_outlet_mode = 'comfort-1';
-            else if (mode === 0x02) payload.cable_outlet_mode = 'comfort-2';
-            else if (mode === 0x03) payload.cable_outlet_mode = 'eco';
-            else if (mode === 0x04) payload.cable_outlet_mode = 'frost_protection';
-            else if (mode === 0x05) payload.cable_outlet_mode = 'off';
+            if (mode === 0x00) payload.pilot_wire_mode = 'comfort';
+            else if (mode === 0x01) payload.pilot_wire_mode = 'comfort_-1';
+            else if (mode === 0x02) payload.pilot_wire_mode = 'comfort_-2';
+            else if (mode === 0x03) payload.pilot_wire_mode = 'eco';
+            else if (mode === 0x04) payload.pilot_wire_mode = 'frost_protection';
+            else if (mode === 0x05) payload.pilot_wire_mode = 'off';
             else {
                 meta.logger.warn(`Bad mode : ${mode}`);
-                payload.cable_outlet_mode = 'unknown';
+                payload.pilot_wire_mode = 'unknown';
             }
             return payload;
         },
