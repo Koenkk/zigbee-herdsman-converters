@@ -74,7 +74,7 @@ const definitions: Definition[] = [
         model: 'ZL1000400-CCT-EU-2-V1A02',
         vendor: 'Linkind',
         description: 'Zigbee LED 5.4W C35 bulb E14, dimmable & tunable',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-M3500107'],
@@ -95,7 +95,7 @@ const definitions: Definition[] = [
         model: 'ZL100050004',
         vendor: 'Linkind',
         description: 'Zigbee LED 7.4W BR30 bulb E26, dimmable & tunable',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZBT-DIMLight-GLS0010'],

@@ -26,7 +26,7 @@ const definitions: Definition[] = [
         model: 'XVV-Mega23M12',
         vendor: 'Dresden Elektronik',
         description: 'ZigBee Light Link wireless electronic ballast color temperature',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['Kobold'],

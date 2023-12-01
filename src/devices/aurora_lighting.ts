@@ -102,7 +102,7 @@ const definitions: Definition[] = [
         model: 'AU-A1GUZBCX5',
         vendor: 'Aurora Lighting',
         description: 'AOne 5.4W smart tuneable GU10 lamp',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['TWMPROZXBulb50AU'],

@@ -68,7 +68,7 @@ const definitions: Definition[] = [
         model: 'ZLED-TUNE9',
         vendor: 'Trust',
         description: 'Smart tunable LED bulb',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         fingerprint: [

@@ -7,6 +7,8 @@ import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import tz from '../converters/toZigbee';
 import * as libColor from '../lib/color';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const tzLocal1 = {
@@ -183,7 +185,7 @@ const definitions: Definition[] = [
         model: 'GL-SD-003P',
         vendor: 'Gledopto',
         description: 'Zigbee DIN Rail triac AC dimmer',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
         meta: {disableDefaultResponse: true},
     },
     {

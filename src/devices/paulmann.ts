@@ -97,14 +97,14 @@ const definitions: Definition[] = [
         model: '50064',
         vendor: 'Paulmann',
         description: 'SmartHome led spot',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['500.46', 'H036-0006'],
         model: '929.63',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee LED-Modul Coin 1x6W Tunable White',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['H036-0005'],
@@ -118,7 +118,7 @@ const definitions: Definition[] = [
         model: '371000001',
         vendor: 'Paulmann',
         description: 'SmartHome led spot tuneable white',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht'}],

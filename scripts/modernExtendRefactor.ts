@@ -30,14 +30,13 @@ project.getSourceFiles().forEach((sourceFile) => {
         const meta = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'meta');
 
         if (
-            extend?.getFullText().includes('extend: extend.light_onoff_brightness()') &&
-            meta?.getFullText().trim() === 'meta: {turnsOffAtBrightness1: true}' &&
+            extend?.getFullText().includes('extend: extend.light_onoff_brightness_colortemp()') &&
+            !meta &&
             !fromZigbee && !toZigbee && !configure) {
-            extend.replaceWithText(`extend: [${type}({turnsOffAtBrightness1: true})]`);
+            extend.replaceWithText(`extend: [${type}({colorTemp: {range: undefined}})]`);
             console.log(`Updated ${model?.getFullText().trim()}`);
             changed = true;
             totalDefinitionsWithModernExtend += 1;
-            toRemove.push(meta);
         } else if (extend?.getFirstChildByKind(SyntaxKind.ArrayLiteralExpression)) {
             totalDefinitionsWithModernExtend += 1;
         }

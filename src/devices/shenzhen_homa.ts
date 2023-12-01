@@ -72,7 +72,7 @@ const definitions: Definition[] = [
         model: 'HLD503-Z-CT',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['HOMA1002', 'HOMA1004', 'HOMA0019', 'HOMA0006', 'HOMA000F', '019'],

@@ -445,7 +445,7 @@ const definitions: Definition[] = [
         model: '3802964',
         vendor: 'Namron',
         description: 'LED 5,3W CCT E14',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3802965'],

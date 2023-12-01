@@ -45,7 +45,7 @@ const definitions: Definition[] = [
         model: 'D1542',
         vendor: 'EcoSmart',
         description: 'GU10 adjustable white bulb',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         // eslint-disable-next-line

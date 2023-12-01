@@ -63,7 +63,7 @@ const definitions: Definition[] = [
         model: 'ZA806SQ1TCF',
         vendor: 'Leedarson',
         description: 'LED E27 tunable white',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZBT-CCTSwitch-D0001'],
@@ -86,7 +86,7 @@ const definitions: Definition[] = [
         model: '6xy-M350ST-W1Z',
         vendor: 'Leedarson',
         description: 'PAR16 tunable white',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         fingerprint: [{modelID: 'ZHA-PIRSensor', manufacturerName: 'Leedarson'}],

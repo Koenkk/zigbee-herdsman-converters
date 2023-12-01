@@ -187,7 +187,7 @@ const definitions: Definition[] = [
         model: 'ZG192910-4',
         vendor: 'Sunricher',
         description: 'Zigbee LED-controller',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZG9101SAC-HP'],

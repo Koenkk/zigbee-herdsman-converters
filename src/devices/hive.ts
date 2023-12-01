@@ -79,7 +79,7 @@ const definitions: Definition[] = [
         model: 'HV-GSCXZB229B',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E27 & B22)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['TWCLBulb01UK'],
@@ -110,21 +110,21 @@ const definitions: Definition[] = [
         model: 'HV-GSCXZB269',
         vendor: 'Hive',
         description: 'Active light cool to warm white (E26) ',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['TWBulb01UK'],
         model: 'HV-GSCXZB279_HV-GSCXZB229_HV-GSCXZB229K',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E27 & B22)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['TWGU10Bulb01UK'],
         model: 'HV-GUCXZB5',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (GU10)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['KEYPAD001'],
