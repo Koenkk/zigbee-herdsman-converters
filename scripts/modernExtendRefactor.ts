@@ -1,4 +1,4 @@
-import {Project, QuoteKind, SyntaxKind} from 'ts-morph';
+import {Project, PropertyAssignment, QuoteKind, SyntaxKind} from 'ts-morph';
 
 const project = new Project({
     manipulationSettings: {
@@ -18,6 +18,7 @@ project.getSourceFiles().forEach((sourceFile) => {
     const definitions = sourceFile.getVariableStatementOrThrow('definitions').getDescendantsOfKind(SyntaxKind.ObjectLiteralExpression);
     totalDefinitions += definitions.length;
     const type = 'light';
+    const toRemove: PropertyAssignment[] = [];
 
     for (const definition of definitions) {
         const childs = definition.getChildrenOfKind(SyntaxKind.PropertyAssignment);
@@ -28,15 +29,21 @@ project.getSourceFiles().forEach((sourceFile) => {
         const toZigbee = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'toZigbee');
         const meta = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'meta');
 
-        if (extend?.getFullText().includes('extend: extend.light_onoff_brightness()') && !meta && !fromZigbee && !toZigbee && !configure) {
-            extend.replaceWithText(`extend: [${type}()]`);
+        if (
+            extend?.getFullText().includes('extend: extend.light_onoff_brightness()') &&
+            meta?.getFullText().trim() === 'meta: {turnsOffAtBrightness1: true}' &&
+            !fromZigbee && !toZigbee && !configure) {
+            extend.replaceWithText(`extend: [${type}({turnsOffAtBrightness1: true})]`);
             console.log(`Updated ${model?.getFullText().trim()}`);
             changed = true;
             totalDefinitionsWithModernExtend += 1;
+            toRemove.push(meta);
         } else if (extend?.getFirstChildByKind(SyntaxKind.ArrayLiteralExpression)) {
             totalDefinitionsWithModernExtend += 1;
         }
     }
+
+    toRemove.forEach((e) => e.remove());
 
     if (changed) {
         const modernExtendImport = sourceFile.getImportDeclarations()
@@ -60,5 +67,6 @@ project.getSourceFiles().forEach((sourceFile) => {
 });
 
 console.log(
-    `${totalDefinitionsWithModernExtend} out of ${totalDefinitions} use modern extend (${totalDefinitionsWithModernExtend / totalDefinitions}%)`,
+    `${totalDefinitionsWithModernExtend} out of ${totalDefinitions} use modern extend ` +
+    `(${(totalDefinitionsWithModernExtend / totalDefinitions) * 100}%)`,
 );

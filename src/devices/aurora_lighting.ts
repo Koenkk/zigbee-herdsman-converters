@@ -116,8 +116,7 @@ const definitions: Definition[] = [
         model: 'AU-A1VG125Z5E/19',
         vendor: 'Aurora Lighting',
         description: 'AOne 4W smart dimmable G125 lamp 1900K',
-        meta: {turnsOffAtBrightness1: true},
-        extend: extend.light_onoff_brightness(),
+        extend: [light({turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['FWBulb51AU'],
