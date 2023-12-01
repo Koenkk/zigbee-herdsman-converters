@@ -280,7 +280,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     ikea_dots_click_v2: {
-// For remotes with firmware 1.0.32 (20221219)
+        // For remotes with firmware 1.0.32 (20221219)
         cluster: 'heimanSpecificScenes',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
