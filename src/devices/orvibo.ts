@@ -310,7 +310,7 @@ const definitions: Definition[] = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['b7e305eb329f497384e966fe3fb0ac69', '52debf035a1b4a66af56415474646c02', 'MultIR'],
+        zigbeeModel: ['b7e305eb329f497384e966fe3fb0ac69', '52debf035a1b4a66af56415474646c02', 'MultIR', 'ZL1-EN'],
         model: 'SW30',
         vendor: 'ORVIBO',
         description: 'Water leakage sensor',
