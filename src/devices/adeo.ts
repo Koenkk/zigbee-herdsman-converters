@@ -364,13 +364,13 @@ const definitions: Definition[] = [
         model: 'SIN-4-FP-21_EQU',
         vendor: 'ADEO',
         description: 'Equation pilot wire heating module',
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
-        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
+        toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [
             e.switch(),
             e.power(),
             e.energy(),
-            e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+            e.pilot_wire_mode(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);

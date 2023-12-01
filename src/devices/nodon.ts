@@ -4,7 +4,6 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 const e = exposes.presets;
-const ea = exposes.access;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 
@@ -123,13 +122,13 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Pilot wire heating module',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
-        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
+        toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [
             e.switch(),
             e.power(),
             e.energy(),
-            e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+            e.pilot_wire_mode(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -147,13 +146,13 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Pilot wire heating module',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
-        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
+        toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [
             e.switch(),
             e.power(),
             e.energy(),
-            e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+            e.pilot_wire_mode(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
