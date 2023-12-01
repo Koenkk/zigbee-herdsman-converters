@@ -10,7 +10,7 @@ import {Definition, Fz, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
-
+const sonoff_private_cluster = 0xFC11;
 const fzLocal = {
     router_config: {
         cluster: 'genLevelCtrl',
@@ -23,24 +23,27 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     illumination_level:{
-        cluster: 'sonoffPrivate',
+        cluster: sonoff_private_cluster.toString(),
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const lookup = ['dim','bright'];
-            if (msg.data.hasOwnProperty('illumination_level')) {
-                return {illumination_level:lookup[msg.data['illumination_level']]};
+            const attributeKey = 0x2001;//attr
+            if (attributeKey in msg.data) {
+                return {illumination_level:lookup[msg.data[attributeKey]]};
             }
         },
-    } satisfies Fz.Converter,
+    }satisfies Fz.Converter,
     tamper_private:{
-        cluster: 'sonoffPrivate',
+        cluster:sonoff_private_cluster.toString(),
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             //Tamper-proof status: ture/false
-            if (msg.data.hasOwnProperty('tamper_private')) {
-                return {tamper_private:((msg.data['tamper_private']) ? true : false)};
-            }
-        },
+            const attributeKey = 0x2000;//attr
+            if (attributeKey in msg.data ){
+                let value = msg.data[attributeKey];
+                return {tamper_private:((value) ? true : false)};
+                }
+            },
     } satisfies Fz.Converter,
 
 };
@@ -348,6 +351,7 @@ const definitions: Definition[] = [
                   e.binary('tamper_private', ea.STATE, true, false).withLabel('Tamper-proof status').withDescription(' ')],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery,fzLocal.tamper_private],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
