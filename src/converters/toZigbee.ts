@@ -632,7 +632,7 @@ const converters2 = {
         key: ['occupancy_ult_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = { 'low': 1, 'medium': 2, 'high': 3 };
-            utils.assertNumber(value);
+            utils.assertString(value, key);
             value = value.toLowerCase();
             utils.validateValue(value, Object.keys(lookup));
             await entity.write('msOccupancySensing', { ultrasonicUToOThreshold: lookup[value]}, utils.getOptions(meta.mapped, entity));
