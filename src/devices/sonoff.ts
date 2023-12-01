@@ -10,7 +10,7 @@ import {Definition, Fz, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
-const sonoff_private_cluster = 0xFC11;
+const sonoffPrivateCluster = 0xFC11;
 const fzLocal = {
     router_config: {
         cluster: 'genLevelCtrl',
@@ -22,26 +22,26 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
-    illumination_level:{
-        cluster: sonoff_private_cluster.toString(),
+    illumination_level: {
+        cluster: sonoffPrivateCluster.toString(),
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const lookup = ['dim','bright'];
-            const attributeKey = 0x2001;//attr
+            const attributeKey = 0x2001;// attr
             if (attributeKey in msg.data) {
-                return {illumination_level:lookup[msg.data[attributeKey]]};
+                return { illumination_level:lookup[msg.data[attributeKey]]};
             }
         },
-    }satisfies Fz.Converter,
-    tamper_private:{
-        cluster:sonoff_private_cluster.toString(),
+    } satisfies Fz.Converter,
+    tamper_private: {
+        cluster: sonoffPrivateCluster.toString(),
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            //Tamper-proof status: ture/false
-            const attributeKey = 0x2000;//attr
-            if (attributeKey in msg.data ){
+            // Tamper-proof status: ture/false
+            const attributeKey = 0x2000;// attr
+            if (attributeKey in msg.data ) {
                 let value = msg.data[attributeKey];
-                return {tamper_private:((value) ? true : false)};
+                return { tamper_private:((value) ? true : false)};
                 }
             },
     } satisfies Fz.Converter,
@@ -347,16 +347,16 @@ const definitions: Definition[] = [
         model: 'SNZB-04P',
         vendor: 'SONOFF',
         description: 'Contact sensor',
-        exposes: [e.contact(), e.battery(), e.battery_voltage(),e.battery_low(),
-                  e.binary('tamper_private', ea.STATE, true, false).withLabel('Tamper-proof status').withDescription(' ')],
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery,fzLocal.tamper_private],
+        exposes: [e.contact(), e.battery(), e.battery_voltage(), e.battery_low(), 
+            e.binary('tamper_private', ea.STATE, true, false).withLabel('Tamper-proof status').withDescription(' ')],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fzLocal.tamper_private],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint, { min: 3600, max: 7200 });
-            await reporting.batteryPercentageRemaining(endpoint, { min: 3600, max: 7200 });
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
         },
     },
     {
@@ -364,11 +364,11 @@ const definitions: Definition[] = [
         model: 'SNZB-03P',
         vendor: 'SONOFF',
         description: 'Zigbee PIR sensor',
-        fromZigbee: [fz.occupancy,fz.battery],
+        fromZigbee: [fz.occupancy, fz.battery],
         toZigbee: [tz.occupancy_ult_timeout],
         ota: ota.zigbeeOTA,
-        exposes: [e.occupancy(), e.battery_low(), e.battery(),
-                  e.numeric('occupancy_ult_timeout',ea.ALL).withUnit('second').withValueMin(5).withValueMax(60)],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), 
+            e.numeric('occupancy_ult_timeout',ea.ALL).withUnit('second').withValueMin(5).withValueMax(60)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -381,13 +381,14 @@ const definitions: Definition[] = [
         model: 'SNZB-06P',
         vendor: 'SONOFF',
         description: 'Zigbee occupancy sensor',
-        fromZigbee: [fz.occupancy,fzLocal.illumination_level],
-        toZigbee: [tz.occupancy_ult_timeout,tz.occupancy_ult_sensitivity],
+        fromZigbee: [fz.occupancy, fzLocal.illumination_level],
+        toZigbee: [tz.occupancy_ult_timeout, tz.occupancy_ult_sensitivity],
         ota: ota.zigbeeOTA,
-        exposes: [e.occupancy(),
-                  e.numeric('occupancy_ult_timeout',ea.ALL).withUnit('second').withValueMin(15).withValueMax(65535),
-                  e.enum('occupancy_ult_sensitivity', ea.ALL, ['low', 'medium', 'high']),
-                  e.enum('illumination_level', ea.STATE, ['dim','bright']).withLabel('illumination').withDescription('Only updated when occupancy is detected')],
+        exposes: [
+            e.occupancy(),
+            e.numeric('occupancy_ult_timeout',ea.ALL).withUnit('second').withValueMin(15).withValueMax(65535),
+            e.enum('occupancy_ult_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            e.enum('illumination_level', ea.STATE, ['dim','bright']).withLabel('illumination').withDescription('Only updated when occupancy is detected')],
     },
     {
         zigbeeModel: ['TRVZB'],
