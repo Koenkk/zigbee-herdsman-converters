@@ -621,8 +621,8 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
             value *= 1;
-            await entity.write('msOccupancySensing', { ultrasonicOToUDelay: value }, utils.getOptions(meta.mapped, entity));
-            return { state: { occupancy_timeout: value } };
+            await entity.write('msOccupancySensing', {ultrasonicOToUDelay: value}, utils.getOptions(meta.mapped, entity));
+            return {state: {occupancy_timeout: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['ultrasonicOToUDelay']);
@@ -631,12 +631,12 @@ const converters2 = {
     occupancy_ult_sensitivity: {
         key: ['occupancy_ult_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = { 'low': 1, 'medium': 2, 'high': 3 };
+            const lookup = {'low': 1, 'medium': 2, 'high': 3};
             utils.assertString(value, key);
             value = value.toLowerCase();
             utils.validateValue(value, Object.keys(lookup));
-            await entity.write('msOccupancySensing', { ultrasonicUToOThreshold: utils.getFromLookup(value, lookup)}, utils.getOptions(meta.mapped, entity));
-            return { state: { occupancy_ult_sensitivity: value } };
+            await entity.write('msOccupancySensing', {ultrasonicUToOThreshold: utils.getFromLookup(value, lookup)}, utils.getOptions(meta.mapped, entity));
+            return {state: {occupancy_ult_sensitivity: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', ['ultrasonicUToOThreshold']);
