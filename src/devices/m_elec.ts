@@ -23,6 +23,13 @@ const definitions: Definition[] = [
         description: 'Stitchy dim mechanism',
         extend: extend.light_onoff_brightness({disableEffect: true}),
     },
+    {
+        zigbeeModel: ['ML-ST-R200'],
+        model: 'ML-ST-R200',
+        vendor: 'M-ELEC',
+        description: 'Stitchy switchable wall module',
+        extend: extend.switch(),
+    },
 ];
 
 export default definitions;

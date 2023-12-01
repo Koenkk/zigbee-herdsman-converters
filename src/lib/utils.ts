@@ -121,6 +121,13 @@ export function addActionGroup(payload: KeyValue, msg: Fz.Message, definition: D
     }
 }
 
+export function getEndpointName(msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
+    if (!definition.endpoint) {
+        throw new Error(`Definition '${definition.model}' has not endpoint defined`);
+    }
+    return getKey(definition.endpoint(meta.device), msg.endpoint.ID);
+}
+
 export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
@@ -554,6 +561,18 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
         throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
     }
     return result ?? defaultValue;
+}
+
+export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string=undefined): string {
+    for (const entry of Object.entries(lookup)) {
+        if (entry[1] === value) {
+            return entry[0];
+        }
+    }
+    if (defaultValue === undefined) {
+        throw new Error(`Expected one of: ${Object.values(lookup).join(', ')}, got: '${value}'`);
+    }
+    return defaultValue;
 }
 
 export function assertEndpoint(obj: unknown): asserts obj is Zh.Endpoint {

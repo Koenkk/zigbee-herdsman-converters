@@ -1299,7 +1299,7 @@ const definitions: Definition[] = [
                 [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
                 [6, 'countdown', tuya.valueConverter.countdown],
                 [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
-                [21, 'backlight_mode', tuya.valueConverter.backlightMode],
+                [21, 'backlight_mode', tuya.valueConverter.backlightModeOffNormalInverted],
             ],
         },
         whiteLabel: [
@@ -1339,7 +1339,7 @@ const definitions: Definition[] = [
                 [11, 'max_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
                 [12, 'countdown_l2', tuya.valueConverter.countdown],
                 [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
-                [21, 'backlight_mode', tuya.valueConverter.backlightMode],
+                [21, 'backlight_mode', tuya.valueConverter.backlightModeOffNormalInverted],
             ],
         },
         endpoint: (device) => {
@@ -1387,7 +1387,7 @@ const definitions: Definition[] = [
                 [19, 'max_brightness_l3', tuya.valueConverter.scale0_254to0_1000],
                 [20, 'countdown_l3', tuya.valueConverter.countdown],
                 [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
-                [21, 'backlight_mode', tuya.valueConverter.backlightMode],
+                [21, 'backlight_mode', tuya.valueConverter.backlightModeOffNormalInverted],
             ],
         },
         endpoint: (device) => {
@@ -2189,7 +2189,6 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true, multiEndpointSkip: ['energy', 'current', 'voltage', 'power']},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            // @ts-expect-error
             await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
@@ -3285,7 +3284,11 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
             await reporting.rmsCurrent(endpoint, {change: 50});
-            await reporting.activePower(endpoint, {change: 10});
+            if (device.manufacturerName !== '_TZ3000_0zfrhq4i') {
+                // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i
+                // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
+                await reporting.activePower(endpoint, {change: 10});
+            }
             await reporting.currentSummDelivered(endpoint);
             const acCurrentDivisor = device.manufacturerName === '_TZ3000_typdpbpg' ? 2000 : 1000;
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor, acCurrentMultiplier: 1});
@@ -3809,7 +3812,8 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Smart light switch - 2 gang',
         whiteLabel: [{vendor: 'Vrey', model: 'VR-X712U-0013'}, {vendor: 'TUYATEC', model: 'GDKES-02TZXD'},
-            {vendor: 'Earda', model: 'ESW-2ZAA-EU'}, {vendor: 'Moes', model: 'ZS-US2-WH-MS'}, {vendor: 'Moes', model: 'ZS-US2-BK-MS'}],
+            {vendor: 'Earda', model: 'ESW-2ZAA-EU'}, {vendor: 'Moes', model: 'ZS-US2-BK-MS'},
+            tuya.whitelabel('Moes', 'ZS-US2-WH-MS', 'Smart light switch - 2 gang', ['_TZ3000_18ejxno0'])],
         extend: tuya.extend.switch({backlightModeOffNormalInverted: true, endpoints: ['left', 'right']}),
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -4168,65 +4172,97 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7']),
         model: 'ZWT198',
         vendor: 'TuYa',
-        description: 'AVATTO battery wall-mount thermostat',
-        fromZigbee: [tuya.fz.datapoints, fz.ignore_tuya_set_time],
-        toZigbee: [tuya.tz.datapoints],
+        description: 'Avatto wall thermostat',
         onEvent: tuya.onEvent({timeStart: '1970'}),
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
+            e.binary('factory_reset', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Full factory reset, use with caution!'),
             e.child_lock(),
             e.climate()
                 .withSystemMode(['off', 'heat'], ea.STATE_SET)
-                .withPreset(['auto', 'manual', 'temporary program'])
+                .withPreset(['auto', 'manual', 'temporary_manual'])
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET),
             e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Antifreeze function'),
-            e.numeric('upper_temp', ea.STATE_SET).withUnit('°C').withValueMax(95)
-                .withValueMin(15).withValueStep(1).withPreset('default', 60, 'Default value')
+            e.max_temperature_limit()
+                .withUnit('°C')
+                .withValueMin(15)
+                .withValueMax(90)
+                .withValueStep(0.5)
+                .withPreset('default', 60, 'Default value')
                 .withDescription('Maximum upper temperature'),
-            e.numeric('deadzone_temperature', ea.STATE_SET).withUnit('°C').withValueMax(10)
-                .withValueMin(0.5).withValueStep(0.5).withPreset('default', 1, 'Default value')
-                .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
-            // Not working yet:
-            // e.enum('schedule_mode', ea.STATE_SET, ['disabled','weekday/sat+sun','weekday+sat/sun','7day'])
-            //     .withDescription('Schedule mode')
+            e.numeric('deadzone_temperature', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMax(10)
+                .withValueMin(0.5)
+                .withValueStep(0.5)
+                .withPreset('default', 1, 'Default value')
+                .withDescription('The delta between local_temperature (5<t<35)and current_heating_setpoint to trigger Heat'),
+            e.enum('backlight_mode', ea.STATE_SET, ['off', 'low', 'medium', 'high'])
+                .withDescription('Intensity of the backlight'),
+            e.enum('working_day', ea.STATE_SET, ['disabled', '6-1', '5-2', '7'])
+                .withDescription('Workday setting'),
+            e.text('schedule_weekday', ea.STATE_SET).withDescription('Workdays (6 times `hh:mm/cc.c°C`)'),
+            e.text('schedule_holiday', ea.STATE_SET).withDescription('Holidays (2 times `hh:mm/cc.c°C)`'),
+            // ============== exposes for found, but not functional datapoints:
+            /*
+            e.min_temperature_limit() // dp 16
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(0.5)
+                .withPreset('default', 10, 'Default value')
+                .withDescription('dp16 is listed in Tuya, but no communication from device'),
+
+            e.binary('dp105', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('dp105 is not listed in Tuya, but device sends datapoint, binary: true/false'),
+
+            e.binary('dp111', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('dp111 is not listed in Tuya, but device sends datapoint, binary: true/false'),
+            */
         ],
         meta: {
             tuyaDatapoints: [
                 [1, 'system_mode', tuya.valueConverterBasic.lookup({'heat': true, 'off': false})],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
-                [4, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1), 'temporary program': tuya.enum(2)})],
+                [4, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1), 'temporary_manual': tuya.enum(2)})],
                 [9, 'child_lock', tuya.valueConverter.lockUnlock],
-                [15, 'upper_temp', tuya.valueConverter.divideBy10],
-                [19, 'local_temperature_calibration', tuya.valueConverter.divideBy10],
+                [11, 'faultalarm', tuya.valueConverter.raw],
+                [15, 'max_temperature_limit', tuya.valueConverter.divideBy10],
+                [19, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration3],
                 [101, 'running_state', tuya.valueConverterBasic.lookup({'heat': tuya.enum(1), 'idle': tuya.enum(0)})],
                 [102, 'frost_protection', tuya.valueConverter.onOff],
-                [104, 'schedule_mode', tuya.valueConverterBasic.lookup({'disabled': 0, 'weekday/sat+sun': 1, 'weekday+sat/sun': 2, '7day': 3})],
+                [103, 'factory_reset', tuya.valueConverter.onOff],
+                [104, 'working_day', tuya.valueConverter.workingDay],
                 [107, 'deadzone_temperature', tuya.valueConverter.divideBy10],
+                [109, null, tuya.valueConverter.ZWT198_schedule],
+                [109, 'schedule_weekday', tuya.valueConverter.ZWT198_schedule],
+                [109, 'schedule_holiday', tuya.valueConverter.ZWT198_schedule],
+                [110, 'backlight_mode', tuya.valueConverter.backlightModeOffLowMediumHigh],
+                // ============== found but not functional datapoints:
+
+                // [16, 'min_temperature_limit', tuya.valueConverter.divideBy10],  // datapoint listed in Tuya, but no communication from device
+                // [105, 'dp105', tuya.valueConverter.onOff],                      // not listed in Tuya, but device sends datapoint
+                // [111, 'dp111', tuya.valueConverter.onOff],                      // not listed in Tuya, but device sends datapoint
+
                 // These are the schedule values in bytes, 8 periods in total (4 bytes per period).
                 // For each period:
                 // 1st byte: hour
                 // 2nd byte: minute
                 // 3rd, 4th bytes: temperature multiplied by 10
-                // Last 2 periods are ignored if schedule_mode is 7day. When schedule_mode is disabled,
-                // scheduling can't be configured at all.
+                // On the device last 2 periods are ignored if schedule_mode is 7day. When schedule_mode is disabled,
+                // scheduling can't be configured at all on the device.
                 // For example, if schedule_mode is weekday/sat+sun and this byte array is received:
                 // [6,10,1,144,8,10,0,170,11,40,0,170,12,40,0,170,17,10,0,230,22,10,0,170,8,5,0,200,23,0,0,160]
                 // Then the schedule is:
                 // Mon-Fri: 6:10 --> 40C, 8:10 --> 17C, 11:40 --> 17C, 12:40 --> 17C, 17:10 --> 23C, 22:10 --> 17C
                 // Sat-Sun: 8:05 --> 20C, 23:00 --> 16C
-                // I wasn't able to find a proper converter or to create one, so i commented it out
-                // [109, 'dp109', tuya.valueConverter.raw],
-
-                // unmapped DPs, still need to figure out what they do
-                // [103, 'dp103', tuya.valueConverter.trueFalse1],
-                // [105, 'dp105', tuya.valueConverter.trueFalse1],
-                // [110, 'dp110', tuya.valueConverter.raw],
-                // [111, 'dp111', tuya.valueConverter.trueFalse1]
             ],
         },
     },
@@ -4851,6 +4887,9 @@ const definitions: Definition[] = [
         model: 'ERS-10TZBVB-AA',
         vendor: 'TuYa',
         description: 'Smart button',
+        whiteLabel: [
+            tuya.whitelabel('Loginovo', 'ZG-101ZL', 'Smart button', ['_TZ3000_ja5osu5g']),
+        ],
         fromZigbee: [
             fz.command_step, fz.command_on, fz.command_off, fz.command_move_to_color_temp, fz.command_move_to_level,
             fz.tuya_multi_action, fz.tuya_operation_mode, fz.battery,
@@ -5805,6 +5844,34 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_7sjncirf']),
+        model: 'TS0601_switch_10',
+        vendor: 'TuYa',
+        description: '10 gang switch',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [...Array.from({length: 10}, (_, i) => tuya.exposes.switch().withEndpoint(`l${i + 1}`))],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1, 'l9': 1, 'l10': 1, 'l11': 1, 'l12': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+                [5, 'state_l5', tuya.valueConverter.onOff],
+                [6, 'state_l6', tuya.valueConverter.onOff],
+                [0x65, 'state_l7', tuya.valueConverter.onOff],
+                [0x66, 'state_l8', tuya.valueConverter.onOff],
+                [0x67, 'state_l9', tuya.valueConverter.onOff],
+                [0x68, 'state_l10', tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dqolcpcp']),
         model: 'TS0601_switch_12',
         vendor: 'TuYa',
@@ -6746,6 +6813,21 @@ const definitions: Definition[] = [
                 [2, 'gas_value', tuya.valueConverter.divideBy1000],
                 [18, 'carbon_monoxide', tuya.valueConverter.trueFalseEnum0],
                 [19, 'co', tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nojsjtj2']),
+        model: 'ZG-101Z',
+        vendor: 'Loginovo',
+        description: 'SOS button',
+        fromZigbee: [tuya.fz.datapoints, fz.battery],
+        toZigbee: [],
+        exposes: [e.action(['emergency', 'sos']), e.battery_low()],
+        meta: {
+            tuyaDatapoints: [
+                [26, 'action', tuya.valueConverter.static('sos')],
+                [29, 'action', tuya.valueConverter.static('emergency')],
             ],
         },
     },
