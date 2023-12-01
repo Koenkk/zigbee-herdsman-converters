@@ -280,7 +280,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     ikea_dots_click_v2: {
-        // For remotes with firmware 1.0.32 (20221219)
+// For remotes with firmware 1.0.32 (20221219)
         cluster: 'heimanSpecificScenes',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
@@ -290,6 +290,28 @@ const fzLocal = {
             switch (msg.endpoint.ID) {
             case 2: button = '1'; break; // 1 dot
             case 3: button = '2'; break; // 2 dot
+            }
+            switch (msg.data[4]) {
+            case 1: action = 'initial_press'; break;
+            case 2: action = 'long_press'; break;
+            case 3: action = 'short_release'; break;
+            case 4: action = 'long_release'; break;
+            case 6: action = 'double_press'; break;
+            }
+
+            return {action: `dots_${button}_${action}`};
+        },
+    } satisfies Fz.Converter,
+    ikea_dots_click_v2_somrig: {
+        cluster: 'heimanSpecificScenes',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            if (!Buffer.isBuffer(msg.data)) return;
+            let button;
+            let action;
+            switch (msg.endpoint.ID) {
+            case 1: button = '1'; break; // 1 dot
+            case 2: button = '2'; break; // 2 dot
             }
             switch (msg.data[4]) {
             case 1: action = 'initial_press'; break;
@@ -1254,10 +1276,12 @@ const definitions: Definition[] = [
         model: 'E2213',
         vendor: 'IKEA',
         description: 'SOMRIG shortcut button',
-        fromZigbee: [fz.battery],
+        fromZigbee: [fz.battery, fzLocal.ikea_dots_click_v2_somrig],
         toZigbee: [tz.battery_percentage_remaining],
         exposes: [
-            e.battery().withAccess(ea.STATE_GET),
+            e.battery().withAccess(ea.STATE_GET),e.action(['dots_1_initial_press',
+            'dots_2_initial_press', 'dots_1_long_press', 'dots_2_long_press',
+            'dots_1_short_release', 'dots_2_short_release', 'dots_1_long_release',])
         ],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
