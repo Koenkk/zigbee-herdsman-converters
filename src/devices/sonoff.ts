@@ -40,7 +40,7 @@ const fzLocal = {
             // Tamper-proof status: ture/false
             const attributeKey = 0x2000;// attr
             if (attributeKey in msg.data ) {
-                let value = msg.data[attributeKey];
+                const value = msg.data[attributeKey];
                 return {tamper_private: ((value) ? true : false)};
             }
         },
