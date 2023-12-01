@@ -1,4 +1,4 @@
-import {Definition} from '../lib/types';
+import {Fz, Tz, Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
@@ -7,6 +7,31 @@ const e = exposes.presets;
 const ea = exposes.access;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
+
+const tzLocal = {
+    impulse_time: {
+        key: ['transition_time'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genOnOff', {nodonTransitionTime: value});
+            return {state: {nodonTransitionTime: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['nodonTransitionTime']);
+        },
+    } as Tz.Converter,
+};
+
+const fzLocal = {
+    impulse_time: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('nodonTransitionTime')) {
+                return {transition_time: msg.data['nodonTransitionTime']};
+            }
+        },
+    } as Fz.Converter,
+};
 
 const definitions: Definition[] = [
     {
@@ -22,7 +47,7 @@ const definitions: Definition[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             await reporting.currentPositionTiltPercentage(endpoint);
         },
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -38,7 +63,7 @@ const definitions: Definition[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             await reporting.currentPositionTiltPercentage(endpoint);
         },
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -46,25 +71,36 @@ const definitions: Definition[] = [
         model: 'SIN-4-1-20',
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: extend.switch(),
+        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fz.power_on_behavior, fzLocal.impulse_time],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tzLocal.impulse_time],
+        exposes: [
+            e.switch(),
+            e.action(['identify', 'on', 'off', 'toggle']),
+            e.power_on_behavior(),
+        ],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
-            // NodOn Attribute
-            await endpoint.read('genOnOff', ['nodonTransitionTime']);
         },
         endpoint: (device) => {
             return {default: 1};
         },
-        ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['SIN-4-1-20_PRO'],
         model: 'SIN-4-1-20_PRO',
+        zigbeeModel: ['SIN-4-1-20_PRO'],
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: extend.switch(),
+        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fz.power_on_behavior, fzLocal.impulse_time],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tzLocal.impulse_time],
+        exposes: [
+            e.switch(),
+            e.action(['identify', 'on', 'off', 'toggle']),
+            e.power_on_behavior(),
+        ],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -73,7 +109,6 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {default: 1};
         },
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SIN-4-2-20'],
@@ -123,13 +158,13 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Pilot wire heating module',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
-        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior, fz.nodon_fil_pilote_mode],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tz.nodon_fil_pilote_mode],
         exposes: [
-            e.switch(),
             e.power(),
             e.energy(),
             e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+            e.power_on_behavior(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -147,13 +182,13 @@ const definitions: Definition[] = [
         vendor: 'NodOn',
         description: 'Pilot wire heating module',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
-        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior, fz.nodon_fil_pilote_mode],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tz.nodon_fil_pilote_mode],
         exposes: [
-            e.switch(),
             e.power(),
             e.energy(),
             e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+            e.power_on_behavior(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
@@ -169,11 +204,11 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-1-21'],
         model: 'SIN-4-1-21',
         vendor: 'NodOn',
-        description: 'Multifunction relay switch zith metering',
+        description: 'Multifunction relay switch with metering',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
+        fromZigbee: [fz.identify, fz.on_off, fz.command_toggle, fz.command_on, fz.command_off, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
