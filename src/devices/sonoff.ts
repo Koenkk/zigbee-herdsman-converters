@@ -348,10 +348,10 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Contact sensor',
         exposes: [
-            e.contact(), 
-            e.battery(), 
-            e.battery_voltage(), 
-            e.battery_low(), 
+            e.contact(),
+            e.battery(),
+            e.battery_voltage(),
+            e.battery_low(),
             e.binary('tamper_private', ea.STATE, true, false).withLabel('Tamper-proof status').withDescription(' ')],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fzLocal.tamper_private],
         toZigbee: [],
@@ -372,10 +372,10 @@ const definitions: Definition[] = [
         toZigbee: [tz.occupancy_ult_timeout],
         ota: ota.zigbeeOTA,
         exposes: [
-            e.occupancy(), 
-            e.battery_low(), 
-            e.battery(), 
-            e.numeric('occupancy_ult_timeout',ea.ALL).withUnit('second').withValueMin(5).withValueMax(60)],
+            e.occupancy(),
+            e.battery_low(),
+            e.battery(),
+            e.numeric('occupancy_ult_timeout', ea.ALL).withUnit('second').withValueMin(5).withValueMax(60)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -393,11 +393,11 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         exposes: [
             e.occupancy(),
-            e.numeric('occupancy_ult_timeout',ea.ALL).withUnit('second').withValueMin(15).withValueMax(65535),
+            e.numeric('occupancy_ult_timeout', ea.ALL).withUnit('second').withValueMin(15).withValueMax(65535),
             e.enum('occupancy_ult_sensitivity', ea.ALL, ['low', 'medium', 'high']),
-            e.enum('illumination_level', ea.STATE, ['dim','bright'])
-            .withLabel('illumination')
-            .withDescription('Only updated when occupancy is detected')],
+            e.enum('illumination_level', ea.STATE, ['dim', 'bright'])
+                .withLabel('illumination')
+                .withDescription('Only updated when occupancy is detected')],
     },
     {
         zigbeeModel: ['TRVZB'],
