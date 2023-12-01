@@ -26,10 +26,10 @@ const fzLocal = {
         cluster: sonoffPrivateCluster.toString(),
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const lookup = ['dim','bright'];
+            const lookup = ['dim', 'bright'];
             const attributeKey = 0x2001;// attr
             if (attributeKey in msg.data) {
-                return { illumination_level:lookup[msg.data[attributeKey]]};
+                return {illumination_level: lookup[msg.data[attributeKey]]};
             }
         },
     } satisfies Fz.Converter,
@@ -41,9 +41,9 @@ const fzLocal = {
             const attributeKey = 0x2000;// attr
             if (attributeKey in msg.data ) {
                 let value = msg.data[attributeKey];
-                return { tamper_private:((value) ? true : false)};
-                }
-            },
+                return {tamper_private: ((value) ? true : false)};
+            }
+        },
     } satisfies Fz.Converter,
 
 };
@@ -347,7 +347,11 @@ const definitions: Definition[] = [
         model: 'SNZB-04P',
         vendor: 'SONOFF',
         description: 'Contact sensor',
-        exposes: [e.contact(), e.battery(), e.battery_voltage(), e.battery_low(), 
+        exposes: [
+            e.contact(), 
+            e.battery(), 
+            e.battery_voltage(), 
+            e.battery_low(), 
             e.binary('tamper_private', ea.STATE, true, false).withLabel('Tamper-proof status').withDescription(' ')],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fzLocal.tamper_private],
         toZigbee: [],
@@ -367,7 +371,10 @@ const definitions: Definition[] = [
         fromZigbee: [fz.occupancy, fz.battery],
         toZigbee: [tz.occupancy_ult_timeout],
         ota: ota.zigbeeOTA,
-        exposes: [e.occupancy(), e.battery_low(), e.battery(), 
+        exposes: [
+            e.occupancy(), 
+            e.battery_low(), 
+            e.battery(), 
             e.numeric('occupancy_ult_timeout',ea.ALL).withUnit('second').withValueMin(5).withValueMax(60)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -388,7 +395,9 @@ const definitions: Definition[] = [
             e.occupancy(),
             e.numeric('occupancy_ult_timeout',ea.ALL).withUnit('second').withValueMin(15).withValueMax(65535),
             e.enum('occupancy_ult_sensitivity', ea.ALL, ['low', 'medium', 'high']),
-            e.enum('illumination_level', ea.STATE, ['dim','bright']).withLabel('illumination').withDescription('Only updated when occupancy is detected')],
+            e.enum('illumination_level', ea.STATE, ['dim','bright'])
+            .withLabel('illumination')
+            .withDescription('Only updated when occupancy is detected')],
     },
     {
         zigbeeModel: ['TRVZB'],
