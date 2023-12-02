@@ -166,7 +166,7 @@ export function light(args?: LightArgs): ModernExtend {
     if (args.colorTemp) {
         args.colorTemp = {startup: true, ...args.colorTemp};
     }
-    const argsColor = args.color ? false : {modes: ['xy'] satisfies ('xy' | 'hs')[], ...(isObject(args.color) ? args.color : {})};
+    const argsColor = args.color ? {modes: ['xy'] satisfies ('xy' | 'hs')[], ...(isObject(args.color) ? args.color : {})} : false;
 
     let lightExpose = e.light().withBrightness();
 
