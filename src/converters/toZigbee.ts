@@ -2436,8 +2436,7 @@ const converters2 = {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
-            utils.assertObject(value);
-            let targetValue = value.hasOwnProperty('state') ? value.state : value;
+            let targetValue = utils.isObject(value) && value.hasOwnProperty('state') ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
             let attrId;
