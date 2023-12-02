@@ -895,6 +895,13 @@ const definitions: Definition[] = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['GL-P-101P'],
+        model: 'GL-P-101P',
+        vendor: 'Gledopto',
+        description: 'Zigbee pro constant current CCT LED driver',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp({colorTempRange: [158, 495]}),
+    },
+    {
         zigbeeModel: ['GL-W-001Z'],
         model: 'GL-W-001Z',
         vendor: 'Gledopto',
