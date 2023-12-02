@@ -5,6 +5,8 @@ import tz from '../converters/toZigbee';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -66,7 +68,7 @@ const definitions: Definition[] = [
         model: '81810',
         vendor: 'AduroSmart',
         description: 'Zigbee Aduro Eria B22 bulb - warm white',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['Adurolight_NCC'],

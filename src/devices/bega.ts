@@ -1,5 +1,6 @@
 import {Definition} from '../lib/types';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -11,7 +12,7 @@ const definitions: Definition[] = [
         model: '70049',
         vendor: 'Bega',
         description: 'Zigbee control module DALI',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['BEGA 13557 bulb E27 RGBW 805lm'],

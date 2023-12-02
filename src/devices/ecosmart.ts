@@ -1,5 +1,6 @@
 import {Definition} from '../lib/types';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -29,7 +30,7 @@ const definitions: Definition[] = [
         model: 'D1531',
         vendor: 'EcoSmart',
         description: 'A19 bright white bulb',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         // eslint-disable-next-line
@@ -37,14 +38,14 @@ const definitions: Definition[] = [
         model: 'D1532',
         vendor: 'EcoSmart',
         description: 'A19 soft white bulb',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['zhaTunW'],
         model: 'D1542',
         vendor: 'EcoSmart',
         description: 'GU10 adjustable white bulb',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         // eslint-disable-next-line
@@ -52,7 +53,7 @@ const definitions: Definition[] = [
         model: 'D1533',
         vendor: 'EcoSmart',
         description: 'PAR20/A19 bright white bulb',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         // eslint-disable-next-line
@@ -60,7 +61,7 @@ const definitions: Definition[] = [
         model: 'D1523',
         vendor: 'EcoSmart',
         description: 'A19 soft white bulb',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 

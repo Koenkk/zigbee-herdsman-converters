@@ -159,14 +159,14 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 
 export interface LightArgs {
     effect?: boolean, powerOnBehaviour?: boolean, colorTemp?: {startup?: boolean, range: Range},
-    color?: boolean | {modes: ('xy' | 'hs')[]}
+    color?: boolean | {modes: ('xy' | 'hs')[]}, turnsOffAtBrightness1?: boolean,
 }
 export function light(args?: LightArgs): ModernExtend {
-    args = {effect: true, powerOnBehaviour: true, ...args};
+    args = {effect: true, powerOnBehaviour: true, turnsOffAtBrightness1: false, ...args};
     if (args.colorTemp) {
         args.colorTemp = {startup: true, ...args.colorTemp};
     }
-    const argsColor = args.color ? false : {modes: ['xy'] satisfies ('xy' | 'hs')[], ...(isObject(args.color) ? args.color : {})};
+    const argsColor = args.color ? {modes: ['xy'] satisfies ('xy' | 'hs')[], ...(isObject(args.color) ? args.color : {})} : false;
 
     let lightExpose = e.light().withBrightness();
 
@@ -211,11 +211,15 @@ export function light(args?: LightArgs): ModernExtend {
         toZigbee.push(tz.power_on_behavior);
     }
 
+    if (args.turnsOffAtBrightness1) {
+        meta.turnsOffAtBrightness1 = true;
+    }
+
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
         await lightConfigure(device, coordinatorEndpoint, logger, true);
     };
 
-    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, meta, isModernExtend: true};
 }
 
 export interface EnumLookupArgs {

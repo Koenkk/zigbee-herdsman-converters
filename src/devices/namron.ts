@@ -9,6 +9,8 @@ import * as globalStore from '../lib/store';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const ea = exposes.access;
 const e = exposes.presets;
 
@@ -414,7 +416,7 @@ const definitions: Definition[] = [
         model: '3802960',
         vendor: 'Namron',
         description: 'LED 9W DIM E27',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['3802961'],
@@ -436,21 +438,21 @@ const definitions: Definition[] = [
         model: '3802963',
         vendor: 'Namron',
         description: 'LED 5,3W DIM E14',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['3802964'],
         model: '3802964',
         vendor: 'Namron',
         description: 'LED 5,3W CCT E14',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3802965'],
         model: '3802965',
         vendor: 'Namron',
         description: 'LED 4,8W DIM GU10',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['3802966'],

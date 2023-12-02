@@ -6,6 +6,8 @@ import tz from '../converters/toZigbee';
 import * as tuya from '../lib/tuya';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -56,14 +58,14 @@ const definitions: Definition[] = [
         model: '07088L',
         vendor: 'Immax',
         description: 'Neo SMART LED filament E27 6.3W warm white, dimmable, Zigbee 3.0',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['IM-Z3.0-DIM'],
         model: '07001L/07005B',
         vendor: 'Immax',
         description: 'Neo SMART LED E14 5W warm white, dimmable, Zigbee 3.0',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['IM-Z3.0-RGBW'],

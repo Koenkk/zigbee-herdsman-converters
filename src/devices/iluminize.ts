@@ -5,6 +5,8 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -46,7 +48,7 @@ const definitions: Definition[] = [
         model: '511.10',
         vendor: 'Iluminize',
         description: 'Zigbee LED-Controller ',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['511.201'],
@@ -118,14 +120,14 @@ const definitions: Definition[] = [
         model: '511.010',
         vendor: 'Iluminize',
         description: 'Zigbee LED-Controller',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['511.012'],
         model: '511.012',
         vendor: 'Iluminize',
         description: 'Zigbee LED-Controller',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['511.202'],
@@ -270,7 +272,7 @@ const definitions: Definition[] = [
         model: '5112.80',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 LED-controller 1x 8A',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZGRC-TEUR-001'],
