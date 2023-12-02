@@ -3557,12 +3557,12 @@ const definitions: Definition[] = [
                 [1, 'energy', tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseVariant1], // voltage and current
                 [16, 'state', tuya.valueConverter.onOff],
-                [101, 'total_energy', tuya.valueConverter.divideBy100], //total energy produced + consumed
+                [101, 'total_energy', tuya.valueConverter.divideBy100], // total energy produced + consumed
                 [102, 'produced_energy', tuya.valueConverter.divideBy100],
                 [103, 'power', tuya.valueConverter.raw],
                 [105, 'ac_frequency', tuya.valueConverter.divideBy100],
-                [109, "energy_reactive", tuya.valueConverter.divideBy100], // reactive energy in VArh
-                [110, "power_reactive", tuya.valueConverter.raw], // reactive power
+                [109, 'energy_reactive', tuya.valueConverter.divideBy100], // reactive energy in VArh
+                [110, 'power_reactive', tuya.valueConverter.raw], // reactive power
                 [111, 'power_factor', tuya.valueConverter.divideBy10],
                 // Ignored for now; we don't know what the values mean
                 [9, null, null], // Fault - we don't know the possible values here

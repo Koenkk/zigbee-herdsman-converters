@@ -89,16 +89,16 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.5.3_r2'}, {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r3'},
-                    {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r54'}],
+        fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.5.3_r2'}, {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r3'}, 
+            {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r54'}],
         model: 'SR-ZG9101SAC-HP-SWITCH-2CH',
         vendor: 'Sunricher',
         description: 'Zigbee 2 channel switch',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power().withEndpoint('l1'), e.current().withEndpoint('l1'),
-        e.voltage().withEndpoint('l1'), e.energy(), e.power_on_behavior(['off', 'on', 'previous']).withEndpoint('l1'), 
-        e.power_on_behavior(['off', 'on', 'previous']).withEndpoint('l2')],
+            e.voltage().withEndpoint('l1'), e.energy(), e.power_on_behavior(['off', 'on', 'previous']).withEndpoint('l1'), 
+            e.power_on_behavior(['off', 'on', 'previous']).withEndpoint('l2')],
         whiteLabel: [{vendor: 'Vesternet', model: 'VES-ZB-SWI-015'}],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
