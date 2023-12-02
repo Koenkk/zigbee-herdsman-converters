@@ -1,6 +1,12 @@
 import {Definition} from '../lib/types';
 import extend from '../lib/extend';
 
+const exposes = require('../lib/exposes');
+const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
+const reporting = require('../lib/reporting');
+const e = exposes.presets;
+
 const definitions: Definition[] = [
     {
         zigbeeModel: ['ML-ST-D200'],
@@ -28,7 +34,14 @@ const definitions: Definition[] = [
         model: 'ML-ST-R200',
         vendor: 'M-ELEC',
         description: 'Stitchy switchable wall module',
-        extend: extend.switch(),
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.light()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
 ];
 
