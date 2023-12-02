@@ -14,3 +14,4 @@ tmp
 /converters/
 /devices/
 /lib/
+tsconfig.tsbuildinfo

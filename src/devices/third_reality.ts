@@ -18,7 +18,7 @@ const fzLocal = {
             if (msg.data['3']) payload.z_axis = msg.data['3'];
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     thirdreality_private_motion_sensor: {
         cluster: 'manuSpecificUbisysDeviceSetup',
         type: 'attributeReport',
@@ -26,7 +26,7 @@ const fzLocal = {
             const zoneStatus = msg.data[2];
             return {occupancy: (zoneStatus & 1) > 0};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -275,4 +275,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

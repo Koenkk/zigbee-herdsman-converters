@@ -8,7 +8,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_acv1iuslxi3shaaj'}],
         model: 'ZXZIR-02',
-        vendor: 'AUBESS',
+        vendor: 'Aubess',
         description: 'Universal smart IR remote control',
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00, fzZosung.zosung_send_ir_code_01, fzZosung.zosung_send_ir_code_02,
@@ -21,4 +21,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

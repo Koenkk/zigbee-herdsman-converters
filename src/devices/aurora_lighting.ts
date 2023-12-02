@@ -19,7 +19,7 @@ const tzLocal = {
             await endpoint.command('genOnOff', state, {});
             return {state: {backlight_led: state.toUpperCase()}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     backlight_brightness: {
         key: ['brightness'],
         options: [exposes.options.transition()],
@@ -30,7 +30,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', ['currentLevel']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const disableBatteryRotaryDimmerReporting = async (endpoint: Zh.Endpoint) => {
@@ -42,8 +42,8 @@ const disableBatteryRotaryDimmerReporting = async (endpoint: Zh.Endpoint) => {
 };
 
 const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
-    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature] as Fz.Converter[],
-    toZigbee: [] as Tz.Converter[],
+    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature] satisfies Fz.Converter[],
+    toZigbee: [] as Tz.Converter[], // TODO: Needs documented reasoning for asserting this as a type it isn't
     exposes: [e.battery(), e.action([
         'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
     configure: (async (device, coordinatorEndpoint, logger) => {
@@ -58,7 +58,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
 
             await disableBatteryRotaryDimmerReporting(endpoint);
         }
-    }) as Configure,
+    }) satisfies Configure,
     onEvent: (async (type, data, device) => {
         // The rotary dimmer devices appear to lose the configured reportings when they
         // re-announce themselves which they do roughly every 6 hours.
@@ -77,21 +77,21 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
                 }
             }
         }
-    }) as OnEvent,
+    }) satisfies OnEvent,
 });
 
 const definitions: Definition[] = [
     {
         zigbeeModel: ['TWBulb51AU'],
         model: 'AU-A1GSZ9CX',
-        vendor: 'Aurora',
+        vendor: 'Aurora Lighting',
         description: 'AOne GLS lamp 9w tunable dimmable 2200-5000K',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
     },
     {
         zigbeeModel: ['RGBCXStrip50AU'],
         model: 'AU-A1ZBSCRGBCX',
-        vendor: 'Aurora',
+        vendor: 'Aurora Lighting',
         description: 'RGBW LED strip controller',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [166, 400]}),
     },
@@ -293,4 +293,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

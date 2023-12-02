@@ -24,7 +24,7 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
     const imageType = current.imageType;
     const hardwareVersion = device.hardwareVersion;
 
-    const firmwarePage = await axios.get(firmwareHtmlPageUrl);
+    const firmwarePage = await axios.get(firmwareHtmlPageUrl, {maxContentLength: -1});
     logger.debug(
         `OTA ubisys: got firmware page, status: ${firmwarePage.status}, data.length: ${firmwarePage.data.length}`);
     assert(firmwarePage.status === 200, `HTTP Error getting ubisys firmware page`);

@@ -4,6 +4,7 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import {Definition, Tz, Fz, KeyValueAny, KeyValue, Zh, Expose} from '../lib/types';
 import * as reporting from '../lib/reporting';
+import * as ota from '../lib/ota';
 import extend from '../lib/extend';
 import * as constants from '../lib/constants';
 const e = exposes.presets;
@@ -25,7 +26,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genBasic', [0x1337]);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     node_config: {
         key: ['report_delay'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -40,7 +41,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     local_time: {
         key: ['local_time'],
         convertSet: async (entity, key, value, meta) => {
@@ -50,7 +51,7 @@ const tzLocal = {
             await firstEndpoint.write('genTime', {time: time});
             return {state: {local_time: time}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     co2_config: {
         key: ['auto_brightness', 'forced_recalibration', 'factory_reset_co2', 'long_chart_period', 'set_altitude',
             'manual_forced_recalibration', 'light_indicator', 'light_indicator_level'],
@@ -73,7 +74,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     temperature_config: {
         key: ['temperature_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -87,7 +88,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     humidity_config: {
         key: ['humidity_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -101,8 +102,8 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
-    termostat_config: {
+    } satisfies Tz.Converter,
+    thermostat_config: {
         key: ['high_temperature', 'low_temperature', 'enable_temperature'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
@@ -118,7 +119,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     hydrostat_config: {
         key: ['high_humidity', 'low_humidity', 'enable_humidity'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -135,7 +136,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     co2_gasstat_config: {
         key: ['high_gas', 'low_gas', 'enable_gas'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -152,7 +153,7 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     multi_zig_sw_switch_type: {
         key: ['switch_type_1', 'switch_type_2', 'switch_type_3', 'switch_type_4'],
         convertGet: async (entity, key, meta) => {
@@ -164,7 +165,7 @@ const tzLocal = {
             await entity.write('genOnOffSwitchCfg', payload);
             return {state: {[`${key}`]: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -176,7 +177,7 @@ const fzLocal = {
             if (msg.data['4919']) result['transmit_power'] = msg.data['4919'];
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     node_config: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -187,7 +188,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     co2: {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
@@ -197,7 +198,7 @@ const fzLocal = {
                 return {co2: calibrateAndPrecisionRoundOptions(co2, options, 'co2')};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     co2_config: {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
@@ -229,7 +230,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     temperature_config: {
         cluster: 'msTemperatureMeasurement',
         type: 'readResponse',
@@ -240,7 +241,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     humidity_config: {
         cluster: 'msRelativeHumidity',
         type: 'readResponse',
@@ -251,8 +252,8 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
-    termostat_config: {
+    } satisfies Fz.Converter,
+    thermostat_config: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -268,7 +269,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     hydrostat_config: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -285,7 +286,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     co2_gasstat_config: {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
@@ -302,7 +303,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     humidity2: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -320,7 +321,7 @@ const fzLocal = {
                 return {[property]: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     illuminance2: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -338,7 +339,7 @@ const fzLocal = {
                 [property2]: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     pressure2: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -356,7 +357,7 @@ const fzLocal = {
             const property = (multiEndpoint)? postfixWithEndpointName('pressure', msg, model, meta): 'pressure';
             return {[property]: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     multi_zig_sw_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -365,7 +366,7 @@ const fzLocal = {
             const battery = (voltage - 2200) / 8;
             return {battery: battery > 100 ? 100 : battery, voltage: voltage};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     multi_zig_sw_switch_buttons: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -376,7 +377,7 @@ const fzLocal = {
             const action = actionLookup[value];
             return {action: button + '_' + action};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     multi_zig_sw_switch_config: {
         cluster: 'genOnOffSwitchCfg',
         type: ['readResponse', 'attributeReport'],
@@ -385,7 +386,7 @@ const fzLocal = {
             const {switchType} = msg.data;
             return {[`switch_type_${channel}`]: getKey(switchTypesList, switchType)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 function ptvoGetMetaOption(device: Zh.Device, key: string, defaultValue: unknown) {
@@ -534,10 +535,31 @@ const definitions: Definition[] = [
             } else {
                 // device configuration description from a device
                 const deviceConfigArray = deviceConfig.split(/[\r\n]+/);
-                let prevEp = -1;
+                const allEndpoints: { [key: number]: string } = {};
+                const allEndpointsSorted = [];
                 for (let i = 0; i < deviceConfigArray.length; i++) {
                     const epConfig = deviceConfigArray[i];
                     const epId = parseInt(epConfig.substr(0, 1), 16);
+                    if (epId <= 0) {
+                        continue;
+                    }
+                    allEndpoints[epId] = epConfig;
+                    allEndpointsSorted.push(epId);
+                }
+
+                for (const endpoint of device.endpoints) {
+                    if (allEndpoints.hasOwnProperty(endpoint.ID)) {
+                        continue;
+                    }
+                    allEndpointsSorted.push(endpoint.ID);
+                    allEndpoints[endpoint.ID] = '';
+                }
+                allEndpointsSorted.sort();
+
+                let prevEp = -1;
+                for (let i = 0; i < allEndpointsSorted.length; i++) {
+                    const epId = allEndpointsSorted[i];
+                    const epConfig = allEndpoints[epId];
                     if (epId <= 0) {
                         continue;
                     }
@@ -545,11 +567,11 @@ const definitions: Definition[] = [
                     const epValueAccessRights = epConfig.substr(1, 1);
                     const epStateType = ((epValueAccessRights === 'W') || (epValueAccessRights === '*'))?
                         ea.STATE_SET: ea.STATE;
-                    let valueConfig = epConfig.substr(2);
-                    valueConfig = valueConfig.split(',');
-                    let valueId = (valueConfig[0])? valueConfig[0]: '';
-                    let valueDescription = (valueConfig[1])? valueConfig[1]: '';
-                    let valueUnit = (valueConfig[2] !== undefined)? valueConfig[2]: '';
+                    const valueConfig = epConfig.substr(2);
+                    const valueConfigItems = (valueConfig)? valueConfig.split(','): [];
+                    let valueId = (valueConfigItems[0])? valueConfigItems[0]: '';
+                    let valueDescription = (valueConfigItems[1])? valueConfigItems[1]: '';
+                    let valueUnit = (valueConfigItems[2] !== undefined)? valueConfigItems[2]: '';
                     const exposeEpOptions: KeyValue = {};
                     if (valueId === '*') {
                         // GPIO output (Generic)
@@ -573,7 +595,7 @@ const definitions: Definition[] = [
                             exposeObj = e.contact();
                         }
                         expose.push(exposeObj.withEndpoint(epName));
-                    } else if (valueConfig) {
+                    } else if (valueConfigItems.length > 0) {
                         let valueName = undefined; // name in Z2M
                         let valueNumIndex = undefined;
                         const idxPos = valueId.search(/(\d+)$/);
@@ -589,7 +611,7 @@ const definitions: Definition[] = [
                         // 1: value name (if empty, use the EP name)
                         // 2: description (if empty or undefined, use the value name)
                         // 3: units (if undefined, use the key name)
-                        const infoLookup: KeyValue = {
+                        const infoLookup: { [key: string]: string } = {
                             'C': 'temperature',
                             '%': 'humidity',
                             'm': 'altitude',
@@ -1113,9 +1135,9 @@ const definitions: Definition[] = [
         vendor: 'Custom devices (DiY)',
         description: '[EFEKTA CO2 Smart Monitor, ws2812b indicator, can control the relay, binding](https://efektalab.com/CO2_Monitor)',
         fromZigbee: [fz.temperature, fz.humidity, fzLocal.co2, fzLocal.co2_config, fzLocal.temperature_config,
-            fzLocal.humidity_config, fzLocal.termostat_config, fzLocal.hydrostat_config, fzLocal.co2_gasstat_config],
+            fzLocal.humidity_config, fzLocal.thermostat_config, fzLocal.hydrostat_config, fzLocal.co2_gasstat_config],
         toZigbee: [tzLocal.co2_config, tzLocal.temperature_config, tzLocal.humidity_config,
-            tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.co2_gasstat_config],
+            tzLocal.thermostat_config, tzLocal.hydrostat_config, tzLocal.co2_gasstat_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msCO2'];
@@ -1164,9 +1186,9 @@ const definitions: Definition[] = [
         model: 'SNZB-02_EFEKTA',
         vendor: 'Custom devices (DiY)',
         description: 'Alternative firmware for the SONOFF SNZB-02 sensor from EfektaLab, DIY',
-        fromZigbee: [fz.SNZB02_temperature, fz.SNZB02_humidity, fz.battery, fzLocal.termostat_config,
+        fromZigbee: [fz.SNZB02_temperature, fz.SNZB02_humidity, fz.battery, fzLocal.thermostat_config,
             fzLocal.hydrostat_config, fzLocal.node_config],
-        toZigbee: [tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
+        toZigbee: [tzLocal.thermostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -1241,6 +1263,73 @@ const definitions: Definition[] = [
             await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
         },
     },
+    {
+        zigbeeModel: ['LYWSD03MMC'],
+        model: 'LYWSD03MMC',
+        vendor: 'Custom devices (DiY)',
+        description: 'Xiaomi temperature & humidity sensor with custom firmware',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.hvac_user_interface],
+        toZigbee: [tz.thermostat_temperature_display_mode],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.temperature(endpoint, {min: 10, max: 300, change: 10});
+            await reporting.humidity(endpoint, {min: 10, max: 300, change: 50});
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [
+            e.temperature(), e.humidity(), e.battery(),
+            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the screen'),
+        ],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['QUAD-ZIG-SW'],
+        model: 'QUAD-ZIG-SW',
+        vendor: 'smarthjemmet.dk',
+        description: '[FUGA compatible switch from Smarthjemmet.dk](https://smarthjemmet.dk)',
+        fromZigbee: [fz.ignore_basic_report, fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
+        toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        exposes: [
+            ...[e.enum('switch_type_1', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_1')],
+            ...[e.enum('switch_type_2', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_2')],
+            ...[e.enum('switch_type_3', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_3')],
+            ...[e.enum('switch_type_4', exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint('button_4')],
+            e.battery(), e.action(['single', 'double', 'triple', 'hold', 'release']), e.battery_voltage(),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {button_1: 2, button_2: 3, button_3: 4, button_4: 5};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
+        },
+    },
+    {
+        zigbeeModel: ['ptvo_counter_2ch'],
+        model: 'ptvo_counter_2ch',
+        vendor: 'Custom devices (DiY)',
+        description: '2 channel counter',
+        fromZigbee: [fz.ignore_basic_report, fz.battery, fz.ptvo_switch_analog_input, fz.on_off],
+        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_analog_input, tz.on_off],
+        exposes: [e.battery(),
+            e.enum('l3', ea.ALL, ['set']).withDescription('Counter value. Write zero or positive value to set a counter value. ' +
+                'Write a negative value to set a wakeup interval in minutes'),
+            e.enum('l5', ea.ALL, ['set']).withDescription('Counter value. Write zero or positive value to set a counter value. ' +
+                'Write a negative value to set a wakeup interval in minutes'),
+            e.switch().withEndpoint('l6'),
+            e.battery_voltage(),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l3: 3, l5: 5, l6: 6};
+        },
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

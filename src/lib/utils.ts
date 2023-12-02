@@ -121,6 +121,13 @@ export function addActionGroup(payload: KeyValue, msg: Fz.Message, definition: D
     }
 }
 
+export function getEndpointName(msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
+    if (!definition.endpoint) {
+        throw new Error(`Definition '${definition.model}' has not endpoint defined`);
+    }
+    return getKey(definition.endpoint(meta.device), msg.endpoint.ID);
+}
+
 export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
@@ -151,8 +158,9 @@ export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta)
     return entity;
 }
 
-export function getKey<T>(object: {[s: string]: T}, value: T, fallback?: T, convertTo?: (v: unknown) => T) {
+export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T, fallback?: T, convertTo?: (v: unknown) => T) {
     for (const key in object) {
+        // @ts-expect-error
         if (object[key]===value) {
             return convertTo ? convertTo(key) : key;
         }
@@ -433,7 +441,7 @@ export function validateValue(value: unknown, allowed: unknown[]) {
 export function normalizeCelsiusVersionOfFahrenheit(value: number) {
     const fahrenheit = (value * 1.8) + 32;
     const roundedFahrenheit = Number((Math.round(Number((fahrenheit * 2).toFixed(1))) / 2).toFixed(1));
-    return ((roundedFahrenheit - 32)/1.8).toFixed(2);
+    return Number(((roundedFahrenheit - 32)/1.8).toFixed(2));
 }
 
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: 'start' | 'stop') {
@@ -496,14 +504,40 @@ export const createLogger = (logger: Logger, vendor: string, key: string) => (le
     logger[level](`zigbee-herdsman-converters:${vendor}:${key}: ${message}`);
 };
 
+// eslint-disable-next-line
+export function assertObject(value: unknown, property?: string): asserts value is {[s: string]: any} {
+    const isObject = typeof value === 'object' && !Array.isArray(value) && value !== null;
+    if (!isObject) {
+        throw new Error(`${property} is not a object, got ${typeof value} (${JSON.stringify(value)})`);
+    }
+}
+
+export function assertArray(value: unknown, property?: string): asserts value is Array<unknown> {
+    property = property ? `'${property}'` : 'Value';
+    if (!Array.isArray(value)) throw new Error(`${property} is not an array, got ${typeof value} (${value.toString()})`);
+}
+
 export function assertString(value: unknown, property?: string): asserts value is string {
     property = property ? `'${property}'` : 'Value';
     if (typeof value !== 'string') throw new Error(`${property} is not a string, got ${typeof value} (${value.toString()})`);
 }
 
+export function isNumber(value: unknown): value is number {
+    return typeof value === 'number';
+}
+
+// eslint-disable-next-line
+export function isObject(value: unknown): value is {[s: string]: any} {
+    return typeof value === 'object' && !Array.isArray(value);
+}
+
+export function isString(value: unknown): value is string {
+    return typeof value === 'string';
+}
+
 export function assertNumber(value: unknown, property?: string): asserts value is number {
     property = property ? `'${property}'` : 'Value';
-    if (typeof value !== 'number') throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
+    if (typeof value !== 'number' || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
 }
 
 export function toNumber(value: unknown, property?: string): number {
@@ -516,19 +550,37 @@ export function toNumber(value: unknown, property?: string): number {
     return result;
 }
 
-export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}): V {
+export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V=undefined): V {
     let result = undefined;
     if (typeof value === 'string') {
         result = lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
     } else if (typeof value === 'number') {
         result = lookup[value];
     }
-    if (result === undefined) throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
-    return result;
+    if (result === undefined && defaultValue === undefined) {
+        throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
+    }
+    return result ?? defaultValue;
+}
+
+export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string=undefined): string {
+    for (const entry of Object.entries(lookup)) {
+        if (entry[1] === value) {
+            return entry[0];
+        }
+    }
+    if (defaultValue === undefined) {
+        throw new Error(`Expected one of: ${Object.values(lookup).join(', ')}, got: '${value}'`);
+    }
+    return defaultValue;
 }
 
 export function assertEndpoint(obj: unknown): asserts obj is Zh.Endpoint {
     if (obj?.constructor?.name?.toLowerCase() !== 'endpoint') throw new Error('Not an endpoint');
+}
+
+export function assertGroup(obj: unknown): asserts obj is Zh.Group {
+    if (obj?.constructor?.name?.toLowerCase() !== 'group') throw new Error('Not a group');
 }
 
 export function isEndpoint(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Endpoint {

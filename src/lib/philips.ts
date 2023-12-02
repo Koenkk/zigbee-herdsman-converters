@@ -169,7 +169,7 @@ const philipsTz = {
             const payload = {data: Buffer.from(scene, 'hex')};
             await entity.command('manuSpecificPhilips2', 'multiColor', payload);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     gradient: (opts = {reverse: false}) => {
         return {
             key: ['gradient'],
@@ -182,7 +182,7 @@ const philipsTz = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificPhilips2', ['state']);
             },
-        } as Tz.Converter;
+        } satisfies Tz.Converter;
     },
     effect: {
         key: ['effect'],
@@ -194,7 +194,7 @@ const philipsTz = {
                 return await tz.effect.convertSet(entity, key, value, meta);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     hue_power_on_behavior: {
         key: ['hue_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -281,7 +281,7 @@ const philipsTz = {
 
             return {state: {hue_power_on_behavior: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     hue_power_on_error: {
         key: ['hue_power_on_brightness', 'hue_power_on_color_temperature', 'hue_power_on_color'],
         convertSet: async (entity, key, value, meta) => {
@@ -289,7 +289,7 @@ const philipsTz = {
                 throw new Error(`Provide a value for 'hue_power_on_behavior'`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     hue_motion_sensitivity: {
         // motion detect sensitivity, philips specific
         key: ['motion_sensitivity'],
@@ -303,7 +303,7 @@ const philipsTz = {
         convertGet: async (entity, key, meta) => {
             await entity.read('msOccupancySensing', [48], manufacturerOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     hue_motion_led_indication: {
         key: ['led_indication'],
         convertSet: async (entity, key, value, meta) => {
@@ -314,7 +314,7 @@ const philipsTz = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genBasic', [0x0033], manufacturerOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 export {philipsTz as tz};
 
@@ -417,8 +417,6 @@ export const philipsFz = {
         convert: (model, msg, publish, options, meta) => {
             const buttonLookup: KeyValue = {1: 'button_1', 2: 'button_2', 3: 'button_3', 4: 'button_4', 20: 'dial'};
             const button = buttonLookup[msg.data['button']];
-            const typeLookup: KeyValue = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
-            const type = typeLookup[msg.data['type']];
             const direction = msg.data['unknown2'] <127 ? 'right' : 'left';
             const time = msg.data['time'];
             const payload: KeyValue = {};
@@ -428,6 +426,13 @@ export const philipsFz = {
                 const dialType = 'rotate';
                 const speed = adjustedTime <= 25 ? 'step' : adjustedTime <= 75 ? 'slow' : 'fast';
                 payload.action = `${button}_${dialType}_${direction}_${speed}`;
+
+                // extra raw info about dial turning
+                const typeLookup: KeyValue = {1: 'step', 2: 'rotate'};
+                const type = typeLookup[msg.data['type']];
+                payload.action_time = adjustedTime;
+                payload.action_direction = direction;
+                payload.action_type = type;
 
                 // simulated brightness
                 if (options.simulated_brightness) {
@@ -440,6 +445,8 @@ export const philipsFz = {
                     globalStore.putValue(msg.endpoint, 'brightness', payload.brightness);
                 }
             } else {
+                const typeLookup: KeyValue = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
+                const type = typeLookup[msg.data['type']];
                 payload.action = `${button}_${type}`;
                 // duration
                 if (type === 'press') globalStore.putValue(msg.endpoint, 'press_start', Date.now());
@@ -449,7 +456,7 @@ export const philipsFz = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     gradient: (opts = {reverse: false}) => {
         return {
             cluster: 'manuSpecificPhilips2',
@@ -464,7 +471,7 @@ export const philipsFz = {
                 }
                 return {};
             },
-        } as Fz.Converter;
+        } satisfies Fz.Converter;
     },
 };
 

@@ -102,12 +102,6 @@ const valueConverterLocal = {
             return result;
         },
     },
-    wateringResetFrostLock: {
-        to: (value: number) => {
-            utils.validateValue(value, ['RESET']);
-            return 0;
-        },
-    },
     wateringScheduleMode: {
         from: (value: number[]) => {
             const [scheduleMode, scheduleValue] = value;
@@ -221,10 +215,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_j1v25l17'}, // EU
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ynmowqk2'}, // FR
-        ],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_j1v25l17', '_TZ3000_ynmowqk2', '_TZ3000_3uimvkn6']),
         model: 'HG08673',
         vendor: 'Lidl',
         description: 'Silvercrest smart plug with power monitoring (EU, FR)',
@@ -244,6 +235,9 @@ const definitions: Definition[] = [
         },
         options: [exposes.options.measurement_poll_interval().withDescription('Only the energy value is polled for this device.')],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, false, true),
+        whiteLabel: [
+            tuya.whitelabel('Lidl', 'HG08673-BS', 'Silvercrest smart plug with power monitoring (BS)', ['_TZ3000_3uimvkn6']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_rco1yzb1'}],
@@ -463,7 +457,7 @@ const definitions: Definition[] = [
                 [11, 'battery', tuya.valueConverter.raw],
                 [108, 'frost_lock', tuya.valueConverter.onOff],
                 // there is no state reporting for reset
-                [109, 'reset_frost_lock', valueConverterLocal.wateringResetFrostLock, {optimistic: false}],
+                [109, 'reset_frost_lock', tuya.valueConverterBasic.lookup({'RESET': tuya.enum(0)}), {optimistic: false}],
                 [107, null, valueConverterLocal.wateringScheduleMode],
                 [107, 'schedule_periodic', valueConverterLocal.wateringSchedulePeriodic],
                 [107, 'schedule_weekday', valueConverterLocal.wateringScheduleWeekday],
@@ -567,4 +561,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

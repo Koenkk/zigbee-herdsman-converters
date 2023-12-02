@@ -19,6 +19,23 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['DimmerSwitch_v1.0'],
+        model: '14595.0',
+        vendor: 'Vimar',
+        description: 'IoT connected dimmer mechanism 220-240V',
+        extend: extend.light_onoff_brightness({noConfigure: true, disablePowerOnBehavior: true}),
+        endpoint: (device) => {
+            return {default: 11};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(11);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['2_Way_Switch_v1.0', 'On_Off_Switch_v1.0'],
         model: '14592.0',
         vendor: 'Vimar',
@@ -37,6 +54,12 @@ const definitions: Definition[] = [
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(10);
+            const binds = ['closuresWindowCovering'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
     },
     {
         zigbeeModel: ['Window_Cov_Module_v1.0'],
@@ -61,7 +84,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['Thermostat_v0.1'],
+        zigbeeModel: ['Thermostat_v0.1', 'WheelThermostat_v1.0'],
         model: '02973.B',
         vendor: 'Vimar',
         description: 'Vimar IoT thermostat',
@@ -87,4 +110,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

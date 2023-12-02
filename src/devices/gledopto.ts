@@ -1,4 +1,4 @@
-import {Configure, Definition, KeyValue, OnEventType, Zh, Extend} from '../lib/types';
+import {Configure, Definition, KeyValue, OnEventType, Zh, Extend, Tz} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as globalStore from '../lib/store';
 import * as ota from '../lib/ota';
@@ -6,7 +6,110 @@ import extend from '../lib/extend';
 import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import tz from '../converters/toZigbee';
+import * as libColor from '../lib/color';
 const e = exposes.presets;
+
+const tzLocal1 = {
+    gledopto_light_onoff_brightness: {
+        key: ['state', 'brightness', 'brightness_percent'],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.isNumber(meta.message?.transition)) {
+                meta.message.transition = meta.message.transition * 3.3;
+            }
+
+            if (meta.mapped.model === 'GL-S-007ZS' || meta.mapped.model === 'GL-C-009') {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/2757
+                // Device doesn't support ON with moveToLevelWithOnOff command
+                if (typeof meta.message.state === 'string' && meta.message.state.toLowerCase() === 'on') {
+                    await tz.on_off.convertSet(entity, key, 'ON', meta);
+                    await utils.sleep(1000);
+                }
+            }
+
+            return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            return await tz.light_onoff_brightness.convertGet(entity, key, meta);
+        },
+    } satisfies Tz.Converter,
+    gledopto_light_colortemp: {
+        key: ['color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.isNumber(meta.message?.transition)) {
+                meta.message.transition = meta.message.transition * 3.3;
+            }
+
+            // Gledopto devices turn ON when they are OFF and color is set.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/3509
+            const state = {state: 'ON'};
+
+            const result = await tz.light_colortemp.convertSet(entity, key, value, meta);
+            if (result) {
+                result.state = {...result.state, ...state};
+            }
+            return result;
+        },
+        convertGet: async (entity, key, meta) => {
+            return await tz.light_colortemp.convertGet(entity, key, meta);
+        },
+    } satisfies Tz.Converter,
+    gledopto_light_color: {
+        key: ['color'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (utils.isNumber(meta.message?.transition)) {
+                meta.message.transition = meta.message.transition * 3.3;
+            }
+
+            if (key === 'color' && !meta.message.transition) {
+                // Always provide a transition when setting color, otherwise CCT to RGB
+                // doesn't work properly (CCT leds stay on).
+                meta.message.transition = 0.4;
+            }
+
+            // Gledopto devices turn ON when they are OFF and color is set.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/3509
+            const state = {state: 'ON'};
+            const result = await tz.light_color.convertSet(entity, key, value, meta);
+            if (result) {
+                result.state = {...result.state, ...state};
+            }
+            return result;
+        },
+        convertGet: async (entity, key, meta) => {
+            return await tz.light_color.convertGet(entity, key, meta);
+        },
+    } satisfies Tz.Converter,
+};
+
+const tzLocal = {
+    ...tzLocal1,
+    gledopto_light_color_colortemp: {
+        key: ['color', 'color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (key == 'color') {
+                const result = await tzLocal1.gledopto_light_color.convertSet(entity, key, value, meta);
+                utils.assertObject(result);
+                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
+                    result.state.color_temp = Math.round(libColor.ColorXY.fromObject(result.state.color).toMireds());
+                }
+
+                return result;
+            } else if (key == 'color_temp' || key == 'color_temp_percent') {
+                const result = await tzLocal1.gledopto_light_colortemp.convertSet(entity, key, value, meta);
+                utils.assertObject(result);
+                result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).rounded(4).toObject();
+                return result;
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            return await tz.light_color_colortemp.convertGet(entity, key, meta);
+        },
+    } satisfies Tz.Converter,
+};
 
 const gledoptoExtend = {
     light_onoff_brightness: (options: Extend.options_light_onoff_brightness={}) => ({
@@ -14,7 +117,7 @@ const gledoptoExtend = {
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness(options).toZigbee,
             [tz.light_onoff_brightness],
-            [tz.gledopto_light_onoff_brightness],
+            [tzLocal.gledopto_light_onoff_brightness],
         ),
     }),
     light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp={}) => ({
@@ -22,7 +125,7 @@ const gledoptoExtend = {
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_colortemp(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_colortemp],
-            [tz.gledopto_light_onoff_brightness, tz.gledopto_light_colortemp],
+            [tzLocal.gledopto_light_onoff_brightness, tzLocal.gledopto_light_colortemp],
         ),
     }),
     light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color={}) => ({
@@ -30,7 +133,7 @@ const gledoptoExtend = {
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_color(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_color],
-            [tz.gledopto_light_onoff_brightness, tz.gledopto_light_color],
+            [tzLocal.gledopto_light_onoff_brightness, tzLocal.gledopto_light_color],
         ),
     }),
     light_onoff_brightness_colortemp_color: (options: Extend.options_light_onoff_brightness_colortemp_color={}) => ({
@@ -38,7 +141,7 @@ const gledoptoExtend = {
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_colortemp_color(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_color_colortemp],
-            [tz.gledopto_light_onoff_brightness, tz.gledopto_light_color_colortemp],
+            [tzLocal.gledopto_light_onoff_brightness, tzLocal.gledopto_light_color_colortemp],
         ),
     }),
     switch: (options: Extend.options_switch={}) => ({
@@ -81,6 +184,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         description: 'Zigbee DIN Rail triac AC dimmer',
         extend: extend.light_onoff_brightness(),
+        meta: {disableDefaultResponse: true},
     },
     {
         fingerprint: [
@@ -358,6 +462,13 @@ const definitions: Definition[] = [
         description: 'Zigbee GU10 LED lamp',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
         meta: {turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['GL-S-014P'],
+        model: 'GL-S-014P',
+        vendor: 'Gledopto',
+        description: 'Zigbee 5W MR16 bulb RGB+CCT (pro)',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 500]}),
     },
     {
         zigbeeModel: ['GL-MC-001P'],
@@ -806,4 +917,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

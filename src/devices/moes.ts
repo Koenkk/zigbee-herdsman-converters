@@ -103,7 +103,8 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_aoclfnxz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_u9bfwha0'}],
         model: 'BHT-002-GCLZB',
         vendor: 'Moes',
         description: 'Moes BHT series Thermostat',
@@ -116,7 +117,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Moes', 'BHT-002/BHT-006', 'Smart heating thermostat', ['_TZE204_aoclfnxz']),
         ],
         exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(), e.min_temperature_limit(),
-            e.climate().withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
+            e.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
                 .withPreset(['hold', 'program']),
@@ -282,7 +283,8 @@ const definitions: Definition[] = [
         model: 'BRT-100-TRV',
         vendor: 'Moes',
         description: 'Thermostatic radiator valve',
-        ota: ota.zigbeeOTA,
+        // ota: ota.zigbeeOTA,
+        // OTA available but bricks device https://github.com/Koenkk/zigbee2mqtt/issues/18840
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, legacy.fz.moesS_thermostat],
         toZigbee: [legacy.tz.moesS_thermostat_current_heating_setpoint, legacy.tz.moesS_thermostat_child_lock,
@@ -379,6 +381,50 @@ const definitions: Definition[] = [
             device.save();
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rjxqso4a'}],
+        model: 'ZC-HM',
+        vendor: 'Moes',
+        description: 'Carbon monoxide alarm',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.carbon_monoxide(), e.co(), tuya.exposes.selfTestResult(), e.battery(), tuya.exposes.silence()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'carbon_monoxide', tuya.valueConverter.trueFalse0],
+                [2, 'co', tuya.valueConverter.raw],
+                [9, 'self_test_result', tuya.valueConverter.selfTestResult],
+                [15, 'battery', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_vawy74yh'}],
+        model: 'ZSS-HM-SSD01',
+        vendor: 'Moes',
+        description: 'Smoke sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.smoke(), e.battery(), tuya.exposes.batteryState(),
+            e.binary('silence', ea.STATE_SET, 'ON', 'OFF'),
+            e.enum('self_test', ea.STATE, ['checking', 'check_success', 'check_failure']),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'smoke', tuya.valueConverter.trueFalse0],
+                [9, 'self_test', tuya.valueConverterBasic.lookup({'checking': 0, 'check_success': 1, 'check_failure': 2})],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
+                [15, 'battery', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.onOff],
+            ],
+        },
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

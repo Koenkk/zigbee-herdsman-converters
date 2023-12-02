@@ -4,7 +4,9 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {binary, numeric} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue} from '../lib/types';
+
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
@@ -19,7 +21,7 @@ const fzLocal = {
                 result.light_indicator_level = msg.data['currentLevel'];
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -93,11 +95,13 @@ const definitions: Definition[] = [
         fingerprint: [
             // ModelID is from the temperature/humidity sensor (SNZB-02) but this is SNZB-04, wrong modelID in firmware?
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'TH01', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
-            ]},
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'TH01', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
+                ],
+            },
         ],
-        zigbeeModel: ['DS01'],
+        zigbeeModel: ['DS01', 'SNZB-04'],
         model: 'SNZB-04',
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK06'}],
@@ -132,15 +136,21 @@ const definitions: Definition[] = [
         fingerprint: [
             // ModelID is from the button (SNZB-01) but this is SNZB-02, wrong modelID in firmware?
             // https://github.com/Koenkk/zigbee2mqtt/issues/4338
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'WB01', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
-            ]},
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
-            ]},
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'DS01', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
-            ]},
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'WB01', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
+                ],
+            },
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
+                ],
+            },
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'DS01', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1026, 1029, 1], outputClusters: [3]},
+                ],
+            },
         ],
         zigbeeModel: ['TH01'],
         model: 'SNZB-02',
@@ -185,9 +195,17 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
-            ]},
+            {
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: '66666', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
+                ],
+            },
+            {
+                // SNZB-O3 OUVOPO Wireless Motion Sensor (2023)
+                type: 'EndDevice', manufacturerName: 'eWeLink', modelID: 'SNZB-03', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1280, 1], outputClusters: [3]},
+                ],
+            },
         ],
         zigbeeModel: ['MS01', 'MSO1'],
         model: 'SNZB-03',
@@ -270,6 +288,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.action(['single', 'double', 'long']), e.battery_low(), e.battery_voltage()],
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
@@ -285,6 +304,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_low(), e.battery_voltage()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
                 const endpoint = device.getEndpoint(1);
@@ -292,7 +312,6 @@ const definitions: Definition[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
                 await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
                 await reporting.humidity(endpoint);
-                await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
                 await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
                 logger.error(`Configure failed: ${e}`);
@@ -307,6 +326,23 @@ const definitions: Definition[] = [
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+        },
+    },
+    {
+        zigbeeModel: ['SNZB-03P'],
+        model: 'SNZB-03P',
+        vendor: 'SONOFF',
+        description: 'Zigbee PIR sensor',
+        fromZigbee: [fz.occupancy],
+        toZigbee: [],
+        ota: ota.zigbeeOTA,
+        exposes: [e.occupancy(), e.battery_low(), e.battery()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -321,31 +357,114 @@ const definitions: Definition[] = [
         description: 'Zigbee occupancy sensor',
         fromZigbee: [fz.occupancy],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.occupancy()],
     },
     {
         zigbeeModel: ['TRVZB'],
         model: 'TRVZB',
         vendor: 'SONOFF',
-        description: 'Zigbee thermostat',
+        description: 'Zigbee thermostatic radiator valve',
         exposes: [
             e.climate()
                 .withSetpoint('occupied_heating_setpoint', 4, 35, 0.5)
                 .withLocalTemperature()
+                .withLocalTemperatureCalibration(-7.0, 7.0, 0.2)
                 .withSystemMode(['off', 'auto', 'heat'], ea.ALL, 'Mode of the thermostat')
-                .withRunningState(['idle', 'heat'], ea.STATE_GET), e.battery(), e.battery_low()],
-        fromZigbee: [fz.thermostat, fz.battery],
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
+            e.battery(),
+            e.battery_low(),
+        ],
+        fromZigbee: [
+            fz.thermostat,
+            fz.battery,
+        ],
         toZigbee: [
-            tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode, tz.thermostat_running_state],
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+        ],
+        extend: [
+            binary({
+                name: 'child_lock',
+                cluster: 0xFC11,
+                attribute: {id: 0x0000, type: 0x10},
+                description: 'Enables/disables physical input on the device',
+                valueOn: ['LOCK', 0x01],
+                valueOff: ['UNLOCK', 0x00],
+            }),
+            binary({
+                name: 'open_window',
+                cluster: 0xFC11,
+                attribute: {id: 0x6000, type: 0x10},
+                description: 'Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.',
+                valueOn: ['ON', 0x01],
+                valueOff: ['OFF', 0x00],
+            }),
+            numeric({
+                name: 'frost_protection_temperature',
+                cluster: 0xFC11,
+                attribute: {id: 0x6002, type: 0x29},
+                description: 'Minimum temperature at which to automatically turn on the radiator, ' +
+                    'if system mode is off, to prevent pipes freezing.',
+                valueMin: 4.0,
+                valueMax: 35.0,
+                valueStep: 0.5,
+                unit: '°C',
+                scale: 100,
+            }),
+            numeric({
+                name: 'idle_steps',
+                cluster: 0xFC11,
+                attribute: {id: 0x6003, type: 0x21},
+                description: 'Number of steps used for calibration (no-load steps)',
+                readOnly: true,
+            }),
+            numeric({
+                name: 'closing_steps',
+                cluster: 0xFC11,
+                attribute: {id: 0x6004, type: 0x21},
+                description: 'Number of steps it takes to close the valve',
+                readOnly: true,
+            }),
+            numeric({
+                name: 'valve_opening_limit_voltage',
+                cluster: 0xFC11,
+                attribute: {id: 0x6005, type: 0x21},
+                description: 'Valve opening limit voltage',
+                unit: 'mV',
+                readOnly: true,
+            }),
+            numeric({
+                name: 'valve_closing_limit_voltage',
+                cluster: 0xFC11,
+                attribute: {id: 0x6006, type: 0x21},
+                description: 'Valve closing limit voltage',
+                unit: 'mV',
+                readOnly: true,
+            }),
+            numeric({
+                name: 'valve_motor_running_voltage',
+                cluster: 0xFC11,
+                attribute: {id: 0x6007, type: 0x21},
+                description: 'Valve motor running voltage',
+                unit: 'mV',
+                readOnly: true,
+            }),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
+            await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
+            await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007]);
         },
     },
 ];
 
+export default definitions;
 module.exports = definitions;

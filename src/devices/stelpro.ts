@@ -16,7 +16,7 @@ const fzLocal = {
                 return {power: msg.data['16392']};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     energy: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -25,7 +25,7 @@ const fzLocal = {
                 return {energy: parseFloat(msg.data['16393']) / 1000};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -217,4 +217,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

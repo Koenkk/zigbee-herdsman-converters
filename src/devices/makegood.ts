@@ -19,14 +19,14 @@ const fzLocal = {
                 return {[`state_${endpointName}`]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_dd8wwzcy'}],
         model: 'MG-AUZG01',
-        vendor: 'Makegood',
+        vendor: 'MakeGood',
         description: 'Double Zigbee power point',
         fromZigbee: [fzLocal.MGAUZG01_on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
@@ -51,4 +51,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

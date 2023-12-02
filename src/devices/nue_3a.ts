@@ -22,7 +22,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     LXN59_cover_state_via_onoff: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -31,7 +31,7 @@ const fzLocal = {
                 return {state: msg.data['onOff'] === 1 ? 'CLOSE' : 'OPEN'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -93,7 +93,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.ignore_power_report],
     },
     {
-        zigbeeModel: ['FB56+ZSN08KJ2.3'],
+        zigbeeModel: ['FB56+ZSN08KJ2.3', 'FEB56-ZSN26YS1.3'],
         model: 'HGZB-045',
         vendor: 'Nue / 3A',
         description: 'Smart 4 key scene wall switch',
@@ -419,4 +419,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

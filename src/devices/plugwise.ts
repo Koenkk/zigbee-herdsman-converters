@@ -47,7 +47,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -58,7 +58,7 @@ const tzLocal = {
                 {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
             return {state: {'calibrate_valve': value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     plugwise_valve_position: {
         key: ['plugwise_valve_position', 'valve_position'],
         convertSet: async (entity, key, value, meta) => {
@@ -70,7 +70,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4001], manufacturerOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     plugwise_push_force: {
         key: ['plugwise_push_force', 'force'],
         convertSet: async (entity, key, value, meta) => {
@@ -81,7 +81,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4012], manufacturerOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     plugwise_radio_strength: {
         key: ['plugwise_radio_strength', 'radio_strength'],
         convertSet: async (entity, key, value, meta) => {
@@ -92,7 +92,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4014], manufacturerOptions);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -173,4 +173,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

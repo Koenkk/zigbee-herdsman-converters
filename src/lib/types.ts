@@ -5,6 +5,9 @@ import type {
     Endpoint as ZHEndpoint,
     Group as ZHGroup,
 } from 'zigbee-herdsman/dist/controller/model';
+import type {
+    ZclHeader as ZHZclHeader,
+} from 'zigbee-herdsman/dist/zcl';
 
 import * as exposes from './exposes';
 
@@ -29,8 +32,9 @@ export type Expose = exposes.Numeric | exposes.Binary | exposes.Enum | exposes.C
     exposes.Lock | exposes.Cover | exposes.Climate | exposes.Text;
 export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum | exposes.List | exposes.Text;
 export interface Fingerprint {
-    modelID?: string, manufacturerName?: string, type?: 'EndDevice' | 'Router', manufacturerID?: number, applicationVersion?: number,
-    powerSource?: 'Battery' | 'Mains (single phase)', softwareBuildID?: string, ieeeAddr?: RegExp,
+    applicationVersion?: number, manufacturerID?: number, type?: 'EndDevice' | 'Router', dateCode?: string,
+    hardwareVersion?: number, manufacturerName?: string, modelID?: string, powerSource?: 'Battery' | 'Mains (single phase)',
+    softwareBuildID?: string, stackVersion?: number, zclVersion?: number, ieeeAddr?: RegExp,
     endpoints?: {ID?: number, profileID?: number, deviceID?: number, inputClusters?: number[], outputClusters?: number[]}[],
 }
 export type WhiteLabel =
@@ -71,14 +75,39 @@ export interface DefinitionMeta {
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => Promise<void>;
 export type OnEvent = (type: OnEventType, data: OnEventData, device: Zh.Device, settings: KeyValue, state: KeyValue) => Promise<void>;
-export interface Extend {fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[], exposes: Expose[], configure?: Configure, meta?: DefinitionMeta}
+export interface Extend {
+    fromZigbee: Fz.Converter[],
+    toZigbee: Tz.Converter[],
+    exposes: Expose[],
+    configure?: Configure,
+    meta?: DefinitionMeta,
+    ota?: DefinitionOta,
+    onEvent?: OnEvent,
+    isModernExtend?: false,
+}
+
+export interface ModernExtend {
+    fromZigbee?: Fz.Converter[],
+    toZigbee?: Tz.Converter[],
+    exposes?: Expose[],
+    configure?: Configure,
+    meta?: DefinitionMeta,
+    ota?: DefinitionOta,
+    onEvent?: OnEvent,
+    isModernExtend: true,
+}
 
 export interface OnEventData {
     endpoint?: Zh.Endpoint,
-    meta?: {zclTransactionSequenceNumber?: number},
+    meta?: {zclTransactionSequenceNumber?: number, manufacturerCode?: number},
     cluster?: string,
     type?: string,
     data?: KeyValueAny,
+}
+
+export type DefinitionOta = {
+    isUpdateAvailable: (device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo) => Promise<OtaUpdateAvailableResult>;
+    updateToLatest: (device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) => Promise<number>;
 }
 
 export type Definition = {
@@ -91,12 +120,10 @@ export type Definition = {
     options?: Option[],
     meta?: DefinitionMeta,
     onEvent?: OnEvent,
-    ota?: {
-        isUpdateAvailable: (device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo) => Promise<OtaUpdateAvailableResult>;
-        updateToLatest: (device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) => Promise<number>;
-    }
+    ota?: DefinitionOta,
 } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
-    & ({ extend: Extend } |
+    & ({ extend: Extend | ModernExtend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
+        exposes?: (Expose[] | ((device: Zh.Device, options: KeyValue) => Expose[])) } |
     { fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[], exposes: (Expose[] | ((device: Zh.Device, options: KeyValue) => Expose[])) });
 
 export namespace Fz {
@@ -124,6 +151,7 @@ export namespace Tz {
         options: KeyValue,
         state: KeyValue,
         endpoint_name: string,
+        membersState?: KeyValue[],
     }
     export interface Converter {
         key: string[],
@@ -138,13 +166,14 @@ export namespace Zh {
     export type Endpoint = ZHEndpoint;
     export type Device = ZHDevice;
     export type Group = ZHGroup;
+    export type ZclHeader = ZHZclHeader;
 }
 
 export namespace Tuya {
     export interface DpValue {dp: number, datatype: number, data: Buffer | number[]}
     export interface ValueConverterSingle {
         to?: (value: unknown, meta?: Tz.Meta) => unknown,
-        from?: (value: unknown, meta?: Fz.Meta, options?: KeyValue, publish?: Publish) => number|string|boolean|KeyValue,
+        from?: (value: unknown, meta?: Fz.Meta, options?: KeyValue, publish?: Publish) => number|string|boolean|KeyValue|null,
     }
     export interface ValueConverterMulti {
         to?: (value: unknown, meta?: Tz.Meta) => unknown,

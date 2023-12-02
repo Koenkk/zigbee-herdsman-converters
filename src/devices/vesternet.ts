@@ -8,14 +8,15 @@ const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
-        fingerprint: [{modelID: 'HK-SL-DIM-A', softwareBuildID: '2.5.3_r52'}],
+        fingerprint: [{modelID: 'HK-SL-DIM-A', softwareBuildID: '2.5.3_r52'}, {modelID: 'HK-SL-DIM-A', softwareBuildID: '2.9.2_r54'}],
         model: 'VES-ZB-DIM-004',
         vendor: 'Vesternet',
         description: 'Zigbee dimmer',
         fromZigbee: extend.light_onoff_brightness().fromZigbee
             .concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
         toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.power_on_behavior]),
-        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
+        exposes: [e.light_brightness().withLevelConfig(['on_transition_time', 'off_transition_time']),
+            e.power(), e.voltage(), e.current(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9040A'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -68,7 +69,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'ZGRC-KEY-013', softwareBuildID: '2.5.3_r20'}],
+        fingerprint: [{modelID: 'ZGRC-KEY-013', softwareBuildID: '2.5.3_r20'}, {modelID: 'ZGRC-KEY-013', softwareBuildID: '2.7.6_r25'}],
         model: 'VES-ZB-REM-013',
         vendor: 'Vesternet',
         description: 'Zigbee remote control - 12 button',
@@ -87,7 +88,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'HK-SL-RELAY-A', softwareBuildID: '2.5.3_r47'}],
+        fingerprint: [{modelID: 'HK-SL-RELAY-A', softwareBuildID: '2.5.3_r47'}, {modelID: 'HK-SL-RELAY-A', softwareBuildID: '2.9.2_r54'}],
         model: 'VES-ZB-SWI-005',
         vendor: 'Vesternet',
         description: 'Zigbee switch',
@@ -102,7 +103,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.5.3_r2'}],
+        fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.5.3_r2'}, {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r3'}],
         model: 'VES-ZB-SWI-015',
         vendor: 'Vesternet',
         description: 'Zigbee 2 channel switch',
@@ -131,7 +132,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'ZG2833K2_EU07', softwareBuildID: '2.5.3_r20'}],
+        fingerprint: [{modelID: 'ZG2833K2_EU07', softwareBuildID: '2.5.3_r20'}, {modelID: 'ZG2833K2_EU07', softwareBuildID: '2.7.6_r25'}],
         model: 'VES-ZB-WAL-006',
         vendor: 'Vesternet',
         description: 'Zigbee wall controller - 2 button',
@@ -147,7 +148,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'ZG2833K4_EU06', softwareBuildID: '2.5.3_r20'}],
+        fingerprint: [{modelID: 'ZG2833K4_EU06', softwareBuildID: '2.5.3_r20'}, {modelID: 'ZG2833K4_EU06', softwareBuildID: '2.7.6_r25'}],
         model: 'VES-ZB-WAL-011',
         vendor: 'Vesternet',
         description: 'Zigbee wall controller - 4 button',
@@ -165,7 +166,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'ZG2833K8_EU05', softwareBuildID: '2.5.3_r20'}],
+        fingerprint: [{modelID: 'ZG2833K8_EU05', softwareBuildID: '2.5.3_r20'}, {modelID: 'ZG2833K8_EU05', softwareBuildID: '2.7.6_r25'}],
         model: 'VES-ZB-WAL-012',
         vendor: 'Vesternet',
         description: 'Zigbee wall controller - 8 button',
@@ -188,4 +189,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;
