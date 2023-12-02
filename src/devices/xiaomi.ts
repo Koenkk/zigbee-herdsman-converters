@@ -1592,6 +1592,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
+            device.powerSource = 'Mains (single phase)';
             device.save();
         },
     },
