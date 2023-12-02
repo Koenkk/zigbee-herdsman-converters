@@ -103,35 +103,6 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.5.3_r2'}, {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r3'}],
-        model: 'VES-ZB-SWI-015',
-        vendor: 'Vesternet',
-        description: 'Zigbee 2 channel switch',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power(), e.current(),
-            e.voltage(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
-        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9101SAC-HP-SWITCH-2CH'}],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            await reporting.onOff(endpoint2);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint1);
-            await reporting.activePower(endpoint1);
-            await reporting.rmsCurrent(endpoint1, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint1, {min: 10});
-            await reporting.readMeteringMultiplierDivisor(endpoint1);
-            await reporting.currentSummDelivered(endpoint1);
-        },
-    },
-    {
         fingerprint: [{modelID: 'ZG2833K2_EU07', softwareBuildID: '2.5.3_r20'}, {modelID: 'ZG2833K2_EU07', softwareBuildID: '2.7.6_r25'}],
         model: 'VES-ZB-WAL-006',
         vendor: 'Vesternet',

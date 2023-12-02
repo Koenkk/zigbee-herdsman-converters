@@ -89,7 +89,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r54'}],
+        fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.5.3_r2'}, {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r3'},
+                    {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r54'}],
         model: 'SR-ZG9101SAC-HP-SWITCH-2CH',
         vendor: 'Sunricher',
         description: 'Zigbee 2 channel switch',
