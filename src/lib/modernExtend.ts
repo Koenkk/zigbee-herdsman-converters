@@ -1,7 +1,7 @@
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import {Fz, Tz, ModernExtend, Range, Zh, Logger} from './types';
-import {Enum, Numeric, access, Light, Binary, presets as e, access as ea} from './exposes';
+import {presets as e, access as ea} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
 import {configure as lightConfigure} from './light';
 import {ConfigureReportingItem} from 'zigbee-herdsman/dist/controller/model/endpoint';
@@ -43,8 +43,8 @@ async function setupAttributes(
     }
 }
 
-export interface SwitchArgs {powerOnBehavior?: boolean}
-function switch_(args?: SwitchArgs): ModernExtend {
+export interface OnOffArgs {powerOnBehavior?: boolean}
+export function onOff(args?: OnOffArgs): ModernExtend {
     args = {powerOnBehavior: true, ...args};
 
     const exposes: Expose[] = [e.switch()];
@@ -66,17 +66,16 @@ function switch_(args?: SwitchArgs): ModernExtend {
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
-export {switch_ as switch};
 
 type MultiplierDivisor = {multiplier?: number, divisor?: number}
-interface ElectricalMeasurementArgs {
+interface ElectricityMeterArgs {
     cluster?: 'both' | 'metering' | 'electrical',
     current?: MultiplierDivisor,
     power?: MultiplierDivisor,
     voltage?: MultiplierDivisor,
     energy?: MultiplierDivisor
 }
-export function electricalMeasurements(args?: ElectricalMeasurementArgs): ModernExtend {
+export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     args = {cluster: 'both', ...args};
     if (args.cluster === 'metering' && (args.power?.divisor !== args.energy?.divisor || args.power?.multiplier !== args.energy?.multiplier)) {
         throw new Error(`When cluster is metering, power and energy divisor/multiplier should be equal`);
@@ -160,16 +159,16 @@ export function electricalMeasurements(args?: ElectricalMeasurementArgs): Modern
 
 export interface LightArgs {
     effect?: boolean, powerOnBehaviour?: boolean, colorTemp?: {startup?: boolean, range: Range},
-    color?: boolean | {modes: ('xy' | 'hs')[]}
+    color?: boolean | {modes: ('xy' | 'hs')[]}, turnsOffAtBrightness1?: boolean,
 }
 export function light(args?: LightArgs): ModernExtend {
-    args = {effect: true, powerOnBehaviour: true, ...args};
+    args = {effect: true, powerOnBehaviour: true, turnsOffAtBrightness1: false, ...args};
     if (args.colorTemp) {
         args.colorTemp = {startup: true, ...args.colorTemp};
     }
-    const argsColor = args.color ? false : {modes: ['xy'] satisfies ('xy' | 'hs')[], ...(isObject(args.color) ? args.color : {})};
+    const argsColor = args.color ? {modes: ['xy'] satisfies ('xy' | 'hs')[], ...(isObject(args.color) ? args.color : {})} : false;
 
-    let lightExpose = new Light().withBrightness();
+    let lightExpose = e.light().withBrightness();
 
     const fromZigbee: Fz.Converter[] = [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
     const toZigbee: Tz.Converter[] = [
@@ -212,11 +211,15 @@ export function light(args?: LightArgs): ModernExtend {
         toZigbee.push(tz.power_on_behavior);
     }
 
+    if (args.turnsOffAtBrightness1) {
+        meta.turnsOffAtBrightness1 = true;
+    }
+
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
         await lightConfigure(device, coordinatorEndpoint, logger, true);
     };
 
-    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, meta, isModernExtend: true};
 }
 
 export interface EnumLookupArgs {
@@ -227,7 +230,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
     const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpoint, readOnly} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
 
-    let expose = new Enum(name, readOnly ? access.STATE_GET : access.ALL, Object.keys(lookup)).withDescription(description);
+    let expose = e.enum(name, readOnly ? ea.STATE_GET : ea.ALL, Object.keys(lookup)).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
 
     const fromZigbee: Fz.Converter[] = [{
@@ -265,7 +268,7 @@ export function numeric(args: NumericArgs): ModernExtend {
     const {name, cluster, attribute, description, zigbeeCommandOptions, unit, readOnly, valueMax, valueMin, valueStep, endpoint, scale} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
 
-    let expose = new Numeric(name, readOnly ? access.STATE_GET : access.ALL).withDescription(description);
+    let expose = e.numeric(name, readOnly ? ea.STATE_GET : ea.ALL).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
     if (unit) expose = expose.withUnit(unit);
     if (valueMin !== undefined) expose = expose.withValueMin(valueMin);
@@ -311,7 +314,7 @@ export function binary(args: BinaryArgs): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, readOnly, endpoint} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
 
-    let expose = new Binary(name, readOnly ? access.STATE_GET : access.ALL, valueOn[0], valueOff[0]).withDescription(description);
+    let expose = e.binary(name, readOnly ? ea.STATE_GET : ea.ALL, valueOn[0], valueOff[0]).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
 
     const fromZigbee: Fz.Converter[] = [{
@@ -347,7 +350,7 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     const {lookup, attribute, cluster} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
 
-    const expose = new Enum('action', access.STATE, Object.keys(lookup)).withDescription('Triggered action (e.g. a button click)');
+    const expose = e.enum('action', ea.STATE, Object.keys(lookup)).withDescription('Triggered action (e.g. a button click)');
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
