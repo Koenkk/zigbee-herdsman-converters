@@ -1,12 +1,11 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 import * as ota from '../lib/ota';
-import {light} from '../lib/modernExtend';
+import {light, onOff, electricityMeter} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -547,113 +546,58 @@ const definitions: Definition[] = [
         model: 'SP 120',
         vendor: 'Innr',
         description: 'Smart plug',
-        fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
-        toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            // Gives UNSUPPORTED_ATTRIBUTE on reporting.readEletricalMeasurementMultiplierDivisors.
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acCurrentDivisor: 1000,
-                acCurrentMultiplier: 1,
-            });
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            // Gives UNSUPPORTED_ATTRIBUTE on reporting.readMeteringMultiplierDivisor.
-            endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 100});
-            await reporting.currentSummDelivered(endpoint);
-        },
-        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy()],
+        extend: [
+            onOff({powerOnBehavior: false}),
+            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
+        ],
     },
     {
         zigbeeModel: ['SP 110'],
         model: 'SP 110',
         vendor: 'Innr',
         description: 'Smart plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['SP 220'],
         model: 'SP 220',
         vendor: 'Innr',
         description: 'Smart plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['SP 222'],
         model: 'SP 222',
         vendor: 'Innr',
         description: 'Smart plug',
-        extend: extend.switch(),
+        extend: [onOff()],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
     },
     {
         zigbeeModel: ['SP 224'],
         model: 'SP 224',
         vendor: 'Innr',
         description: 'Smart plug',
-        extend: extend.switch(),
+        extend: [onOff()],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
     },
     {
         zigbeeModel: ['SP 234'],
         model: 'SP 234',
         vendor: 'Innr',
         description: 'Smart plug',
-        fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
-        toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            // Gives UNSUPPORTED_ATTRIBUTE on reporting.readEletricalMeasurementMultiplierDivisors.
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acCurrentDivisor: 1000,
-                acCurrentMultiplier: 1,
-            });
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            // Gives UNSUPPORTED_ATTRIBUTE on reporting.readMeteringMultiplierDivisor.
-            endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 100});
-            await reporting.currentSummDelivered(endpoint);
-        },
+        extend: [
+            onOff(),
+            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
+        ],
         ota: ota.zigbeeOTA,
-        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy()],
     },
     {
         zigbeeModel: ['OSP 210'],
         model: 'OSP 210',
         vendor: 'Innr',
         description: 'Outdoor smart plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['OFL 120 C'],

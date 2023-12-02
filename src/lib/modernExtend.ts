@@ -43,8 +43,8 @@ async function setupAttributes(
     }
 }
 
-export interface SwitchArgs {powerOnBehavior?: boolean}
-export function onOff(args?: SwitchArgs): ModernExtend {
+export interface OnOffArgs {powerOnBehavior?: boolean}
+export function onOff(args?: OnOffArgs): ModernExtend {
     args = {powerOnBehavior: true, ...args};
 
     const exposes: Expose[] = [e.switch()];
@@ -103,17 +103,20 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     };
 
     if (args.cluster === 'both') {
-        exposes = [e.power().withAccess(ea.ALL), e.voltage().withAccess(ea.ALL), e.current().withAccess(ea.ALL), e.energy().withAccess(ea.ALL)];
+        exposes = [
+            e.power().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET),
+            e.current().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
+        ];
         fromZigbee = [fz.electrical_measurement, fz.metering];
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.currentsummdelivered];
         delete configureLookup.seMetering.power;
     } else if (args.cluster === 'metering') {
-        exposes = [e.power().withAccess(ea.ALL), e.energy().withAccess(ea.ALL)];
+        exposes = [e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET)];
         fromZigbee = [fz.metering];
         toZigbee = [tz.metering_power, tz.currentsummdelivered];
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === 'electrical') {
-        exposes = [e.power().withAccess(ea.ALL), e.voltage().withAccess(ea.ALL), e.current().withAccess(ea.ALL)];
+        exposes = [e.power().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET), e.current().withAccess(ea.STATE_GET)];
         fromZigbee = [fz.electrical_measurement];
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent];
         delete configureLookup.seMetering;
