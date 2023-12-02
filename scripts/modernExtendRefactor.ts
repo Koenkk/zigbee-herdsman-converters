@@ -29,14 +29,29 @@ project.getSourceFiles().forEach((sourceFile) => {
         const toZigbee = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'toZigbee');
         const meta = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'meta');
 
-        if (
-            extend?.getFullText().includes('extend: extend.light_onoff_brightness_colortemp()') &&
-            !meta &&
+        if (extend?.getFullText().includes('extend: extend.light_onoff_brightness_colortemp(') &&
             !fromZigbee && !toZigbee && !configure) {
-            extend.replaceWithText(`extend: [${type}({colorTemp: {range: undefined}})]`);
+            if (meta) continue;
+
+            const newOpts: {[s: string]: unknown} = {};
+            const opts = `(${extend?.getFullText().split('(')[1].slice(0, -1)})`;
+            console.log(opts);
+            for (const [key, value] of Object.entries(eval(opts))) {
+                if (key === 'colorTempRange') {
+                    // @ts-expect-error
+                    newOpts.colorTemp = {range: value, ...newOpts.colorTemp};
+                // } else if (key === 'disableColorTempStartup') {
+                //     // @ts-expect-error
+                //     newOpts.colorTemp = {startup: value, ...newOpts.colorTemp};
+                } else {
+                    console.warn(key);
+                    continue;
+                }
+            }
             console.log(`Updated ${model?.getFullText().trim()}`);
-            changed = true;
             totalDefinitionsWithModernExtend += 1;
+            extend.replaceWithText(`extend: [${type}(${newOpts})]`);
+            changed = true;
         } else if (extend?.getFirstChildByKind(SyntaxKind.ArrayLiteralExpression)) {
             totalDefinitionsWithModernExtend += 1;
         }
