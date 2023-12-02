@@ -4338,6 +4338,14 @@ const converters1 = {
             return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
         },
     } satisfies Fz.Converter,
+    adeo_button_65024: {
+        cluster: 65024,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const clickMapping: KeyValueNumberString = {1: 'single', 2: 'double', 3: 'hold'};
+            return {action: `${clickMapping[msg.data[6]]}`};
+        },
+    } satisfies Fz.Converter,
     color_stop_raw: {
         cluster: 'lightingColorCtrl',
         type: ['raw'],

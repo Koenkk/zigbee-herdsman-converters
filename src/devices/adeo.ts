@@ -383,6 +383,20 @@ const definitions: Definition[] = [
             await ep.configureReporting('manuSpecificNodOnFilPilote', p);
         },
     },
+    {
+        zigbeeModel: ['ZB-Remote-D0001'],
+        model: 'ZB-Remote-D0001',
+        vendor: 'ADEO',
+        description: '1-key remote control',
+        fromZigbee: [fz.adeo_button_65024, fz.battery],
+        exposes: [e.action(['single', 'double', 'hold']), e.battery()],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 ];
 
 export default definitions;
