@@ -5,7 +5,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 import * as ota from '../lib/ota';
-import {light, onOff, electricalMeasurements} from '../lib/modernExtend';
+import {light, onOff, electricityMeter} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -548,7 +548,7 @@ const definitions: Definition[] = [
         description: 'Smart plug',
         extend: [
             onOff({powerOnBehavior: false}),
-            electricalMeasurements({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
+            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
     },
     {
@@ -588,7 +588,7 @@ const definitions: Definition[] = [
         description: 'Smart plug',
         extend: [
             onOff(),
-            electricalMeasurements({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
+            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
         ota: ota.zigbeeOTA,
     },
