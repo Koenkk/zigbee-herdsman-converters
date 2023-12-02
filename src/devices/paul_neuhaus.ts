@@ -2,6 +2,8 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -23,7 +25,7 @@ const definitions: Definition[] = [
         model: 'NLG-CCT light',
         vendor: 'Paul Neuhaus',
         description: 'Various color temperature lights (e.g. 100.424.11)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['Neuhaus NLG-TW light', 'NLG-TW light'],
@@ -68,7 +70,7 @@ const definitions: Definition[] = [
         model: '100.110.51',
         vendor: 'Paul Neuhaus',
         description: 'Q-FLAG LED panel, Smart-Home CCT',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['JZ-RC-J4R'],

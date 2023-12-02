@@ -6,11 +6,12 @@ import * as ota from '../lib/ota';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import * as modernExtend from '../lib/modernExtend';
+import {light, numeric, binary, enumLookup} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as globalStore from '../lib/store';
 import * as xiaomi from '../lib/xiaomi';
+const {xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior, xiaomiSwitchType} = xiaomi.modernExtend;
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz, Extend} from '../lib/types';
 const {printNumbersAsHexSequence} = utils;
@@ -981,9 +982,9 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'RLS-K01D'}],
         description: 'Aqara Zigbee 3.0 LED strip T1',
         extend: [
-            modernExtend.light({effect: false, powerOnBehaviour: false, colorTemp: {startup: false, range: [153, 370]}}),
-            xiaomi.modernExtend.powerOnBehavior(),
-            modernExtend.numeric({
+            light({effect: false, powerOnBehaviour: false, colorTemp: {startup: false, range: [153, 370]}}),
+            xiaomiPowerOnBehavior(),
+            numeric({
                 name: 'length',
                 valueMin: 1,
                 valueMax: 10,
@@ -995,7 +996,7 @@ const definitions: Definition[] = [
                 description: 'LED strip length',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'min_brightness',
                 valueMin: 0,
                 valueMax: 99,
@@ -1005,7 +1006,7 @@ const definitions: Definition[] = [
                 description: 'Minimum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'max_brightness',
                 valueMin: 1,
                 valueMax: 100,
@@ -1015,7 +1016,7 @@ const definitions: Definition[] = [
                 description: 'Maximum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            modernExtend.binary({
+            binary({
                 name: 'audio',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -1024,7 +1025,7 @@ const definitions: Definition[] = [
                 description: 'Enabling audio',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            modernExtend.enumLookup({
+            enumLookup({
                 name: 'audio_sensitivity',
                 lookup: {'low': 0, 'medium': 1, 'high': 2},
                 cluster: 'aqaraOpple',
@@ -1032,7 +1033,7 @@ const definitions: Definition[] = [
                 description: 'Audio sensitivity',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            modernExtend.enumLookup({
+            enumLookup({
                 name: 'audio_effect',
                 lookup: {'random': 0, 'blink': 1, 'rainbow': 2, 'wave': 3},
                 cluster: 'aqaraOpple',
@@ -1040,7 +1041,7 @@ const definitions: Definition[] = [
                 description: 'Audio effect',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'preset',
                 valueMin: 1,
                 valueMax: 32,
@@ -1049,7 +1050,7 @@ const definitions: Definition[] = [
                 description: 'Preset index (0-6 default presets)',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'speed',
                 valueMin: 1,
                 valueMax: 100,
@@ -1591,6 +1592,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
+            device.powerSource = 'Mains (single phase)';
             device.save();
         },
     },
@@ -2637,11 +2639,12 @@ const definitions: Definition[] = [
             e.power(), e.current(), e.energy(), e.voltage(), e.device_temperature(),
         ],
         extend: [
-            xiaomi.modernExtend.switchType(),
-            xiaomi.modernExtend.powerOnBehavior({lookup: {'on': 0, 'previous': 1, 'off': 2, 'toggle': 3}}),
-            xiaomi.modernExtend.operationMode({description: 'Decoupled mode for 1st relay', endpoint: 'l1'}),
-            xiaomi.modernExtend.operationMode({description: 'Decoupled mode for 2nd relay', endpoint: 'l2'}),
-            modernExtend.binary({
+            xiaomiSwitchType(),
+            xiaomiPowerOnBehavior({lookup: {'on': 0, 'previous': 1, 'off': 2, 'toggle': 3}}),
+            xiaomiOperationMode({description: 'Decoupled mode for 1st relay', endpoint: 'l1'}),
+            xiaomiOperationMode({description: 'Decoupled mode for 2nd relay', endpoint: 'l2'}),
+            xiaomiAction({postfixWithEndpointName: true}),
+            binary({
                 name: 'interlock',
                 valueOn: ['ON', true],
                 valueOff: ['OFF', false],
@@ -2650,7 +2653,7 @@ const definitions: Definition[] = [
                 description: 'Enabling prevents both relays being on at the same time (Interlock)',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            modernExtend.enumLookup({
+            enumLookup({
                 name: 'mode',
                 lookup: {'power': 0, 'pulse': 1, 'dry': 3},
                 cluster: 'aqaraOpple',
@@ -2658,7 +2661,7 @@ const definitions: Definition[] = [
                 description: 'Work mode: Power mode, Dry mode with impulse, Dry mode',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'pulse_length',
                 valueMin: 200,
                 valueMax: 2000,
@@ -2668,7 +2671,6 @@ const definitions: Definition[] = [
                 description: 'Impulse length in Dry mode with impulse',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            xiaomi.modernExtend.action({postfixWithEndpointName: true}),
         ],
         ota: ota.zigbeeOTA,
     },
@@ -2845,7 +2847,7 @@ const definitions: Definition[] = [
         model: 'HLQDQ01LM',
         vendor: 'Xiaomi',
         description: 'Aqara zigbee LED-controller ',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
         ota: ota.zigbeeOTA,
     },
     {

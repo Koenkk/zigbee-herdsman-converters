@@ -4,7 +4,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import * as modernExtend from '../lib/modernExtend';
+import {binary, numeric} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue} from '../lib/types';
 
 const e = exposes.presets;
@@ -387,7 +387,7 @@ const definitions: Definition[] = [
             tz.thermostat_running_state,
         ],
         extend: [
-            modernExtend.binary({
+            binary({
                 name: 'child_lock',
                 cluster: 0xFC11,
                 attribute: {id: 0x0000, type: 0x10},
@@ -395,7 +395,7 @@ const definitions: Definition[] = [
                 valueOn: ['LOCK', 0x01],
                 valueOff: ['UNLOCK', 0x00],
             }),
-            modernExtend.binary({
+            binary({
                 name: 'open_window',
                 cluster: 0xFC11,
                 attribute: {id: 0x6000, type: 0x10},
@@ -403,7 +403,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 0x01],
                 valueOff: ['OFF', 0x00],
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'frost_protection_temperature',
                 cluster: 0xFC11,
                 attribute: {id: 0x6002, type: 0x29},
@@ -415,21 +415,21 @@ const definitions: Definition[] = [
                 unit: '°C',
                 scale: 100,
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'idle_steps',
                 cluster: 0xFC11,
                 attribute: {id: 0x6003, type: 0x21},
                 description: 'Number of steps used for calibration (no-load steps)',
                 readOnly: true,
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'closing_steps',
                 cluster: 0xFC11,
                 attribute: {id: 0x6004, type: 0x21},
                 description: 'Number of steps it takes to close the valve',
                 readOnly: true,
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'valve_opening_limit_voltage',
                 cluster: 0xFC11,
                 attribute: {id: 0x6005, type: 0x21},
@@ -437,7 +437,7 @@ const definitions: Definition[] = [
                 unit: 'mV',
                 readOnly: true,
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'valve_closing_limit_voltage',
                 cluster: 0xFC11,
                 attribute: {id: 0x6006, type: 0x21},
@@ -445,7 +445,7 @@ const definitions: Definition[] = [
                 unit: 'mV',
                 readOnly: true,
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'valve_motor_running_voltage',
                 cluster: 0xFC11,
                 attribute: {id: 0x6007, type: 0x21},

@@ -2436,8 +2436,7 @@ const converters2 = {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
-            utils.assertObject(value);
-            let targetValue = value.hasOwnProperty('state') ? value.state : value;
+            let targetValue = utils.isObject(value) && value.hasOwnProperty('state') ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
             let attrId;
@@ -3799,20 +3798,20 @@ const converters2 = {
             await entity.read('manuSpecificLegrandDevices', [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
         },
     } satisfies Tz.Converter,
-    legrand_cable_outlet_mode: {
-        key: ['cable_outlet_mode'],
+    legrand_pilot_wire_mode: {
+        key: ['pilot_wire_mode'],
         convertSet: async (entity, key, value, meta) => {
             const mode = {
                 'comfort': 0x00,
-                'comfort-1': 0x01,
-                'comfort-2': 0x02,
+                'comfort_-1': 0x01,
+                'comfort_-2': 0x02,
                 'eco': 0x03,
                 'frost_protection': 0x04,
                 'off': 0x05,
             };
             const payload = {data: Buffer.from([utils.getFromLookup(value, mode)])};
             await entity.command('manuSpecificLegrandDevices2', 'command0', payload);
-            return {state: {'cable_outlet_mode': value}};
+            return {state: {'pilot_wire_mode': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLegrandDevices2', [0x0000], manufacturerOptions.legrand);
@@ -5029,23 +5028,23 @@ const converters2 = {
             await entity.read('ssIasZone', [0x4000], {manufacturerCode: 4919});
         },
     } satisfies Tz.Converter,
-    nodon_fil_pilote_mode: {
-        key: ['mode'],
+    nodon_pilot_wire_mode: {
+        key: ['pilot_wire_mode'],
         convertSet: async (entity, key, value, meta) => {
             const mode = utils.getFromLookup(value, {
+                'off': 0x00,
                 'comfort': 0x01,
                 'eco': 0x02,
-                'anti-freeze': 0x03,
-                'stop': 0x00,
+                'frost_protection': 0x03,
                 'comfort_-1': 0x04,
                 'comfort_-2': 0x05,
             });
             const payload = {'mode': mode};
-            await entity.command('manuSpecificNodOnFilPilote', 'setMode', payload);
-            return {state: {'mode': value}};
+            await entity.command('manuSpecificNodOnPilotWire', 'setMode', payload);
+            return {state: {'pilot_wire_mode': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificNodOnFilPilote', [0x0000], manufacturerOptions.nodon);
+            await entity.read('manuSpecificNodOnPilotWire', [0x0000], manufacturerOptions.nodon);
         },
     } satisfies Tz.Converter,
     // #endregion

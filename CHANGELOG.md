@@ -1,5 +1,43 @@
 # Changelog
 
+## [15.130.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.130.0...v15.130.1) (2023-12-01)
+
+
+### Bug Fixes
+
+* **ignore:** Add missing frient import ([2c722d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2c722d49737b80c3bf7098d2a031f1093fed5c62))
+
+## [15.130.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.129.0...v15.130.0) (2023-12-01)
+
+
+### Features
+
+* **add:** TS0601_switch_10 @Neil-M0NFI https://github.com/Koenkk/zigbee2mqtt/discussions/19938 ([77da13d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/77da13d3db98de610ccc16d627cbbcf11b88ab7e))
+
+
+### Bug Fixes
+
+* **detect:** Detect `ZL1-EN` as ORVIBO SW30 ([#6594](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6594)) ([c356984](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c3569844eb08e7c9fca354b59378f59bdd631945))
+
+## [15.129.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.128.0...v15.129.0) (2023-11-30)
+
+
+### Features
+
+* **add:** ML-ST-R200 ([#6587](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6587)) ([e63415f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e63415f88f37eefc09a129f7603f60a10b6f5e58))
+* **add:** ZG-101Z ([#6586](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6586)) ([4ce6450](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ce6450b2a55761f7e9f38688b645748885b876d))
+* **ignore:** Extend modernExtend ([#6588](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6588)) ([66bfa64](https://github.com/Koenkk/zigbee-herdsman-converters/commit/66bfa640d81c500cc80f21223262574ed2eed518))
+* Support `device_temperature` for Develco SPLZB-131 ([#6584](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6584)) ([14dbb1a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14dbb1a03587c204047aa470b548cc5d68300076))
+
+
+### Bug Fixes
+
+* Fix configure failing for TuYa `_TZ3000_0zfrhq4i` https://github.com/Koenkk/zigbee2mqtt/discussions/19680 ([6b885ce](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6b885cecf0116fc012deb3546238172367694193))
+* **ignore:** fix d18f537b9152ffc274bf5cc7af7d88ce5fdfa003 ([6e0e699](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e0e6990e2f08324f7aee6b90fe0799d0552f1dd))
+* **ignore:** Prepare for large scale refactoring ([87d6359](https://github.com/Koenkk/zigbee-herdsman-converters/commit/87d635954e10a43e6210a5728e5c75bc4422d62d))
+* **ignore:** update dependencies ([#6589](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6589)) ([30ec89f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30ec89f46a7e1dfed6b9bc37ff11738fa069e0f6))
+* **ignore:** update dependencies ([#6593](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6593)) ([196e562](https://github.com/Koenkk/zigbee-herdsman-converters/commit/196e5622a441acdc51cc2e92a0dd421760cea57e))
+
 ## [15.128.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.127.0...v15.128.0) (2023-11-28)
 
 

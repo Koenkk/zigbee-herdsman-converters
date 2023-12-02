@@ -7,6 +7,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 import * as globalStore from '../lib/store';
 import {Definition} from '../lib/types';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -73,7 +74,7 @@ const definitions: Definition[] = [
         model: 'ZL1000400-CCT-EU-2-V1A02',
         vendor: 'Linkind',
         description: 'Zigbee LED 5.4W C35 bulb E14, dimmable & tunable',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-M3500107'],
@@ -94,28 +95,28 @@ const definitions: Definition[] = [
         model: 'ZL100050004',
         vendor: 'Linkind',
         description: 'Zigbee LED 7.4W BR30 bulb E26, dimmable & tunable',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZBT-DIMLight-GLS0010'],
         model: 'ZL100010008',
         vendor: 'Linkind',
         description: 'Zigbee LED 9W 2700K A19 bulb, dimmable',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZBT-DIMLight-D0120'],
         model: 'ZL1000701-27-EU-V1A02',
         vendor: 'Linkind',
         description: 'Zigbee A60 filament bulb 6.3W',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZBT-DIMLight-A4700003'],
         model: 'ZL1000700-22-EU-V1A02',
         vendor: 'Linkind',
         description: 'Zigbee A60 led filament, dimmable warm light (2200K), E27. 4.2W, 420lm',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZB-MotionSensor-D0003'],
