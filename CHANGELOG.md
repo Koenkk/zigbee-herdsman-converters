@@ -1,5 +1,21 @@
 # Changelog
 
+## [15.132.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.131.0...v15.132.0) (2023-12-03)
+
+
+### Features
+
+* **add:** 291.52 ([#6613](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6613)) ([9e8ca67](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e8ca67a5ee5b7fb3fda959b46e825b2d40566a7))
+* **add:** 83633204 ([#6604](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6604)) ([64a4b11](https://github.com/Koenkk/zigbee-herdsman-converters/commit/64a4b11f95e9817f40a7a536809e8cac46949d5a))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_rgpqqmbj` as Rylike RY-WS02Z [@darkxst](https://github.com/darkxst) https://github.com/Koenkk/zigbee2mqtt/issues/19992 ([16dfd83](https://github.com/Koenkk/zigbee-herdsman-converters/commit/16dfd830623505d08a25fa65ca743d92e79aec20))
+* Expose switch for Namron 4512767 https://github.com/Koenkk/zigbee2mqtt/issues/19989 ([1f60050](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1f60050a1c779e7f92303c87fbf65d562da27e98))
+* Fixes and improvements for NodOn SIN-4-1-20,  SIN-4-RS-20 and SIN-4-FP-2X ([#6606](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6606)) ([11eca0d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/11eca0d8bedc244b678d2cdd152a3834be291148))
+* **ignore:** update dependencies ([#6608](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6608)) ([49ee772](https://github.com/Koenkk/zigbee-herdsman-converters/commit/49ee77281ccab230b2848e275207ff0112e8eb83))
+
 ## [15.131.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.130.1...v15.131.0) (2023-12-02)
 
 
