@@ -20,7 +20,7 @@ const tzLocal1 = {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
-            if (meta.mapped.model === 'GL-S-007ZS' || meta.mapped.model === 'GL-C-009') {
+            if (!Array.isArray(meta.mapped) && (meta.mapped.model === 'GL-S-007ZS' || meta.mapped.model === 'GL-C-009')) {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/2757
                 // Device doesn't support ON with moveToLevelWithOnOff command
                 if (typeof meta.message.state === 'string' && meta.message.state.toLowerCase() === 'on') {

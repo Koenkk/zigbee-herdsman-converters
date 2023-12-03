@@ -27,36 +27,6 @@ describe('index.js', () => {
         expect(() => utils.toNumber('')).toThrowError('Value is not a number, got string ()');
     });
 
-    it('Legacy: Find by zigbeeModel', () => {
-        const device = index.findByZigbeeModel('WaterSensor-N');
-        expect(device.model).toBe('HS1WL/HS3WL')
-    });
-
-    it('Legacy: Find by zigbeeModel with strange characters 1', () => {
-        const device = index.findByZigbeeModel('lumi.remote.b1acn01\u0000\u0000\u0000\u0000\u0000\u0000');
-        expect(device.model).toBe('WXKG11LM')
-    });
-
-    it('Legacy: Find by zigbeeModel with strange characters 2', () => {
-        const device = index.findByZigbeeModel('lumi.sensor_86sw1\u0000lu');
-        expect(device.model).toBe('WXKG03LM_rev1')
-    });
-
-    it('Legacy: Find by zigbeeModel with strange characters 3', () => {
-        const device = index.findByZigbeeModel('lumi.sensor_86sw1');
-        expect(device.model).toBe('WXKG03LM_rev1')
-    });
-
-    it('Legacy: Find by zigbeeModel without strange characters', () => {
-        const device = index.findByZigbeeModel('lumi.sensor_switch.aq2\u0000\u0000\u0000\u0000\u0000\u0000');
-        expect(device.model).toBe('WXKG11LM')
-    });
-
-    it('Legacy: Find by zigbeeModel with model ID null', () => {
-        const device = index.findByZigbeeModel(null);
-        expect(device).toBe(null)
-    });
-
     it('Find by device where modelID is null', () => {
         const endpoints = [
             {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
@@ -322,15 +292,15 @@ describe('index.js', () => {
         });
     });
 
-    it('Verify addDeviceDefinition', () => {
+    it('Verify addDefinition', () => {
         const mockZigbeeModel = 'my-mock-device';
         let mockDevice = {toZigbee: []};
-        const undefinedDevice = index.findByZigbeeModel(mockDevice.model);
-        expect(undefinedDevice).toBeNull();
-        const beforeAdditionDeviceCount = index.devices.length;
-        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field model is undefined");
+        const undefinedDevice = index.findByModel('mock-model');
+        expect(undefinedDevice).toBeUndefined();
+        const beforeAdditionDeviceCount = index.definitions.length;
+        expect(()=> index.addDefinition(mockDevice)).toThrow("Converter field model is undefined");
         mockDevice.model = 'mock-model';
-        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field vendor is undefined");
+        expect(()=> index.addDefinition(mockDevice)).toThrow("Converter field vendor is undefined");
         mockDevice = {
             model: 'mock-model',
             vendor: 'dummy',
@@ -340,13 +310,13 @@ describe('index.js', () => {
             toZigbee: [],
             exposes: []
         };
-        index.addDeviceDefinition(mockDevice);
-        expect(beforeAdditionDeviceCount + 1).toBe(index.devices.length);
-        const device = index.findByZigbeeModel(mockZigbeeModel);
+        index.addDefinition(mockDevice);
+        expect(beforeAdditionDeviceCount + 1).toBe(index.definitions.length);
+        const device = index.findByModel('mock-model');
         expect(device.model).toBe(mockDevice.model);
     });
 
-    it('Verify addDeviceDefinition overwrite existing', () => {
+    it('Verify addDefinition overwrite existing', () => {
         const device = {type: 'Router', modelID: 'lumi.light.aqcn02'};
         expect(index.findByDevice(device).vendor).toBe('Xiaomi');
 
@@ -359,7 +329,7 @@ describe('index.js', () => {
             toZigbee: [],
             exposes: []
         };
-        index.addDeviceDefinition(overwriteDefinition);
+        index.addDefinition(overwriteDefinition);
         expect(index.findByDevice(device).vendor).toBe('other-vendor');
     });
 
