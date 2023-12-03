@@ -4,6 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -12,21 +14,21 @@ const definitions: Definition[] = [
         model: 'PSB19-SW27',
         vendor: 'GE',
         description: 'Link smart LED light bulb, A19 soft white (2700K)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZLL Light'],
         model: '22670',
         vendor: 'GE',
         description: 'Link smart LED light bulb, A19/BR30 soft white (2700K)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['Daylight'],
         model: 'PQC19-DY01',
         vendor: 'GE',
         description: 'Link smart LED light bulb, A19/BR30 cold white (5000K)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['45852'],

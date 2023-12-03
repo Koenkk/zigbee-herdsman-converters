@@ -3839,37 +3839,37 @@ const fromZigbee1 = {
             case dataPoints.moesChildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case dataPoints.moesHeatingSetpoint:
-                if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                     return {current_heating_setpoint: value / 10};
                 } else {
                     return {current_heating_setpoint: value};
                 }
             case dataPoints.moesMinTempLimit:
-                if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                     return {min_temperature_limit: value / 10};
                 } else {
                     return {min_temperature_limit: value};
                 }
             case dataPoints.moesMaxTempLimit:
-                if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                     return {max_temperature_limit: value / 10};
                 } else {
                     return {max_temperature_limit: value};
                 }
             case dataPoints.moesMaxTemp:
-                if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                     return {max_temperature: value / 10};
                 } else {
                     return {max_temperature: value};
                 }
             case dataPoints.moesDeadZoneTemp:
-                if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                     return {deadzone_temperature: value / 10};
                 } else {
                     return {deadzone_temperature: value};
                 }
             case dataPoints.moesLocalTemp:
-                if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                     temperature = value / 10;
                 } else {
                     temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
@@ -6726,7 +6726,7 @@ const toZigbee2 = {
     moes_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value: any, meta) => {
-            if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+            if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value * 10);
             } else {
                 await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
@@ -6736,7 +6736,7 @@ const toZigbee2 = {
     moes_thermostat_deadzone_temperature: {
         key: ['deadzone_temperature'],
         convertSet: async (entity, key, value: any, meta) => {
-            if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+            if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value * 10);
             } else {
                 await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value);
@@ -6753,7 +6753,7 @@ const toZigbee2 = {
     moes_thermostat_min_temperature_limit: {
         key: ['min_temperature_limit'],
         convertSet: async (entity, key, value: any, meta) => {
-            if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+            if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesMinTempLimit, value * 10);
             } else {
                 await sendDataPointValue(entity, dataPoints.moesMinTempLimit, value);
@@ -6763,7 +6763,7 @@ const toZigbee2 = {
     moes_thermostat_max_temperature_limit: {
         key: ['max_temperature_limit'],
         convertSet: async (entity, key, value: any, meta) => {
-            if (['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+            if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesMaxTempLimit, value * 10);
             } else {
                 await sendDataPointValue(entity, dataPoints.moesMaxTempLimit, value);

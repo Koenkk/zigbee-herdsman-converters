@@ -2228,7 +2228,7 @@ const converters2 = {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
                 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
-                'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'JWSP001A', 'SSWQD02LM', 'SSWQD03LM',
+                'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
                 'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM',
             ].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
@@ -2254,7 +2254,7 @@ const converters2 = {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
                 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
-                'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'JWSP001A', 'SSWQD02LM', 'SSWQD03LM',
+                'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
                 'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM',
             ].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
@@ -2436,8 +2436,7 @@ const converters2 = {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
-            utils.assertObject(value);
-            let targetValue = value.hasOwnProperty('state') ? value.state : value;
+            let targetValue = utils.isObject(value) && value.hasOwnProperty('state') ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
             let attrId;
@@ -3799,20 +3798,20 @@ const converters2 = {
             await entity.read('manuSpecificLegrandDevices', [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
         },
     } satisfies Tz.Converter,
-    legrand_cable_outlet_mode: {
-        key: ['cable_outlet_mode'],
+    legrand_pilot_wire_mode: {
+        key: ['pilot_wire_mode'],
         convertSet: async (entity, key, value, meta) => {
             const mode = {
                 'comfort': 0x00,
-                'comfort-1': 0x01,
-                'comfort-2': 0x02,
+                'comfort_-1': 0x01,
+                'comfort_-2': 0x02,
                 'eco': 0x03,
                 'frost_protection': 0x04,
                 'off': 0x05,
             };
             const payload = {data: Buffer.from([utils.getFromLookup(value, mode)])};
             await entity.command('manuSpecificLegrandDevices2', 'command0', payload);
-            return {state: {'cable_outlet_mode': value}};
+            return {state: {'pilot_wire_mode': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLegrandDevices2', [0x0000], manufacturerOptions.legrand);
@@ -4018,7 +4017,6 @@ const converters2 = {
                 time_report: ['closuresDoorLock', 0x0056],
             };
             const v = utils.getFromLookup(key, payloads);
-            // @ts-expect-error
             await entity.read(v[0], [v[1]]);
         },
     } satisfies Tz.Converter,
@@ -4510,7 +4508,6 @@ const converters2 = {
         convertGet: async (entity, key, meta) => {
             // Apparently, reading values may interfere with a commandStatusChangeNotification for changed occupancy.
             // Therefore, read "zoneStatus" as well.
-            // @ts-expect-error
             await entity.read('ssIasZone', ['currentZoneSensitivityLevel', 61441, 'zoneStatus'], {sendWhen: 'active'});
         },
     } satisfies Tz.Converter,
@@ -5031,23 +5028,23 @@ const converters2 = {
             await entity.read('ssIasZone', [0x4000], {manufacturerCode: 4919});
         },
     } satisfies Tz.Converter,
-    nodon_fil_pilote_mode: {
-        key: ['mode'],
+    nodon_pilot_wire_mode: {
+        key: ['pilot_wire_mode'],
         convertSet: async (entity, key, value, meta) => {
             const mode = utils.getFromLookup(value, {
+                'off': 0x00,
                 'comfort': 0x01,
                 'eco': 0x02,
-                'anti-freeze': 0x03,
-                'stop': 0x00,
+                'frost_protection': 0x03,
                 'comfort_-1': 0x04,
                 'comfort_-2': 0x05,
             });
             const payload = {'mode': mode};
-            await entity.command('manuSpecificNodOnFilPilote', 'setMode', payload);
-            return {state: {'mode': value}};
+            await entity.command('manuSpecificNodOnPilotWire', 'setMode', payload);
+            return {state: {'pilot_wire_mode': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificNodOnFilPilote', [0x0000], manufacturerOptions.nodon);
+            await entity.read('manuSpecificNodOnPilotWire', [0x0000], manufacturerOptions.nodon);
         },
     } satisfies Tz.Converter,
     // #endregion

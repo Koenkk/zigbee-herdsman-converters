@@ -1,5 +1,6 @@
 import {Definition} from '../lib/types';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -42,7 +43,7 @@ const definitions: Definition[] = [
         model: '10011722',
         vendor: 'HORNBACH',
         description: 'FLAIR Viyu smart LED candle CCT E14',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['VIYU_GU10_350_RGBW_10297666'],
@@ -63,7 +64,7 @@ const definitions: Definition[] = [
         model: '10011724',
         vendor: 'HORNBACH',
         description: 'FLAIR Viyu smart GU10 CCT lamp',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['VIYU_A60_470_FI_D_CCT_10297665'],

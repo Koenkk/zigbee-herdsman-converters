@@ -9,7 +9,6 @@ import * as constants from '../lib/constants';
 import * as libColor from '../lib/color';
 import * as utils from '../lib/utils';
 import * as exposes from '../lib/exposes';
-import * as xiaomi from '../lib/xiaomi';
 
 const defaultSimulatedBrightness = 255;
 const e = exposes.presets;
@@ -3675,22 +3674,22 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    legrand_cable_outlet_mode: {
+    legrand_pilot_wire_mode: {
         cluster: 'manuSpecificLegrandDevices2',
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
             const mode = msg.data['0'];
 
-            if (mode === 0x00) payload.cable_outlet_mode = 'comfort';
-            else if (mode === 0x01) payload.cable_outlet_mode = 'comfort-1';
-            else if (mode === 0x02) payload.cable_outlet_mode = 'comfort-2';
-            else if (mode === 0x03) payload.cable_outlet_mode = 'eco';
-            else if (mode === 0x04) payload.cable_outlet_mode = 'frost_protection';
-            else if (mode === 0x05) payload.cable_outlet_mode = 'off';
+            if (mode === 0x00) payload.pilot_wire_mode = 'comfort';
+            else if (mode === 0x01) payload.pilot_wire_mode = 'comfort_-1';
+            else if (mode === 0x02) payload.pilot_wire_mode = 'comfort_-2';
+            else if (mode === 0x03) payload.pilot_wire_mode = 'eco';
+            else if (mode === 0x04) payload.pilot_wire_mode = 'frost_protection';
+            else if (mode === 0x05) payload.pilot_wire_mode = 'off';
             else {
                 meta.logger.warn(`Bad mode : ${mode}`);
-                payload.cable_outlet_mode = 'unknown';
+                payload.pilot_wire_mode = 'unknown';
             }
             return payload;
         },
@@ -3745,35 +3744,6 @@ const converters1 = {
         options: [exposes.options.calibration('power', 'percentual'), exposes.options.precision('power')],
         convert: (model, msg, publish, options, meta) => {
             return {power: calibrateAndPrecisionRoundOptions(msg.data['presentValue'], options, 'power')};
-        },
-    } satisfies Fz.Converter,
-    xiaomi_basic: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        options: xiaomi.numericAttributes2Options,
-        convert: async (model, msg, publish, options, meta) => {
-            return await xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
-        },
-    } satisfies Fz.Converter,
-    xiaomi_basic_raw: {
-        cluster: 'genBasic',
-        type: ['raw'],
-        options: xiaomi.numericAttributes2Options,
-        convert: async (model, msg, publish, options, meta) => {
-            let payload = {};
-            if (Buffer.isBuffer(msg.data)) {
-                const dataObject = xiaomi.buffer2DataObject(meta, model, msg.data);
-                payload = await xiaomi.numericAttributes2Payload(msg, meta, model, options, dataObject);
-            }
-            return payload;
-        },
-    } satisfies Fz.Converter,
-    aqara_opple: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        options: xiaomi.numericAttributes2Options,
-        convert: async (model, msg, publish, options, meta) => {
-            return await xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     } satisfies Fz.Converter,
     xiaomi_on_off_action: {
@@ -6324,22 +6294,22 @@ const converters2 = {
             }
         },
     } satisfies Fz.Converter,
-    nodon_fil_pilote_mode: {
-        cluster: 'manuSpecificNodOnFilPilote',
+    nodon_pilot_wire_mode: {
+        cluster: 'manuSpecificNodOnPilotWire',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
             const mode = msg.data['mode'];
 
-            if (mode === 0x00) payload.mode = 'stop';
-            else if (mode === 0x01) payload.mode = 'comfort';
-            else if (mode === 0x02) payload.mode = 'eco';
-            else if (mode === 0x03) payload.mode = 'anti-freeze';
-            else if (mode === 0x04) payload.mode = 'comfort_-1';
-            else if (mode === 0x05) payload.mode = 'comfort_-2';
+            if (mode === 0x00) payload.pilot_wire_mode = 'off';
+            else if (mode === 0x01) payload.pilot_wire_mode = 'comfort';
+            else if (mode === 0x02) payload.pilot_wire_mode = 'eco';
+            else if (mode === 0x03) payload.pilot_wire_mode = 'frost_protection';
+            else if (mode === 0x04) payload.pilot_wire_mode = 'comfort_-1';
+            else if (mode === 0x05) payload.pilot_wire_mode = 'comfort_-2';
             else {
                 meta.logger.warn(`wrong mode : ${mode}`);
-                payload.mode = 'unknown';
+                payload.pilot_wire_mode = 'unknown';
             }
             return payload;
         },

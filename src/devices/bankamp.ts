@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: '2189/1-xx',
         vendor: 'Bankamp',
         description: 'Ceiling light (e.g. Grazia, Grand)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 
