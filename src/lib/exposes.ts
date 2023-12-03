@@ -5,7 +5,7 @@ import assert from 'assert';
 import {Range} from './types';
 import {getLabelFromName} from './utils';
 
-type Feature = Numeric | Binary | Enum | Composite | List | Text;
+export type Feature = Numeric | Binary | Enum | Composite | List | Text;
 
 export class Base {
     name: string;
