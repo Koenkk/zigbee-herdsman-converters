@@ -194,6 +194,13 @@ const definitions: Definition[] = [
         description: 'White E27 LED bulb, dimmable',
         extend: [light()],
     },
+    {
+        zigbeeModel: ['RGBWW'],
+        model: '291.52',
+        vendor: 'Paulmann',
+        description: 'Smart Home Zigbee LED bulb 4,9W Matt E14 RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370], supportsHueAndSaturation: true}),
+    },
 ];
 
 export default definitions;
