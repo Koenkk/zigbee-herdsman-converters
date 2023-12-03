@@ -385,7 +385,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['ZB-Remote-D0001'],
-        model: 'ZB-Remote-D0001',
+        model: '83633204',
         vendor: 'ADEO',
         description: '1-key remote control',
         fromZigbee: [fz.adeo_button_65024, fz.battery],
