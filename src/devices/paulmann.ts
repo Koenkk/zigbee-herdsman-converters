@@ -97,7 +97,7 @@ const definitions: Definition[] = [
         model: '50064',
         vendor: 'Paulmann',
         description: 'SmartHome led spot',
-        extend: [light({colorTemp: {range: undefined} })],
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['500.46', 'H036-0006'],
@@ -118,7 +118,7 @@ const definitions: Definition[] = [
         model: '371000001',
         vendor: 'Paulmann',
         description: 'SmartHome led spot tuneable white',
-        extend: [light({ colorTemp: { range: undefined } })],
+        extend: [light({ colorTemp: { range: undefined }})],
     },
     {
         fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht'}],
@@ -170,8 +170,8 @@ const definitions: Definition[] = [
         vendor: 'Paulmann',
         description: 'RGB remote control',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.command_step, fz.command_move_to_color_temp,
-        fz.command_move_to_color, fz.command_stop, fz.command_move, fz.command_color_loop_set,
-        fz.command_ehanced_move_to_hue_and_saturation, fz.tint_scene],
+            fz.command_move_to_color, fz.command_stop, fz.command_move, fz.command_color_loop_set,
+            fz.command_ehanced_move_to_hue_and_saturation, fz.tint_scene],
         toZigbee: [],
         exposes: [e.action([
             'on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move', 'brightness_stop',
