@@ -118,7 +118,7 @@ const definitions: Definition[] = [
         model: '371000001',
         vendor: 'Paulmann',
         description: 'SmartHome led spot tuneable white',
-        extend: [light({ colorTemp: { range: undefined }})],
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht'}],
