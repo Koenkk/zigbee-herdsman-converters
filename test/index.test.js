@@ -292,15 +292,15 @@ describe('index.js', () => {
         });
     });
 
-    it('Verify addDeviceDefinition', () => {
+    it('Verify addDefinition', () => {
         const mockZigbeeModel = 'my-mock-device';
         let mockDevice = {toZigbee: []};
         const undefinedDevice = index.findByModel('mock-model');
-        expect(undefinedDevice).toBeNull();
-        const beforeAdditionDeviceCount = index.devices.length;
-        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field model is undefined");
+        expect(undefinedDevice).toBeUndefined();
+        const beforeAdditionDeviceCount = index.definitions.length;
+        expect(()=> index.addDefinition(mockDevice)).toThrow("Converter field model is undefined");
         mockDevice.model = 'mock-model';
-        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field vendor is undefined");
+        expect(()=> index.addDefinition(mockDevice)).toThrow("Converter field vendor is undefined");
         mockDevice = {
             model: 'mock-model',
             vendor: 'dummy',
@@ -310,13 +310,13 @@ describe('index.js', () => {
             toZigbee: [],
             exposes: []
         };
-        index.addDeviceDefinition(mockDevice);
-        expect(beforeAdditionDeviceCount + 1).toBe(index.devices.length);
+        index.addDefinition(mockDevice);
+        expect(beforeAdditionDeviceCount + 1).toBe(index.definitions.length);
         const device = index.findByModel('mock-model');
         expect(device.model).toBe(mockDevice.model);
     });
 
-    it('Verify addDeviceDefinition overwrite existing', () => {
+    it('Verify addDefinition overwrite existing', () => {
         const device = {type: 'Router', modelID: 'lumi.light.aqcn02'};
         expect(index.findByDevice(device).vendor).toBe('Xiaomi');
 
@@ -329,7 +329,7 @@ describe('index.js', () => {
             toZigbee: [],
             exposes: []
         };
-        index.addDeviceDefinition(overwriteDefinition);
+        index.addDefinition(overwriteDefinition);
         expect(index.findByDevice(device).vendor).toBe('other-vendor');
     });
 
