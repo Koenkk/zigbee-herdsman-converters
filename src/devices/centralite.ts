@@ -8,6 +8,7 @@ import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as constants from '../lib/constants';
+import {light} from '../lib/modernExtend';
 
 const fzLocal = {
     thermostat_3156105: {
@@ -205,7 +206,7 @@ const definitions: Definition[] = [
         model: '3420-G',
         vendor: 'Centralite',
         description: '3-Series night light repeater',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         fingerprint: [{modelID: '3157100', manufacturerName: 'Centralite'}, {modelID: '3157100-E', manufacturerName: 'Centralite'}],

@@ -2,6 +2,8 @@ import {Definition} from '../lib/types';
 import extend from '../lib/extend';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -10,14 +12,14 @@ const definitions: Definition[] = [
         model: '12226',
         vendor: 'AwoX',
         description: 'Dimmable filament lamp',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['TLSR82xx'],
         model: '33951/33948',
         vendor: 'AwoX',
         description: 'LED white',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
         whiteLabel: [{vendor: 'EGLO', model: '12229'}],
     },
     {

@@ -10,6 +10,7 @@ import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
 import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, postfixWithEndpointName} from '../lib/utils';
+import {light} from '../lib/modernExtend';
 
 const switchTypesList = {
     'switch': 0x00,
@@ -732,7 +733,7 @@ const definitions: Definition[] = [
         model: 'DNCKATSD001',
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT single key wired wall dimmable light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['DNCKAT_S001'],

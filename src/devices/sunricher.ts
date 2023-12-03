@@ -8,6 +8,8 @@ import * as constants from '../lib/constants';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import {Definition, Fz, Zh} from '../lib/types';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -216,7 +218,7 @@ const definitions: Definition[] = [
         model: 'ZG192910-4',
         vendor: 'Sunricher',
         description: 'Zigbee LED-controller',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZG9101SAC-HP'],
@@ -323,14 +325,14 @@ const definitions: Definition[] = [
         model: 'SRP-ZG9105-CC',
         vendor: 'Sunricher',
         description: 'Constant Current Zigbee LED dimmable driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['HK-DIM'],
         model: '50208702',
         vendor: 'Sunricher',
         description: 'LED dimmable driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
         whiteLabel: [{vendor: 'Yphix', model: '50208702'}],
     },
     {
