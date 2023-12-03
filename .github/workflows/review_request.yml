@@ -10,4 +10,4 @@ jobs:
       - uses: ethanis/nitpicker@v1
         with:
           nitpicks: '.github/nitpicks.yml'
-          token: '${{ secrets.GITHUB_TOKEN }}'
+          token: '${{ secrets.GH_TOKEN }}'
