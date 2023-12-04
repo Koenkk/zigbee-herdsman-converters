@@ -1,5 +1,12 @@
 # Changelog
 
+## [16.0.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.0.0...v16.0.1) (2023-12-04)
+
+
+### Bug Fixes
+
+* **ignore:** export types ([440a4d0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/440a4d0ad597335deda05d6453be70c20540e3b7))
+
 ## [16.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.132.0...v16.0.0) (2023-12-03)
 
 
