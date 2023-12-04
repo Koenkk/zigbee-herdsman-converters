@@ -4335,7 +4335,8 @@ const converters2 = {
                     throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
                 }
             } else {
-                throw new Error(`Scene add unable to remove existing scene ('${Zcl.Status[removeresp.status]}')`);
+                const status = utils.isObject(removeresp) ? Zcl.Status[removeresp.status] : 'unknown';
+                throw new Error(`Scene add unable to remove existing scene ('${status}')`);
             }
             meta.logger.info('Successfully added scene');
             return {state: {}};
