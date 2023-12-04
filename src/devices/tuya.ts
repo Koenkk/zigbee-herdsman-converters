@@ -6294,7 +6294,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sooucan5']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sooucan5' '_TZE204_oqtpvx51']),
         model: 'YXZBRB58',
         vendor: 'TuYa',
         description: 'Smart human presence sensor',
