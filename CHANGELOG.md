@@ -1,5 +1,15 @@
 # Changelog
 
+## [16.0.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.0.1...v16.0.2) (2023-12-04)
+
+
+### Bug Fixes
+
+* Add DCM-K01 as whitelabel of LLKZMK12LM ([#6620](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6620)) ([e23ac5e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e23ac5e416ef1fd05699e7aebd68323a66beaae2))
+* **detect:** Detect `_TZE204_oqtpvx51` as TuYa YXZBRB58 ([#6619](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6619)) ([21b747e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/21b747e1651c91390db2ea855475a03735ce6552))
+* Fix `scene_add` not working for groups https://github.com/Koenkk/zigbee2mqtt/issues/20001 ([dc6b1ae](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dc6b1ae0b69387abc52c4f2ef74fa7d16c82d1f1))
+* **ignore:** fix dc6b1ae0b69387abc52c4f2ef74fa7d16c82d1f1 ([77cb2c8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/77cb2c8df711457fb4cd2a065ce64dd18174d5e1))
+
 ## [16.0.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.0.0...v16.0.1) (2023-12-04)
 
 
