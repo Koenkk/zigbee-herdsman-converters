@@ -2628,6 +2628,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['lumi.switch.acn047'],
         model: 'LLKZMK12LM',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'DCM-K01'}],
         description: 'Aqara dual relay module T2',
         fromZigbee: [fz.on_off, xiaomi.fromZigbee.aqara_opple, fz.xiaomi_power],
         toZigbee: [tz.on_off],
