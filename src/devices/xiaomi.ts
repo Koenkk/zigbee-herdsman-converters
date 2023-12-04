@@ -2424,6 +2424,11 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara vibration sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        options: [
+            exposes.options.calibration('raw_x'),
+            exposes.options.calibration('raw_y'),
+            exposes.options.calibration('raw_z'),
+        ],
         fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.DJT11LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [

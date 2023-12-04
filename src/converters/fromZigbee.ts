@@ -4911,10 +4911,20 @@ const converters1 = {
                 // data[1][bit16..bit31]: y
                 // data[0][bit0..bit15] : z
                 // left shift first to preserve sign extension for 'x'
-                const x = ((data['1'] << 16) >> 16);
-                const y = (data['1'] >> 16);
+                let x = ((data['1'] << 16) >> 16);
+                let y = (data['1'] >> 16);
                 // left shift first to preserve sign extension for 'z'
-                const z = ((data['0'] << 16) >> 16);
+                let z = ((data['0'] << 16) >> 16);
+
+                // raw accelrometer values
+                result.raw_x=x;
+                result.raw_y=y;
+                result.raw_z=z;
+
+                // simple offset calibration
+                x=calibrateAndPrecisionRoundOptions(x, options, 'raw_x');
+                y=calibrateAndPrecisionRoundOptions(y, options, 'raw_y');
+                z=calibrateAndPrecisionRoundOptions(z, options, 'raw_z');
 
                 // calculate angle
                 result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
