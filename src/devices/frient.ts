@@ -3,8 +3,12 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
+import * as constants from '../lib/constants';
+import * as utils from '../lib/utils';
+
 const e = exposes.presets;
 
+const manufacturerOptions = {manufacturerCode: 0x1015};
 
 const frient = {
     fz: {
@@ -61,3 +65,4 @@ const definitions: Definition[] = [
 
 export default definitions;
 module.exports = definitions;
+
