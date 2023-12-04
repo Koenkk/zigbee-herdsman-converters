@@ -6,6 +6,8 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 import * as utils from '../lib/utils';
+import {light} from '../lib/modernExtend';
+
 const ea = exposes.access;
 
 const tzLocal = {
@@ -100,7 +102,7 @@ const definitions: Definition[] = [
         model: 'AU-A1GUZBCX5',
         vendor: 'Aurora Lighting',
         description: 'AOne 5.4W smart tuneable GU10 lamp',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['TWMPROZXBulb50AU'],
@@ -114,22 +116,21 @@ const definitions: Definition[] = [
         model: 'AU-A1VG125Z5E/19',
         vendor: 'Aurora Lighting',
         description: 'AOne 4W smart dimmable G125 lamp 1900K',
-        meta: {turnsOffAtBrightness1: true},
-        extend: extend.light_onoff_brightness(),
+        extend: [light({turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['FWBulb51AU'],
         model: 'AU-A1GSZ9B/27',
         vendor: 'Aurora Lighting',
         description: 'AOne 9W smart GLS B22',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['FWGU10Bulb50AU', 'FWGU10Bulb01UK'],
         model: 'AU-A1GUZB5/30',
         vendor: 'Aurora Lighting',
         description: 'AOne 4.8W smart dimmable GU10 lamp 3000K',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['FWA60Bulb50AU'],

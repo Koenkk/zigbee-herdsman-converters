@@ -289,22 +289,23 @@ const definitions: Definition[] = [
         model: 'SPLZB-131',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
+        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.power_reactive(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
+        exposes: [e.switch(), e.power(), e.power_reactive(), e.current(), e.voltage(), e.energy(), e.device_temperature(), e.ac_frequency()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
+            await reporting.deviceTemperature(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
-            await reporting.activePower(endpoint);
-            await reporting.reactivePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
+            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
+            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
+            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.acFrequency(endpoint);
+            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
+            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
+            await reporting.acFrequency(endpoint, {change: 10});
         },
         endpoint: (device) => {
             return {default: 2};

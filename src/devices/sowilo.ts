@@ -1,7 +1,7 @@
 import {Definition} from '../lib/types';
 import extend from '../lib/extend';
 
-const definition: Definition[] = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['L258'],
         model: 'L258',
@@ -12,5 +12,5 @@ const definition: Definition[] = [
     },
 ];
 
-export default definition;
-module.exports = definition;
+export default definitions;
+module.exports = definitions;

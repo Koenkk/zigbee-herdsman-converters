@@ -5,6 +5,8 @@ import * as legacy from '../lib/legacy';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -56,7 +58,7 @@ const definitions: Definition[] = [
         model: '4713406',
         vendor: 'Airam',
         description: 'GU10 spot 4.8W 2700K 385lm',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 

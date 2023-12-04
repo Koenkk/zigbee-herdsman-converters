@@ -3674,22 +3674,22 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    legrand_cable_outlet_mode: {
+    legrand_pilot_wire_mode: {
         cluster: 'manuSpecificLegrandDevices2',
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
             const mode = msg.data['0'];
 
-            if (mode === 0x00) payload.cable_outlet_mode = 'comfort';
-            else if (mode === 0x01) payload.cable_outlet_mode = 'comfort-1';
-            else if (mode === 0x02) payload.cable_outlet_mode = 'comfort-2';
-            else if (mode === 0x03) payload.cable_outlet_mode = 'eco';
-            else if (mode === 0x04) payload.cable_outlet_mode = 'frost_protection';
-            else if (mode === 0x05) payload.cable_outlet_mode = 'off';
+            if (mode === 0x00) payload.pilot_wire_mode = 'comfort';
+            else if (mode === 0x01) payload.pilot_wire_mode = 'comfort_-1';
+            else if (mode === 0x02) payload.pilot_wire_mode = 'comfort_-2';
+            else if (mode === 0x03) payload.pilot_wire_mode = 'eco';
+            else if (mode === 0x04) payload.pilot_wire_mode = 'frost_protection';
+            else if (mode === 0x05) payload.pilot_wire_mode = 'off';
             else {
                 meta.logger.warn(`Bad mode : ${mode}`);
-                payload.cable_outlet_mode = 'unknown';
+                payload.pilot_wire_mode = 'unknown';
             }
             return payload;
         },
@@ -4336,6 +4336,14 @@ const converters1 = {
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
             return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
+        },
+    } satisfies Fz.Converter,
+    adeo_button_65024: {
+        cluster: 65024,
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const clickMapping: KeyValueNumberString = {1: 'single', 2: 'double', 3: 'hold'};
+            return {action: `${clickMapping[msg.data[6]]}`};
         },
     } satisfies Fz.Converter,
     color_stop_raw: {
@@ -6294,22 +6302,22 @@ const converters2 = {
             }
         },
     } satisfies Fz.Converter,
-    nodon_fil_pilote_mode: {
-        cluster: 'manuSpecificNodOnFilPilote',
+    nodon_pilot_wire_mode: {
+        cluster: 'manuSpecificNodOnPilotWire',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
             const mode = msg.data['mode'];
 
-            if (mode === 0x00) payload.mode = 'stop';
-            else if (mode === 0x01) payload.mode = 'comfort';
-            else if (mode === 0x02) payload.mode = 'eco';
-            else if (mode === 0x03) payload.mode = 'anti-freeze';
-            else if (mode === 0x04) payload.mode = 'comfort_-1';
-            else if (mode === 0x05) payload.mode = 'comfort_-2';
+            if (mode === 0x00) payload.pilot_wire_mode = 'off';
+            else if (mode === 0x01) payload.pilot_wire_mode = 'comfort';
+            else if (mode === 0x02) payload.pilot_wire_mode = 'eco';
+            else if (mode === 0x03) payload.pilot_wire_mode = 'frost_protection';
+            else if (mode === 0x04) payload.pilot_wire_mode = 'comfort_-1';
+            else if (mode === 0x05) payload.pilot_wire_mode = 'comfort_-2';
             else {
                 meta.logger.warn(`wrong mode : ${mode}`);
-                payload.mode = 'unknown';
+                payload.pilot_wire_mode = 'unknown';
             }
             return payload;
         },

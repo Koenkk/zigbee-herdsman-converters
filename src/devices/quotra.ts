@@ -1,5 +1,6 @@
 import {Definition} from '../lib/types';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,7 +8,7 @@ const definitions: Definition[] = [
         model: 'B07CVL9SZF',
         vendor: 'Quotra',
         description: 'Dimmer',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['QV-RGBCCT'],

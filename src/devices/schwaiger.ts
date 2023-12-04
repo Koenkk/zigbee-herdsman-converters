@@ -4,6 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -37,7 +39,7 @@ const definitions: Definition[] = [
         model: 'HAL600',
         vendor: 'Schwaiger',
         description: 'LED candle bulb E14 470 lumen, dimmable, color, white 2700K',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         fingerprint: [{modelID: 'ZBT-CCTLight-GU100904', manufacturerName: 'LDS'}],
@@ -51,7 +53,7 @@ const definitions: Definition[] = [
         model: 'HAL400',
         vendor: 'Schwaiger',
         description: 'LED Schwaiger HAL400 GU10 dimmable, warm white',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZBT-RGBWLight-C4700114'],

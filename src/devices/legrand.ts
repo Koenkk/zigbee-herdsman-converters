@@ -49,7 +49,6 @@ const definitions: Definition[] = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
             // Read configuration values that are not sent periodically as well as current power (activePower).
-            // @ts-expect-error
             await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
         },
     },
@@ -529,11 +528,11 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Cable outlet with pilot wire and consumption measurement',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fzLegrand.cluster_fc01, fz.legrand_cable_outlet_mode, fz.on_off, fz.electrical_measurement, fz.power_on_behavior],
-        toZigbee: [tz.legrand_device_mode, tz.legrand_cable_outlet_mode, tz.on_off, tz.electrical_measurement_power, tz.power_on_behavior],
+        fromZigbee: [fzLegrand.cluster_fc01, fz.legrand_pilot_wire_mode, fz.on_off, fz.electrical_measurement, fz.power_on_behavior],
+        toZigbee: [tz.legrand_device_mode, tz.legrand_pilot_wire_mode, tz.on_off, tz.electrical_measurement_power, tz.power_on_behavior],
         exposes: [
             e.binary('device_mode', ea.ALL, 'pilot_on', 'pilot_off'),
-            e.enum('cable_outlet_mode', ea.ALL, ['comfort', 'comfort-1', 'comfort-2', 'eco', 'frost_protection', 'off']),
+            e.pilot_wire_mode(),
             e.switch().withState('state', true, 'Works only when the pilot wire is deactivated'),
             e.power().withAccess(ea.STATE_GET),
             e.power_apparent(),

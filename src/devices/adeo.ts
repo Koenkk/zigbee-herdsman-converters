@@ -364,23 +364,37 @@ const definitions: Definition[] = [
         model: 'SIN-4-FP-21_EQU',
         vendor: 'ADEO',
         description: 'Equation pilot wire heating module',
-        fromZigbee: [fz.on_off, fz.metering, fz.nodon_fil_pilote_mode],
-        toZigbee: [tz.on_off, tz.nodon_fil_pilote_mode],
+        fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
+        toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [
             e.switch(),
             e.power(),
             e.energy(),
-            e.enum('mode', ea.ALL, ['comfort', 'eco', 'anti-freeze', 'stop', 'comfort_-1', 'comfort_-2']),
+            e.pilot_wire_mode(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnFilPilote']);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
             await reporting.readMeteringMultiplierDivisor(ep);
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
             const p = reporting.payload('mode', 0, 120, 0, {min: 1, max: 3600, change: 0});
-            await ep.configureReporting('manuSpecificNodOnFilPilote', p);
+            await ep.configureReporting('manuSpecificNodOnPilotWire', p);
+        },
+    },
+    {
+        zigbeeModel: ['ZB-Remote-D0001'],
+        model: '83633204',
+        vendor: 'ADEO',
+        description: '1-key remote control',
+        fromZigbee: [fz.adeo_button_65024, fz.battery],
+        exposes: [e.action(['single', 'double', 'hold']), e.battery()],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
 ];
