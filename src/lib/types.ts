@@ -124,8 +124,11 @@ export type Definition = {
     ota?: DefinitionOta,
 } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
     & ({ extend: Extend | ModernExtend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
-        exposes?: (Expose[] | ((device: Zh.Device, options: KeyValue) => Expose[])) } |
-    { fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[], exposes: (Expose[] | ((device: Zh.Device, options: KeyValue) => Expose[])) });
+        exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[])) } |
+    {
+        fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[],
+        exposes: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]))
+    });
 
 export namespace Fz {
     export interface Message {
