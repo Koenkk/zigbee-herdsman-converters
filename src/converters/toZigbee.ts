@@ -4321,7 +4321,6 @@ const converters2 = {
                     'genScenes', 'add', {groupid, sceneid, scenename: '', transtime, extensionfieldsets},
                     utils.getOptions(meta.mapped, entity),
                 );
-                utils.assertObject(response);
 
                 if (isGroup) {
                     if (meta.membersState) {
@@ -4329,10 +4328,13 @@ const converters2 = {
                             utils.saveSceneState(member, sceneid, groupid, state, scenename);
                         }
                     }
-                } else if (response.status === 0) {
-                    utils.saveSceneState(entity, sceneid, groupid, state, scenename);
                 } else {
-                    throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
+                    utils.assertObject(response);
+                    if (response.status === 0) {
+                        utils.saveSceneState(entity, sceneid, groupid, state, scenename);
+                    } else {
+                        throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
+                    }
                 }
             } else {
                 const status = utils.isObject(removeresp) ? Zcl.Status[removeresp.status] : 'unknown';
