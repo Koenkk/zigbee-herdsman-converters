@@ -1288,6 +1288,29 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['MHO-C401N'],
+        model: 'MHO-C401N',
+        vendor: 'Custom devices (DiY)',
+        description: 'Xiaomi temperature & humidity sensor with custom firmware',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.hvac_user_interface],
+        toZigbee: [tz.thermostat_temperature_display_mode],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.temperature(endpoint, {min: 10, max: 300, change: 10});
+            await reporting.humidity(endpoint, {min: 10, max: 300, change: 50});
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [
+            e.temperature(), e.humidity(), e.battery(),
+            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the screen'),
+        ],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['QUAD-ZIG-SW'],
         model: 'QUAD-ZIG-SW',
         vendor: 'smarthjemmet.dk',
