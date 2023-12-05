@@ -1269,6 +1269,15 @@ const definitions: Definition[] = [
             await reporting.illuminance(endpoint3);
         },
     },
+    {
+        zigbeeModel: ['PARASOLL Door/Window Sensor'],
+        model: 'E2013',
+        vendor: 'IKEA',
+        description: 'PARASOLL Door/Window Sensor',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.tamper(), e.contact()],
+    },
 ];
 
 export default definitions;
