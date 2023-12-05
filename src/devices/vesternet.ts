@@ -103,7 +103,10 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.5.3_r2'}, {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r3'}, {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r54'}],
+        fingerprint: [
+            {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.5.3_r2'}, {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r3'},
+            {modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r54'},
+        ],
         model: 'VES-ZB-SWI-015',
         vendor: 'Vesternet',
         description: 'Zigbee 2 channel switch',
