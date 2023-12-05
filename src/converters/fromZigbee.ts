@@ -4921,15 +4921,15 @@ const converters1 = {
                 // left shift first to preserve sign extension for 'z'
                 let z = ((data['0'] << 16) >> 16);
 
-                // raw accelerometer values
-                result.raw_x=x;
-                result.raw_y=y;
-                result.raw_z=z;
-
                 // simple offset calibration
                 x=calibrateAndPrecisionRoundOptions(x, options, 'x');
                 y=calibrateAndPrecisionRoundOptions(y, options, 'y');
                 z=calibrateAndPrecisionRoundOptions(z, options, 'z');
+
+                // calibrated accelerometer values
+                result.x_axis=x;
+                result.y_axis=y;
+                result.z_axis=z;
 
                 // calculate angle
                 result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
