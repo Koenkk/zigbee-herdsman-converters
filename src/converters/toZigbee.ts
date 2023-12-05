@@ -2500,7 +2500,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertObject(value);
             // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-            let targetValue = utils.isObject(value) && value.hasOwnProperty('state') ? value.state : value;
+            const targetValue = utils.isObject(value) && value.hasOwnProperty('state') ? value.state : value;
             // Switches using aqaraOpple 0x0200 on the same endpoints as the onOff clusters.
             const lookupState = {control_relay: 0x01, decoupled: 0x00};
             await entity.write('aqaraOpple', {0x0200:
