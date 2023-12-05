@@ -464,6 +464,60 @@ const definitions: Definition[] = [
             await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007]);
         },
     },
+    {
+        zigbeeModel: ['S60ZBTPF'],
+        model: 'S60ZBTPF',
+        vendor: 'SONOFF',
+        description: 'Zigbee Smart Plug',
+        exposes: [
+            e.switch(),
+            e.power_on_behavior(['off', 'on', 'toggle', 'previous']),
+        ],
+        fromZigbee: [
+            fz.on_off,
+            fz.power_on_behavior,
+            fz.ignore_basic_report,
+        ],
+        toZigbee: [
+            tz.on_off,
+            tz.power_on_behavior,
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
+        zigbeeModel: ['S60ZBTPG'],
+        model: 'S60ZBTPG',
+        vendor: 'SONOFF',
+        description: 'Zigbee Smart Plug',
+        exposes: [
+            e.switch(),
+            e.power_on_behavior(['off', 'on', 'toggle', 'previous']),
+        ],
+        fromZigbee: [
+            fz.on_off,
+            fz.power_on_behavior,
+            fz.ignore_basic_report,
+        ],
+        toZigbee: [
+            tz.on_off,
+            tz.power_on_behavior,
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
 ];
 
 export default definitions;
