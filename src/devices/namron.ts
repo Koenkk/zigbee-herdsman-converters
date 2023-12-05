@@ -1012,24 +1012,23 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
-    zigbeeModel: ['4512770','4512771'],
-    model: '4512770',
-    vendor: 'Namron',
-    description: 'Namron zigbee multisensor (white/black)',
-    fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.humidity, fz.illuminance],
-    toZigbee: [],
-    exposes: [e.occupancy(), e.battery(),e.battery_voltage(), e.illuminance(), e.illuminance_lux(), e.temperature(), e.humidity()],
-    configure: async (device, coordinatorEndpoint, logger) => {
+        zigbeeModel: ['4512770', '4512771'],
+        model: '4512770',
+        vendor: 'Namron',
+        description: 'Zigbee multisensor (white)',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.humidity, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux(), e.temperature(), e.humidity()],
+        whiteLabel: [{vendor: 'Namron', model: '4512771', description: 'Zigbee multisensor (black)', fingerprint: [{modelID: '4512771'}]}],
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint3 = device.getEndpoint(3);
             const endpoint4 = device.getEndpoint(4);
             const endpoint5 = device.getEndpoint(5);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.bind(endpoint4, coordinatorEndpoint, ['msRelativeHumidity']);
             await reporting.bind(endpoint5, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-            }
+        },
     },
-module.exports = definition;
-
 ];
 
 export default definitions;
