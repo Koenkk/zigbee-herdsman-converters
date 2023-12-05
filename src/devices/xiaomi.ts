@@ -2478,6 +2478,21 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.curtain.vagl02'],
+        model: 'ZNGZDJ16LM',
+        description: 'Aqara roller shade motor',
+        vendor: 'Xiaomi',
+        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        exposes: [e.cover_position().setAccess('state', ea.ALL),
+            e.binary('running', ea.STATE, true, false)
+                .withDescription('Whether the motor is moving or not')],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            utils.attachOutputCluster(device, 'genOta');
+        },
+    },
+    {
         zigbeeModel: ['lumi.curtain.hagl04'],
         model: 'ZNCLDJ12LM',
         vendor: 'Xiaomi',
