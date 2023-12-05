@@ -4860,7 +4860,12 @@ const converters1 = {
     DJT11LM_vibration: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.vibration_timeout()],
+        options: [
+            exposes.options.vibration_timeout(),
+            exposes.options.calibration('x'),
+            exposes.options.calibration('y'),
+            exposes.options.calibration('z'),
+        ],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
 
@@ -4916,15 +4921,15 @@ const converters1 = {
                 // left shift first to preserve sign extension for 'z'
                 let z = ((data['0'] << 16) >> 16);
 
-                // raw accelrometer values
+                // raw accelerometer values
                 result.raw_x=x;
                 result.raw_y=y;
                 result.raw_z=z;
 
                 // simple offset calibration
-                x=calibrateAndPrecisionRoundOptions(x, options, 'raw_x');
-                y=calibrateAndPrecisionRoundOptions(y, options, 'raw_y');
-                z=calibrateAndPrecisionRoundOptions(z, options, 'raw_z');
+                x=calibrateAndPrecisionRoundOptions(x, options, 'x');
+                y=calibrateAndPrecisionRoundOptions(y, options, 'y');
+                z=calibrateAndPrecisionRoundOptions(z, options, 'z');
 
                 // calculate angle
                 result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
