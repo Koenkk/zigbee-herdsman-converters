@@ -1,5 +1,21 @@
 # Changelog
 
+## [16.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.0.2...v16.1.0) (2023-12-05)
+
+
+### Features
+
+* **add:** 4512770 ([#6630](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6630)) ([29ea643](https://github.com/Koenkk/zigbee-herdsman-converters/commit/29ea6430780b5ba86a037b778a3a93016b1087d3))
+* **add:** MHO-C401N ([#6627](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6627)) ([86047b9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/86047b9e43cb576af72769df1c13ae2dfb1efb1e))
+* **add:** ZNGZDJ16LM [@rugal7699](https://github.com/rugal7699) https://github.com/Koenkk/zigbee2mqtt/issues/20031 ([ae895ef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ae895ef7ac1ee16370df368ee4002f1e2e2ac592))
+* Expose battery for LiXee ZiPulses ([#6626](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6626)) ([aa46fd7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aa46fd7a2c674743fae18a6243af2a511733b0cd))
+
+
+### Bug Fixes
+
+* **ignore:** another fix for scene_add https://github.com/Koenkk/zigbee2mqtt/issues/20001 ([b83c880](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b83c8801c984d0c5bf91461a9118622211bb165a))
+* **ignore:** fix getFromLookup for value in multiple casing https://github.com/Koenkk/zigbee2mqtt/discussions/20003 ([b9fd416](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b9fd4168a9236edc97b4e5d6331ca1d78e038fde))
+
 ## [16.0.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.0.1...v16.0.2) (2023-12-04)
 
 
