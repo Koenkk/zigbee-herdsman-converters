@@ -929,7 +929,7 @@ const definitions: Definition[] = [
         description: 'Lixee ZiPulses',
         fromZigbee: [fz.battery, fz.temperature, fz.metering, fzZiPulses],
         toZigbee: [tzSeMetering],
-        exposes: [e.battery_voltage(), e.temperature(),
+        exposes: [e.battery(), e.battery_voltage(), e.temperature(),
             e.numeric('multiplier', ea.STATE_SET).withValueMin(1).withValueMax(1000).withDescription('It is necessary to press the link button to update'),
             e.numeric('divisor', ea.STATE_SET).withValueMin(1).withValueMax(1000).withDescription('It is necessary to press the link button to update'),
             e.enum('unitOfMeasure', ea.STATE_SET, unitsZiPulses).withDescription('It is necessary to press the link button to update'),
