@@ -6,6 +6,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import {binary, numeric} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue} from '../lib/types';
+import {onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -463,6 +464,20 @@ const definitions: Definition[] = [
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007]);
         },
+    },
+    {
+        zigbeeModel: ['S60ZBTPF'],
+        model: 'S60ZBTPF',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart plug',
+        extend: [onOff()],
+    },
+    {
+        zigbeeModel: ['S60ZBTPG'],
+        model: 'S60ZBTPG',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart plug',
+        extend: [onOff()],
     },
 ];
 

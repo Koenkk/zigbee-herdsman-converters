@@ -281,24 +281,18 @@ const fzLocal = {
     } satisfies Fz.Converter,
     ikea_dots_click_v2: {
         // For remotes with firmware 1.0.32 (20221219)
-        cluster: 'heimanSpecificScenes',
-        type: 'raw',
+        cluster: 'tradfriButton',
+        type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
         convert: (model, msg, publish, options, meta) => {
-            if (!Buffer.isBuffer(msg.data)) return;
-            let button;
-            let action;
-            switch (msg.endpoint.ID) {
-            case 2: button = '1'; break; // 1 dot
-            case 3: button = '2'; break; // 2 dot
-            }
-            switch (msg.data[4]) {
-            case 1: action = 'initial_press'; break;
-            case 2: action = 'long_press'; break;
-            case 3: action = 'short_release'; break;
-            case 4: action = 'long_release'; break;
-            case 6: action = 'double_press'; break;
-            }
-
+            const button = utils.getFromLookup(msg.endpoint.ID, {2: '1', 3: '2'});
+            const lookup = {
+                commandAction1: 'initial_press',
+                commandAction2: 'long_press',
+                commandAction3: 'short_release',
+                commandAction4: 'long_release',
+                commandAction6: 'double_press',
+            };
+            const action = utils.getFromLookup(msg.type, lookup);
             return {action: `dots_${button}_${action}`};
         },
     } satisfies Fz.Converter,
@@ -603,7 +597,10 @@ const definitions: Definition[] = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
+        extend: tradfriExtend.light_onoff_brightness_colortemp_color({
+            disableColorTempStartup: true,
+            colorTempRange: [153, 500], // light is pure RGB (XY), advertise 2000K-6500K
+        }),
         toZigbee: utils.replaceInArray(
             tradfriExtend.light_onoff_brightness_colortemp_color().toZigbee,
             [tz.light_color_colortemp],
@@ -1022,7 +1019,15 @@ const definitions: Definition[] = [
         model: 'LED1923R5/LED1925G6',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum, color spectrum',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
+        extend: tradfriExtend.light_onoff_brightness_colortemp_color({
+            disableColorTempStartup: true,
+            colorTempRange: [153, 500],
+        }),
+        toZigbee: utils.replaceInArray(
+            tradfriExtend.light_onoff_brightness_colortemp_color().toZigbee,
+            [tz.light_color_colortemp],
+            [tz.light_color_and_colortemp_via_color],
+        ),
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS globe 1055lm'],
@@ -1061,7 +1066,7 @@ const definitions: Definition[] = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRI_bulb_GU10_WS_345lm'],
+        zigbeeModel: ['TRADFRI_bulb_GU10_WS_345lm', 'TRADFRI bulb GU10 WW 345lm'],
         model: 'LED2106R3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum',
@@ -1268,6 +1273,15 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint3, cordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint3);
         },
+    },
+    {
+        zigbeeModel: ['PARASOLL Door/Window Sensor'],
+        model: 'E2013',
+        vendor: 'IKEA',
+        description: 'PARASOLL door/window Sensor',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.tamper(), e.contact()],
     },
 ];
 

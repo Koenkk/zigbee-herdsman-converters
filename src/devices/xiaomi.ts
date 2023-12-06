@@ -1093,8 +1093,9 @@ const definitions: Definition[] = [
         description: 'Aqara smart wall switch (no neutral, single rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple,
-            tz.xiaomi_flip_indicator_light, tz.aqara_switch_mode_switch],
-        exposes: [e.switch(), e.action(['single', 'double']), e.flip_indicator_light(),
+            tz.xiaomi_flip_indicator_light, tz.aqara_switch_mode_switch, tz.xiaomi_switch_power_outage_memory],
+        exposes: [e.switch(), e.action(['single', 'double']),
+            e.flip_indicator_light(), e.power_outage_memory(),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
             e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
@@ -2429,7 +2430,8 @@ const definitions: Definition[] = [
         exposes: [
             e.battery(), e.device_temperature(), e.vibration(), e.action(['vibration', 'tilt', 'drop']),
             e.numeric('strength', ea.STATE), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
-            e.angle_axis('angle_x'), e.angle_axis('angle_y'), e.angle_axis('angle_z'), e.battery_voltage(), e.power_outage_count(false),
+            e.angle_axis('angle_x'), e.angle_axis('angle_y'), e.angle_axis('angle_z'),
+            e.x_axis(), e.y_axis(), e.z_axis(), e.battery_voltage(), e.power_outage_count(false),
         ],
     },
     {
@@ -2480,7 +2482,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.curtain.vagl02'],
         model: 'ZNGZDJ16LM',
-        description: 'Aqara roller shade motor',
+        description: 'Aqara roller shade motor T1C',
         vendor: 'Xiaomi',
         fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
@@ -2662,8 +2664,8 @@ const definitions: Definition[] = [
             xiaomiAction({postfixWithEndpointName: true}),
             binary({
                 name: 'interlock',
-                valueOn: ['ON', true],
-                valueOff: ['OFF', false],
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
                 cluster: 'aqaraOpple',
                 attribute: {id: 0x02d0, type: 0x10},
                 description: 'Enabling prevents both relays being on at the same time (Interlock)',
