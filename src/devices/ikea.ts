@@ -470,14 +470,7 @@ const definitions: Definition[] = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm8'],
-        model: 'LED2104R3',
-        vendor: 'IKEA',
-        description: 'TRADFRI LED bulb GU10 WW 345 lumen, dimmable',
-        extend: tradfriExtend.light_onoff_brightness(),
-    },
-    {
-        zigbeeModel: ['TRADFRI bulb GU10 WW 345lm'],
+        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm8', 'TRADFRI bulb GU10 WW 345lm'],
         model: 'LED2104R3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 WW 345 lumen, dimmable',
