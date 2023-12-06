@@ -1092,15 +1092,19 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (no neutral, single rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple,
-            tz.xiaomi_flip_indicator_light, tz.aqara_switch_mode_switch, tz.xiaomi_switch_power_outage_memory],
-        exposes: [e.switch(), e.action(['single', 'double']),
-		e.flip_indicator_light(),e.power_outage_memory(),
-		e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
-        e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+        toZigbee: [
+            tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_flip_indicator_light,
+            tz.aqara_switch_mode_switch, tz.xiaomi_switch_power_outage_memory],
+        exposes: [
+            e.switch(),
+            e.action(['single', 'double']),
+            e.flip_indicator_light(),
+            e.power_outage_memory(),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
-            e.power_outage_count(), 
+            e.power_outage_count(),
             e.device_temperature().withAccess(ea.STATE)],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
