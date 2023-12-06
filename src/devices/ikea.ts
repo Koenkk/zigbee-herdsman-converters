@@ -302,22 +302,21 @@ const fzLocal = {
             return {action: `dots_${button}_${action}`};
         },
     } satisfies Fz.Converter,
-    ikea_dots_click_v2_somrig: 
-        {
-            cluster: 'tradfriButton',
-            type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
-            convert: (model, msg, publish, options, meta) => {
-                const button = utils.getFromLookup(msg.endpoint.ID, {1: '1', 2: '2'});
-                const lookup = {
-                    commandAction1: 'initial_press',
-                    commandAction2: 'long_press',
-                    commandAction3: 'short_release',
-                    commandAction4: 'long_release',
-                    commandAction6: 'double_press',
-                };
-                const action = utils.getFromLookup(msg.type, lookup);
-                return {action: `dots_${button}_${action}`};
-            },
+    ikea_dots_click_v2_somrig:{
+        cluster: 'tradfriButton',
+        type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = utils.getFromLookup(msg.endpoint.ID, {1: '1', 2: '2'});
+            const lookup = {
+                commandAction1: 'initial_press',
+                commandAction2: 'long_press',
+                commandAction3: 'short_release',
+                commandAction4: 'long_release',
+                commandAction6: 'double_press',
+            };
+            const action = utils.getFromLookup(msg.type, lookup);
+            return {action: `dots_${button}_${action}`};
+        },
     } satisfies Fz.Converter,
     ikea_volume_click: {
         cluster: 'genLevelCtrl',
