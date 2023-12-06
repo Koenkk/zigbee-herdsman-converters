@@ -2662,8 +2662,8 @@ const definitions: Definition[] = [
             xiaomiAction({postfixWithEndpointName: true}),
             binary({
                 name: 'interlock',
-                valueOn: ['ON', true],
-                valueOff: ['OFF', false],
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
                 cluster: 'aqaraOpple',
                 attribute: {id: 0x02d0, type: 0x10},
                 description: 'Enabling prevents both relays being on at the same time (Interlock)',
