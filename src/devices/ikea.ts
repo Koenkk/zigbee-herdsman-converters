@@ -302,27 +302,22 @@ const fzLocal = {
             return {action: `dots_${button}_${action}`};
         },
     } satisfies Fz.Converter,
-    ikea_dots_click_v2_somrig: {
-        cluster: 'heimanSpecificScenes',
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            if (!Buffer.isBuffer(msg.data)) return;
-            let button;
-            let action;
-            switch (msg.endpoint.ID) {
-            case 1: button = '1'; break; // 1 dot
-            case 2: button = '2'; break; // 2 dot
-            }
-            switch (msg.data[4]) {
-            case 1: action = 'initial_press'; break;
-            case 2: action = 'long_press'; break;
-            case 3: action = 'short_release'; break;
-            case 4: action = 'long_release'; break;
-            case 6: action = 'double_press'; break;
-            }
-
-            return {action: `dots_${button}_${action}`};
-        },
+    ikea_dots_click_v2_somrig: 
+        {
+            cluster: 'tradfriButton',
+            type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
+            convert: (model, msg, publish, options, meta) => {
+                const button = utils.getFromLookup(msg.endpoint.ID, {1: '1', 2: '2'});
+                const lookup = {
+                    commandAction1: 'initial_press',
+                    commandAction2: 'long_press',
+                    commandAction3: 'short_release',
+                    commandAction4: 'long_release',
+                    commandAction6: 'double_press',
+                };
+                const action = utils.getFromLookup(msg.type, lookup);
+                return {action: `dots_${button}_${action}`};
+            },
     } satisfies Fz.Converter,
     ikea_volume_click: {
         cluster: 'genLevelCtrl',
@@ -1307,8 +1302,8 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['heimanSpecificScenes', 'genPollCtrl']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['heimanSpecificScenes']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['tradfriButton', 'genPollCtrl']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
             await reporting.batteryVoltage(endpoint1);
         },
     },
