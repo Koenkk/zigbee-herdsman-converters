@@ -469,14 +469,14 @@ const definitions: Definition[] = [
         zigbeeModel: ['S60ZBTPF'],
         model: 'S60ZBTPF',
         vendor: 'SONOFF',
-        description: 'Zigbee Smart Plug',
+        description: 'Zigbee smart plug',
         extend: [onOff()],
     },
     {
         zigbeeModel: ['S60ZBTPG'],
         model: 'S60ZBTPG',
         vendor: 'SONOFF',
-        description: 'Zigbee Smart Plug',
+        description: 'Zigbee smart plug',
         extend: [onOff()],
     },
 ];
