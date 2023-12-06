@@ -3832,7 +3832,8 @@ const fromZigbee1 = {
                 };
             case dataPoints.state: // Thermostat on standby = OFF, running = ON
                 if (model.model === 'BAC-002-ALZB') {
-                    return {system_mode: value ? 'cool' : 'off'};
+                    const stateLookup = {0: 'cool', 1: 'heat', 2: 'fan_only'};
+                    return {system_mode: stateLookup[value]};
                 } else {
                     return {system_mode: value ? 'heat' : 'off'};
                 }
