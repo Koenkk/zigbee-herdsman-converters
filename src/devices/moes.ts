@@ -163,7 +163,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_5toc8efa'},],
-        model: 'BHT-002-GCLZB',
+        model: 'BHT-002-GCLZB+',
         vendor: 'Moes',
         description: 'Moes BHT series Thermostat for _TZE204_5toc8efa',
         fromZigbee: [legacy.fz.moes_thermostat],
