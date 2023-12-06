@@ -4166,7 +4166,7 @@ meta: {
             ],
         },
     },
-
+ },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_2ekuz3dz'}],
         model: 'X5H-GB-B',
