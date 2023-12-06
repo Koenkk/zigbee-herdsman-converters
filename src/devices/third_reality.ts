@@ -5,6 +5,8 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import {Definition, Fz, KeyValue} from '../lib/types';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const fzLocal = {
@@ -74,14 +76,14 @@ const definitions: Definition[] = [
         model: '3RSL011Z',
         vendor: 'Third Reality',
         description: 'Smart light A19',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3RSL012Z'],
         model: '3RSL012Z',
         vendor: 'Third Reality',
         description: 'Smart light BR30',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3RWS18BZ'],

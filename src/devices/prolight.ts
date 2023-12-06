@@ -2,6 +2,8 @@ import {Definition} from '../lib/types';
 import extend from '../lib/extend';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -17,14 +19,14 @@ const definitions: Definition[] = [
         model: '5412748727432',
         vendor: 'Prolight',
         description: 'E27 filament bulb dimmable',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['PROLIGHT E27 WARM WHITE'],
         model: '5412748727364',
         vendor: 'Prolight',
         description: 'E27 bulb dimmable',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['PROLIGHT GU10 WHITE AND COLOUR'],
@@ -38,7 +40,7 @@ const definitions: Definition[] = [
         model: '5412748727395',
         vendor: 'Prolight',
         description: 'GU10 spot dimmable',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['PROLIGHT REMOTE CONTROL'],

@@ -4,6 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -66,7 +68,7 @@ const definitions: Definition[] = [
         model: 'S32053',
         vendor: 'The Light Group',
         description: 'SLC SmartOne CV led dimmable driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 

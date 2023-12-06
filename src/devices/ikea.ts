@@ -284,21 +284,15 @@ const fzLocal = {
         cluster: 'heimanSpecificScenes',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
-            if (!Buffer.isBuffer(msg.data)) return;
-            let button;
-            let action;
-            switch (msg.endpoint.ID) {
-            case 2: button = '1'; break; // 1 dot
-            case 3: button = '2'; break; // 2 dot
-            }
-            switch (msg.data[4]) {
-            case 1: action = 'initial_press'; break;
-            case 2: action = 'long_press'; break;
-            case 3: action = 'short_release'; break;
-            case 4: action = 'long_release'; break;
-            case 6: action = 'double_press'; break;
-            }
-
+            const button = utils.getFromLookup(msg.endpoint.ID, {2: '1', 3: '2'});
+            const lookup = {
+                commandAction1: 'initial_press',
+                commandAction2: 'long_press',
+                commandAction3: 'short_release',
+                commandAction4: 'long_release',
+                commandAction6: 'double_press',
+            };
+            const action = utils.getFromLookup(msg.type, lookup);
             return {action: `dots_${button}_${action}`};
         },
     } satisfies Fz.Converter,
@@ -1305,6 +1299,15 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
             await reporting.batteryVoltage(endpoint1);
         },
+    },
+    {
+        zigbeeModel: ['PARASOLL Door/Window Sensor'],
+        model: 'E2013',
+        vendor: 'IKEA',
+        description: 'PARASOLL door/window Sensor',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.tamper(), e.contact()],
     },
 ];
 

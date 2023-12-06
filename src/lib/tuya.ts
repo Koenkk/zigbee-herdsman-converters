@@ -982,10 +982,11 @@ const tuyaTz = {
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
             const state: KeyValue = {};
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             const datapoints = meta.mapped.meta?.tuyaDatapoints;
             if (!datapoints) throw new Error('No datapoints map defined');
             for (const [attr, value] of Object.entries(meta.message)) {
-                const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
+                const convertedKey: string = meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
                     `${attr}_${meta.endpoint_name}` : attr;
                 const dpEntry = datapoints.find((d) => d[1] === convertedKey);
                 if (!dpEntry?.[1] || !dpEntry?.[2].to) {

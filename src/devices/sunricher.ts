@@ -8,6 +8,8 @@ import * as constants from '../lib/constants';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import {Definition, Fz, Zh} from '../lib/types';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -86,6 +88,34 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r54'}],
+        model: 'SR-ZG9101SAC-HP-SWITCH-2CH',
+        vendor: 'Sunricher',
+        description: 'Zigbee 2 channel switch',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power(), e.current(),
+            e.voltage(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            await reporting.onOff(endpoint2);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint1);
+            await reporting.activePower(endpoint1);
+            await reporting.rmsCurrent(endpoint1, {min: 10, change: 10});
+            await reporting.rmsVoltage(endpoint1, {min: 10});
+            await reporting.readMeteringMultiplierDivisor(endpoint1);
+            await reporting.currentSummDelivered(endpoint1);
         },
     },
     {
@@ -185,7 +215,7 @@ const definitions: Definition[] = [
         model: 'ZG192910-4',
         vendor: 'Sunricher',
         description: 'Zigbee LED-controller',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZG9101SAC-HP'],
@@ -271,14 +301,14 @@ const definitions: Definition[] = [
         model: 'SRP-ZG9105-CC',
         vendor: 'Sunricher',
         description: 'Constant Current Zigbee LED dimmable driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['HK-DIM'],
         model: '50208702',
         vendor: 'Sunricher',
         description: 'LED dimmable driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
         whiteLabel: [{vendor: 'Yphix', model: '50208702'}],
     },
     {

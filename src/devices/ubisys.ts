@@ -449,6 +449,7 @@ const ubisys = {
                     // first input
                     let input = 0;
                     // first client endpoint - depends on actual device
+                    if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
                     let endpoint = {'S1': 2, 'S2': 3, 'D1': 2, 'J1': 2, 'C4': 1}[meta.mapped.model];
                     // default group id
                     let groupId = 0;

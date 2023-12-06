@@ -826,13 +826,15 @@ const definitions: Definition[] = [
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_mvn6jl7x'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_raviyuvk'}, {modelID: 'TS011F', manufacturerName: '_TYZB01_hlla45kx'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_92qd4sqa'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_zwaadvus'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_k6fvknrr'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_6s5dc9lx'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_k6fvknrr'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_6s5dc9lx'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_rgpqqmbj'}],
         model: 'TS011F_2_gang_wall',
         vendor: 'TuYa',
         description: '2 gang wall outlet',
         extend: tuya.extend.switch({backlightModeLowMediumHigh: true, childLock: true, endpoints: ['l1', 'l2']}),
         whiteLabel: [
             tuya.whitelabel('ClickSmart+', 'CMA30036', '2 gang socket outlet', ['_TYZB01_hlla45kx']),
+            tuya.whitelabel('Rylike', 'RY-WS02Z', '2 gang socket outlet AU', ['_TZ3000_rgpqqmbj']),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
@@ -3549,21 +3551,23 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [tuya.exposes.switch(), e.ac_frequency(), e.energy(), e.power(), e.power_factor(), e.voltage(), e.current(),
-            e.produced_energy()],
+            e.produced_energy(), e.power_reactive(),
+            e.numeric('energy_reactive', ea.STATE).withUnit('kVArh').withDescription('Sum of reactive energy'),
+            e.numeric('total_energy', ea.STATE).withUnit('kWh').withDescription('Total consumed and produced energy')],
         meta: {
             tuyaDatapoints: [
                 [1, 'energy', tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseVariant1], // voltage and current
                 [16, 'state', tuya.valueConverter.onOff],
+                [101, 'total_energy', tuya.valueConverter.divideBy100], // total energy produced + consumed
                 [102, 'produced_energy', tuya.valueConverter.divideBy100],
                 [103, 'power', tuya.valueConverter.raw],
                 [105, 'ac_frequency', tuya.valueConverter.divideBy100],
+                [109, 'energy_reactive', tuya.valueConverter.divideBy100], // reactive energy in VArh
+                [110, 'power_reactive', tuya.valueConverter.raw], // reactive power
                 [111, 'power_factor', tuya.valueConverter.divideBy10],
                 // Ignored for now; we don't know what the values mean
-                [109, null, null], // reactive_power in VArh, ignored for now
-                [101, null, null], // total active power (translated from chinese) - same as energy dp 1??
                 [9, null, null], // Fault - we don't know the possible values here
-                [110, null, null], // total reactive power (translated from chinese) - value is 0.03kvar, we already have kvarh on dp 109
                 [17, null, null], // Alarm set1 - value seems garbage "AAAAAAAAAAAAAABkAAEOAACqAAAAAAAKAAAAAAAA"
                 [18, null, null], // 18 - Alarm set2 - value seems garbage "AAUAZAAFAB4APAAAAAAAAAA="
             ],
@@ -5728,7 +5732,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bcusnqt8'}],
         model: 'SPM01-D2TZ',
-        vendor: 'Yagusmart',
+        vendor: 'Zemismart',
         description: 'Smart energy monitor for 1P+N system',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -6292,7 +6296,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sooucan5']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sooucan5', '_TZE204_oqtpvx51']),
         model: 'YXZBRB58',
         vendor: 'TuYa',
         description: 'Smart human presence sensor',

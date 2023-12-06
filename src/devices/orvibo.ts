@@ -4,6 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const tzLocal = {
@@ -488,7 +490,7 @@ const definitions: Definition[] = [
         model: 'DTZ09039',
         vendor: 'ORVIBO',
         description: 'Downlight (Q series)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['bbfed49c738948b989911f9f9f73d759'],

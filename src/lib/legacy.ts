@@ -6603,6 +6603,7 @@ const toZigbee2 = {
             giexWaterValve.cycleIrrigationInterval,
         ],
         convertSet: async (entity, key, value, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             const modelConverters = giexTzModelConverters[meta.mapped?.model] || {};
             switch (key) {
             case giexWaterValve.state:
@@ -8355,6 +8356,7 @@ const toZigbee2 = {
     tuya_light_wz5: {
         key: ['color', 'color_temp', 'brightness', 'white_brightness'],
         convertSet: async (entity, key, value: any, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             const separateWhite = (meta.mapped.meta && meta.mapped.meta.separateWhite);
             if (key == 'white_brightness' || (!separateWhite && (key == 'brightness'))) {
                 // upscale to 1000

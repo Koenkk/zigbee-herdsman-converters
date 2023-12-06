@@ -245,7 +245,6 @@ export function getMetaValue<T>(entity: Zh.Group | Zh.Endpoint, definition: Defi
             return values[0];
         }
     } else {
-        // @ts-expect-error
         const definitionMeta = getMetaValues(definition, entity);
         if (definitionMeta && definitionMeta.hasOwnProperty(key)) {
             // @ts-expect-error
@@ -408,23 +407,30 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
     }
 }
 
-export function getOptions(definition: Definition, entity: Zh.Endpoint | Zh.Group, options={}) {
+export function getOptions(definition: Definition | Definition[], entity: Zh.Endpoint | Zh.Group, options={}) {
     const allowed = ['disableDefaultResponse', 'timeout'];
     return getMetaValues(definition, entity, allowed, options);
 }
 
-export function getMetaValues(definition: Definition, entity: Zh.Endpoint | Zh.Group, allowed?: string[], options={}) {
+export function getMetaValues(definitions: Definition | Definition[], entity: Zh.Endpoint | Zh.Group, allowed?: string[], options={}) {
     const result: KeyValue = {...options};
-    if (definition && definition.meta) {
-        for (const key of Object.keys(definition.meta)) {
-            if (allowed == null || allowed.includes(key)) {
-                // @ts-expect-error
-                const value = definition.meta[key];
-                result[key] = typeof value === 'function' ? value(entity) : value;
+    for (const definition of Array.isArray(definitions) ? definitions : [definitions]) {
+        if (definition && definition.meta) {
+            for (const key of Object.keys(definition.meta)) {
+                if (allowed == null || allowed.includes(key)) {
+                    // @ts-expect-error
+                    const value = definition.meta[key];
+                    if (typeof value === 'function') {
+                        if (isEndpoint(entity)) {
+                            result[key] = value(entity);
+                        }
+                    } else {
+                        result[key] = value;
+                    }
+                }
             }
         }
     }
-
     return result;
 }
 
@@ -553,7 +559,7 @@ export function toNumber(value: unknown, property?: string): number {
 export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V=undefined): V {
     let result = undefined;
     if (typeof value === 'string') {
-        result = lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
+        result = lookup[value] ?? lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
     } else if (typeof value === 'number') {
         result = lookup[value];
     }
