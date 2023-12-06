@@ -6788,10 +6788,34 @@ const toZigbee2 = {
             const schedule = value === 'program' ? 0 : 1;
             
             const stateLookup = {0: 'cool', 1: 'heat', 2: 'fan_only'};
-
-            await sendDataPointEnum(entity, tuya.dataPoints.tvMode, stateLookup[value]};
+            
             await sendDataPointEnum(entity, dataPoints.moesHold, hold);
             await sendDataPointEnum(entity, dataPoints.moesScheduleEnable, schedule);
+
+             switch (value) {
+                case 'off':
+                     await sendDataPointBool(entity, tuya.dataPoints.moesSsystemMode, 0);
+                    break;
+                case 'cool':
+                    // turn on
+                    await sendDataPointBool(entity, tuya.dataPoints.moesSsystemMode, 1);
+    
+                    await sendDataPointEnum(entity, tuya.dataPoints.tvMode, 0);
+                    break;
+                case 'heat':
+                    // turn on
+                    await sendDataPointBool(entity, tuya.dataPoints.moesSsystemMode, 1);
+    
+                    await sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1);
+                    break;
+                case 'fan_only':
+                    // turn on
+                    await sendDataPointBool(entity, tuya.dataPoints.moesSsystemMode, 1);
+    
+                    await sendDataPointEnum(entity, tuya.dataPoints.tvMode, 2);
+                    //await sendDataPointEnum(entity, tuya.dataPoints.moesScheduleEnable, 0);
+                    break;
+            }
         },
     } satisfies Tz.Converter,
     moes_thermostat_standby: {
