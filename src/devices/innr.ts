@@ -1,6 +1,8 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+import tuya 'zigbee-herdsman-converters/lib/tuya'
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
