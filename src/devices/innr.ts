@@ -1,6 +1,7 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
@@ -707,7 +708,6 @@ const definitions: Definition[] = [
         options: [exposes.options.measurement_poll_interval()],
 
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
     },
 ];
 
