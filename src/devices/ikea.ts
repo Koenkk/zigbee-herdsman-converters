@@ -1022,7 +1022,15 @@ const definitions: Definition[] = [
         model: 'LED1923R5/LED1925G6',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum, color spectrum',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
+        extend: tradfriExtend.light_onoff_brightness_colortemp_color({
+            disableColorTempStartup: true,
+            colorTempRange: [153, 500],
+        }),
+        toZigbee: utils.replaceInArray(
+            tradfriExtend.light_onoff_brightness_colortemp_color().toZigbee,
+            [tz.light_color_colortemp],
+            [tz.light_color_and_colortemp_via_color],
+        ),
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS globe 1055lm'],
