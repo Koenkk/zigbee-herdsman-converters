@@ -4104,7 +4104,6 @@ const converters2 = {
     scene_store: {
         key: ['scene_store'],
         convertSet: async (entity, key, value: KeyValueAny, meta) => {
-            utils.assertGroup(entity);
             const isGroup = utils.isGroup(entity);
             const groupid = isGroup ? entity.groupID : value.hasOwnProperty('group_id') ? value.group_id : 0;
             let sceneid = value;
