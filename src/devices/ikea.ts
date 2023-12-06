@@ -302,7 +302,7 @@ const fzLocal = {
             return {action: `dots_${button}_${action}`};
         },
     } satisfies Fz.Converter,
-    ikea_dots_click_v2_somrig:{
+    ikea_dots_click_v2_somrig: {
         cluster: 'tradfriButton',
         type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
         convert: (model, msg, publish, options, meta) => {
