@@ -597,7 +597,10 @@ const definitions: Definition[] = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
+        extend: tradfriExtend.light_onoff_brightness_colortemp_color({
+            disableColorTempStartup: true,
+            colorTempRange: [153, 500], // light is pure RGB (XY), advertise 2000K-6500K
+        }),
         toZigbee: utils.replaceInArray(
             tradfriExtend.light_onoff_brightness_colortemp_color().toZigbee,
             [tz.light_color_colortemp],
