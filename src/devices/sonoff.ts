@@ -6,6 +6,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import {binary, numeric} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue} from '../lib/types';
+import {onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -469,54 +470,14 @@ const definitions: Definition[] = [
         model: 'S60ZBTPF',
         vendor: 'SONOFF',
         description: 'Zigbee Smart Plug',
-        exposes: [
-            e.switch(),
-            e.power_on_behavior(['off', 'on', 'toggle', 'previous']),
-        ],
-        fromZigbee: [
-            fz.on_off,
-            fz.power_on_behavior,
-            fz.ignore_basic_report,
-        ],
-        toZigbee: [
-            tz.on_off,
-            tz.power_on_behavior,
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['S60ZBTPG'],
         model: 'S60ZBTPG',
         vendor: 'SONOFF',
         description: 'Zigbee Smart Plug',
-        exposes: [
-            e.switch(),
-            e.power_on_behavior(['off', 'on', 'toggle', 'previous']),
-        ],
-        fromZigbee: [
-            fz.on_off,
-            fz.power_on_behavior,
-            fz.ignore_basic_report,
-        ],
-        toZigbee: [
-            tz.on_off,
-            tz.power_on_behavior,
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [onOff()],
     },
 ];
 
