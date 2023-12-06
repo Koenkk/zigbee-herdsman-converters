@@ -2482,7 +2482,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.curtain.vagl02'],
         model: 'ZNGZDJ16LM',
-        description: 'Aqara roller shade motor',
+        description: 'Aqara roller shade motor T1C',
         vendor: 'Xiaomi',
         fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
