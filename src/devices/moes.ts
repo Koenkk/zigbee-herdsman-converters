@@ -162,7 +162,7 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetLocalTime,
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_5toc8efa'},],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_5toc8efa'}],
         model: 'BHT-002-GCLZB+',
         vendor: 'Moes',
         description: 'Moes BHT series Thermostat for _TZE204_5toc8efa',
