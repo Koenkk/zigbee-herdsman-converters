@@ -5,6 +5,8 @@ import * as legacy from '../lib/legacy';
 import * as utils from '../lib/utils';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const fzLocal = {
@@ -196,7 +198,7 @@ const definitions: Definition[] = [
         model: 'KK-QD-Y01w',
         vendor: 'Konke',
         description: 'Spotlight driver (cw mode)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
 ];
 

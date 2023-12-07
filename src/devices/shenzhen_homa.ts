@@ -34,7 +34,7 @@ const definitions: Definition[] = [
         model: 'HOMA1001_RGB',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver RGB',
-        extend: extend.light_onoff_brightness_color(),
+        extend: [light({color: true})],
     },
     {
         fingerprint: [

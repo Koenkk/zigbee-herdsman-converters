@@ -7,6 +7,8 @@ import extend from '../lib/extend';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
 import * as tuya from '../lib/tuya';
+import {light} from '../lib/modernExtend';
+
 const ea = exposes.access;
 
 const definitions: Definition[] = [
@@ -15,14 +17,14 @@ const definitions: Definition[] = [
         model: 'LXZB-12A',
         vendor: 'Zemismart',
         description: 'RGB LED downlight',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({color: true})],
     },
     {
         zigbeeModel: ['LXT56-LS27LX1.6'],
         model: 'HGZB-DLC4-N15B',
         vendor: 'Zemismart',
         description: 'RGB LED downlight',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({color: true})],
     },
     {
         zigbeeModel: ['TS0302'],

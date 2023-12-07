@@ -1,7 +1,6 @@
 import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import extend from '../lib/extend';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import {light} from '../lib/modernExtend';
@@ -22,14 +21,14 @@ const definitions: Definition[] = [
         model: 'HA-ZM12/24-mw2',
         vendor: 'Halemeier',
         description: 'MultiWhite 1-channel smart receiver 12V',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['HA-ZGMW2-E'],
         model: 'HA-ZGMW2-E',
         vendor: 'Halemeier',
         description: 'LED driver',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['HA-ZSM-MW2'],
