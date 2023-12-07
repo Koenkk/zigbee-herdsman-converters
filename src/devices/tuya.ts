@@ -3131,7 +3131,7 @@ const definitions: Definition[] = [
     fingerprint: [
       ...tuya.fingerprint("TS0201", ["_TZ3000_dowj6gyi", "_TZ3000_8ybe88nf"]),
       ...tuya.fingerprint("TY0201", ["_TZ3000_zl1kmjqx"]),
-      ...tuya.fingerprint("", ["_TZ3000_zl1kmjqx"]),
+      { modelID: "", manufacturerName: "_TZ3000_zl1kmjqx" },
     ],
     model: "IH-K009",
     vendor: "TuYa",
