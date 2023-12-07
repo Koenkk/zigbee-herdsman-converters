@@ -4133,40 +4133,31 @@ const definitions: Definition[] = [
             .withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)],
     },
-{
-const valueConverter = {
-systemMode: tuya.valueConverterBasic.lookup({'heat': true, 'off': false}),
-runningState: tuya.valueConverterBasic.lookup({'heat': 1, 'idle': 0}),
-preset: tuya.valueConverterBasic.lookup({'manual': 1, 'program': 0}),
-backlight: tuya.valueConverterBasic.lookup({'off': 0, 'low': 1, 'medium': 2, 'high': 3}),
-sound: tuya.valueConverterBasic.lookup({'off': 0, 'on': 1}),
-divideBy10: tuya.valueConverterBasic.divideBy(10),
-		
-    fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_g9a3awaj'}],
-    model: 'ZWT07',
-    vendor: 'TuYa',
-    description: 'Wall-mount thermostat',
-	fromZigbee: [tuya.fz.datapoints],
-	toZigbee: [tuya.tz.datapoints],
-	onEvent: tuya.onEvent({timeStart: '1970'}),
-    configure: tuya.configureMagicPacket,
-    exposes: [exposes.Climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
-        .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)
-        .withPreset(['manual', 'program'], ea.STATE_SET),
-        exposes.Binary('frost', ea.STATE_SET, 'ON', 'OFF')
-        .withDescription('Antifreeze function')],
-meta: {
-    tuyaDatapoints: [
-        [1, 'system_mode', valueConverter.systemMode],
-        [2, 'preset', tuya.valueConverterBasic.lookup({'manual': tuya.enum(1), 'program': tuya.enum(0)})],
-        [36, 'running_state', valueConverter.runningState],
-        [16, 'current_heating_setpoint', valueConverter.divideBy10],
-        [24, 'local_temperature', valueConverter.divideBy10],
-        [10, 'frost', tuya.valueConverter.onOff],
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_g9a3awaj'}],
+        model: 'ZWT07',
+        vendor: 'TuYa',
+        description: 'Wall-mount thermostat',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEvent({timeStart: '1970'}),
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
+                .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)
+                .withPreset(['manual', 'program']),
+            e.binary('frost', ea.STATE_SET, 'ON', 'OFF').withDescription('Antifreeze function')],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({'heat': true, 'off': false})],
+                [2, 'preset', tuya.valueConverterBasic.lookup({'manual': tuya.enum(1), 'program': tuya.enum(0)})],
+                [36, 'running_state', tuya.valueConverterBasic.lookup({'heat': 1, 'idle': 0})],
+                [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [24, 'local_temperature', tuya.valueConverter.divideBy10],
+                [10, 'frost', tuya.valueConverter.onOff],
             ],
         },
     },
- },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_2ekuz3dz'}],
         model: 'X5H-GB-B',
