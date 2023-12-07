@@ -4149,7 +4149,8 @@ const definitions: Definition[] = [
         exposes: [
             e.climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)
-                .withPreset(['manual', 'program']),
+                .withPreset(['manual', 'program'])
+                .withLocalTemperature(),
             e.binary('frost', ea.STATE_SET, 'ON', 'OFF').withDescription('Antifreeze function')],
         meta: {
             tuyaDatapoints: [
