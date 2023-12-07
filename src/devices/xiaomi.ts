@@ -3257,7 +3257,7 @@ const definitions: Definition[] = [
         description: 'Aqara T1 door & window contact sensor',
         fromZigbee: [fz.xiaomi_contact, xiaomi.fromZigbee.aqara_opple, fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low()],
+        exposes: [e.contact(), e.battery()],
         ota: ota.zigbeeOTA,
     },
     {
