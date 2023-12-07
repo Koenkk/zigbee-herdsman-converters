@@ -67,7 +67,7 @@ const definitions: Definition[] = [
         model: 'ZL1000100-CCT-US-V1A02',
         vendor: 'Linkind',
         description: 'Zigbee LED 9W A19 bulb, dimmable & tunable',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-C4700107'],
@@ -81,14 +81,14 @@ const definitions: Definition[] = [
         model: 'ZL00030014',
         vendor: 'Linkind',
         description: 'Zigbee LED 4.8W GU10 bulb, dimmable & tunable',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-D115'],
         model: 'ZL13100314',
         vendor: 'Linkind',
         description: 'Ceiling light 28W, 3000 lm, Ø40CM CCT',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-BR300107'],

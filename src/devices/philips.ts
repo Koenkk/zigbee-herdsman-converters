@@ -7,6 +7,8 @@ import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import * as philips from '../lib/philips';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -73,7 +75,7 @@ const definitions: Definition[] = [
         model: '8718696126523',
         vendor: 'Philips',
         description: 'Hue Phoenix ceiling light',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 455]}),
+        extend: [light({color: true, colorTemp: {range: [154, 455]}})],
     },
     {
         zigbeeModel: ['LWA023'],

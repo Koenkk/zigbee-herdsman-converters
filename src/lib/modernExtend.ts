@@ -162,14 +162,16 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 
 export interface LightArgs {
     effect?: boolean, powerOnBehaviour?: boolean, colorTemp?: {startup?: boolean, range: Range},
-    color?: boolean | {modes: ('xy' | 'hs')[]}, turnsOffAtBrightness1?: boolean,
+    color?: boolean | {modes?: ('xy' | 'hs')[], applyRedFix?: boolean, enhancedHue?: boolean}, turnsOffAtBrightness1?: boolean,
 }
 export function light(args?: LightArgs): ModernExtend {
-    args = {effect: true, powerOnBehaviour: true, turnsOffAtBrightness1: false, ...args};
+    args = {effect: true, powerOnBehaviour: true, ...args};
     if (args.colorTemp) {
         args.colorTemp = {startup: true, ...args.colorTemp};
     }
-    const argsColor = args.color ? {modes: ['xy'] satisfies ('xy' | 'hs')[], ...(isObject(args.color) ? args.color : {})} : false;
+    const argsColor = args.color ? {
+        modes: ['xy'] satisfies ('xy' | 'hs')[], applyRedFix: false, enhancedHue: true, ...(isObject(args.color) ? args.color : {}),
+    } : false;
 
     let lightExpose = e.light().withBrightness();
 
@@ -199,6 +201,12 @@ export function light(args?: LightArgs): ModernExtend {
         if (argsColor.modes.includes('hs')) {
             meta.supportsHueAndSaturation = true;
         }
+        if (argsColor.applyRedFix) {
+            meta.applyRedFix = true;
+        }
+        if (!argsColor.enhancedHue) {
+            meta.supportsEnhancedHue = false;
+        }
     }
 
     const exposes: Expose[] = [lightExpose];
@@ -214,8 +222,8 @@ export function light(args?: LightArgs): ModernExtend {
         toZigbee.push(tz.power_on_behavior);
     }
 
-    if (args.turnsOffAtBrightness1) {
-        meta.turnsOffAtBrightness1 = true;
+    if (args.hasOwnProperty('turnsOffAtBrightness1')) {
+        meta.turnsOffAtBrightness1 = args.turnsOffAtBrightness1;
     }
 
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
