@@ -21,14 +21,14 @@ const definitions: Definition[] = [
         toZigbee: [
             legacy.tz.moes_thermostat_child_lock,
             legacy.tz.moes_thermostat_current_heating_setpoint,
-            legacy.tz.moes_thermostat_mode2,
-            legacy.tz.hgkg_thermostat_standby,
             legacy.tz.moes_thermostat_sensor,
             legacy.tz.moes_thermostat_calibration,
             legacy.tz.tuya_thermostat_schedule,
             legacy.tz.tuya_thermostat_week,
             legacy.tz.tuya_thermostat_schedule_programming_mode,
             legacy.tz.tuya_thermostat_bac_fan_mode,
+            legacy.tz.moes_thermostat_mode,
+            legacy.tz.moes_thermostat_mode2,
         ],
         exposes: [
             // e.switch(),
