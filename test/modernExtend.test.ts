@@ -94,6 +94,54 @@ describe('ModernExtend', () => {
         expect(endpoint.configureReporting).toHaveBeenCalledTimes(0);
     });
 
+    test('light({color: {modes: ["xy", "hs"], applyRedFix: true}, colorTemp: {range: [153, 555], startup: false}, turnsOffAtBrightness1: true}', async () => {
+        const device = mockDevice({modelID: 'OPL 130 C', endpoints: [{inputClusters: ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl']}]});
+        const endpoint = device.endpoints[0];
+        const coordinatorEndpoint = mockEndpoint();
+        const definition = findByDevice(device);
+
+        await definition.configure?.(device, coordinatorEndpoint, MockLogger);
+        
+        expect(definition.meta).toEqual({applyRedFix: true, supportsHueAndSaturation: true, turnsOffAtBrightness1: true});
+        expect(definition.fromZigbee).toEqual([fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior]);
+        expect(definition.toZigbee).toEqual([
+            tz.light_onoff_brightness, tz.ignore_transition, tz.level_config, tz.ignore_rate, tz.light_brightness_move, tz.light_brightness_step, 
+            tz.light_color_colortemp, tz.light_color_mode, tz.light_color_options, tz.light_colortemp_move, tz.light_colortemp_step,
+            tz.light_hue_saturation_move, tz.light_hue_saturation_step, tz.effect, tz.power_on_behavior, ...DefaultTz
+        ]);
+        utils.assertArray(definition.exposes);
+        expect(getExposeString(definition)).toEqual(['effect', 'light(state,brightness,color_temp,color_xy,color_hs)', 'linkquality', 'power_on_behavior']);
+        expect(endpoint.bind).toHaveBeenCalledTimes(0);
+        expect(endpoint.read).toHaveBeenCalledTimes(2);
+        expect(endpoint.read).toHaveBeenCalledWith('lightingColorCtrl', ['colorCapabilities']);
+        expect(endpoint.read).toHaveBeenCalledWith('lightingColorCtrl', ['colorTempPhysicalMin', 'colorTempPhysicalMax']);
+        expect(endpoint.configureReporting).toHaveBeenCalledTimes(0);
+    });
+
+    test('light({color: true})', async () => {
+        const device = mockDevice({modelID: 'ZBEK-1', endpoints: [{inputClusters: ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl']}]});
+        const endpoint = device.endpoints[0];
+        const coordinatorEndpoint = mockEndpoint();
+        const definition = findByDevice(device);
+
+        await definition.configure?.(device, coordinatorEndpoint, MockLogger);
+        
+        expect(definition.meta).toEqual({});
+        expect(definition.fromZigbee).toEqual([fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior]);
+        expect(definition.toZigbee).toEqual([
+            tz.light_onoff_brightness, tz.ignore_transition, tz.level_config, tz.ignore_rate, tz.light_brightness_move, tz.light_brightness_step, 
+            tz.light_color_colortemp, tz.light_color_mode, tz.light_color_options, tz.light_colortemp_move, tz.light_colortemp_step,
+            tz.light_colortemp_startup, tz.light_hue_saturation_move, tz.light_hue_saturation_step, tz.effect, tz.power_on_behavior, ...DefaultTz
+        ]);
+        utils.assertArray(definition.exposes);
+        expect(getExposeString(definition)).toEqual(['effect', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'linkquality', 'power_on_behavior']);
+        expect(endpoint.bind).toHaveBeenCalledTimes(0);
+        expect(endpoint.read).toHaveBeenCalledTimes(2);
+        expect(endpoint.read).toHaveBeenCalledWith('lightingColorCtrl', ['colorCapabilities']);
+        expect(endpoint.read).toHaveBeenCalledWith('lightingColorCtrl', ['colorTempPhysicalMin', 'colorTempPhysicalMax']);
+        expect(endpoint.configureReporting).toHaveBeenCalledTimes(0);
+    });
+
     test('onOff({powerOnBehavior: false}), electricalMeasurements({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}})', async () => {
         const device = mockDevice({modelID: 'SP 120', endpoints: [{inputClusters: ['genOnOff', 'haElectricalMeasurement', 'seMetering']}]});
         const endpoint = device.endpoints[0];
