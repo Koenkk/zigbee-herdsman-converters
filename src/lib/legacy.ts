@@ -3832,7 +3832,8 @@ const fromZigbee1 = {
                 };
             case dataPoints.state: // Thermostat on standby = OFF, running = ON
                 if (model.model === 'BAC-002-ALZB') {
-                    return {system_mode: value ? 'cool' : 'off'};
+                    const stateLookup: KeyValueAny = {'0': 'cool', '1': 'heat', '2': 'fan_only'};
+                    return {system_mode: stateLookup[value]};
                 } else {
                     return {system_mode: value ? 'heat' : 'off'};
                 }
@@ -6778,6 +6779,43 @@ const toZigbee2 = {
             const schedule = value === 'program' ? 0 : 1;
             await sendDataPointEnum(entity, dataPoints.moesHold, hold);
             await sendDataPointEnum(entity, dataPoints.moesScheduleEnable, schedule);
+        },
+    } satisfies Tz.Converter,
+    moes_thermostat_mode2: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const hold = value === 'hold' ? 0 : 1;
+            const schedule = value === 'program' ? 0 : 1;
+
+            // const stateLookup: KeyValueAny = {'0': 'cool', '1': 'heat', '2': 'fan_only'};
+
+            await sendDataPointEnum(entity, dataPoints.moesHold, hold);
+            await sendDataPointEnum(entity, dataPoints.moesScheduleEnable, schedule);
+
+            switch (value) {
+            case 'off':
+                await sendDataPointBool(entity, dataPoints.moesSsystemMode, 0);
+                break;
+            case 'cool':
+                // turn on
+                await sendDataPointBool(entity, dataPoints.moesSsystemMode, 1);
+
+                await sendDataPointEnum(entity, dataPoints.tvMode, 0);
+                break;
+            case 'heat':
+                // turn on
+                await sendDataPointBool(entity, dataPoints.moesSsystemMode, 1);
+
+                await sendDataPointEnum(entity, dataPoints.tvMode, 1);
+                break;
+            case 'fan_only':
+                // turn on
+                await sendDataPointBool(entity, dataPoints.moesSsystemMode, 1);
+
+                await sendDataPointEnum(entity, dataPoints.tvMode, 2);
+                // await sendDataPointEnum(entity, dataPoints.moesScheduleEnable, 0);
+                break;
+            }
         },
     } satisfies Tz.Converter,
     moes_thermostat_standby: {
