@@ -1975,7 +1975,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             ...tuya.fingerprint('TS0201', ['_TZ3000_dowj6gyi', '_TZ3000_8ybe88nf']),
-            ...tuya.fingerprint('TY0201', ['_TZ3000_zl1kmjqx']),
+            {manufacturerName: '_TZ3000_zl1kmjqx'},
         ],
         model: 'IH-K009',
         vendor: 'TuYa',
@@ -1984,6 +1984,9 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'RSH-HS06', 'Temperature & humidity sensor', ['_TZ3000_zl1kmjqx']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('SM0201', ['_TYZB01_cbiezpds', '_TYZB01_zqvwka4k']),
