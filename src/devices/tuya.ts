@@ -4019,8 +4019,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0006', manufacturerName: '_TYZB01_ltundz9m'},
-            {modelID: 'TS0006', manufacturerName: '_TZ3000_jyupj3fw'}],
+        zigbeeModel: ['TS0006'],
         model: 'TS0006',
         vendor: 'TuYa',
         description: '6 gang switch module with neutral wire',
@@ -4040,6 +4039,9 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ['genOnOff']);
         },
+        whiteLabel: [
+            tuya.whitelabel('AVATTO', 'TS0006_1', '4 gang switch module with neutral wire and socket', ['_TZ3000_cvis4qmw']),
+        ],
     },
     {
         zigbeeModel: ['HY0080'],
