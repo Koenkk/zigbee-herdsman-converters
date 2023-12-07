@@ -6,6 +6,7 @@ import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import * as constants from '../lib/constants';
 import * as ota from '../lib/ota';
+import * as globalStore from '../lib/store';
 import {Tz, Fz, Definition, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -96,7 +97,43 @@ const displayedTemperature = {
     'measured': 1,
 };
 
-// Radiator Thermostat II
+// Universal Switch II
+const buttonMap: {[key: string]: number} = {
+    config_led_top_left_press: 0x10,
+    config_led_top_right_press: 0x11,
+    config_led_bottom_left_press: 0x12,
+    config_led_bottom_right_press: 0x13,
+    config_led_top_left_longpress: 0x20,
+    config_led_top_right_longpress: 0x21,
+    config_led_bottom_left_longpress: 0x22,
+    config_led_bottom_right_longpress: 0x23,
+};
+
+// Universal Switch II
+const labelShortPress = `Specifies LED color (rgb) and pattern on short press as hex string.
+0-2: RGB value (e.g. ffffff = white)
+3: Light position (01=top, 02=bottom, 00=full)
+4-7: Durations for sequence fade-in -> on -> fade-out -> off (e.g. 01020102)
+8: Number of Repetitions (01=1 to ff=255)
+Example: ff1493000104010001`;
+
+// Universal Switch II
+const labelLongPress = `Specifies LED color (rgb) and pattern on long press as hex string.
+0-2: RGB value (e.g. ffffff = white)
+3: Light position (01=top, 02=bottom, 00=full)
+4-7: Durations for sequence fade-in -> on -> fade-out -> off (e.g. 01020102)
+8: Number of Repetitions (01=1 to ff=255)
+Example: ff4200000502050001`;
+
+// Universal Switch II
+const labelConfirmation = `Specifies LED color (rgb) and pattern of the confirmation response as hex string.
+0-2: RGB value (e.g. ffffff = white)
+3: Light position (01=top, 02=bottom, 00=full)
+4-7: Durations for sequence fade-in -> on -> fade-out -> off (e.g. 01020102)
+8: Number of Repetitions (01=1 to ff=255)
+Example: 30ff00000102010001`;
+
+
 const tzLocal = {
     rbshoszbeu: {
         key: ['light_delay', 'siren_delay', 'light_duration', 'siren_duration', 'siren_volume', 'alarm_state', 'power_source', 'siren_and_light'],
@@ -447,6 +484,31 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    bhius_config: {
+        key: Object.keys(buttonMap),
+        convertGet: async (entity, key, meta) => {
+            if (!buttonMap.hasOwnProperty(key)) {
+                throw new Error(`Unknown key ${key}`);
+            }
+            await entity.read('manuSpecificBosch9', [buttonMap[key as keyof typeof buttonMap]], boschManufacturer);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            if (!buttonMap.hasOwnProperty(key) ) {
+                return;
+            }
+
+            const buffer = Buffer.from(value as string, 'hex');
+            if (buffer.length !== 9) throw new Error(`Invalid configuration length: ${buffer.length} (should be 9)`);
+
+            const payload: {[key: number | string]: KeyValue} = {};
+            payload[buttonMap[key as keyof typeof buttonMap]] = {value: buffer, type: 65};
+            await entity.write('manuSpecificBosch9', payload, boschManufacturer);
+
+            const result:{[key: number | string]: string} = {};
+            result[key] = value as string;
+            return {state: result};
+        },
+    } satisfies Tz.Converter,
 };
 
 
@@ -664,6 +726,60 @@ const fzLocal = {
             if (msg.data.alarmcode == 0x10 || msg.data.alarmcode == 0x11) {
                 await msg.endpoint.commandResponse('genAlarms', 'alarm',
                     {alarmcode: msg.data.alarmcode, clusterid: 0xe000}, {direction: 1});
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    bhius_button_press: {
+        cluster: 'manuSpecificBosch9',
+        type: 'raw',
+        options: [e.text('led_response', ea.ALL).withLabel('LED config (confirmation response)').withDescription(labelConfirmation)],
+        convert: async (model, msg, publish, options, meta) => {
+            const sequenceNumber= msg.data.readUInt8(3);
+            const buttonId = msg.data.readUInt8(4);
+            const longPress = msg.data.readUInt8(5);
+            const duration = msg.data.readUInt16LE(6);
+            let buffer;
+            if (options.hasOwnProperty('led_response')) {
+                buffer = Buffer.from(options.led_response as string, 'hex');
+                if (buffer.length !== 9) {
+                    meta.logger.error(`Invalid length of led_response: ${buffer.length} (should be 9)`);
+                    buffer = Buffer.from('30ff00000102010001', 'hex');
+                }
+            } else {
+                buffer = Buffer.from('30ff00000102010001', 'hex');
+            }
+
+            if (utils.hasAlreadyProcessedMessage(msg, model, sequenceNumber)) return;
+            const buttons: {[key: number]: string} = {0: 'top_left', 1: 'top_right', 2: 'bottom_left', 3: 'bottom_right'};
+
+            let command = '';
+            if (buttonId in buttons) {
+                if (longPress && duration > 0) {
+                    if (globalStore.hasValue(msg.endpoint, buttons[buttonId])) return;
+                    globalStore.putValue(msg.endpoint, buttons[buttonId], duration);
+                    command = 'longpress';
+                } else {
+                    globalStore.clearValue(msg.endpoint, buttons[buttonId]);
+                    command = longPress ? 'longpress_release': 'release';
+                    msg.endpoint.command('manuSpecificBosch9', 'confirmButtonPressed', {data: buffer}, {sendPolicy: 'immediate'})
+                        .catch((error) => {});
+                }
+                return {action: `button_${buttons[buttonId]}_${command}`};
+            } else {
+                meta.logger.error(`Received message with unknown command ID ${buttonId}. Data: 0x${msg.data.toString('hex')}`);
+            }
+        },
+    } satisfies Fz.Converter,
+    bhius_config: {
+        cluster: 'manuSpecificBosch9',
+        type: ['attributeReport', 'readResponse'],
+        convert: async (model, msg, publish, options, meta) => {
+            const result: {[key: number | string]: string} = {};
+            for (const id of Object.values(buttonMap)) {
+                if (msg.data.hasOwnProperty(id)) {
+                    result[Object.keys(buttonMap).find((key) => buttonMap[key] === id)] = msg.data[id].toString('hex');
+                }
             }
             return result;
         },
@@ -1140,6 +1256,53 @@ const definitions: Definition[] = [
             e.numeric('calibration_opening_time', ea.ALL).withUnit('s')
                 .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
         ],
+    },
+    {
+        zigbeeModel: ['RBSH-US4BTN-ZB-EU'],
+        model: 'BHI-US',
+        vendor: 'Bosch',
+        description: 'Universal Switch II',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fzLocal.bhius_button_press, fzLocal.bhius_config, fz.battery],
+        toZigbee: [tzLocal.bhius_config],
+        exposes: [
+            e.battery_low(),
+            e.battery_voltage(),
+            e.text('config_led_top_left_press', ea.ALL).withLabel('LED config (top left short press)')
+                .withDescription(labelShortPress),
+            e.text('config_led_top_right_press', ea.ALL).withLabel('LED config (top right short press)')
+                .withDescription(labelShortPress),
+            e.text('config_led_bottom_left_press', ea.ALL).withLabel('LED config (bottom left short press)')
+                .withDescription(labelShortPress),
+            e.text('config_led_bottom_right_press', ea.ALL).withLabel('LED config (bottom right short press)')
+                .withDescription(labelShortPress),
+            e.text('config_led_top_left_longpress', ea.ALL).withLabel('LED config (top left long press)')
+                .withDescription(labelLongPress),
+            e.text('config_led_top_right_longpress', ea.ALL).withLabel('LED config (top right long press)')
+                .withDescription(labelLongPress),
+            e.text('config_led_bottom_left_longpress', ea.ALL).withLabel('LED config (bottom left long press)')
+                .withDescription(labelLongPress),
+            e.text('config_led_bottom_right_longpress', ea.ALL).withLabel('LED config (bottom right long press)')
+                .withDescription(labelLongPress),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+
+            // Read default LED configuration
+            await endpoint.read('manuSpecificBosch9', [0x0010, 0x0011, 0x0012, 0x0013], {...boschManufacturer, sendPolicy: 'immediate'})
+                .catch((error) => {});
+            await endpoint.read('manuSpecificBosch9', [0x0020, 0x0021, 0x0022, 0x0023], {...boschManufacturer, sendPolicy: 'immediate'})
+                .catch((error) => {});
+
+            // We also have to read this one. Value reads 0x0f, looks like a bitmap
+            await endpoint.read('manuSpecificBosch9', [0x0024], {...boschManufacturer, sendPolicy: 'immediate'});
+
+            await endpoint.command('manuSpecificBosch9', 'pairingCompleted', {data: Buffer.from([0x00])}, {sendPolicy: 'immediate'});
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'manuSpecificBosch9']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
     },
 ];
 
