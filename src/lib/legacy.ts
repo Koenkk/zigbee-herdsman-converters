@@ -3879,7 +3879,11 @@ const fromZigbee1 = {
                         temperature = temperature / 10;
                     }
                 }
-                return {local_temperature: parseFloat(temperature.toFixed(1))};
+                temperature = parseFloat(temperature.toFixed(1));
+                if (temperature < 100) {
+                    return {local_temperature: parseFloat(temperature.toFixed(1))};
+                }
+                break;
             case dataPoints.moesTempCalibration:
                 temperature = value;
                 // for negative values produce complimentary hex (equivalent to negative values)
