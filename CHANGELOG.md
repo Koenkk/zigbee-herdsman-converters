@@ -1,5 +1,43 @@
 # Changelog
 
+## [16.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.1.0...v16.2.0) (2023-12-07)
+
+
+### Features
+
+* **add:** BHI-US ([#6651](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6651)) ([7adcbfc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7adcbfc1b8f537231c325d01bb09fed005473425))
+* **add:** E2013 ([#6632](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6632)) ([1a80e65](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1a80e654fe99275ef46b6f292f90dc7c28a8f197))
+* Adds calibration offsets for tilt on Xiaomi DJT11LM sensor ([#6622](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6622)) ([36c8c4a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/36c8c4ac41f4ee243bc50299f04bcb77f8073e4b))
+* **add:** S60ZBTPF, S60ZBTPG ([#6624](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6624)) ([a74bdb8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a74bdb8d289344daa285e8316d1deac9952bcd4a))
+* **add:** SR-ZG9101SAC-HP-SWITCH-2CH ([#6623](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6623)) ([ddf7dcf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ddf7dcf5e3065abc565c6f01d71c4184f5d42223))
+* **add:** ZWT07 ([#6645](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6645)) ([52c2d2b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/52c2d2bad2e78af6610f201054e9469c39e050eb))
+* Extend temperature range for IKEA LED1923R5/LED1925G6 to 153-500 mireds ([#6642](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6642)) ([934bbc9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/934bbc95613314dacb3ecad6a84660ff06ceb945))
+* **ignore:** Refactor lights to modernExtend ([#6653](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6653)) ([eacd234](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eacd234c9ea2b7b69e261bcdaeeef3e473ff08a6))
+* Support `power_outage_memory` for Xiaomi WS-USC01 [@caryyu0306](https://github.com/caryyu0306) https://github.com/Koenkk/zigbee2mqtt/issues/19884 ([3b07bf1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3b07bf1d7b87491a3275163cc6acc71c40a17dab))
+* Support more system modes for HKGK BAC-002-ALZB ([#6644](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6644)) ([4cd4877](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4cd4877732c0204800ebf5b230bb064ea28e3fea))
+
+
+### Bug Fixes
+
+* Adjust Develco MOSZB-140 min occupancy timeout to 5 ([#6647](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6647)) ([b17c6e2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b17c6e20d5a2df71ce33024d6f7ecaf1b336b20f))
+* **detect:** Detect `_TZ3000_8nyaanzb` as Makegood MG-AUZG01 @MnM001 ([2ab9cfd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2ab9cfd2a3673c4ad8dfbf597d234230ece743e5))
+* **detect:** Detect `_TZ3000_cvis4qmw` as AVATTO TS0006_1 [@cmagno369](https://github.com/cmagno369) https://github.com/Koenkk/zigbee2mqtt/discussions/20014 ([6bc162e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6bc162e9b8ac0a856d86893fa30ed846d40f4bd6))
+* **detect:** Detect `_TZ3000_iy2c3n6p` and `_TZ3000_rgpqqmbj` as MakeGood MG-AUZG01 https://github.com/Koenkk/zigbee2mqtt/issues/20032 ([cc56397](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cc563977dd2f78693833f7d450db3f7d463a9e72))
+* **detect:** Detect `_TZ3000_zl1kmjqx` as TuYa RSH-HS06 ([#6649](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6649)) ([985e3a5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/985e3a543c6e387df20d2693aa143ca92b48dc62))
+* **detect:** Detect `TRADFRI bulb GU10 WW 345lm` as IKEA LED2104R3 ([#6643](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6643)) ([237da65](https://github.com/Koenkk/zigbee-herdsman-converters/commit/237da6519ceae5276cb33172bab0d21ee65d82eb))
+* **detect:** Detect `TRADFRI bulb GU10 WW 345lm` as LED2106R3 https://github.com/Koenkk/zigbee2mqtt/discussions/20046 ([66d28a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/66d28a40e73920c05af1782cf86ee02fbdf12634))
+* Fix `local_temperature` spikes for Moes BHT-002-GCLZB https://github.com/Koenkk/zigbee2mqtt/issues/20049 ([94cef5b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94cef5b0c2f02d055d7a06c6f6e2f8f5b7a0ae84))
+* Fix `operation_mode` not working for Xiaomi Opple https://github.com/Koenkk/zigbee2mqtt/issues/20053 ([0659817](https://github.com/Koenkk/zigbee-herdsman-converters/commit/06598174879e4e182ce730e8a9b6a67ab51ab73d))
+* Fix `scene_store` for devices not working https://github.com/nurikk/zigbee2mqtt-frontend/issues/1853 ([01883b1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/01883b1a410250228f9c459e4569167c9fb2683b))
+* Fix description for Xiaomi `ZNGZDJ16LM` ([#6636](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6636)) ([0272073](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0272073f3d1b26d299848cebaba8a6b180efe3fc))
+* Fix dot actions not working for IKEA E2123 https://github.com/Koenkk/zigbee2mqtt/discussions/20003 ([8de3baa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8de3baaf4b42a4aae44641b5b72d8cb0e7d7d74c))
+* Fix interlock for Aqara dual relay module T2 ([#6638](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6638)) ([1283468](https://github.com/Koenkk/zigbee-herdsman-converters/commit/128346812e951b9df0b92fb165e0597177ca510f))
+* Fix setting `illuminance_threshold` for TuYa MTG075-ZB-RL ([#6652](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6652)) ([db78ea1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db78ea11b8c722cb021d313ae0dee3ed05b9695a))
+* **ignore:** fix 52c2d2bad2e78af6610f201054e9469c39e050eb ([38a693f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/38a693f978dbc443710d3b2614e043760913f4d8))
+* Remove unsupported tamper for TuYa `_TZ3000_bpkijo14` ([#6650](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6650)) ([96c768a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/96c768ac0cb3631fc81d8ebb1c779677089f8345))
+* Replace `battery_low` with `battery` for Xiaomi MCCGQ12LM ([#6646](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6646)) ([8eeccb3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8eeccb3ef53a03f94ee399c972abc0b912b66bf8))
+* Set color temperature range for IKEA LED1624G9 ([#6640](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6640)) ([41a2c52](https://github.com/Koenkk/zigbee-herdsman-converters/commit/41a2c52973eb271d182d3e8820151b307df16624))
+
 ## [16.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.0.2...v16.1.0) (2023-12-05)
 
 
