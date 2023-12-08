@@ -2,9 +2,9 @@ import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 import * as utils from '../lib/utils';
+import {light} from '../lib/modernExtend';
 
 const fzLocal = {
     // ZB-1026 requires separate on/off converters since it re-uses the transaction number
@@ -35,7 +35,7 @@ const definitions: Definition[] = [
         model: 'ZB-1026',
         vendor: 'RGB Genie',
         description: 'Zigbee LED dimmer controller',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['RGBgenie ZB-5001'],

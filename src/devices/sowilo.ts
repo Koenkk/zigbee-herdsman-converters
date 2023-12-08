@@ -1,16 +1,15 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
-const definition: Definition[] = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['L258'],
         model: 'L258',
         vendor: 'Sowilo DS',
         description: 'Heimdall Pro 5 channel RGBWW controller',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [150, 575]}),
-        meta: {turnsOffAtBrightness1: true},
+        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [150, 575]}, turnsOffAtBrightness1: true})],
     },
 ];
 
-export default definition;
-module.exports = definition;
+export default definitions;
+module.exports = definitions;

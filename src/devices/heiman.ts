@@ -5,10 +5,10 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -655,7 +655,7 @@ const definitions: Definition[] = [
         model: 'BDHM8E27W70-I1',
         vendor: 'GS', // actually it is HEIMAN.
         description: 'Active light, warm to cool white (E27 & B22)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['HS2SW1L-EF-3.0', 'HS2SW1L-EFR-3.0', 'HS2SW1A-N'],
@@ -727,7 +727,7 @@ const definitions: Definition[] = [
         model: 'HS2WDS',
         vendor: 'HEIMAN',
         description: 'LED 9W CCT E27',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['CurtainMo-EF-3.0', 'CurtainMo-EF'],

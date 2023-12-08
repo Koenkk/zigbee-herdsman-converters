@@ -1,4 +1,3 @@
-import ITCommander from './ITCommander';
 import acova from './acova';
 import acuity_brands_lighting from './acuity_brands_lighting';
 import adeo from './adeo';
@@ -57,6 +56,7 @@ import dlink from './dlink';
 import dnake from './dnake';
 import dresden_elektronik from './dresden_elektronik';
 import easyaccess from './easyaccess';
+import easyiot from './easyiot';
 import eatonhalo_led from './eatonhalo_led';
 import echostar from './echostar';
 import ecodim from './ecodim';
@@ -81,6 +81,7 @@ import fantem from './fantem';
 import feibit from './feibit';
 import fireangel from './fireangel';
 import frankever from './frankever';
+import frient from './frient';
 import futurehome from './futurehome';
 import ge from './ge';
 import gewiss from './gewiss';
@@ -122,6 +123,7 @@ import iolloi from './iolloi';
 import iotperfect from './iotperfect';
 import iris from './iris';
 import istar from './istar';
+import ITCommander from './ITCommander';
 import jasco from './jasco';
 import javis from './javis';
 import jethome from './jethome';
@@ -229,8 +231,8 @@ import sinope from './sinope';
 import siterwell from './siterwell';
 import skydance from './skydance';
 import slv from './slv';
-import smart9 from './smart9';
 import smart_home_pty from './smart_home_pty';
+import smart9 from './smart9';
 import smartenit from './smartenit';
 import smartthings from './smartthings';
 import smartwings from './smartwings';
@@ -286,7 +288,6 @@ import zen from './zen';
 import zipato from './zipato';
 
 export default [
-    ...ITCommander,
     ...acova,
     ...acuity_brands_lighting,
     ...adeo,
@@ -345,6 +346,7 @@ export default [
     ...dnake,
     ...dresden_elektronik,
     ...easyaccess,
+    ...easyiot,
     ...eatonhalo_led,
     ...echostar,
     ...ecodim,
@@ -369,6 +371,7 @@ export default [
     ...feibit,
     ...fireangel,
     ...frankever,
+    ...frient,
     ...futurehome,
     ...ge,
     ...gewiss,
@@ -392,8 +395,8 @@ export default [
     ...hommyn,
     ...honyar,
     ...hornbach,
-    ...hzc,
     ...hzc_electric,
+    ...hzc,
     ...icasa,
     ...idinio,
     ...ihorn,
@@ -410,6 +413,7 @@ export default [
     ...iotperfect,
     ...iris,
     ...istar,
+    ...ITCommander,
     ...jasco,
     ...javis,
     ...jethome,
@@ -517,8 +521,8 @@ export default [
     ...siterwell,
     ...skydance,
     ...slv,
-    ...smart9,
     ...smart_home_pty,
+    ...smart9,
     ...smartenit,
     ...smartthings,
     ...smartwings,

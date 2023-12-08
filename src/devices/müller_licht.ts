@@ -6,6 +6,8 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as tuya from '../lib/tuya';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -196,7 +198,7 @@ const definitions: Definition[] = [
         model: '404031',
         vendor: 'Müller Licht',
         description: 'Tint Armaro',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         fingerprint: [{manufacturerName: 'MLI', modelID: 'Bulb white'}],

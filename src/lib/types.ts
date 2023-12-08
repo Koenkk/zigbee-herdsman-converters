@@ -6,6 +6,7 @@ import type {
     Group as ZHGroup,
 } from 'zigbee-herdsman/dist/controller/model';
 import type {
+    FrameControl,
     ZclHeader as ZHZclHeader,
 } from 'zigbee-herdsman/dist/zcl';
 
@@ -75,7 +76,27 @@ export interface DefinitionMeta {
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => Promise<void>;
 export type OnEvent = (type: OnEventType, data: OnEventData, device: Zh.Device, settings: KeyValue, state: KeyValue) => Promise<void>;
-export interface Extend {fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[], exposes: Expose[], configure?: Configure, meta?: DefinitionMeta}
+export interface Extend {
+    fromZigbee: Fz.Converter[],
+    toZigbee: Tz.Converter[],
+    exposes: Expose[],
+    configure?: Configure,
+    meta?: DefinitionMeta,
+    ota?: DefinitionOta,
+    onEvent?: OnEvent,
+    isModernExtend?: false,
+}
+
+export interface ModernExtend {
+    fromZigbee?: Fz.Converter[],
+    toZigbee?: Tz.Converter[],
+    exposes?: Expose[],
+    configure?: Configure,
+    meta?: DefinitionMeta,
+    ota?: DefinitionOta,
+    onEvent?: OnEvent,
+    isModernExtend: true,
+}
 
 export interface OnEventData {
     endpoint?: Zh.Endpoint,
@@ -83,6 +104,11 @@ export interface OnEventData {
     cluster?: string,
     type?: string,
     data?: KeyValueAny,
+}
+
+export type DefinitionOta = {
+    isUpdateAvailable: (device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo) => Promise<OtaUpdateAvailableResult>;
+    updateToLatest: (device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) => Promise<number>;
 }
 
 export type Definition = {
@@ -95,20 +121,23 @@ export type Definition = {
     options?: Option[],
     meta?: DefinitionMeta,
     onEvent?: OnEvent,
-    ota?: {
-        isUpdateAvailable: (device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo) => Promise<OtaUpdateAvailableResult>;
-        updateToLatest: (device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) => Promise<number>;
-    }
+    ota?: DefinitionOta,
 } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
-    & ({ extend: Extend } |
-    { fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[], exposes: (Expose[] | ((device: Zh.Device, options: KeyValue) => Expose[])) });
+    & ({ extend: Extend | ModernExtend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
+        exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[])) } |
+    {
+        fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[],
+        exposes: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]))
+    });
 
 export namespace Fz {
     export interface Message {
         // eslint-disable-next-line
         data: any,
-        endpoint: Zh.Endpoint, device: Zh.Device, meta: {zclTransactionSequenceNumber: number}, groupID: number, type: string,
-        cluster: string, linkquality: number
+        endpoint: Zh.Endpoint, device: Zh.Device,
+        meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number, frameControl?: FrameControl},
+        groupID: number, type: string,
+        cluster: string | number, linkquality: number
     }
     export interface Meta {state: KeyValue, logger: Logger, device: Zh.Device}
     export interface Converter {
@@ -124,17 +153,17 @@ export namespace Tz {
         logger: Logger,
         message: KeyValue,
         device: Zh.Device,
-        mapped: Definition,
+        mapped: Definition | Definition[],
         options: KeyValue,
         state: KeyValue,
         endpoint_name: string,
-        membersState?: KeyValue[],
+        membersState?: {[s: string]: KeyValue},
     }
+    export type ConvertSetResult = {state?: KeyValue, readAfterWriteTime?: number, membersState?: {[s: string]: KeyValue}} | void
     export interface Converter {
         key: string[],
         options?: Option[] | ((definition: Definition) => Option[]);
-        convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) =>
-            Promise<{state?: KeyValue, readAfterWriteTime?: number} | void>,
+        convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult>,
         convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>,
     }
 }

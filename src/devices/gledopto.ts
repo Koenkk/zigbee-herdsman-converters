@@ -7,6 +7,8 @@ import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import tz from '../converters/toZigbee';
 import * as libColor from '../lib/color';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const tzLocal1 = {
@@ -18,7 +20,7 @@ const tzLocal1 = {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
-            if (meta.mapped.model === 'GL-S-007ZS' || meta.mapped.model === 'GL-C-009') {
+            if (!Array.isArray(meta.mapped) && (meta.mapped.model === 'GL-S-007ZS' || meta.mapped.model === 'GL-C-009')) {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/2757
                 // Device doesn't support ON with moveToLevelWithOnOff command
                 if (typeof meta.message.state === 'string' && meta.message.state.toLowerCase() === 'on') {
@@ -183,7 +185,7 @@ const definitions: Definition[] = [
         model: 'GL-SD-003P',
         vendor: 'Gledopto',
         description: 'Zigbee DIN Rail triac AC dimmer',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
         meta: {disableDefaultResponse: true},
     },
     {
@@ -584,7 +586,7 @@ const definitions: Definition[] = [
         model: 'GL-C-103P',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller (pro)',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: [light({color: true, colorTemp: {range: [158, 495]}})],
     },
     {
         zigbeeModel: ['GL-G-004P'],
@@ -893,6 +895,13 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         description: 'Zigbee 9W garden lamp RGB+CCT',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['GL-P-101P'],
+        model: 'GL-P-101P',
+        vendor: 'Gledopto',
+        description: 'Zigbee pro constant current CCT LED driver',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp({colorTempRange: [158, 495]}),
     },
     {
         zigbeeModel: ['GL-W-001Z'],
