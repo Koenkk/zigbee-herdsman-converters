@@ -565,10 +565,18 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', '19DZT', 'Door sensor', ['_TZ3000_n2egfsli']),
             tuya.whitelabel('TuYa', 'DS04', 'Door sensor', ['_TZ3000_yfekcy3n']),
             tuya.whitelabel('Moes', 'ZSS-JM-GWM-C-MS', 'Smart door and window sensor', ['_TZ3000_decxrtwa']),
+            tuya.whitelabel('Moes', 'ZSS-X-GWM-C', 'Door/window magnetic sensor', ['_TZ3000_gntwytxo']),
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()];
-            if (!device || !['_TZ3000_2mbfxlzr', '_TZ3000_n2egfsli', '_TZ3000_yfekcy3n', '_TZ3000_bpkijo14'].includes(device.manufacturerName)) {
+            const noTamperModels = [ // manufacturerName for models without a tamper sensor
+                '_TZ3000_2mbfxlzr', // TuYa MC500A
+                '_TZ3000_n2egfsli', // TuYa 19DZT
+                '_TZ3000_yfekcy3n', // TuYa DS04
+                '_TZ3000_bpkijo14',
+                '_TZ3000_gntwytxo', // Moes ZSS-X-GWM-C
+            ];
+            if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
             exps.push(e.linkquality());
