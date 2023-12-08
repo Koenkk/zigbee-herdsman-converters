@@ -9,6 +9,21 @@ import fz from '../converters/fromZigbee';
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['SDO-4-1-00'],
+        model: 'SDO-4-1-20',
+        vendor: 'NodOn',
+        description: 'Door & window opening sensor',
+        fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.battery()],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SIN-4-RS-20'],
         model: 'SIN-4-RS-20',
         vendor: 'NodOn',
