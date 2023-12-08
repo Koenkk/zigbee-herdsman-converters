@@ -206,13 +206,6 @@ export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, dev
     }
 }
 
-// Clear device variable "message_number" which is used in valueConverter.onOffWithDelay
-export async function onEventClearMessageNumber(type: OnEventType, data: KeyValue, device: Zh.Device) {
-    if (type === 'message') {
-        globalStore.clearValue(device, 'message_number');
-    }
-}
-
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd='dataRequest', seq?:number) {
     if (seq === undefined) {
@@ -1242,7 +1235,6 @@ exports.sendDataPointEnum = sendDataPointEnum;
 exports.onEventSetTime = onEventSetTime;
 exports.onEventSetLocalTime = onEventSetLocalTime;
 exports.onEventMeasurementPoll = onEventMeasurementPoll;
-exports.onEventClearMessageNumber = onEventClearMessageNumber;
 exports.skip = skip;
 exports.configureMagicPacket = configureMagicPacket;
 exports.fingerprint = fingerprint;
