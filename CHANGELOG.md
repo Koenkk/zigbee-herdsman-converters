@@ -1,5 +1,12 @@
 # Changelog
 
+## [16.3.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.3.0...v16.3.1) (2023-12-08)
+
+
+### Bug Fixes
+
+* **ignore:** Revert "fix(ignore): Refactor Philips lights to modernExtend ([#6659](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6659))" ([57d6204](https://github.com/Koenkk/zigbee-herdsman-converters/commit/57d62041e7ea742d3aa2bffdc3c35e0b9c55274f))
+
 ## [16.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.2.0...v16.3.0) (2023-12-08)
 
 
