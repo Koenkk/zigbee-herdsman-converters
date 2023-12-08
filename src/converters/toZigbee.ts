@@ -4315,8 +4315,11 @@ const converters2 = {
             );
 
             if (isGroup || (utils.isObject(removeresp) && (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139))) {
+                const addSceneCommand = Number.isInteger(transtime) ? 'add' : 'enhancedAdd';
+                const commandTransitionTime = addSceneCommand === 'enhancedAdd' ? Math.floor(transtime * 10) : transtime;
+
                 const response = await entity.command(
-                    'genScenes', 'add', {groupid, sceneid, scenename: '', transtime, extensionfieldsets},
+                    'genScenes', addSceneCommand, {groupid, sceneid, scenename: '', commandTransitionTime, extensionfieldsets},
                     utils.getOptions(meta.mapped, entity),
                 );
 
