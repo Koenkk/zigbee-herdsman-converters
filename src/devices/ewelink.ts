@@ -50,21 +50,6 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: 'SA-003-Zigbee', endpoints: [
-                    {ID: 1, profileID: 49246, deviceID: 16, inputClusters: [0, 3, 4, 5, 6], outputClusters: [0]},
-                ],
-            },
-        ],
-        model: 'ZB-R01',
-        vendor: 'eWeLink',
-        description: 'Zigbee repeater',
-        fromZigbee: [fz.linkquality_from_basic],
-        toZigbee: [],
-        exposes: [],
-    },
-    {
         zigbeeModel: ['SA-030-1'],
         model: 'SA-030-1',
         vendor: 'eWeLink',

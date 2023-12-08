@@ -3,6 +3,7 @@ import * as ota from '../lib/ota';
 import extend from '../lib/extend';
 import * as ledvance from '../lib/ledvance';
 import * as reporting from '../lib/reporting';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -10,7 +11,7 @@ const definitions: Definition[] = [
         model: '4058075208384',
         vendor: 'LEDVANCE',
         description: 'SMART+ Classic A60 E27 Tunable white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
         ota: ota.ledvance,
     },
     {

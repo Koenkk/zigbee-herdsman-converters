@@ -1,5 +1,6 @@
 import {Definition} from '../lib/types';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,7 +8,7 @@ const definitions: Definition[] = [
         model: 'HGZB-07A',
         vendor: 'Smart Home Pty',
         description: 'RGBW Downlight',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({color: true})],
     },
     {
         zigbeeModel: ['FNB56-SKT1EHG1.2'],

@@ -4,6 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -12,14 +14,14 @@ const definitions: Definition[] = [
         model: 'ROB_200-060-0',
         vendor: 'ROBB',
         description: 'Zigbee LED driver',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [160, 450]}),
+        extend: [light({color: true, colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['ROB_200-061-0'],
         model: 'ROB_200-061-0',
         vendor: 'ROBB',
         description: '50W Zigbee CCT LED driver (constant current)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['ROB_200-029-0'],
@@ -62,7 +64,7 @@ const definitions: Definition[] = [
         model: 'ROB_200-006-0',
         vendor: 'ROBB',
         description: 'ZigBee LED dimmer',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ROB_200-004-0'],
@@ -338,7 +340,7 @@ const definitions: Definition[] = [
         model: 'ROB_200-063-0',
         vendor: 'ROBB',
         description: 'Zigbee 0-10V PWM dimmer',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 

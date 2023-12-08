@@ -4,6 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const tzLocal = {
@@ -38,7 +40,7 @@ const definitions: Definition[] = [
         model: 'DS20Z07B',
         vendor: 'ORVIBO',
         description: 'Downlight (S series)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [166, 370]}),
+        extend: [light({colorTemp: {range: [166, 370]}})],
     },
     {
         zigbeeModel: ['ORVIBO Socket', '93e29b89b2ee45bea5bdbb7679d75d24'],
@@ -93,7 +95,7 @@ const definitions: Definition[] = [
         model: 'RL804CZB',
         vendor: 'ORVIBO',
         description: 'Zigbee LED controller RGB + CCT or RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({color: true})],
     },
     {
         zigbeeModel: ['82c167c95ed746cdbd21d6817f72c593', '8762413da99140cbb809195ff40f8c51'],
@@ -310,7 +312,7 @@ const definitions: Definition[] = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['b7e305eb329f497384e966fe3fb0ac69', '52debf035a1b4a66af56415474646c02', 'MultIR'],
+        zigbeeModel: ['b7e305eb329f497384e966fe3fb0ac69', '52debf035a1b4a66af56415474646c02', 'MultIR', 'ZL1-EN'],
         model: 'SW30',
         vendor: 'ORVIBO',
         description: 'Water leakage sensor',
@@ -481,14 +483,14 @@ const definitions: Definition[] = [
         model: 'DM10ZW',
         vendor: 'ORVIBO',
         description: '0-10v dimmer',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 371]}),
+        extend: [light({colorTemp: {range: [153, 371]}})],
     },
     {
         zigbeeModel: ['1a20628504bf48c88ed698fe96b7867c'],
         model: 'DTZ09039',
         vendor: 'ORVIBO',
         description: 'Downlight (Q series)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['bbfed49c738948b989911f9f9f73d759'],

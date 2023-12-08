@@ -4,6 +4,7 @@ import extend from '../lib/extend';
 import * as exposes from '../lib/exposes';
 const e = exposes.presets;
 import fz from '../converters/fromZigbee';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -11,14 +12,14 @@ const definitions: Definition[] = [
         model: 'ZG_LED_DRIVER42CC',
         vendor: 'Envilar',
         description: 'Zigbee LED driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZG50CC-CCT-DRIVER', 'HK-CCT'],
         model: 'ZG50CC-CCT-DRIVER',
         vendor: 'Envilar',
         description: 'Zigbee CCT LED driver',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['ZGR904-S'],

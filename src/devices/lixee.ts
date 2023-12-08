@@ -486,6 +486,28 @@ const tarifsDef = {
             'PPOINTE1',
         ],
     },
+    stand_ZEN_FLEX: {
+        fname: 'Standard - ZEN Flex',
+        currentTarf: 'ZEN Flex', excluded: [
+            'EASF05',
+            'EASF06',
+            'EASF07',
+            'EASF08',
+            'EASF09',
+            'EASF10',
+            'EASD03',
+            'EASD04',
+            'DPM1',
+            'DPM2',
+            'DPM3',
+            'FPM1',
+            'FPM2',
+            'FPM3',
+            'NJOURF',
+            'NJOURF+1',
+            'PJOURF+1',
+        ],
+    },
 };
 
 
@@ -736,6 +758,9 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue, logger: Logger =
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_TEMPO.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_TEMPO.excluded.includes(a.exposes.name));
         break;
+    case linkyMode == linkyModeDef.standard && tarifsDef.stand_ZEN_FLEX.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.stand_ZEN_FLEX.excluded.includes(a.exposes.name));
+        break;
     default:
         break;
     }
@@ -904,7 +929,7 @@ const definitions: Definition[] = [
         description: 'Lixee ZiPulses',
         fromZigbee: [fz.battery, fz.temperature, fz.metering, fzZiPulses],
         toZigbee: [tzSeMetering],
-        exposes: [e.battery_voltage(), e.temperature(),
+        exposes: [e.battery(), e.battery_voltage(), e.temperature(),
             e.numeric('multiplier', ea.STATE_SET).withValueMin(1).withValueMax(1000).withDescription('It is necessary to press the link button to update'),
             e.numeric('divisor', ea.STATE_SET).withValueMin(1).withValueMax(1000).withDescription('It is necessary to press the link button to update'),
             e.enum('unitOfMeasure', ea.STATE_SET, unitsZiPulses).withDescription('It is necessary to press the link button to update'),

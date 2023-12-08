@@ -68,7 +68,7 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
-        fingerprint: tuya.fingerprint('TS0225', ['_TZ3218_awarhusb']),
+        fingerprint: tuya.fingerprint('TS0225', ['_TZ3218_awarhusb', '_TZ3218_t9ynfz4x']),
         model: 'ES1ZZ(TY)',
         vendor: 'Linptech',
         description: 'mmWave Presence sensor',

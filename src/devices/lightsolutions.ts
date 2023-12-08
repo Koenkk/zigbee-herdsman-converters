@@ -1,6 +1,7 @@
 import {Definition} from '../lib/types';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -33,7 +34,7 @@ const definitions: Definition[] = [
         model: '42-032',
         vendor: 'LightSolutions',
         description: 'LED driver CCT 12V - 30W - CCT',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}})],
     },
 ];
 
