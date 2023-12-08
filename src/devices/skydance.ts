@@ -23,7 +23,7 @@ const definitions: Definition[] = [
                 ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
         ],
         whiteLabel: [
-            tuya.whitelabel('Ltech', 'TY-75-24-G2Z2', '150W 24V Zigbee CV tunable white LED driver', ['_TZE200_na98lvjp']),
+            tuya.whitelabel('Ltech', 'TY-75-24-G2Z2_CCT', '150W 24V Zigbee CV tunable white LED driver', ['_TZE200_na98lvjp']),
         ],
     },
     {
