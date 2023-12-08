@@ -5907,7 +5907,7 @@ const definitions: Definition[] = [
             e.power_on_behavior().withAccess(ea.STATE_SET),
         ],
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1};          
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1};
         },
         meta: {
             multiEndpoint: true,
