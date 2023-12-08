@@ -281,8 +281,8 @@ const fzLocal = {
     } satisfies Fz.Converter,
     ikea_dots_click_v2: {
         // For remotes with firmware 1.0.32 (20221219)
-        cluster: 'heimanSpecificScenes',
-        type: 'raw',
+        cluster: 'tradfriButton',
+        type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
         convert: (model, msg, publish, options, meta) => {
             const button = utils.getFromLookup(msg.endpoint.ID, {2: '1', 3: '2'});
             const lookup = {
@@ -1225,10 +1225,10 @@ const definitions: Definition[] = [
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPollCtrl']);
             if (endpoint2) {
-                await reporting.bind(endpoint2, coordinatorEndpoint, ['heimanSpecificScenes']);
+                await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
             }
             if (endpoint3) {
-                await reporting.bind(endpoint3, coordinatorEndpoint, ['heimanSpecificScenes']);
+                await reporting.bind(endpoint3, coordinatorEndpoint, ['tradfriButton']);
             }
             await reporting.batteryVoltage(endpoint1);
         },
