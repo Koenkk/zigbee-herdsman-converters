@@ -17,7 +17,7 @@ project.getSourceFiles().forEach((sourceFile) => {
 
     let changed = true;
     let save = false;
-    const type = 'light';
+    const type = 'philipsLight';
     while (changed) {
         changed = false;
         const definitions = sourceFile.getVariableStatementOrThrow('definitions').getDescendantsOfKind(SyntaxKind.ObjectLiteralExpression);
@@ -33,9 +33,11 @@ project.getSourceFiles().forEach((sourceFile) => {
             const toZigbee = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'toZigbee');
             const meta = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'meta');
 
-            if ((extend?.getFullText().includes('extend: extend.light_onoff_brightness_colortemp(') ||
-                extend?.getFullText().includes('extend: extend.light_onoff_brightness_colortemp_color(') ||
-                extend?.getFullText().includes('extend: extend.light_onoff_brightness_color(')) &&
+            if ((extend?.getFullText().includes('extend: philips.extend.light_onoff_brightness_colortemp(') ||
+                extend?.getFullText().includes('extend: philips.extend.light_onoff_brightness_colortemp_color(') ||
+                extend?.getFullText().includes('extend: philips.extend.light_onoff_brightness(') ||
+                extend?.getFullText().includes('extend: philips.extend.light_onoff_brightness_colortemp_color_gradient(') ||
+                extend?.getFullText().includes('extend: philips.extend.light_onoff_brightness_color(')) &&
                 !fromZigbee && !toZigbee && !configure && !exposes) {
                 console.log(`Handling ${model?.getFullText().trim()}`);
                 const newOpts: {[s: string]: unknown} = {};
@@ -45,6 +47,9 @@ project.getSourceFiles().forEach((sourceFile) => {
                 }
                 if (extendFeatures.includes('color')) {
                     newOpts.color = true;
+                }
+                if (extendFeatures.includes('gradient')) {
+                    newOpts.gradient = true;
                 }
                 let opts = extend?.getFullText().split('(')[1].slice(0, -1).trim();
                 if (opts) {
@@ -62,9 +67,14 @@ project.getSourceFiles().forEach((sourceFile) => {
                             newOpts.powerOnBehaviour = !value;
                         } else if (key === 'disableEffect') {
                             newOpts.effect = !value;
+                        } else if (key === 'disableHueEffects') {
+                            newOpts.hueEffect = !value;
                         } else if (key === 'supportsHueAndSaturation') {
                             // @ts-expect-error
                             newOpts.color = {...newOpts.color, modes: ['xy', 'hs']};
+                        } else if (key === 'extraEffects') {
+                            // @ts-expect-error
+                            newOpts.gradient = {...newOpts.gradient, extraEffects: value};
                         } else {
                             throw new Error(`Unsupported ${key} - ${value}`);
                         }
@@ -89,7 +99,7 @@ project.getSourceFiles().forEach((sourceFile) => {
 
                 localTotalDefinitionsWithModernExtend += 1;
                 extend.replaceWithText(`extend: [${type}(${JSON.stringify(newOpts).split(`"`).join('')
-                    .replace(`range:null`, `range:undefined`).replace(`xy`, `'xy'`).replace(`hs`, `'hs'`)})]`);
+                    .replace(`range:null`, `range:undefined`).replace(`xy`, `'xy'`).replace(`hs`, `'hs'`).replace(`({})`, `()`)})]`);
                 changed = true;
                 save = true;
                 break;

@@ -194,4 +194,25 @@ describe('ModernExtend', () => {
             ],
         });
     });
+
+    test(`philipsLight({gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}, colorTemp: {range: [153, 500]}})`, async () => {
+        await assertDefintion({
+            device: mockDevice({modelID: 'LCX012', endpoints: [{inputClusters: ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl']}]}),
+            meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
+            fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior, philipsFz.gradient],
+            toZigbee: [
+                'state', 'brightness', 'brightness_percent', 'on_time', 'transition', 'level_config', 'rate', 'brightness_move', 'brightness_move_onoff',
+                'brightness_step', 'brightness_step_onoff', 'color', 'color_temp', 'color_temp_percent', 'color_mode', 'color_options', 'colortemp_move',
+                'color_temp_move', 'color_temp_step', 'color_temp_startup', 'hue_move', 'saturation_move', 'hue_step', 'saturation_step', 'power_on_behavior',
+                'hue_power_on_behavior', 'hue_power_on_brightness', 'hue_power_on_color_temperature', 'hue_power_on_color', 'effect', 'gradient_scene', 'gradient'
+            ],
+            exposes: ['effect', 'gradient', 'gradient_scene', 'light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)', 'linkquality', 'power_on_behavior'],
+            bind: ['manuSpecificPhilips2'],
+            read: [
+                ['lightingColorCtrl', ['colorCapabilities']],
+                ['lightingColorCtrl', ['colorTempPhysicalMin', 'colorTempPhysicalMax']],
+            ],
+            configureReporting: [],
+        });
+    });
 });
