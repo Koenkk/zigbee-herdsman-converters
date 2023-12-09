@@ -1,5 +1,18 @@
 # Changelog
 
+## [16.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.3.1...v16.4.0) (2023-12-09)
+
+
+### Features
+
+* **ignore:** Refactor various Philips devices to modernExtend ([#6668](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6668)) ([269889b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/269889bc09dd4e029f93702b80da5cb500bf6b8a))
+
+
+### Bug Fixes
+
+* **ignore:** fix eacd234c9ea2b7b69e261bcdaeeef3e473ff08a6 ([340417a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/340417a57f5a97550773407e80ca914a17582f78))
+* **ignore:** update dependencies ([#6669](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6669)) ([238ca89](https://github.com/Koenkk/zigbee-herdsman-converters/commit/238ca89f2008777536d76569c53ac19527766719))
+
 ## [16.3.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.3.0...v16.3.1) (2023-12-08)
 
 
