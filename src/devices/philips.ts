@@ -5,11 +5,10 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import {philipsModernExtend, philipsFz, philipsTz} from '../lib/philips';
+import {philipsOnOff, philipsLight, philipsFz, philipsTz} from '../lib/philips';
 
 const e = exposes.presets;
 const ea = exposes.access;
-const {philipsLight, philipsOnOff} = philipsModernExtend;
 
 const definitions: Definition[] = [
     {

@@ -52,54 +52,51 @@ const knownEffects = {
     '0c80': 'glisten',
 };
 
-export const philipsModernExtend = {
-    philipsLight: (args?: modernExtend.LightArgs & {hueEffect?: boolean, gradient?: true | {extraEffects: string[]}}) => {
-        args = {hueEffect: true, turnsOffAtBrightness1: true, ...args};
-        if (args.hueEffect || args.gradient) args.effect = false;
-        if (args.color) args.color = {modes: ['xy', 'hs'], ...(isObject(args.color) ? args.color : {})};
-        const result = modernExtend.light(args);
-        result.ota = ota.zigbeeOTA;
-        result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
-        if (args.hueEffect || args.gradient) {
-            result.toZigbee.push(philipsTz.effect);
-            const effects = ['blink', 'breathe', 'okay', 'channel_change', 'candle'];
-            if (args.color) effects.push('fireplace', 'colorloop');
-            if (args.gradient) {
-                result.toZigbee.push(philipsTz.gradient_scene, philipsTz.gradient({reverse: true}));
-                result.fromZigbee.push(philipsFz.gradient);
-                effects.push('sunrise');
-                if (args.gradient !== true) {
-                    effects.push(...args.gradient.extraEffects);
-                }
-                result.exposes.push(
-                    // gradient_scene is deprecated, use gradient instead
-                    e.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
-                    e.list('gradient', ea.ALL, e.text('hex', ea.ALL).withDescription('Color in RGB HEX format (eg #663399)'))
-                        .withLengthMin(1)
-                        .withLengthMax(9)
-                        .withDescription('List of RGB HEX colors'),
-                );
-                const configure = result.configure;
-                result.configure = async (device, coordinatorEndpoint, logger) => {
-                    await configure(device, coordinatorEndpoint, logger);
-                    for (const ep of device.endpoints) {
-                        await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
-                    }
-                };
+export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolean, gradient?: true | {extraEffects: string[]}}) {
+    args = {hueEffect: true, turnsOffAtBrightness1: true, ota: ota.zigbeeOTA, ...args};
+    if (args.hueEffect || args.gradient) args.effect = false;
+    if (args.color) args.color = {modes: ['xy', 'hs'], ...(isObject(args.color) ? args.color : {})};
+    const result = modernExtend.light(args);
+    result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+    if (args.hueEffect || args.gradient) {
+        result.toZigbee.push(philipsTz.effect);
+        const effects = ['blink', 'breathe', 'okay', 'channel_change', 'candle'];
+        if (args.color) effects.push('fireplace', 'colorloop');
+        if (args.gradient) {
+            result.toZigbee.push(philipsTz.gradient_scene, philipsTz.gradient({reverse: true}));
+            result.fromZigbee.push(philipsFz.gradient);
+            effects.push('sunrise');
+            if (args.gradient !== true) {
+                effects.push(...args.gradient.extraEffects);
             }
-            effects.push('finish_effect', 'stop_effect', 'stop_hue_effect');
-            result.exposes.push(e.enum('effect', ea.SET, effects));
+            result.exposes.push(
+                // gradient_scene is deprecated, use gradient instead
+                e.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
+                e.list('gradient', ea.ALL, e.text('hex', ea.ALL).withDescription('Color in RGB HEX format (eg #663399)'))
+                    .withLengthMin(1)
+                    .withLengthMax(9)
+                    .withDescription('List of RGB HEX colors'),
+            );
+            const configure = result.configure;
+            result.configure = async (device, coordinatorEndpoint, logger) => {
+                await configure(device, coordinatorEndpoint, logger);
+                for (const ep of device.endpoints) {
+                    await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
+                }
+            };
         }
-        return result;
-    },
-    philipsOnOff: (args?: modernExtend.OnOffArgs) => {
-        args = {powerOnBehavior: false, ...args};
-        const result = modernExtend.onOff(args);
-        result.ota = ota.zigbeeOTA;
-        result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
-        return result;
-    },
-};
+        effects.push('finish_effect', 'stop_effect', 'stop_hue_effect');
+        result.exposes.push(e.enum('effect', ea.SET, effects));
+    }
+    return result;
+}
+
+export function philipsOnOff(args?: modernExtend.OnOffArgs) {
+    args = {powerOnBehavior: false, ota: ota.zigbeeOTA, ...args};
+    const result = modernExtend.onOff(args);
+    result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+    return result;
+}
 
 export const philipsTz = {
     gradient_scene: {

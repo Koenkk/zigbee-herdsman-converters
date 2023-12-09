@@ -17,7 +17,7 @@ project.getSourceFiles().forEach((sourceFile) => {
 
     let changed = true;
     let save = false;
-    const type = 'philipsLight';
+    const type = 'ledvanceLight';
     while (changed) {
         changed = false;
         const definitions = sourceFile.getVariableStatementOrThrow('definitions').getDescendantsOfKind(SyntaxKind.ObjectLiteralExpression);
@@ -32,12 +32,12 @@ project.getSourceFiles().forEach((sourceFile) => {
             const fromZigbee = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'fromZigbee');
             const toZigbee = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'toZigbee');
             const meta = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'meta');
+            const ota = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'ota');
 
-            if ((extend?.getFullText().includes('extend: philips.extend.light_onoff_brightness_colortemp(') ||
-                extend?.getFullText().includes('extend: philips.extend.light_onoff_brightness_colortemp_color(') ||
-                extend?.getFullText().includes('extend: philips.extend.light_onoff_brightness(') ||
-                extend?.getFullText().includes('extend: philips.extend.light_onoff_brightness_colortemp_color_gradient(') ||
-                extend?.getFullText().includes('extend: philips.extend.light_onoff_brightness_color(')) &&
+            if ((extend?.getFullText().includes('extend: ledvance.extend.light_onoff_brightness_colortemp(') ||
+                extend?.getFullText().includes('extend: ledvance.extend.light_onoff_brightness_colortemp_color(') ||
+                extend?.getFullText().includes('extend: ledvance.extend.light_onoff_brightness(') ||
+                extend?.getFullText().includes('extend: ledvance.extend.light_onoff_brightness_color(')) &&
                 !fromZigbee && !toZigbee && !configure && !exposes) {
                 console.log(`Handling ${model?.getFullText().trim()}`);
                 const newOpts: {[s: string]: unknown} = {};
@@ -56,7 +56,8 @@ project.getSourceFiles().forEach((sourceFile) => {
                     if (opts[opts.length - 1] === ',') {
                         opts = opts.substring(0, opts.length - 1);
                     }
-                    for (const [key, value] of Object.entries(eval(`(${opts})`))) {
+                    const evalOpts = Object.entries(eval(`(${opts})`));
+                    for (const [key, value] of evalOpts) {
                         if (key === 'colorTempRange') {
                             // @ts-expect-error
                             newOpts.colorTemp = {...newOpts.colorTemp, range: value};
@@ -69,9 +70,9 @@ project.getSourceFiles().forEach((sourceFile) => {
                             newOpts.effect = !value;
                         } else if (key === 'disableHueEffects') {
                             newOpts.hueEffect = !value;
-                        } else if (key === 'supportsHueAndSaturation') {
+                        } else if (key === 'supportsHueAndSaturation' || key === 'preferHueAndSaturation') {
                             // @ts-expect-error
-                            newOpts.color = {...newOpts.color, modes: ['xy', 'hs']};
+                            newOpts.color = {...newOpts.color, modes: evalOpts.preferHueAndSaturation ? ['hs', 'xy'] : ['xy', 'hs']};
                         } else if (key === 'extraEffects') {
                             // @ts-expect-error
                             newOpts.gradient = {...newOpts.gradient, extraEffects: value};
@@ -95,6 +96,9 @@ project.getSourceFiles().forEach((sourceFile) => {
                         }
                     }
                     meta.remove();
+                }
+                if (ota) {
+                    ota.remove();
                 }
 
                 localTotalDefinitionsWithModernExtend += 1;
