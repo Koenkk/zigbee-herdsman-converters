@@ -4,9 +4,7 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import * as ledvance from '../lib/ledvance';
-import {ledvanceLight} from '../lib/modernExtend';
+import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
 
 const e = exposes.presets;
 
@@ -113,13 +111,7 @@ const definitions: Definition[] = [
         model: '72922-A',
         vendor: 'Sylvania',
         description: 'SMART+ Smart Plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
-        ota: ota.ledvance,
+        extend: [ledvanceOnOff()],
     },
     {
         zigbeeModel: ['A19 TW 10 year'],
@@ -194,4 +186,3 @@ const definitions: Definition[] = [
 ];
 
 export default definitions;
-module.exports = definitions;

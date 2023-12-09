@@ -46,17 +46,15 @@ export const ledvanceTz = {
 };
 
 export function ledvanceOnOff(args?: modernExtend.OnOffArgs) {
-    const result = modernExtend.onOff(args);
-    result.ota = ota.ledvance;
-    return result;
+    args = {ota: ota.ledvance, ...args};
+    return modernExtend.onOff(args);
 }
 
 export function ledvanceLight(args?: modernExtend.LightArgs) {
-    args = {powerOnBehaviour: false, ...args};
+    args = {powerOnBehaviour: false, ota: ota.ledvance, ...args};
     if (args.colorTemp) args.colorTemp.startup = false;
     if (args.color) args.color = {modes: ['xy', 'hs'], ...(isObject(args.color) ? args.color : {})};
     const result = modernExtend.light(args);
     result.toZigbee.push(ledvanceTz.ledvance_commands);
-    result.ota = ota.ledvance;
     return result;
 }

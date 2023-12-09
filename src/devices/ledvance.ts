@@ -1,9 +1,6 @@
 import {Definition} from '../lib/types';
-import * as ota from '../lib/ota';
-import extend from '../lib/extend';
-import * as ledvance from '../lib/ledvance';
-import * as reporting from '../lib/reporting';
-import {light, ledvanceLight} from '../lib/modernExtend';
+import {ledvanceLight, ledvanceOnOff} from '../lib/ledvance';
+import {forcePowerSource} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -11,24 +8,14 @@ const definitions: Definition[] = [
         model: '4058075208384',
         vendor: 'LEDVANCE',
         description: 'SMART+ Classic A60 E27 Tunable white',
-        extend: [light({colorTemp: {range: [153, 370]}})],
-        ota: ota.ledvance,
+        extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['Outdoor Plug'],
         model: 'AC26940/AC31266',
         vendor: 'LEDVANCE',
         description: 'Smart Zigbee outdoor plug',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-            // Has Unknown power source, force it here.
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [ledvanceOnOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['Panel TW Z3'],
@@ -294,61 +281,36 @@ const definitions: Definition[] = [
         model: 'ST8EM-CON',
         vendor: 'LEDVANCE',
         description: 'SubstiTUBE connected advanced ultra output',
-        extend: extend.light_onoff_brightness({disablePowerOnBehavior: true}),
+        extend: [ledvanceLight({})],
     },
     {
         zigbeeModel: ['PLUG COMPACT EU T', 'Plug Value'],
         model: '4058075729322',
         vendor: 'LEDVANCE',
         description: 'SMART+ Compact Outdoor Plug EU',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [ledvanceOnOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PLUG UK T'],
         model: '4058075729285',
         vendor: 'LEDVANCE',
         description: 'SMART+ Plug UK',
-        extend: extend.switch(),
-        ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [ledvanceOnOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PLUG EU T'],
         model: '4058075729261',
         vendor: 'LEDVANCE',
         description: 'SMART+ Plug EU',
-        extend: extend.switch(),
-        ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [ledvanceOnOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PLUG OUTDOOR EU T'],
         model: '4058075729308',
         vendor: 'LEDVANCE',
         description: 'SMART+ Outdoor Plug EU',
-        extend: extend.switch(),
-        ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [ledvanceOnOff({powerOnBehavior: false})],
     },
 ];
 
 export default definitions;
-module.exports = definitions;

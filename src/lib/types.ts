@@ -95,6 +95,7 @@ export interface ModernExtend {
     meta?: DefinitionMeta,
     ota?: DefinitionOta,
     onEvent?: OnEvent,
+    endpoint?: (device: Zh.Device) => {[s: string]: number},
     isModernExtend: true,
 }
 
