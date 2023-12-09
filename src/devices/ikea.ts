@@ -152,7 +152,7 @@ const fzLocal = {
                 // calibrate and round pm25 unless invalid
                 pm25 = (pm25 == 65535) ? -1 : calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
 
-                state[pm25Property] = calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+                state[pm25Property] = pm25;
                 state[airQualityProperty] = airQuality;
             }
 
