@@ -309,7 +309,7 @@ const fzLocal = {
                 commandAction6: 'double_press',
             };
             const action = utils.getFromLookup(msg.type, lookup);
-            return {action: `dots_${button}_${action}`};
+            return {action: `${button}_${action}`};
         },
     } satisfies Fz.Converter,
     ikea_volume_click: {
