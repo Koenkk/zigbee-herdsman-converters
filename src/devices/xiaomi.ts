@@ -793,7 +793,7 @@ const definitions: Definition[] = [
         toZigbee: [tzLocal.aqara_detection_distance],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage(),
-            e.binary('battery_cover', ea.STATE, 'OPEN', 'CLOSE'),
+            e.tamper(),
             e.enum('detection_distance', ea.ALL, ['10mm', '20mm', '30mm'])
                 .withDescription('The sensor will be considered "off" within the set distance. Please press the device button before setting'),
         ],
