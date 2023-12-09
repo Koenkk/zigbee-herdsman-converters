@@ -4977,7 +4977,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_7v1k4vufotpowp9z'}],
+        fingerprint: tuya.fingerprint('TS1201', ['_TZ3290_7v1k4vufotpowp9z', '_TZ3290_xjpbcxn92aaxvmlz']),
         model: 'ZS06',
         vendor: 'TuYa',
         description: 'Universal smart IR remote control',
