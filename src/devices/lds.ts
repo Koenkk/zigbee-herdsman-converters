@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: 'ZBT-RGBWLight-A0000',
         vendor: 'LDS',
         description: 'Ynoa smart LED E27',
-        extend: [light({color: true, colorTemp: {range: [153, 555]}})],
+        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
     },
 ];
 

@@ -111,7 +111,7 @@ const definitions: Definition[] = [
         model: '3802967',
         vendor: 'Namron',
         description: 'Led bulb 6w RGBW',
-        extend: [light({color: true, colorTemp: {range: [153, 555]}})],
+        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
         zigbeeModel: ['4512700'],
@@ -430,7 +430,7 @@ const definitions: Definition[] = [
         model: '3802962',
         vendor: 'Namron',
         description: 'LED 9W RGBW E27',
-        extend: [light({color: true, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['3802963'],
@@ -465,7 +465,7 @@ const definitions: Definition[] = [
         model: '89665',
         vendor: 'Namron',
         description: 'LED Strip RGB+W (5m) IP20',
-        extend: [light({color: true, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['4512737', '4512738'],

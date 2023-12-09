@@ -30,14 +30,14 @@ const definitions: Definition[] = [
         model: '948.47/29165',
         vendor: 'Paulmann',
         description: 'RGBW light',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [153, 454]}})],
+        extend: [light({colorTemp: {range: [153, 454]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['H036-0007'],
         model: '929.66',
         vendor: 'Paulmann',
         description: 'Smart home Zigbee LED module coin 1x2.5W RGBW',
-        extend: [light({color: {modes: ['xy', 'hs']}})],
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['Switch Controller'],
@@ -65,28 +65,28 @@ const definitions: Definition[] = [
         model: '500.47',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee MaxLED RGBW controller max. 72W 24V DC',
-        extend: [light({color: {modes: ['xy', 'hs']}})],
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['RGBW light', '500.49', 'RGBW_light'],
         model: '50049/500.63',
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee YourLED RGB Controller max. 60W / Smart Home Zigbee LED Reflektor 3,5W GU10 RGBW dimmbar',
-        extend: [light({color: {modes: ['xy', 'hs']}})],
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['RGBCW_LIGHT'],
         model: '4137',
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee LED bulb 9,3W Matt E27 RGBW',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         fingerprint: [{modelID: 'RGBW Controller', manufacturerName: 'Paulmann Licht'}],
         model: '94191',
         vendor: 'Paulmann',
         description: 'Plug & shine LED strip',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         fingerprint: [
@@ -126,14 +126,14 @@ const definitions: Definition[] = [
         model: '371000002',
         vendor: 'Paulmann',
         description: 'Amaris LED panels',
-        extend: [light({color: {modes: ['xy', 'hs']}})],
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['371232040'],
         model: '371232040',
         vendor: 'Paulmann',
         description: 'LED panels',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [153, 350]}})],
+        extend: [light({colorTemp: {range: [153, 350]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['500.44'],
@@ -199,7 +199,7 @@ const definitions: Definition[] = [
         model: '291.52',
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee LED bulb 4,9W Matt E14 RGBW',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
 ];
 

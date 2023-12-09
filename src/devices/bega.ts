@@ -18,7 +18,7 @@ const definitions: Definition[] = [
         model: '13557',
         vendor: 'Bega',
         description: 'LED lamp with adjustable LED color temperature (Tunable White - RGBW) for use in luminaires with E27 lamp base',
-        extend: [light({color: true, colorTemp: {range: [153, 556]}})],
+        extend: [light({colorTemp: {range: [153, 556]}, color: true})],
     },
 ];
 

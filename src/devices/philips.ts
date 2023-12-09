@@ -75,7 +75,7 @@ const definitions: Definition[] = [
         model: '8718696126523',
         vendor: 'Philips',
         description: 'Hue Phoenix ceiling light',
-        extend: [light({color: true, colorTemp: {range: [154, 455]}})],
+        extend: [light({colorTemp: {range: [154, 455]}, color: true})],
     },
     {
         zigbeeModel: ['LWA023'],

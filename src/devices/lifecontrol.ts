@@ -34,7 +34,7 @@ const definitions: Definition[] = [
         model: 'MCLH-02',
         vendor: 'LifeControl',
         description: 'RGB LED lamp',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['RICI01'],

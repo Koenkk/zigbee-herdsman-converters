@@ -2849,7 +2849,7 @@ const definitions: Definition[] = [
         model: 'TDL01LM',
         vendor: 'Xiaomi',
         description: 'Aqara spotlight T3',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -2857,7 +2857,7 @@ const definitions: Definition[] = [
         model: 'ZNTGMK11LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart RGBW light controller',
-        extend: [light({color: {modes: ['xy', 'hs']}})],
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
         ota: ota.zigbeeOTA,
     },
     {

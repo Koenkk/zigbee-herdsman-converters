@@ -26,7 +26,7 @@ const definitions: Definition[] = [
         model: 'BRHM8E27W70-I1',
         vendor: 'GS',
         description: 'Smart dimmable, RGB + white (E27 & B22)',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
 ];
 

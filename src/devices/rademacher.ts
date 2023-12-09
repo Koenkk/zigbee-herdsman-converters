@@ -7,14 +7,14 @@ const definitions: Definition[] = [
         model: '35104001',
         vendor: 'Rademacher',
         description: 'addZ white + colour',
-        extend: [light({color: true, colorTemp: {range: [153, 555]}})],
+        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
         zigbeeModel: ['RDM-35144001'],
         model: '35144001',
         vendor: 'Rademacher',
         description: 'addZ white + colour',
-        extend: [light({color: true, colorTemp: {range: [153, 555]}})],
+        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
     },
 ];
 

@@ -80,7 +80,7 @@ const definitions: Definition[] = [
         model: '33943/33944/33946',
         vendor: 'AwoX',
         description: 'LED RGB & brightness',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         fingerprint: [

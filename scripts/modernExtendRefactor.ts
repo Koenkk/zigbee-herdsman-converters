@@ -39,10 +39,11 @@ project.getSourceFiles().forEach((sourceFile) => {
                 !fromZigbee && !toZigbee && !configure && !exposes) {
                 console.log(`Handling ${model?.getFullText().trim()}`);
                 const newOpts: {[s: string]: unknown} = {};
-                if (extend.getFullText().includes('_colortemp(')) {
+                const extendFeatures = extend.getFullText().split('(')[0].split('_');
+                if (extendFeatures.includes('colortemp')) {
                     newOpts.colorTemp = {range: null};
                 }
-                if (extend.getFullText().includes('_color(')) {
+                if (extendFeatures.includes('color')) {
                     newOpts.color = true;
                 }
                 let opts = extend?.getFullText().split('(')[1].slice(0, -1).trim();

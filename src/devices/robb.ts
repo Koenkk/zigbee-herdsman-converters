@@ -14,7 +14,7 @@ const definitions: Definition[] = [
         model: 'ROB_200-060-0',
         vendor: 'ROBB',
         description: 'Zigbee LED driver',
-        extend: [light({color: true, colorTemp: {range: [160, 450]}})],
+        extend: [light({colorTemp: {range: [160, 450]}, color: true})],
     },
     {
         zigbeeModel: ['ROB_200-061-0'],

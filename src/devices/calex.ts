@@ -18,7 +18,7 @@ const definitions: Definition[] = [
         model: '421792',
         vendor: 'Calex',
         description: 'LED A60 Zigbee RGB lamp',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['Smart Wall Switch '], // Yes, it has a space at the end :(

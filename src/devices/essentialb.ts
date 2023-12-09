@@ -12,7 +12,7 @@ const definitions: Definition[] = [
         model: 'EB-E14-P45-RGBW',
         vendor: 'EssentielB',
         description: 'Smart LED bulb',
-        extend: [light({color: true, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['EB-E14-FLA-CCT'],
@@ -40,7 +40,7 @@ const definitions: Definition[] = [
         model: 'EB-E27-A60-RGBW',
         vendor: 'EssentielB',
         description: 'E27 A60 RGBW light bulb',
-        extend: [light({color: true, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['EB-E27-G95-CCT-FV'],
@@ -68,7 +68,7 @@ const definitions: Definition[] = [
         model: 'EB-GU10-MR16-RGBW',
         vendor: 'EssentielB',
         description: 'GU10 MR16 RGBW light bulb',
-        extend: [light({color: true, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['EB-SB-1B'],

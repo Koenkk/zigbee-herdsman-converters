@@ -41,7 +41,7 @@ const definitions: Definition[] = [
         model: 'LA-GU10-RGBW',
         vendor: 'Ynoa',
         description: 'Smart LED GU10 RGB CCT',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [153, 526]}})],
+        extend: [light({colorTemp: {range: [153, 526]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['ZBT-RGBWSwitch-D0800'],

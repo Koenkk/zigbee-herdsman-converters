@@ -21,7 +21,7 @@ const definitions: Definition[] = [
         model: 'D1821',
         vendor: 'EcoSmart',
         description: 'A19 RGB bulb',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         // eslint-disable-next-line

@@ -28,7 +28,7 @@ const definitions: Definition[] = [
         model: 'ZB24100VS',
         vendor: 'EVN',
         description: 'Zigbee multicolor controller with power supply',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [160, 450]}})],
+        extend: [light({colorTemp: {range: [160, 450]}, color: {modes: ['xy', 'hs']}})],
     },
 ];
 

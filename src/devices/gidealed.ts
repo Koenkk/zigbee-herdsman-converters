@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: 'ZC05M',
         vendor: 'GIDEALED',
         description: 'Smart Zigbee RGB LED strip controller',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
 ];
 

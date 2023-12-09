@@ -95,7 +95,7 @@ const definitions: Definition[] = [
         model: 'AU-A1ZBSCRGBCX',
         vendor: 'Aurora Lighting',
         description: 'RGBW LED strip controller',
-        extend: [light({color: true, colorTemp: {range: [166, 400]}})],
+        extend: [light({colorTemp: {range: [166, 400]}, color: true})],
     },
     {
         zigbeeModel: ['TWGU10Bulb50AU'],
@@ -144,14 +144,14 @@ const definitions: Definition[] = [
         model: 'AU-A1GUZBRGBW',
         vendor: 'Aurora Lighting',
         description: 'AOne 5.6w smart RGBW tuneable GU10 lamp',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['RGBBulb01UK', 'RGBBulb02UK', 'RGBBulb51AU'],
         model: 'AU-A1GSZ9RGBW_HV-GSCXZB269K',
         vendor: 'Aurora Lighting',
         description: 'AOne 9.5W smart RGBW GLS E27/B22',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['Remote50AU'],

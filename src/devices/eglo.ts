@@ -11,7 +11,7 @@ const definitions: Definition[] = [
         model: '900091',
         vendor: 'EGLO',
         description: 'ROVITO-Z ceiling light',
-        extend: [light({color: true, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['ESMLFzm_w6_TW'],
@@ -25,7 +25,7 @@ const definitions: Definition[] = [
         model: '900024/12253',
         vendor: 'EGLO',
         description: 'RGB light',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['EGLO_ZM_TW_CLP'],

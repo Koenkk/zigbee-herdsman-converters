@@ -95,7 +95,7 @@ const definitions: Definition[] = [
         model: 'RL804CZB',
         vendor: 'ORVIBO',
         description: 'Zigbee LED controller RGB + CCT or RGBW',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['82c167c95ed746cdbd21d6817f72c593', '8762413da99140cbb809195ff40f8c51'],

@@ -267,7 +267,7 @@ const definitions: Definition[] = [
         model: 'XY12S-15',
         vendor: 'Nue / 3A',
         description: 'Smart light controller RGBW',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['FNB56-ZSW23HG1.1', 'LXN56-LC27LX1.1', 'LXN56-LC27LX1.3'],
@@ -295,7 +295,7 @@ const definitions: Definition[] = [
         model: 'HGZB-06A',
         vendor: 'Nue / 3A',
         description: 'Smart 7W E27 light bulb',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['LXN59-CS27LX1.0'],
@@ -343,7 +343,7 @@ const definitions: Definition[] = [
         model: 'HGZB-DLC4-N12B',
         vendor: 'Nue / 3A',
         description: 'RGB LED downlight',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['FB56-WTS04HM1.1'],
@@ -368,14 +368,14 @@ const definitions: Definition[] = [
         model: '3A12S-15',
         vendor: 'Nue / 3A',
         description: 'Smart Zigbee 3.0 strip light controller',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['LXN60-LS27-Z30', 'FEB56-ZCW2CLX1.0'],
         model: 'WL-SD001-9W',
         vendor: 'Nue / 3A',
         description: '9W RGB LED downlight',
-        extend: [light({color: true, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         fingerprint: [

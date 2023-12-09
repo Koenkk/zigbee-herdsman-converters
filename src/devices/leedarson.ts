@@ -48,7 +48,7 @@ const definitions: Definition[] = [
         model: 'A806S-Q1G',
         vendor: 'Leedarson',
         description: 'LED E27 color',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['ZHA-DimmableLight'],

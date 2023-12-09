@@ -31,7 +31,7 @@ const definitions: Definition[] = [
         model: 'HAL300',
         vendor: 'Schwaiger',
         description: 'Tint LED bulb E27 806 lumen, dimmable, color, white 1800-6500K',
-        extend: [light({color: true})],
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['ZBT-DIMLight-Candle0800'],
@@ -59,7 +59,7 @@ const definitions: Definition[] = [
         model: 'HAL800',
         vendor: 'Schwaiger',
         description: 'LED candle bulb E14 470 lumen, dimmable, color, white 1800-6500K',
-        extend: [light({color: true, colorTemp: {range: [153, 555]}})],
+        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
     },
 ];
 

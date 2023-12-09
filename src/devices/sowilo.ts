@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: 'L258',
         vendor: 'Sowilo DS',
         description: 'Heimdall Pro 5 channel RGBWW controller',
-        extend: [light({color: {modes: ['xy', 'hs']}, colorTemp: {range: [150, 575]}, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: [150, 575]}, color: {modes: ['xy', 'hs']}, turnsOffAtBrightness1: true})],
     },
 ];
 

@@ -14,7 +14,7 @@ const definitions: Definition[] = [
         model: 'AL8RGB13W-AP',
         vendor: 'Alchemy',
         description: 'Downlight RGBW',
-        extend: [light({color: true, colorTemp: {range: [153, 370]}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
 ];
 

@@ -23,14 +23,14 @@ const definitions: Definition[] = [
         model: '1001923',
         vendor: 'SLV',
         description: 'VALETO LED GU10 RGBW',
-        extend: [light({color: true, colorTemp: {range: [153, 556]}})],
+        extend: [light({colorTemp: {range: [153, 556]}, color: true})],
     },
     {
         zigbeeModel: ['1005318'],
         model: '1005318',
         vendor: 'SLV',
         description: 'VALETO LED E27 RGBW',
-        extend: [light({color: true, colorTemp: {range: [153, 555]}})],
+        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
     },
 ];
 
