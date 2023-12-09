@@ -19,7 +19,7 @@ const definitions: Definition[] = [
         model: 'ZG50CC-CCT-DRIVER',
         vendor: 'Envilar',
         description: 'Zigbee CCT LED driver',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['ZGR904-S'],

@@ -40,7 +40,7 @@ const definitions: Definition[] = [
         model: 'DS20Z07B',
         vendor: 'ORVIBO',
         description: 'Downlight (S series)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [166, 370]}),
+        extend: [light({colorTemp: {range: [166, 370]}})],
     },
     {
         zigbeeModel: ['ORVIBO Socket', '93e29b89b2ee45bea5bdbb7679d75d24'],
@@ -95,7 +95,7 @@ const definitions: Definition[] = [
         model: 'RL804CZB',
         vendor: 'ORVIBO',
         description: 'Zigbee LED controller RGB + CCT or RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['82c167c95ed746cdbd21d6817f72c593', '8762413da99140cbb809195ff40f8c51'],
@@ -483,7 +483,7 @@ const definitions: Definition[] = [
         model: 'DM10ZW',
         vendor: 'ORVIBO',
         description: '0-10v dimmer',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 371]}),
+        extend: [light({colorTemp: {range: [153, 371]}})],
     },
     {
         zigbeeModel: ['1a20628504bf48c88ed698fe96b7867c'],

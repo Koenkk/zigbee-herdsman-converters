@@ -14,14 +14,14 @@ const definitions: Definition[] = [
         model: 'ROB_200-060-0',
         vendor: 'ROBB',
         description: 'Zigbee LED driver',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}, color: true})],
     },
     {
         zigbeeModel: ['ROB_200-061-0'],
         model: 'ROB_200-061-0',
         vendor: 'ROBB',
         description: '50W Zigbee CCT LED driver (constant current)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['ROB_200-029-0'],

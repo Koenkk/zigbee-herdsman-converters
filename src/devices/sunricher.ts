@@ -123,7 +123,7 @@ const definitions: Definition[] = [
         model: 'HK-ZD-CCT-A',
         vendor: 'Sunricher',
         description: '50W Zigbee CCT LED driver (constant current)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['ZGRC-KEY-004'],

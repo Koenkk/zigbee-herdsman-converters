@@ -2849,7 +2849,7 @@ const definitions: Definition[] = [
         model: 'TDL01LM',
         vendor: 'Xiaomi',
         description: 'Aqara spotlight T3',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -2857,7 +2857,7 @@ const definitions: Definition[] = [
         model: 'ZNTGMK11LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart RGBW light controller',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true}),
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -3257,7 +3257,7 @@ const definitions: Definition[] = [
         description: 'Aqara T1 door & window contact sensor',
         fromZigbee: [fz.xiaomi_contact, xiaomi.fromZigbee.aqara_opple, fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low()],
+        exposes: [e.contact(), e.battery()],
         ota: ota.zigbeeOTA,
     },
     {

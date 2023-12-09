@@ -42,8 +42,7 @@ const definitions: Definition[] = [
         model: '81809/81813',
         vendor: 'AduroSmart',
         description: 'ERIA colors and white shades smart light bulb A19/BR30',
-        extend: extend.light_onoff_brightness_colortemp_color(),
-        meta: {applyRedFix: true},
+        extend: [light({colorTemp: {range: undefined}, color: {applyRedFix: true}})],
         endpoint: (device) => {
             return {'default': 2};
         },
@@ -53,15 +52,14 @@ const definitions: Definition[] = [
         model: '81809FBA',
         vendor: 'AduroSmart',
         description: 'ERIA colors and white shades smart light bulb A19/BR30',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
-        meta: {applyRedFix: true},
+        extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], applyRedFix: true}})],
     },
     {
         zigbeeModel: ['AD-E14RGBW3001'],
         model: '81895',
         vendor: 'AduroSmart',
         description: 'ERIA E14 Candle Color',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: [light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ['AD-DimmableLight3001'],
@@ -128,15 +126,14 @@ const definitions: Definition[] = [
         model: '81863',
         vendor: 'AduroSmart',
         description: 'Eria color LED strip',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
-        meta: {applyRedFix: true},
+        extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], applyRedFix: true}})],
     },
     {
         zigbeeModel: ['AD-81812', 'AD-ColorTemperature3001'],
         model: '81812/81814',
         vendor: 'AduroSmart',
         description: 'Eria tunable white A19/BR30 smart bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
+        extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs']}})],
     },
 ];
 

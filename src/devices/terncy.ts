@@ -6,6 +6,8 @@ import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import {Definition} from '../lib/types';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -34,7 +36,7 @@ const definitions: Definition[] = [
         model: 'DL001',
         vendor: 'TERNCY',
         description: 'Two color temperature intelligent downlight',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [156, 476]}),
+        extend: [light({colorTemp: {range: [156, 476]}})],
     },
     {
         zigbeeModel: ['TERNCY-DC01'],
@@ -88,7 +90,7 @@ const definitions: Definition[] = [
         vendor: 'TERNCY',
         description: 'Beevon ceiling light',
         ota: ota.zigbeeOTA,
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [50, 500], disablePowerOnBehavior: true, disableEffect: true}),
+        extend: [light({colorTemp: {range: [50, 500]}, powerOnBehaviour: false, effect: false})],
     },
 ];
 
