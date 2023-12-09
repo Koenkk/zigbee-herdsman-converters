@@ -573,6 +573,17 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['SP 240'],
+        model: 'SP 240',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        extend: [
+            onOff(),
+            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
+        ],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['OSP 210'],
         model: 'OSP 210',
         vendor: 'Innr',
