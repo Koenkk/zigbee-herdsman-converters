@@ -11,7 +11,6 @@ import {Zcl} from 'zigbee-herdsman';
 const manufacturerOptions = {
     sunricher: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICH},
     xiaomi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
-    osram: {manufacturerCode: Zcl.ManufacturerCode.OSRAM},
     eurotronic: {manufacturerCode: Zcl.ManufacturerCode.JENNIC},
     danfoss: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS},
     hue: {manufacturerCode: Zcl.ManufacturerCode.PHILIPS},
@@ -2651,26 +2650,6 @@ const converters2 = {
         key: ['battery'],
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x040a], manufacturerOptions.xiaomi);
-        },
-    } satisfies Tz.Converter,
-    ledvance_commands: {
-        /* deprecated osram_*/
-        key: ['set_transition', 'remember_state', 'osram_set_transition', 'osram_remember_state'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'osram_set_transition' || key === 'set_transition') {
-                if (value) {
-                    utils.assertNumber(value, key);
-                    const transition = (value > 1) ? Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 10 : 1;
-                    const payload = {0x0012: {value: transition, type: 0x21}, 0x0013: {value: transition, type: 0x21}};
-                    await entity.write('genLevelCtrl', payload);
-                }
-            } else if (key == 'osram_remember_state' || key == 'remember_state') {
-                if (value === true) {
-                    await entity.command('manuSpecificOsram', 'saveStartupParams', {}, manufacturerOptions.osram);
-                } else if (value === false) {
-                    await entity.command('manuSpecificOsram', 'resetStartupParams', {}, manufacturerOptions.osram);
-                }
-            }
         },
     } satisfies Tz.Converter,
     SPZ01_power_outage_memory: {
