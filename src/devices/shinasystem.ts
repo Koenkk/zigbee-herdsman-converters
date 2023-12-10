@@ -5,6 +5,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
 const e = exposes.presets;
@@ -284,12 +285,7 @@ const definitions: Definition[] = [
         model: 'SBM300Z1',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 1 gang',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['SBM300Z2'],

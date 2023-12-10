@@ -7,6 +7,7 @@ import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import {Zcl} from 'zigbee-herdsman';
+import {onOff} from '../lib/modernExtend';
 import {KeyValueAny, Fz, Tz, Definition} from '../lib/types';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode._4_NOKS};
@@ -83,11 +84,7 @@ const definitions: Definition[] = [
         model: 'AV2010/18',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wall-mount relay',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['AV2010/21A', '902010/21A'],
@@ -212,11 +209,7 @@ const definitions: Definition[] = [
         model: 'AV2010/28',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless socket',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['AV2010/29', '902010/29'],

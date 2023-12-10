@@ -3,6 +3,7 @@ import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
+import {onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
@@ -45,32 +46,20 @@ const definitions: Definition[] = [
         model: 'SIN-4-1-20',
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({ota: ota.zigbeeOTA})],
         endpoint: (device) => {
             return {default: 1};
         },
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SIN-4-1-20_PRO'],
         model: 'SIN-4-1-20_PRO',
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({ota: ota.zigbeeOTA})],
         endpoint: (device) => {
             return {default: 1};
         },
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SIN-4-2-20'],

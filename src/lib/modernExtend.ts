@@ -44,12 +44,12 @@ async function setupAttributes(
     }
 }
 
-export interface OnOffArgs {powerOnBehavior?: boolean, ota?: DefinitionOta}
+export interface OnOffArgs {powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean}
 export function onOff(args?: OnOffArgs): ModernExtend {
-    args = {powerOnBehavior: true, ...args};
+    args = {powerOnBehavior: true, skipDuplicateTransaction: false, ...args};
 
     const exposes: Expose[] = [e.switch()];
-    const fromZigbee: Fz.Converter[] = [fz.on_off];
+    const fromZigbee: Fz.Converter[] = [(args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off)];
     const toZigbee: Tz.Converter[] = [tz.on_off];
 
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {

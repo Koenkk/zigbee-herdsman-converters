@@ -6,7 +6,8 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {forcePowerSource, light} from '../lib/modernExtend';
+import {onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -42,16 +43,9 @@ const definitions: Definition[] = [
         model: 'HGZB-01',
         vendor: 'Nue / 3A',
         description: 'Smart Zigbee 3.0 light controller',
-        extend: extend.switch({disablePowerOnBehavior: true}),
+        extend: [onOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
         whiteLabel: [{vendor: 'Zemismart', model: 'ZW-EU-01', description: 'Smart light relay - 1 gang'},
             {vendor: 'Moes', model: 'ZK-CH-2U', description: 'Plug with 2 USB ports'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
     },
     {
         zigbeeModel: ['LXN59-2S7LX1.0'],
@@ -238,17 +232,14 @@ const definitions: Definition[] = [
         model: 'HGZB-20A',
         vendor: 'Nue / 3A',
         description: 'Power plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['FB56+ZSW1GKJ2.5', 'LXN-1S27LX1.0', 'FB56+ZSW1GKJ2.7'],
         model: 'HGZB-41',
         vendor: 'Nue / 3A',
         description: 'Smart one gang wall switch',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['FNB56-SKT1DHG1.4'],
@@ -274,7 +265,7 @@ const definitions: Definition[] = [
         model: 'HGZB-01A',
         vendor: 'Nue / 3A',
         description: 'Smart in-wall switch',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['FNB56-ZSC01LX1.2', 'FB56+ZSW05HG1.2', 'FB56+ZSC04HG1.0'],
@@ -288,7 +279,7 @@ const definitions: Definition[] = [
         model: 'HGZB-42-UK / HGZB-41 / HGZB-41-UK',
         description: 'Smart switch 1 or 2 gang',
         vendor: 'Nue / 3A',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['FNB56-ZCW25FB1.6', 'FNB56-ZCW25FB2.1'],
