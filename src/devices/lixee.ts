@@ -661,7 +661,7 @@ const legacyData = [
 
 const exposedData = [allPhaseData, singlePhaseData, threePhasesData, legacyData].flat();
 
-function getCurrentConfig(device: Zh.Device, options: KeyValue, logger: Logger = console) {
+function getCurrentConfig(device: Zh.Device, options: KeyValue, logger?: Logger) {
     let endpoint: Zh.Endpoint;
     try {
         endpoint = device.getEndpoint(1);
