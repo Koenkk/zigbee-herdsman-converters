@@ -59,6 +59,7 @@ async function assertDefintion(args: {
     bind: {[s: number]: string[]},
     read: {[s: number]: [string, string[]][]},
     configureReporting: {[s: number]: [string, ReturnType<typeof reportingItem>[]][]},
+    endpoints?: {[s: string]: number},
 }) {
     const coordinatorEndpoint = mockEndpoint();
     const definition = findByDevice(args.device);
@@ -107,6 +108,11 @@ async function assertDefintion(args: {
         if (args.configureReporting[endpoint.ID]) {
             args.configureReporting[endpoint.ID].forEach((configureReporting, idx) => expect(endpoint.configureReporting).toHaveBeenNthCalledWith(idx + 1, configureReporting[0], configureReporting[1]));
         }
+    }
+
+    if (definition.endpoint) {
+        // @ts-expect-error
+        expect(definition.endpoint()).toStrictEqual(args.endpoints)
     }
 }
 
@@ -232,7 +238,7 @@ describe('ModernExtend', () => {
         });
     });
 
-    test(`onlythis ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: ota.zigbeeOTA})`, async () => {
+    test(`ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: ota.zigbeeOTA})`, async () => {
         await assertDefintion({
             device: mockDevice({modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [
                 {ID: 10, inputClusters: ['genOnOff', 'genLevelCtrl']},
@@ -271,6 +277,37 @@ describe('ModernExtend', () => {
                     ['genLevelCtrl', [reportingItem('currentLevel', 10, 65000, 1)]],
                 ]
             },
+            endpoints: {l1: 10, l2: 11, s1: 25},
+        });
+    });
+
+    test(`onOff({endpoints: {top: 1, bottom: 2}})`, async () => {
+        await assertDefintion({
+            device: mockDevice({modelID: 'PM-S240R-ZB', endpoints: [
+                {ID: 1, inputClusters: ['genOnOff']},
+                {ID: 2, inputClusters: ['genOnOff']},
+            ]}),
+            meta: {multiEndpoint: true},
+            fromZigbee: [fz.on_off, fz.power_on_behavior],
+            toZigbee: ['state', 'on_time', 'off_wait_time', 'power_on_behavior'],
+            exposes: ['linkquality', 'power_on_behavior', 'switch_bottom(state)', 'switch_top(state)'],
+            bind: {
+                1: ['genOnOff'],
+                2: ['genOnOff'],
+            },
+            read: {
+                1: [['genOnOff', ['onOff']], ['genOnOff', ['startUpOnOff']]],
+                2: [['genOnOff', ['onOff']], ['genOnOff', ['startUpOnOff']]],
+            },
+            configureReporting: {
+                1: [
+                    ['genOnOff', [reportingItem('onOff', 0, repInterval.MAX, 1)]],
+                ],
+                2: [
+                    ['genOnOff', [reportingItem('onOff', 0, repInterval.MAX, 1)]],
+                ],
+            },
+            endpoints: {bottom: 2, top: 1},
         });
     });
 });

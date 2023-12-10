@@ -1,9 +1,5 @@
 import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
 import {onOff} from '../lib/modernExtend';
-
-const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
@@ -11,7 +7,7 @@ const definitions: Definition[] = [
         model: 'Z6',
         vendor: 'Atsmart',
         description: '3 gang smart wall switch (no neutral wire)',
-        extend: [onOff({endpoints:{left:1,center:2,right:3}})]
+        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}})],
     },
 ];
 
