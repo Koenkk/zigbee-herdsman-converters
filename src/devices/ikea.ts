@@ -12,6 +12,7 @@ import extend from '../lib/extend';
 import * as globalStore from '../lib/store';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {calibrateAndPrecisionRoundOptions, postfixWithEndpointName, precisionRound} from '../lib/utils';
+import {onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -400,12 +401,7 @@ const definitions: Definition[] = [
         model: 'E1836',
         vendor: 'IKEA',
         description: 'ASKVADER on/off switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E26 WS opal 980lm', 'TRADFRI bulb E27 WS\uFFFDopal 980lm'],
@@ -751,13 +747,7 @@ const definitions: Definition[] = [
         model: 'E1603/E1702/E1708',
         description: 'TRADFRI control outlet',
         vendor: 'IKEA',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
-        ota: ota.tradfri,
+        extend: [onOff({ota: ota.tradfri})],
     },
     {
         zigbeeModel: ['TRADFRI remote control'],
@@ -832,15 +822,9 @@ const definitions: Definition[] = [
         model: 'E1842',
         description: 'KNYCKLAN receiver electronic water valve shut-off',
         vendor: 'IKEA',
-        fromZigbee: extend.switch().fromZigbee.concat([fz.ias_water_leak_alarm_1]),
-        exposes: extend.switch().exposes.concat([e.water_leak()]),
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
-        ota: ota.tradfri,
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        exposes: [e.water_leak()],
+        extend: [onOff({ota: ota.tradfri})],
     },
     {
         zigbeeModel: ['TRADFRI SHORTCUT Button'],

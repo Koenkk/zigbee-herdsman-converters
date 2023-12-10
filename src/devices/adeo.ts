@@ -2,9 +2,8 @@ import {Definition, Fz, Tz} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import tz from '../converters/toZigbee';
-import {light} from '../lib/modernExtend';
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -206,12 +205,7 @@ const definitions: Definition[] = [
         model: 'LDSENK01F',
         vendor: 'ADEO',
         description: '10A EU smart plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['LXEK-5', 'ZBEK-26'],
@@ -285,15 +279,7 @@ const definitions: Definition[] = [
         model: 'LDSENK02F',
         description: '10A/16A EU smart plug',
         vendor: 'ADEO',
-        extend: extend.switch({exposes: [e.power(), e.energy()], fromZigbee: [fz.electrical_measurement, fz.metering]}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-        },
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['LDSENK10'],
@@ -309,27 +295,14 @@ const definitions: Definition[] = [
         model: 'LDSENK02S',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN 16A EU smart plug',
-        extend: extend.switch({exposes: [e.power(), e.energy()], fromZigbee: [fz.electrical_measurement, fz.metering]}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-        },
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['SIN-4-1-20_LEX'],
         model: 'SIN-4-1-20_LEX',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN 3680W single output relay',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(ep);
-        },
+        extend: [onOff()],
         endpoint: (device) => {
             return {default: 1};
         },
@@ -354,12 +327,7 @@ const definitions: Definition[] = [
         model: 'SIN-4-1-22_LEX',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN Access Control',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(ep);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['SIN-4-FP-21_EQU'],

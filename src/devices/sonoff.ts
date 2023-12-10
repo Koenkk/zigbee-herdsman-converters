@@ -4,7 +4,7 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {binary, numeric} from '../lib/modernExtend';
+import {binary, forcePowerSource, numeric} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue} from '../lib/types';
 import {onOff} from '../lib/modernExtend';
 
@@ -31,8 +31,7 @@ const definitions: Definition[] = [
         model: 'BASICZBR3',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
     },
     {
         zigbeeModel: ['ZBMINI-L'],
@@ -73,24 +72,14 @@ const definitions: Definition[] = [
         model: 'ZBMINI',
         vendor: 'SONOFF',
         description: 'Zigbee two way smart switch',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            // Has Unknown power source: https://github.com/Koenkk/zigbee2mqtt/issues/5362, force it here.
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [onOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['S31 Lite zb'],
         model: 'S31ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
     },
     {
         fingerprint: [
@@ -231,20 +220,14 @@ const definitions: Definition[] = [
         model: 'S26R2ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
-        extend: extend.switch({disablePowerOnBehavior: true}),
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['S40LITE'],
         model: 'S40ZBTPB',
         vendor: 'SONOFF',
         description: '15A Zigbee smart plug',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, ota: ota.zigbeeOTA})],
     },
     {
         zigbeeModel: ['DONGLE-E_R'],
@@ -274,12 +257,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['SNZB-01P'],

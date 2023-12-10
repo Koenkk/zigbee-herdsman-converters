@@ -1,8 +1,8 @@
 import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -23,13 +23,7 @@ const definitions: Definition[] = [
         model: 'CK-BL702-MSW-01(7010)',
         vendor: 'eWeLink',
         description: 'CMARS Zigbee smart plug',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -39,12 +33,7 @@ const definitions: Definition[] = [
         model: 'SA-003-Zigbee',
         vendor: 'eWeLink',
         description: 'Zigbee smart plug',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -54,12 +43,7 @@ const definitions: Definition[] = [
         model: 'SA-030-1',
         vendor: 'eWeLink',
         description: 'Zigbee 3.0 smart plug 13A (3120W)(UK version)',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -69,12 +53,7 @@ const definitions: Definition[] = [
         model: 'SWITCH-ZR02',
         vendor: 'eWeLink',
         description: 'Zigbee smart switch',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -84,12 +63,7 @@ const definitions: Definition[] = [
         model: 'SWITCH-ZR03-1',
         vendor: 'eWeLink',
         description: 'Zigbee smart switch',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -99,8 +73,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW01',
         vendor: 'eWeLink',
         description: 'Smart light switch - 1 gang',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },

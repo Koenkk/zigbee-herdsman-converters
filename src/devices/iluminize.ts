@@ -5,7 +5,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -29,12 +29,7 @@ const definitions: Definition[] = [
         model: '5120.2210',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 actuator mini 1x 230V',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['511.050'],

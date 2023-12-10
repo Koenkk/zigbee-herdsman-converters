@@ -3,6 +3,7 @@ import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -11,12 +12,7 @@ const definitions: Definition[] = [
         model: '43076',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['43078'],
@@ -105,12 +101,7 @@ const definitions: Definition[] = [
         model: '43084',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['43090'],
@@ -130,12 +121,7 @@ const definitions: Definition[] = [
         model: '43094',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart switch ZB4102',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['43096'],
@@ -155,12 +141,7 @@ const definitions: Definition[] = [
         model: '43109',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
 ];
 
