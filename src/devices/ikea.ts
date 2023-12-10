@@ -822,8 +822,8 @@ const definitions: Definition[] = [
         model: 'E1842',
         description: 'KNYCKLAN receiver electronic water valve shut-off',
         vendor: 'IKEA',
-        fromZigbee: extend.switch().fromZigbee.concat([fz.ias_water_leak_alarm_1]),
-        exposes: extend.switch().exposes.concat([e.water_leak()]),
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        exposes: [e.water_leak()],
         extend: [onOff({ota: ota.tradfri})],
     },
     {
