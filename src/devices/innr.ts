@@ -689,25 +689,11 @@ const definitions: Definition[] = [
         zigbeeModel: ['SP 240'],
         model: 'SP 240',
         vendor: 'Innr',
-        description: 'Innr Smartplug with Powermetering',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
-        toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', { acVoltageMultiplier: 1, acVoltageDivisor: 1, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1, acPowerDivisor: 1, });
-            try {
-                await reporting.currentSummDelivered(endpoint);
-                await reporting.rmsVoltage(endpoint, {change: 5});
-                await reporting.rmsCurrent(endpoint, {change: 50});
-                await reporting.activePower(endpoint, {change: 10});
-            } catch (error) {}
-                await endpoint.read('genOnOff', ['onOff']);
-        },
-        options: [exposes.options.measurement_poll_interval()],
-
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        description: 'Smart plug',
+        extend: [
+            onOff({powerOnBehavior: false}),
+            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
+        ],
     },
 ];
 
