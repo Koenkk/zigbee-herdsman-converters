@@ -17,7 +17,7 @@ project.getSourceFiles().forEach((sourceFile) => {
 
     let changed = true;
     let save = false;
-    const type = 'ledvanceLight';
+    const type = 'light';
     while (changed) {
         changed = false;
         const definitions = sourceFile.getVariableStatementOrThrow('definitions').getDescendantsOfKind(SyntaxKind.ObjectLiteralExpression);
@@ -34,13 +34,11 @@ project.getSourceFiles().forEach((sourceFile) => {
             const meta = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'meta');
             const ota = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'ota');
 
-            if ((extend?.getFullText().includes('extend: ledvance.extend.light_onoff_brightness_colortemp(') ||
-                extend?.getFullText().includes('extend: ledvance.extend.light_onoff_brightness_colortemp_color(') ||
-                extend?.getFullText().includes('extend: ledvance.extend.light_onoff_brightness(') ||
-                extend?.getFullText().includes('extend: ledvance.extend.light_onoff_brightness_color(')) &&
-                !fromZigbee && !toZigbee && !configure && !exposes) {
+            if (extend?.getFullText().includes('extend: extend.light_onoff_brightness({noConfigure: true})') &&
+                !fromZigbee && !toZigbee && !exposes) {
                 console.log(`Handling ${model?.getFullText().trim()}`);
-                const newOpts: {[s: string]: unknown} = {};
+                const newOpts: {[s: string]: unknown} = {configureReporting: true};
+                configure?.remove();
                 const extendFeatures = extend.getFullText().split('(')[0].split('_');
                 if (extendFeatures.includes('colortemp')) {
                     newOpts.colorTemp = {range: null};
@@ -76,6 +74,8 @@ project.getSourceFiles().forEach((sourceFile) => {
                         } else if (key === 'extraEffects') {
                             // @ts-expect-error
                             newOpts.gradient = {...newOpts.gradient, extraEffects: value};
+                        } else if (key === 'noConfigure') {
+                            // ignore
                         } else {
                             throw new Error(`Unsupported ${key} - ${value}`);
                         }

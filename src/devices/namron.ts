@@ -9,7 +9,7 @@ import * as globalStore from '../lib/store';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
 import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {forcePowerSource, light} from '../lib/modernExtend';
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -118,41 +118,23 @@ const definitions: Definition[] = [
         model: '4512700',
         vendor: 'Namron',
         description: 'Zigbee dimmer 400W',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512760'],
         model: '4512760',
         vendor: 'Namron',
         description: 'Zigbee dimmer 400W',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512708'],
         model: '4512708',
         vendor: 'Namron',
         description: 'Zigbee LED dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512767'],
@@ -211,13 +193,7 @@ const definitions: Definition[] = [
         model: '4512733',
         vendor: 'Namron',
         description: 'ZigBee dimmer 2-pol 400W',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512704'],
@@ -237,13 +213,7 @@ const definitions: Definition[] = [
         model: '1402755',
         vendor: 'Namron',
         description: 'ZigBee LED dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512703'],
@@ -305,15 +275,7 @@ const definitions: Definition[] = [
         model: '1402769',
         vendor: 'Namron',
         description: 'ZigBee LED dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [light({configureReporting: true}), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['4512702'],
@@ -912,15 +874,9 @@ const definitions: Definition[] = [
         model: '4512750',
         vendor: 'Namron',
         description: 'Zigbee dimmer 2.0',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
+        extend: [light({configureReporting: true})],
         whiteLabel: [{vendor: 'Namron', model: '4512751', description: 'Zigbee dimmer 2.0', fingerprint: [{modelID: '4512751'}]}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.brightness(endpoint);
-        },
     },
     {
         zigbeeModel: ['4512766'],

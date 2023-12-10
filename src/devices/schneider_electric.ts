@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {onOff} from '../lib/modernExtend';
+import {onOff, light} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -499,14 +499,7 @@ const definitions: Definition[] = [
         model: 'U201DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 1 gang 550W dimmer module',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(10);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['U201SRY2KWZB'],

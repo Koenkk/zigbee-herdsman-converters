@@ -222,13 +222,7 @@ const definitions: Definition[] = [
         model: 'ZG9101SAC-HP',
         vendor: 'Sunricher',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ON/OFF -M', 'ON/OFF', 'ZIGBEE-SWITCH'],
@@ -316,13 +310,7 @@ const definitions: Definition[] = [
         model: 'SR-ZG9040A-S',
         vendor: 'Sunricher',
         description: 'ZigBee AC phase-cut dimmer single-line',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['Micro Smart OnOff', 'HK-SL-RELAY-A'],

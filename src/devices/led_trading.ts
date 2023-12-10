@@ -5,6 +5,8 @@ import * as exposes from '../lib/exposes';
 import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const fzLocal = {
@@ -41,13 +43,7 @@ const definitions: Definition[] = [
         model: 'HK-LN-DIM-A',
         vendor: 'LED-Trading',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['HK-LN-SOCKET-A'],

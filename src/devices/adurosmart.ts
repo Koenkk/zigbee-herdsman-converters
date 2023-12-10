@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
@@ -86,28 +85,14 @@ const definitions: Definition[] = [
         model: '81849',
         vendor: 'AduroSmart',
         description: 'ERIA built-in multi dimmer module 300W',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['BDP3001'],
         model: '81855',
         vendor: 'AduroSmart',
         description: 'ERIA smart plug (dimmer)',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['BPU3'],

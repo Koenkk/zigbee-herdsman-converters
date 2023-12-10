@@ -1,6 +1,4 @@
 import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {light, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
@@ -9,13 +7,7 @@ const definitions: Definition[] = [
         model: '200403V2-B',
         vendor: 'LightSolutions',
         description: 'Mini dimmer 200W',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['91-948'],
