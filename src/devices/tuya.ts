@@ -3315,7 +3315,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [160, 100, 69, 68, 65, 64, 66].map((applicationVersion) => {
+        fingerprint: [160, 100, 69, 68, 65, 64].map((applicationVersion) => {
             return {modelID: 'TS011F', applicationVersion, priority: -1};
         }),
         model: 'TS011F_plug_3',
@@ -3337,8 +3337,8 @@ const definitions: Definition[] = [
         options: [exposes.options.measurement_poll_interval()],
         onEvent: (type, data, device, options) =>
             tuya.onEventMeasurementPoll(type, data, device, options,
-                device.applicationVersion !== 66, // polling for voltage, current and power
-                [66, 100, 160].includes(device.applicationVersion), // polling for energy
+                true, // polling for voltage, current and power
+                [100, 160].includes(device.applicationVersion), // polling for energy
             ),
     },
     {
