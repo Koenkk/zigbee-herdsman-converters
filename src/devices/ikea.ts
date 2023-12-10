@@ -301,20 +301,18 @@ const fzLocal = {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
-            if (!hasAlreadyProcessedMessage(msg, model)) {
-                const direction = msg.data.movemode === 1 ? 'down' : 'up';
-                return {action: `volume_${direction}`};
-            }
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            return {action: `volume_${direction}`};
         },
     } satisfies Fz.Converter,
     ikea_volume_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
-            if (!hasAlreadyProcessedMessage(msg, model)) {
-                const direction = msg.data.movemode === 1 ? 'down_hold' : 'up_hold';
-                return {action: `volume_${direction}`};
-            }
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const direction = msg.data.movemode === 1 ? 'down_hold' : 'up_hold';
+            return {action: `volume_${direction}`};
         },
     } satisfies Fz.Converter,
     ikea_track_click: {
