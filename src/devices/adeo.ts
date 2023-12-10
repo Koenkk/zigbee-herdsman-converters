@@ -102,6 +102,13 @@ const definitions: Definition[] = [
         extend: [light({colorTemp: {range: [153, 454]}})],
     },
     {
+        zigbeeModel: ['SIN-4-1-21_EQU'],
+        model: 'SIN-4-1-21_EQU',
+        vendor: 'ADEO',
+        description: 'Multifunction relay switch with metering',
+        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+    },
+    {
         zigbeeModel: ['ZBEK-7'],
         model: 'IST-CDZFB2AS007NA-MZN-02',
         vendor: 'ADEO',
