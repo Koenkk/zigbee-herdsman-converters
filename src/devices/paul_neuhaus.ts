@@ -1,8 +1,7 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -63,7 +62,7 @@ const definitions: Definition[] = [
         model: '100.425.90',
         vendor: 'Paul Neuhaus',
         description: 'Q-PLUG adapter plug with night orientation light',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['JZ-CT-Z01'],

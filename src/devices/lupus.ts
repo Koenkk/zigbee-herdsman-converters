@@ -7,6 +7,7 @@ import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
+import {onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -48,11 +49,7 @@ const definitions: Definition[] = [
         model: '12126',
         vendor: 'Lupus',
         description: '1 channel relay',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['PRS3CH2_00.00.05.10TC', 'PRS3CH2_00.00.05.11TC', 'PRS3CH2_00.00.05.12TC'],

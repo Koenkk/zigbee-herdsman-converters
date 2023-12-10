@@ -7,6 +7,7 @@ import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
+import {onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -79,7 +80,7 @@ const definitions: Definition[] = [
         model: 'CM001',
         vendor: 'LELLKI',
         description: 'Circuit switch',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_z6fgd73r'}],

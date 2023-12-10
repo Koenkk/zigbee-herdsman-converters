@@ -5,7 +5,7 @@ import * as legacy from '../lib/legacy';
 import * as utils from '../lib/utils';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -149,11 +149,7 @@ const definitions: Definition[] = [
         model: 'KK-LP-Q01D',
         vendor: 'Konke',
         description: 'Light years switch 1 gang',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['3AFE292000068622'],

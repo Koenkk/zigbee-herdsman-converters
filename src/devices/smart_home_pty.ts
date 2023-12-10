@@ -1,6 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -15,7 +14,7 @@ const definitions: Definition[] = [
         model: 'HGZB-20-DE',
         vendor: 'Smart Home Pty',
         description: 'Power plug',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
 ];
 

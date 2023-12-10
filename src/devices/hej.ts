@@ -2,6 +2,8 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -10,7 +12,7 @@ const definitions: Definition[] = [
         model: 'GLSK3ZB-1711',
         vendor: 'Hej',
         description: 'Goqual 1 gang Switch',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['HejSW02'],

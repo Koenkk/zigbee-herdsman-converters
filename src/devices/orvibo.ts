@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -47,7 +47,7 @@ const definitions: Definition[] = [
         model: 'OR-ZB-S010-3C',
         vendor: 'ORVIBO',
         description: 'Smart socket',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['3c4e4fc81ed442efaf69353effcdfc5f', '51725b7bcba945c8a595b325127461e9'],
@@ -237,11 +237,7 @@ const definitions: Definition[] = [
         model: 'T21W1Z',
         vendor: 'ORVIBO',
         description: 'Smart light switch - 1 gang',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['093199ff04984948b4c78167c8e7f47e'],

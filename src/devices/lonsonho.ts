@@ -161,12 +161,7 @@ const definitions: Definition[] = [
         model: '4000116784070',
         vendor: 'Lonsonho',
         description: 'Smart plug EU',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(11);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['ZB-RGBCW'],

@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {electricityMeter, light} from '../lib/modernExtend';
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -97,7 +97,7 @@ const definitions: Definition[] = [
         model: 'POTLK-WH02',
         vendor: 'GE',
         description: 'Outlink smart remote outlet',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
 ];
 

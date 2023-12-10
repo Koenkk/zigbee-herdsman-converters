@@ -143,12 +143,7 @@ const definitions: Definition[] = [
         model: '404021',
         description: 'Tint smart switch',
         vendor: 'Müller Licht',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         fingerprint: [{modelID: 'Remote Control', manufacturerName: 'MLI'}],

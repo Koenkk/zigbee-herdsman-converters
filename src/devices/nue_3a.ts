@@ -6,8 +6,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import extend from '../lib/extend';
-import {forcePowerSource, light} from '../lib/modernExtend';
-import {onOff} from '../lib/modernExtend';
+import {forcePowerSource, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -312,22 +311,14 @@ const definitions: Definition[] = [
         model: 'ZW-EC-01',
         vendor: 'Nue / 3A',
         description: 'Zigbee smart curtain switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
-            await reporting.onOff(endpoint1);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['LXN56-0S27LX1.1', 'LXN56-0S27LX1.3'],
         model: 'HGZB-20-UK',
         vendor: 'Nue / 3A',
         description: 'Power plug',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['NUET56-DL27LX1.2'],

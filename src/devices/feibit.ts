@@ -4,6 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -28,7 +30,7 @@ const definitions: Definition[] = [
         model: 'SKY01-TS1-101',
         vendor: 'Feibit',
         description: 'Smart light switch - 1 gang',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['FNB56-SOS03FB1.5'],
@@ -126,7 +128,7 @@ const definitions: Definition[] = [
         model: 'SFS01ZB',
         vendor: 'Feibit',
         description: 'Power plug',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['FB56+ZSW1HKJ2.2', 'FB56+ZSW1HKJ1.1'],

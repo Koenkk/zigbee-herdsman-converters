@@ -4,7 +4,7 @@ import extend from '../lib/extend';
 import * as exposes from '../lib/exposes';
 const e = exposes.presets;
 import fz from '../converters/fromZigbee';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -44,11 +44,7 @@ const definitions: Definition[] = [
         model: 'ZG302-BOX-RELAY',
         vendor: 'Envilar',
         description: 'Zigbee AC in wall switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['2CH-ZG-BOX-RELAY'],

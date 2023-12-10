@@ -9,7 +9,7 @@ import * as globalStore from '../lib/store';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
 import extend from '../lib/extend';
-import {forcePowerSource, light} from '../lib/modernExtend';
+import {forcePowerSource, light, onOff} from '../lib/modernExtend';
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -200,12 +200,7 @@ const definitions: Definition[] = [
         model: '4512704',
         vendor: 'Namron',
         description: 'Zigbee switch 400W',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
         ota: ota.zigbeeOTA,
     },
     {

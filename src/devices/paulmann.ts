@@ -1,8 +1,7 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -44,14 +43,14 @@ const definitions: Definition[] = [
         model: '50043',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Cephei Switch Controller',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['50131'],
         model: '501.31',
         vendor: 'Paulmann',
         description: 'Smart plug for Euro- and Schuko-sockets',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['Dimmablelight'],
