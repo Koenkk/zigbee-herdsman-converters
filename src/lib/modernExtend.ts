@@ -44,11 +44,12 @@ async function setupAttributes(
     }
 }
 
-export interface OnOffArgs {powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean}
+export interface OnOffArgs {powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpoints?: {[s: string]: number}}
 export function onOff(args?: OnOffArgs): ModernExtend {
     args = {powerOnBehavior: true, skipDuplicateTransaction: false, ...args};
 
-    const exposes: Expose[] = [e.switch()];
+    const exposes: Expose[] = args.endpoints ? Object.keys(args.endpoints).map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
+
     const fromZigbee: Fz.Converter[] = [(args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off)];
     const toZigbee: Tz.Converter[] = [tz.on_off];
 
@@ -67,6 +68,10 @@ export function onOff(args?: OnOffArgs): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
     if (args.ota) result.ota = args.ota;
+    if (args.endpoints) {
+        result.meta = {multiEndpoint: true};
+        result.endpoint = (d) => args.endpoints;
+    }
     return result;
 }
 

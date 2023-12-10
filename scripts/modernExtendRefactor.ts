@@ -37,10 +37,12 @@ project.getSourceFiles().forEach((sourceFile) => {
             // const ota = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'ota');
 
             if (extend?.getFullText().includes('extend: extend.switch()') &&
-                !fromZigbee && !toZigbee && !exposes && !endpoint && !meta) {
+                !fromZigbee && !toZigbee && exposes && endpoint) {
+                exposes?.remove();
                 console.log(`Handling ${model?.getFullText().trim()}`);
-                const newOpts: {[s: string]: unknown} = {};
+                const newOpts: {[s: string]: unknown} = {endpoints: eval(`(${endpoint.getFullText().split('return ')[1].split(';')[0]})`)};
                 configure?.remove();
+                endpoint?.remove();
                 const extendFeatures = extend.getFullText().split('(')[0].split('_');
                 if (extendFeatures.includes('colortemp')) {
                     newOpts.colorTemp = {range: null};
@@ -83,22 +85,24 @@ project.getSourceFiles().forEach((sourceFile) => {
                         }
                     }
                 }
-                // if (meta) {
-                //     for (const [key, value] of Object.entries(eval(`(${meta?.getFullText().replace('meta: ', '')})`))) {
-                //         if (key === 'turnsOffAtBrightness1') {
-                //             newOpts.turnsOffAtBrightness1 = value;
-                //         } else if (key === 'applyRedFix') {
-                //             // @ts-expect-error
-                //             newOpts.color = {...newOpts.color, applyRedFix: value};
-                //         } else if (key === 'supportsEnhancedHue') {
-                //             // @ts-expect-error
-                //             newOpts.color = {...newOpts.color, enhancedHue: value};
-                //         } else {
-                //             throw new Error(`Unsupported ${key} - ${value}`);
-                //         }
-                //     }
-                //     meta.remove();
-                // }
+                if (meta) {
+                    for (const [key, value] of Object.entries(eval(`(${meta?.getFullText().replace('meta: ', '')})`))) {
+                        if (key === 'turnsOffAtBrightness1') {
+                            newOpts.turnsOffAtBrightness1 = value;
+                        } else if (key === 'applyRedFix') {
+                            // @ts-expect-error
+                            newOpts.color = {...newOpts.color, applyRedFix: value};
+                        } else if (key === 'supportsEnhancedHue') {
+                            // @ts-expect-error
+                            newOpts.color = {...newOpts.color, enhancedHue: value};
+                        } else if (key === 'multiEndpoint' || key === 'disableDefaultResponse') {
+                            // ignore
+                        } else {
+                            throw new Error(`Unsupported ${key} - ${value}`);
+                        }
+                    }
+                    meta.remove();
+                }
                 // if (ota) {
                 //     ota.remove();
                 // }

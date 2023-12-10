@@ -3,7 +3,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
@@ -14,16 +13,7 @@ const definitions: Definition[] = [
         model: 'TZSW22FW-L4',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('bottom')],
-        endpoint: (device) => {
-            return {'top': 16, 'bottom': 17};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {top: 16, bottom: 17}})],
     },
     {
         zigbeeModel: ['FB56+ZSW1GKJ2.3'],
@@ -135,33 +125,14 @@ const definitions: Definition[] = [
         model: 'SLS301ZB_2',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
-        endpoint: (device) => {
-            return {'left': 16, 'right': 17};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {left: 16, right: 17}})],
     },
     {
         zigbeeModel: ['FB56+ZSW1IKJ2.2', 'FB56+ZSW1IKJ1.1'],
         model: 'SLS301ZB_3',
         vendor: 'Feibit',
         description: 'Smart light switch - 3 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.switch().withEndpoint('center')],
-        endpoint: (device) => {
-            return {'left': 16, 'center': 17, 'right': 18};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(18), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {left: 16, center: 17, right: 18}})],
     },
     {
         zigbeeModel: ['FB56+ZSN08KJ2.2'],
