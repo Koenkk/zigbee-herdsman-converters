@@ -1,6 +1,5 @@
 import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import {onOff} from '../lib/modernExtend';
