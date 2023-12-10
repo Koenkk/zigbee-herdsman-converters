@@ -2655,11 +2655,11 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature().withValueMin(16).withValueMax(70), e.min_temperature(), e.away_preset_temperature(),
-            e.composite('programming_mode', 'programming_mode', ea.STATE).withDescription('Schedule MODE ⏱ - In this mode, ' +
-                    'the device executes a preset week programming temperature time and temperature.')
-                .withFeature(e.week())
-                .withFeature(e.text('workdays_schedule', ea.STATE_SET))
-                .withFeature(e.text('holidays_schedule', ea.STATE_SET))],
+            e.text('workdays_schedule', ea.STATE_SET)
+                .withDescription('Workdays schedule, 6 entries max, example: "00:20/5°C 01:20/5°C 6:59/15°C 18:00/5°C 20:00/5°C 23:30/5°C"'),
+            e.text('holidays_schedule', ea.STATE_SET)
+                .withDescription('Holidays schedule, 6 entries max, example: "00:20/5°C 01:20/5°C 6:59/15°C 18:00/5°C 20:00/5°C 23:30/5°C"'),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_g2ki0ejr']),
@@ -5844,10 +5844,12 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vmcgja59', '_TZE200_wktrysab']),
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_vmcgja59'},
+        ],
         model: 'TS0601_switch_8',
         vendor: 'TuYa',
-        description: '8 gang switch',
+        description: 'ZYXH 8 gang switch',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -5864,10 +5866,6 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1};
         },
-        whiteLabel: [
-            tuya.whitelabel('TuYa', 'WLS098-8GANAG', '8 gang switch', ['_TZE200_wktrysab']),
-            tuya.whitelabel('ZYXH', 'TS0601_switch_8_1', '8 gang switch', ['_TZE200_vmcgja59']),
-        ],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
