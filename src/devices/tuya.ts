@@ -5843,12 +5843,10 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_vmcgja59'},
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vmcgja59', '_TZE200_wktrysab']),
         model: 'TS0601_switch_8',
         vendor: 'TuYa',
-        description: 'ZYXH 8 gang switch',
+        description: '8 gang switch',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -5865,6 +5863,10 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1};
         },
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'WLS098-8GANAG', '8 gang switch', ['_TZE200_wktrysab']),
+            tuya.whitelabel('ZYXH', 'TS0601_switch_8_1', '8 gang switch', ['_TZE200_vmcgja59']),
+        ],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
