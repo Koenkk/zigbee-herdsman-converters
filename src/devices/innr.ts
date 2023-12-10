@@ -659,6 +659,16 @@ const definitions: Definition[] = [
             }
         },
     },
+    {
+        zigbeeModel: ['SP 240'],
+        model: 'SP 240',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        extend: [
+            onOff({powerOnBehavior: false}),
+            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
+        ],
+    },
 ];
 
 export default definitions;
