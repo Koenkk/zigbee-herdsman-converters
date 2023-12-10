@@ -7,6 +7,7 @@ import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
+import {onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -16,19 +17,7 @@ const definitions: Definition[] = [
         model: 'WP33-EU/WP34-EU',
         vendor: 'LELLKI',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            for (const ID of [1, 2, 3, 4, 5]) {
-                await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
-            }
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}})],
     },
     {
         zigbeeModel: ['JZ-ZB-001'],
@@ -46,40 +35,21 @@ const definitions: Definition[] = [
         model: 'JZ-ZB-003',
         vendor: 'LELLKI',
         description: '3 gang switch',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3}})],
     },
     {
         zigbeeModel: ['JZ-ZB-002'],
         model: 'JZ-ZB-002',
         vendor: 'LELLKI',
         description: '2 gang touch switch',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_twqctvna'}],
         model: 'CM001',
         vendor: 'LELLKI',
         description: 'Circuit switch',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_z6fgd73r'}],

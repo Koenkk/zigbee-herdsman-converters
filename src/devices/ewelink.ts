@@ -1,7 +1,5 @@
 import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
@@ -83,16 +81,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW02',
         vendor: 'eWeLink',
         description: 'Smart light switch/2 gang relay',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {left: 1, right: 2}})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -102,17 +91,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW03',
         vendor: 'eWeLink',
         description: 'Smart light switch - 3 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -122,19 +101,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW04',
         vendor: 'eWeLink',
         description: 'Smart light switch - 4 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -144,20 +111,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW05',
         vendor: 'eWeLink',
         description: 'Smart light switch - 5 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },

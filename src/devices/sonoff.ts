@@ -3,10 +3,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import {binary, forcePowerSource, numeric} from '../lib/modernExtend';
+import {binary, forcePowerSource, numeric, onOff} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue} from '../lib/types';
-import {onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -39,7 +37,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
-        extend: extend.switch(),
+        extend: [onOff()],
         configure: async (device, coordinatorEndpoint, logger) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -56,7 +54,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
-        extend: extend.switch(),
+        extend: [onOff()],
         configure: async (device, coordinatorEndpoint, logger) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device

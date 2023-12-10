@@ -1,7 +1,7 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -93,12 +93,7 @@ const definitions: Definition[] = [
         model: 'HLC614-ZLL',
         vendor: 'Shenzhen Homa',
         description: '3 channel relay module',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3};
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3}})],
     },
     {
         zigbeeModel: ['HOMA1064', '012'],

@@ -1,10 +1,8 @@
 import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import * as exposes from '../lib/exposes';
 const e = exposes.presets;
 import fz from '../converters/fromZigbee';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -44,27 +42,14 @@ const definitions: Definition[] = [
         model: 'ZG302-BOX-RELAY',
         vendor: 'Envilar',
         description: 'Zigbee AC in wall switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['2CH-ZG-BOX-RELAY'],
         model: '2CH-ZG-BOX-RELAY',
         vendor: 'Envilar',
         description: '2 channel box relay',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
     },
 ];
 

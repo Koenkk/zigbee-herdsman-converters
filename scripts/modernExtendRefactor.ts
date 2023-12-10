@@ -17,7 +17,7 @@ project.getSourceFiles().forEach((sourceFile) => {
 
     let changed = true;
     let save = false;
-    const type = 'light';
+    const type = 'onOff';
     while (changed) {
         changed = false;
         const definitions = sourceFile.getVariableStatementOrThrow('definitions').getDescendantsOfKind(SyntaxKind.ObjectLiteralExpression);
@@ -32,13 +32,17 @@ project.getSourceFiles().forEach((sourceFile) => {
             const fromZigbee = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'fromZigbee');
             const toZigbee = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'toZigbee');
             const meta = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'meta');
-            const ota = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'ota');
+            const endpoint = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'endpoint');
 
-            if (extend?.getFullText().includes('extend: extend.light_onoff_brightness({noConfigure: true})') &&
-                !fromZigbee && !toZigbee && !exposes) {
+            // const ota = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'ota');
+
+            if (extend?.getFullText().includes('extend: extend.switch()') &&
+                !fromZigbee && !toZigbee && exposes && endpoint) {
+                exposes?.remove();
                 console.log(`Handling ${model?.getFullText().trim()}`);
-                const newOpts: {[s: string]: unknown} = {configureReporting: true};
+                const newOpts: {[s: string]: unknown} = {endpoints: eval(`(${endpoint.getFullText().split('return ')[1].split(';')[0]})`)};
                 configure?.remove();
+                endpoint?.remove();
                 const extendFeatures = extend.getFullText().split('(')[0].split('_');
                 if (extendFeatures.includes('colortemp')) {
                     newOpts.colorTemp = {range: null};
@@ -91,15 +95,17 @@ project.getSourceFiles().forEach((sourceFile) => {
                         } else if (key === 'supportsEnhancedHue') {
                             // @ts-expect-error
                             newOpts.color = {...newOpts.color, enhancedHue: value};
+                        } else if (key === 'multiEndpoint' || key === 'disableDefaultResponse') {
+                            // ignore
                         } else {
                             throw new Error(`Unsupported ${key} - ${value}`);
                         }
                     }
                     meta.remove();
                 }
-                if (ota) {
-                    ota.remove();
-                }
+                // if (ota) {
+                //     ota.remove();
+                // }
 
                 localTotalDefinitionsWithModernExtend += 1;
                 extend.replaceWithText(`extend: [${type}(${JSON.stringify(newOpts).split(`"`).join('')

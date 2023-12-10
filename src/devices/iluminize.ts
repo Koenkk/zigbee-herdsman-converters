@@ -1,8 +1,6 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
 import {light, onOff} from '../lib/modernExtend';
@@ -93,36 +91,21 @@ const definitions: Definition[] = [
         model: '511.202',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 switch mini 1x230V, 200W/400W',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['5120.1200'],
         model: '5120.1200',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 switch mini 1x230V with neutral, 200W/400W',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['5120.1210'],
         model: '5120.1210',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 switch mini 1x230V without neutral, 200W/400W',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['5128.10'],

@@ -4,9 +4,8 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {Definition} from '../lib/types';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -17,19 +16,7 @@ const definitions: Definition[] = [
         model: 'TERNCY-WS01',
         vendor: 'TERNCY',
         description: 'Smart light switch - 4 gang without neutral wire',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            for (const ID of [1, 2, 3, 4]) {
-                const endpoint = device.getEndpoint(ID);
-                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            }
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}})],
     },
     {
         zigbeeModel: ['DL001'],

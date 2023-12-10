@@ -3,7 +3,7 @@ import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -12,22 +12,14 @@ const definitions: Definition[] = [
         model: 'SM308',
         vendor: 'Samotech',
         description: 'Zigbee AC in wall switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['SM308-S'],
         model: 'SM308-S',
         vendor: 'Samotech',
         description: 'Zigbee in wall smart switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['SM308-2CH'],
