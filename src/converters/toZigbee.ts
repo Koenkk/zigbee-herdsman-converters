@@ -4298,7 +4298,7 @@ const converters2 = {
                 const commandTransitionTime = addSceneCommand === 'enhancedAdd' ? Math.floor(transtime * 10) : transtime;
 
                 const response = await entity.command(
-                    'genScenes', addSceneCommand, {groupid, sceneid, scenename: '', commandTransitionTime, extensionfieldsets},
+                    'genScenes', addSceneCommand, {groupid, sceneid, scenename: '', transtime: commandTransitionTime, extensionfieldsets},
                     utils.getOptions(meta.mapped, entity),
                 );
 
