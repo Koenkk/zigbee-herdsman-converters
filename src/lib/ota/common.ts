@@ -324,8 +324,14 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
 
     return new Promise((resolve, reject) => {
         const answerNextImageBlockOrPageRequest = () => {
-            const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, 150000);
-            const imagePageRequest = endpoint.waitForCommand('genOta', 'imagePageRequest', null, 150000);
+            let imageBlockOrPageRequestTimeoutMs: number = 150000;
+
+            if ( request.payload.manufacturerCode == 4742 && request.payload.imageType == 8199 ) {
+                imageBlockOrPageRequestTimeoutMs = 3600000;
+            }
+
+            const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, imageBlockOrPageRequestTimeoutMs);
+            const imagePageRequest = endpoint.waitForCommand('genOta', 'imagePageRequest', null, imageBlockOrPageRequestTimeoutMs);
             waiters.imageBlockOrPageRequest = {
                 promise: Promise.race([imageBlockRequest.promise, imagePageRequest.promise]),
                 cancel: () => {
