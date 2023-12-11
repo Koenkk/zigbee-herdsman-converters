@@ -665,7 +665,7 @@ const definitions: Definition[] = [
         vendor: 'Innr',
         description: 'Smart plug',
         extend: [
-            onOff({powerOnBehavior: false}),
+            onOff(),
             electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
     },
