@@ -3888,11 +3888,17 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0013', manufacturerName: '_TZ3000_ypgri8yz'}],
+        fingerprint: [
+            {modelID: 'TS0013', manufacturerName: '_TZ3000_ypgri8yz'},
+            {modelID: 'TS0013', manufacturerName: '_TZ3000_sznawwyw'},
+        ],
         model: 'TS0013_switch_module',
         vendor: 'TuYa',
         description: '3 gang switch module - (without neutral)',
-        whiteLabel: [{vendor: 'AVATTO', model: '3gang N-ZLWSM01'}],
+        whiteLabel: [
+            {vendor: 'AVATTO', model: '3gang N-ZLWSM01'},
+            tuya.whitelabel('AVATTO', 'LZWSM16-3', '3 gang switch module - (without neutral)', ['_TZ3000_sznawwyw']),
+        ],
         extend: tuya.extend.switch({switchType: true, endpoints: ['left', 'center', 'right']}),
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
