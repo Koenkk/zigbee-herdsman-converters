@@ -16,7 +16,7 @@ const definitions: Definition[] = [
         model: '929003598001',
         vendor: 'Philips',
         description: 'Hue White & Color Ambiance Surimu square panel 30x30',
-        extend: [philipsLight({colorTemp: {range: [153, 500]}})],
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ['929003597601'],
