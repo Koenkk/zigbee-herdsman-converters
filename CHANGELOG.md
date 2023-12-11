@@ -1,5 +1,25 @@
 # Changelog
 
+## [16.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.6.0...v16.7.0) (2023-12-11)
+
+
+### Features
+
+* **add:** 8719514434530 https://github.com/Koenkk/zigbee2mqtt/issues/20146 ([f16bc06](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f16bc0686f8820a49208d0c3c8186b3e4675ea59))
+* **add:** SDO-4-1-20 ([#6661](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6661)) ([1be12da](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1be12da7f1fe451a78475847edbb1de6d7504576))
+* Support color for Philips 929003598001 ([#6683](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6683)) ([a97f268](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a97f268bf40224d77c518bd9338ec50408cf8534))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_helyqdvs` as TuYa TS011F_2_gang_wall @Testmangh https://github.com/Koenkk/zigbee2mqtt/issues/20147 ([54443b5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/54443b5a5f481739d53b0106b92bcbb3b1a5ec11))
+* **detect:** Detect `_TZ3000_kpatq5pq` as AVATTO LZWSM16-2 https://github.com/Koenkk/zigbee2mqtt/issues/20162 ([071c09d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/071c09dcb3e67b1caf470226c53dfb260b09f6b7))
+* **detect:** Detect `_TZ3000_sznawwyw` as AVATTO LZWSM16-3 https://github.com/Koenkk/zigbee2mqtt/issues/20162 ([5d37110](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5d37110eaf661355e129bfc5f50638d869113360))
+* **detect:** Detect `_TZE204_x8fp01wi` as TuYa TS0601_3_phase_clamp_meter_relay @AkLim94 https://github.com/Koenkk/zigbee2mqtt/discussions/20155 ([64c18bf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/64c18bf408c62d77a86551bb0162224e95533bee))
+* **detect:** Detect `WaterSensor2-EF-3.0` as HEIMAN HS1WL/HS3WL ([#6682](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6682)) ([e8d68e7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8d68e73e7765a06150a55fa1f170e840a539a36))
+* **ignore:** Enable powerOnBehaviour for Innr SP 240 https://github.com/Koenkk/zigbee-herdsman-converters/pull/6637 ([ed2ce0a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ed2ce0ae514927e064b4bf557d97985f860cb991))
+* **ignore:** fix cc816f490e5c46cb5bf57db3e387eadd83dc5486 ([c7ee833](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c7ee83322f9cd4f5c83da7f042e2a5ae5468ec09))
+
 ## [16.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.5.0...v16.6.0) (2023-12-10)
 
 
