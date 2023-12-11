@@ -3840,11 +3840,15 @@ const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_jl7qyupf'},
             {modelID: 'TS0012', manufacturerName: '_TZ3000_nPGIPl5D'},
+            {modelID: 'TS0012', manufacturerName: '_TZ3000_kpatq5pq'},
             {modelID: 'TS0012', manufacturerName: '_TZ3000_4zf0crgo'}],
         model: 'TS0012_switch_module',
         vendor: 'TuYa',
         description: '2 gang switch module - (without neutral)',
-        whiteLabel: [{vendor: 'AVATTO', model: '2gang N-ZLWSM01'}],
+        whiteLabel: [
+            {vendor: 'AVATTO', model: '2gang N-ZLWSM01'},
+            tuya.whitelabel('AVATTO', 'LZWSM16-2', '2 gang switch module - (without neutral)', ['_TZ3000_kpatq5pq']),
+        ],
         extend: tuya.extend.switch({switchType: true, endpoints: ['left', 'right']}),
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
