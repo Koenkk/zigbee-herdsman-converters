@@ -5328,7 +5328,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_x8fp01wi']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_x8fp01wi', '_TZE204_x8fp01wi']),
         model: 'TS0601_3_phase_clamp_meter_relay',
         vendor: 'TuYa',
         description: '3-phase clamp power meter with relay',
