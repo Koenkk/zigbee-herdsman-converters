@@ -1,6 +1,7 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
+import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
@@ -136,6 +137,25 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
     },
+    {
+        zigbeeModel: ['ROB_200-024-0'],
+        model: 'ROB_200-024-0',
+        vendor: 'ROBB smarrt',
+        description: 'Zigbee 3.0 4 channel remote control',
+        fromZigbee: [fz.battery, fz.command_move, legacy.fz.ZGRC013_brightness_onoff,
+            legacy.fz.ZGRC013_brightness, fz.command_stop, legacy.fz.ZGRC013_brightness_stop, fz.command_on,
+            legacy.fz.ZGRC013_cmdOn, fz.command_off, legacy.fz.ZGRC013_cmdOff, fz.command_recall],
+        exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'on', 'off', 'recall_*'])],
+        toZigbee: [],
+        whiteLabel: [{vendor: 'RGB Genie', model: 'ZGRC-KEY-013'}],
+        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genScenes']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+        },
+    },	
     {
         zigbeeModel: ['ROB_200-025-0'],
         model: 'ROB_200-025-0',
