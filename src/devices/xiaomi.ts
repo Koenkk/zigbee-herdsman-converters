@@ -6,7 +6,7 @@ import * as ota from '../lib/ota';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {light, numeric, binary, enumLookup} from '../lib/modernExtend';
+import {light, numeric, binary, enumLookup, forceDeviceType} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as globalStore from '../lib/store';
@@ -2197,6 +2197,7 @@ const definitions: Definition[] = [
         model: 'SP-EUC01',
         description: 'Aqara EU smart plug',
         vendor: 'Xiaomi',
+        extend: [forceDeviceType({type: 'Router'})],
         fromZigbee: [fz.on_off, xiaomi.fromZigbee.xiaomi_basic, fz.electrical_measurement, fz.metering,
             xiaomi.fromZigbee.aqara_opple, fz.xiaomi_power, fz.device_temperature],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
