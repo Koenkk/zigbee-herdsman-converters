@@ -6,7 +6,8 @@ import fromZigbee from './converters/fromZigbee';
 import assert from 'assert';
 import * as ota from './lib/ota';
 import allDefinitions from './devices';
-import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult } from './lib/types';
+import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, ModernExtend } from './lib/types';
+import {generateDefinition} from './lib/generateDefinition';
 
 export {
     Definition as Definition,
@@ -231,13 +232,21 @@ export function findByDevice(device: Zh.Device) {
     return definition;
 }
 
-export function findDefinition(device: Zh.Device): Definition {
+export function findDefinition(device: Zh.Device, geenrateForUnknown: boolean = false): Definition {
     if (!device) {
         return null;
     }
 
     const candidates = getFromLookup(device.modelID);
     if (!candidates) {
+        if (geenrateForUnknown && device.type !== 'Coordinator') {
+            return {
+                ...generateDefinition(device),
+                model: device.modelID || '',
+                vendor: device.manufacturerName || '',
+            };
+        }
+
         return null;
     } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
         return candidates[0];

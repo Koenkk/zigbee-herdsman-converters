@@ -75,6 +75,46 @@ export function setupConfigureForReporting(
     return configure;
 }
 
+export function temperature(): ModernExtend {
+    return {
+        fromZigbee: [fz.temperature],
+        exposes: [e.temperature()],
+        configure: async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => {
+            await setupAttributes(device, coordinatorEndpoint, 'msTemperatureMeasurement', [{attribute: 'measuredValue'}], logger);
+        },
+        isModernExtend: true,
+    };
+}
+
+export function pressure(): ModernExtend {
+    return {
+        fromZigbee: [fz.pressure],
+        exposes: [e.pressure()],
+        configure: async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => {
+            await setupAttributes(device, coordinatorEndpoint, 'msPressureMeasurement', [{attribute: 'measuredValue'}], logger);
+        },
+        isModernExtend: true,
+    };
+}
+
+export function humidity(): ModernExtend {
+    return {
+        fromZigbee: [fz.humidity],
+        exposes: [e.humidity()],
+        configure: async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => {
+            await setupAttributes(device, coordinatorEndpoint, 'msRelativeHumidity', [{attribute: 'measuredValue'}], logger);
+        },
+        isModernExtend: true,
+    };
+}
+
+export function identify(): ModernExtend {
+    return {
+        toZigbee: [tz.identify],
+        isModernExtend: true,
+    };
+}
+
 export interface OnOffArgs {
     powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpoints?: {[s: string]: number},
     configureReporting?: boolean,
