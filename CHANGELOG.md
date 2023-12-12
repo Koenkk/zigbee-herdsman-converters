@@ -1,5 +1,21 @@
 # Changelog
 
+## [16.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.7.0...v16.8.0) (2023-12-12)
+
+
+### Features
+
+* **add:** 300-9715V10 ([#6690](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6690)) ([bc43504](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc4350418f394a94dfeb88d06e4affd63d5c807b))
+* **add:** L2208 ([#6687](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6687)) ([ce757a3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ce757a3d7e03caa540951df99206cc27ac601fa8))
+
+
+### Bug Fixes
+
+* Disable unsupported `power_on_behaviour` for LELLKI WP33-EU/WP34-EU https://github.com/Koenkk/zigbee2mqtt/issues/20172 ([7d9b710](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7d9b710f78ff187002e7745933443ae93583488c))
+* Fix device type for Xiaomi SP-EUC01 https://github.com/Koenkk/zigbee2mqtt/issues/20184 ([e18d637](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e18d637ea92c02fd4ce5c859c117f154ffa7aa98))
+* **ignore:** fix e18d637ea92c02fd4ce5c859c117f154ffa7aa98 ([e237b3c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e237b3c90272be7bfe106aca2da1a45e31b48e93))
+* Remove unsupported color for Philips 8719514491106 https://github.com/Koenkk/zigbee2mqtt/issues/20168 ([d0d67cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0d67ccc86fac7187cb114ef6ec428e417c4fdc9))
+
 ## [16.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.6.0...v16.7.0) (2023-12-11)
 
 
