@@ -17,7 +17,7 @@ const definitions: Definition[] = [
         model: 'WP33-EU/WP34-EU',
         vendor: 'LELLKI',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}})],
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['JZ-ZB-001'],
