@@ -426,3 +426,11 @@ export function forcePowerSource(args: {powerSource: 'Mains (single phase)' | 'B
     };
     return {configure, isModernExtend: true};
 }
+
+export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExtend {
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        device.type = args.type;
+        device.save();
+    };
+    return {configure, isModernExtend: true};
+}
