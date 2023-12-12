@@ -227,6 +227,7 @@ import shade_control from './shade_control';
 import shenzhen_homa from './shenzhen_homa';
 import shinasystem from './shinasystem';
 import siglis from './siglis';
+import sikom from './sikom';
 import sinope from './sinope';
 import siterwell from './siterwell';
 import skydance from './skydance';
@@ -517,6 +518,7 @@ export default [
     ...shenzhen_homa,
     ...shinasystem,
     ...siglis,
+    ...sikom,
     ...sinope,
     ...siterwell,
     ...skydance,
