@@ -6,7 +6,7 @@ import fromZigbee from './converters/fromZigbee';
 import assert from 'assert';
 import * as ota from './lib/ota';
 import allDefinitions from './devices';
-import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, ModernExtend } from './lib/types';
+import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult } from './lib/types';
 import {generateDefinition} from './lib/generateDefinition';
 
 export {
@@ -216,8 +216,8 @@ for (const definition of allDefinitions) {
     addDefinition(definition);
 }
 
-export function findByDevice(device: Zh.Device) {
-    let definition = findDefinition(device);
+export function findByDevice(device: Zh.Device, generateForUnknown: boolean = false) {
+    let definition = findDefinition(device, generateForUnknown);
     if (definition && definition.whiteLabel) {
         const match = definition.whiteLabel.find((w) => 'fingerprint' in w && w.fingerprint.find((f) => isFingerprintMatch(f, device)));
         if (match) {
@@ -232,20 +232,30 @@ export function findByDevice(device: Zh.Device) {
     return definition;
 }
 
-export function findDefinition(device: Zh.Device, geenrateForUnknown: boolean = false): Definition {
+export function findDefinition(device: Zh.Device, generateForUnknown: boolean = false): Definition {
     if (!device) {
         return null;
     }
 
     const candidates = getFromLookup(device.modelID);
     if (!candidates) {
-        if (geenrateForUnknown && device.type !== 'Coordinator') {
-            return {
-                ...generateDefinition(device),
-                model: device.modelID || '',
-                vendor: device.manufacturerName || '',
-            };
+        if (!generateForUnknown || device.type === 'Coordinator') {
+            return null;
         }
+
+        const definition = generateDefinition(device);
+        if (!definition) {
+            return null
+        }
+
+        console.log(`definition: ${JSON.stringify(definition)}`)
+
+        return {
+            ...definition,
+            model: device.modelID || '',
+            vendor: device.manufacturerName || '',
+            description: 'Generated from device information',
+        };
 
         return null;
     } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {

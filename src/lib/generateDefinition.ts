@@ -19,7 +19,7 @@ export function generateDefinition(device: Zh.Device): Definition {
         });
     });
     // Do not provide definition if we didn't generate anything
-    if (!deviceExtenders) {
+    if (deviceExtenders.length === 0) {
         return null;
     }
 

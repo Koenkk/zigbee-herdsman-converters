@@ -60,6 +60,33 @@ describe('index.js', () => {
         expect(definition).toBeNull();
     });
 
+    it('Find by device should generate for unknown', () => {
+        const endpoints = [
+            {
+                ID: 1, profileID: undefined, deviceID: undefined,
+                getInputClusters() {
+                    return [];
+                },
+                getOutputClusters() {
+                    return [{name: 'genIdentify'}]
+                },
+            },
+        ];
+        const device = {
+            type: 'EndDevice',
+            manufacturerID: undefined,
+            modelID: 'test_generate',
+            endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device, true);
+        expect(definition.model).toBe('test_generate');
+        expect(definition.vendor).toBe('');
+        expect(definition.description).toBe('Generated from device information');
+        expect(definition.extend).toHaveLength(1);
+    });
+
     it('Find by device when device has modelID should match', () => {
         const endpoints = [
             {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},
