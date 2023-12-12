@@ -787,7 +787,7 @@ const definitions: Definition[] = [
         model: '8719514491106',
         vendor: 'Philips',
         description: 'Hue white ambiance E14',
-        extend: [philipsLight({colorTemp: {range: [153, 454]}, color: true})],
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['929003053401'],
