@@ -253,11 +253,6 @@ const tzLocal = {
                     await entity.command('closuresWindowCovering', utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
                 }
             }
-            if (key === 'device_type') {
-                const index = utils.getFromLookup(value, stateDeviceType);
-                await entity.write(0xFCA0, {0x0000: {value: index, type: 0x30}}, manufacturerOptions);
-                return {state: {device_type: value}};
-            }
             if (key === 'switch_type') {
                 const index = utils.getFromLookup(value, stateSwitchType);
                 await entity.write(0xFCA0, {0x0001: {value: index, type: 0x30}}, manufacturerOptions);
