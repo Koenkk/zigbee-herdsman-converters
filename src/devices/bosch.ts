@@ -52,7 +52,7 @@ const stateSwitchType = {
     'button': 0x01,
     'button_key_change': 0x02,
     'rocker_switch': 0x03,
-    'rocker_rwitch_key_change': 0x04,
+    'rocker_switch_key_change': 0x04,
 };
 
 
