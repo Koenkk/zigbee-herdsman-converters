@@ -152,7 +152,7 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
         },
-    },	
+    },
     {
         zigbeeModel: ['ROB_200-025-0'],
         model: 'ROB_200-025-0',
