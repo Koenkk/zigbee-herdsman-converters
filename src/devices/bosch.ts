@@ -230,7 +230,6 @@ const tzLocal = {
     } satisfies Tz.Converter,
     bmct: {
         key: [
-            'device_type',
             'switch_type',
             'child_lock',
             'calibration_closing_time', 'calibration_opening_time',
@@ -564,6 +563,7 @@ const fzLocal = {
             const data = msg.data;
             if (data.hasOwnProperty(0x0000)) {
                 result.device_type = Object.keys(stateDeviceType).find(key => stateDeviceType[key] === msg.data[0x0000]);
+                options.device_type = result.device_type;
             } else if (data.hasOwnProperty(0x0001)) {
                 result.switch_type = Object.keys(stateSwitchType).find(key => stateSwitchType[key] === msg.data[0x0001]);
             } else if (data.hasOwnProperty(0x0002)) {
@@ -1295,6 +1295,12 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.on_off, fz.power_on_behavior],
         toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.on_off, tz.power_on_behavior],
         meta: {multiEndpoint: true},
+        onEvent: async (type, data, device, options) => {
+            if (type === 'deviceOptionsChanged') {
+                const index = utils.getFromLookup(options.device_type, stateDeviceType);
+                await device.getEndpoint(1).write(0xFCA0, {0x0000: {value: index, type: 0x30}}, boschManufacturer);
+            }
+        },
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
         },
@@ -1312,10 +1318,11 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint3, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
             await reporting.onOff(endpoint3);
         },
+        options: [
+            e.enum('device_type', ea.ALL, Object.keys(stateDeviceType))
+            .withDescription('Device type: '),],
         exposes: [
             // light
-            e.enum('device_type', ea.ALL, Object.keys(stateDeviceType))
-                .withDescription('Device type: '),
             e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
                 .withDescription('Module controlled by a rocker switch or a button'),
             e.switch().withEndpoint('left'),
