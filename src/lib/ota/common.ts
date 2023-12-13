@@ -325,7 +325,8 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
     return new Promise((resolve, reject) => {
         const answerNextImageBlockOrPageRequest = () => {
             let imageBlockOrPageRequestTimeoutMs: number = 150000;
-
+            // increase the upgradeEndReq wait time to solve the problem of OTA timeout failure of Sonoff Devices
+            //(https://github.com/Koenkk/zigbee-herdsman-converters/issues/6657)
             if ( request.payload.manufacturerCode == 4742 && request.payload.imageType == 8199 ) {
                 imageBlockOrPageRequestTimeoutMs = 3600000;
             }
