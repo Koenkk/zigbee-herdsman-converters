@@ -95,7 +95,7 @@ const definitions: Definition[] = [
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
     {
-	    fingerprint: [{manufacturerName: 'MLI', modelID: 'LED Strip'}],
+        fingerprint: [{manufacturerName: 'MLI', modelID: 'LED Strip'}],
         model: '404127',
         vendor: 'Müller Licht',
         description: 'Tint LED-Strip white+color, 3 m / 6W RGB',
