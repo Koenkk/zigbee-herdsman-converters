@@ -37,18 +37,18 @@ const sirenPowerSupply = {
 };
 
 // BMCT
-const stateDeviceType = {
+const stateDeviceType: KeyValue = {
     'light': 0x04,
     'shutter': 0x01,
 };
 // BMCT
-const stateMotor = {
+const stateMotor: KeyValue = {
     'idle': 0x00,
     'opening': 0x02,
     'closing': 0x01,
 };
 // BMCT
-const stateSwitchType = {
+const stateSwitchType: KeyValue = {
     'button': 0x01,
     'button_key_change': 0x02,
     'rocker_switch': 0x03,
@@ -563,15 +563,15 @@ const fzLocal = {
             const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x0000)) {
-                result.device_type = (Object.keys(stateDeviceType)[msg.data[0x0000]]);
+                result.device_type = Object.keys(stateDeviceType).find(key => stateDeviceType[key] === msg.data[0x0000]);
             } else if (data.hasOwnProperty(0x0001)) {
-                result.switch_type = (Object.keys(stateSwitchType)[msg.data[0x0001]]);
+                result.switch_type = Object.keys(stateSwitchType).find(key => stateSwitchType[key] === msg.data[0x0001]);
             } else if (data.hasOwnProperty(0x0002)) {
-                result.calibration_closing_time = msg.data[0x0002];
+                result.calibration_closing_time = msg.data[0x0002]/10;
             } else if (data.hasOwnProperty(0x0003)) {
-                result.calibration_opening_time = msg.data[0x0003];
+                result.calibration_opening_time = msg.data[0x0003]/10;
             } else if (data.hasOwnProperty(0x0013)) {
-                result.motor_state = (Object.keys(stateMotor)[msg.data[0x0013]]);
+                result.motor_state = Object.keys(stateMotor).find(key => stateMotor[key] === msg.data[0x0013]);
             }
             return result;
         },
