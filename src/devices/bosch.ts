@@ -232,7 +232,7 @@ const tzLocal = {
         key: [
             'device_type',
             'switch_type',
-            'child_lock', 'child_lock_left', 'child_lock_right',
+            'child_lock',
             'calibration_closing_time', 'calibration_opening_time',
             'state',
         ],
@@ -570,6 +570,9 @@ const fzLocal = {
                 result.calibration_closing_time = msg.data[0x0002]/10;
             } else if (data.hasOwnProperty(0x0003)) {
                 result.calibration_opening_time = msg.data[0x0003]/10;
+            } if (data.hasOwnProperty(0x0008)) {
+                const property = utils.postfixWithEndpointName('child_lock', msg, model, meta);
+                result[property] = msg.data[0x0008] === 1 ? 'ON' : 'OFF';
             } else if (data.hasOwnProperty(0x0013)) {
                 result.motor_state = Object.keys(stateMotor).find(key => stateMotor[key] === msg.data[0x0013]);
             }
