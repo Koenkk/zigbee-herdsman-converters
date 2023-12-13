@@ -363,6 +363,7 @@ const definitions: Definition[] = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
         ],
+        ota: ota.zigbeeOTA,
         extend: [
             binary({
                 name: 'child_lock',
