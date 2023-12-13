@@ -5050,7 +5050,7 @@ const fromZigbee1 = {
                 break;
             case dataPoints.moesCoverBacklight:
                 // @ts-ignore
-                result = {backlight: {false: 'OFF', true: 'ON'}[value]};
+                result = {backlight: value ? 'ON' : 'OFF'};
                 break;
             case dataPoints.moesCoverCalibration:
                 // @ts-ignore
@@ -6103,7 +6103,7 @@ const toZigbee1 = {
         key: ['alarm'],
         convertSet: async (entity, key, value: any, meta) => {
             // @ts-ignore
-            await sendDataPointEnum(entity, 20, {true: 0, false: 1}[value]);
+            await sendDataPointEnum(entity, 20, value ? 0 : 1);
         },
     } satisfies Tz.Converter,
     R7049_silenceSiren: {
@@ -6121,8 +6121,7 @@ const toZigbee1 = {
     R7049_alarm: {
         key: ['alarm'],
         convertSet: async (entity, key, value: any, meta) => {
-            const linkAlarm: KeyValueAny = {true: 0, false: 1};
-            await sendDataPointEnum(entity, 20, linkAlarm[value]);
+            await sendDataPointEnum(entity, 20, value ? 0 : 1);
         },
     } satisfies Tz.Converter,
     valve_state: {

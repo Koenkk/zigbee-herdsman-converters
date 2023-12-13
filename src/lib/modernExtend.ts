@@ -44,21 +44,17 @@ async function setupAttributes(
     }
 }
 
-export interface OnOffArgs {powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpoints?: {[s: string]: number}}
+export interface OnOffArgs {
+    powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpoints?: {[s: string]: number},
+    configureReporting?: boolean,
+}
 export function onOff(args?: OnOffArgs): ModernExtend {
-    args = {powerOnBehavior: true, skipDuplicateTransaction: false, ...args};
+    args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
 
     const exposes: Expose[] = args.endpoints ? Object.keys(args.endpoints).map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
 
     const fromZigbee: Fz.Converter[] = [(args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off)];
     const toZigbee: Tz.Converter[] = [tz.on_off];
-
-    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff'}], logger);
-        if (args.powerOnBehavior) {
-            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'startUpOnOff'}], logger, true);
-        }
-    };
 
     if (args.powerOnBehavior) {
         exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
@@ -66,11 +62,19 @@ export function onOff(args?: OnOffArgs): ModernExtend {
         toZigbee.push(tz.power_on_behavior);
     }
 
-    const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
     if (args.ota) result.ota = args.ota;
     if (args.endpoints) {
         result.meta = {multiEndpoint: true};
         result.endpoint = (d) => args.endpoints;
+    }
+    if (args.configureReporting) {
+        result.configure = async (device, coordinatorEndpoint, logger) => {
+            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff'}], logger);
+            if (args.powerOnBehavior) {
+                await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'startUpOnOff'}], logger, true);
+            }
+        };
     }
     return result;
 }
@@ -422,6 +426,14 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
 export function forcePowerSource(args: {powerSource: 'Mains (single phase)' | 'Battery'}): ModernExtend {
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
         device.powerSource = args.powerSource;
+        device.save();
+    };
+    return {configure, isModernExtend: true};
+}
+
+export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExtend {
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        device.type = args.type;
         device.save();
     };
     return {configure, isModernExtend: true};

@@ -4299,7 +4299,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['measuredValue']) {
-                return {hcho: parseFloat(msg.data['measuredValue']) / 100.0};
+                return {hcho: parseFloat(msg.data['measuredValue']) / 1000.0};
             }
         },
     } satisfies Fz.Converter,

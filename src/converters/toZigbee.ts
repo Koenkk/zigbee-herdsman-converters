@@ -2774,8 +2774,7 @@ const converters2 = {
     JYGZ01AQ_heartbeat_indicator: {
         key: ['heartbeat_indicator'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {true: 1, false: 0};
-            await entity.write('aqaraOpple', {0x013c: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.xiaomi);
+            await entity.write('aqaraOpple', {0x013c: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {heartbeat_indicator: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2785,8 +2784,7 @@ const converters2 = {
     aqara_linkage_alarm: {
         key: ['linkage_alarm'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {true: 1, false: 0};
-            await entity.write('aqaraOpple', {0x014b: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.xiaomi);
+            await entity.write('aqaraOpple', {0x014b: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {linkage_alarm: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2808,8 +2806,7 @@ const converters2 = {
     RTCGQ14LM_trigger_indicator: {
         key: ['trigger_indicator'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {true: 1, false: 0};
-            await entity.write('aqaraOpple', {0x0152: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.xiaomi);
+            await entity.write('aqaraOpple', {0x0152: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {trigger_indicator: value}};
         },
         convertGet: async (entity, key, meta) => {

@@ -1,5 +1,41 @@
 # Changelog
 
+## [16.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.8.0...v16.9.0) (2023-12-13)
+
+
+### Features
+
+* **add:** 404127 ([#6697](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6697)) ([8b88029](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8b88029b3a2ab14653f7d04d65ef40261d79c6d3))
+* **add:** ROB_200-024-0 ([#6686](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6686)) ([0067ea3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0067ea382f9cba82327c32a17fa7fea73e840b6c))
+* Support OTA for SONOFF TRVZB ([#6681](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6681)) ([9316a5e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9316a5e8b6e2067fbd867898646e800de8608734))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZB210_rwy5hexp` as MiBoxer FUT106ZR https://github.com/Koenkk/zigbee2mqtt/discussions/19431 ([a59d7c3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a59d7c33f5272fb54f9a68d30cba9d0d17ed749c))
+* **detect:** Detect `c8daea86aa9c415aa524365775b1218c` and `c8daea86aa9c415aa524365775b1218` as ORVIBO W40CZ ([#6696](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6696)) ([c14c895](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c14c8951e35ab195ce8cc2e5c5978cdd0b95153e))
+* Fix `'Error: Expected one of: true, false, got: 'true''` errors https://github.com/Koenkk/zigbee2mqtt/issues/20196 ([8ddba37](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ddba37851dba80fe0afd9f40e9e8fdb95873058))
+* Fix `Cannot read properties of undefined` for Schneider Electric A9MEM1570 https://github.com/Koenkk/zigbee2mqtt/issues/20193 ([9513f4b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9513f4b638b15b6bbff5f58dafc5f3c80dd8bc07))
+* Fix `hcho` value for HEIMAN HS2AQ-EM ([#6699](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6699)) ([ab11b8a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab11b8a796bab2620e233e5a7a0b92506c6d6639))
+* Fix configure for eWeLink SA-003-Zigbee failing https://github.com/Koenkk/zigbee2mqtt/issues/19865 ([b403cc0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b403cc032f5ad5b4073690b57ac58b4419254e52))
+* Fix no electrical measurements for Immax 07752L https://github.com/Koenkk/zigbee2mqtt/issues/18326 ([4210477](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4210477e8897bf87059cc577a7a30fe52f86e94c))
+
+## [16.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.7.0...v16.8.0) (2023-12-12)
+
+
+### Features
+
+* **add:** 300-9715V10 ([#6690](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6690)) ([bc43504](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc4350418f394a94dfeb88d06e4affd63d5c807b))
+* **add:** L2208 ([#6687](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6687)) ([ce757a3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ce757a3d7e03caa540951df99206cc27ac601fa8))
+
+
+### Bug Fixes
+
+* Disable unsupported `power_on_behaviour` for LELLKI WP33-EU/WP34-EU https://github.com/Koenkk/zigbee2mqtt/issues/20172 ([7d9b710](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7d9b710f78ff187002e7745933443ae93583488c))
+* Fix device type for Xiaomi SP-EUC01 https://github.com/Koenkk/zigbee2mqtt/issues/20184 ([e18d637](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e18d637ea92c02fd4ce5c859c117f154ffa7aa98))
+* **ignore:** fix e18d637ea92c02fd4ce5c859c117f154ffa7aa98 ([e237b3c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e237b3c90272be7bfe106aca2da1a45e31b48e93))
+* Remove unsupported color for Philips 8719514491106 https://github.com/Koenkk/zigbee2mqtt/issues/20168 ([d0d67cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0d67ccc86fac7187cb114ef6ec428e417c4fdc9))
+
 ## [16.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.6.0...v16.7.0) (2023-12-11)
 
 
