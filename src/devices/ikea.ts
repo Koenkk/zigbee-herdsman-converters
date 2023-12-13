@@ -1169,7 +1169,7 @@ const definitions: Definition[] = [
         model: 'L2208',
         vendor: 'IKEA',
         description: 'JETSTRÖM LED ceiling light panel, smart dimmable/white spectrum, 100x40 cm',
-        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+        extend: tradfriExtend.light_onoff_brightness_colortemp({colorTempRange: [250, 454]}),
     },
     {
         zigbeeModel: ['TRADFRIbulbPAR38WS900lm'],
