@@ -177,7 +177,7 @@ const definitions: Definition[] = [
         extend: [onOff()],
     },
     {
-        zigbeeModel: ['093199ff04984948b4c78167c8e7f47e'],
+        zigbeeModel: ['093199ff04984948b4c78167c8e7f47e', 'c8daea86aa9c415aa524365775b1218c', 'c8daea86aa9c415aa524365775b1218'],
         model: 'W40CZ',
         vendor: 'ORVIBO',
         description: 'Smart curtain motor',
