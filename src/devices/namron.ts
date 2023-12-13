@@ -141,9 +141,9 @@ const definitions: Definition[] = [
         model: '4512767',
         vendor: 'Namron',
         description: 'Zigbee smart plug 16A',
-        fromZigbee: [fz.metering, fz.electrical_measurement],
+        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
         exposes: [e.power(), e.current(), e.voltage(), e.energy(), e.switch()],
-        extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             const binds = [
