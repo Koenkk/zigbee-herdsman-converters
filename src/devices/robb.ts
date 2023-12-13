@@ -137,6 +137,23 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
     },
     {
+        zigbeeModel: ['ROB_200-024-0'],
+        model: 'ROB_200-024-0',
+        vendor: 'ROBB',
+        description: 'Zigbee 3.0 4 channel remote control',
+        fromZigbee: [fz.battery, fz.command_move, fz.command_stop, fz.command_on, fz.command_off, fz.command_recall],
+        exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'on', 'off', 'recall_*'])],
+        toZigbee: [],
+        whiteLabel: [{vendor: 'RGB Genie', model: 'ZGRC-KEY-013'}],
+        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genScenes']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['ROB_200-025-0'],
         model: 'ROB_200-025-0',
         vendor: 'ROBB',
