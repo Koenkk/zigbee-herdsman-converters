@@ -89,7 +89,7 @@ function validateDefinition(definition: Definition) {
     assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
-export function addDefinition(definition: Definition) {
+function processExtensions(definition: Definition): Definition {
     if ('extend' in definition) {
         if (Array.isArray(definition.extend)) {
             // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
@@ -173,6 +173,12 @@ export function addDefinition(definition: Definition) {
         }
     }
 
+    return definition
+}
+
+function prepareDefinition(definition: Definition): Definition {
+    definition = processExtensions(definition);
+
     definition.toZigbee.push(
         toZigbee.scene_store, toZigbee.scene_recall, toZigbee.scene_add, toZigbee.scene_remove, toZigbee.scene_remove_all, 
         toZigbee.scene_rename, toZigbee.read, toZigbee.write,
@@ -183,7 +189,6 @@ export function addDefinition(definition: Definition) {
     }
 
     validateDefinition(definition);
-    definitions.splice(0, 0, definition);
 
     if (!definition.options) definition.options = [];
     const optionKeys = definition.options.map((o) => o.name);
@@ -198,6 +203,14 @@ export function addDefinition(definition: Definition) {
             }
         }
     }
+
+    return definition
+}
+
+export function addDefinition(definition: Definition) {
+    definition = prepareDefinition(definition)
+
+    definitions.splice(0, 0, definition);
 
     if ('fingerprint' in definition) {
         for (const fingerprint of definition.fingerprint) {
@@ -247,17 +260,9 @@ export function findDefinition(device: Zh.Device, generateForUnknown: boolean = 
         if (!definition) {
             return null
         }
-
-        console.log(`definition: ${JSON.stringify(definition)}`)
-
-        return {
-            ...definition,
-            model: device.modelID || '',
-            vendor: device.manufacturerName || '',
-            description: 'Generated from device information',
-        };
-
-        return null;
+        // Do not add this definition to cache,
+        // as device configuration might change.
+        return prepareDefinition(definition);
     } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
         return candidates[0];
     } else {

@@ -84,7 +84,11 @@ describe('index.js', () => {
         expect(definition.model).toBe('test_generate');
         expect(definition.vendor).toBe('');
         expect(definition.description).toBe('Generated from device information');
-        expect(definition.extend).toHaveLength(1);
+        expect(definition.extend).toBeUndefined();
+        expect(definition.fromZigbee).toHaveLength(0);
+        expect(definition.toZigbee).toHaveLength(11);
+        expect(definition.exposes).toHaveLength(1);
+        expect(definition.options).toHaveLength(0);
     });
 
     it('Find by device when device has modelID should match', () => {
