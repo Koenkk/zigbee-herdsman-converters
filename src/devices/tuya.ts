@@ -2145,7 +2145,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_r0o2dahu']),
-        model: 'TS004F_6_gang',
+        model: 'TS004F_6_button',
         vendor: 'TuYa',
         description: 'Wireless switch with 6 buttons',
         exposes: [
@@ -2156,7 +2156,7 @@ const definitions: Definition[] = [
                 'brightness_move_down', '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
                 '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold',
                 '5_single', '5_double', '5_hold', '6_single', '6_double', '6_hold'])],
-        fromZigbee: [fz.battery, fz.tuya_on_off_action_8, fz.tuya_operation_mode,
+        fromZigbee: [fz.battery, fz.tuya_on_off_action, fz.tuya_operation_mode,
             fz.command_on, fz.command_off, fz.command_step, fz.command_move],
         toZigbee: [tz.tuya_operation_mode],
         configure: async (device, coordinatorEndpoint, logger) => {

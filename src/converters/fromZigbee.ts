@@ -2235,30 +2235,6 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model, msg.data[1])) return;
             const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
-            let buttonMapping: KeyValueNumberString = null;
-            if (meta.device.modelID === 'TS0042') {
-                buttonMapping = {1: '1', 2: '2'};
-            } else if (meta.device.modelID === 'TS0043') {
-                buttonMapping = {1: '1', 2: '2', 3: '3'};
-            } else if (['TS0044', 'TS004F'].includes(meta.device.modelID)) {
-                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
-            } else if (['TS0046'].includes(meta.device.modelID)) {
-                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'};
-            }
-            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
-            // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
-            // Send the defaultResponse here, otherwise the second button click delays.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/8149
-            msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]).catch((error) => {});
-            return {action: `${button}${clickMapping[msg.data[3]]}`};
-        },
-    } satisfies Fz.Converter,
-    tuya_on_off_action_8: {
-        cluster: 'genOnOff',
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model, msg.data[1])) return;
-            const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
             const buttonMapping: KeyValueNumberString = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'};
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
             // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
