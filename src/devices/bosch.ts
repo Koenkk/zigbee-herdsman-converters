@@ -564,16 +564,21 @@ const fzLocal = {
             if (data.hasOwnProperty(0x0000)) {
                 result.device_type = Object.keys(stateDeviceType).find(key => stateDeviceType[key] === msg.data[0x0000]);
                 options.device_type = result.device_type;
-            } else if (data.hasOwnProperty(0x0001)) {
+            }
+            if (data.hasOwnProperty(0x0001)) {
                 result.switch_type = Object.keys(stateSwitchType).find(key => stateSwitchType[key] === msg.data[0x0001]);
-            } else if (data.hasOwnProperty(0x0002)) {
+            }
+            if (data.hasOwnProperty(0x0002)) {
                 result.calibration_closing_time = msg.data[0x0002]/10;
-            } else if (data.hasOwnProperty(0x0003)) {
+            }
+            if (data.hasOwnProperty(0x0003)) {
                 result.calibration_opening_time = msg.data[0x0003]/10;
-            } if (data.hasOwnProperty(0x0008)) {
+            }
+            if (data.hasOwnProperty(0x0008)) {
                 const property = utils.postfixWithEndpointName('child_lock', msg, model, meta);
                 result[property] = msg.data[0x0008] === 1 ? 'ON' : 'OFF';
-            } else if (data.hasOwnProperty(0x0013)) {
+            }
+            if (data.hasOwnProperty(0x0013)) {
                 result.motor_state = Object.keys(stateMotor).find(key => stateMotor[key] === msg.data[0x0013]);
             }
             return result;
