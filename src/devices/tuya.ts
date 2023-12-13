@@ -2145,7 +2145,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_r0o2dahu']),
-        model: 'TS004F',
+        model: 'TS004F_6_gang',
         vendor: 'TuYa',
         description: 'Wireless switch with 6 buttons',
         exposes: [
