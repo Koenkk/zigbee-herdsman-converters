@@ -31,9 +31,18 @@ const definitions: Definition[] = [
         model: 'SA-003-Zigbee',
         vendor: 'eWeLink',
         description: 'Zigbee smart plug',
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            try {
+                await device.getEndpoint(1).bind('genOnOff', coordinatorEndpoint);
+            } catch (error) {
+                // This might fail because there are some repeaters which advertise to support genOnOff but don't support it.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/19865
+                logger.debug('Failed to bind genOnOff for SA-003-Zigbee');
+            }
         },
     },
     {
