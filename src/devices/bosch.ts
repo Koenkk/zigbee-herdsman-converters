@@ -238,7 +238,7 @@ const tzLocal = {
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state') {
-                if (entity.ID === 1) {
+                if ('ID' in entity && entity.ID === 1) {
                     await tz.cover_state.convertSet(entity, key, value, meta);
                 } else {
                     await tz.on_off.convertSet(entity, key, value, meta);
