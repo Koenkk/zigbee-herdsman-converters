@@ -238,20 +238,10 @@ const tzLocal = {
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state') {
-                utils.assertString(value, 'state');
-                const state = value.toLowerCase();
-                utils.validateValue(state, ['toggle', 'off', 'on', 'open', 'close', 'stop']);
-                if ( state === 'on' || state === 'off' || state === 'toggle') {
-                    await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
-                    if (state === 'toggle') {
-                        const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
-                        return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
-                    } else {
-                        return {state: {state: state.toUpperCase()}};
-                    }
-                } else if ( state === 'open' || state === 'close' || state === 'stop') {
-                    const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
-                    await entity.command('closuresWindowCovering', utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
+                if (entity.ID === 1) {
+                    await tz.cover_state.convertSet(entity, key, value, meta);
+                } else {
+                    await tz.on_off.convertSet(entity, key, value, meta);
                 }
             }
             if (key === 'switch_type') {
