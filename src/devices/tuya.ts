@@ -4959,7 +4959,7 @@ const definitions: Definition[] = [
             e.numeric('min_humidity', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Alarm humidity min'),
         ],
-    }
+    },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'},
             {modelID: 'TS004F', manufacturerName: '_TZ3000_ja5osu5g'}],
