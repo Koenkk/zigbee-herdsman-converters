@@ -264,17 +264,17 @@ const tzLocal = {
                 await entity.write(0xFCA0, {0x0008: {value: index, type: 0x10}}, manufacturerOptions);
                 return {state: {child_lock: value}};
             }
-            if (key === 'calibration_closing_time') {
-                const number = utils.toNumber(value, 'calibration_closing_time');
-                const index = number *10;
-                await entity.write(0xFCA0, {0x0002: {value: index, type: 0x23}}, manufacturerOptions);
-                return {state: {calibration_closing_time: number}};
-            }
             if (key === 'calibration_opening_time') {
                 const number = utils.toNumber(value, 'calibration_opening_time');
-                const index = number *10;
-                await entity.write(0xFCA0, {0x0003: {value: index, type: 0x23}}, manufacturerOptions);
+                const index = number * 10;
+                await entity.write(0xFCA0, {0x0002: {value: index, type: 0x23}}, manufacturerOptions);
                 return {state: {calibration_opening_time: number}};
+            }
+            if (key === 'calibration_closing_time') {
+                const number = utils.toNumber(value, 'calibration_closing_time');
+                const index = number * 10;
+                await entity.write(0xFCA0, {0x0003: {value: index, type: 0x23}}, manufacturerOptions);
+                return {state: {calibration_closing_time: number}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -291,10 +291,10 @@ const tzLocal = {
             case 'child_lock':
                 await entity.read(0xFCA0, [0x0008], manufacturerOptions);
                 break;
-            case 'calibration_closing_time':
+            case 'calibration_opening_time':
                 await entity.read(0xFCA0, [0x0002], manufacturerOptions);
                 break;
-            case 'calibration_opening_time':
+            case 'calibration_closing_time':
                 await entity.read(0xFCA0, [0x0003], manufacturerOptions);
                 break;
             default: // Unknown key
@@ -564,10 +564,10 @@ const fzLocal = {
                 result.switch_type = Object.keys(stateSwitchType).find(key => stateSwitchType[key] === msg.data[0x0001]);
             }
             if (data.hasOwnProperty(0x0002)) {
-                result.calibration_closing_time = msg.data[0x0002]/10;
+                result.calibration_opening_time = msg.data[0x0002]/10;
             }
             if (data.hasOwnProperty(0x0003)) {
-                result.calibration_opening_time = msg.data[0x0003]/10;
+                result.calibration_closing_time = msg.data[0x0003]/10;
             }
             if (data.hasOwnProperty(0x0008)) {
                 const property = utils.postfixWithEndpointName('child_lock', msg, model, meta);
