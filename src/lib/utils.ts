@@ -559,7 +559,7 @@ export function toNumber(value: unknown, property?: string): number {
 export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V=undefined): V {
     let result = undefined;
     if (typeof value === 'string') {
-        result = lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
+        result = lookup[value] ?? lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
     } else if (typeof value === 'number') {
         result = lookup[value];
     }

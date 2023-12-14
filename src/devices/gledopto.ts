@@ -586,7 +586,7 @@ const definitions: Definition[] = [
         model: 'GL-C-103P',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller (pro)',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: [light({colorTemp: {range: [158, 495]}, color: true})],
     },
     {
         zigbeeModel: ['GL-G-004P'],
