@@ -37,7 +37,7 @@ const sirenPowerSupply = {
 };
 
 // BMCT
-const stateDeviceType: KeyValue = {
+const stateDeviceMode: KeyValue = {
     'light': 0x04,
     'shutter': 0x01,
 };
@@ -230,6 +230,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
     bmct: {
         key: [
+            'device_mode',
             'switch_type',
             'child_lock',
             'calibration_closing_time', 'calibration_opening_time',
@@ -281,7 +282,7 @@ const tzLocal = {
             case 'state':
                 await entity.read('genOnOff', ['onOff']);
                 break;
-            case 'device_type':
+            case 'device_mode':
                 await entity.read(0xFCA0, [0x0000], manufacturerOptions);
                 break;
             case 'switch_type':
@@ -557,8 +558,7 @@ const fzLocal = {
             const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x0000)) {
-                result.device_type = Object.keys(stateDeviceType).find(key => stateDeviceType[key] === msg.data[0x0000]);
-                options.device_type = result.device_type;
+                result.device_mode = Object.keys(stateDeviceMode).find(key => stateDeviceMode[key] === msg.data[0x0000]);
             }
             if (data.hasOwnProperty(0x0001)) {
                 result.switch_type = Object.keys(stateSwitchType).find(key => stateSwitchType[key] === msg.data[0x0001]);
@@ -1296,9 +1296,12 @@ const definitions: Definition[] = [
         toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.on_off, tz.power_on_behavior],
         meta: {multiEndpoint: true},
         onEvent: async (type, data, device, options) => {
-            if (type === 'deviceOptionsChanged') {
-                const index = utils.getFromLookup(options.device_type, stateDeviceType);
-                await device.getEndpoint(1).write(0xFCA0, {0x0000: {value: index, type: 0x30}}, boschManufacturer);
+            if (type === 'start' || type === 'deviceOptionsChanged') {
+                if (options.device_mode) {
+                    const index = utils.getFromLookup(options.device_mode, stateDeviceMode);
+                    await device.getEndpoint(1).write(0xFCA0, {0x0000: {value: index, type: 0x30}}, manufacturerOptions);
+                }
+                await device.getEndpoint(1).read(0xFCA0, [0x0000], manufacturerOptions);
             }
         },
         endpoint: (device) => {
@@ -1319,30 +1322,43 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint3);
         },
         options: [
-            e.enum('device_type', ea.ALL, Object.keys(stateDeviceType))
-            .withDescription('Device type: '),],
-        exposes: [
-            // light
-            e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
-                .withDescription('Module controlled by a rocker switch or a button'),
-            e.switch().withEndpoint('left'),
-            e.switch().withEndpoint('right'),
-            e.power_on_behavior().withEndpoint('right'),
-            e.power_on_behavior().withEndpoint('left'),
-            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left')
-                .withDescription('Enable/Disable child lock'),
-            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
-                .withDescription('Enable/Disable child lock'),
-            // cover
-            e.cover_position().setAccess('state', ea.ALL),
-            e.enum('motor_state', ea.STATE, Object.keys(stateMotor))
-                .withDescription('Shutter motor actual state '),
-            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
-            e.numeric('calibration_closing_time', ea.ALL).withUnit('s')
-                .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
-            e.numeric('calibration_opening_time', ea.ALL).withUnit('s')
-                .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
-        ],
+            e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode))
+            .withDescription('Device mode: '),],
+        exposes: (device, options) => {
+            const commonExposes = [
+                e.enum('device_mode', ea.STATE_GET, Object.keys(stateDeviceMode))
+                    .withDescription('Device mode'),
+            ];
+            const lightExposes = [
+                e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
+                    .withDescription('Module controlled by a rocker switch or a button'),
+                e.switch().withEndpoint('left'),
+                e.switch().withEndpoint('right'),
+                e.power_on_behavior().withEndpoint('right'),
+                e.power_on_behavior().withEndpoint('left'),
+                e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left')
+                    .withDescription('Enable/Disable child lock'),
+                e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
+                    .withDescription('Enable/Disable child lock'),
+            ];
+            const coverExposes = [
+                e.cover_position(),
+                e.enum('motor_state', ea.STATE, Object.keys(stateMotor))
+                    .withDescription('Shutter motor actual state '),
+                e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
+                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('closing_time')
+                    .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
+                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('opening_time')
+                    .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
+            ];
+
+            if (options.device_mode ==='light') {
+                return [...commonExposes, ...lightExposes];
+            } else if (options.device_mode ==='shutter') {
+                return [...commonExposes, ...coverExposes];
+            }
+            return [...commonExposes, ...lightExposes, ...coverExposes];
+        },
     },
     {
         zigbeeModel: ['RBSH-US4BTN-ZB-EU'],
