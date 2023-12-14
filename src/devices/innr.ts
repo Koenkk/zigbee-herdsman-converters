@@ -678,7 +678,7 @@ const definitions: Definition[] = [
             onOff(),
             electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
         ],
-    }
+    },
 ];
 
 export default definitions;
