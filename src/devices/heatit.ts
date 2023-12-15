@@ -1,5 +1,6 @@
 import {Definition} from '../lib/types';
 import extend from '../lib/extend';
+import * as reporting from '../lib/reporting';
 
 const definitions: Definition[] = [
     {
