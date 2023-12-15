@@ -51,15 +51,15 @@ const fzLocal = {
                     48: {alarm: 'lock_reset_to_factory_defaults'},
                     112: {alarm: 'master_code_changed'},
                     113: {alarm: 'duplicate_pin_code_error'},
-                    128: {alarm: 'battery_replaced', 'battery_low': false},
+                    128: {alarm: 'battery_replaced', battery_low: false},
                     129: {alarm: 'handing_cycle_completed_right'},
                     130: {alarm: 'rf_module_power_cycled'},
                     131: {alarm: 'handing_cycle_completed_left'},
-                    161: {alarm: 'tamper_alarm_keypad_attempts', 'tamper': true},
-                    162: {alarm: 'tamper_alarm_front_escutcheon', 'tamper': true},
-                    167: {alarm: 'tamper_alarm_low_battery', 'tamper': true, 'battery_low': true},
-                    168: {alarm: 'tamper_alarm_critical_battery', 'tamper': true, 'battery_low': true},
-                    169: {alarm: 'low_battery', 'battery_low': true},
+                    161: {alarm: 'tamper_alarm_keypad_attempts', tamper: true},
+                    162: {alarm: 'tamper_alarm_front_escutcheon', tamper: true},
+                    167: {alarm: 'tamper_alarm_low_battery', tamper: true, battery_low: true},
+                    168: {alarm: 'tamper_alarm_critical_battery', tamper: true, battery_low: true},
+                    169: {alarm: 'low_battery', battery_low: true},
                 };
                 result = getFromLookup(alarmcode, lookup);
                 // reset tamper and battery_low values as these will not self clear and will also be re-reported by device
