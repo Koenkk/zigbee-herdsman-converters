@@ -323,11 +323,7 @@ const definitions: Definition[] = [
         model: 'SNZB-04P',
         vendor: 'SONOFF',
         description: 'Contact sensor',
-        exposes: [
-            e.contact(),
-            e.battery(),
-            e.battery_voltage(),
-            e.battery_low(),
+        exposes: [e.contact(), e.battery(), e.battery_voltage(), e.battery_low(),
         ],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
@@ -359,11 +355,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.occupancy, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [
-            e.occupancy(),
-            e.battery_low(),
-            e.battery(),
-            ],
+        exposes: [e.occupancy(), e.battery_low(), e.battery()],
         extend: [
             numeric({
                 name: 'ult_timeout',
@@ -395,10 +387,10 @@ const definitions: Definition[] = [
         model: 'SNZB-06P',
         vendor: 'SONOFF',
         description: 'Zigbee occupancy sensor',
-        fromZigbee: [fz.occupancy,],
+        fromZigbee: [fz.occupancy],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [e.occupancy(),],
+        exposes: [e.occupancy()],
         extend: [
             numeric({
                 name: 'ult_timeout',
