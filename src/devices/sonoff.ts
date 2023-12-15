@@ -323,7 +323,7 @@ const definitions: Definition[] = [
         model: 'SNZB-04P',
         vendor: 'SONOFF',
         description: 'Contact sensor',
-        exposes: [e.contact(), e.battery(), e.battery_voltage(), e.battery_low()],
+        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
