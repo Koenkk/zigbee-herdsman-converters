@@ -4,13 +4,13 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {binary, numeric} from '../lib/modernExtend';
+import {binary, numeric,enumLookup} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
-const sonoffPrivateCluster = 0xFC11;
+
 const fzLocal = {
     router_config: {
         cluster: 'genLevelCtrl',
@@ -22,30 +22,6 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
-    illumination_level: {
-        cluster: sonoffPrivateCluster.toString(),
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = ['dim', 'bright'];
-            const attributeKey = 0x2001;// attr
-            if (attributeKey in msg.data) {
-                return {illumination_level: lookup[msg.data[attributeKey]]};
-            }
-        },
-    } satisfies Fz.Converter,
-    tamper_private: {
-        cluster: sonoffPrivateCluster.toString(),
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            // Tamper-proof status: ture/false
-            const attributeKey = 0x2000;// attr
-            if (attributeKey in msg.data ) {
-                const value = msg.data[attributeKey];
-                return {tamper_private: ((value) ? true : false)};
-            }
-        },
-    } satisfies Fz.Converter,
-
 };
 
 const definitions: Definition[] = [
@@ -352,10 +328,22 @@ const definitions: Definition[] = [
             e.battery(),
             e.battery_voltage(),
             e.battery_low(),
-            e.binary('tamper_private', ea.STATE, true, false).withLabel('Tamper-proof status').withDescription(' ')],
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fzLocal.tamper_private],
+        ],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
+        extend: [
+            binary({
+                name: 'tamper_private',
+                cluster: 0xFC11,
+                attribute: {id: 0x2000, type: 0x20},
+                description: ' ',
+                valueOn: [true,0x01],
+                valueOff: [false, 0x00],
+                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                readOnly: true,
+            }),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -369,13 +357,32 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee PIR sensor',
         fromZigbee: [fz.occupancy, fz.battery],
-        toZigbee: [tz.occupancy_ult_timeout],
+        toZigbee: [],
         ota: ota.zigbeeOTA,
         exposes: [
             e.occupancy(),
             e.battery_low(),
             e.battery(),
-            e.numeric('occupancy_ult_timeout', ea.ALL).withUnit('second').withValueMin(5).withValueMax(60)],
+            ],
+        extend: [
+            numeric({
+                name: 'ult_timeout',
+                cluster: 0x0406,
+                attribute: {id: 0x0020, type: 0x21},
+                description: ' ',
+                valueMin:5,
+                valueMax:60,
+            }),
+            enumLookup({
+                name: 'illumination',
+                lookup: {'dim': 0, 'bright': 1},
+                cluster: 0xFC11,
+                attribute: {id: 0x2001, type: 0x20},
+                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                description: 'Only updated when occupancy is detected',
+                readOnly: true,
+            }),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -388,16 +395,36 @@ const definitions: Definition[] = [
         model: 'SNZB-06P',
         vendor: 'SONOFF',
         description: 'Zigbee occupancy sensor',
-        fromZigbee: [fz.occupancy, fzLocal.illumination_level],
-        toZigbee: [tz.occupancy_ult_timeout, tz.occupancy_ult_sensitivity],
+        fromZigbee: [fz.occupancy,],
+        toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [
-            e.occupancy(),
-            e.numeric('occupancy_ult_timeout', ea.ALL).withUnit('second').withValueMin(15).withValueMax(65535),
-            e.enum('occupancy_ult_sensitivity', ea.ALL, ['low', 'medium', 'high']),
-            e.enum('illumination_level', ea.STATE, ['dim', 'bright'])
-                .withLabel('illumination')
-                .withDescription('Only updated when occupancy is detected')],
+        exposes: [e.occupancy(),],
+        extend: [
+            numeric({
+                name: 'ult_timeout',
+                cluster: 0x0406,
+                attribute: {id: 0x0020, type: 0x21},
+                description: ' ',
+                valueMin:15,
+                valueMax:65535,
+            }),
+            enumLookup({
+                name: 'motion_sensitivity',
+                lookup: {'low': 1, 'medium': 2, 'high': 3},
+                cluster: 0x0406,
+                attribute: {id: 0x0022, type: 0x20},
+                description: ' ',
+            }),
+            enumLookup({
+                name: 'illumination',
+                lookup: {'dim': 0, 'bright': 1},
+                cluster: 0xFC11,
+                attribute: {id: 0x2001, type: 0x20},
+                description: 'Only updated when occupancy is detected',
+                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                readOnly: true,
+            }),
+        ],
     },
     {
         zigbeeModel: ['TRVZB'],
