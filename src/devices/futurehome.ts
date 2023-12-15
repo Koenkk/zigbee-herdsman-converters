@@ -2,6 +2,9 @@ import {Definition} from 'src/lib/types';
 import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
 import extend from '../lib/extend';
+import * as reporting from '../lib/reporting';
+import * as ota from '../lib/ota';
+
 
 const e = exposes.presets;
 const ea = exposes.access;
