@@ -536,6 +536,12 @@ const tzLocal = {
             await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
         },
     } satisfies Tz.Converter,
+    xiaomi_tvoc: {
+        key: ['voc'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genAnalogInput', ['presentValue']);
+        },
+    } satisfies Tz.Converter,
     aqara_feeder: {
         key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
         convertSet: async (entity, key, value, meta) => {
@@ -3118,10 +3124,11 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
         description: 'Aqara TVOC air quality monitor',
         fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.temperature, tz.humidity, tz.battery_voltage, tzLocal.VOCKQJK11LM_display_unit],
+        toZigbee: [tz.temperature, tz.humidity, tz.battery_voltage, tzLocal.VOCKQJK11LM_display_unit, tzLocal.xiaomi_tvoc],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        exposes: [e.temperature().withAccess(ea.STATE_GET), e.humidity().withAccess(ea.STATE_GET), e.voc().withUnit('ppb'),
-            e.device_temperature(), e.battery().withAccess(ea.STATE_GET), e.battery_voltage().withAccess(ea.STATE_GET),
+        exposes: [e.temperature().withAccess(ea.STATE_GET), e.humidity().withAccess(ea.STATE_GET),
+            e.voc().withUnit('ppb').withAccess(ea.STATE_GET), e.device_temperature(),
+            e.battery().withAccess(ea.STATE_GET), e.battery_voltage().withAccess(ea.STATE_GET),
             e.enum('display_unit', ea.ALL, ['mgm3_celsius', 'ppb_celsius', 'mgm3_fahrenheit', 'ppb_fahrenheit'])
                 .withDescription('Units to show on the display')],
         configure: async (device, coordinatorEndpoint, logger) => {
