@@ -6953,7 +6953,7 @@ const definitions: Definition[] = [
             e.numeric('target_distance', ea.STATE).withValueMin(0).withValueMax(1000).withValueStep(1)
                 .withDescription('Distance of detected target').withUnit('cm'),
             e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED indicator'),
-           e.numeric('fading_time', ea.STATE_SET).withValueMin(3).withValueMax(1799).withValueStep(1)
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(3).withValueMax(1799).withValueStep(1)
                 .withDescription('Fading time').withUnit('s'),        ],
         meta: {
             tuyaDatapoints: [
@@ -6964,7 +6964,6 @@ const definitions: Definition[] = [
                 [101, 'indicator', tuya.valueConverter.onOff],
                 [102, null, null], // toggle to enable presence notifications in app is ignored
                 [103, 'fading_time', tuya.valueConverter.raw],
-
             ],
         },
     },
