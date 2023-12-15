@@ -734,6 +734,13 @@ const definitions: Definition[] = [
         extend: [philipsLight()],
     },
     {
+        zigbeeModel: ['1740393P0'],
+        model: '1740393P0',
+        vendor: 'Philips',
+        description: 'Hue White Lucca',
+        extend: [philipsLight()],
+    },
+    {
         zigbeeModel: ['1746630V7'],
         model: '1746630V7',
         vendor: 'Philips',
