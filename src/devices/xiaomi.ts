@@ -370,6 +370,13 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter,
+    VOCKQJK11LM_tvoc: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {voc: msg.data.presentValue};
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -536,10 +543,16 @@ const tzLocal = {
             await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
         },
     } satisfies Tz.Converter,
-    xiaomi_tvoc: {
+    VOCKQJK11LM_tvoc: {
         key: ['voc'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genAnalogInput', ['presentValue']);
+        },
+    } satisfies Tz.Converter,
+    VOCKQJK11LM_air_quality: {
+        key: ['air_quality'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0129], {manufacturerCode: 0x115F, disableDefaultResponse: true});
         },
     } satisfies Tz.Converter,
     aqara_feeder: {
@@ -3123,14 +3136,18 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
         description: 'Aqara TVOC air quality monitor',
-        fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.temperature, tz.humidity, tz.battery_voltage, tzLocal.VOCKQJK11LM_display_unit, tzLocal.xiaomi_tvoc],
+        fromZigbee: [fzLocal.VOCKQJK11LM_tvoc, fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
+        toZigbee: [tzLocal.VOCKQJK11LM_tvoc, tzLocal.VOCKQJK11LM_air_quality, tz.temperature, tz.humidity, tz.battery_voltage,
+            tzLocal.VOCKQJK11LM_display_unit],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.temperature().withAccess(ea.STATE_GET), e.humidity().withAccess(ea.STATE_GET),
             e.voc().withUnit('ppb').withAccess(ea.STATE_GET), e.device_temperature(),
             e.battery().withAccess(ea.STATE_GET), e.battery_voltage().withAccess(ea.STATE_GET),
             e.enum('display_unit', ea.ALL, ['mgm3_celsius', 'ppb_celsius', 'mgm3_fahrenheit', 'ppb_fahrenheit'])
-                .withDescription('Units to show on the display')],
+                .withDescription('Units to show on the display'),
+            e.enum('air_quality', ea.STATE_GET, ['excellent', 'good', 'moderate', 'poor', 'unhealthy'])
+                .withDescription('Measured air quality'),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genAnalogInput'];
@@ -3141,7 +3158,9 @@ const definitions: Definition[] = [
             await endpoint.configureReporting('genAnalogInput', payload);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
+            // read display_mode (0x0114) and air_quality (0x0129)
             await endpoint.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
+            await endpoint.read('aqaraOpple', [0x0129], {manufacturerCode: 0x115F, disableDefaultResponse: true});
         },
         ota: ota.zigbeeOTA,
     },

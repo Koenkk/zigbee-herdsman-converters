@@ -532,6 +532,11 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 payload.test = value === 1;
             }
             break;
+        case '297':
+            if (['VOCKQJK11LM'].includes(model.model)) {
+                payload.air_quality = getKey(VOCKQJK11LMAirQuality, value);
+            }
+            break;
         case '313':
             if (['JT-BZ-01AQ/A'].includes(model.model)) {
                 payload.state = getFromLookup(value, {0: 'work', 1: 'preparation'});
@@ -781,6 +786,15 @@ export const VOCKQJK11LMDisplayUnit = {
     'ppb_celsius': 0x01, // ppb, °C
     'mgm3_fahrenheit': 0x10, // mg/m³, °F
     'ppb_fahrenheit': 0x11, // ppb, °F
+};
+
+// Using German IAQ labels to match the Develco Air Quality Sensor
+export const VOCKQJK11LMAirQuality = {
+    'excellent': 1,
+    'good': 2,
+    'moderate': 3,
+    'poor': 4,
+    'unhealthy': 5,
 };
 
 export const numericAttributes2Options = (definition: Definition) => {
