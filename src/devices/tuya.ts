@@ -6954,7 +6954,8 @@ const definitions: Definition[] = [
                 .withDescription('Distance of detected target').withUnit('cm'),
             e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED indicator'),
             e.numeric('fading_time', ea.STATE_SET).withValueMin(3).withValueMax(1799).withValueStep(1)
-                .withDescription('Fading time').withUnit('s'),        ],
+                .withDescription('Fading time').withUnit('s'),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
