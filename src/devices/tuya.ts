@@ -6935,6 +6935,39 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_muvkrjr5']),
+        model: 'SZR07U',
+        vendor: 'TuYa',
+        description: '24GHz millimeter wave radar',
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        exposes: [
+            e.presence(),
+            e.numeric('detection_range', ea.STATE_SET).withValueMin(1.5).withValueMax(6).withValueStep(0.75).withUnit('m')
+                .withDescription('Maximum range'),
+            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(68).withValueMax(90).withValueStep(1)
+                .withDescription('Sensitivity of the radar'),
+            e.numeric('target_distance', ea.STATE).withValueMin(0).withValueMax(1000).withValueStep(1)
+                .withDescription('Distance of detected target').withUnit('cm'),
+            e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED indicator'),
+           e.numeric('fading_time', ea.STATE_SET).withValueMin(3).withValueMax(1799).withValueStep(1)
+                .withDescription('Fading time').withUnit('s'),        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [13, 'detection_range', tuya.valueConverter.divideBy100],
+                [16, 'radar_sensitivity', tuya.valueConverter.raw],
+                [19, 'target_distance', tuya.valueConverter.raw],
+                [101, 'indicator', tuya.valueConverter.onOff],
+                [102, null, null], // toggle to enable presence notifications in app is ignored
+                [103, 'fading_time', tuya.valueConverter.raw],
+
+            ],
+        },
+    },
 ];
 
 export default definitions;
