@@ -370,13 +370,6 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter,
-    VOCKQJK11LM_tvoc: {
-        cluster: 'genAnalogInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {voc: msg.data.presentValue};
-        },
-    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -541,12 +534,6 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
-        },
-    } satisfies Tz.Converter,
-    VOCKQJK11LM_tvoc: {
-        key: ['voc'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genAnalogInput', ['presentValue']);
         },
     } satisfies Tz.Converter,
     VOCKQJK11LM_air_quality: {
@@ -3136,17 +3123,27 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
         description: 'Aqara TVOC air quality monitor',
-        fromZigbee: [fzLocal.VOCKQJK11LM_tvoc, fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tzLocal.VOCKQJK11LM_tvoc, tzLocal.VOCKQJK11LM_air_quality, tz.temperature, tz.humidity, tz.battery_voltage,
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
+        toZigbee: [tzLocal.VOCKQJK11LM_air_quality, tz.temperature, tz.humidity, tz.battery_voltage,
             tzLocal.VOCKQJK11LM_display_unit],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.temperature().withAccess(ea.STATE_GET), e.humidity().withAccess(ea.STATE_GET),
-            e.voc().withUnit('ppb').withAccess(ea.STATE_GET), e.device_temperature(),
+            e.device_temperature(),
             e.battery().withAccess(ea.STATE_GET), e.battery_voltage().withAccess(ea.STATE_GET),
             e.enum('display_unit', ea.ALL, ['mgm3_celsius', 'ppb_celsius', 'mgm3_fahrenheit', 'ppb_fahrenheit'])
                 .withDescription('Units to show on the display'),
             e.enum('air_quality', ea.STATE_GET, ['excellent', 'good', 'moderate', 'poor', 'unhealthy'])
                 .withDescription('Measured air quality'),
+        ],
+        extend: [
+            numeric({
+                name: 'voc',
+                cluster: 'genAnalogInput',
+                attribute: 'presentValue',
+                description: 'Measured VOC value',
+                unit: 'ppb',
+                readOnly: true,
+            }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
