@@ -37,7 +37,7 @@ const fzLocal = {
         convert: async (model, msg, publish, options, meta) => {
             let result: KeyValue = {};
             if (msg.data.clusterid == 64512) {
-                const alarmcode = msg.data.alarmcode;             
+                const alarmcode = msg.data.alarmcode;
                 const lookup = {
                     9: {state: 'UNLOCKED', lock_state: 'not_fully_locked', alarm: 'deadbolt_jammed'},
                     18: {action: 'keypad_lock', state: 'LOCKED', lock_state: 'locked'},
@@ -60,9 +60,9 @@ const fzLocal = {
                     167: {alarm: 'tamper_alarm_low_battery', 'tamper': true, 'battery_low': true},
                     168: {alarm: 'tamper_alarm_critical_battery', 'tamper': true, 'battery_low': true},
                     169: {alarm: 'low_battery', 'battery_low': true},
-                };           
+                };
                 result = getFromLookup(alarmcode, lookup);
-                //reset tamper and battery_low values as these will not self clear and will also be re-reported by device
+                // reset tamper and battery_low values as these will not self clear and will also be re-reported by device
                 if (!('tamper' in result)) {
                     result.tamper = false;
                 }
@@ -83,15 +83,15 @@ const fzLocal = {
         cluster: 'manuSpecificUbisysDeviceSetup',
         type: ['readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            const data = msg.data
-            let result: KeyValue = {};
+            const data = msg.data;
+            const result: KeyValue = {};
             if (data['18']) {
                 const lookup = {
-                    0: "off",
-                    30: "30seconds",
-                    60: "60seconds",
-                    120: "2minutes",
-                    180: "3minutes",
+                    0: 'off',
+                    30: '30seconds',
+                    60: '60seconds',
+                    120: '2minutes',
+                    180: '3minutes',
                 };
                 result.auto_lock_time = getFromLookup(data['18'], lookup);
             }
@@ -110,44 +110,44 @@ const fzLocal = {
             }
             if (data['23']) {
                 const lookup = {
-                    1: "silent",
-                    2: "low",
-                    3: "high",
+                    1: 'silent',
+                    2: 'low',
+                    3: 'high',
                 };
                 result.volume = getFromLookup(data['23'], lookup);
             }
             if (data['24']) {
                 const lookup = {
-                    0: "normal",
-                    1: "vacation",
-                    2: "privacy",
-                };    
-                result.lock_mode  = getFromLookup(data['24'], lookup);
+                    0: 'normal',
+                    1: 'vacation',
+                    2: 'privacy',
+                };
+                result.lock_mode = getFromLookup(data['24'], lookup);
             }
             if (data['25']) {
                 const lookup = {
-                    1: "english",
-                    2: "spanish",
-                    3: "french",
-                };    
+                    1: 'english',
+                    2: 'spanish',
+                    3: 'french',
+                };
                 result.lock_mode = getFromLookup(data['25'], lookup);
             }
-            if (data['26']) { 
+            if (data['26']) {
                 result.all_codes_lockout = data['26'];
             }
-            if (data['27']) { 
+            if (data['27']) {
                 result.one_touch_locking = data['27'];
             }
-            if (data['28']) { 
+            if (data['28']) {
                 result.privacy_button = data['28'];
             }
-            if (data['33']) { 
+            if (data['33']) {
                 result.number_log_records_supported = data['33'];
             }
-            if (data['48']) { 
+            if (data['48']) {
                 result.number_pins_supported = data['48'];
             }
-            if (data['64']) { 
+            if (data['64']) {
                 result.number_schedule_slots_per_user = data['64'];
             }
             if (data['80']) {
@@ -163,11 +163,11 @@ const tzLocal = {
         key: ['auto_lock_time'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {
-                "off": 0,
-                "30seconds": 30,
-                "60seconds": 60,
-                "2minutes": 120,
-                "3minutes": 180,
+                'off': 0,
+                '30seconds': 30,
+                '60seconds': 60,
+                '2minutes': 120,
+                '3minutes': 180,
             };
             await entity.write('manuSpecificAssaDoorLock', {'autoLockTime': getFromLookup(value, lookup)}, {disableDefaultResponse: true});
             return {state: {auto_lock_time: value}};
@@ -180,9 +180,9 @@ const tzLocal = {
         key: ['volume'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {
-                "silent": 1,
-                "low": 2,
-                "high": 3,
+                'silent': 1,
+                'low': 2,
+                'high': 3,
             };
             await entity.write('manuSpecificAssaDoorLock', {'volume': getFromLookup(value, lookup)}, {disableDefaultResponse: true});
             return {state: {volume: value}};
