@@ -1941,7 +1941,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ['5061031P7_01', '5061031P7_02', '5061031P7_03'],
+        zigbeeModel: ['5061031P7_01', '5061031P7_02', '5061031P7_03', '929003621001_01', '929003621001_02', '929003621001_03'],
         model: '5061031P7',
         vendor: 'Philips',
         description: 'Hue White & Color ambience Centris ceiling light (2 spots) (white)',
