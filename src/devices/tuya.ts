@@ -933,6 +933,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Moes', 'ZLD-RCW_2', 'RGB+CCT LED bulb', ['_TZ3210_rcggc0ys']),
             tuya.whitelabel('Moes', 'ZB-LZD10-RCW', '10W RGB+CCT Smart Downlight', ['_TZ3210_s9lumfhn']),
             tuya.whitelabel('MiBoxer', 'FUT106ZR', 'GU10 bulb', ['_TZB210_rwy5hexp']),
+            tuya.whitelabel('TuYa', 'TS0505B_1_1', 'Zigbee 3.0 18W led light bulb E27 RGBCW', ['_TZ3210_jd3z4yig', '_TZ3210_r5afgmkl']),
         ],
         extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -941,15 +942,14 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0505B',
-            ['_TZ3210_iystcadi', '_TZ3210_mja6r5ix', '_TZ3210_it1u8ahz', '_TZ3210_jd3z4yig', '_TZ3210_r5afgmkl']),
+            ['_TZ3210_iystcadi', '_TZ3210_mja6r5ix', '_TZ3210_it1u8ahz']),
         model: 'TS0505B_2',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
         whiteLabel: [
             tuya.whitelabel('Lidl', '14149505L/14149506L_2', 'Livarno Lux light bar RGB+CCT (black/white)', ['_TZ3210_iystcadi']),
-            tuya.whitelabel('TuYa', 'TS0505B_1_1', 'Zigbee 3.0 18W led light bulb E27 RGBCW',
-                ['_TZ3210_mja6r5ix', '_TZ3210_jd3z4yig', '_TZ3210_r5afgmkl']),
-            tuya.whitelabel('TuYa', 'TS0505B_1_2', 'Zigbee GU10/E14 5W smart bulb', ['_TZ3210_it1u8ahz']),
+            tuya.whitelabel('TuYa', 'TS0505B_2_1', 'Zigbee 3.0 18W led light bulb E27 RGBCW', ['_TZ3210_mja6r5ix']),
+            tuya.whitelabel('TuYa', 'TS0505B_2_2', 'Zigbee GU10/E14 5W smart bulb', ['_TZ3210_it1u8ahz']),
         ],
         toZigbee: [tz.on_off, tzLocal.led_control],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
