@@ -3132,6 +3132,7 @@ const definitions: Definition[] = [
             const payload = reporting.payload('presentValue', 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting('genAnalogInput', payload);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
+            await endpoint.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
         },
         ota: ota.zigbeeOTA,
     },
