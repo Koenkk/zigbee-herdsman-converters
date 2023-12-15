@@ -3118,9 +3118,10 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
         description: 'Aqara TVOC air quality monitor',
         fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tzLocal.VOCKQJK11LM_display_unit],
+        toZigbee: [tz.temperature, tz.humidity, tz.battery_voltage, tzLocal.VOCKQJK11LM_display_unit],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        exposes: [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.device_temperature(), e.battery(), e.battery_voltage(),
+        exposes: [e.temperature().withAccess(ea.STATE_GET), e.humidity().withAccess(ea.STATE_GET), e.voc().withUnit('ppb'),
+            e.device_temperature(), e.battery().withAccess(ea.STATE_GET), e.battery_voltage().withAccess(ea.STATE_GET),
             e.enum('display_unit', ea.ALL, ['mgm3_celsius', 'ppb_celsius', 'mgm3_fahrenheit', 'ppb_fahrenheit'])
                 .withDescription('Units to show on the display')],
         configure: async (device, coordinatorEndpoint, logger) => {
