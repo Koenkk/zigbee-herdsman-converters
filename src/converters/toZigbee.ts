@@ -1783,6 +1783,12 @@ const converters2 = {
             await entity.read('msTemperatureMeasurement', ['measuredValue']);
         },
     } satisfies Tz.Converter,
+    humidity: {
+        key: ['humidity'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msRelativeHumidity', ['measuredValue']);
+        },
+    } satisfies Tz.Converter,
     illuminance: {
         key: ['illuminance', 'illuminance_lux'],
         convertGet: async (entity, key, meta) => {
