@@ -9,6 +9,7 @@ import {
     getFromLookup,
 } from './utils';
 
+import {Zcl} from 'zigbee-herdsman';
 import * as exposes from './exposes';
 import * as globalStore from './store';
 import {Fz, Definition, KeyValue, KeyValueAny} from './types';
@@ -1379,6 +1380,25 @@ export const xiaomiModernExtend = {
         lookup: {'single': 1},
         cluster: 'genMultistateInput',
         attribute: 'presentValue',
+        ...args,
+    }),
+    aqaraVoc: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'voc',
+        cluster: 'genAnalogInput',
+        attribute: 'presentValue',
+        description: 'Measured VOC value',
+        unit: 'ppb',
+        readOnly: true,
+        ...args,
+    }),
+    aqaraAirQuality: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'air_quality',
+        lookup: {'excellent': 1, 'good': 2, 'moderate': 3, 'poor': 4, 'unhealthy': 5},
+        cluster: 'aqaraOpple',
+        attribute: {id: 0x0129, type: Zcl.DataType.uint8},
+        description: 'Measured air quality',
+        zigbeeCommandOptions: {disableDefaultResponse: true},
+        readOnly: true,
         ...args,
     }),
 };

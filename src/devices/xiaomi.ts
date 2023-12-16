@@ -11,7 +11,10 @@ const e = exposes.presets;
 const ea = exposes.access;
 import * as globalStore from '../lib/store';
 import * as xiaomi from '../lib/xiaomi';
-const {xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior, xiaomiSwitchType} = xiaomi.modernExtend;
+const {
+    xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior,
+    xiaomiSwitchType, aqaraAirQuality, aqaraVoc,
+} = xiaomi.modernExtend;
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz, Extend} from '../lib/types';
 const {printNumbersAsHexSequence} = utils;
@@ -3117,12 +3120,16 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
         description: 'Aqara TVOC air quality monitor',
-        fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
         toZigbee: [tzLocal.VOCKQJK11LM_display_unit],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.device_temperature(), e.battery(), e.battery_voltage(),
             e.enum('display_unit', ea.ALL, ['mgm3_celsius', 'ppb_celsius', 'mgm3_fahrenheit', 'ppb_fahrenheit'])
                 .withDescription('Units to show on the display')],
+        extend: [
+            aqaraVoc(),
+            aqaraAirQuality(),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genAnalogInput'];
