@@ -72,7 +72,7 @@ export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, I
     key = key || msg.device.ieeeAddr;
     if (transactionStore[key]?.includes(currentID)) return true;
     // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
-    transactionStore[key] = [currentID, ...transactionStore[key]].slice(0, 5);
+    transactionStore[key] = [currentID, ...(transactionStore[key] ?? [])].slice(0, 5);
     return false;
 }
 
