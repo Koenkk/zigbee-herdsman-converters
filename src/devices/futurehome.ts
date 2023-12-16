@@ -1,10 +1,8 @@
 import {Definition} from 'src/lib/types';
 import * as exposes from '../lib/exposes';
 import * as tuya from '../lib/tuya';
-import extend from '../lib/extend';
-import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-
+import {light} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -87,14 +85,7 @@ const definitions: Definition[] = [
         vendor: 'Futurehome',
         description: 'Smart puck',
         ota: ota.zigbeeOTA,
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
 ];
 
