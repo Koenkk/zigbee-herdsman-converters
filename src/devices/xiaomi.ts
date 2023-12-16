@@ -13,7 +13,7 @@ import * as globalStore from '../lib/store';
 import * as xiaomi from '../lib/xiaomi';
 const {
     xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior,
-    xiaomiSwitchType, aqaraAirQuality, aqaraVoc,
+    xiaomiSwitchType, aqaraAirQuality, aqaraVoc, aqaraDisplayUnit,
 } = xiaomi.modernExtend;
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz, Extend} from '../lib/types';
@@ -526,17 +526,6 @@ const tzLocal = {
             if (dict.hasOwnProperty(key)) {
                 await entity.read('aqaraOpple', [utils.getFromLookup(key, dict)], {manufacturerCode: 0x115F});
             }
-        },
-    } satisfies Tz.Converter,
-    VOCKQJK11LM_display_unit: {
-        key: ['display_unit'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple',
-                {0x0114: {value: utils.getFromLookup(value, xiaomi.VOCKQJK11LMDisplayUnit), type: 0x20}}, {manufacturerCode: 0x115F});
-            return {state: {display_unit: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
         },
     } satisfies Tz.Converter,
     aqara_feeder: {
@@ -3121,14 +3110,12 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
         description: 'Aqara TVOC air quality monitor',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tzLocal.VOCKQJK11LM_display_unit],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        exposes: [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.device_temperature(), e.battery(), e.battery_voltage(),
-            e.enum('display_unit', ea.ALL, ['mgm3_celsius', 'ppb_celsius', 'mgm3_fahrenheit', 'ppb_fahrenheit'])
-                .withDescription('Units to show on the display')],
+        exposes: [e.temperature(), e.humidity(), e.device_temperature(), e.battery(), e.battery_voltage()],
         extend: [
-            aqaraVoc(),
             aqaraAirQuality(),
+            aqaraVoc(),
+            aqaraDisplayUnit(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

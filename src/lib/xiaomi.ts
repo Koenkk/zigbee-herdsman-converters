@@ -4,7 +4,6 @@ import {
     calibrateAndPrecisionRoundOptionsIsPercentual,
     postfixWithEndpointName,
     precisionRound,
-    getKey,
     assertNumber,
     getFromLookup,
 } from './utils';
@@ -516,9 +515,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             }
             break;
         case '276':
-            if (['VOCKQJK11LM'].includes(model.model)) {
-                payload.display_unit = getKey(VOCKQJK11LMDisplayUnit, value);
-            }
+            // Use aqaraDisplayUnit modernExtend, but we add it here to not shown an unknown key in the log
             break;
         case '293':
             payload.click_mode = getFromLookup(value, {1: 'fast', 2: 'multi'});
@@ -532,6 +529,9 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             if (['JT-BZ-01AQ/A', 'JY-GZ-01AQ'].includes(model.model)) {
                 payload.test = value === 1;
             }
+            break;
+        case '297':
+            // Use aqaraAirQuality modernExtend, but we add it here to not shown an unknown key in the log
             break;
         case '313':
             if (['JT-BZ-01AQ/A'].includes(model.model)) {
@@ -775,13 +775,6 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
     if (meta.logger) meta.logger.debug(`${model.model}: Processed data into payload ${JSON.stringify(payload)}`);
 
     return payload;
-};
-
-export const VOCKQJK11LMDisplayUnit = {
-    'mgm3_celsius': 0x00, // mg/m³, °C (default)
-    'ppb_celsius': 0x01, // ppb, °C
-    'mgm3_fahrenheit': 0x10, // mg/m³, °F
-    'ppb_fahrenheit': 0x11, // ppb, °F
 };
 
 export const numericAttributes2Options = (definition: Definition) => {
@@ -1401,6 +1394,20 @@ export const xiaomiModernExtend = {
         readOnly: true,
         ...args,
     }),
+    aqaraDisplayUnit: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'display_unit',
+        lookup: {
+            'mgm3_celsius': 0x00, // mg/m³, °C (default)
+            'ppb_celsius': 0x01, // ppb, °C
+            'mgm3_fahrenheit': 0x10, // mg/m³, °F
+            'ppb_fahrenheit': 0x11, // ppb, °F
+        },
+        cluster: 'aqaraOpple',
+        attribute: {id: 0x0114, type: Zcl.DataType.uint8},
+        description: 'Units to show on the display',
+        zigbeeCommandOptions: {disableDefaultResponse: true},
+        ...args,
+    }),
 };
 
 export {xiaomiModernExtend as modernExtend};
@@ -1440,7 +1447,6 @@ export const fromZigbee = {
 exports.buffer2DataObject = buffer2DataObject;
 exports.numericAttributes2Payload = numericAttributes2Payload;
 exports.numericAttributes2Options = numericAttributes2Options;
-exports.VOCKQJK11LMDisplayUnit = VOCKQJK11LMDisplayUnit;
 exports.fp1 = fp1;
 exports.trv = trv;
 exports.manufacturerCode = manufacturerCode;
