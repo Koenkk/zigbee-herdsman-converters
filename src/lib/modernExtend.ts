@@ -284,7 +284,7 @@ export function light(args?: LightArgs): ModernExtend {
 export interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, endpoint?: string,
-    configureEndpointId?: number, configureReporting?: ConfigureReportingItem, configureSkipRead?: boolean,
+    configureEndpointId?: number, configureReporting?: Partial<ZHConfigureReportingItem>, configureSkipRead?: boolean,
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
     const {
@@ -332,7 +332,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, unit?: string,
-    endpoint?: string, configureEndpointId?: number, configureReporting?: ConfigureReportingItem, configureSkipRead?: boolean,
+    endpoint?: string, configureEndpointId?: number, configureReporting?: Partial<ZHConfigureReportingItem>, configureSkipRead?: boolean,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
 }
 export function numeric(args: NumericArgs): ModernExtend {

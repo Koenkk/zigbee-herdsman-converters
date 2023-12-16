@@ -3119,13 +3119,10 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genAnalogInput'];
+            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.humidity(endpoint);
             await reporting.temperature(endpoint);
-            const payload = reporting.payload('presentValue', 10, constants.repInterval.HOUR, 5);
-            await endpoint.configureReporting('genAnalogInput', payload);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
         },
         ota: ota.zigbeeOTA,
