@@ -1683,7 +1683,7 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
-            e.power().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(), e.voltage(),
+            e.power().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(), e.voltage(), e.energy(),
             e.device_temperature().withAccess(ea.STATE), e.flip_indicator_light(),
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
@@ -1742,6 +1742,7 @@ const definitions: Definition[] = [
         exposes: [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
+            e.energy(),
             e.power().withAccess(ea.STATE_GET),
             e.action([
                 'hold_left', 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both',
