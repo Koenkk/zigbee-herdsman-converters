@@ -284,13 +284,13 @@ export function light(args?: LightArgs): ModernExtend {
 export interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, endpoint?: string,
-    configureSkipRead?: boolean, configureEndpointId?: number,
+    configureEndpointId?: number, configureReporting?: ConfigureReportingItem, configureSkipRead?: boolean,
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
     const {
         name, lookup, cluster, attribute, description,
         zigbeeCommandOptions, readOnly, endpoint,
-        configureSkipRead, configureEndpointId,
+        configureEndpointId, configureReporting, configureSkipRead,
     } = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
 
@@ -321,10 +321,9 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
     }];
 
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        if (!configureSkipRead) {
-            const ep = device.getEndpoint(isNumber(configureEndpointId) ? configureEndpointId : 1);
-            await ep.read(cluster.toString(), isString(attribute) ? [attribute] : [attribute.id], zigbeeCommandOptions);
-        }
+        const entity = isNumber(configureEndpointId) ? device.getEndpoint(configureEndpointId) : device;
+        const reportConfig = (configureReporting !== undefined) ? {...configureReporting, ...{attribute: attribute}} : {attribute: attribute};
+        await setupAttributes(entity, coordinatorEndpoint, cluster.toString(), [reportConfig], logger, (configureReporting === undefined));
     };
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
@@ -333,14 +332,14 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, unit?: string,
-    endpoint?: string, configureSkipRead?: boolean, configureEndpointId?: number,
+    endpoint?: string, configureEndpointId?: number, configureReporting?: ConfigureReportingItem, configureSkipRead?: boolean,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
         name, cluster, attribute, description,
         zigbeeCommandOptions, readOnly, unit, endpoint,
-        configureSkipRead, configureEndpointId,
+        configureEndpointId, configureReporting, configureSkipRead,
         valueMin, valueMax, valueStep, scale,
     } = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
@@ -380,10 +379,9 @@ export function numeric(args: NumericArgs): ModernExtend {
     }];
 
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        if (!configureSkipRead) {
-            const ep = device.getEndpoint(isNumber(configureEndpointId) ? configureEndpointId : 1);
-            await ep.read(cluster.toString(), isString(attribute) ? [attribute] : [attribute.id], zigbeeCommandOptions);
-        }
+        const entity = isNumber(configureEndpointId) ? device.getEndpoint(configureEndpointId) : device;
+        const reportConfig = (configureReporting !== undefined) ? {...configureReporting, ...{attribute: attribute}} : {attribute: attribute};
+        await setupAttributes(entity, coordinatorEndpoint, cluster.toString(), [reportConfig], logger, (configureReporting === undefined));
     };
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
