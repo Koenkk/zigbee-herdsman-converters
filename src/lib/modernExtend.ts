@@ -5,7 +5,10 @@ import {presets as e, access as ea} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
 import {configure as lightConfigure} from './light';
 import {ConfigureReportingItem as ZHConfigureReportingItem} from 'zigbee-herdsman/dist/controller/model/endpoint';
-import {getFromLookupByValue, isString, getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName, isObject, isEndpoint} from './utils';
+import {
+    getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
+    getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
+} from './utils';
 import {repInterval} from './constants';
 
 const DefaultReportingItemValues = {
@@ -280,10 +283,15 @@ export function light(args?: LightArgs): ModernExtend {
 
 export interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
-    zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, endpoint?: string,
+    zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, endpoint?: string,
+    configureSkipRead?: boolean, configureEndpointId?: number,
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
-    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpoint, readOnly} = args;
+    const {
+        name, lookup, cluster, attribute, description,
+        zigbeeCommandOptions, readOnly, endpoint,
+        configureSkipRead, configureEndpointId,
+    } = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
 
     let expose = e.enum(name, readOnly ? ea.STATE_GET : ea.ALL, Object.keys(lookup)).withDescription(description);
@@ -312,16 +320,29 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
         },
     }];
 
-    return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        if (!configureSkipRead) {
+            const ep = device.getEndpoint(isNumber(configureEndpointId) ? configureEndpointId : 1);
+            await ep.read(cluster.toString(), isString(attribute) ? [attribute] : [attribute.id], zigbeeCommandOptions);
+        }
+    };
+
+    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
-    zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, unit?: string, endpoint?: string,
+    zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, unit?: string,
+    endpoint?: string, configureSkipRead?: boolean, configureEndpointId?: number,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
 }
 export function numeric(args: NumericArgs): ModernExtend {
-    const {name, cluster, attribute, description, zigbeeCommandOptions, unit, readOnly, valueMax, valueMin, valueStep, endpoint, scale} = args;
+    const {
+        name, cluster, attribute, description,
+        zigbeeCommandOptions, readOnly, unit, endpoint,
+        configureSkipRead, configureEndpointId,
+        valueMin, valueMax, valueStep, scale,
+    } = args;
     const attributeKey = isString(attribute) ? attribute : attribute.id;
 
     let expose = e.numeric(name, readOnly ? ea.STATE_GET : ea.ALL).withDescription(description);
@@ -358,7 +379,14 @@ export function numeric(args: NumericArgs): ModernExtend {
         },
     }];
 
-    return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        if (!configureSkipRead) {
+            const ep = device.getEndpoint(isNumber(configureEndpointId) ? configureEndpointId : 1);
+            await ep.read(cluster.toString(), isString(attribute) ? [attribute] : [attribute.id], zigbeeCommandOptions);
+        }
+    };
+
+    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface BinaryArgs {
