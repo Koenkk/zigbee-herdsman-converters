@@ -3125,7 +3125,8 @@ const definitions: Definition[] = [
             await reporting.temperature(endpoint);
             const payload = reporting.payload('presentValue', 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting('genAnalogInput', payload);
-            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
         },
         ota: ota.zigbeeOTA,
     },
