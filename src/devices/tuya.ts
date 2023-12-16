@@ -4903,7 +4903,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}, {modelID: 'TS0601', manufacturerName: '_TZE200_vvmbj46n'}],
         model: 'JM-TRH-ZGB-V1',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with clock',
@@ -4932,8 +4932,10 @@ const definitions: Definition[] = [
             e.numeric('min_humidity', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Alarm humidity min'),
         ],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'TH05Z', 'Temperature & humidity sensor with clock', ['_TZE200_vvmbj46n']),
+        ],
     },
-
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'},
             {modelID: 'TS004F', manufacturerName: '_TZ3000_ja5osu5g'}],
