@@ -1,5 +1,21 @@
 # Changelog
 
+## [16.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.10.0...v16.11.0) (2023-12-16)
+
+
+### Features
+
+* **add:** 4509243 ([#6717](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6717)) ([f143c7f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f143c7f84a737f620ebe2afec948c08b0191f33f))
+
+
+### Bug Fixes
+
+* Add color temp range for Philips 5061031P7 ([#6718](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6718)) ([1bbbb5d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1bbbb5d74b14a9cfcd4435c45a9efc31ff6aa60d))
+* Configure reporting for HeatIt 1444420 ([#6716](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6716)) ([69bd6a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/69bd6a6f133131857ba3b779da4ab40548a50fe5))
+* **detect:** Detect `_TZE200_vvmbj46n` as TuYa TH05Z ([#6705](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6705)) ([11ddeb5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/11ddeb54a3c9f52c2bd0e2480ffbc292b3e46793))
+* **ignore:** fix 172a386bdfced76f9d965262b04f9d52fc67c56d ([75e57b8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/75e57b8397b4f6915094391fa2ed49018580ad5f))
+* Set power to 0 when `TS011F_plug_1` changes state to `OFF` https://github.com/Koenkk/zigbee2mqtt/discussions/19680 ([27e6d1e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/27e6d1e74c7a06e05568bcb45d486fee8fc7a11f))
+
 ## [16.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.9.0...v16.10.0) (2023-12-15)
 
 
