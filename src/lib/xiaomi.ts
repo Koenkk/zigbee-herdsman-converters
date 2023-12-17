@@ -8,7 +8,6 @@ import {
     getFromLookup,
 } from './utils';
 
-import {Zcl} from 'zigbee-herdsman';
 import * as exposes from './exposes';
 import * as globalStore from './store';
 import * as constants from './constants';
@@ -515,9 +514,6 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 payload.gas_sensitivity = getFromLookup(value, {1: '15%LEL', 2: '10%LEL'});
             }
             break;
-        case '276':
-            // Use aqaraDisplayUnit modernExtend, but we add it here to not shown an unknown key in the log
-            break;
         case '293':
             payload.click_mode = getFromLookup(value, {1: 'fast', 2: 'multi'});
             break;
@@ -530,9 +526,6 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             if (['JT-BZ-01AQ/A', 'JY-GZ-01AQ'].includes(model.model)) {
                 payload.test = value === 1;
             }
-            break;
-        case '297':
-            // Use aqaraAirQuality modernExtend, but we add it here to not shown an unknown key in the log
             break;
         case '313':
             if (['JT-BZ-01AQ/A'].includes(model.model)) {
@@ -767,6 +760,12 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case 'illuminance':
             // It contains the illuminance and occupancy, but in z2m we use a custom timer to do it, so we ignore it
+            break;
+        case 'displayUnit':
+            // Use aqaraDisplayUnit modernExtend, but we add it here to not shown an unknown key in the log
+            break;
+        case 'airQuality':
+            // Use aqaraAirQuality modernExtend, but we add it here to not shown an unknown key in the log
             break;
         default:
             if (meta.logger) meta.logger.debug(`${model.model}: unknown key ${key} with value ${value}`);
@@ -1381,6 +1380,7 @@ export const xiaomiModernExtend = {
         cluster: 'genAnalogInput',
         attribute: 'presentValue',
         configureReporting: {minimumReportInterval: 10, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 5},
+        configureEndpointId: 1,
         description: 'Measured VOC value',
         unit: 'ppb',
         readOnly: true,
@@ -1390,7 +1390,8 @@ export const xiaomiModernExtend = {
         name: 'air_quality',
         lookup: {'excellent': 1, 'good': 2, 'moderate': 3, 'poor': 4, 'unhealthy': 5},
         cluster: 'aqaraOpple',
-        attribute: {id: 0x0129, type: Zcl.DataType.uint8},
+        attribute: 'airQuality',
+        configureEndpointId: 1,
         zigbeeCommandOptions: {disableDefaultResponse: true},
         description: 'Measured air quality',
         readOnly: true,
@@ -1405,7 +1406,8 @@ export const xiaomiModernExtend = {
             'ppb_fahrenheit': 0x11, // ppb, °F
         },
         cluster: 'aqaraOpple',
-        attribute: {id: 0x0114, type: Zcl.DataType.uint8},
+        attribute: 'displayUnit',
+        configureEndpointId: 1,
         zigbeeCommandOptions: {disableDefaultResponse: true},
         description: 'Units to show on the display',
         ...args,
