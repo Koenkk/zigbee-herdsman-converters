@@ -6545,7 +6545,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_k7mfgaen']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_k7mfgaen', '_TZE204_fncxk3ob']),
         model: 'YXZBSL',
         vendor: 'TuYa',
         description: 'Smart siren',
