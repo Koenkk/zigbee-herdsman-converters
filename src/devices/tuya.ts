@@ -12,7 +12,7 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueNumberString, KeyValueString} from '../lib/types';
-import {onOff} from '../lib/modernExtend';
+import {electricityMeter, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -3306,20 +3306,16 @@ const definitions: Definition[] = [
             powerOutageMemory: true, indicatorMode: true, childLock: true, onOffFzConverter: fzLocal.TS011F_onoff}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.rmsVoltage(endpoint, {change: 5});
-            await reporting.rmsCurrent(endpoint, {change: 50});
+            await onOff({powerOnBehavior: false}).configure(device, coordinatorEndpoint, logger);
+
+            const acCurrentDivisor = device.manufacturerName === '_TZ3000_typdpbpg' ? 2000 : 1000;
+            await electricityMeter({power: false, voltage: {divisor: 1}, current: {divisor: acCurrentDivisor}, energy: {divisor: 100}});
             if (!['_TZ3000_0zfrhq4i', '_TZ3000_okaz9tjs', '_TZ3000_typdpbpg'].includes(device.manufacturerName)) {
                 // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i (as well as a few others in issue 20028)
                 // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
-                await reporting.activePower(endpoint, {change: 10});
+                await electricityMeter({power: {divisor: 1}, voltage: false, current: false, energy: false})
+                    .configure(device, coordinatorEndpoint, logger);
             }
-            await reporting.currentSummDelivered(endpoint);
-            const acCurrentDivisor = device.manufacturerName === '_TZ3000_typdpbpg' ? 2000 : 1000;
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor, acCurrentMultiplier: 1});
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
-            device.save();
         },
     },
     {
