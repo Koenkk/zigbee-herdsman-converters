@@ -47,6 +47,19 @@ async function setupAttributes(
     }
 }
 
+export function setupConfigureForReporting(
+    cluster: string, attribute: string | number | {ID: number, type: number},
+    endpointID?: number, reportingConfiguration?: Partial<ZHConfigureReportingItem>,
+) {
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        const entity = isNumber(endpointID) ? device.getEndpoint(endpointID) : device;
+        const reportConfig = (reportingConfiguration !== undefined) ? {...reportingConfiguration, ...{attribute: attribute}} : {attribute: attribute};
+        await setupAttributes(entity, coordinatorEndpoint, cluster.toString(), [reportConfig], logger, (reportingConfiguration === undefined));
+    };
+
+    return configure;
+}
+
 export interface OnOffArgs {
     powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpoints?: {[s: string]: number},
     configureReporting?: boolean,
@@ -320,11 +333,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
         },
     }];
 
-    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        const entity = isNumber(endpointID) ? device.getEndpoint(endpointID) : device;
-        const reportConfig = (configureReporting !== undefined) ? {...configureReporting, ...{attribute: attribute}} : {attribute: attribute};
-        await setupAttributes(entity, coordinatorEndpoint, cluster.toString(), [reportConfig], logger, (configureReporting === undefined));
-    };
+    const configure = setupConfigureForReporting(cluster.toString(), attribute, endpointID, configureReporting);
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -378,11 +387,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         },
     }];
 
-    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        const entity = isNumber(endpointID) ? device.getEndpoint(endpointID) : device;
-        const reportConfig = (configureReporting !== undefined) ? {...configureReporting, ...{attribute: attribute}} : {attribute: attribute};
-        await setupAttributes(entity, coordinatorEndpoint, cluster.toString(), [reportConfig], logger, (configureReporting === undefined));
-    };
+    const configure = setupConfigureForReporting(cluster.toString(), attribute, endpointID, configureReporting);
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -390,10 +395,13 @@ export function numeric(args: NumericArgs): ModernExtend {
 export interface BinaryArgs {
     name: string, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], cluster: string | number,
     attribute: string | {ID: number, type: number}, description: string, zigbeeCommandOptions?: {manufacturerCode: number},
-    readOnly?: boolean, endpoint?: string,
+    endpoint?: string, endpointID?: number, configureReporting?: Partial<ZHConfigureReportingItem>, readOnly?: boolean,
 }
 export function binary(args: BinaryArgs): ModernExtend {
-    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, readOnly, endpoint} = args;
+    const {
+        name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions,
+        endpoint, endpointID, configureReporting, readOnly,
+    } = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
     let expose = e.binary(name, readOnly ? ea.STATE_GET : ea.ALL, valueOn[0], valueOff[0]).withDescription(description);
@@ -422,7 +430,9 @@ export function binary(args: BinaryArgs): ModernExtend {
         },
     }];
 
-    return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+    const configure = setupConfigureForReporting(cluster.toString(), attribute, endpointID, configureReporting);
+
+    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface ActionEnumLookupArgs {
