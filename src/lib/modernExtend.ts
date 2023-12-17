@@ -282,7 +282,7 @@ export function light(args?: LightArgs): ModernExtend {
 }
 
 export interface EnumLookupArgs {
-    name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
+    name: string, lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, endpoint?: string,
     configureEndpointId?: number, configureReporting?: Partial<ZHConfigureReportingItem>, configureSkipRead?: boolean,
 }
@@ -292,7 +292,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
         zigbeeCommandOptions, readOnly, endpoint,
         configureEndpointId, configureReporting, configureSkipRead,
     } = args;
-    const attributeKey = isString(attribute) ? attribute : attribute.id;
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
     let expose = e.enum(name, readOnly ? ea.STATE_GET : ea.ALL, Object.keys(lookup)).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
@@ -311,7 +311,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
         key: [name],
         convertSet: readOnly ? undefined : async (entity, key, value, meta) => {
             const payloadValue = getFromLookup(value, lookup);
-            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.id]: {value: payloadValue, type: attribute.type}};
+            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
         },
@@ -330,7 +330,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 }
 
 export interface NumericArgs {
-    name: string, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
+    name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, unit?: string,
     endpoint?: string, configureEndpointId?: number, configureReporting?: Partial<ZHConfigureReportingItem>, configureSkipRead?: boolean,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
@@ -342,7 +342,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         configureEndpointId, configureReporting, configureSkipRead,
         valueMin, valueMax, valueStep, scale,
     } = args;
-    const attributeKey = isString(attribute) ? attribute : attribute.id;
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
     let expose = e.numeric(name, readOnly ? ea.STATE_GET : ea.ALL).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
@@ -369,7 +369,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         convertSet: readOnly ? undefined : async (entity, key, value, meta) => {
             assertNumber(value, key);
             const payloadValue = scale === undefined ? value : value * scale;
-            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.id]: {value: payloadValue, type: attribute.type}};
+            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
         },
@@ -389,12 +389,12 @@ export function numeric(args: NumericArgs): ModernExtend {
 
 export interface BinaryArgs {
     name: string, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], cluster: string | number,
-    attribute: string | {id: number, type: number}, description: string, zigbeeCommandOptions?: {manufacturerCode: number},
+    attribute: string | {ID: number, type: number}, description: string, zigbeeCommandOptions?: {manufacturerCode: number},
     readOnly?: boolean, endpoint?: string,
 }
 export function binary(args: BinaryArgs): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, readOnly, endpoint} = args;
-    const attributeKey = isString(attribute) ? attribute : attribute.id;
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
     let expose = e.binary(name, readOnly ? ea.STATE_GET : ea.ALL, valueOn[0], valueOff[0]).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
@@ -413,7 +413,7 @@ export function binary(args: BinaryArgs): ModernExtend {
         key: [name],
         convertSet: readOnly ? undefined : async (entity, key, value, meta) => {
             const payloadValue = value === valueOn[0] ? valueOn[1] : valueOff[1];
-            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.id]: {value: payloadValue, type: attribute.type}};
+            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
         },
@@ -426,11 +426,11 @@ export function binary(args: BinaryArgs): ModernExtend {
 }
 
 export interface ActionEnumLookupArgs {
-    lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, postfixWithEndpointName?: boolean,
+    lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, postfixWithEndpointName?: boolean,
 }
 export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     const {lookup, attribute, cluster} = args;
-    const attributeKey = isString(attribute) ? attribute : attribute.id;
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
     const expose = e.enum('action', ea.STATE, Object.keys(lookup)).withDescription('Triggered action (e.g. a button click)');
 
