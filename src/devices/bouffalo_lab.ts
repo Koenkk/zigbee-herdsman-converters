@@ -1,6 +1,5 @@
 import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {forcePowerSource, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -8,16 +7,9 @@ const definitions: Definition[] = [
         model: 'RMC002',
         vendor: 'Bouffalolab',
         description: 'US plug smart socket',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-            // Reports itself as unknown which is not correct
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -2,9 +2,9 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
-import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -13,16 +13,7 @@ const definitions: Definition[] = [
         model: '4713407',
         vendor: 'Airam',
         description: 'LED OP A60 ZB 9W/827 E27',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            const payload = [{attribute: 'currentLevel', minimumReportInterval: 300, maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1}];
-            await endpoint.configureReporting('genLevelCtrl', payload);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ZBT-Remote-EU-DIMV1A2'],
@@ -56,8 +47,9 @@ const definitions: Definition[] = [
         model: '4713406',
         vendor: 'Airam',
         description: 'GU10 spot 4.8W 2700K 385lm',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

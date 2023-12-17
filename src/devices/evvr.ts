@@ -1,6 +1,6 @@
 import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
+
 
 const definitions: Definition[] = [
     {
@@ -8,13 +8,9 @@ const definitions: Definition[] = [
         model: 'SRB01',
         vendor: 'Evvr',
         description: 'In-wall relay switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

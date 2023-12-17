@@ -6,6 +6,7 @@ import * as securifi from './securifi';
 import * as tradfri from './tradfri';
 import * as ubisys from './ubisys';
 import * as zigbeeOTA from './zigbeeOTA';
+import {Ota} from '../types';
 
 export {
     inovelli,
@@ -18,11 +19,5 @@ export {
     zigbeeOTA,
 };
 
-exports.inovelli = inovelli;
-exports.ledvance = ledvance;
-exports.salus = salus;
-exports.lixee = lixee;
-exports.securifi = securifi;
-exports.tradfri = tradfri;
-exports.ubisys = ubisys;
-exports.zigbeeOTA = zigbeeOTA;
+export type ImageInfo = Ota.ImageInfo;
+

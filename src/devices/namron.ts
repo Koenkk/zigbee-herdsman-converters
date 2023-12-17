@@ -9,6 +9,8 @@ import * as globalStore from '../lib/store';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
 import extend from '../lib/extend';
+import {forcePowerSource, light, onOff} from '../lib/modernExtend';
+
 const ea = exposes.access;
 const e = exposes.presets;
 
@@ -41,7 +43,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -93,7 +95,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key toZigbee.namron_panelheater.convertGet ${key}`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -102,64 +104,46 @@ const definitions: Definition[] = [
         model: '3308431',
         vendor: 'Namron',
         description: 'Luna ceiling light',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['3802967'],
         model: '3802967',
         vendor: 'Namron',
         description: 'Led bulb 6w RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
         zigbeeModel: ['4512700'],
         model: '4512700',
         vendor: 'Namron',
         description: 'Zigbee dimmer 400W',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512760'],
         model: '4512760',
         vendor: 'Namron',
         description: 'Zigbee dimmer 400W',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512708'],
         model: '4512708',
         vendor: 'Namron',
         description: 'Zigbee LED dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512767'],
         model: '4512767',
         vendor: 'Namron',
         description: 'Zigbee smart plug 16A',
-        fromZigbee: [fz.metering, fz.electrical_measurement],
-        exposes: [e.power(), e.current(), e.voltage(), e.energy()],
-        extend: extend.switch(),
+        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.power(), e.current(), e.voltage(), e.energy(), e.switch()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
             const binds = [
@@ -209,25 +193,14 @@ const definitions: Definition[] = [
         model: '4512733',
         vendor: 'Namron',
         description: 'ZigBee dimmer 2-pol 400W',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512704'],
         model: '4512704',
         vendor: 'Namron',
         description: 'Zigbee switch 400W',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -235,13 +208,7 @@ const definitions: Definition[] = [
         model: '1402755',
         vendor: 'Namron',
         description: 'ZigBee LED dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['4512703'],
@@ -303,15 +270,7 @@ const definitions: Definition[] = [
         model: '1402769',
         vendor: 'Namron',
         description: 'ZigBee LED dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [light({configureReporting: true}), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['4512702'],
@@ -414,58 +373,56 @@ const definitions: Definition[] = [
         model: '3802960',
         vendor: 'Namron',
         description: 'LED 9W DIM E27',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['3802961'],
         model: '3802961',
         vendor: 'Namron',
         description: 'LED 9W CCT E27',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['3802962'],
         model: '3802962',
         vendor: 'Namron',
         description: 'LED 9W RGBW E27',
-        meta: {turnsOffAtBrightness1: true},
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['3802963'],
         model: '3802963',
         vendor: 'Namron',
         description: 'LED 5,3W DIM E14',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['3802964'],
         model: '3802964',
         vendor: 'Namron',
         description: 'LED 5,3W CCT E14',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3802965'],
         model: '3802965',
         vendor: 'Namron',
         description: 'LED 4,8W DIM GU10',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['3802966'],
         model: '3802966',
         vendor: 'Namron',
         description: 'LED 4.8W CCT GU10',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['89665'],
         model: '89665',
         vendor: 'Namron',
         description: 'LED Strip RGB+W (5m) IP20',
-        meta: {turnsOffAtBrightness1: true},
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['4512737', '4512738'],
@@ -817,8 +774,7 @@ const definitions: Definition[] = [
         model: '3802968',
         vendor: 'Namron',
         description: 'LED Filament Flex 5W CCT E27 Clear',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
-        meta: {turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['4512749'],
@@ -913,14 +869,9 @@ const definitions: Definition[] = [
         model: '4512750',
         vendor: 'Namron',
         description: 'Zigbee dimmer 2.0',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
+        ota: ota.zigbeeOTA,
+        extend: [light({configureReporting: true})],
         whiteLabel: [{vendor: 'Namron', model: '4512751', description: 'Zigbee dimmer 2.0', fingerprint: [{modelID: '4512751'}]}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.brightness(endpoint);
-        },
     },
     {
         zigbeeModel: ['4512766'],
@@ -942,6 +893,91 @@ const definitions: Definition[] = [
             await reporting.activePower(endpoint);
         },
     },
+    {
+        zigbeeModel: ['4512772', '4512773'],
+        model: '4512773',
+        vendor: 'Namron',
+        description: 'Zigbee 8 channel switch black',
+        whiteLabel: [{vendor: 'Namron', model: '4512772', description: 'Zigbee 8 channel switch white', fingerprint: [{modelID: '4512772'}]}],
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        exposes: [e.battery(), e.action([
+            'on_l1', 'off_l1', 'brightness_move_up_l1', 'brightness_move_down_l1', 'brightness_stop_l1',
+            'on_l2', 'off_l2', 'brightness_move_up_l2', 'brightness_move_down_l2', 'brightness_stop_l2',
+            'on_l3', 'off_l3', 'brightness_move_up_l3', 'brightness_move_down_l3', 'brightness_stop_l3',
+            'on_l4', 'off_l4', 'brightness_move_up_l4', 'brightness_move_down_l4', 'brightness_stop_l4'])],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4};
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['4512768'],
+        model: '4512768',
+        vendor: 'Namron',
+        description: 'Zigbee 2 channel switch',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.power_on_behavior(['off', 'on', 'previous']),
+            e.energy(),
+            e.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
+            e.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),
+            e.numeric('current_l1', ea.STATE).withUnit('A').withDescription('Phase 1 current'),
+            e.numeric('current_l2', ea.STATE).withUnit('A').withDescription('Phase 2 current'),
+            e.numeric('power_l1', ea.STATE).withUnit('W').withDescription('Phase 1 power'),
+            e.numeric('power_l2', ea.STATE).withUnit('W').withDescription('Phase 2 power')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true, publishDuplicateTransaction: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            await reporting.onOff(endpoint2);
+            await reporting.currentSummDelivered(endpoint1);
+        },
+    },
+    {
+        zigbeeModel: ['4512761'],
+        model: '4512761',
+        vendor: 'Namron',
+        description: 'Zigbee relais 16A',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.power_on_behavior()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.onOff(endpoint);
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['4512770', '4512771'],
+        model: '4512770',
+        vendor: 'Namron',
+        description: 'Zigbee multisensor (white)',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.humidity, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux(), e.temperature(), e.humidity()],
+        whiteLabel: [{vendor: 'Namron', model: '4512771', description: 'Zigbee multisensor (black)', fingerprint: [{modelID: '4512771'}]}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint3 = device.getEndpoint(3);
+            const endpoint4 = device.getEndpoint(4);
+            const endpoint5 = device.getEndpoint(5);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.bind(endpoint4, coordinatorEndpoint, ['msRelativeHumidity']);
+            await reporting.bind(endpoint5, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+        },
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

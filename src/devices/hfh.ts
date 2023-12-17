@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,8 +7,9 @@ const definitions: Definition[] = [
         model: '303-0136',
         vendor: 'HFH Solutions',
         description: 'LED controller',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [155, 495]}),
+        extend: [light({colorTemp: {range: [155, 495]}})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

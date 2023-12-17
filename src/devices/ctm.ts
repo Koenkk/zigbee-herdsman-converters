@@ -32,7 +32,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ctm_device_mode: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -46,7 +46,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ctm_device_enabled: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -59,7 +59,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ctm_child_lock: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -72,7 +72,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ctm_current_flag: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -85,7 +85,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ctm_relay_state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -98,7 +98,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ctm_temperature_offset: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -111,7 +111,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ctm_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -234,7 +234,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ctm_group_config: {
         cluster: '65191', // 0xFEA7 ctmGroupConfig
         type: ['attributeReport', 'readResponse'],
@@ -247,7 +247,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ctm_sove_guard: {
         cluster: '65481', // 0xFFC9 ctmSoveGuard
         type: ['attributeReport', 'readResponse'],
@@ -329,7 +329,7 @@ const fzLocal = {
 
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ctm_water_leak_alarm: {
         cluster: 'ssIasZone',
         type: ['commandStatusChangeNotification', 'attributeReport'],
@@ -341,7 +341,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 
@@ -355,13 +355,13 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_device_mode: {
         key: ['device_mode'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x2200]);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_device_enabled: {
         key: ['device_enabled'],
         convertSet: async (entity, key, value, meta) => {
@@ -370,19 +370,19 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x2201]);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_child_lock: {
         key: ['child_lock'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x2202]);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_current_flag: {
         key: ['current_flag'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x5000], {manufacturerCode: 0x1337});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_relay_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
@@ -392,7 +392,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x5001], {manufacturerCode: 0x1337});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_temperature_offset: {
         key: ['temperature_offset'],
         convertSet: async (entity, key, value, meta) => {
@@ -403,7 +403,7 @@ const tzLocal = {
             await entity.read('msTemperatureMeasurement', [0x0400], {manufacturerCode: 0x1337, sendWhen: 'active'});
             await entity.read('msTemperatureMeasurement', ['measuredValue'], {sendWhen: 'active'});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_thermostat: {
         key: ['load', 'display_text', 'sensor', 'regulator_mode', 'power_status', 'system_mode', 'night_switching', 'frost_guard',
             'max_floor_temp', 'regulator_setpoint', 'regulation_mode', 'max_floor_guard', 'weekly_timer', 'exteral_sensor_source',
@@ -516,20 +516,20 @@ const tzLocal = {
                 throw new Error(`Unhandled key tzLocal.ctm_thermostat.convertGet ${key}`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
             const presetLookup = {'off': 0, 'away': 1, 'sleep': 2, 'home': 3};
             await entity.write('hvacThermostat', {0x0422: {value: utils.getFromLookup(value, presetLookup), type: dataType.uint8}});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('hvacThermostat', {0x0413: {value: utils.getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), type: dataType.boolean}});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_thermostat_gets: {
         key: ['mean_power', 'floor_temp', 'running_state', 'frost_guard_setpoint', 'external_temp',
             'air_temp', 'floor_sensor_error', 'exteral_sensor_error',
@@ -565,13 +565,13 @@ const tzLocal = {
                 throw new Error(`Unhandled key tzLocal.ctm_thermostat.convertGet ${key}`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_group_config: {
         key: ['group_id'],
         convertGet: async (entity, key, meta) => {
             await entity.read(0xFEA7, [0x0000], {manufacturerCode: 0x1337, sendWhen: 'active'});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ctm_sove_guard: {
         key: [
             'alarm_status', 'change_battery', 'stove_temperature', 'ambient_temperature', 'active', 'runtime', 'runtime_timeout',
@@ -645,7 +645,7 @@ const tzLocal = {
                 throw new Error(`Unhandled key tzLocal.ctm_sove_guard.convertGet ${key}`);
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -1041,4 +1041,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

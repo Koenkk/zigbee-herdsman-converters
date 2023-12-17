@@ -6,6 +6,8 @@ import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import {Definition} from '../lib/types';
+import {onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -15,13 +17,7 @@ const definitions: Definition[] = [
         model: 'DIYRuZ_R4_5',
         vendor: 'DIYRuZ',
         description: '[DiY 4 Relays + 4 switches + 1 buzzer](http://modkam.ru/?p=1054)',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('bottom_left'), e.switch().withEndpoint('bottom_right'),
-            e.switch().withEndpoint('top_left'), e.switch().withEndpoint('top_right'), e.switch().withEndpoint('center')],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
-        },
+        extend: [onOff({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4, center: 5}})],
     },
     {
         zigbeeModel: ['DIYRuZ_KEYPAD20'],
@@ -306,4 +302,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

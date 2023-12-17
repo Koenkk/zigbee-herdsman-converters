@@ -1,8 +1,7 @@
 import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-const e = exposes.presets;
+import {onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -23,17 +22,9 @@ const definitions: Definition[] = [
         model: 'SP-PS2-02',
         vendor: 'Spotmau',
         description: 'Smart wall switch - 2 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
-        endpoint: (device) => {
-            return {'left': 16, 'right': 17};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff', 'genBasic']);
-            await reporting.bind(device.getEndpoint(17), coordinatorEndpoint, ['genOnOff', 'genBasic']);
-        },
+        extend: [onOff({endpoints: {left: 16, right: 17}})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

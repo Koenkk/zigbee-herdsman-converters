@@ -6,6 +6,8 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -485,15 +487,16 @@ const definitions: Definition[] = [
         model: 'GP-LBU019BBAWU',
         vendor: 'SmartThings',
         description: 'Smart bulb',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZBT-DIMLight-GLS0044'],
         model: '7ZA-A806ST-Q1R',
         vendor: 'SmartThings',
         description: 'Smart bulb',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

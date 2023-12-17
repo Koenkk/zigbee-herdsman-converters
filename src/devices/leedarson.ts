@@ -3,7 +3,8 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -12,56 +13,56 @@ const definitions: Definition[] = [
         model: 'ZBT-DIMLight-GLS0800',
         vendor: 'Leedarson',
         description: 'LED E27 warm white',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-GLS0904'],
         model: 'ZBT-CCTLight-GLS0904',
         vendor: 'Leedarson',
         description: 'LED E27 tunable white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-Candle0904'],
         model: 'ZBT-CCTLight-Candle0904',
         vendor: 'Leedarson',
         description: 'LED E14 tunable white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['LED_GU10_OWDT'],
         model: 'ZM350STW1TCF',
         vendor: 'Leedarson',
         description: 'LED PAR16 50 GU10 tunable white',
-        extend: extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        extend: [light({colorTemp: {range: undefined, startup: false}})],
     },
     {
         zigbeeModel: ['M350ST-W1R-01', 'A470S-A7R-04'],
         model: 'M350STW1',
         vendor: 'Leedarson',
         description: 'LED PAR16 50 GU10',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['LED_E27_ORD'],
         model: 'A806S-Q1G',
         vendor: 'Leedarson',
         description: 'LED E27 color',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['ZHA-DimmableLight'],
         model: 'A806S-Q1R',
         vendor: 'Leedarson',
         description: 'LED E27 tunable white',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['LED_E27_OWDT'],
         model: 'ZA806SQ1TCF',
         vendor: 'Leedarson',
         description: 'LED E27 tunable white',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZBT-CCTSwitch-D0001'],
@@ -84,7 +85,7 @@ const definitions: Definition[] = [
         model: '6xy-M350ST-W1Z',
         vendor: 'Leedarson',
         description: 'PAR16 tunable white',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         fingerprint: [{modelID: 'ZHA-PIRSensor', manufacturerName: 'Leedarson'}],
@@ -131,4 +132,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

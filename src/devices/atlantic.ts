@@ -24,7 +24,7 @@ const tzLocal = {
             await entity.write('hvacFanCtrl', {0x1000: {value: value ? 1 : 0, type: 0x10}}, {manufacturerCode: 0x125b});
             return {state: {quiet_fan: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     ac_louver_position: {
         key: ['ac_louver_position'],
         convertSet: async (entity, key, value, meta) => {
@@ -34,7 +34,7 @@ const tzLocal = {
             await entity.write('hvacThermostat', {0x4273: {value: index, type: 0x30}}, {manufacturerCode: 0x125b});
             return {state: {ac_louver_position: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
@@ -51,7 +51,7 @@ const tzLocal = {
 
             return {state: {preset: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     swingMode: {
         key: ['swing_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -61,7 +61,7 @@ const tzLocal = {
             await entity.write('hvacThermostat', {0x4274: {value: value === 'on' ? 1 : 0, type: 0x10}}, {manufacturerCode: 0x125b});
             return {state: {swing_mode: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -114,4 +114,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

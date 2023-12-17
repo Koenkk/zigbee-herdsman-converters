@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
-import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -12,7 +12,7 @@ const definitions: Definition[] = [
         model: 'CSLC601-D-E',
         vendor: 'CASAIA',
         description: 'Dry contact relay switch module in 220v AC for gas boiler',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['CTHS317ET'],
@@ -52,4 +52,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -8,6 +8,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
+import {onOff, light} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -23,7 +24,7 @@ const tzLocal = {
             await entity.write(0x0102, {0xe000: {value, type: 0x21}}, {manufacturerCode: 0x105e});
             return {state: {lift_duration: value}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     indicator_mode: {
         key: ['indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -40,7 +41,7 @@ const tzLocal = {
             const endpoint = entity.getDevice().getEndpoint(21);
             await endpoint.read(0xFF17, [0x0000], {manufacturerCode: 0x105e});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -172,7 +173,7 @@ const fzLocal = {
             if (rxAfterTx) {
                 // Send Schneider specific ACK to make PowerTag happy
                 // @ts-expect-error
-                const networkParameters = await msg.device.zh.constructor.adapter.getNetworkParameters();
+                const networkParameters = await msg.device.constructor.adapter.getNetworkParameters();
                 const payload = {
                     options: 0b000,
                     tempMaster: msg.data.gppNwkAddr,
@@ -194,7 +195,7 @@ const fzLocal = {
 
             return ret;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     indicator_mode: {
         cluster: 'clipsalWiserSwitchConfigurationClusterServer',
         type: ['attributeReport', 'readResponse'],
@@ -206,7 +207,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -317,13 +318,8 @@ const definitions: Definition[] = [
         model: 'CCT5011-0001/CCT5011-0002/MEG5011-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module switch',
-        extend: extend.switch({disablePowerOnBehavior: true}),
+        extend: [onOff({powerOnBehavior: false})],
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
     },
     {
         zigbeeModel: ['NHROTARY/DIMMER/1'],
@@ -503,26 +499,14 @@ const definitions: Definition[] = [
         model: 'U201DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 1 gang 550W dimmer module',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(10);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['U201SRY2KWZB'],
         model: 'U201SRY2KWZB',
         vendor: 'Schneider Electric',
         description: 'Ulti 240V 9.1 A 1 gang relay switch impress switch module, amber LED',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(10);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['CCTFR6100'],
@@ -552,32 +536,14 @@ const definitions: Definition[] = [
         model: 'S520530W',
         vendor: 'Schneider Electric',
         description: 'Odace connectable relay switch 10A',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['U202SRY2KWZB'],
         model: 'U202SRY2KWZB',
         vendor: 'Schneider Electric',
         description: 'Ulti 240V 9.1 A 2 gangs relay switch impress switch module, amber LED',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(10);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            const endpoint2 = device.getEndpoint(11);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint2);
-        },
-        endpoint: (device) => {
-            return {l1: 10, l2: 11};
-        },
+        extend: [onOff({endpoints: {l1: 10, l2: 11}})],
     },
     {
         zigbeeModel: ['1GANG/SHUTTER/1'],
@@ -621,12 +587,7 @@ const definitions: Definition[] = [
         model: 'MEG5161-0000',
         vendor: 'Schneider Electric',
         description: 'Merten PlusLink relay insert with Merten Wiser system M push button (1fold)',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['LK Switch'],
@@ -818,20 +779,7 @@ const definitions: Definition[] = [
         model: 'MEG5126-0300',
         vendor: 'Schneider Electric',
         description: 'Merten MEG5165 PlusLink relais insert with Merten Wiser System M push button (2fold)',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint2);
-        },
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
     },
     {
         zigbeeModel: ['EH-ZB-VACT'],
@@ -1074,20 +1022,7 @@ const definitions: Definition[] = [
         model: '3025CSGZ',
         vendor: 'Schneider Electric',
         description: 'Dual connected smart socket',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint2);
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
     },
     {
         zigbeeModel: ['CCT592011_AS'],
@@ -1200,4 +1135,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

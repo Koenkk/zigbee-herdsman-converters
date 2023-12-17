@@ -7,6 +7,8 @@ import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import tz from '../converters/toZigbee';
 import * as libColor from '../lib/color';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const tzLocal1 = {
@@ -18,7 +20,7 @@ const tzLocal1 = {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
-            if (meta.mapped.model === 'GL-S-007ZS' || meta.mapped.model === 'GL-C-009') {
+            if (!Array.isArray(meta.mapped) && (meta.mapped.model === 'GL-S-007ZS' || meta.mapped.model === 'GL-C-009')) {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/2757
                 // Device doesn't support ON with moveToLevelWithOnOff command
                 if (typeof meta.message.state === 'string' && meta.message.state.toLowerCase() === 'on') {
@@ -32,7 +34,7 @@ const tzLocal1 = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_onoff_brightness.convertGet(entity, key, meta);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     gledopto_light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
         options: [exposes.options.color_sync(), exposes.options.transition()],
@@ -54,7 +56,7 @@ const tzLocal1 = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_colortemp.convertGet(entity, key, meta);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     gledopto_light_color: {
         key: ['color'],
         options: [exposes.options.color_sync(), exposes.options.transition()],
@@ -81,7 +83,7 @@ const tzLocal1 = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_color.convertGet(entity, key, meta);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const tzLocal = {
@@ -94,7 +96,6 @@ const tzLocal = {
                 const result = await tzLocal1.gledopto_light_color.convertSet(entity, key, value, meta);
                 utils.assertObject(result);
                 if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
-                    // @ts-expect-error
                     result.state.color_temp = Math.round(libColor.ColorXY.fromObject(result.state.color).toMireds());
                 }
 
@@ -102,7 +103,6 @@ const tzLocal = {
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await tzLocal1.gledopto_light_colortemp.convertSet(entity, key, value, meta);
                 utils.assertObject(result);
-                // @ts-expect-error
                 result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).rounded(4).toObject();
                 return result;
             }
@@ -110,7 +110,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_color_colortemp.convertGet(entity, key, meta);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const gledoptoExtend = {
@@ -185,7 +185,7 @@ const definitions: Definition[] = [
         model: 'GL-SD-003P',
         vendor: 'Gledopto',
         description: 'Zigbee DIN Rail triac AC dimmer',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
         meta: {disableDefaultResponse: true},
     },
     {
@@ -586,7 +586,7 @@ const definitions: Definition[] = [
         model: 'GL-C-103P',
         vendor: 'Gledopto',
         description: 'Zigbee LED controller (pro)',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: [light({colorTemp: {range: [158, 495]}, color: true})],
     },
     {
         zigbeeModel: ['GL-G-004P'],
@@ -897,6 +897,13 @@ const definitions: Definition[] = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['GL-P-101P'],
+        model: 'GL-P-101P',
+        vendor: 'Gledopto',
+        description: 'Zigbee pro constant current CCT LED driver',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp({colorTempRange: [158, 495]}),
+    },
+    {
         zigbeeModel: ['GL-W-001Z'],
         model: 'GL-W-001Z',
         vendor: 'Gledopto',
@@ -919,4 +926,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

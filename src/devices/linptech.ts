@@ -29,7 +29,7 @@ const tzLocal = {
             }
             }
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -40,7 +40,7 @@ const fzLocal = {
             const buffer = msg.data;
             return {illuminance: Math.round(0.0001 * Math.pow(Number(buffer[7]), 3.413))};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     TS0225: {
         cluster: 'manuSpecificTuya_2',
         type: ['attributeReport'],
@@ -63,12 +63,12 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
     {
-        fingerprint: tuya.fingerprint('TS0225', ['_TZ3218_awarhusb']),
+        fingerprint: tuya.fingerprint('TS0225', ['_TZ3218_awarhusb', '_TZ3218_t9ynfz4x']),
         model: 'ES1ZZ(TY)',
         vendor: 'Linptech',
         description: 'mmWave Presence sensor',
@@ -96,4 +96,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -1,154 +1,111 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
+import {light, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['5121.10'],
+        model: '5121.10',
+        vendor: 'Iluminize',
+        description: 'Rotary dimmer with integrated Zigbee 3.0 dimming actuator',
+        extend: [light({configureReporting: true})],
+    },
+    {
         zigbeeModel: ['5120.2210'],
         model: '5120.2210',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 actuator mini 1x 230V',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['511.050'],
         model: '511.050',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 LED controller for 5in1 RGB+CCT LEDs',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [155, 450]}),
+        extend: [light({colorTemp: {range: [155, 450]}, color: true})],
     },
     {
         zigbeeModel: ['DIM Lighting'],
         model: '511.10',
         vendor: 'Iluminize',
         description: 'Zigbee LED-Controller ',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['511.201'],
         model: '511.201',
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 dimming actuator mini 1x 230V',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['5120.1100'],
         model: '5120.1100',
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 dimming actuator mini 1x 230V',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['5120.1110'],
         model: '5120.1110',
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 dimming actuator mini 1x 230V',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['5120.2110'],
         model: '5120.2110',
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 dimming actuator mini 1x 230V',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['5123.1110'],
         model: '5123.1110',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 controller with adjustable current 250-1500mA, max. 50W / 48V SELV',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['511.010'],
         model: '511.010',
         vendor: 'Iluminize',
         description: 'Zigbee LED-Controller',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['511.012'],
         model: '511.012',
         vendor: 'Iluminize',
         description: 'Zigbee LED-Controller',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['511.202'],
         model: '511.202',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 switch mini 1x230V, 200W/400W',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['5120.1200'],
         model: '5120.1200',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 switch mini 1x230V with neutral, 200W/400W',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['5120.1210'],
         model: '5120.1210',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 switch mini 1x230V without neutral, 200W/400W',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['5128.10'],
@@ -174,14 +131,14 @@ const definitions: Definition[] = [
         model: '511.040',
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 LED-controller, 4 channel 5A, RGBW LED',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['HK-ZD-RGB-A', '5110.40'],
         model: '5110.40',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 LED controller multi 5 - 4A,RGB W/CCT LED',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}, color: true})],
     },
     {
         zigbeeModel: ['HK-ZD-RGBCCT-A', '511.000'],
@@ -189,7 +146,7 @@ const definitions: Definition[] = [
         vendor: 'Iluminize',
         whiteLabel: [{vendor: 'Sunricher', model: 'HK-ZD-RGBCCT-A'}],
         description: 'Zigbee 3.0 universal LED-controller, 5 channel, RGBCCT LED',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['ZG2819S-RGBW'],
@@ -257,7 +214,7 @@ const definitions: Definition[] = [
         model: '5112.80',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 LED-controller 1x 8A',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZGRC-TEUR-001'],
@@ -287,4 +244,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

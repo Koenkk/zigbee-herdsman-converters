@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,8 +7,9 @@ const definitions: Definition[] = [
         model: 'ZC05M',
         vendor: 'GIDEALED',
         description: 'Smart Zigbee RGB LED strip controller',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

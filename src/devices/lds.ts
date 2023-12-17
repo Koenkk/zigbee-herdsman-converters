@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,8 +7,9 @@ const definitions: Definition[] = [
         model: 'ZBT-RGBWLight-A0000',
         vendor: 'LDS',
         description: 'Ynoa smart LED E27',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

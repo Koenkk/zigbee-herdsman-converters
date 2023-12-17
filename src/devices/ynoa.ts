@@ -3,7 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -13,14 +13,14 @@ const definitions: Definition[] = [
         model: '8718801528204',
         vendor: 'Ynoa',
         description: 'Smart LED E27 CCT',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [250, 454], disableEffect: true}),
+        extend: [light({colorTemp: {range: [250, 454]}, effect: false})],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-GU100001'],
         model: '8718801528273',
         vendor: 'Ynoa',
         description: 'Smart LED GU10 CCT',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: [light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['ZBT-DIMSwitch-D0000'],
@@ -41,7 +41,7 @@ const definitions: Definition[] = [
         model: 'LA-GU10-RGBW',
         vendor: 'Ynoa',
         description: 'Smart LED GU10 RGB CCT',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526], supportsHueAndSaturation: true}),
+        extend: [light({colorTemp: {range: [153, 526]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['ZBT-RGBWSwitch-D0800'],
@@ -76,4 +76,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

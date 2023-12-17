@@ -38,7 +38,6 @@ const definitions: Definition[] = [
         model: 'L4411C/N4411C/NT4411C',
         vendor: 'BTicino',
         description: 'Dimmer switch with neutral',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
         toZigbee: [tz.light_onoff_brightness, tzLegrand.led_mode, tz.legrand_device_mode, tz.legrand_identify, tz.ballast_config],
@@ -113,4 +112,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

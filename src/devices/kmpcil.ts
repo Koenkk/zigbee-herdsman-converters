@@ -52,7 +52,7 @@ const kmpcilConverters = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     presence_power: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -68,7 +68,7 @@ const kmpcilConverters = {
             }
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -149,4 +149,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

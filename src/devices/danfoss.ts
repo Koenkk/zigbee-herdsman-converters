@@ -105,7 +105,7 @@ const definitions: Definition[] = [
                     'thermostats in the room. The gateway must update load_room_mean if enabled.'),
             e.numeric('load_room_mean', ea.ALL)
                 .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
-                .withValueMin(-8000).withValueMax(2000),
+                .withValueMin(-8000).withValueMax(3600),
             e.numeric('load_estimate', ea.STATE_GET)
                 .withDescription('Load estimate on this radiator')
                 .withValueMin(-8000).withValueMax(3600),
@@ -344,4 +344,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

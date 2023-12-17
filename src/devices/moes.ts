@@ -116,50 +116,53 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Moes', 'BHT-002/BHT-006', 'Smart heating thermostat', ['_TZE204_aoclfnxz']),
         ],
-        exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(), e.min_temperature_limit(),
-            e.climate().withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
-                .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
-                .withPreset(['hold', 'program']),
-            e.temperature_sensor_select(['IN', 'AL', 'OU']),
-            e.composite('program', 'program', ea.STATE_SET).withDescription('Time of day and setpoint to use when in program mode')
-                .withFeature(exposesLocal.hour('weekdays_p1_hour'))
-                .withFeature(exposesLocal.minute('weekdays_p1_minute'))
-                .withFeature(exposesLocal.program_temperature('weekdays_p1_temperature'))
-                .withFeature(exposesLocal.hour('weekdays_p2_hour'))
-                .withFeature(exposesLocal.minute('weekdays_p2_minute'))
-                .withFeature(exposesLocal.program_temperature('weekdays_p2_temperature'))
-                .withFeature(exposesLocal.hour('weekdays_p3_hour'))
-                .withFeature(exposesLocal.minute('weekdays_p3_minute'))
-                .withFeature(exposesLocal.program_temperature('weekdays_p3_temperature'))
-                .withFeature(exposesLocal.hour('weekdays_p4_hour'))
-                .withFeature(exposesLocal.minute('weekdays_p4_minute'))
-                .withFeature(exposesLocal.program_temperature('weekdays_p4_temperature'))
-                .withFeature(exposesLocal.hour('saturday_p1_hour'))
-                .withFeature(exposesLocal.minute('saturday_p1_minute'))
-                .withFeature(exposesLocal.program_temperature('saturday_p1_temperature'))
-                .withFeature(exposesLocal.hour('saturday_p2_hour'))
-                .withFeature(exposesLocal.minute('saturday_p2_minute'))
-                .withFeature(exposesLocal.program_temperature('saturday_p2_temperature'))
-                .withFeature(exposesLocal.hour('saturday_p3_hour'))
-                .withFeature(exposesLocal.minute('saturday_p3_minute'))
-                .withFeature(exposesLocal.program_temperature('saturday_p3_temperature'))
-                .withFeature(exposesLocal.hour('saturday_p4_hour'))
-                .withFeature(exposesLocal.minute('saturday_p4_minute'))
-                .withFeature(exposesLocal.program_temperature('saturday_p4_temperature'))
-                .withFeature(exposesLocal.hour('sunday_p1_hour'))
-                .withFeature(exposesLocal.minute('sunday_p1_minute'))
-                .withFeature(exposesLocal.program_temperature('sunday_p1_temperature'))
-                .withFeature(exposesLocal.hour('sunday_p2_hour'))
-                .withFeature(exposesLocal.minute('sunday_p2_minute'))
-                .withFeature(exposesLocal.program_temperature('sunday_p2_temperature'))
-                .withFeature(exposesLocal.hour('sunday_p3_hour'))
-                .withFeature(exposesLocal.minute('sunday_p3_minute'))
-                .withFeature(exposesLocal.program_temperature('sunday_p3_temperature'))
-                .withFeature(exposesLocal.hour('sunday_p4_hour'))
-                .withFeature(exposesLocal.minute('sunday_p4_minute'))
-                .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
-        ],
+        exposes: (device, options) => {
+            const heatingStepSize = device?.manufacturerName === '_TZE204_5toc8efa' ? 0.5 : 1;
+            return [e.linkquality(), e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(), e.min_temperature_limit(),
+                e.climate().withSetpoint('current_heating_setpoint', 5, 35, heatingStepSize, ea.STATE_SET)
+                    .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                    .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
+                    .withPreset(['hold', 'program']),
+                e.temperature_sensor_select(['IN', 'AL', 'OU']),
+                e.composite('program', 'program', ea.STATE_SET).withDescription('Time of day and setpoint to use when in program mode')
+                    .withFeature(exposesLocal.hour('weekdays_p1_hour'))
+                    .withFeature(exposesLocal.minute('weekdays_p1_minute'))
+                    .withFeature(exposesLocal.program_temperature('weekdays_p1_temperature'))
+                    .withFeature(exposesLocal.hour('weekdays_p2_hour'))
+                    .withFeature(exposesLocal.minute('weekdays_p2_minute'))
+                    .withFeature(exposesLocal.program_temperature('weekdays_p2_temperature'))
+                    .withFeature(exposesLocal.hour('weekdays_p3_hour'))
+                    .withFeature(exposesLocal.minute('weekdays_p3_minute'))
+                    .withFeature(exposesLocal.program_temperature('weekdays_p3_temperature'))
+                    .withFeature(exposesLocal.hour('weekdays_p4_hour'))
+                    .withFeature(exposesLocal.minute('weekdays_p4_minute'))
+                    .withFeature(exposesLocal.program_temperature('weekdays_p4_temperature'))
+                    .withFeature(exposesLocal.hour('saturday_p1_hour'))
+                    .withFeature(exposesLocal.minute('saturday_p1_minute'))
+                    .withFeature(exposesLocal.program_temperature('saturday_p1_temperature'))
+                    .withFeature(exposesLocal.hour('saturday_p2_hour'))
+                    .withFeature(exposesLocal.minute('saturday_p2_minute'))
+                    .withFeature(exposesLocal.program_temperature('saturday_p2_temperature'))
+                    .withFeature(exposesLocal.hour('saturday_p3_hour'))
+                    .withFeature(exposesLocal.minute('saturday_p3_minute'))
+                    .withFeature(exposesLocal.program_temperature('saturday_p3_temperature'))
+                    .withFeature(exposesLocal.hour('saturday_p4_hour'))
+                    .withFeature(exposesLocal.minute('saturday_p4_minute'))
+                    .withFeature(exposesLocal.program_temperature('saturday_p4_temperature'))
+                    .withFeature(exposesLocal.hour('sunday_p1_hour'))
+                    .withFeature(exposesLocal.minute('sunday_p1_minute'))
+                    .withFeature(exposesLocal.program_temperature('sunday_p1_temperature'))
+                    .withFeature(exposesLocal.hour('sunday_p2_hour'))
+                    .withFeature(exposesLocal.minute('sunday_p2_minute'))
+                    .withFeature(exposesLocal.program_temperature('sunday_p2_temperature'))
+                    .withFeature(exposesLocal.hour('sunday_p3_hour'))
+                    .withFeature(exposesLocal.minute('sunday_p3_minute'))
+                    .withFeature(exposesLocal.program_temperature('sunday_p3_temperature'))
+                    .withFeature(exposesLocal.hour('sunday_p4_hour'))
+                    .withFeature(exposesLocal.minute('sunday_p4_minute'))
+                    .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
+            ];
+        },
         onEvent: tuya.onEventSetLocalTime,
     },
     {
@@ -350,6 +353,7 @@ const definitions: Definition[] = [
         fingerprint: [
             {modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'},
             {modelID: 'TS1201', manufacturerName: '_TZ3290_ot6ewjvmejq5ekhl'},
+            {modelID: 'TS1201', manufacturerName: '_TZ3290_xjpbcxn92aaxvmlz'},
         ],
         model: 'UFO-R11',
         vendor: 'Moes',
@@ -400,6 +404,31 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_vawy74yh'}],
+        model: 'ZSS-HM-SSD01',
+        vendor: 'Moes',
+        description: 'Smoke sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.smoke(), e.battery(), tuya.exposes.batteryState(),
+            e.binary('silence', ea.STATE_SET, 'ON', 'OFF'),
+            e.enum('self_test', ea.STATE, ['checking', 'check_success', 'check_failure']),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'smoke', tuya.valueConverter.trueFalse0],
+                [9, 'self_test', tuya.valueConverterBasic.lookup({'checking': 0, 'check_success': 1, 'check_failure': 2})],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
+                [15, 'battery', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.onOff],
+            ],
+        },
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

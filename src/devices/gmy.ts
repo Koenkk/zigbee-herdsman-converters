@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,8 +7,9 @@ const definitions: Definition[] = [
         model: 'B07KG5KF5R',
         vendor: 'GMY Smart Bulb',
         description: 'GMY Smart bulb, 470lm, vintage dimmable, 2700-6500k, E27',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

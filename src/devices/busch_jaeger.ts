@@ -5,7 +5,8 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -14,7 +15,7 @@ const definitions: Definition[] = [
         model: '6717-84',
         vendor: 'Busch-Jaeger',
         description: 'Adaptor plug',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         // Busch-Jaeger 6735, 6736 and 6737 have been tested with the 6710 U (Power Adapter),
@@ -141,4 +142,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

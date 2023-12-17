@@ -59,7 +59,7 @@ const develco = {
                     return fz.electrical_measurement.convert(model, msg, publish, options, meta);
                 }
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         device_temperature: {
             ...fz.device_temperature,
             convert: (model, msg, publish, options, meta) => {
@@ -67,7 +67,7 @@ const develco = {
                     return fz.device_temperature.convert(model, msg, publish, options, meta);
                 }
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         temperature: {
             ...fz.temperature,
             convert: (model, msg, publish, options, meta) => {
@@ -75,7 +75,7 @@ const develco = {
                     return fz.temperature.convert(model, msg, publish, options, meta);
                 }
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         metering: {
             ...fz.metering,
             convert: (model, msg, publish, options, meta) => {
@@ -83,7 +83,7 @@ const develco = {
                     return fz.metering.convert(model, msg, publish, options, meta);
                 }
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         pulse_configuration: {
             cluster: 'seMetering',
             type: ['attributeReport', 'readResponse'],
@@ -96,7 +96,7 @@ const develco = {
 
                 return result;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         interface_mode: {
             cluster: 'seMetering',
             type: ['attributeReport', 'readResponse'],
@@ -115,7 +115,7 @@ const develco = {
 
                 return result;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         fault_status: {
             cluster: 'genBinaryInput',
             type: ['attributeReport', 'readResponse'],
@@ -130,7 +130,7 @@ const develco = {
                 }
                 return result;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         voc: {
             cluster: 'develcoSpecificAirQuality',
             type: ['attributeReport', 'readResponse'],
@@ -164,7 +164,7 @@ const develco = {
                 }
                 return {[vocProperty]: utils.calibrateAndPrecisionRoundOptions(voc, options, 'voc'), [airQualityProperty]: airQuality};
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         voc_battery: {
             cluster: 'genPowerCfg',
             type: ['attributeReport', 'readResponse'],
@@ -179,11 +179,10 @@ const develco = {
                 if (result) result.battery_low = (result.voltage <= 2500);
                 return result;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         led_control: {
             cluster: 'genBasic',
             type: ['attributeReport', 'readResponse'],
-            options: [],
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
@@ -193,11 +192,10 @@ const develco = {
 
                 return state;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         ias_occupancy_timeout: {
             cluster: 'ssIasZone',
             type: ['attributeReport', 'readResponse'],
-            options: [],
             convert: (model, msg, publish, options, meta) => {
                 const state: KeyValue = {};
 
@@ -207,7 +205,7 @@ const develco = {
 
                 return state;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         input: {
             cluster: 'genBinaryInput',
             type: ['attributeReport', 'readResponse'],
@@ -219,7 +217,7 @@ const develco = {
                 }
                 return result;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
     },
     tz: {
         pulse_configuration: {
@@ -231,7 +229,7 @@ const develco = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('seMetering', ['develcoPulseConfiguration'], manufacturerOptions);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         interface_mode: {
             key: ['interface_mode'],
             convertSet: async (entity, key, value, meta) => {
@@ -242,14 +240,14 @@ const develco = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('seMetering', ['develcoInterfaceMode'], manufacturerOptions);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         current_summation: {
             key: ['current_summation'],
             convertSet: async (entity, key, value, meta) => {
                 await entity.write('seMetering', {'develcoCurrentSummation': value}, manufacturerOptions);
                 return {state: {'current_summation': value}};
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         led_control: {
             key: ['led_control'],
             convertSet: async (entity, key, value, meta) => {
@@ -260,14 +258,14 @@ const develco = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('genBasic', ['develcoLedControl'], manufacturerOptions);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         ias_occupancy_timeout: {
             key: ['occupancy_timeout'],
             convertSet: async (entity, key, value, meta) => {
                 let timeoutValue = utils.toNumber(value, 'occupancy_timeout');
-                if (timeoutValue < 20) {
-                    meta.logger.warn(`Minimum occupancy_timeout is 20, using 20 instead of ${timeoutValue}!`);
-                    timeoutValue = 20;
+                if (timeoutValue < 5) {
+                    meta.logger.warn(`Minimum occupancy_timeout is 5, using 5 instead of ${timeoutValue}!`);
+                    timeoutValue = 5;
                 }
                 await entity.write('ssIasZone', {'develcoAlarmOffDelay': timeoutValue}, manufacturerOptions);
                 return {state: {occupancy_timeout: timeoutValue}};
@@ -275,13 +273,13 @@ const develco = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         input: {
             key: ['input'],
             convertGet: async (entity, key, meta) => {
                 await entity.read('genBinaryInput', ['presentValue']);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
     },
 };
 
@@ -291,22 +289,23 @@ const definitions: Definition[] = [
         model: 'SPLZB-131',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
+        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.power_reactive(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
+        exposes: [e.switch(), e.power(), e.power_reactive(), e.current(), e.voltage(), e.energy(), e.device_temperature(), e.ac_frequency()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
+            await reporting.deviceTemperature(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
-            await reporting.activePower(endpoint);
-            await reporting.reactivePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
+            await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
+            await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
+            await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.acFrequency(endpoint);
+            await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
+            await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
+            await reporting.acFrequency(endpoint, {change: 10});
         },
         endpoint: (device) => {
             return {default: 2};
@@ -656,7 +655,7 @@ const definitions: Definition[] = [
             dynExposes.push(e.occupancy());
             if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
                 dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').
-                    withValueMin(20).withValueMax(65535));
+                    withValueMin(5).withValueMax(65535));
             }
             dynExposes.push(e.temperature());
             dynExposes.push(e.illuminance_lux());
@@ -956,4 +955,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

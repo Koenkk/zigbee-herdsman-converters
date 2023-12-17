@@ -60,7 +60,7 @@ const fzLocal = {
             }
             return result;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -178,7 +178,7 @@ const definitions: Definition[] = [
         extend: lockExtend(),
     },
     {
-        zigbeeModel: ['YRD430 TS'],
+        zigbeeModel: ['YRD430 TS', 'YRD430 PB'],
         model: 'YRD430-BLE',
         vendor: 'Yale',
         description: 'Assure lock 2',
@@ -235,4 +235,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

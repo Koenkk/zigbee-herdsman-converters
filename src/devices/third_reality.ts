@@ -5,6 +5,8 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import {Definition, Fz, KeyValue} from '../lib/types';
+import {light, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const fzLocal = {
@@ -18,7 +20,7 @@ const fzLocal = {
             if (msg.data['3']) payload.z_axis = msg.data['3'];
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     thirdreality_private_motion_sensor: {
         cluster: 'manuSpecificUbisysDeviceSetup',
         type: 'attributeReport',
@@ -26,7 +28,7 @@ const fzLocal = {
             const zoneStatus = msg.data[2];
             return {occupancy: (zoneStatus & 1) > 0};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -74,14 +76,14 @@ const definitions: Definition[] = [
         model: '3RSL011Z',
         vendor: 'Third Reality',
         description: 'Smart light A19',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3RSL012Z'],
         model: '3RSL012Z',
         vendor: 'Third Reality',
         description: 'Smart light BR30',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3RWS18BZ'],
@@ -136,13 +138,8 @@ const definitions: Definition[] = [
         model: '3RSP019BZ',
         vendor: 'Third Reality',
         description: 'Zigbee / BLE smart plug',
-        extend: extend.switch(),
+        extend: [onOff()],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
     },
     {
         zigbeeModel: ['3RSB015BZ'],
@@ -275,4 +272,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

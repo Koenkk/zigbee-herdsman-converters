@@ -4,7 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -14,7 +15,7 @@ const definitions: Definition[] = [
         model: 'FWGU10Bulb02UK',
         vendor: 'Hive',
         description: 'GU10 warm white',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['MOT003'],
@@ -56,35 +57,35 @@ const definitions: Definition[] = [
         model: 'HALIGHTDIMWWE27',
         vendor: 'Hive',
         description: 'Active smart bulb white LED (E27)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['FWCLBulb01UK'],
         model: 'HALIGHTDIMWWE14',
         vendor: 'Hive',
         description: 'Active smart bulb white LED (E14)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['FWBulb02UK'],
         model: 'HALIGHTDIMWWB22',
         vendor: 'Hive',
         description: 'Active smart bulb white LED (B22)',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['TWBulb02UK'],
         model: 'HV-GSCXZB229B',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E27 & B22)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['TWCLBulb01UK'],
         model: 'HV-CE14CXZB6',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E14)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['SLP2', 'SLP2b', 'SLP2c'],
@@ -108,21 +109,21 @@ const definitions: Definition[] = [
         model: 'HV-GSCXZB269',
         vendor: 'Hive',
         description: 'Active light cool to warm white (E26) ',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['TWBulb01UK'],
         model: 'HV-GSCXZB279_HV-GSCXZB229_HV-GSCXZB229K',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E27 & B22)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['TWGU10Bulb01UK'],
         model: 'HV-GUCXZB5',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (GU10)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['KEYPAD001'],
@@ -531,4 +532,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -3,6 +3,8 @@ import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as exposes from '../lib/exposes';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 
@@ -12,13 +14,7 @@ const definitions: Definition[] = [
         model: 'ZB3102',
         vendor: 'Jasco Products',
         description: 'Zigbee plug-in smart dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['43132'],
@@ -55,4 +51,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -12,6 +12,7 @@ import extend from '../lib/extend';
 import * as globalStore from '../lib/store';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {calibrateAndPrecisionRoundOptions, postfixWithEndpointName, precisionRound} from '../lib/utils';
+import {onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -76,25 +77,25 @@ const configureRemote: Configure = async (device, coordinatorEndpoint, logger) =
 };
 
 const tradfriExtend = {
-    light_onoff_brightness: (options: Extend.options_light_onoff_brightness = {}) => ({
+    light_onoff_brightness: (options: Extend.options_light_onoff_brightness = {}): Extend => ({
         ...extend.light_onoff_brightness(options),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
-    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp = {colorTempRange: [250, 454]}) => ({
+    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp = {colorTempRange: [250, 454]}): Extend => ({
         ...extend.light_onoff_brightness_colortemp(options),
         exposes: [...extend.light_onoff_brightness_colortemp(options).exposes, e.light_color_options()],
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
     light_onoff_brightness_colortemp_color: (
-        options: Extend.options_light_onoff_brightness_colortemp_color = {disableColorTempStartup: true, colorTempRange: [250, 454]}) => ({
+        options: Extend.options_light_onoff_brightness_colortemp_color = {disableColorTempStartup: true, colorTempRange: [250, 454]}): Extend => ({
         ...extend.light_onoff_brightness_colortemp_color(options),
         exposes: [...extend.light_onoff_brightness_colortemp_color(options).exposes, e.light_color_options()],
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
-    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color = {}) => ({
+    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color = {}): Extend => ({
         ...extend.light_onoff_brightness_color(options),
         exposes: [...extend.light_onoff_brightness_color(options).exposes, e.light_color_options()],
         ota: ota.tradfri,
@@ -152,7 +153,7 @@ const fzLocal = {
                 // calibrate and round pm25 unless invalid
                 pm25 = (pm25 == 65535) ? -1 : calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
 
-                state[pm25Property] = calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+                state[pm25Property] = pm25;
                 state[airQualityProperty] = airQuality;
             }
 
@@ -197,7 +198,7 @@ const fzLocal = {
 
             return state;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_voc_index: {
         cluster: 'msIkeaVocIndexMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -206,7 +207,7 @@ const fzLocal = {
                 return {voc_index: msg.data['measuredValue']};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -231,7 +232,7 @@ const fzLocal = {
 
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
     // https://github.com/Koenkk/zigbee2mqtt/issues/13335
     styrbar_on: {
@@ -244,7 +245,7 @@ const fzLocal = {
                 return {action: 'on'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     styrbar_arrow_release: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowRelease',
@@ -261,7 +262,7 @@ const fzLocal = {
                 return result;
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_dots_click_v1: {
         // For remotes with firmware 1.0.012 (20211214)
         cluster: 64639,
@@ -278,46 +279,58 @@ const fzLocal = {
 
             return {action: `dots_${button}_${action}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_dots_click_v2: {
         // For remotes with firmware 1.0.32 (20221219)
-        cluster: 'heimanSpecificScenes',
-        type: 'raw',
+        cluster: 'tradfriButton',
+        type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
         convert: (model, msg, publish, options, meta) => {
-            if (!Buffer.isBuffer(msg.data)) return;
-            let button;
-            let action;
-            switch (msg.endpoint.ID) {
-            case 2: button = '1'; break; // 1 dot
-            case 3: button = '2'; break; // 2 dot
-            }
-            switch (msg.data[4]) {
-            case 1: action = 'initial_press'; break;
-            case 2: action = 'long_press'; break;
-            case 3: action = 'short_release'; break;
-            case 4: action = 'long_release'; break;
-            case 6: action = 'double_press'; break;
-            }
-
+            const button = utils.getFromLookup(msg.endpoint.ID, {2: '1', 3: '2'});
+            const lookup = {
+                commandAction1: 'initial_press',
+                commandAction2: 'long_press',
+                commandAction3: 'short_release',
+                commandAction4: 'long_release',
+                commandAction6: 'double_press',
+            };
+            const action = utils.getFromLookup(msg.type, lookup);
             return {action: `dots_${button}_${action}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
+    ikea_dots_click_v2_somrig: {
+        cluster: 'tradfriButton',
+        type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = utils.getFromLookup(msg.endpoint.ID, {1: '1', 2: '2'});
+            const lookup = {
+                commandAction1: 'initial_press',
+                commandAction2: 'long_press',
+                commandAction3: 'short_release',
+                commandAction4: 'long_release',
+                commandAction6: 'double_press',
+            };
+            const action = utils.getFromLookup(msg.type, lookup);
+            return {action: `${button}_${action}`};
+        },
+    } satisfies Fz.Converter,
     ikea_volume_click: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             return {action: `volume_${direction}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_volume_hold: {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.movemode === 1 ? 'down_hold' : 'up_hold';
             return {action: `volume_${direction}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     ikea_track_click: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
@@ -326,7 +339,7 @@ const fzLocal = {
             const direction = msg.data.stepmode === 1 ? 'previous' : 'next';
             return {action: `track_${direction}`};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -357,25 +370,25 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['fanMode']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     air_purifier_fan_speed: {
         key: ['fan_speed'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['fanSpeed']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     air_purifier_pm25: {
         key: ['pm25', 'air_quality'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['particulateMatter25Measurement']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     air_purifier_replace_filter: {
         key: ['replace_filter', 'filter_age'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     air_purifier_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
@@ -387,7 +400,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['childLock']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     air_purifier_led_enable: {
         key: ['led_enable'],
         convertSet: async (entity, key, value, meta) => {
@@ -397,7 +410,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['controlPanelLight']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -406,12 +419,7 @@ const definitions: Definition[] = [
         model: 'E1836',
         vendor: 'IKEA',
         description: 'ASKVADER on/off switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E26 WS opal 980lm', 'TRADFRI bulb E27 WS\uFFFDopal 980lm'],
@@ -470,7 +478,7 @@ const definitions: Definition[] = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm8'],
+        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm8', 'TRADFRI bulb GU10 WW 345lm'],
         model: 'LED2104R3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 WW 345 lumen, dimmable',
@@ -603,7 +611,10 @@ const definitions: Definition[] = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
+        extend: tradfriExtend.light_onoff_brightness_colortemp_color({
+            disableColorTempStartup: true,
+            colorTempRange: [153, 500], // light is pure RGB (XY), advertise 2000K-6500K
+        }),
         toZigbee: utils.replaceInArray(
             tradfriExtend.light_onoff_brightness_colortemp_color().toZigbee,
             [tz.light_color_colortemp],
@@ -754,13 +765,7 @@ const definitions: Definition[] = [
         model: 'E1603/E1702/E1708',
         description: 'TRADFRI control outlet',
         vendor: 'IKEA',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
-        ota: ota.tradfri,
+        extend: [onOff({ota: ota.tradfri})],
     },
     {
         zigbeeModel: ['TRADFRI remote control'],
@@ -835,15 +840,9 @@ const definitions: Definition[] = [
         model: 'E1842',
         description: 'KNYCKLAN receiver electronic water valve shut-off',
         vendor: 'IKEA',
-        fromZigbee: extend.switch().fromZigbee.concat([fz.ias_water_leak_alarm_1]),
-        exposes: extend.switch().exposes.concat([e.water_leak()]),
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
-        ota: ota.tradfri,
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        exposes: [e.water_leak()],
+        extend: [onOff({ota: ota.tradfri})],
     },
     {
         zigbeeModel: ['TRADFRI SHORTCUT Button'],
@@ -1022,7 +1021,15 @@ const definitions: Definition[] = [
         model: 'LED1923R5/LED1925G6',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum, color spectrum',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
+        extend: tradfriExtend.light_onoff_brightness_colortemp_color({
+            disableColorTempStartup: true,
+            colorTempRange: [153, 500],
+        }),
+        toZigbee: utils.replaceInArray(
+            tradfriExtend.light_onoff_brightness_colortemp_color().toZigbee,
+            [tz.light_color_colortemp],
+            [tz.light_color_and_colortemp_via_color],
+        ),
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS globe 1055lm'],
@@ -1158,6 +1165,13 @@ const definitions: Definition[] = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['JETSTROM 40100'],
+        model: 'L2208',
+        vendor: 'IKEA',
+        description: 'JETSTRÖM LED ceiling light panel, smart dimmable/white spectrum, 100x40 cm',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['TRADFRIbulbPAR38WS900lm'],
         model: 'LED2006R9',
         vendor: 'IKEA',
@@ -1215,10 +1229,10 @@ const definitions: Definition[] = [
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPollCtrl']);
             if (endpoint2) {
-                await reporting.bind(endpoint2, coordinatorEndpoint, ['heimanSpecificScenes']);
+                await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
             }
             if (endpoint3) {
-                await reporting.bind(endpoint3, coordinatorEndpoint, ['heimanSpecificScenes']);
+                await reporting.bind(endpoint3, coordinatorEndpoint, ['tradfriButton']);
             }
             await reporting.batteryVoltage(endpoint1);
         },
@@ -1249,6 +1263,57 @@ const definitions: Definition[] = [
         description: 'ORMANAS LED strip',
         extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
     },
+    {
+        zigbeeModel: ['VALLHORN Wireless Motion Sensor'],
+        model: 'E2134',
+        vendor: 'IKEA',
+        description: 'VALLHORN wireless motion sensor',
+        fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery(), e.illuminance()],
+        configure: async (device, cordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint1, cordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await reporting.bind(endpoint2, cordinatorEndpoint, ['msOccupancySensing']);
+            await reporting.occupancy(endpoint2);
+            await reporting.bind(endpoint3, cordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.illuminance(endpoint3);
+        },
+    },
+    {
+        zigbeeModel: ['SOMRIG shortcut button'],
+        model: 'E2213',
+        vendor: 'IKEA',
+        description: 'SOMRIG shortcut button',
+        fromZigbee: [fz.battery, fzLocal.ikea_dots_click_v2_somrig],
+        toZigbee: [tz.battery_percentage_remaining],
+        exposes: [
+            e.battery().withAccess(ea.STATE_GET), e.action(['dots_1_initial_press',
+                'dots_2_initial_press', 'dots_1_long_press', 'dots_2_long_press',
+                'dots_1_short_release', 'dots_2_short_release', 'dots_1_long_release']),
+        ],
+        ota: ota.tradfri,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['tradfriButton', 'genPollCtrl']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
+            await reporting.batteryVoltage(endpoint1);
+        },
+    },
+    {
+        zigbeeModel: ['PARASOLL Door/Window Sensor'],
+        model: 'E2013',
+        vendor: 'IKEA',
+        description: 'PARASOLL door/window Sensor',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.tamper(), e.contact()],
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

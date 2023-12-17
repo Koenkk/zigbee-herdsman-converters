@@ -65,13 +65,14 @@ export function mapNumberRange(value: number, fromLow: number, fromHigh: number,
     return precisionRound(mappedValue, precision);
 }
 
-const transactionStore: {[s: string]: number} = {};
+const transactionStore: {[s: string]: number[]} = {};
 export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number=null, key: string=null) {
     if (model.meta && model.meta.publishDuplicateTransaction) return false;
     const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
     key = key || msg.device.ieeeAddr;
-    if (transactionStore[key] === currentID) return true;
-    transactionStore[key] = currentID;
+    if (transactionStore[key]?.includes(currentID)) return true;
+    // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
+    transactionStore[key] = [currentID, ...(transactionStore[key] ?? [])].slice(0, 5);
     return false;
 }
 
@@ -119,6 +120,13 @@ export function addActionGroup(payload: KeyValue, msg: Fz.Message, definition: D
     if (!disableActionGroup && msg.groupID) {
         payload.action_group = msg.groupID;
     }
+}
+
+export function getEndpointName(msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
+    if (!definition.endpoint) {
+        throw new Error(`Definition '${definition.model}' has not endpoint defined`);
+    }
+    return getKey(definition.endpoint(meta.device), msg.endpoint.ID);
 }
 
 export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
@@ -238,7 +246,6 @@ export function getMetaValue<T>(entity: Zh.Group | Zh.Endpoint, definition: Defi
             return values[0];
         }
     } else {
-        // @ts-expect-error
         const definitionMeta = getMetaValues(definition, entity);
         if (definitionMeta && definitionMeta.hasOwnProperty(key)) {
             // @ts-expect-error
@@ -401,23 +408,30 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
     }
 }
 
-export function getOptions(definition: Definition, entity: Zh.Endpoint | Zh.Group, options={}) {
+export function getOptions(definition: Definition | Definition[], entity: Zh.Endpoint | Zh.Group, options={}) {
     const allowed = ['disableDefaultResponse', 'timeout'];
     return getMetaValues(definition, entity, allowed, options);
 }
 
-export function getMetaValues(definition: Definition, entity: Zh.Endpoint | Zh.Group, allowed?: string[], options={}) {
+export function getMetaValues(definitions: Definition | Definition[], entity: Zh.Endpoint | Zh.Group, allowed?: string[], options={}) {
     const result: KeyValue = {...options};
-    if (definition && definition.meta) {
-        for (const key of Object.keys(definition.meta)) {
-            if (allowed == null || allowed.includes(key)) {
-                // @ts-expect-error
-                const value = definition.meta[key];
-                result[key] = typeof value === 'function' ? value(entity) : value;
+    for (const definition of Array.isArray(definitions) ? definitions : [definitions]) {
+        if (definition && definition.meta) {
+            for (const key of Object.keys(definition.meta)) {
+                if (allowed == null || allowed.includes(key)) {
+                    // @ts-expect-error
+                    const value = definition.meta[key];
+                    if (typeof value === 'function') {
+                        if (isEndpoint(entity)) {
+                            result[key] = value(entity);
+                        }
+                    } else {
+                        result[key] = value;
+                    }
+                }
             }
         }
     }
-
     return result;
 }
 
@@ -546,7 +560,7 @@ export function toNumber(value: unknown, property?: string): number {
 export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V=undefined): V {
     let result = undefined;
     if (typeof value === 'string') {
-        result = lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
+        result = lookup[value] ?? lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
     } else if (typeof value === 'number') {
         result = lookup[value];
     }
@@ -554,6 +568,18 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
         throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
     }
     return result ?? defaultValue;
+}
+
+export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string=undefined): string {
+    for (const entry of Object.entries(lookup)) {
+        if (entry[1] === value) {
+            return entry[0];
+        }
+    }
+    if (defaultValue === undefined) {
+        throw new Error(`Expected one of: ${Object.values(lookup).join(', ')}, got: '${value}'`);
+    }
+    return defaultValue;
 }
 
 export function assertEndpoint(obj: unknown): asserts obj is Zh.Endpoint {

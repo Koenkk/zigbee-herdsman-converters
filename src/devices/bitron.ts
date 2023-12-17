@@ -3,10 +3,10 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import {Zcl} from 'zigbee-herdsman';
+import {onOff, light} from '../lib/modernExtend';
 import {KeyValueAny, Fz, Tz, Definition} from '../lib/types';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode._4_NOKS};
@@ -31,7 +31,7 @@ const bitron = {
 
                 return result;
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
     },
     tz: {
         thermostat_hysteresis: {
@@ -53,7 +53,7 @@ const bitron = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('hvacThermostat', ['fourNoksHysteresisHigh', 'fourNoksHysteresisLow'], manufacturerOptions);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
     },
 };
 
@@ -72,22 +72,14 @@ const definitions: Definition[] = [
         model: 'AV2010/16',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wall-mount relay with dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['AV2010/18', '902010/18'],
         model: 'AV2010/18',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wall-mount relay',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['AV2010/21A', '902010/21A'],
@@ -201,22 +193,14 @@ const definitions: Definition[] = [
         model: 'AV2010/26',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless socket with dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['AV2010/28', '902010/28'],
         model: 'AV2010/28',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless socket',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['AV2010/29', '902010/29'],
@@ -250,11 +234,13 @@ const definitions: Definition[] = [
         ],
         exposes: (device, options) => {
             const dynExposes = [];
-            let ctrlSeqeOfOper = (device?.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') ?? null) as number;
+            let ctrlSeqeOfOper = (device?.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') ?? null);
             const modes = [];
 
+            if (typeof ctrlSeqeOfOper === 'string') ctrlSeqeOfOper = parseInt(ctrlSeqeOfOper) ?? null;
+
             // NOTE: ctrlSeqeOfOper defaults to 2 for this device (according to the manual)
-            if (ctrlSeqeOfOper == null) ctrlSeqeOfOper = 2;
+            if (ctrlSeqeOfOper === null || isNaN(ctrlSeqeOfOper)) ctrlSeqeOfOper = 2;
 
             // NOTE: set cool and/or heat support based on ctrlSeqeOfOper (see lib/constants -> thermostatControlSequenceOfOperations)
             // WARN: a restart of zigbee2mqtt is required after changing ctrlSeqeOfOper for expose data to be re-calculated
@@ -335,4 +321,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

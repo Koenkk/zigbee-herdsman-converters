@@ -1,7 +1,8 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import extend from '../lib/extend';
 import fz from '../converters/fromZigbee';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -27,8 +28,9 @@ const definitions: Definition[] = [
         model: 'ZB24100VS',
         vendor: 'EVN',
         description: 'Zigbee multicolor controller with power supply',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}, color: {modes: ['xy', 'hs']}})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

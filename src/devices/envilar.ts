@@ -1,9 +1,8 @@
 import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import * as exposes from '../lib/exposes';
 const e = exposes.presets;
 import fz from '../converters/fromZigbee';
+import {light, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -11,14 +10,14 @@ const definitions: Definition[] = [
         model: 'ZG_LED_DRIVER42CC',
         vendor: 'Envilar',
         description: 'Zigbee LED driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZG50CC-CCT-DRIVER', 'HK-CCT'],
         model: 'ZG50CC-CCT-DRIVER',
         vendor: 'Envilar',
         description: 'Zigbee CCT LED driver',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['ZGR904-S'],
@@ -36,41 +35,23 @@ const definitions: Definition[] = [
         model: 'ZG102-BOX-UNIDIM',
         vendor: 'Envilar',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ZG302-BOX-RELAY'],
         model: 'ZG302-BOX-RELAY',
         vendor: 'Envilar',
         description: 'Zigbee AC in wall switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['2CH-ZG-BOX-RELAY'],
         model: '2CH-ZG-BOX-RELAY',
         vendor: 'Envilar',
         description: '2 channel box relay',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;
