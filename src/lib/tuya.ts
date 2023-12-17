@@ -1200,10 +1200,10 @@ const tuyaExtend = {
         endpoints?: string[], powerOutageMemory?: boolean, powerOnBehavior2?: boolean, switchType?: boolean, backlightModeLowMediumHigh?: boolean,
         indicatorMode?: boolean, backlightModeOffNormalInverted?: boolean, backlightModeOffOn?: boolean, electricalMeasurements?: boolean,
         electricalMeasurementsFzConverter?: Fz.Converter, childLock?: boolean, fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
-        exposes?: Expose[], onOffFzConverter?: Fz.Converter
+        exposes?: Expose[],
     }={}) => {
         const exposes: Expose[] = options.endpoints ? options.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
-        const fromZigbee: Fz.Converter[] = [options.onOffFzConverter ?? fz.on_off, fz.ignore_basic_report];
+        const fromZigbee: Fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
         const toZigbee: Tz.Converter[] = [tz.on_off];
         if (options.powerOutageMemory) {
             // Legacy, powerOnBehavior is preferred
