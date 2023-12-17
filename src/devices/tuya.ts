@@ -465,19 +465,13 @@ const fzLocal = {
                     }
                 }
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    TS011F_onoff: {
-        ...fz.on_off,
-        convert: async (model, msg, publish, options, meta) => {
-            const result = await fz.on_off.convert(model, msg, publish, options, meta);
-            if (result.state === 'OFF') {
-                // Device takes a lot of time to report power 0 in some cases. When the state if OFF
-                // we can assume power == 0
-                // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
+
+            // Device takes a lot of time to report power 0 in some cases. When the state is OFF we can assume power == 0
+            // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
+            if (meta.state.state === 'OFF') {
                 result.power = 0;
             }
+
             return result;
         },
     } satisfies Fz.Converter,
@@ -3303,7 +3297,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         extend: tuya.extend.switch({
             electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
-            powerOutageMemory: true, indicatorMode: true, childLock: true, onOffFzConverter: fzLocal.TS011F_onoff}),
+            powerOutageMemory: true, indicatorMode: true, childLock: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await onOff({powerOnBehavior: false}).configure(device, coordinatorEndpoint, logger);
