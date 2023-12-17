@@ -368,7 +368,7 @@ const definitions: Definition[] = [
             binary({
                 name: 'child_lock',
                 cluster: 0xFC11,
-                attribute: {id: 0x0000, type: 0x10},
+                attribute: {ID: 0x0000, type: 0x10},
                 description: 'Enables/disables physical input on the device',
                 valueOn: ['LOCK', 0x01],
                 valueOff: ['UNLOCK', 0x00],
@@ -376,7 +376,7 @@ const definitions: Definition[] = [
             binary({
                 name: 'open_window',
                 cluster: 0xFC11,
-                attribute: {id: 0x6000, type: 0x10},
+                attribute: {ID: 0x6000, type: 0x10},
                 description: 'Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.',
                 valueOn: ['ON', 0x01],
                 valueOff: ['OFF', 0x00],
@@ -384,7 +384,7 @@ const definitions: Definition[] = [
             numeric({
                 name: 'frost_protection_temperature',
                 cluster: 0xFC11,
-                attribute: {id: 0x6002, type: 0x29},
+                attribute: {ID: 0x6002, type: 0x29},
                 description: 'Minimum temperature at which to automatically turn on the radiator, ' +
                     'if system mode is off, to prevent pipes freezing.',
                 valueMin: 4.0,
@@ -396,21 +396,21 @@ const definitions: Definition[] = [
             numeric({
                 name: 'idle_steps',
                 cluster: 0xFC11,
-                attribute: {id: 0x6003, type: 0x21},
+                attribute: {ID: 0x6003, type: 0x21},
                 description: 'Number of steps used for calibration (no-load steps)',
                 readOnly: true,
             }),
             numeric({
                 name: 'closing_steps',
                 cluster: 0xFC11,
-                attribute: {id: 0x6004, type: 0x21},
+                attribute: {ID: 0x6004, type: 0x21},
                 description: 'Number of steps it takes to close the valve',
                 readOnly: true,
             }),
             numeric({
                 name: 'valve_opening_limit_voltage',
                 cluster: 0xFC11,
-                attribute: {id: 0x6005, type: 0x21},
+                attribute: {ID: 0x6005, type: 0x21},
                 description: 'Valve opening limit voltage',
                 unit: 'mV',
                 readOnly: true,
@@ -418,7 +418,7 @@ const definitions: Definition[] = [
             numeric({
                 name: 'valve_closing_limit_voltage',
                 cluster: 0xFC11,
-                attribute: {id: 0x6006, type: 0x21},
+                attribute: {ID: 0x6006, type: 0x21},
                 description: 'Valve closing limit voltage',
                 unit: 'mV',
                 readOnly: true,
@@ -426,7 +426,7 @@ const definitions: Definition[] = [
             numeric({
                 name: 'valve_motor_running_voltage',
                 cluster: 0xFC11,
-                attribute: {id: 0x6007, type: 0x21},
+                attribute: {ID: 0x6007, type: 0x21},
                 description: 'Valve motor running voltage',
                 unit: 'mV',
                 readOnly: true,
