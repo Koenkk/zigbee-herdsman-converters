@@ -1237,14 +1237,13 @@ module.exports = [
                 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.onOff(endpoint);
-            await reporting.temperature(endpoint, {min: 10, max: 301, change: 10}); // divider 100: 0.1C
+            await reporting.temperature(endpoint, {min: 60, max: 60, change: 0}); // divider 100: 0.1C
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {min: 10, max: 305, change: 2}); // divider 1 : 2W
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 1000: 0.01Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 1}); // divider 1: 1Vrms
+            await reporting.activePower(endpoint, {min: 60, max: 60, change: 0}); // divider 1 : 2W
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [10, 10]}); // divider 1000: 0,01kWh
-
+            await reporting.rmsCurrent(endpoint, {min: 60, max: 60, change: 0}); // divider 1000: 0.01Arms
+            await reporting.rmsVoltage(endpoint, {min: 60, max: 60, change: 0}); // divider 1: 1Vrms
+            await reporting.currentSummDelivered(endpoint, {min: 60, max: 60, change: 0}); // divider 1000: 0,01kWh
             await endpoint.configureReporting('ssIasZone', [{attribute: 'zoneStatus', minimumReportInterval: 1,
                 maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
         },
