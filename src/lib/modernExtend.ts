@@ -284,13 +284,13 @@ export function light(args?: LightArgs): ModernExtend {
 export interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, endpoint?: string,
-    configureEndpointId?: number, configureReporting?: Partial<ZHConfigureReportingItem>,
+    endpointID?: number, configureReporting?: Partial<ZHConfigureReportingItem>,
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
     const {
         name, lookup, cluster, attribute, description,
         zigbeeCommandOptions, readOnly, endpoint,
-        configureEndpointId, configureReporting,
+        endpointID, configureReporting,
     } = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
@@ -321,7 +321,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
     }];
 
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        const entity = isNumber(configureEndpointId) ? device.getEndpoint(configureEndpointId) : device;
+        const entity = isNumber(endpointID) ? device.getEndpoint(endpointID) : device;
         const reportConfig = (configureReporting !== undefined) ? {...configureReporting, ...{attribute: attribute}} : {attribute: attribute};
         await setupAttributes(entity, coordinatorEndpoint, cluster.toString(), [reportConfig], logger, (configureReporting === undefined));
     };
@@ -332,14 +332,14 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, unit?: string,
-    endpoint?: string, configureEndpointId?: number, configureReporting?: Partial<ZHConfigureReportingItem>,
+    endpoint?: string, endpointID?: number, configureReporting?: Partial<ZHConfigureReportingItem>,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
         name, cluster, attribute, description,
         zigbeeCommandOptions, readOnly, unit, endpoint,
-        configureEndpointId, configureReporting,
+        endpointID, configureReporting,
         valueMin, valueMax, valueStep, scale,
     } = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
@@ -379,7 +379,7 @@ export function numeric(args: NumericArgs): ModernExtend {
     }];
 
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        const entity = isNumber(configureEndpointId) ? device.getEndpoint(configureEndpointId) : device;
+        const entity = isNumber(endpointID) ? device.getEndpoint(endpointID) : device;
         const reportConfig = (configureReporting !== undefined) ? {...configureReporting, ...{attribute: attribute}} : {attribute: attribute};
         await setupAttributes(entity, coordinatorEndpoint, cluster.toString(), [reportConfig], logger, (configureReporting === undefined));
     };
