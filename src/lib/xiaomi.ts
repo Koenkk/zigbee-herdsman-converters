@@ -565,7 +565,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '320':
             if (['MCCGQ13LM'].includes(model.model)) {
-                payload.battery_cover = getFromLookup(value, {0: 'CLOSE', 1: 'OPEN'});
+                payload.tamper = getFromLookup(value, {0: false, 1: true});
             }
             break;
         case '322':
@@ -1348,7 +1348,7 @@ export const trv = {
 export const manufacturerCode = 0x115f;
 
 export const xiaomiModernExtend = {
-    switchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    xiaomiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
         cluster: 'aqaraOpple',
@@ -1357,7 +1357,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    powerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    xiaomiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'power_on_behavior',
         lookup: {'on': 0, 'previous': 1, 'off': 2},
         cluster: 'aqaraOpple',
@@ -1366,7 +1366,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    operationMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    xiaomiOperationMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'operation_mode',
         lookup: {'decoupled': 0, 'control_relay': 1},
         cluster: 'aqaraOpple',
@@ -1375,7 +1375,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    action: (args?: Partial<modernExtend.ActionEnumLookupArgs>) => modernExtend.actionEnumLookup({
+    xiaomiAction: (args?: Partial<modernExtend.ActionEnumLookupArgs>) => modernExtend.actionEnumLookup({
         lookup: {'single': 1},
         cluster: 'genMultistateInput',
         attribute: 'presentValue',

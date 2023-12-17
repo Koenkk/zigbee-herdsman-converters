@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: 'B00TN589ZG',
         vendor: 'CREE',
         description: 'Connected bulb',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 

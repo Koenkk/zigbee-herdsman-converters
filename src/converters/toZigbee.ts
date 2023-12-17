@@ -11,7 +11,6 @@ import {Zcl} from 'zigbee-herdsman';
 const manufacturerOptions = {
     sunricher: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICH},
     xiaomi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
-    osram: {manufacturerCode: Zcl.ManufacturerCode.OSRAM},
     eurotronic: {manufacturerCode: Zcl.ManufacturerCode.JENNIC},
     danfoss: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS},
     hue: {manufacturerCode: Zcl.ManufacturerCode.PHILIPS},
@@ -241,6 +240,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
             utils.assertObject(value, key);
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             const isNotification = value.hasOwnProperty('transaction');
             const modeSrc = isNotification ? constants.armNotification : constants.armMode;
             const mode = utils.getKey(modeSrc, value.mode, undefined, Number);
@@ -359,7 +359,8 @@ const converters2 = {
             const userEnabled = value.hasOwnProperty('user_enabled') ? value.user_enabled : true;
             const pinCode = value.pin_code;
             if (isNaN(user)) throw new Error('user must be numbers');
-            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) throw new Error('user must be in range for device');
+            const pinCodeCount = utils.getMetaValue<number>(entity, meta.mapped, 'pinCodeCount');
+            if (!utils.isInRange(0, pinCodeCount - 1, user)) throw new Error('user must be in range for device');
 
             if (pinCode == null) {
                 await entity.command('closuresDoorLock', 'clearPinCode', {'userid': user}, utils.getOptions(meta.mapped, entity));
@@ -379,7 +380,7 @@ const converters2 = {
             // @ts-expect-error
             const user = meta && meta.message && meta.message.pin_code ? meta.message.pin_code.user : undefined;
             if (user === undefined) {
-                const max = meta.mapped.meta.pinCodeCount;
+                const max = utils.getMetaValue<number>(entity, meta.mapped, 'pinCodeCount');
                 // Get all
                 const options = utils.getOptions(meta.mapped, entity);
                 for (let i = 0; i < max; i++) {
@@ -389,7 +390,8 @@ const converters2 = {
                 if (isNaN(user)) {
                     throw new Error('user must be numbers');
                 }
-                if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
+                const pinCodeCount = utils.getMetaValue<number>(entity, meta.mapped, 'pinCodeCount');
+                if (!utils.isInRange(0, pinCodeCount - 1, user)) {
                     throw new Error('userId must be in range for device');
                 }
 
@@ -405,7 +407,8 @@ const converters2 = {
             if (isNaN(user)) {
                 throw new Error('user must be numbers');
             }
-            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
+            const pinCodeCount = utils.getMetaValue<number>(entity, meta.mapped, 'pinCodeCount');
+            if (!utils.isInRange(0, pinCodeCount - 1, user)) {
                 throw new Error('user must be in range for device');
             }
 
@@ -428,9 +431,9 @@ const converters2 = {
         convertGet: async (entity, key, meta) => {
             // @ts-expect-error
             const user = meta && meta.message && meta.message.user_status ? meta.message.user_status.user : undefined;
-
+            const pinCodeCount = utils.getMetaValue<number>(entity, meta.mapped, 'pinCodeCount');
             if (user === undefined) {
-                const max = meta.mapped.meta.pinCodeCount;
+                const max = pinCodeCount;
                 // Get all
                 const options = utils.getOptions(meta.mapped, entity);
                 for (let i = 0; i < max; i++) {
@@ -440,7 +443,7 @@ const converters2 = {
                 if (isNaN(user)) {
                     throw new Error('user must be numbers');
                 }
-                if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
+                if (!utils.isInRange(0, pinCodeCount - 1, user)) {
                     throw new Error('userId must be in range for device');
                 }
 
@@ -504,6 +507,7 @@ const converters2 = {
 
             let info;
             // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['SIRZB-110', 'SRAC-23B-ZBSR', 'AV2010/29A', 'AV2010/24A'].includes(meta.mapped.model)) {
                 info = (utils.getFromLookup(values.mode, mode)) + ((values.strobe ? 1 : 0) << 4) + (utils.getFromLookup(values.level, level) << 6);
             } else {
@@ -536,6 +540,7 @@ const converters2 = {
 
             let info;
             // For Develco SMSZB-120, introduced change in fw 4.0.5, tested backward with 4.0.4
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['SMSZB-120'].includes(meta.mapped.model)) {
                 info = ((alarmState) << 7) + ((alarmState) << 6);
             } else {
@@ -2225,11 +2230,12 @@ const converters2 = {
     xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
                 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
                 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
-                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM',
+                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
             ].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'LLKZMK11LM'].includes(meta.mapped.model)) {
@@ -2251,11 +2257,12 @@ const converters2 = {
             return {state: {power_outage_memory: value}};
         },
         convertGet: async (entity, key, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
                 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
                 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
-                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM',
+                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
             ].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM', 'ZNCZ12LM'].includes(meta.mapped.model)) {
@@ -2282,6 +2289,7 @@ const converters2 = {
     xiaomi_auto_off: {
         key: ['auto_off'],
         convertSet: async (entity, key, value, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['ZNCZ04LM', 'ZNCZ12LM', 'SP-EUC01'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0202: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
@@ -2296,6 +2304,7 @@ const converters2 = {
             return {state: {auto_off: value}};
         },
         convertGet: async (entity, key, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['ZNCZ04LM', 'ZNCZ12LM', 'SP-EUC01'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0202], manufacturerOptions.xiaomi);
             } else {
@@ -2375,6 +2384,7 @@ const converters2 = {
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
                 'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
@@ -2391,6 +2401,7 @@ const converters2 = {
             return {state: {led_disabled_night: value}};
         },
         convertGet: async (entity, key, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
                 'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
@@ -2436,8 +2447,8 @@ const converters2 = {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
-            utils.assertObject(value);
-            let targetValue = value.hasOwnProperty('state') ? value.state : value;
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            let targetValue = utils.isObject(value) && value.hasOwnProperty('state') ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
             let attrId;
@@ -2471,6 +2482,7 @@ const converters2 = {
         },
         convertGet: async (entity, key, meta) => {
             let attrId;
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
                 attrId = {left: 0xFF22, right: 0xFF23}[meta.endpoint_name];
                 if (attrId == null) {
@@ -2485,9 +2497,8 @@ const converters2 = {
     xiaomi_switch_operation_mode_opple: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertObject(value);
             // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-            const targetValue = value.hasOwnProperty('state') ? value.state : value;
+            const targetValue = utils.isObject(value) && value.hasOwnProperty('state') ? value.state : value;
             // Switches using aqaraOpple 0x0200 on the same endpoints as the onOff clusters.
             const lookupState = {control_relay: 0x01, decoupled: 0x00};
             await entity.write('aqaraOpple', {0x0200:
@@ -2514,6 +2525,7 @@ const converters2 = {
         key: ['options'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertObject(value);
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             const opts = {
                 reverse_direction: false,
                 hand_open: true,
@@ -2552,6 +2564,7 @@ const converters2 = {
             return {state: {options: opts}};
         },
         convertGet: async (entity, key, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (meta.mapped.model === 'ZNCLDJ11LM') {
                 await entity.read('genBasic', [0x0401], manufacturerOptions.xiaomi);
             } else {
@@ -2563,6 +2576,7 @@ const converters2 = {
         key: ['state', 'position'],
         options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
                 if (meta.mapped.model == 'ZNJLBL01LM') {
                     const payload = {'presentValue': 2};
@@ -2606,7 +2620,7 @@ const converters2 = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCLBL01LM'].includes(meta.mapped.model)) {
+            if (!Array.isArray(meta.mapped) && ['ZNCLBL01LM'].includes(meta.mapped.model)) {
                 await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
             } else {
                 await entity.read('genAnalogOutput', [0x0055]);
@@ -2616,6 +2630,7 @@ const converters2 = {
     xiaomi_curtain_battery_voltage: {
         key: ['voltage'],
         convertGet: async (entity, key, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             switch (meta.mapped.model) {
             case 'ZNCLBL01LM':
                 await entity.read('aqaraOpple', [0x040B], manufacturerOptions.xiaomi);
@@ -2635,26 +2650,6 @@ const converters2 = {
         key: ['battery'],
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x040a], manufacturerOptions.xiaomi);
-        },
-    } satisfies Tz.Converter,
-    ledvance_commands: {
-        /* deprecated osram_*/
-        key: ['set_transition', 'remember_state', 'osram_set_transition', 'osram_remember_state'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'osram_set_transition' || key === 'set_transition') {
-                if (value) {
-                    utils.assertNumber(value, key);
-                    const transition = (value > 1) ? Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 10 : 1;
-                    const payload = {0x0012: {value: transition, type: 0x21}, 0x0013: {value: transition, type: 0x21}};
-                    await entity.write('genLevelCtrl', payload);
-                }
-            } else if (key == 'osram_remember_state' || key == 'remember_state') {
-                if (value === true) {
-                    await entity.command('manuSpecificOsram', 'saveStartupParams', {}, manufacturerOptions.osram);
-                } else if (value === false) {
-                    await entity.command('manuSpecificOsram', 'resetStartupParams', {}, manufacturerOptions.osram);
-                }
-            }
         },
     } satisfies Tz.Converter,
     SPZ01_power_outage_memory: {
@@ -2758,6 +2753,7 @@ const converters2 = {
         key: ['buzzer'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             const attribute = ['JY-GZ-01AQ'].includes(meta.mapped.model) ? 0x013e : 0x013f;
             value = (value.toLowerCase() === 'alarm') ? 15361 : 15360;
             await entity.write('aqaraOpple', {[`${attribute}`]: {value: [`${value}`], type: 0x23}}, manufacturerOptions.xiaomi);
@@ -2778,8 +2774,7 @@ const converters2 = {
     JYGZ01AQ_heartbeat_indicator: {
         key: ['heartbeat_indicator'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {true: 1, false: 0};
-            await entity.write('aqaraOpple', {0x013c: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.xiaomi);
+            await entity.write('aqaraOpple', {0x013c: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {heartbeat_indicator: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2789,8 +2784,7 @@ const converters2 = {
     aqara_linkage_alarm: {
         key: ['linkage_alarm'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {true: 1, false: 0};
-            await entity.write('aqaraOpple', {0x014b: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.xiaomi);
+            await entity.write('aqaraOpple', {0x014b: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {linkage_alarm: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2812,8 +2806,7 @@ const converters2 = {
     RTCGQ14LM_trigger_indicator: {
         key: ['trigger_indicator'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {true: 1, false: 0};
-            await entity.write('aqaraOpple', {0x0152: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.xiaomi);
+            await entity.write('aqaraOpple', {0x0152: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {trigger_indicator: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -3799,20 +3792,20 @@ const converters2 = {
             await entity.read('manuSpecificLegrandDevices', [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
         },
     } satisfies Tz.Converter,
-    legrand_cable_outlet_mode: {
-        key: ['cable_outlet_mode'],
+    legrand_pilot_wire_mode: {
+        key: ['pilot_wire_mode'],
         convertSet: async (entity, key, value, meta) => {
             const mode = {
                 'comfort': 0x00,
-                'comfort-1': 0x01,
-                'comfort-2': 0x02,
+                'comfort_-1': 0x01,
+                'comfort_-2': 0x02,
                 'eco': 0x03,
                 'frost_protection': 0x04,
                 'off': 0x05,
             };
             const payload = {data: Buffer.from([utils.getFromLookup(value, mode)])};
             await entity.command('manuSpecificLegrandDevices2', 'command0', payload);
-            return {state: {'cable_outlet_mode': value}};
+            return {state: {'pilot_wire_mode': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLegrandDevices2', [0x0000], manufacturerOptions.legrand);
@@ -4018,7 +4011,6 @@ const converters2 = {
                 time_report: ['closuresDoorLock', 0x0056],
             };
             const v = utils.getFromLookup(key, payloads);
-            // @ts-expect-error
             await entity.read(v[0], [v[1]]);
         },
     } satisfies Tz.Converter,
@@ -4053,7 +4045,6 @@ const converters2 = {
     heiman_ir_remote: {
         key: ['send_key', 'create', 'learn', 'delete', 'get_list'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertObject(value);
             const options = {
                 // Don't send a manufacturerCode (otherwise set in herdsman):
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2827
@@ -4063,17 +4054,21 @@ const converters2 = {
             };
             switch (key) {
             case 'send_key':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'sendKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'create':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'createId', {modelType: value['model_type']}, options);
                 break;
             case 'learn':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'studyKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'delete':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'deleteKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;
@@ -4088,7 +4083,6 @@ const converters2 = {
     scene_store: {
         key: ['scene_store'],
         convertSet: async (entity, key, value: KeyValueAny, meta) => {
-            utils.assertGroup(entity);
             const isGroup = utils.isGroup(entity);
             const groupid = isGroup ? entity.groupID : value.hasOwnProperty('group_id') ? value.group_id : 0;
             let sceneid = value;
@@ -4298,14 +4292,15 @@ const converters2 = {
             const removeresp = await entity.command(
                 'genScenes', 'remove', {groupid, sceneid}, utils.getOptions(meta.mapped, entity),
             );
-            utils.assertObject(removeresp);
 
-            if (isGroup || (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139)) {
+            if (isGroup || (utils.isObject(removeresp) && (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139))) {
+                const addSceneCommand = Number.isInteger(transtime) ? 'add' : 'enhancedAdd';
+                const commandTransitionTime = addSceneCommand === 'enhancedAdd' ? Math.floor(transtime * 10) : transtime;
+
                 const response = await entity.command(
-                    'genScenes', 'add', {groupid, sceneid, scenename: '', transtime, extensionfieldsets},
+                    'genScenes', addSceneCommand, {groupid, sceneid, scenename: '', transtime: commandTransitionTime, extensionfieldsets},
                     utils.getOptions(meta.mapped, entity),
                 );
-                utils.assertObject(response);
 
                 if (isGroup) {
                     if (meta.membersState) {
@@ -4313,13 +4308,17 @@ const converters2 = {
                             utils.saveSceneState(member, sceneid, groupid, state, scenename);
                         }
                     }
-                } else if (response.status === 0) {
-                    utils.saveSceneState(entity, sceneid, groupid, state, scenename);
                 } else {
-                    throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
+                    utils.assertObject(response);
+                    if (response.status === 0) {
+                        utils.saveSceneState(entity, sceneid, groupid, state, scenename);
+                    } else {
+                        throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
+                    }
                 }
             } else {
-                throw new Error(`Scene add unable to remove existing scene ('${Zcl.Status[removeresp.status]}')`);
+                const status = utils.isObject(removeresp) ? Zcl.Status[removeresp.status] : 'unknown';
+                throw new Error(`Scene add unable to remove existing scene ('${status}')`);
             }
             meta.logger.info('Successfully added scene');
             return {state: {}};
@@ -4510,7 +4509,6 @@ const converters2 = {
         convertGet: async (entity, key, meta) => {
             // Apparently, reading values may interfere with a commandStatusChangeNotification for changed occupancy.
             // Therefore, read "zoneStatus" as well.
-            // @ts-expect-error
             await entity.read('ssIasZone', ['currentZoneSensitivityLevel', 61441, 'zoneStatus'], {sendWhen: 'active'});
         },
     } satisfies Tz.Converter,
@@ -5031,23 +5029,23 @@ const converters2 = {
             await entity.read('ssIasZone', [0x4000], {manufacturerCode: 4919});
         },
     } satisfies Tz.Converter,
-    nodon_fil_pilote_mode: {
-        key: ['mode'],
+    nodon_pilot_wire_mode: {
+        key: ['pilot_wire_mode'],
         convertSet: async (entity, key, value, meta) => {
             const mode = utils.getFromLookup(value, {
+                'off': 0x00,
                 'comfort': 0x01,
                 'eco': 0x02,
-                'anti-freeze': 0x03,
-                'stop': 0x00,
+                'frost_protection': 0x03,
                 'comfort_-1': 0x04,
                 'comfort_-2': 0x05,
             });
             const payload = {'mode': mode};
-            await entity.command('manuSpecificNodOnFilPilote', 'setMode', payload);
-            return {state: {'mode': value}};
+            await entity.command('manuSpecificNodOnPilotWire', 'setMode', payload);
+            return {state: {'pilot_wire_mode': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificNodOnFilPilote', [0x0000], manufacturerOptions.nodon);
+            await entity.read('manuSpecificNodOnPilotWire', [0x0000], manufacturerOptions.nodon);
         },
     } satisfies Tz.Converter,
     // #endregion

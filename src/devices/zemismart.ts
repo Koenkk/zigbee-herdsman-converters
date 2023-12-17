@@ -3,10 +3,11 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
 import * as tuya from '../lib/tuya';
+import {light, onOff} from '../lib/modernExtend';
+
 const ea = exposes.access;
 
 const definitions: Definition[] = [
@@ -15,14 +16,14 @@ const definitions: Definition[] = [
         model: 'LXZB-12A',
         vendor: 'Zemismart',
         description: 'RGB LED downlight',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['LXT56-LS27LX1.6'],
         model: 'HGZB-DLC4-N15B',
         vendor: 'Zemismart',
         description: 'RGB LED downlight',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['TS0302'],
@@ -64,12 +65,7 @@ const definitions: Definition[] = [
         model: 'LXN56-SS27LX1.1',
         vendor: 'Zemismart',
         description: 'Smart light switch - 2 gang with neutral wire',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(10);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zqtiam4u'}],
@@ -126,19 +122,26 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [1, 'state', tuya.valueConverterBasic.lookup(
+                    (options) => options.invert_cover ?
+                        {'OPEN': tuya.enum(2), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(0)} :
+                        {'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)},
+                )],
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.coverPosition],
                 [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
-                [7, 'work_state', tuya.valueConverterBasic.lookup({'closing': tuya.enum(0), 'opening': tuya.enum(1)})],
+                [7, 'work_state', tuya.valueConverterBasic.lookup(
+                    (options) => options.invert_cover ?
+                        {'opening': tuya.enum(1), 'closing': tuya.enum(0)} :
+                        {'opening': tuya.enum(0), 'closing': tuya.enum(1)},
+                )],
                 [13, 'battery', tuya.valueConverter.raw],
-                [101, 'program', tuya.valueConverterBasic.lookup({
-                    'set_bottom': tuya.enum(0), 'set_upper': tuya.enum(1), 'reset': tuya.enum(4),
-                }, null)],
-                [101, 'click_control', tuya.valueConverterBasic.lookup({
-                    'lower': tuya.enum(2), 'upper': tuya.enum(3),
-                    'lower_micro': tuya.enum(5), 'upper_micro': tuya.enum(6),
-                }, null)],
+                [101, 'program', tuya.valueConverterBasic.lookup((options) => options.invert_cover ?
+                    {'set_bottom': tuya.enum(0), 'set_upper': tuya.enum(1), 'reset': tuya.enum(4)} :
+                    {'set_bottom': tuya.enum(1), 'set_upper': tuya.enum(0), 'reset': tuya.enum(4)}, null)],
+                [101, 'click_control', tuya.valueConverterBasic.lookup((options) => options.invert_cover ?
+                    {'lower': tuya.enum(2), 'upper': tuya.enum(3), 'lower_micro': tuya.enum(5), 'upper_micro': tuya.enum(6)} :
+                    {'lower': tuya.enum(3), 'upper': tuya.enum(2), 'lower_micro': tuya.enum(6), 'upper_micro': tuya.enum(5)}, null)],
             ],
         },
     },

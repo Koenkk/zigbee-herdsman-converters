@@ -3,8 +3,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import * as modernExtend from '../lib/modernExtend';
+import {binary, forcePowerSource, numeric, onOff} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue} from '../lib/types';
 
 const e = exposes.presets;
@@ -30,8 +29,7 @@ const definitions: Definition[] = [
         model: 'BASICZBR3',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
     },
     {
         zigbeeModel: ['ZBMINI-L'],
@@ -39,7 +37,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
-        extend: extend.switch(),
+        extend: [onOff()],
         configure: async (device, coordinatorEndpoint, logger) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -56,7 +54,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
-        extend: extend.switch(),
+        extend: [onOff()],
         configure: async (device, coordinatorEndpoint, logger) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -72,24 +70,14 @@ const definitions: Definition[] = [
         model: 'ZBMINI',
         vendor: 'SONOFF',
         description: 'Zigbee two way smart switch',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            // Has Unknown power source: https://github.com/Koenkk/zigbee2mqtt/issues/5362, force it here.
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [onOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['S31 Lite zb'],
         model: 'S31ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
     },
     {
         fingerprint: [
@@ -230,20 +218,14 @@ const definitions: Definition[] = [
         model: 'S26R2ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
-        extend: extend.switch({disablePowerOnBehavior: true}),
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['S40LITE'],
         model: 'S40ZBTPB',
         vendor: 'SONOFF',
         description: '15A Zigbee smart plug',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, ota: ota.zigbeeOTA})],
     },
     {
         zigbeeModel: ['DONGLE-E_R'],
@@ -273,12 +255,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
         description: 'Smart Plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['SNZB-01P'],
@@ -386,8 +363,9 @@ const definitions: Definition[] = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
         ],
+        ota: ota.zigbeeOTA,
         extend: [
-            modernExtend.binary({
+            binary({
                 name: 'child_lock',
                 cluster: 0xFC11,
                 attribute: {id: 0x0000, type: 0x10},
@@ -395,7 +373,7 @@ const definitions: Definition[] = [
                 valueOn: ['LOCK', 0x01],
                 valueOff: ['UNLOCK', 0x00],
             }),
-            modernExtend.binary({
+            binary({
                 name: 'open_window',
                 cluster: 0xFC11,
                 attribute: {id: 0x6000, type: 0x10},
@@ -403,7 +381,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 0x01],
                 valueOff: ['OFF', 0x00],
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'frost_protection_temperature',
                 cluster: 0xFC11,
                 attribute: {id: 0x6002, type: 0x29},
@@ -415,21 +393,21 @@ const definitions: Definition[] = [
                 unit: '°C',
                 scale: 100,
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'idle_steps',
                 cluster: 0xFC11,
                 attribute: {id: 0x6003, type: 0x21},
                 description: 'Number of steps used for calibration (no-load steps)',
                 readOnly: true,
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'closing_steps',
                 cluster: 0xFC11,
                 attribute: {id: 0x6004, type: 0x21},
                 description: 'Number of steps it takes to close the valve',
                 readOnly: true,
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'valve_opening_limit_voltage',
                 cluster: 0xFC11,
                 attribute: {id: 0x6005, type: 0x21},
@@ -437,7 +415,7 @@ const definitions: Definition[] = [
                 unit: 'mV',
                 readOnly: true,
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'valve_closing_limit_voltage',
                 cluster: 0xFC11,
                 attribute: {id: 0x6006, type: 0x21},
@@ -445,7 +423,7 @@ const definitions: Definition[] = [
                 unit: 'mV',
                 readOnly: true,
             }),
-            modernExtend.numeric({
+            numeric({
                 name: 'valve_motor_running_voltage',
                 cluster: 0xFC11,
                 attribute: {id: 0x6007, type: 0x21},
@@ -461,8 +439,22 @@ const definitions: Definition[] = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002]);
+            await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007]);
         },
+    },
+    {
+        zigbeeModel: ['S60ZBTPF'],
+        model: 'S60ZBTPF',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart plug',
+        extend: [onOff()],
+    },
+    {
+        zigbeeModel: ['S60ZBTPG'],
+        model: 'S60ZBTPG',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart plug',
+        extend: [onOff()],
     },
 ];
 
