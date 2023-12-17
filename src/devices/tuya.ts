@@ -3333,7 +3333,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}, {vendor: 'BlitzWolf', model: 'BW-SHP15'},
             {vendor: 'AVATTO', model: 'MIUCOT10Z'}, {vendor: 'Neo', model: 'NAS-WR01B'}, {vendor: 'Neo', model: 'PLUG-001SPB2'},
-            {vendor:'TuYa', model: 'BSD33_20A', fingerprint: [{manufacturerName: '_TZ3000_okaz9tjs', applicationVersion: 112 }]},
+            {vendor: 'TuYa', model: 'BSD33_20A', fingerprint: [{manufacturerName: '_TZ3000_okaz9tjs', applicationVersion: 112}]},
             tuya.whitelabel('TuYa', 'BSD29_1', 'Smart plug (with power monitoring by polling)', ['_TZ3000_okaz9tjs']),
         ],
         ota: ota.zigbeeOTA,
