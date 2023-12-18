@@ -3,6 +3,7 @@ import * as utils from '../src/lib/utils';
 import {Zh, Logger, DefinitionMeta, Fz} from '../src/lib/types';
 import { repInterval } from '../src/lib/constants';
 import {philipsFz} from '../src/lib/philips';
+import {fromZigbee as xiaomiFz} from '../src/lib/xiaomi';
 import tz from '../src/converters/toZigbee'
 import fz from '../src/converters/fromZigbee'
 
@@ -308,6 +309,33 @@ describe('ModernExtend', () => {
                 ],
             },
             endpoints: {bottom: 2, top: 1},
+        });
+    });
+
+    test(`VOCKQJK11LM`, async () => {
+        await assertDefintion({
+            device: mockDevice({modelID: 'lumi.airmonitor.acn01', endpoints: [
+                {ID: 1, inputClusters: []},
+            ]}),
+            meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+            fromZigbee: [fz.battery, fz.temperature, fz.humidity, xiaomiFz.aqara_opple, expect.objectContaining({cluster: 'aqaraOpple'}),
+                expect.objectContaining({cluster: 'genAnalogInput'}), expect.objectContaining({cluster: 'aqaraOpple'})],
+            toZigbee: ['air_quality', 'voc', 'display_unit'],
+            exposes: ['air_quality', 'battery', 'device_temperature', 'display_unit', 'humidity', 'linkquality', 'temperature', 'voc', 'voltage'],
+            bind: {
+                1: ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg', 'genAnalogInput'],
+            },
+            read: {
+                1: [['genPowerCfg', ['batteryVoltage']], ['aqaraOpple', ['airQuality']], ['genAnalogInput', ['presentValue']], ['aqaraOpple', ['displayUnit']]],
+            },
+            configureReporting: {
+                1: [
+                    ['msRelativeHumidity', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                    ['genPowerCfg', [reportingItem('batteryVoltage', repInterval.HOUR, repInterval.MAX, 0)]],
+                    ['genAnalogInput', [reportingItem('presentValue', 10, repInterval.HOUR, 5)]],
+                ],
+            },
         });
     });
 });
