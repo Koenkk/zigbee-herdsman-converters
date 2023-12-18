@@ -5,7 +5,10 @@ import {presets as e, access as ea} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
 import {configure as lightConfigure} from './light';
 import {ConfigureReportingItem as ZHConfigureReportingItem} from 'zigbee-herdsman/dist/controller/model/endpoint';
-import {getFromLookupByValue, isString, getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName, isObject, isEndpoint} from './utils';
+import {
+    getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
+    getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
+} from './utils';
 import {repInterval} from './constants';
 
 const DefaultReportingItemValues = {
@@ -14,11 +17,11 @@ const DefaultReportingItemValues = {
     reportableChange: 1,
 };
 
-function getEndpointsWithInputCluster(device: Zh.Device, cluster: string) {
+function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | number) {
     if (!device.endpoints) {
         throw new Error(device.ieeeAddr + ' ' + device.endpoints);
     }
-    const endpoints = device.endpoints.filter((ep) => ep.getInputClusters().find((c) => c.name === cluster));
+    const endpoints = device.endpoints.filter((ep) => ep.getInputClusters().find((c) => isNumber(cluster) ? c.ID === cluster : c.name === cluster));
     if (endpoints.length === 0) {
         throw new Error(`Device ${device.ieeeAddr} has no input cluster ${cluster}`);
     }
@@ -28,7 +31,7 @@ function getEndpointsWithInputCluster(device: Zh.Device, cluster: string) {
 type ConfigureReportingItem = Partial<ZHConfigureReportingItem> & {attribute: string | number | {ID: number, type: number}}
 
 async function setupAttributes(
-    entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string, attributes: ConfigureReportingItem[], logger: Logger,
+    entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string | number, attributes: ConfigureReportingItem[], logger: Logger,
     readOnly=false,
 ) {
     const endpoints = isEndpoint(entity) ? [entity] : getEndpointsWithInputCluster(entity, cluster);
@@ -42,6 +45,19 @@ async function setupAttributes(
         }
         await endpoint.read(cluster, attributes.map((a) => isString(a) ? a : (isObject(a.attribute) ? a.attribute.ID : a.attribute)));
     }
+}
+
+export function setupConfigureForReporting(
+    cluster: string | number, attribute: string | number | {ID: number, type: number},
+    endpointID?: number, reportingConfiguration?: Partial<ZHConfigureReportingItem>,
+) {
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        const entity = isNumber(endpointID) ? device.getEndpoint(endpointID) : device;
+        const reportConfig = (reportingConfiguration !== undefined) ? {...reportingConfiguration, ...{attribute: attribute}} : {attribute: attribute};
+        await setupAttributes(entity, coordinatorEndpoint, cluster, [reportConfig], logger, (reportingConfiguration === undefined));
+    };
+
+    return configure;
 }
 
 export interface OnOffArgs {
@@ -288,12 +304,17 @@ export function light(args?: LightArgs): ModernExtend {
 }
 
 export interface EnumLookupArgs {
-    name: string, lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
-    zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, endpoint?: string,
+    name: string, lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
+    zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, endpoint?: string,
+    endpointID?: number, configureReporting?: Partial<ZHConfigureReportingItem>,
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
-    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpoint, readOnly} = args;
-    const attributeKey = isString(attribute) ? attribute : attribute.id;
+    const {
+        name, lookup, cluster, attribute, description,
+        zigbeeCommandOptions, readOnly, endpoint,
+        endpointID, configureReporting,
+    } = args;
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
     let expose = e.enum(name, readOnly ? ea.STATE_GET : ea.ALL, Object.keys(lookup)).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
@@ -312,7 +333,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
         key: [name],
         convertSet: readOnly ? undefined : async (entity, key, value, meta) => {
             const payloadValue = getFromLookup(value, lookup);
-            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.id]: {value: payloadValue, type: attribute.type}};
+            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
         },
@@ -321,17 +342,25 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
         },
     }];
 
-    return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+    const configure = setupConfigureForReporting(cluster, attribute, endpointID, configureReporting);
+
+    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface NumericArgs {
-    name: string, cluster: string | number, attribute: string | {id: number, type: number}, description: string,
-    zigbeeCommandOptions?: {manufacturerCode: number}, readOnly?: boolean, unit?: string, endpoint?: string,
+    name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
+    zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, unit?: string,
+    endpoint?: string, endpointID?: number, configureReporting?: Partial<ZHConfigureReportingItem>,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
 }
 export function numeric(args: NumericArgs): ModernExtend {
-    const {name, cluster, attribute, description, zigbeeCommandOptions, unit, readOnly, valueMax, valueMin, valueStep, endpoint, scale} = args;
-    const attributeKey = isString(attribute) ? attribute : attribute.id;
+    const {
+        name, cluster, attribute, description,
+        zigbeeCommandOptions, readOnly, unit, endpoint,
+        endpointID, configureReporting,
+        valueMin, valueMax, valueStep, scale,
+    } = args;
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
     let expose = e.numeric(name, readOnly ? ea.STATE_GET : ea.ALL).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
@@ -358,7 +387,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         convertSet: readOnly ? undefined : async (entity, key, value, meta) => {
             assertNumber(value, key);
             const payloadValue = scale === undefined ? value : value * scale;
-            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.id]: {value: payloadValue, type: attribute.type}};
+            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
         },
@@ -367,17 +396,22 @@ export function numeric(args: NumericArgs): ModernExtend {
         },
     }];
 
-    return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+    const configure = setupConfigureForReporting(cluster, attribute, endpointID, configureReporting);
+
+    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface BinaryArgs {
     name: string, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], cluster: string | number,
-    attribute: string | {id: number, type: number}, description: string, zigbeeCommandOptions?: {manufacturerCode: number},
-    readOnly?: boolean, endpoint?: string,
+    attribute: string | {ID: number, type: number}, description: string, zigbeeCommandOptions?: {manufacturerCode: number},
+    endpoint?: string, endpointID?: number, configureReporting?: Partial<ZHConfigureReportingItem>, readOnly?: boolean,
 }
 export function binary(args: BinaryArgs): ModernExtend {
-    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, readOnly, endpoint} = args;
-    const attributeKey = isString(attribute) ? attribute : attribute.id;
+    const {
+        name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions,
+        endpoint, endpointID, configureReporting, readOnly,
+    } = args;
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
     let expose = e.binary(name, readOnly ? ea.STATE_GET : ea.ALL, valueOn[0], valueOff[0]).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
@@ -396,7 +430,7 @@ export function binary(args: BinaryArgs): ModernExtend {
         key: [name],
         convertSet: readOnly ? undefined : async (entity, key, value, meta) => {
             const payloadValue = value === valueOn[0] ? valueOn[1] : valueOff[1];
-            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.id]: {value: payloadValue, type: attribute.type}};
+            const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
         },
@@ -405,15 +439,17 @@ export function binary(args: BinaryArgs): ModernExtend {
         },
     }];
 
-    return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+    const configure = setupConfigureForReporting(cluster, attribute, endpointID, configureReporting);
+
+    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface ActionEnumLookupArgs {
-    lookup: KeyValue, cluster: string | number, attribute: string | {id: number, type: number}, postfixWithEndpointName?: boolean,
+    lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, postfixWithEndpointName?: boolean,
 }
 export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     const {lookup, attribute, cluster} = args;
-    const attributeKey = isString(attribute) ? attribute : attribute.id;
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
     const expose = e.enum('action', ea.STATE, Object.keys(lookup)).withDescription('Triggered action (e.g. a button click)');
 

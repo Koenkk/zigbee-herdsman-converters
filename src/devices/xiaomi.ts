@@ -11,7 +11,10 @@ const e = exposes.presets;
 const ea = exposes.access;
 import * as globalStore from '../lib/store';
 import * as xiaomi from '../lib/xiaomi';
-const {xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior, xiaomiSwitchType} = xiaomi.modernExtend;
+const {
+    xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior,
+    xiaomiSwitchType, aqaraAirQuality, aqaraVoc, aqaraDisplayUnit,
+} = xiaomi.modernExtend;
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz, Extend} from '../lib/types';
 const {printNumbersAsHexSequence} = utils;
@@ -525,17 +528,6 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    VOCKQJK11LM_display_unit: {
-        key: ['display_unit'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple',
-                {0x0114: {value: utils.getFromLookup(value, xiaomi.VOCKQJK11LMDisplayUnit), type: 0x20}}, {manufacturerCode: 0x115F});
-            return {state: {display_unit: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
-        },
-    } satisfies Tz.Converter,
     aqara_feeder: {
         key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
         convertSet: async (entity, key, value, meta) => {
@@ -992,7 +984,7 @@ const definitions: Definition[] = [
                 scale: 5,
                 unit: 'm',
                 cluster: 'aqaraOpple',
-                attribute: {id: 0x051b, type: 0x20},
+                attribute: {ID: 0x051b, type: 0x20},
                 description: 'LED strip length',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -1002,7 +994,7 @@ const definitions: Definition[] = [
                 valueMax: 99,
                 unit: '%',
                 cluster: 'aqaraOpple',
-                attribute: {id: 0x0515, type: 0x20},
+                attribute: {ID: 0x0515, type: 0x20},
                 description: 'Minimum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -1012,7 +1004,7 @@ const definitions: Definition[] = [
                 valueMax: 100,
                 unit: '%',
                 cluster: 'aqaraOpple',
-                attribute: {id: 0x0516, type: 0x20},
+                attribute: {ID: 0x0516, type: 0x20},
                 description: 'Maximum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -1021,7 +1013,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'aqaraOpple',
-                attribute: {id: 0x051c, type: 0x20},
+                attribute: {ID: 0x051c, type: 0x20},
                 description: 'Enabling audio',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -1029,7 +1021,7 @@ const definitions: Definition[] = [
                 name: 'audio_sensitivity',
                 lookup: {'low': 0, 'medium': 1, 'high': 2},
                 cluster: 'aqaraOpple',
-                attribute: {id: 0x051e, type: 0x20},
+                attribute: {ID: 0x051e, type: 0x20},
                 description: 'Audio sensitivity',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -1037,7 +1029,7 @@ const definitions: Definition[] = [
                 name: 'audio_effect',
                 lookup: {'random': 0, 'blink': 1, 'rainbow': 2, 'wave': 3},
                 cluster: 'aqaraOpple',
-                attribute: {id: 0x051d, type: 0x23},
+                attribute: {ID: 0x051d, type: 0x23},
                 description: 'Audio effect',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -1046,7 +1038,7 @@ const definitions: Definition[] = [
                 valueMin: 1,
                 valueMax: 32,
                 cluster: 'aqaraOpple',
-                attribute: {id: 0x051f, type: 0x23},
+                attribute: {ID: 0x051f, type: 0x23},
                 description: 'Preset index (0-6 default presets)',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -1055,7 +1047,7 @@ const definitions: Definition[] = [
                 valueMin: 1,
                 valueMax: 100,
                 cluster: 'aqaraOpple',
-                attribute: {id: 0x0520, type: 0x20},
+                attribute: {ID: 0x0520, type: 0x20},
                 description: 'Effect speed',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -2668,7 +2660,7 @@ const definitions: Definition[] = [
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
                 cluster: 'aqaraOpple',
-                attribute: {id: 0x02d0, type: 0x10},
+                attribute: {ID: 0x02d0, type: 0x10},
                 description: 'Enabling prevents both relays being on at the same time (Interlock)',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -2676,7 +2668,7 @@ const definitions: Definition[] = [
                 name: 'mode',
                 lookup: {'power': 0, 'pulse': 1, 'dry': 3},
                 cluster: 'aqaraOpple',
-                attribute: {id: 0x0289, type: 0x20},
+                attribute: {ID: 0x0289, type: 0x20},
                 description: 'Work mode: Power mode, Dry mode with impulse, Dry mode',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -2686,7 +2678,7 @@ const definitions: Definition[] = [
                 valueMax: 2000,
                 unit: 'ms',
                 cluster: 'aqaraOpple',
-                attribute: {id: 0x00eb, type: 0x21},
+                attribute: {ID: 0x00eb, type: 0x21},
                 description: 'Impulse length in Dry mode with impulse',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -3117,21 +3109,21 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
         description: 'Aqara TVOC air quality monitor',
-        fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tzLocal.VOCKQJK11LM_display_unit],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        exposes: [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.device_temperature(), e.battery(), e.battery_voltage(),
-            e.enum('display_unit', ea.ALL, ['mgm3_celsius', 'ppb_celsius', 'mgm3_fahrenheit', 'ppb_fahrenheit'])
-                .withDescription('Units to show on the display')],
+        exposes: [e.temperature(), e.humidity(), e.device_temperature(), e.battery(), e.battery_voltage()],
+        extend: [
+            aqaraAirQuality(),
+            aqaraVoc(),
+            aqaraDisplayUnit(),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genAnalogInput'];
+            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.humidity(endpoint);
             await reporting.temperature(endpoint);
-            const payload = reporting.payload('presentValue', 10, constants.repInterval.HOUR, 5);
-            await endpoint.configureReporting('genAnalogInput', payload);
-            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+            await reporting.batteryVoltage(endpoint);
         },
         ota: ota.zigbeeOTA,
     },

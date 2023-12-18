@@ -308,7 +308,7 @@ const definitions: Definition[] = [
             binary({
                 name: 'tamper',
                 cluster: 0xFC11,
-                attribute: {id: 0x2000, type: 0x20},
+                attribute: {ID: 0x2000, type: 0x20},
                 description: 'Tamper-proof status',
                 valueOn: [true, 0x01],
                 valueOff: [false, 0x00],
@@ -336,7 +336,7 @@ const definitions: Definition[] = [
             numeric({
                 name: 'motion_timeout',
                 cluster: 0x0406,
-                attribute: {id: 0x0020, type: 0x21},
+                attribute: {ID: 0x0020, type: 0x21},
                 description: 'Unoccupied to occupied delay',
                 valueMin: 5,
                 valueMax: 60,
@@ -345,7 +345,7 @@ const definitions: Definition[] = [
                 name: 'illumination',
                 lookup: {'dim': 0, 'bright': 1},
                 cluster: 0xFC11,
-                attribute: {id: 0x2001, type: 0x20},
+                attribute: {ID: 0x2001, type: 0x20},
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
                 description: 'Only updated when occupancy is detected',
                 readOnly: true,
@@ -371,7 +371,7 @@ const definitions: Definition[] = [
             numeric({
                 name: 'occupancy_timeout',
                 cluster: 0x0406,
-                attribute: {id: 0x0020, type: 0x21},
+                attribute: {ID: 0x0020, type: 0x21},
                 description: 'Unoccupied to occupied delay',
                 valueMin: 15,
                 valueMax: 65535,
@@ -380,14 +380,14 @@ const definitions: Definition[] = [
                 name: 'occupancy_sensitivity',
                 lookup: {'low': 1, 'medium': 2, 'high': 3},
                 cluster: 0x0406,
-                attribute: {id: 0x0022, type: 0x20},
+                attribute: {ID: 0x0022, type: 0x20},
                 description: 'Sensitivity of human presence detection',
             }),
             enumLookup({
                 name: 'illumination',
                 lookup: {'dim': 0, 'bright': 1},
                 cluster: 0xFC11,
-                attribute: {id: 0x2001, type: 0x20},
+                attribute: {ID: 0x2001, type: 0x20},
                 description: 'Only updated when occupancy is detected',
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
                 readOnly: true,
@@ -425,7 +425,7 @@ const definitions: Definition[] = [
             binary({
                 name: 'child_lock',
                 cluster: 0xFC11,
-                attribute: {id: 0x0000, type: 0x10},
+                attribute: {ID: 0x0000, type: 0x10},
                 description: 'Enables/disables physical input on the device',
                 valueOn: ['LOCK', 0x01],
                 valueOff: ['UNLOCK', 0x00],
@@ -433,7 +433,7 @@ const definitions: Definition[] = [
             binary({
                 name: 'open_window',
                 cluster: 0xFC11,
-                attribute: {id: 0x6000, type: 0x10},
+                attribute: {ID: 0x6000, type: 0x10},
                 description: 'Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.',
                 valueOn: ['ON', 0x01],
                 valueOff: ['OFF', 0x00],
@@ -441,7 +441,7 @@ const definitions: Definition[] = [
             numeric({
                 name: 'frost_protection_temperature',
                 cluster: 0xFC11,
-                attribute: {id: 0x6002, type: 0x29},
+                attribute: {ID: 0x6002, type: 0x29},
                 description: 'Minimum temperature at which to automatically turn on the radiator, ' +
                     'if system mode is off, to prevent pipes freezing.',
                 valueMin: 4.0,
@@ -453,21 +453,21 @@ const definitions: Definition[] = [
             numeric({
                 name: 'idle_steps',
                 cluster: 0xFC11,
-                attribute: {id: 0x6003, type: 0x21},
+                attribute: {ID: 0x6003, type: 0x21},
                 description: 'Number of steps used for calibration (no-load steps)',
                 readOnly: true,
             }),
             numeric({
                 name: 'closing_steps',
                 cluster: 0xFC11,
-                attribute: {id: 0x6004, type: 0x21},
+                attribute: {ID: 0x6004, type: 0x21},
                 description: 'Number of steps it takes to close the valve',
                 readOnly: true,
             }),
             numeric({
                 name: 'valve_opening_limit_voltage',
                 cluster: 0xFC11,
-                attribute: {id: 0x6005, type: 0x21},
+                attribute: {ID: 0x6005, type: 0x21},
                 description: 'Valve opening limit voltage',
                 unit: 'mV',
                 readOnly: true,
@@ -475,7 +475,7 @@ const definitions: Definition[] = [
             numeric({
                 name: 'valve_closing_limit_voltage',
                 cluster: 0xFC11,
-                attribute: {id: 0x6006, type: 0x21},
+                attribute: {ID: 0x6006, type: 0x21},
                 description: 'Valve closing limit voltage',
                 unit: 'mV',
                 readOnly: true,
@@ -483,7 +483,7 @@ const definitions: Definition[] = [
             numeric({
                 name: 'valve_motor_running_voltage',
                 cluster: 0xFC11,
-                attribute: {id: 0x6007, type: 0x21},
+                attribute: {ID: 0x6007, type: 0x21},
                 description: 'Valve motor running voltage',
                 unit: 'mV',
                 readOnly: true,
