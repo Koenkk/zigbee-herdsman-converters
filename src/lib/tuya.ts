@@ -1314,7 +1314,8 @@ export {tuyaExtend as extend};
 
 
 function getModernExtendForDP(name: string, attribute: {dp: number, type: number}, converter: Tuya.ValueConverterSingle,
-    expose: Expose, skip?: (meta: Tz.Meta) => boolean): ModernExtend {
+    skip?: (meta: Tz.Meta) => boolean, endpoint?: string): ModernExtend {
+    const keyName = (endpoint) ? `${name}_${endpoint}` : name;
     const fromZigbee: Fz.Converter[] = [{
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
@@ -1328,13 +1329,15 @@ function getModernExtendForDP(name: string, attribute: {dp: number, type: number
         },
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
+            let found = false;
             for (const dpValue of msg.data.dpValues) {
                 if (dpValue.dp == attribute.dp) {
-                    result[expose.property] = converter.from(getDataValue(dpValue));
+                    result[keyName] = converter.from(getDataValue(dpValue));
+                    found = true;
                     break;
                 }
             }
-
+            if (!found) return;
             // Apply calibrateAndPrecisionRoundOptions
             const keys = Object.keys(utils.calibrateAndPrecisionRoundOptionsDefaultPrecision);
             for (const entry of Object.entries(result)) {
@@ -1356,36 +1359,37 @@ function getModernExtendForDP(name: string, attribute: {dp: number, type: number
             for (const [attr, value] of Object.entries(meta.message)) {
                 const convertedKey: string = meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
                     `${attr}_${meta.endpoint_name}` : attr;
-                if (convertedKey !== name) continue;
+                if (convertedKey !== keyName) continue;
                 if (skip && skip(meta)) continue;
 
                 const convertedValue = await converter.to(value);
                 const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+                const seq: number | undefined = undefined;
                 if (convertedValue === undefined) {
                     // conversion done inside converter, ignore.
                 } else if (attribute.type == dataTypes.bool) {
-                    await sendDataPointBool(entity, attribute.dp, convertedValue as boolean, sendCommand, 1);
+                    await sendDataPointBool(entity, attribute.dp, convertedValue as boolean, sendCommand, seq);
                 } else if (attribute.type == dataTypes.number) {
-                    await sendDataPointValue(entity, attribute.dp, convertedValue as number, sendCommand, 1);
+                    await sendDataPointValue(entity, attribute.dp, convertedValue as number, sendCommand, seq);
                 } else if (attribute.type == dataTypes.string) {
-                    await sendDataPointStringBuffer(entity, attribute.dp, convertedValue as string, sendCommand, 1);
+                    await sendDataPointStringBuffer(entity, attribute.dp, convertedValue as string, sendCommand, seq);
                 } else if (attribute.type == dataTypes.raw) {
-                    await sendDataPointRaw(entity, attribute.dp, convertedValue as number[], sendCommand, 1);
+                    await sendDataPointRaw(entity, attribute.dp, convertedValue as number[], sendCommand, seq);
                 } else if (attribute.type == dataTypes.enum) {
-                    await sendDataPointEnum(entity, attribute.dp, convertedValue as number, sendCommand, 1);
+                    await sendDataPointEnum(entity, attribute.dp, convertedValue as number, sendCommand, seq);
                 } else if (attribute.type == dataTypes.bitmap) {
-                    await sendDataPointBitmap(entity, attribute.dp, convertedValue as number, sendCommand, 1);
+                    await sendDataPointBitmap(entity, attribute.dp, convertedValue as number, sendCommand, seq);
                 } else {
                     throw new Error(`Don't know how to send type '${typeof convertedValue}'`);
                 }
 
-                state[key] = value;
+                state[convertedKey] = value;
             }
             return {state};
         },
     }];
 
-    return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+    return {fromZigbee, toZigbee, isModernExtend: true};
 }
 
 export interface TuyaEnumLookupArgs {
@@ -1420,39 +1424,36 @@ const tuyaModernExtend = {
         let exp: Expose;
         if (expose) {
             exp = expose;
-            exp.name = name;
         } else {
             exp = new exposes.Enum(name, readOnly ? ea.STATE : ea.STATE_SET, Object.keys(lookup)).withDescription(description);
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        return getModernExtendForDP(name, attribute, {
+        return {exposes: [exp], ...getModernExtendForDP(name, attribute, {
             from: (value) => utils.getFromLookupByValue(value, lookup),
             to: (value) => utils.getFromLookup(value, lookup),
-        }, exp, skip);
+        }, skip, endpoint)};
     },
     binary(args: TuyaBinaryArgs): ModernExtend {
         const {name, attribute, valueOn, valueOff, description, readOnly, endpoint, expose, skip} = args;
         let exp: Expose;
         if (expose) {
             exp = expose;
-            exp.name = name;
         } else {
             exp = e.binary(name, readOnly ? ea.STATE_GET : ea.ALL, valueOn[0], valueOff[0]).withDescription(description);
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        return getModernExtendForDP(name, attribute, {
+        return {exposes: [exp], ...getModernExtendForDP(name, attribute, {
             from: (value) => (value === valueOn[1]) ? valueOn[0] : valueOff[0],
             to: (value) => (value === valueOn[0]) ? valueOn[1] : valueOff[1],
-        }, exp, skip);
+        }, skip, endpoint)};
     },
     numeric(args: TuyaNumericArgs): ModernExtend {
         const {name, attribute, description, readOnly, endpoint, unit, valueMax, valueMin, valueStep, scale, expose, skip} = args;
         let exp: exposes.Numeric;
         if (expose) {
             exp = expose;
-            exp.name = name;
         } else {
             exp = e.numeric(name, readOnly ? ea.STATE_GET : ea.ALL).withDescription(description);
         }
@@ -1473,7 +1474,7 @@ const tuyaModernExtend = {
             }
         }
 
-        return getModernExtendForDP(name, attribute, converter, exp, skip);
+        return {exposes: [exp], ...getModernExtendForDP(name, attribute, converter, skip, endpoint)};
     },
     light(args: TuyaLightArgs): ModernExtend {
         const {state, brightness, min, max, endpoint} = args;
@@ -1481,28 +1482,32 @@ const tuyaModernExtend = {
         let fromZigbee: Fz.Converter[] = [];
         let toZigbee: Tz.Converter[] = [];
         let ext: ModernExtend;
-        ext = tuyaModernExtend.binary({name: 'state', attribute: {dp: brightness.dp, type: brightness.type},
-            valueOn: state.valueOn, valueOff: state.valueOff, skip: state.skip});
+        if (min) {
+            exp = exp.withMinBrightness().setAccess('min_brightness', ea.STATE_SET);
+        }
+        if (max) {
+            exp = exp.withMaxBrightness().setAccess('max_brightness', ea.STATE_SET);
+        }
+        if (endpoint) exp = exp.withEndpoint(endpoint);
+        ext = tuyaModernExtend.binary({name: 'state', attribute: {dp: state.dp, type: state.type},
+            valueOn: state.valueOn, valueOff: state.valueOff, skip: state.skip, endpoint: endpoint});
         fromZigbee = [...fromZigbee, ...ext.fromZigbee];
         toZigbee = [...toZigbee, ...ext.toZigbee];
         ext = tuyaModernExtend.numeric({name: 'brightness', attribute: {dp: brightness.dp, type: brightness.type},
-            scale: brightness.scale});
+            scale: brightness.scale, endpoint: endpoint});
         fromZigbee = [...fromZigbee, ...ext.fromZigbee];
         toZigbee = [...toZigbee, ...ext.toZigbee];
         if (min) {
-            exp = exp.withMinBrightness().setAccess('min_brightness', ea.STATE_SET);
-            ext = tuyaModernExtend.numeric({name: 'min_brightness', attribute: {dp: min.dp, type: min.type}, scale: min.scale});
+            ext = tuyaModernExtend.numeric({name: 'min_brightness', attribute: {dp: min.dp, type: min.type}, scale: min.scale, endpoint: endpoint});
             fromZigbee = [...fromZigbee, ...ext.fromZigbee];
             toZigbee = [...toZigbee, ...ext.toZigbee];
         }
         if (max) {
-            exp = exp.withMaxBrightness().setAccess('max_brightness', ea.STATE_SET);
-            ext = tuyaModernExtend.numeric({name: 'max_brightness', attribute: {dp: max.dp, type: max.type}, scale: max.scale});
+            ext = tuyaModernExtend.numeric({name: 'max_brightness', attribute: {dp: max.dp, type: max.type}, scale: max.scale, endpoint: endpoint});
             fromZigbee = [...fromZigbee, ...ext.fromZigbee];
             toZigbee = [...toZigbee, ...ext.toZigbee];
         }
-        if (endpoint) exp = exp.withEndpoint(endpoint);
-
+        
         // combine extends for one expose
         return {exposes: [exp], fromZigbee: fromZigbee, toZigbee: toZigbee, isModernExtend: true};
     },
