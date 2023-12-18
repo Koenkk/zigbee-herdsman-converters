@@ -61,7 +61,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_pmz6mjyu'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_pmz6mjyu', '_TZ3000_iv6ph5tr']),
         model: 'MS-104BZ',
         description: 'Smart light switch module (2 gang)',
         vendor: 'Moes',
@@ -78,6 +78,9 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint2);
         },
+        whiteLabel: [
+            tuya.whitelabel('KnockautX', 'FMS2C017', '2 gang switch', ['_TZ3000_iv6ph5tr']),
+        ],
     },
     {
         zigbeeModel: ['TS0112'],
