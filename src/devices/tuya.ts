@@ -2384,11 +2384,11 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_fisb3ajo', '_TZ3000_5gey1ohx']),
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_fisb3ajo', '_TZ3000_5gey1ohx','_TZ3000_mtnpt6ws']),
         model: 'TS0002_switch_module_2',
         vendor: 'TuYa',
         description: '2 gang switch module',
-        extend: tuya.extend.switch({endpoints: ['l1', 'l2']}),
+        extend: tuya.extend.switch({switchType: true,indicatorMode: true, endpoints: ['l1', 'l2']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -2398,13 +2398,16 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
+	whiteLabel: [
+		tuya.whitelabel('AVATTO', 'ZWSM16-2-Zigbee', '2 gang switch module', ['_TZ3000_mtnpt6ws']),
+        ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_4o16jdca', '_TZ3000_odzoiovu']),
+        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_4o16jdca', '_TZ3000_odzoiovu','_TZ3000_hbic3ka3']),
         model: 'TS0003_switch_module_2',
         vendor: 'TuYa',
         description: '3 gang switch module',
-        extend: tuya.extend.switch({switchType: true, endpoints: ['l1', 'l2', 'l3']}),
+        extend: tuya.extend.switch({switchType: true,indicatorMode: true, endpoints: ['l1', 'l2', 'l3']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
@@ -2415,6 +2418,9 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
+	whiteLabel: [
+		tuya.whitelabel('AVATTO', 'ZWSM16-3-Zigbee', '3 gang switch module', ['_TZ3000_hbic3ka3']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_vsasbzkf', '_TZ3000_nnwehhst']),
@@ -7044,45 +7050,6 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_mtnpt6ws']),
-        model: 'TS0002_switch_module_2',
-        vendor: 'TuYa',
-        description: '2 gang switch module',
-        extend: tuya.extend.switch({switchType: true,indicatorMode: true, endpoints: ['l1', 'l2']}),
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-		whiteLabel: [
-		tuya.whitelabel('AVATTO', 'ZWSM16-2-Zigbee', '2 gang switch module', ['_TZ3000_mtnpt6ws']),
-        ],
-    },
-    {
-        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_hbic3ka3']),
-        model: 'TS0003_switch_module_2',
-        vendor: 'TuYa',
-        description: '3 gang switch module',
-        extend: tuya.extend.switch({switchType: true,indicatorMode: true, endpoints: ['l1', 'l2', 'l3']}),
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-        },
-		whiteLabel: [
-		tuya.whitelabel('AVATTO', 'ZWSM16-3-Zigbee', '3 gang switch module', ['_TZ3000_hbic3ka3']),
-        ],
-    },
-    {
         fingerprint: tuya.fingerprint('TS0004', ['_TZ3000_5ajpkyq6']),
         model: 'TS0004_switch_module_2',
         vendor: 'TuYa',
@@ -7099,7 +7066,7 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
 			await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
         },
-		whiteLabel: [
+	whiteLabel: [
 		tuya.whitelabel('AVATTO', 'ZWSM16-4-Zigbee', '4 gang switch module', ['_TZ3000_5ajpkyq6']),
         ],
     },
