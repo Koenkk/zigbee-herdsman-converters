@@ -98,14 +98,15 @@ export function onOff(args?: OnOffArgs): ModernExtend {
 type MultiplierDivisor = {multiplier?: number, divisor?: number}
 interface ElectricityMeterArgs {
     cluster?: 'both' | 'metering' | 'electrical',
-    current?: MultiplierDivisor,
-    power?: MultiplierDivisor,
-    voltage?: MultiplierDivisor,
-    energy?: MultiplierDivisor
+    current?: false | MultiplierDivisor,
+    power?: false | MultiplierDivisor,
+    voltage?: false | MultiplierDivisor,
+    energy?: false | MultiplierDivisor
 }
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     args = {cluster: 'both', ...args};
-    if (args.cluster === 'metering' && (args.power?.divisor !== args.energy?.divisor || args.power?.multiplier !== args.energy?.multiplier)) {
+    if (args.cluster === 'metering' && isObject(args.power) && isObject(args.energy) &&
+        (args.power?.divisor !== args.energy?.divisor || args.power?.multiplier !== args.energy?.multiplier)) {
         throw new Error(`When cluster is metering, power and energy divisor/multiplier should be equal`);
     }
 
@@ -129,6 +130,14 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
             energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1},
         },
     };
+
+    if (args.power === false) {
+        delete configureLookup.haElectricalMeasurement.power;
+        delete configureLookup.seMetering.power;
+    }
+    if (args.voltage === false) delete configureLookup.haElectricalMeasurement.voltage;
+    if (args.current === false) delete configureLookup.haElectricalMeasurement.current;
+    if (args.energy === false) delete configureLookup.seMetering.energy;
 
     if (args.cluster === 'both') {
         exposes = [
