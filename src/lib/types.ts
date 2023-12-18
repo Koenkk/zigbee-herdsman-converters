@@ -123,6 +123,7 @@ export type Definition = {
     meta?: DefinitionMeta,
     onEvent?: OnEvent,
     ota?: DefinitionOta,
+    generated?: boolean,
 } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
     & ({ extend: Extend | ModernExtend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
         exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[])) } |

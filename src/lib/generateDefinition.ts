@@ -31,16 +31,13 @@ export function generateDefinition(device: Zh.Device): Definition {
             addExtenders(cluster, outputExtenders);
         });
     });
-    // Do not provide definition if we didn't generate anything
-    if (deviceExtenders.length === 0) {
-        return null;
-    }
 
     const definition: Partial<Definition> = {
         model: device.modelID || '',
         vendor: device.manufacturerName || '',
         description: 'Generated from device information',
         extend: deviceExtenders,
+        generated: true,
     };
 
     return definition as Definition;
@@ -59,17 +56,9 @@ const inputExtenders: extendersObject = {
     'msTemperatureMeasurement': [e.temperature()],
     'msPressureMeasurement': [e.pressure()],
     'msRelativeHumidity': [e.humidity()],
-    'genOnOff': [onOffProvider],
+    'genOnOff': [e.onOff({powerOnBehavior: false})],
 };
 
 const outputExtenders: extendersObject = {
     'genIdentify': [e.identify()],
 };
-
-function onOffProvider(endpoint: Endpoint, cluster: Cluster): ModernExtend {
-    const args: e.OnOffArgs = {
-        powerOnBehavior: cluster.attributes.hasOwnProperty('startUpOnOff'),
-    };
-
-    return e.onOff(args);
-}
