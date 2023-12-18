@@ -1406,6 +1406,14 @@ export interface TuyaNumericArgs {
     expose?: exposes.Numeric,
 }
 
+export interface TuyaLightArgs {
+    state: {dp: number, type: number, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], skip?: (meta: Tz.Meta) => boolean},
+    brightness: {dp: number, type: number, scale?: number | [number, number, number, number]},
+    max?: {dp: number, type: number, scale?: number | [number, number, number, number]},
+    min?: {dp: number, type: number, scale?: number | [number, number, number, number]},
+    endpoint?: string,
+}
+
 const tuyaModernExtend = {
     enumLookup(args: TuyaEnumLookupArgs): ModernExtend {
         const {name, attribute, lookup, description, readOnly, endpoint, expose, skip} = args;
@@ -1467,6 +1475,37 @@ const tuyaModernExtend = {
 
         return getModernExtendForDP(name, attribute, converter, exp, skip);
     },
+    light(args: TuyaLightArgs): ModernExtend {
+        const {state, brightness, min, max, endpoint} = args;
+        let exp = e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET);
+        let fromZigbee: Fz.Converter[] = [];
+        let toZigbee: Tz.Converter[] = [];
+        let ext: ModernExtend;
+        ext = tuyaModernExtend.binary({name: 'state', attribute: {dp: brightness.dp, type: brightness.type},
+            valueOn: state.valueOn, valueOff: state.valueOff, skip: state.skip});
+        fromZigbee = [...fromZigbee, ...ext.fromZigbee];
+        toZigbee = [...toZigbee, ...ext.toZigbee];
+        ext = tuyaModernExtend.numeric({name: 'brightness', attribute: {dp: brightness.dp, type: brightness.type},
+            scale: brightness.scale});
+        fromZigbee = [...fromZigbee, ...ext.fromZigbee];
+        toZigbee = [...toZigbee, ...ext.toZigbee];
+        if (min) {
+            exp = exp.withMinBrightness().setAccess('min_brightness', ea.STATE_SET);
+            ext = tuyaModernExtend.numeric({name: 'min_brightness', attribute: {dp: min.dp, type: min.type}, scale: min.scale});
+            fromZigbee = [...fromZigbee, ...ext.fromZigbee];
+            toZigbee = [...toZigbee, ...ext.toZigbee];
+        }
+        if (max) {
+            exp = exp.withMaxBrightness().setAccess('max_brightness', ea.STATE_SET);
+            ext = tuyaModernExtend.numeric({name: 'max_brightness', attribute: {dp: max.dp, type: max.type}, scale: max.scale});
+            fromZigbee = [...fromZigbee, ...ext.fromZigbee];
+            toZigbee = [...toZigbee, ...ext.toZigbee];
+        }
+        if (endpoint) exp = exp.withEndpoint(endpoint);
+        
+        // combine extends for one expose
+        return {exposes: [exp], fromZigbee: fromZigbee, toZigbee: toZigbee, isModernExtend: true};
+    }
 };
 export {tuyaModernExtend as modernExtend};
 
