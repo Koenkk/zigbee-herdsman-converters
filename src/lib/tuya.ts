@@ -1352,7 +1352,12 @@ function getModernExtendForDP(name: string, attribute: {dp: number, type: number
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
             const state: KeyValue = {};
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             for (const [attr, value] of Object.entries(meta.message)) {
+                const convertedKey: string = meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
+                    `${attr}_${meta.endpoint_name}` : attr;
+                if (convertedKey !== name) continue;
+                
                 const convertedValue = await converter.to(value);
                 const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
                 if (convertedValue === undefined) {
@@ -1385,53 +1390,73 @@ function getModernExtendForDP(name: string, attribute: {dp: number, type: number
 export interface TuyaEnumLookupArgs {
     name: string, attribute: {dp: number, type: number}, lookup: KeyValue,
     description: string, readOnly?: boolean, endpoint?: string,
+    expose?: exposes.Base,
 }
 export interface TuyaBinaryArgs {
     name: string, attribute: {dp: number, type: number}, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown],
     description: string, readOnly?: boolean, endpoint?: string,
+    expose?: exposes.Base,
 }
 
 export interface TuyaNumericArgs {
     name: string, attribute: {dp: number, type: number},
     description: string, readOnly?: boolean, endpoint?: string, unit?: string,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
+    expose?: exposes.Numeric,
 }
 
 const tuyaModernExtend = {
     enumLookup(args: TuyaEnumLookupArgs): ModernExtend {
-        const {name, attribute, lookup, description, readOnly, endpoint} = args;
-        let expose = new exposes.Enum(name, readOnly ? ea.STATE : ea.STATE_SET, Object.keys(lookup)).withDescription(description);
-        if (endpoint) expose = expose.withEndpoint(endpoint);
+        const {name, attribute, lookup, description, readOnly, endpoint, expose} = args;
+        let exp: Expose;
+        if (expose) {
+            exp = expose;
+            exp.name = name;
+        } else {
+            exp = new exposes.Enum(name, readOnly ? ea.STATE : ea.STATE_SET, Object.keys(lookup)).withDescription(description);
+        }
+        if (endpoint) exp = exp.withEndpoint(endpoint);
 
         return getModernExtendForDP(name, attribute, {
             from: (value) => utils.getFromLookupByValue(value, lookup),
             to: (value) => utils.getFromLookup(value, lookup),
-        }, expose);
+        }, exp);
     },
     binary(args: TuyaBinaryArgs): ModernExtend {
-        const {name, attribute, valueOn, valueOff, description, readOnly, endpoint} = args;
-        let expose = e.binary(name, readOnly ? ea.STATE_GET : ea.ALL, valueOn[0], valueOff[0]).withDescription(description);
-        if (endpoint) expose = expose.withEndpoint(endpoint);
+        const {name, attribute, valueOn, valueOff, description, readOnly, endpoint, expose} = args;
+        let exp: Expose;
+        if (expose) {
+            exp = expose;
+            exp.name = name;
+        } else {
+            exp = e.binary(name, readOnly ? ea.STATE_GET : ea.ALL, valueOn[0], valueOff[0]).withDescription(description);
+        }
+        if (endpoint) exp = exp.withEndpoint(endpoint);
 
         return getModernExtendForDP(name, attribute, {
             from: (value) => (value === valueOn[1]) ? valueOn[0] : valueOff[0],
             to: (value) => (value === valueOn[0]) ? valueOn[1] : valueOff[1],
-        }, expose);
+        }, exp);
     },
     numeric(args: TuyaNumericArgs): ModernExtend {
-        const {name, attribute, description, readOnly, endpoint, unit, valueMax, valueMin, valueStep, scale} = args;
-    
-        let expose = e.numeric(name, readOnly ? ea.STATE_GET : ea.ALL).withDescription(description);
-        if (endpoint) expose = expose.withEndpoint(endpoint);
-        if (unit) expose = expose.withUnit(unit);
-        if (valueMin !== undefined) expose = expose.withValueMin(valueMin);
-        if (valueMax !== undefined) expose = expose.withValueMax(valueMax);
-        if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
+        const {name, attribute, description, readOnly, endpoint, unit, valueMax, valueMin, valueStep, scale, expose} = args;
+        let exp: exposes.Numeric;
+        if (expose) {
+            exp = expose;
+            exp.name = name;
+        } else {
+            exp = e.numeric(name, readOnly ? ea.STATE_GET : ea.ALL).withDescription(description);
+        }
+        if (endpoint) exp = exp.withEndpoint(endpoint);
+        if (unit) exp = exp.withUnit(unit);
+        if (valueMin !== undefined) exp = exp.withValueMin(valueMin);
+        if (valueMax !== undefined) exp = exp.withValueMax(valueMax);
+        if (valueStep !== undefined) exp = exp.withValueStep(valueStep);
 
         return getModernExtendForDP(name, attribute, {
             from: (value: number) => (scale === undefined) ? value : value / scale,
             to: (value: number) => (scale === undefined) ? value : value * scale,
-        }, expose);
+        }, exp);
     }
 };
 export {tuyaModernExtend as modernExtend};
