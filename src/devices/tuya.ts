@@ -466,9 +466,9 @@ const fzLocal = {
                 }
             }
 
-            // Device takes a lot of time to report power 0 in some cases. When the state is OFF we can assume power == 0
+            // Device takes a lot of time to report power 0 in some cases. When the state is OFF or current == 0 we can assume power == 0
             // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
-            if (meta.state.state === 'OFF') {
+            if (meta.state.state === 'OFF' || meta.state.current === 0) {
                 result.power = 0;
             }
 
@@ -3325,7 +3325,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [160, 100, 69, 68, 65, 64].map((applicationVersion) => {
+        fingerprint: [160, 112, 100, 69, 68, 65, 64].map((applicationVersion) => {
             return {modelID: 'TS011F', applicationVersion, priority: -1};
         }),
         model: 'TS011F_plug_3',
@@ -3333,6 +3333,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}, {vendor: 'BlitzWolf', model: 'BW-SHP15'},
             {vendor: 'AVATTO', model: 'MIUCOT10Z'}, {vendor: 'Neo', model: 'NAS-WR01B'}, {vendor: 'Neo', model: 'PLUG-001SPB2'},
+            {vendor: 'TuYa', model: 'BSD33_20A', fingerprint: [{manufacturerName: '_TZ3000_okaz9tjs', applicationVersion: 112}]},
             tuya.whitelabel('TuYa', 'BSD29_1', 'Smart plug (with power monitoring by polling)', ['_TZ3000_okaz9tjs']),
         ],
         ota: ota.zigbeeOTA,
@@ -3348,7 +3349,7 @@ const definitions: Definition[] = [
         onEvent: (type, data, device, options) =>
             tuya.onEventMeasurementPoll(type, data, device, options,
                 true, // polling for voltage, current and power
-                [100, 160].includes(device.applicationVersion), // polling for energy
+                [100, 112, 160].includes(device.applicationVersion), // polling for energy
             ),
     },
     {
@@ -4348,15 +4349,7 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: [{modelID: 'TS0210', manufacturerName: '_TYZB01_3zv6oleo'},
-            {modelID: 'TS0210', manufacturerName: '_TYZB01_j9xxahcl'},
-            {modelID: 'TS0210', manufacturerName: '_TYZB01_kulduhbj'},
-            {modelID: 'TS0210', manufacturerName: '_TYZB01_cc3jzhlj'},
-            {modelID: 'TS0210', manufacturerName: '_TZ3000_bmfw9ykl'},
-            {modelID: 'TS0210', manufacturerName: '_TYZB01_geigpsy4'},
-            {modelID: 'TS0210', manufacturerName: '_TZ3000_fkxmyics'},
-            {modelID: 'TS0210', manufacturerName: '_TZ3000_xsjsnzhz'},
-            {modelID: 'TS0210', manufacturerName: '_TYZB01_821siati'}],
+        zigbeeModel: ['TS0210'],
         model: 'TS0210',
         vendor: 'TuYa',
         description: 'Vibration sensor',
