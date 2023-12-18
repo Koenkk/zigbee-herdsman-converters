@@ -7046,8 +7046,8 @@ const definitions: Definition[] = [
                 [101, 'indicator', tuya.valueConverter.onOff],
                 [102, null, null], // toggle to enable presence notifications in app is ignored
                 [103, 'fading_time', tuya.valueConverter.raw],
-            ], 
-        }, 
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0004', ['_TZ3000_5ajpkyq6']),
