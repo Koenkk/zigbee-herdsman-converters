@@ -5,7 +5,6 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import extend from './extend';
-import * as modernExtend from './modernExtend';
 import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend} from './types';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -1314,7 +1313,8 @@ const tuyaExtend = {
 export {tuyaExtend as extend};
 
 
-function getModernExtendForDP(name: string, attribute: {dp: number, type: number}, converter: Tuya.ValueConverterSingle, expose: Expose): ModernExtend {
+function getModernExtendForDP(name: string, attribute: {dp: number, type: number}, converter: Tuya.ValueConverterSingle,
+    expose: Expose): ModernExtend {
     const fromZigbee: Fz.Converter[] = [{
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
@@ -1357,7 +1357,7 @@ function getModernExtendForDP(name: string, attribute: {dp: number, type: number
                 const convertedKey: string = meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
                     `${attr}_${meta.endpoint_name}` : attr;
                 if (convertedKey !== name) continue;
-                
+
                 const convertedValue = await converter.to(value);
                 const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
                 if (convertedValue === undefined) {
@@ -1390,12 +1390,12 @@ function getModernExtendForDP(name: string, attribute: {dp: number, type: number
 export interface TuyaEnumLookupArgs {
     name: string, attribute: {dp: number, type: number}, lookup: KeyValue,
     description: string, readOnly?: boolean, endpoint?: string,
-    expose?: exposes.Base,
+    expose?: Expose,
 }
 export interface TuyaBinaryArgs {
     name: string, attribute: {dp: number, type: number}, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown],
     description: string, readOnly?: boolean, endpoint?: string,
-    expose?: exposes.Base,
+    expose?: Expose,
 }
 
 export interface TuyaNumericArgs {
@@ -1457,7 +1457,7 @@ const tuyaModernExtend = {
             from: (value: number) => (scale === undefined) ? value : value / scale,
             to: (value: number) => (scale === undefined) ? value : value * scale,
         }, exp);
-    }
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
