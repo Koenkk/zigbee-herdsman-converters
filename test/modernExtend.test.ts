@@ -1,17 +1,18 @@
 import {findByDevice} from '../src/index';
 import * as utils from '../src/lib/utils';
-import {Zh, Logger, DefinitionMeta, Fz} from '../src/lib/types';
+import {Zh, Logger, DefinitionMeta, Fz, Definition} from '../src/lib/types';
 import { repInterval } from '../src/lib/constants';
 import {philipsFz} from '../src/lib/philips';
 import {fromZigbee as xiaomiFz} from '../src/lib/xiaomi';
 import tz from '../src/converters/toZigbee'
 import fz from '../src/converters/fromZigbee'
+import { Device } from 'zigbee-herdsman/dist/controller/model';
 
 export function reportingItem(attribute: string, min: number, max: number, change: number | [number, number]) {
     return {attribute: attribute, minimumReportInterval: min, maximumReportInterval: max, reportableChange: change};
 }
 
-function mockDevice(args: {modelID: string, endpoints: {ID?: number, inputClusters?: string[]}[]}): Zh.Device {
+export function mockDevice(args: {modelID: string, endpoints: {ID?: number, inputClusters?: string[], outputClusters?: string[]}[]}): Zh.Device {
     const ieeeAddr = '0x12345678';
     const endpoints = args.endpoints.map((endpoint) => mockEndpoint(endpoint));
     return {
@@ -28,7 +29,7 @@ function mockDevice(args: {modelID: string, endpoints: {ID?: number, inputCluste
     };
 }
 
-function mockEndpoint(args?: {ID?: number, inputClusters?: string[]}): Zh.Endpoint {
+export function mockEndpoint(args?: {ID?: number, inputClusters?: string[], outputClusters?: string[]}): Zh.Endpoint {
     return {
         ID: args?.ID ?? 1,
         // @ts-expect-error
@@ -37,6 +38,7 @@ function mockEndpoint(args?: {ID?: number, inputClusters?: string[]}): Zh.Endpoi
         configureReporting: jest.fn(),
         read: jest.fn(),
         getInputClusters: jest.fn().mockReturnValue(args?.inputClusters?.map((name) => ({name}))),
+        getOutputClusters: jest.fn().mockReturnValue(args?.outputClusters?.map((name) => ({name}))),
         supportsInputCluster: jest.fn().mockImplementation((cluster) => args?.inputClusters?.includes(cluster)),
         saveClusterAttributeKeyValue: jest.fn(),
         save: jest.fn(),
@@ -51,7 +53,7 @@ const DefaultTz = [
     tz.scene_rename, tz.read, tz.write, tz.command, tz.factory_reset
 ];
 
-async function assertDefintion(args: {
+export type assertDefinitionArgs = {
     device: Zh.Device,
     meta: DefinitionMeta | undefined,
     fromZigbee: Fz.Converter[],
@@ -61,9 +63,12 @@ async function assertDefintion(args: {
     read: {[s: number]: [string, string[]][]},
     configureReporting: {[s: number]: [string, ReturnType<typeof reportingItem>[]][]},
     endpoints?: {[s: string]: number},
-}) {
+    findByDeviceFn?: (device: Device) => Definition,
+}
+export async function assertDefintion(args: assertDefinitionArgs) {
+    args.findByDeviceFn = args.findByDeviceFn ?? findByDevice
     const coordinatorEndpoint = mockEndpoint();
-    const definition = findByDevice(args.device);
+    const definition = args.findByDeviceFn(args.device);
 
     for (const endpoint of args.device.endpoints) {
         const attributes = {}
