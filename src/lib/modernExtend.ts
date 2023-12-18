@@ -17,11 +17,11 @@ const DefaultReportingItemValues = {
     reportableChange: 1,
 };
 
-function getEndpointsWithInputCluster(device: Zh.Device, cluster: string) {
+function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | number) {
     if (!device.endpoints) {
         throw new Error(device.ieeeAddr + ' ' + device.endpoints);
     }
-    const endpoints = device.endpoints.filter((ep) => ep.getInputClusters().find((c) => c.name === cluster));
+    const endpoints = device.endpoints.filter((ep) => ep.getInputClusters().find((c) => isNumber(cluster) ? c.ID === cluster : c.name === cluster));
     if (endpoints.length === 0) {
         throw new Error(`Device ${device.ieeeAddr} has no input cluster ${cluster}`);
     }
@@ -31,7 +31,7 @@ function getEndpointsWithInputCluster(device: Zh.Device, cluster: string) {
 type ConfigureReportingItem = Partial<ZHConfigureReportingItem> & {attribute: string | number | {ID: number, type: number}}
 
 async function setupAttributes(
-    entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string, attributes: ConfigureReportingItem[], logger: Logger,
+    entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string | number, attributes: ConfigureReportingItem[], logger: Logger,
     readOnly=false,
 ) {
     const endpoints = isEndpoint(entity) ? [entity] : getEndpointsWithInputCluster(entity, cluster);
@@ -48,13 +48,13 @@ async function setupAttributes(
 }
 
 export function setupConfigureForReporting(
-    cluster: string, attribute: string | number | {ID: number, type: number},
+    cluster: string | number, attribute: string | number | {ID: number, type: number},
     endpointID?: number, reportingConfiguration?: Partial<ZHConfigureReportingItem>,
 ) {
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
         const entity = isNumber(endpointID) ? device.getEndpoint(endpointID) : device;
         const reportConfig = (reportingConfiguration !== undefined) ? {...reportingConfiguration, ...{attribute: attribute}} : {attribute: attribute};
-        await setupAttributes(entity, coordinatorEndpoint, cluster.toString(), [reportConfig], logger, (reportingConfiguration === undefined));
+        await setupAttributes(entity, coordinatorEndpoint, cluster, [reportConfig], logger, (reportingConfiguration === undefined));
     };
 
     return configure;
@@ -333,7 +333,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
         },
     }];
 
-    const configure = setupConfigureForReporting(cluster.toString(), attribute, endpointID, configureReporting);
+    const configure = setupConfigureForReporting(cluster, attribute, endpointID, configureReporting);
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -387,7 +387,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         },
     }];
 
-    const configure = setupConfigureForReporting(cluster.toString(), attribute, endpointID, configureReporting);
+    const configure = setupConfigureForReporting(cluster, attribute, endpointID, configureReporting);
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -430,7 +430,7 @@ export function binary(args: BinaryArgs): ModernExtend {
         },
     }];
 
-    const configure = setupConfigureForReporting(cluster.toString(), attribute, endpointID, configureReporting);
+    const configure = setupConfigureForReporting(cluster, attribute, endpointID, configureReporting);
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
