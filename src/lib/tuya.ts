@@ -1507,7 +1507,7 @@ const tuyaModernExtend = {
             fromZigbee = [...fromZigbee, ...ext.fromZigbee];
             toZigbee = [...toZigbee, ...ext.toZigbee];
         }
-        
+
         // combine extends for one expose
         return {exposes: [exp], fromZigbee: fromZigbee, toZigbee: toZigbee, isModernExtend: true};
     },
