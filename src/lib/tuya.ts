@@ -9,7 +9,7 @@ import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, On
 const e = exposes.presets;
 const ea = exposes.access;
 
-const dataTypes = {
+export const dataTypes = {
     raw: 0, // [ bytes ]
     bool: 1, // [0/1]
     number: 2, // [ 4 byte value ]
@@ -1314,7 +1314,7 @@ export {tuyaExtend as extend};
 
 
 function getModernExtendForDP(name: string, attribute: {dp: number, type: number}, converter: Tuya.ValueConverterSingle,
-    expose: Expose): ModernExtend {
+    expose: Expose, skip?: (meta: Tz.Meta) => boolean): ModernExtend {
     const fromZigbee: Fz.Converter[] = [{
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
@@ -1357,6 +1357,7 @@ function getModernExtendForDP(name: string, attribute: {dp: number, type: number
                 const convertedKey: string = meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
                     `${attr}_${meta.endpoint_name}` : attr;
                 if (convertedKey !== name) continue;
+                if (skip && skip(meta)) continue;
 
                 const convertedValue = await converter.to(value);
                 const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
@@ -1389,25 +1390,25 @@ function getModernExtendForDP(name: string, attribute: {dp: number, type: number
 
 export interface TuyaEnumLookupArgs {
     name: string, attribute: {dp: number, type: number}, lookup: KeyValue,
-    description: string, readOnly?: boolean, endpoint?: string,
+    description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
     expose?: Expose,
 }
 export interface TuyaBinaryArgs {
     name: string, attribute: {dp: number, type: number}, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown],
-    description: string, readOnly?: boolean, endpoint?: string,
+    description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
     expose?: Expose,
 }
 
 export interface TuyaNumericArgs {
     name: string, attribute: {dp: number, type: number},
-    description: string, readOnly?: boolean, endpoint?: string, unit?: string,
-    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
+    description?: string, readOnly?: boolean, endpoint?: string, unit?: string, skip?: (meta: Tz.Meta) => boolean,
+    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number | [number, number, number, number],
     expose?: exposes.Numeric,
 }
 
 const tuyaModernExtend = {
     enumLookup(args: TuyaEnumLookupArgs): ModernExtend {
-        const {name, attribute, lookup, description, readOnly, endpoint, expose} = args;
+        const {name, attribute, lookup, description, readOnly, endpoint, expose, skip} = args;
         let exp: Expose;
         if (expose) {
             exp = expose;
@@ -1420,10 +1421,10 @@ const tuyaModernExtend = {
         return getModernExtendForDP(name, attribute, {
             from: (value) => utils.getFromLookupByValue(value, lookup),
             to: (value) => utils.getFromLookup(value, lookup),
-        }, exp);
+        }, exp, skip);
     },
     binary(args: TuyaBinaryArgs): ModernExtend {
-        const {name, attribute, valueOn, valueOff, description, readOnly, endpoint, expose} = args;
+        const {name, attribute, valueOn, valueOff, description, readOnly, endpoint, expose, skip} = args;
         let exp: Expose;
         if (expose) {
             exp = expose;
@@ -1436,10 +1437,10 @@ const tuyaModernExtend = {
         return getModernExtendForDP(name, attribute, {
             from: (value) => (value === valueOn[1]) ? valueOn[0] : valueOff[0],
             to: (value) => (value === valueOn[0]) ? valueOn[1] : valueOff[1],
-        }, exp);
+        }, exp, skip);
     },
     numeric(args: TuyaNumericArgs): ModernExtend {
-        const {name, attribute, description, readOnly, endpoint, unit, valueMax, valueMin, valueStep, scale, expose} = args;
+        const {name, attribute, description, readOnly, endpoint, unit, valueMax, valueMin, valueStep, scale, expose, skip} = args;
         let exp: exposes.Numeric;
         if (expose) {
             exp = expose;
@@ -1453,10 +1454,18 @@ const tuyaModernExtend = {
         if (valueMax !== undefined) exp = exp.withValueMax(valueMax);
         if (valueStep !== undefined) exp = exp.withValueStep(valueStep);
 
-        return getModernExtendForDP(name, attribute, {
-            from: (value: number) => (scale === undefined) ? value : value / scale,
-            to: (value: number) => (scale === undefined) ? value : value * scale,
-        }, exp);
+        let converter;
+        if (scale === undefined) {
+            converter = valueConverterBasic.raw();
+        } else {
+            if (Array.isArray(scale)) {
+                converter = valueConverterBasic.scale(scale[0], scale[1], scale[2], scale[3]);
+            } else {
+                converter = valueConverterBasic.divideBy(scale);
+            }
+        }
+
+        return getModernExtendForDP(name, attribute, converter, exp, skip);
     },
 };
 export {tuyaModernExtend as modernExtend};
@@ -1479,3 +1488,4 @@ exports.skip = skip;
 exports.configureMagicPacket = configureMagicPacket;
 exports.fingerprint = fingerprint;
 exports.whitelabel = whitelabel;
+exports.dataTypes = dataTypes;
