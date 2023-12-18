@@ -3,7 +3,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import {binary, forcePowerSource, numeric, onOff} from '../lib/modernExtend';
+import {binary, forcePowerSource, numeric, enumLookup, onOff} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue} from '../lib/types';
 
 const e = exposes.presets;
@@ -304,6 +304,18 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
+        extend: [
+            binary({
+                name: 'tamper',
+                cluster: 0xFC11,
+                attribute: {id: 0x2000, type: 0x20},
+                description: 'Tamper-proof status',
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                readOnly: true,
+            }),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -316,10 +328,29 @@ const definitions: Definition[] = [
         model: 'SNZB-03P',
         vendor: 'SONOFF',
         description: 'Zigbee PIR sensor',
-        fromZigbee: [fz.occupancy],
+        fromZigbee: [fz.occupancy, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         exposes: [e.occupancy(), e.battery_low(), e.battery()],
+        extend: [
+            numeric({
+                name: 'motion_timeout',
+                cluster: 0x0406,
+                attribute: {id: 0x0020, type: 0x21},
+                description: 'Unoccupied to occupied delay',
+                valueMin: 5,
+                valueMax: 60,
+            }),
+            enumLookup({
+                name: 'illumination',
+                lookup: {'dim': 0, 'bright': 1},
+                cluster: 0xFC11,
+                attribute: {id: 0x2001, type: 0x20},
+                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                description: 'Only updated when occupancy is detected',
+                readOnly: true,
+            }),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -336,6 +367,32 @@ const definitions: Definition[] = [
         toZigbee: [],
         ota: ota.zigbeeOTA,
         exposes: [e.occupancy()],
+        extend: [
+            numeric({
+                name: 'occupancy_timeout',
+                cluster: 0x0406,
+                attribute: {id: 0x0020, type: 0x21},
+                description: 'Unoccupied to occupied delay',
+                valueMin: 15,
+                valueMax: 65535,
+            }),
+            enumLookup({
+                name: 'occupancy_sensitivity',
+                lookup: {'low': 1, 'medium': 2, 'high': 3},
+                cluster: 0x0406,
+                attribute: {id: 0x0022, type: 0x20},
+                description: 'Sensitivity of human presence detection',
+            }),
+            enumLookup({
+                name: 'illumination',
+                lookup: {'dim': 0, 'bright': 1},
+                cluster: 0xFC11,
+                attribute: {id: 0x2001, type: 0x20},
+                description: 'Only updated when occupancy is detected',
+                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                readOnly: true,
+            }),
+        ],
     },
     {
         zigbeeModel: ['TRVZB'],
