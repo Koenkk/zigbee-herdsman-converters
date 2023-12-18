@@ -6,7 +6,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as tuya from '../lib/tuya';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -161,12 +161,7 @@ const definitions: Definition[] = [
         model: '4000116784070',
         vendor: 'Lonsonho',
         description: 'Smart plug EU',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(11);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['ZB-RGBCW'],
@@ -176,8 +171,7 @@ const definitions: Definition[] = [
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
-        extend: extend.light_onoff_brightness_colortemp_color(
-            {disableColorTempStartup: true, colorTempRange: [153, 500], disableEffect: true, disablePowerOnBehavior: true}),
+        extend: [light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehaviour: false})],
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}, {modelID: 'TS0003', manufacturerName: '_TYZB01_uqkphoed'}],
@@ -201,11 +195,8 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-S05-LN',
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        toZigbee: [tz.power_on_behavior, tz.TYZB01_on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({powerOnBehavior: false})],
+        toZigbee: [tz.TYZB01_on_off],
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_zirycpws'}, {modelID: 'TS130F', manufacturerName: '_TZ3210_ol1uhvza'}],

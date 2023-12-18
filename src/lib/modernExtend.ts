@@ -1,10 +1,10 @@
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
-import {Fz, Tz, ModernExtend, Range, Zh, Logger} from './types';
+import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta} from './types';
 import {presets as e, access as ea} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
 import {configure as lightConfigure} from './light';
-import {ConfigureReportingItem} from 'zigbee-herdsman/dist/controller/model/endpoint';
+import {ConfigureReportingItem as ZHConfigureReportingItem} from 'zigbee-herdsman/dist/controller/model/endpoint';
 import {getFromLookupByValue, isString, getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName, isObject, isEndpoint} from './utils';
 import {repInterval} from './constants';
 
@@ -25,8 +25,10 @@ function getEndpointsWithInputCluster(device: Zh.Device, cluster: string) {
     return endpoints;
 }
 
+type ConfigureReportingItem = Partial<ZHConfigureReportingItem> & {attribute: string | number | {ID: number, type: number}}
+
 async function setupAttributes(
-    entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string, attributes: (string|ConfigureReportingItem)[], logger: Logger,
+    entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string, attributes: ConfigureReportingItem[], logger: Logger,
     readOnly=false,
 ) {
     const endpoints = isEndpoint(entity) ? [entity] : getEndpointsWithInputCluster(entity, cluster);
@@ -34,29 +36,25 @@ async function setupAttributes(
     for (const endpoint of endpoints) {
         const msg = readOnly ? `Reading` : `Reading and setup reporting`;
         logger.debug(`${msg} for ${ieeeAddr}/${endpoint.ID} ${cluster} ${JSON.stringify(attributes)}`);
-        const items = attributes.map((attribute) => ({...DefaultReportingItemValues, ...(isString(attribute) ? {attribute} : attribute)}));
         if (!readOnly) {
             await endpoint.bind(cluster, coordinatorEndpoint);
-            await endpoint.configureReporting(cluster, items);
+            await endpoint.configureReporting(cluster, attributes.map((a) => ({...DefaultReportingItemValues, ...a})));
         }
         await endpoint.read(cluster, attributes.map((a) => isString(a) ? a : (isObject(a.attribute) ? a.attribute.ID : a.attribute)));
     }
 }
 
-export interface OnOffArgs {powerOnBehavior?: boolean}
+export interface OnOffArgs {
+    powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpoints?: {[s: string]: number},
+    configureReporting?: boolean,
+}
 export function onOff(args?: OnOffArgs): ModernExtend {
-    args = {powerOnBehavior: true, ...args};
+    args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
 
-    const exposes: Expose[] = [e.switch()];
-    const fromZigbee: Fz.Converter[] = [fz.on_off];
+    const exposes: Expose[] = args.endpoints ? Object.keys(args.endpoints).map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
+
+    const fromZigbee: Fz.Converter[] = [(args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off)];
     const toZigbee: Tz.Converter[] = [tz.on_off];
-
-    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        await setupAttributes(device, coordinatorEndpoint, 'genOnOff', ['onOff'], logger);
-        if (args.powerOnBehavior) {
-            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', ['startUpOnOff'], logger, true);
-        }
-    };
 
     if (args.powerOnBehavior) {
         exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
@@ -64,20 +62,35 @@ export function onOff(args?: OnOffArgs): ModernExtend {
         toZigbee.push(tz.power_on_behavior);
     }
 
-    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    if (args.ota) result.ota = args.ota;
+    if (args.endpoints) {
+        result.meta = {multiEndpoint: true};
+        result.endpoint = (d) => args.endpoints;
+    }
+    if (args.configureReporting) {
+        result.configure = async (device, coordinatorEndpoint, logger) => {
+            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff'}], logger);
+            if (args.powerOnBehavior) {
+                await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'startUpOnOff'}], logger, true);
+            }
+        };
+    }
+    return result;
 }
 
 type MultiplierDivisor = {multiplier?: number, divisor?: number}
 interface ElectricityMeterArgs {
     cluster?: 'both' | 'metering' | 'electrical',
-    current?: MultiplierDivisor,
-    power?: MultiplierDivisor,
-    voltage?: MultiplierDivisor,
-    energy?: MultiplierDivisor
+    current?: false | MultiplierDivisor,
+    power?: false | MultiplierDivisor,
+    voltage?: false | MultiplierDivisor,
+    energy?: false | MultiplierDivisor
 }
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     args = {cluster: 'both', ...args};
-    if (args.cluster === 'metering' && (args.power?.divisor !== args.energy?.divisor || args.power?.multiplier !== args.energy?.multiplier)) {
+    if (args.cluster === 'metering' && isObject(args.power) && isObject(args.energy) &&
+        (args.power?.divisor !== args.energy?.divisor || args.power?.multiplier !== args.energy?.multiplier)) {
         throw new Error(`When cluster is metering, power and energy divisor/multiplier should be equal`);
     }
 
@@ -101,6 +114,14 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
             energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1},
         },
     };
+
+    if (args.power === false) {
+        delete configureLookup.haElectricalMeasurement.power;
+        delete configureLookup.seMetering.power;
+    }
+    if (args.voltage === false) delete configureLookup.haElectricalMeasurement.voltage;
+    if (args.current === false) delete configureLookup.haElectricalMeasurement.current;
+    if (args.energy === false) delete configureLookup.seMetering.energy;
 
     if (args.cluster === 'both') {
         exposes = [
@@ -162,16 +183,19 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 
 export interface LightArgs {
     effect?: boolean, powerOnBehaviour?: boolean, colorTemp?: {startup?: boolean, range: Range},
-    color?: boolean | {modes: ('xy' | 'hs')[]}, turnsOffAtBrightness1?: boolean,
+    color?: boolean | {modes?: ('xy' | 'hs')[], applyRedFix?: boolean, enhancedHue?: boolean}, turnsOffAtBrightness1?: boolean,
+    configureReporting?: boolean, endpoints?: {[s: string]: number}, ota?: DefinitionOta,
 }
 export function light(args?: LightArgs): ModernExtend {
-    args = {effect: true, powerOnBehaviour: true, turnsOffAtBrightness1: false, ...args};
+    args = {effect: true, powerOnBehaviour: true, configureReporting: false, ...args};
     if (args.colorTemp) {
         args.colorTemp = {startup: true, ...args.colorTemp};
     }
-    const argsColor = args.color ? {modes: ['xy'] satisfies ('xy' | 'hs')[], ...(isObject(args.color) ? args.color : {})} : false;
+    const argsColor = args.color ? {
+        modes: ['xy'] satisfies ('xy' | 'hs')[], applyRedFix: false, enhancedHue: true, ...(isObject(args.color) ? args.color : {}),
+    } : false;
 
-    let lightExpose = e.light().withBrightness();
+    const lightExpose = args.endpoints ? Object.keys(args.endpoints).map((_) => e.light().withBrightness()) : [e.light().withBrightness()];
 
     const fromZigbee: Fz.Converter[] = [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
     const toZigbee: Tz.Converter[] = [
@@ -185,23 +209,33 @@ export function light(args?: LightArgs): ModernExtend {
     }
 
     if (args.colorTemp) {
-        lightExpose = lightExpose.withColorTemp(args.colorTemp.range);
+        lightExpose.forEach((e) => e.withColorTemp(args.colorTemp.range));
         toZigbee.push(tz.light_colortemp_move, tz.light_colortemp_step);
         if (args.colorTemp.startup) {
             toZigbee.push(tz.light_colortemp_startup);
-            lightExpose = lightExpose.withColorTempStartup(args.colorTemp.range);
+            lightExpose.forEach((e) => e.withColorTempStartup(args.colorTemp.range));
         }
     }
 
     if (argsColor) {
-        lightExpose = lightExpose.withColor(argsColor.modes);
+        lightExpose.forEach((e) => e.withColor(argsColor.modes));
         toZigbee.push(tz.light_hue_saturation_move, tz.light_hue_saturation_step);
         if (argsColor.modes.includes('hs')) {
             meta.supportsHueAndSaturation = true;
         }
+        if (argsColor.applyRedFix) {
+            meta.applyRedFix = true;
+        }
+        if (!argsColor.enhancedHue) {
+            meta.supportsEnhancedHue = false;
+        }
     }
 
-    const exposes: Expose[] = [lightExpose];
+    if (args.endpoints) {
+        Object.keys(args.endpoints).forEach((ep, idx) => lightExpose[idx].withEndpoint(ep));
+        meta.multiEndpoint = true;
+    }
+    const exposes: Expose[] = lightExpose;
 
     if (args.effect) {
         exposes.push(e.effect());
@@ -214,15 +248,43 @@ export function light(args?: LightArgs): ModernExtend {
         toZigbee.push(tz.power_on_behavior);
     }
 
-    if (args.turnsOffAtBrightness1) {
-        meta.turnsOffAtBrightness1 = true;
+    if (args.hasOwnProperty('turnsOffAtBrightness1')) {
+        meta.turnsOffAtBrightness1 = args.turnsOffAtBrightness1;
     }
 
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
         await lightConfigure(device, coordinatorEndpoint, logger, true);
+
+        if (args.configureReporting) {
+            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff'}], logger);
+            await setupAttributes(device, coordinatorEndpoint, 'genLevelCtrl', [{attribute: 'currentLevel', minimumReportInterval: 10}], logger);
+            if (args.colorTemp) {
+                await setupAttributes(device, coordinatorEndpoint, 'lightingColorCtrl',
+                    [{attribute: 'colorTemperature', minimumReportInterval: 10}], logger);
+            }
+            if (argsColor) {
+                const attributes: ConfigureReportingItem[] = [];
+                if (argsColor.modes.includes('xy')) {
+                    attributes.push(
+                        {attribute: 'currentX', minimumReportInterval: 10},
+                        {attribute: 'currentY', minimumReportInterval: 10},
+                    );
+                }
+                if (argsColor.modes.includes('hs')) {
+                    attributes.push(
+                        {attribute: argsColor.enhancedHue ? 'enhancedCurrentHue' : 'currentHue', minimumReportInterval: 10},
+                        {attribute: 'currentSaturation', minimumReportInterval: 10},
+                    );
+                }
+                await setupAttributes(device, coordinatorEndpoint, 'lightingColorCtrl', attributes, logger);
+            }
+        }
     };
 
-    return {exposes, fromZigbee, toZigbee, configure, meta, isModernExtend: true};
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, meta, isModernExtend: true};
+    if (args.endpoints) result.endpoint = (d) => args.endpoints;
+    if (args.ota) result.ota = args.ota;
+    return result;
 }
 
 export interface EnumLookupArgs {
@@ -368,4 +430,20 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     }];
 
     return {exposes: [expose], fromZigbee, isModernExtend: true};
+}
+
+export function forcePowerSource(args: {powerSource: 'Mains (single phase)' | 'Battery'}): ModernExtend {
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        device.powerSource = args.powerSource;
+        device.save();
+    };
+    return {configure, isModernExtend: true};
+}
+
+export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExtend {
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        device.type = args.type;
+        device.save();
+    };
+    return {configure, isModernExtend: true};
 }

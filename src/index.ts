@@ -92,7 +92,7 @@ export function addDefinition(definition: Definition) {
     if ('extend' in definition) {
         if (Array.isArray(definition.extend)) {
             // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
-            let {extend, toZigbee, fromZigbee, exposes, meta, configure: definitionConfigure, onEvent, ota, ...definitionWithoutExtend} = definition;
+            let {extend, toZigbee, fromZigbee, exposes, meta, endpoint, configure: definitionConfigure, onEvent, ota, ...definitionWithoutExtend} = definition;
             if (typeof exposes === 'function') {
                 assert.fail(`'${definition.model}' has function exposes which is not allowed`);
             }
@@ -117,6 +117,12 @@ export function addDefinition(definition: Definition) {
                     }
                     ota = ext.ota;
                 }
+                if (ext.endpoint) {
+                    if (endpoint) {
+                        assert.fail(`'${definition.model}' has multiple 'endpoint', this is not allowed`);
+                    }
+                    endpoint = ext.endpoint;
+                }
                 if (ext.onEvent) {
                     if (onEvent) {
                         assert.fail(`'${definition.model}' has multiple 'onEvent', this is not allowed`);
@@ -133,7 +139,7 @@ export function addDefinition(definition: Definition) {
                     }
                 }
             }
-            definition = {toZigbee, fromZigbee, exposes, meta, configure, onEvent, ota, ...definitionWithoutExtend};
+            definition = {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
         } else {
             // Legacy extend, overrides properties, e.g. when both extend and definition has toZigbee, definition toZigbee will be used
             const {extend, ...definitionWithoutExtend} = definition;

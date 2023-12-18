@@ -565,7 +565,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '320':
             if (['MCCGQ13LM'].includes(model.model)) {
-                payload.battery_cover = getFromLookup(value, {0: 'CLOSE', 1: 'OPEN'});
+                payload.tamper = getFromLookup(value, {0: false, 1: true});
             }
             break;
         case '322':

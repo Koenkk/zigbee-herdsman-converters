@@ -4,7 +4,7 @@ import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
 const e = exposes.presets;
@@ -284,125 +284,42 @@ const definitions: Definition[] = [
         model: 'SBM300Z1',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 1 gang',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['SBM300Z2'],
         model: 'SBM300Z2',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 2 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('bottom')],
-        endpoint: (device) => {
-            return {top: 1, bottom: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-        },
+        extend: [onOff({endpoints: {top: 1, bottom: 2}})],
     },
     {
         zigbeeModel: ['SBM300Z3'],
         model: 'SBM300Z3',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 3 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('center'), e.switch().withEndpoint('bottom')],
-        endpoint: (device) => {
-            return {top: 1, center: 2, bottom: 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-            await reporting.onOff(device.getEndpoint(3));
-        },
+        extend: [onOff({endpoints: {top: 1, center: 2, bottom: 3}})],
     },
     {
         zigbeeModel: ['SBM300Z4'],
         model: 'SBM300Z4',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 4 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top_left'), e.switch().withEndpoint('bottom_left'),
-            e.switch().withEndpoint('top_right'), e.switch().withEndpoint('bottom_right')],
-        endpoint: (device) => {
-            return {'top_left': 1, 'bottom_left': 2, 'top_right': 3, 'bottom_right': 4};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-            await reporting.onOff(device.getEndpoint(3));
-            await reporting.onOff(device.getEndpoint(4));
-        },
+        extend: [onOff({endpoints: {top_left: 1, bottom_left: 2, top_right: 3, bottom_right: 4}})],
     },
     {
         zigbeeModel: ['SBM300Z5'],
         model: 'SBM300Z5',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 5 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top_left'), e.switch().withEndpoint('top_right'), e.switch().withEndpoint('center_left'),
-            e.switch().withEndpoint('bottom_left'), e.switch().withEndpoint('bottom_right')],
-        endpoint: (device) => {
-            return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'bottom_right': 5};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-            await reporting.onOff(device.getEndpoint(3));
-            await reporting.onOff(device.getEndpoint(4));
-            await reporting.onOff(device.getEndpoint(5));
-        },
+        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, bottom_right: 5}})],
     },
     {
         zigbeeModel: ['SBM300Z6'],
         model: 'SBM300Z6',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 6 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top_left'), e.switch().withEndpoint('bottom_left'), e.switch().withEndpoint('center_left'),
-            e.switch().withEndpoint('center_right'), e.switch().withEndpoint('top_right'), e.switch().withEndpoint('bottom_right')],
-        endpoint: (device) => {
-            return {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'center_right': 5, 'bottom_right': 6};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-            await reporting.onOff(device.getEndpoint(3));
-            await reporting.onOff(device.getEndpoint(4));
-            await reporting.onOff(device.getEndpoint(5));
-            await reporting.onOff(device.getEndpoint(6));
-        },
+        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6}})],
     },
     {
         zigbeeModel: ['BSM-300Z'],

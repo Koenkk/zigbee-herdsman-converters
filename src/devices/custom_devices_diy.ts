@@ -10,7 +10,7 @@ import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
 import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, postfixWithEndpointName} from '../lib/utils';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const switchTypesList = {
     'switch': 0x00,
@@ -740,7 +740,7 @@ const definitions: Definition[] = [
         model: 'DNCKATSW001',
         vendor: 'Custom devices (DiY)',
         description: '[DNCKAT single key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['DNCKAT_S002'],
@@ -1267,6 +1267,29 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['LYWSD03MMC'],
         model: 'LYWSD03MMC',
+        vendor: 'Custom devices (DiY)',
+        description: 'Xiaomi temperature & humidity sensor with custom firmware',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.hvac_user_interface],
+        toZigbee: [tz.thermostat_temperature_display_mode],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.temperature(endpoint, {min: 10, max: 300, change: 10});
+            await reporting.humidity(endpoint, {min: 10, max: 300, change: 50});
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [
+            e.temperature(), e.humidity(), e.battery(),
+            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the screen'),
+        ],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['MHO-C401N'],
+        model: 'MHO-C401N',
         vendor: 'Custom devices (DiY)',
         description: 'Xiaomi temperature & humidity sensor with custom firmware',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.hvac_user_interface],

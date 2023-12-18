@@ -263,9 +263,9 @@ const develco = {
             key: ['occupancy_timeout'],
             convertSet: async (entity, key, value, meta) => {
                 let timeoutValue = utils.toNumber(value, 'occupancy_timeout');
-                if (timeoutValue < 20) {
-                    meta.logger.warn(`Minimum occupancy_timeout is 20, using 20 instead of ${timeoutValue}!`);
-                    timeoutValue = 20;
+                if (timeoutValue < 5) {
+                    meta.logger.warn(`Minimum occupancy_timeout is 5, using 5 instead of ${timeoutValue}!`);
+                    timeoutValue = 5;
                 }
                 await entity.write('ssIasZone', {'develcoAlarmOffDelay': timeoutValue}, manufacturerOptions);
                 return {state: {occupancy_timeout: timeoutValue}};
@@ -655,7 +655,7 @@ const definitions: Definition[] = [
             dynExposes.push(e.occupancy());
             if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
                 dynExposes.push(e.numeric('occupancy_timeout', ea.ALL).withUnit('s').
-                    withValueMin(20).withValueMax(65535));
+                    withValueMin(5).withValueMax(65535));
             }
             dynExposes.push(e.temperature());
             dynExposes.push(e.illuminance_lux());

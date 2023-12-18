@@ -88,14 +88,14 @@ const definitions: Definition[] = [
         model: 'AU-A1GSZ9CX',
         vendor: 'Aurora Lighting',
         description: 'AOne GLS lamp 9w tunable dimmable 2200-5000K',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
+        extend: [light({colorTemp: {range: [200, 454]}})],
     },
     {
         zigbeeModel: ['RGBCXStrip50AU'],
         model: 'AU-A1ZBSCRGBCX',
         vendor: 'Aurora Lighting',
         description: 'RGBW LED strip controller',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [166, 400]}),
+        extend: [light({colorTemp: {range: [166, 400]}, color: true})],
     },
     {
         zigbeeModel: ['TWGU10Bulb50AU'],
@@ -109,7 +109,7 @@ const definitions: Definition[] = [
         model: 'AU-A1ZBMPRO1ZX',
         vendor: 'Aurora Lighting',
         description: 'AOne MPROZX fixed IP65 fire rated smart tuneable LED downlight',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 455], disablePowerOnBehavior: true}),
+        extend: [light({colorTemp: {range: [200, 455]}, powerOnBehaviour: false})],
     },
     {
         zigbeeModel: ['FWG125Bulb50AU'],
@@ -144,14 +144,14 @@ const definitions: Definition[] = [
         model: 'AU-A1GUZBRGBW',
         vendor: 'Aurora Lighting',
         description: 'AOne 5.6w smart RGBW tuneable GU10 lamp',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['RGBBulb01UK', 'RGBBulb02UK', 'RGBBulb51AU'],
         model: 'AU-A1GSZ9RGBW_HV-GSCXZB269K',
         vendor: 'Aurora Lighting',
         description: 'AOne 9.5W smart RGBW GLS E27/B22',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['Remote50AU'],
@@ -208,15 +208,9 @@ const definitions: Definition[] = [
         model: 'AU-A1ZB2WDM',
         vendor: 'Aurora Lighting',
         description: 'AOne 250W smart rotary dimmer module',
-        exposes: [...extend.light_onoff_brightness({noConfigure: true}).exposes,
-            e.binary('backlight_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the blue backlight LED')],
-        toZigbee: [...extend.light_onoff_brightness({noConfigure: true}).toZigbee, tzLocal.aOneBacklight],
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
-        },
+        exposes: [e.binary('backlight_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the blue backlight LED')],
+        toZigbee: [tzLocal.aOneBacklight],
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['DoubleSocket50AU'],

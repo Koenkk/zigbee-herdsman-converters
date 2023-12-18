@@ -1,8 +1,7 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -19,7 +18,7 @@ const definitions: Definition[] = [
         model: 'LVS-ZB15S',
         vendor: 'LivingWise',
         description: 'ZigBee smart in-wall switch',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['e70f96b3773a4c9283c6862dbafb6a99'],
@@ -44,7 +43,7 @@ const definitions: Definition[] = [
         model: 'LVS-ZB15R',
         vendor: 'LivingWise',
         description: 'Zigbee smart outlet',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['75d430d66c164c26ac8601c05932dc94'],

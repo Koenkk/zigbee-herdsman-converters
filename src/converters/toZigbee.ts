@@ -11,7 +11,6 @@ import {Zcl} from 'zigbee-herdsman';
 const manufacturerOptions = {
     sunricher: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICH},
     xiaomi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
-    osram: {manufacturerCode: Zcl.ManufacturerCode.OSRAM},
     eurotronic: {manufacturerCode: Zcl.ManufacturerCode.JENNIC},
     danfoss: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS},
     hue: {manufacturerCode: Zcl.ManufacturerCode.PHILIPS},
@@ -2236,7 +2235,7 @@ const converters2 = {
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
                 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
                 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
-                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM',
+                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
             ].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'LLKZMK11LM'].includes(meta.mapped.model)) {
@@ -2263,7 +2262,7 @@ const converters2 = {
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
                 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
                 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
-                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM',
+                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
             ].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM', 'ZNCZ12LM'].includes(meta.mapped.model)) {
@@ -2498,9 +2497,8 @@ const converters2 = {
     xiaomi_switch_operation_mode_opple: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertObject(value);
             // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-            const targetValue = value.hasOwnProperty('state') ? value.state : value;
+            const targetValue = utils.isObject(value) && value.hasOwnProperty('state') ? value.state : value;
             // Switches using aqaraOpple 0x0200 on the same endpoints as the onOff clusters.
             const lookupState = {control_relay: 0x01, decoupled: 0x00};
             await entity.write('aqaraOpple', {0x0200:
@@ -2654,26 +2652,6 @@ const converters2 = {
             await entity.read('aqaraOpple', [0x040a], manufacturerOptions.xiaomi);
         },
     } satisfies Tz.Converter,
-    ledvance_commands: {
-        /* deprecated osram_*/
-        key: ['set_transition', 'remember_state', 'osram_set_transition', 'osram_remember_state'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'osram_set_transition' || key === 'set_transition') {
-                if (value) {
-                    utils.assertNumber(value, key);
-                    const transition = (value > 1) ? Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 10 : 1;
-                    const payload = {0x0012: {value: transition, type: 0x21}, 0x0013: {value: transition, type: 0x21}};
-                    await entity.write('genLevelCtrl', payload);
-                }
-            } else if (key == 'osram_remember_state' || key == 'remember_state') {
-                if (value === true) {
-                    await entity.command('manuSpecificOsram', 'saveStartupParams', {}, manufacturerOptions.osram);
-                } else if (value === false) {
-                    await entity.command('manuSpecificOsram', 'resetStartupParams', {}, manufacturerOptions.osram);
-                }
-            }
-        },
-    } satisfies Tz.Converter,
     SPZ01_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
@@ -2796,8 +2774,7 @@ const converters2 = {
     JYGZ01AQ_heartbeat_indicator: {
         key: ['heartbeat_indicator'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {true: 1, false: 0};
-            await entity.write('aqaraOpple', {0x013c: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.xiaomi);
+            await entity.write('aqaraOpple', {0x013c: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {heartbeat_indicator: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2807,8 +2784,7 @@ const converters2 = {
     aqara_linkage_alarm: {
         key: ['linkage_alarm'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {true: 1, false: 0};
-            await entity.write('aqaraOpple', {0x014b: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.xiaomi);
+            await entity.write('aqaraOpple', {0x014b: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {linkage_alarm: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2830,8 +2806,7 @@ const converters2 = {
     RTCGQ14LM_trigger_indicator: {
         key: ['trigger_indicator'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {true: 1, false: 0};
-            await entity.write('aqaraOpple', {0x0152: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.xiaomi);
+            await entity.write('aqaraOpple', {0x0152: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {trigger_indicator: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -4070,7 +4045,6 @@ const converters2 = {
     heiman_ir_remote: {
         key: ['send_key', 'create', 'learn', 'delete', 'get_list'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertObject(value);
             const options = {
                 // Don't send a manufacturerCode (otherwise set in herdsman):
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2827
@@ -4080,17 +4054,21 @@ const converters2 = {
             };
             switch (key) {
             case 'send_key':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'sendKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'create':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'createId', {modelType: value['model_type']}, options);
                 break;
             case 'learn':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'studyKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'delete':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'deleteKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;
@@ -4105,7 +4083,6 @@ const converters2 = {
     scene_store: {
         key: ['scene_store'],
         convertSet: async (entity, key, value: KeyValueAny, meta) => {
-            utils.assertGroup(entity);
             const isGroup = utils.isGroup(entity);
             const groupid = isGroup ? entity.groupID : value.hasOwnProperty('group_id') ? value.group_id : 0;
             let sceneid = value;
@@ -4315,14 +4292,15 @@ const converters2 = {
             const removeresp = await entity.command(
                 'genScenes', 'remove', {groupid, sceneid}, utils.getOptions(meta.mapped, entity),
             );
-            utils.assertObject(removeresp);
 
-            if (isGroup || (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139)) {
+            if (isGroup || (utils.isObject(removeresp) && (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139))) {
+                const addSceneCommand = Number.isInteger(transtime) ? 'add' : 'enhancedAdd';
+                const commandTransitionTime = addSceneCommand === 'enhancedAdd' ? Math.floor(transtime * 10) : transtime;
+
                 const response = await entity.command(
-                    'genScenes', 'add', {groupid, sceneid, scenename: '', transtime, extensionfieldsets},
+                    'genScenes', addSceneCommand, {groupid, sceneid, scenename: '', transtime: commandTransitionTime, extensionfieldsets},
                     utils.getOptions(meta.mapped, entity),
                 );
-                utils.assertObject(response);
 
                 if (isGroup) {
                     if (meta.membersState) {
@@ -4330,13 +4308,17 @@ const converters2 = {
                             utils.saveSceneState(member, sceneid, groupid, state, scenename);
                         }
                     }
-                } else if (response.status === 0) {
-                    utils.saveSceneState(entity, sceneid, groupid, state, scenename);
                 } else {
-                    throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
+                    utils.assertObject(response);
+                    if (response.status === 0) {
+                        utils.saveSceneState(entity, sceneid, groupid, state, scenename);
+                    } else {
+                        throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
+                    }
                 }
             } else {
-                throw new Error(`Scene add unable to remove existing scene ('${Zcl.Status[removeresp.status]}')`);
+                const status = utils.isObject(removeresp) ? Zcl.Status[removeresp.status] : 'unknown';
+                throw new Error(`Scene add unable to remove existing scene ('${status}')`);
             }
             meta.logger.info('Successfully added scene');
             return {state: {}};
