@@ -329,10 +329,10 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         extend: [
             binary({
-                name: 'tamper_private',
+                name: 'tamper',
                 cluster: 0xFC11,
                 attribute: {id: 0x2000, type: 0x20},
-                description: ' ',
+                description: 'Tamper-proof status',
                 valueOn: [true,0x01],
                 valueOff: [false, 0x00],
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
@@ -357,10 +357,10 @@ const definitions: Definition[] = [
         exposes: [e.occupancy(), e.battery_low(), e.battery()],
         extend: [
             numeric({
-                name: 'ult_timeout',
+                name: 'motion_timeout',
                 cluster: 0x0406,
                 attribute: {id: 0x0020, type: 0x21},
-                description: ' ',
+                description: 'Unoccupied to occupied delay',
                 valueMin:5,
                 valueMax:60,
             }),
@@ -392,19 +392,19 @@ const definitions: Definition[] = [
         exposes: [e.occupancy()],
         extend: [
             numeric({
-                name: 'ult_timeout',
+                name: 'occupancy_timeout',
                 cluster: 0x0406,
                 attribute: {id: 0x0020, type: 0x21},
-                description: ' ',
+                description: 'Unoccupied to occupied delay',
                 valueMin:15,
                 valueMax:65535,
             }),
             enumLookup({
-                name: 'motion_sensitivity',
+                name: 'occupancy_sensitivity',
                 lookup: {'low': 1, 'medium': 2, 'high': 3},
                 cluster: 0x0406,
                 attribute: {id: 0x0022, type: 0x20},
-                description: ' ',
+                description: 'Sensitivity of human presence detection',
             }),
             enumLookup({
                 name: 'illumination',
