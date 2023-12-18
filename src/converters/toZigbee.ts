@@ -4045,7 +4045,6 @@ const converters2 = {
     heiman_ir_remote: {
         key: ['send_key', 'create', 'learn', 'delete', 'get_list'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertObject(value);
             const options = {
                 // Don't send a manufacturerCode (otherwise set in herdsman):
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2827
@@ -4055,17 +4054,21 @@ const converters2 = {
             };
             switch (key) {
             case 'send_key':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'sendKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'create':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'createId', {modelType: value['model_type']}, options);
                 break;
             case 'learn':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'studyKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'delete':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'deleteKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;

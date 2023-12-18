@@ -734,6 +734,13 @@ const definitions: Definition[] = [
         extend: [philipsLight()],
     },
     {
+        zigbeeModel: ['1740393P0'],
+        model: '1740393P0',
+        vendor: 'Philips',
+        description: 'Hue White Lucca',
+        extend: [philipsLight()],
+    },
+    {
         zigbeeModel: ['1746630V7'],
         model: '1746630V7',
         vendor: 'Philips',
@@ -1514,6 +1521,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: undefined}})],
     },
     {
+        zigbeeModel: ['915005914601'],
+        model: '915005914601',
+        vendor: 'Philips',
+        description: 'Hue Being Pendant',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ['LTP011'],
         model: '4507748C5',
         vendor: 'Philips',
@@ -1941,11 +1955,11 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ['5061031P7_01', '5061031P7_02', '5061031P7_03'],
+        zigbeeModel: ['5061031P7_01', '5061031P7_02', '5061031P7_03', '929003621001_01', '929003621001_02', '929003621001_03'],
         model: '5061031P7',
         vendor: 'Philips',
         description: 'Hue White & Color ambience Centris ceiling light (2 spots) (white)',
-        extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ['5061030P7_01', '5061030P7_02', '5061030P7_03'],

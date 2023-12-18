@@ -504,7 +504,30 @@ export function getAxios() {
         };
     }
 
-    return axios.create(config);
+    const axiosInstance = axios.create(config);
+    axiosInstance.defaults.maxRedirects = 0; // Set to 0 to prevent automatic redirects
+    // Add work with 302 redirects without hostname in Location header
+    axiosInstance.interceptors.response.use(
+        (response) => response,
+        (error) => {
+            // get domain from basic url
+            if (error.response && [301, 302].includes(error.response.status)) {
+                let redirectUrl = error.response.headers.location;
+                try {
+                    const parsedUrl = new URL(redirectUrl);
+                    if (!parsedUrl.protocol || !parsedUrl.host) {
+                        throw new Error('No scheme or domain');
+                    }
+                } catch {
+                    // Prepend scheme and domain from the original request's base URL
+                    const baseURL = new URL(error.config.url);
+                    redirectUrl = `${baseURL.origin}${redirectUrl}`;
+                }
+                return axiosInstance.get(redirectUrl, {responseType: error.config.responseType || 'arraybuffer'});
+            }
+        },
+    );
+    return axiosInstance;
 }
 
 exports.upgradeFileIdentifier = upgradeFileIdentifier;

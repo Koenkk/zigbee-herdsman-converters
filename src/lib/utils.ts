@@ -65,13 +65,14 @@ export function mapNumberRange(value: number, fromLow: number, fromHigh: number,
     return precisionRound(mappedValue, precision);
 }
 
-const transactionStore: {[s: string]: number} = {};
+const transactionStore: {[s: string]: number[]} = {};
 export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number=null, key: string=null) {
     if (model.meta && model.meta.publishDuplicateTransaction) return false;
     const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
     key = key || msg.device.ieeeAddr;
-    if (transactionStore[key] === currentID) return true;
-    transactionStore[key] = currentID;
+    if (transactionStore[key]?.includes(currentID)) return true;
+    // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
+    transactionStore[key] = [currentID, ...(transactionStore[key] ?? [])].slice(0, 5);
     return false;
 }
 
