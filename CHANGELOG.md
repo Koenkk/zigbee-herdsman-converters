@@ -1,5 +1,22 @@
 # Changelog
 
+## [16.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.12.0...v16.13.0) (2023-12-18)
+
+
+### Features
+
+* **add:** 915005914601 @GizzGool https://github.com/Koenkk/zigbee2mqtt.io/pull/2409 ([e256a9f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e256a9fe632bfe3367dbee2456fcafd0fac4ce51))
+* Improvements for Xiaomi VOCKQJK11LM ([#6723](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6723)) ([9a0a56a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9a0a56a1d2602bd1e3f555472820df62fb36b288))
+* Support new features for various SONOFF devices ([#6710](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6710)) ([03e0703](https://github.com/Koenkk/zigbee-herdsman-converters/commit/03e070307ec6915eb26c0d3f25d56ed19a40fcbd))
+* Support new features for Yale ZYA-C4-MOD-S ([#6713](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6713)) ([b677679](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b677679a65fdb225b8f3e05d32dfa0186a97e153))
+
+
+### Bug Fixes
+
+* Detect all TuYa TS0210 as supported https://github.com/Koenkk/zigbee2mqtt/issues/20272 ([81e3af5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/81e3af5f91acab0fab15b1d533c39e59c91fa180))
+* Fix electrical measurements not working for TuYa plug with appVersion 112 ([#6731](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6731)) ([3554e43](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3554e4391367e9519b659039fd66c724f6e41f02))
+* Set `power` to `0` when `current` is `0` for TuYa TS011F_plug_1 https://github.com/Koenkk/zigbee2mqtt/discussions/19680 ([60e31d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/60e31d454dc5f3f56ae3c7c0c33518d96eb27267))
+
 ## [16.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.11.0...v16.12.0) (2023-12-17)
 
 
