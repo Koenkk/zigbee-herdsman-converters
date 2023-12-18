@@ -466,9 +466,9 @@ const fzLocal = {
                 }
             }
 
-            // Device takes a lot of time to report power 0 in some cases. When the state is OFF we can assume power == 0
+            // Device takes a lot of time to report power 0 in some cases. When the state is OFF or current == 0 we can assume power == 0
             // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
-            if (meta.state.state === 'OFF') {
+            if (meta.state.state === 'OFF' || meta.state.current === 0) {
                 result.power = 0;
             }
 
