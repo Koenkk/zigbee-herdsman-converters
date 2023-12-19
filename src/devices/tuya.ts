@@ -7054,7 +7054,7 @@ const definitions: Definition[] = [
         model: 'TS0004_switch_module_2',
         vendor: 'TuYa',
         description: '4 gang switch module',
-        extend: tuya.extend.switch({switchType: true,indicatorMode: true, endpoints: ['l1', 'l2', 'l3','l4']}),
+        extend: tuya.extend.switch({switchType: true, indicatorMode: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
