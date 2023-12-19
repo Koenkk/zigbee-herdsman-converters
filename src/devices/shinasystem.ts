@@ -223,7 +223,7 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     GCM300Z_on_off: {
-        key: ['gas_valve_state', 'overheat_mode', 'close_timeout', 'close_remain_timeout', 'volume'],
+        key: ['gas_valve_state', 'close_timeout', 'close_remain_timeout', 'volume'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'gas_valve_state') {
                 const lookup = {'CLOSE': 'off'}; // open is not supported.
@@ -231,17 +231,14 @@ const tzLocal = {
                 if(state !== 'off') value = 'CLOSE';
                 else await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
             } else if (key === 'close_timeout') {
-                const endpoint = meta.device.getEndpoint(1);
                 utils.assertNumber(value);
                 const payload = {0x9006: {value: value*60, type: Zcl.DataType.uint16}};
                 await entity.write('genOnOff', payload);
             } else if (key === 'close_remain_timeout') {
-                const endpoint = meta.device.getEndpoint(1);
                 utils.assertNumber(value);
                 const payload = {0x9007: {value: value*60, type: Zcl.DataType.uint16}};
                 await entity.write('genOnOff', payload);
             } else if (key === 'volume') {
-                const endpoint = meta.device.getEndpoint(1);
                 const lookup = {'Voice': 1, 'High': 2, 'Low': 2};
                 const payload = {0x9008: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.uint8}};
                 await entity.write('genOnOff', payload);
@@ -251,19 +248,19 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             if (key === 'gas_valve_state') {
                 await entity.read('genOnOff', ['onOff']);
-            } else if (key === 'overheat_mode') {
-                const endpoint = meta.device.getEndpoint(1);
-                await endpoint.read('genOnOff', [0x9005]);
             } else if (key === 'close_timeout') {
-                const endpoint = meta.device.getEndpoint(1);
-                await endpoint.read('genOnOff', [0x9006]);
+                await entity.read('genOnOff', [0x9006]);
             } else if (key === 'close_remain_timeout') {
-                const endpoint = meta.device.getEndpoint(1);
-                await endpoint.read('genOnOff', [0x9007]);
+                await entity.read('genOnOff', [0x9007]);
             } else if (key === 'volume') {
-                const endpoint = meta.device.getEndpoint(1);
-                await endpoint.read('genOnOff', [0x9008]);
+                await entity.read('genOnOff', [0x9008]);
             }
+        },
+    } satisfies Tz.Converter,
+    GCM300Z_status: {
+        key: ['overheat_mode'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', [0x9005]);
         },
     } satisfies Tz.Converter,
 };
@@ -769,7 +766,7 @@ const definitions: Definition[] = [
         vendor: 'ShinaSystem',
         description: 'SiHAS Gas Valve',
         fromZigbee: [fzLocal.GCM300Z_on_off, fz.battery],
-        toZigbee: [tzLocal.GCM300Z_on_off],
+        toZigbee: [tzLocal.GCM300Z_on_off, tzLocal.GCM300Z_status],
         exposes: [
             e.binary('gas_valve_state', ea.ALL, 'OPEN', 'CLOSE')
                 .withDescription('Valve state if open or closed'),
