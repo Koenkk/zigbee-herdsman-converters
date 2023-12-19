@@ -189,7 +189,9 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                         reportableChange,
                     });
                 }
-                await setupAttributes(endpoint, coordinatorEndpoint, cluster, items, logger);
+                if (items.length) {
+                    await setupAttributes(endpoint, coordinatorEndpoint, cluster, items, logger);
+                }
             }
         }
     };
