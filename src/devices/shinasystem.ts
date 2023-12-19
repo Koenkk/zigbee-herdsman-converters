@@ -70,10 +70,10 @@ const fzLocal = {
                 return {overheat_mode: msg.data['0x9005'] === 1 ? 'OverHeat' : 'Normal'};
             } else if (msg.data.hasOwnProperty(0x9006)) { // Set the default closing time when the gas valve is open
                 const value = msg.data[0x9006];
-                return {close_timeout: Math.floor(value/60) };
+                return {close_timeout: Math.floor(value/60)};
             } else if (msg.data.hasOwnProperty(0x9007)) { // Set the time or remaining time until the gas valve closes
                 const value = msg.data[0x9007];
-                return {close_remain_timeout: Math.floor(value/60) };
+                return {close_remain_timeout: Math.floor(value/60)};
             } else if (msg.data.hasOwnProperty(0x9008)) { // Values observed are `1` (Voice), `2` (High) or `3` (Low)
                 const value = msg.data[0x9008];
                 const lookup = {0: 'Voice', 1: 'Voice', 2: 'High', 3: 'Low'};
@@ -778,7 +778,7 @@ const definitions: Definition[] = [
                 .withDescription('Values observed are `1` (Voice), `2` (High) or `3` (Low)'),
             e.binary('overheat_mode', ea.STATE_GET, 'OverHeat', 'Normal')
                 .withDescription('Temperature overheating condition'),
-            e.battery()
+            e.battery(),
         ],
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
@@ -791,40 +791,40 @@ const definitions: Definition[] = [
             // E_CLD_ONOFF_ATTR_ID_GAS_TIMER_OVERHEAT_STATUS    = 0x9005
             await endpoint.read('genOnOff', [0x9005]);
             await endpoint.configureReporting('genOnOff', [{
-                attribute: { ID: 0x9005, type: Zcl.DataType.uint8},
+                attribute: {ID: 0x9005, type: Zcl.DataType.uint8},
                 minimumReportInterval: 1,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1}
+                reportableChange: 1},
             ]);
             // E_CLD_ONOFF_ATTR_ID_GAS_TIMER_TIMEOUT            = 0x9006
             await endpoint.read('genOnOff', [0x9006]);
             await endpoint.configureReporting('genOnOff', [{
-                attribute: { ID: 0x9006, type: Zcl.DataType.uint16},
+                attribute: {ID: 0x9006, type: Zcl.DataType.uint16},
                 minimumReportInterval: 1,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1}
+                reportableChange: 1},
             ]);
             await utils.sleep(1000);
             // E_CLD_ONOFF_ATTR_ID_GAS_TIMER_REMAIN             = 0x9007
             await endpoint.read('genOnOff', [0x9007]);
             await endpoint.configureReporting('genOnOff', [{
-                attribute: { ID: 0x9007, type: Zcl.DataType.uint16},
+                attribute: {ID: 0x9007, type: Zcl.DataType.uint16},
                 minimumReportInterval: 1,
                 maximumReportInterval: 1800,
-                reportableChange: 1}
+                reportableChange: 1},
             ]);
             // E_CLD_ONOFF_ATTR_ID_GAS_TIMER_VOLUME             = 0x9008
             await endpoint.read('genOnOff', [0x9008]);
             await endpoint.configureReporting('genOnOff', [{
-                attribute: { ID: 0x9008, type: Zcl.DataType.uint8},
+                attribute: {ID: 0x9008, type: Zcl.DataType.uint8},
                 minimumReportInterval: 1,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1}
+                reportableChange: 1},
             ]);
             await utils.sleep(300);
             await endpoint.read('genOnOff', ['onOff']);
         },
-    }
+    },
 ];
 
 export default definitions;
