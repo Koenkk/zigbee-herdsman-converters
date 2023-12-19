@@ -5535,13 +5535,6 @@ const converters1 = {
             return {action: `scene_${scenes[msg.data.level]}`};
         },
     } satisfies Fz.Converter,
-    xiaomi_tvoc: {
-        cluster: 'genAnalogInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {voc: msg.data.presentValue};
-        },
-    } satisfies Fz.Converter,
     heiman_doorbell_button: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
