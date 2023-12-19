@@ -1,5 +1,21 @@
 # Changelog
 
+## [16.14.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.13.0...v16.14.0) (2023-12-19)
+
+
+### Features
+
+* **add:** ZG-102Z ([#6737](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6737)) ([b10de65](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b10de65a6b757670b3a669f89ade26350fcb98c9))
+* **add:** ZWSM16-2-Zigbee, ZWSM16-3-Zigbee, ZWSM16-4-Zigbee ([#6734](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6734)) ([54690b8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/54690b8f15235a94cc6d81799c9d31a01dbdd13d))
+* **ignore:** Refactor Tradfri lights to modernExtend ([#6735](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6735)) ([5791ad6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5791ad68fa7bf3c9d1d7e50e34a1f458a7e97085))
+
+
+### Bug Fixes
+
+* **ignore:** fix 60e31d454dc5f3f56ae3c7c0c33518d96eb27267 ([db923c5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db923c56efdee1185c5cf724e25d41280bb45fb5))
+* **ignore:** fix for TS011F_plug_1 configure https://github.com/Koenkk/zigbee2mqtt/issues/19977 ([9100fd8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9100fd835fa424c990a972675ad2972eed979edf))
+* Improve reporting configuration for Sinope RM3500ZB ([#6727](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6727)) ([dbada86](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dbada8607da74712b833a99b3c2e5e395b414f1c))
+
 ## [16.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.12.0...v16.13.0) (2023-12-18)
 
 
