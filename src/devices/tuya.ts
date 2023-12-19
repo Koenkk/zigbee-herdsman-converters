@@ -536,16 +536,14 @@ const definitions: Definition[] = [
         description: 'Smoke sensor',
         whiteLabel: [
             {vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'},
-            {vendor: 'Dongguan Daying Electornics Technology', model: 'YG400A (Zigbee)'},
+            {vendor: 'Dongguan Daying Electornics Technology', model: 'YG400A'},
         ],
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
-            try {
-                const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-                await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some*/}
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
