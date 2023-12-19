@@ -318,22 +318,36 @@ describe('ModernExtend', () => {
                 {ID: 1, inputClusters: []},
             ]}),
             meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-            fromZigbee: [fz.battery, fz.temperature, fz.humidity, xiaomiFz.aqara_opple, expect.objectContaining({cluster: 'aqaraOpple'}),
-                expect.objectContaining({cluster: 'genAnalogInput'}), expect.objectContaining({cluster: 'aqaraOpple'})],
-            toZigbee: ['air_quality', 'voc', 'display_unit'],
+            fromZigbee: [
+                fz.battery,
+                xiaomiFz.aqara_opple,
+                expect.objectContaining({cluster: 'aqaraOpple'}),
+                expect.objectContaining({cluster: 'genAnalogInput'}),
+                expect.objectContaining({cluster: 'msTemperatureMeasurement'}),
+                expect.objectContaining({cluster: 'msRelativeHumidity'}),
+                expect.objectContaining({cluster: 'aqaraOpple'}),
+            ],
+            toZigbee: ['air_quality', 'voc', 'temperature', 'humidity', 'display_unit'],
             exposes: ['air_quality', 'battery', 'device_temperature', 'display_unit', 'humidity', 'linkquality', 'temperature', 'voc', 'voltage'],
             bind: {
-                1: ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg', 'genAnalogInput'],
+                1: ['genPowerCfg', 'genAnalogInput', 'msTemperatureMeasurement', 'msRelativeHumidity'],
             },
             read: {
-                1: [['genPowerCfg', ['batteryVoltage']], ['aqaraOpple', ['airQuality']], ['genAnalogInput', ['presentValue']], ['aqaraOpple', ['displayUnit']]],
+                1: [
+                    ['genPowerCfg', ['batteryVoltage']],
+                    ['aqaraOpple', ['airQuality']],
+                    ['genAnalogInput', ['presentValue']],
+                    ['msTemperatureMeasurement', ['measuredValue']],
+                    ['msRelativeHumidity', ['measuredValue']],
+                    ['aqaraOpple', ['displayUnit']],
+                ],
             },
             configureReporting: {
                 1: [
-                    ['msRelativeHumidity', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
-                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                     ['genPowerCfg', [reportingItem('batteryVoltage', repInterval.HOUR, repInterval.MAX, 0)]],
                     ['genAnalogInput', [reportingItem('presentValue', 10, repInterval.HOUR, 5)]],
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                    ['msRelativeHumidity', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                 ],
             },
         });

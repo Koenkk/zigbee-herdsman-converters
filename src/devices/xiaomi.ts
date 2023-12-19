@@ -6,7 +6,10 @@ import * as ota from '../lib/ota';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {light, numeric, binary, enumLookup, forceDeviceType} from '../lib/modernExtend';
+import {
+    light, numeric, binary, enumLookup, forceDeviceType,
+    temperature, humidity,
+} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as globalStore from '../lib/store';
@@ -3109,20 +3112,20 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
         description: 'Aqara TVOC air quality monitor',
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity, xiaomi.fromZigbee.aqara_opple],
+        fromZigbee: [fz.battery, xiaomi.fromZigbee.aqara_opple],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        exposes: [e.temperature(), e.humidity(), e.device_temperature(), e.battery(), e.battery_voltage()],
+        exposes: [e.device_temperature(), e.battery(), e.battery_voltage()],
         extend: [
             aqaraAirQuality(),
             aqaraVoc(),
+            temperature({endpointID: 1}),
+            humidity({endpointID: 1}),
             aqaraDisplayUnit(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            const binds = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.humidity(endpoint);
-            await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         ota: ota.zigbeeOTA,
