@@ -1439,7 +1439,7 @@ const definitions: Definition[] = [
         extend: [onOff(), electricityMeter()],
         fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
         toZigbee: [tzLocal.low_water_temp_protection],
-        exposes: [e.switch(),
+        exposes: [
             e.numeric('low_water_temp_protection', ea.ALL).withUnit('°C').withValueMin(0).withValueMax(65).withValueStep(1)
                 .withDescription('Temperature at which water heating will resume automatically (default: 45°C)'),
             e.water_leak(), e.temperature()],
