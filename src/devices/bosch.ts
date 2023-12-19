@@ -346,11 +346,12 @@ const tzLocal = {
                 return {state: {pi_heating_demand: value}};
             }
             if (key === 'remote_temperature') {
-                const number = utils.toNumber(value, 'remote_temperature');
-                const remoteTemperature = Number((Math.round(Number((number * 2).toFixed(1))) / 2).toFixed(1)) * 100;
+                const temperature = utils.toNumber(value, 'remote_temperature');
+                const roundedTemperature = utils.precisionRound(temperature, 1);
+                const remoteTemperature = utils.precisionRound(roundedTemperature * 100, 0);
                 await entity.write('hvacThermostat',
                     {0x4040: {value: remoteTemperature, type: Zcl.DataType.int16}}, boschManufacturer);
-                return {state: {remote_temperature: number}};
+                return {state: {remote_temperature: roundedTemperature}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -923,7 +924,8 @@ const definitions: Definition[] = [
         ],
         exposes: [
             e.climate()
-                .withLocalTemperature(ea.STATE)
+                .withLocalTemperature(ea.STATE, 'Temperature used by the heating algorithm. ' +
+                    'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 minutes).')
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'auto'])
@@ -937,11 +939,11 @@ const definitions: Definition[] = [
                 .withDescription('Display orientation'),
             e.numeric('remote_temperature', ea.ALL)
                 .withValueMin(0)
-                .withValueMax(30)
-                .withValueStep(0.1)
+                .withValueMax(35)
+                .withValueStep(0.01)
                 .withUnit('°C')
                 .withDescription('Input for remote temperature sensor. ' +
-                    'Setting this will disable the internal temperature sensor until batteries are removed!'),
+                    'This must be set at least every 30 minutes to prevent fallback to internal temperature reading!'),
             e.numeric('display_ontime', ea.ALL)
                 .withValueMin(5)
                 .withValueMax(30)
