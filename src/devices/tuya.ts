@@ -5081,7 +5081,23 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n8dljorx', '_TZE200_pay2byax']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n8dljorx']),
+        model: 'ZG-102Z',
+        vendor: 'TuYa',
+        description: 'Door sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.contact(), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'contact', tuya.valueConverter.inverse],
+                [2, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_pay2byax']),
         model: 'ZG-102ZL',
         vendor: 'TuYa',
         description: 'Luminance door sensor',
