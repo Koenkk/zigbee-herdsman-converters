@@ -599,7 +599,7 @@ const fzLocal = {
             if (data.hasOwnProperty(0x4020)) {
                 const demand = data[0x4020] as number;
                 result.pi_heating_demand = demand;
-                result.running_state = demand >= 10 ? 'heat' : 'idle';
+                result.running_state = demand > 0 ? 'heat' : 'idle';
             }
 
             return result;
