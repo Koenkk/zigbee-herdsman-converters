@@ -227,8 +227,8 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'gas_valve_state') {
                 const lookup = {'CLOSE': 'off'}; // open is not supported.
-                const state = utils.getFromLookup(value, lookup)
-                if(state !== 'off') value = 'CLOSE';
+                const state = utils.getFromLookup(value, lookup);
+                if (state != 'off') value = 'CLOSE';
                 else await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
             } else if (key === 'close_timeout') {
                 utils.assertNumber(value);
