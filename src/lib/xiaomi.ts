@@ -10,7 +10,6 @@ import {
 
 import * as exposes from './exposes';
 import * as globalStore from './store';
-import * as constants from './constants';
 import {Fz, Definition, KeyValue, KeyValueAny} from './types';
 import * as modernExtend from './modernExtend';
 
@@ -1379,7 +1378,7 @@ export const xiaomiModernExtend = {
         name: 'voc',
         cluster: 'genAnalogInput',
         attribute: 'presentValue',
-        configureReporting: {minimumReportInterval: 10, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 5},
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5},
         endpointID: 1,
         description: 'Measured VOC value',
         unit: 'ppb',
