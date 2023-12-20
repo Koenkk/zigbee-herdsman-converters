@@ -945,7 +945,7 @@ const definitions: Definition[] = [
             e.numeric('remote_temperature', ea.ALL)
                 .withValueMin(0)
                 .withValueMax(35)
-                .withValueStep(0.01)
+                .withValueStep(0.1)
                 .withUnit('°C')
                 .withDescription('Input for remote temperature sensor. ' +
                     'This must be set at least every 30 minutes to prevent fallback to internal temperature reading!'),
@@ -956,7 +956,7 @@ const definitions: Definition[] = [
             e.numeric('display_brightness', ea.ALL)
                 .withValueMin(0)
                 .withValueMax(10)
-                .withDescription('Specifies the brightness value of the display'),
+                .withDescription('Specifies the brightness level of the display'),
             e.enum('displayed_temperature', ea.ALL, Object.keys(displayedTemperature))
                 .withDescription('Temperature displayed on the thermostat'),
             e.child_lock().setAccess('state', ea.ALL),
