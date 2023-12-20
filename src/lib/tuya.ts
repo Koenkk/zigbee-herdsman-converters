@@ -1649,7 +1649,6 @@ const tuyaModernExtend = {
             valueOn: (invert) ? ['ON', true] : ['ON', false], valueOff: (invert) ? ['OFF', false] : ['OFF', true],
             expose: e.contact(), ...args});
     },
-    
 };
 export {tuyaModernExtend as modernExtend};
 
