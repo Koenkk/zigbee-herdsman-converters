@@ -945,7 +945,7 @@ const definitions: Definition[] = [
             e.numeric('remote_temperature', ea.ALL)
                 .withValueMin(0)
                 .withValueMax(35)
-                .withValueStep(0.1)
+                .withValueStep(0.01)
                 .withUnit('°C')
                 .withDescription('Input for remote temperature sensor. ' +
                     'This must be set at least every 30 minutes to prevent fallback to internal temperature reading!'),
