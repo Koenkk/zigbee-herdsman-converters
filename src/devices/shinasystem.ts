@@ -7,7 +7,6 @@ import * as reporting from '../lib/reporting';
 import {onOff, numeric, enumLookup} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
-import {Zcl} from 'zigbee-herdsman';
 import * as constants from '../lib/constants';
 
 const e = exposes.presets;
