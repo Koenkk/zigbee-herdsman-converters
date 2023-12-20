@@ -5,7 +5,8 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import extend from './extend';
-import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend} from './types';
+import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueAny} from './types';
+import {Color} from './color';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -428,6 +429,91 @@ export const valueConverterBasic = {
     },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
+    },
+    color1000: () => {
+        return {
+            // eslint-disable-next-line
+            to: (value: any, meta?: Tz.Meta) => {
+                const make4sizedString = (v: string) => {
+                    if (v.length >= 4) {
+                        return v;
+                    } else if (v.length === 3) {
+                        return '0' + v;
+                    } else if (v.length === 2) {
+                        return '00' + v;
+                    } else if (v.length === 1) {
+                        return '000' + v;
+                    } else {
+                        return '0000';
+                    }
+                };
+
+                const fillInHSB = (h: number, s: number, b: number, state: KeyValueAny) => {
+                    // Define default values. Device expects leading zero in string.
+                    const hsb = {
+                        h: '0168', // 360
+                        s: '03e8', // 1000
+                        b: '03e8', // 1000
+                    };
+
+                    if (h) {
+                        // The device expects 0-359
+                        if (h >= 360) {
+                            h = 359;
+                        }
+                        hsb.h = make4sizedString(h.toString(16));
+                    } else if (state.color && state.color.hue) {
+                        hsb.h = make4sizedString(state.color.hue.toString(16));
+                    }
+
+                    // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
+                    // The device expects a round number, otherwise everything breaks
+                    if (s) {
+                        hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
+                    } else if (state.color && state.color.saturation) {
+                        hsb.s = make4sizedString(utils.mapNumberRange(state.color.saturation, 0, 100, 0, 1000).toString(16));
+                    }
+
+                    // Scale 0-255 to 0-1000 what the device expects.
+                    if (b != null) {
+                        hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
+                    } else if (state.brightness != null) {
+                        hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
+                    }
+                    return hsb;
+                };
+                const newColor = Color.fromConverterArg(value);
+                let hsv;
+                if (newColor.isRGB()) {
+                    hsv = newColor.rgb.toHSV();
+                } else {
+                    if (newColor.isHSV()) {
+                        hsv = newColor.hsv;
+                    }
+                }
+                const hsb = fillInHSB(
+                    utils.precisionRound(hsv.hue, 0) || null,
+                    utils.precisionRound(hsv.saturation, 0) || null,
+                    utils.precisionRound(hsv.brightness, 0) || null,
+                    meta.state,
+                );
+                const data: string = hsb.h + hsb.s + hsb.b;
+
+                return data;
+            },
+            // eslint-disable-next-line
+            from: (value: any) => {
+                const result: KeyValueAny = {};
+                const h = parseInt(value.substring(0, 4), 16);
+                const s = parseInt(value.substring(4, 8), 16);
+                const b = parseInt(value.substring(8, 12), 16);
+                result.color_mode = 'hs';
+                result.color = {hue: h, saturation: utils.mapNumberRange(s, 0, 1000, 0, 100)};
+                result.brightness = utils.mapNumberRange(b, 0, 1000, 0, 255);
+
+                return result;
+            },
+        };
     },
 };
 
@@ -1313,10 +1399,10 @@ const tuyaExtend = {
 export {tuyaExtend as extend};
 
 
-function getModernExtendForDP(name: string, attribute: {dp: number, type: number}, converter: Tuya.ValueConverterSingle,
-    skip?: (meta: Tz.Meta) => boolean, endpoint?: string): ModernExtend {
+function getHandlersForDP(name: string, attribute: {dp: number, type: number}, converter: Tuya.ValueConverterSingle,
+    skip?: (meta: Tz.Meta) => boolean, endpoint?: string, useGlobalSequence?: boolean): [Fz.Converter, Tz.Converter] {
     const keyName = (endpoint) ? `${name}_${endpoint}` : name;
-    const fromZigbee: Fz.Converter[] = [{
+    const fromZigbee: Fz.Converter = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
         options: (definition) => {
@@ -1348,23 +1434,24 @@ function getModernExtendForDP(name: string, attribute: {dp: number, type: number
             }
             return result;
         },
-    }];
+    };
 
-    const toZigbee: Tz.Converter[] = [{
+    const toZigbee: Tz.Converter = {
         key: [name],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
             const state: KeyValue = {};
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             for (const [attr, value] of Object.entries(meta.message)) {
-                const convertedKey: string = meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
+                const convertedKey: string = meta.mapped.meta && meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
                     `${attr}_${meta.endpoint_name}` : attr;
                 if (convertedKey !== keyName) continue;
                 if (skip && skip(meta)) continue;
 
-                const convertedValue = await converter.to(value);
+                const convertedValue = await converter.to(value, meta);
                 const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
-                const seq: number | undefined = undefined;
+                const seq = (useGlobalSequence) ? undefined : 1;
+
                 if (convertedValue === undefined) {
                     // conversion done inside converter, ignore.
                 } else if (attribute.type == dataTypes.bool) {
@@ -1387,39 +1474,41 @@ function getModernExtendForDP(name: string, attribute: {dp: number, type: number
             }
             return {state};
         },
-    }];
+    };
 
-    return {fromZigbee, toZigbee, isModernExtend: true};
+    return [fromZigbee, toZigbee];
 }
 
-export interface TuyaEnumLookupArgs {
+export interface TuyaDPEnumLookupArgs {
     name: string, attribute: {dp: number, type: number}, lookup: KeyValue,
     description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
     expose?: Expose,
 }
-export interface TuyaBinaryArgs {
+export interface TuyaDPBinaryArgs {
     name: string, attribute: {dp: number, type: number}, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown],
     description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
     expose?: Expose,
 }
 
-export interface TuyaNumericArgs {
+export interface TuyaDPNumericArgs {
     name: string, attribute: {dp: number, type: number},
     description?: string, readOnly?: boolean, endpoint?: string, unit?: string, skip?: (meta: Tz.Meta) => boolean,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number | [number, number, number, number],
     expose?: exposes.Numeric,
 }
 
-export interface TuyaLightArgs {
+export interface TuyaDPLightArgs {
     state: {dp: number, type: number, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], skip?: (meta: Tz.Meta) => boolean},
     brightness: {dp: number, type: number, scale?: number | [number, number, number, number]},
     max?: {dp: number, type: number, scale?: number | [number, number, number, number]},
     min?: {dp: number, type: number, scale?: number | [number, number, number, number]},
+    colorTemp?: {dp: number, type: number, range: Range, scale?: number | [number, number, number, number]},
+    color?: {dp: number, type: number, scale?: number | [number, number, number, number]},
     endpoint?: string,
 }
 
 const tuyaModernExtend = {
-    enumLookup(args: TuyaEnumLookupArgs): ModernExtend {
+    dpEnumLookup(args: TuyaDPEnumLookupArgs): ModernExtend {
         const {name, attribute, lookup, description, readOnly, endpoint, expose, skip} = args;
         let exp: Expose;
         if (expose) {
@@ -1429,12 +1518,14 @@ const tuyaModernExtend = {
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        return {exposes: [exp], ...getModernExtendForDP(name, attribute, {
+        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, attribute, {
             from: (value) => utils.getFromLookupByValue(value, lookup),
             to: (value) => utils.getFromLookup(value, lookup),
-        }, skip, endpoint)};
+        }, skip, endpoint);
+
+        return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
     },
-    binary(args: TuyaBinaryArgs): ModernExtend {
+    dpBinary(args: TuyaDPBinaryArgs): ModernExtend {
         const {name, attribute, valueOn, valueOff, description, readOnly, endpoint, expose, skip} = args;
         let exp: Expose;
         if (expose) {
@@ -1444,12 +1535,14 @@ const tuyaModernExtend = {
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        return {exposes: [exp], ...getModernExtendForDP(name, attribute, {
+        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, attribute, {
             from: (value) => (value === valueOn[1]) ? valueOn[0] : valueOff[0],
             to: (value) => (value === valueOn[0]) ? valueOn[1] : valueOff[1],
-        }, skip, endpoint)};
+        }, skip, endpoint);
+
+        return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
     },
-    numeric(args: TuyaNumericArgs): ModernExtend {
+    dpNumeric(args: TuyaDPNumericArgs): ModernExtend {
         const {name, attribute, description, readOnly, endpoint, unit, valueMax, valueMin, valueStep, scale, expose, skip} = args;
         let exp: exposes.Numeric;
         if (expose) {
@@ -1474,10 +1567,12 @@ const tuyaModernExtend = {
             }
         }
 
-        return {exposes: [exp], ...getModernExtendForDP(name, attribute, converter, skip, endpoint)};
+        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, attribute, converter, skip, endpoint);
+
+        return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
     },
-    light(args: TuyaLightArgs): ModernExtend {
-        const {state, brightness, min, max, endpoint} = args;
+    dpLight(args: TuyaDPLightArgs): ModernExtend {
+        const {state, brightness, min, max, colorTemp, color, endpoint} = args;
         let exp = e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET);
         let fromZigbee: Fz.Converter[] = [];
         let toZigbee: Tz.Converter[] = [];
@@ -1488,24 +1583,45 @@ const tuyaModernExtend = {
         if (max) {
             exp = exp.withMaxBrightness().setAccess('max_brightness', ea.STATE_SET);
         }
+        if (colorTemp) {
+            exp = exp.withColorTemp(colorTemp.range).setAccess('color_temp', ea.STATE_SET);
+        }
+        if (color) {
+            exp = exp.withColor(['hs']).setAccess('color_hs', ea.STATE_SET);
+        }
         if (endpoint) exp = exp.withEndpoint(endpoint);
-        ext = tuyaModernExtend.binary({name: 'state', attribute: {dp: state.dp, type: state.type},
+        ext = tuyaModernExtend.dpBinary({name: 'state', attribute: {dp: state.dp, type: state.type},
             valueOn: state.valueOn, valueOff: state.valueOff, skip: state.skip, endpoint: endpoint});
         fromZigbee = [...fromZigbee, ...ext.fromZigbee];
         toZigbee = [...toZigbee, ...ext.toZigbee];
-        ext = tuyaModernExtend.numeric({name: 'brightness', attribute: {dp: brightness.dp, type: brightness.type},
+        ext = tuyaModernExtend.dpNumeric({name: 'brightness', attribute: {dp: brightness.dp, type: brightness.type},
             scale: brightness.scale, endpoint: endpoint});
         fromZigbee = [...fromZigbee, ...ext.fromZigbee];
         toZigbee = [...toZigbee, ...ext.toZigbee];
         if (min) {
-            ext = tuyaModernExtend.numeric({name: 'min_brightness', attribute: {dp: min.dp, type: min.type}, scale: min.scale, endpoint: endpoint});
+            ext = tuyaModernExtend.dpNumeric({name: 'min_brightness', attribute: {dp: min.dp, type: min.type},
+                scale: min.scale, endpoint: endpoint});
             fromZigbee = [...fromZigbee, ...ext.fromZigbee];
             toZigbee = [...toZigbee, ...ext.toZigbee];
         }
         if (max) {
-            ext = tuyaModernExtend.numeric({name: 'max_brightness', attribute: {dp: max.dp, type: max.type}, scale: max.scale, endpoint: endpoint});
+            ext = tuyaModernExtend.dpNumeric({name: 'max_brightness', attribute: {dp: max.dp, type: max.type},
+                scale: max.scale, endpoint: endpoint});
             fromZigbee = [...fromZigbee, ...ext.fromZigbee];
             toZigbee = [...toZigbee, ...ext.toZigbee];
+        }
+        if (colorTemp) {
+            ext = tuyaModernExtend.dpNumeric({name: 'color_temp', attribute: {dp: colorTemp.dp, type: colorTemp.type},
+                scale: colorTemp.scale, endpoint: endpoint});
+            fromZigbee = [...fromZigbee, ...ext.fromZigbee];
+            toZigbee = [...toZigbee, ...ext.toZigbee];
+        }
+        if (color) {
+            const handlers = getHandlersForDP('color', {dp: color.dp, type: color.type},
+                valueConverterBasic.color1000(), undefined, endpoint);
+
+            fromZigbee = [...fromZigbee, handlers[0]];
+            toZigbee = [...toZigbee, handlers[1]];
         }
 
         // combine extends for one expose
