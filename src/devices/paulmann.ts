@@ -198,7 +198,7 @@ const definitions: Definition[] = [
         model: '291.52',
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee LED bulb 4,9W Matt E14 RGBW',
-        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
+        extend: [light({colorTemp: {range: [153, 454]}, color: {modes: ['xy', 'hs']}})],
     },
 ];
 
