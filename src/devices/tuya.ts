@@ -3336,7 +3336,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [160, 112, 100, 69, 68, 65, 64].map((applicationVersion) => {
+        fingerprint: [192, 160, 112, 100, 69, 68, 65, 64].map((applicationVersion) => {
             return {modelID: 'TS011F', applicationVersion, priority: -1};
         }),
         model: 'TS011F_plug_3',
