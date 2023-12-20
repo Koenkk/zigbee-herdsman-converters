@@ -589,7 +589,7 @@ const fzLocal = {
             const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x4040)) {
-                result.remote_temperature = utils.precisionRound(data[0x4040] / 100, 2);
+                result.remote_temperature = utils.precisionRound(data[0x4040] / 100, 1);
             }
             if (data.hasOwnProperty(0x4042)) {
                 result.window_open = (Object.keys(stateOffOn)[data[0x4042]]);
