@@ -485,3 +485,34 @@ export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExt
     };
     return {configure, isModernExtend: true};
 }
+
+export function temperature(args?: Partial<NumericArgs>) {
+    return numeric({
+        name: 'temperature',
+        cluster: 'msTemperatureMeasurement',
+        attribute: 'measuredValue',
+        configureReporting: {minimumReportInterval: 10, maximumReportInterval: repInterval.HOUR, reportableChange: 100},
+        description: 'Measured temperature value',
+        unit: 'ºC',
+        scale: 100,
+        readOnly: true,
+        ...args,
+    });
+}
+
+export function humidity(args?: Partial<NumericArgs>) {
+    return numeric({
+        name: 'humidity',
+        cluster: 'msRelativeHumidity',
+        attribute: 'measuredValue',
+        configureReporting: {minimumReportInterval: 10, maximumReportInterval: repInterval.HOUR, reportableChange: 100},
+        description: 'Measured relative humidity',
+        unit: '%',
+        scale: 100,
+        valueMin: 0,
+        valueMax: 100,
+        readOnly: true,
+        ...args,
+    });
+}
+
