@@ -724,7 +724,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['GCM-300Z'],
         model: 'GCM-300Z',
         vendor: 'ShinaSystem',
-        description: 'SiHAS Gas Valve',
+        description: 'SiHAS gas valve',
         fromZigbee: [fzLocal.GCM300Z_valve_status, fz.battery],
         toZigbee: [tzLocal.GCM300Z_valve_status],
         exposes: [
