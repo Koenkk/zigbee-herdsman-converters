@@ -7,7 +7,6 @@ import * as reporting from '../lib/reporting';
 import {onOff, numeric, enumLookup} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
-import * as constants from '../lib/constants';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -743,11 +742,7 @@ const definitions: Definition[] = [
                 valueStep: 1,
                 unit: 'Miniute',
                 scale: 60,
-                configureReporting: {
-                    attribute: {ID: 0x9006, type: 0x21},
-                    minimumReportInterval: 1,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 1},
+                reporting: {min: 0, max: '1_HOUR', change: 1},
             }),
             numeric({
                 name: 'close_remain_timeout',
@@ -759,11 +754,7 @@ const definitions: Definition[] = [
                 valueStep: 1,
                 unit: 'Miniute',
                 scale: 60,
-                configureReporting: {
-                    attribute: {ID: 0x9007, type: 0x21},
-                    minimumReportInterval: 1,
-                    maximumReportInterval: constants.repInterval.HOUR/2,
-                    reportableChange: 1},
+                reporting: {min: 0, max: '30_MINUTES', change: 1},
             }),
             enumLookup({
                 name: 'volume',
@@ -771,11 +762,7 @@ const definitions: Definition[] = [
                 cluster: 'genOnOff',
                 attribute: {ID: 0x9008, type: 0x20},
                 description: 'Values observed are `1` (Voice), `2` (High) or `3` (Low).',
-                configureReporting: {
-                    attribute: {ID: 0x9008, type: 0x20},
-                    minimumReportInterval: 1,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 1},
+                reporting: {min: 0, max: '1_HOUR', change: 1},
             }),
             enumLookup({
                 name: 'overheat_mode',
@@ -783,11 +770,7 @@ const definitions: Definition[] = [
                 cluster: 'genOnOff',
                 attribute: {ID: 0x9005, type: 0x20},
                 description: 'Temperature overheating condition.',
-                configureReporting: {
-                    attribute: {ID: 0x9005, type: 0x20},
-                    minimumReportInterval: 1,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 1},
+                reporting: {min: 0, max: '1_HOUR', change: 1},
                 readOnly: true,
             }),
         ],
