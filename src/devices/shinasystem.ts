@@ -4,11 +4,12 @@ import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {onOff} from '../lib/modernExtend';
+import {onOff, numeric, enumLookup} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
 import {Zcl} from 'zigbee-herdsman';
 import * as constants from '../lib/constants';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -58,7 +59,7 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
-    GCM300Z_on_off: {
+    GCM300Z_valve_status: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -66,18 +67,6 @@ const fzLocal = {
                 const endpoint = meta.device.getEndpoint(1);
                 endpoint.read('genOnOff', [0x9007]); // for update : close_remain_timeout
                 return {gas_valve_state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
-            } else if (msg.data.hasOwnProperty(0x9005)) { // Temperature overheating condition
-                return {overheat_mode: msg.data['0x9005'] === 1 ? 'OverHeat' : 'Normal'};
-            } else if (msg.data.hasOwnProperty(0x9006)) { // Set the default closing time when the gas valve is open
-                const value = msg.data[0x9006];
-                return {close_timeout: Math.floor(value/60)};
-            } else if (msg.data.hasOwnProperty(0x9007)) { // Set the time or remaining time until the gas valve closes
-                const value = msg.data[0x9007];
-                return {close_remain_timeout: Math.floor(value/60)};
-            } else if (msg.data.hasOwnProperty(0x9008)) { // Values observed are `1` (Voice), `2` (High) or `3` (Low)
-                const value = msg.data[0x9008];
-                const lookup = {0: 'Voice', 1: 'Voice', 2: 'High', 3: 'Low'};
-                return {volume: utils.getFromLookup(value, lookup)};
             }
         },
     } satisfies Fz.Converter,
@@ -222,45 +211,17 @@ const tzLocal = {
             await entity.write('genOnOff', payload);
         },
     } satisfies Tz.Converter,
-    GCM300Z_on_off: {
-        key: ['gas_valve_state', 'close_timeout', 'close_remain_timeout', 'volume'],
+    GCM300Z_valve_status: {
+        key: ['gas_valve_state'],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'gas_valve_state') {
-                const lookup = {'CLOSE': 'off'}; // open is not supported.
-                const state = utils.getFromLookup(value, lookup);
-                if (state != 'off') value = 'CLOSE';
-                else await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
-            } else if (key === 'close_timeout') {
-                utils.assertNumber(value);
-                const payload = {0x9006: {value: value*60, type: Zcl.DataType.uint16}};
-                await entity.write('genOnOff', payload);
-            } else if (key === 'close_remain_timeout') {
-                utils.assertNumber(value);
-                const payload = {0x9007: {value: value*60, type: Zcl.DataType.uint16}};
-                await entity.write('genOnOff', payload);
-            } else if (key === 'volume') {
-                const lookup = {'Voice': 1, 'High': 2, 'Low': 2};
-                const payload = {0x9008: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.uint8}};
-                await entity.write('genOnOff', payload);
-            }
+            const lookup = {'CLOSE': 'off'}; // open is not supported.
+            const state = utils.getFromLookup(value, lookup);
+            if (state != 'off') value = 'CLOSE';
+            else await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (key === 'gas_valve_state') {
-                await entity.read('genOnOff', ['onOff']);
-            } else if (key === 'close_timeout') {
-                await entity.read('genOnOff', [0x9006]);
-            } else if (key === 'close_remain_timeout') {
-                await entity.read('genOnOff', [0x9007]);
-            } else if (key === 'volume') {
-                await entity.read('genOnOff', [0x9008]);
-            }
-        },
-    } satisfies Tz.Converter,
-    GCM300Z_status: {
-        key: ['overheat_mode'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', [0x9005]);
+            await entity.read('genOnOff', ['onOff']);
         },
     } satisfies Tz.Converter,
 };
@@ -765,62 +726,77 @@ const definitions: Definition[] = [
         model: 'GCM-300Z',
         vendor: 'ShinaSystem',
         description: 'SiHAS Gas Valve',
-        fromZigbee: [fzLocal.GCM300Z_on_off, fz.battery],
-        toZigbee: [tzLocal.GCM300Z_on_off, tzLocal.GCM300Z_status],
+        fromZigbee: [fzLocal.GCM300Z_valve_status, fz.battery],
+        toZigbee: [tzLocal.GCM300Z_valve_status],
         exposes: [
             e.binary('gas_valve_state', ea.ALL, 'OPEN', 'CLOSE')
                 .withDescription('Valve state if open or closed'),
-            e.numeric('close_timeout', ea.ALL ).withValueMin(1).withValueMax(540).withValueStep(1).withUnit('Miniute')
-                .withDescription('Set the default closing time when the gas valve is open.'),
-            e.numeric('close_remain_timeout', ea.ALL ).withValueMin(0).withValueMax(540).withValueStep(1).withUnit('Miniute')
-                .withDescription('Set the time or remaining time until the gas valve closes.'),
-            e.enum('volume', ea.ALL, ['Voice', 'High', 'Low'])
-                .withDescription('Values observed are `1` (Voice), `2` (High) or `3` (Low)'),
-            e.binary('overheat_mode', ea.STATE_GET, 'OverHeat', 'Normal')
-                .withDescription('Temperature overheating condition'),
             e.battery(),
         ],
-        // The configure method below is needed to make the device reports on/off state changes
-        // when the device is controlled manually through the button on it.
+        extend: [
+            numeric({
+                name: 'close_timeout',
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9006, type: 0x21},
+                description: 'Set the default closing time when the gas valve is open.',
+                valueMin: 1,
+                valueMax: 540,
+                valueStep: 1,
+                unit: 'Miniute',
+                scale: 60,
+                configureReporting: {
+                    attribute: {ID: 0x9006, type: 0x21},
+                    minimumReportInterval: 1,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 1},
+            }),
+            numeric({
+                name: 'close_remain_timeout',
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9007, type: 0x21},
+                description: 'Set the time or remaining time until the gas valve closes.',
+                valueMin: 0,
+                valueMax: 540,
+                valueStep: 1,
+                unit: 'Miniute',
+                scale: 60,
+                configureReporting: {
+                    attribute: {ID: 0x9007, type: 0x21},
+                    minimumReportInterval: 1,
+                    maximumReportInterval: constants.repInterval.HOUR/2,
+                    reportableChange: 1},
+            }),
+            enumLookup({
+                name: 'volume',
+                lookup: {'Voice': 1, 'High': 2, 'Low': 2},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9008, type: 0x20},
+                description: 'Values observed are `1` (Voice), `2` (High) or `3` (Low).',
+                configureReporting: {
+                    attribute: {ID: 0x9008, type: 0x20},
+                    minimumReportInterval: 1,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 1},
+            }),
+            enumLookup({
+                name: 'overheat_mode',
+                lookup: {'Normal': 0, 'OverHeat': 1},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9005, type: 0x20},
+                description: 'Temperature overheating condition.',
+                configureReporting: {
+                    attribute: {ID: 0x9005, type: 0x20},
+                    minimumReportInterval: 1,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 1},
+                readOnly: true,
+            }),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
-            await utils.sleep(500);
             await reporting.onOff(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
-            // E_CLD_ONOFF_ATTR_ID_GAS_TIMER_OVERHEAT_STATUS    = 0x9005
-            await endpoint.read('genOnOff', [0x9005]);
-            await endpoint.configureReporting('genOnOff', [{
-                attribute: {ID: 0x9005, type: Zcl.DataType.uint8},
-                minimumReportInterval: 1,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1},
-            ]);
-            // E_CLD_ONOFF_ATTR_ID_GAS_TIMER_TIMEOUT            = 0x9006
-            await endpoint.read('genOnOff', [0x9006]);
-            await endpoint.configureReporting('genOnOff', [{
-                attribute: {ID: 0x9006, type: Zcl.DataType.uint16},
-                minimumReportInterval: 1,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1},
-            ]);
-            await utils.sleep(1000);
-            // E_CLD_ONOFF_ATTR_ID_GAS_TIMER_REMAIN             = 0x9007
-            await endpoint.read('genOnOff', [0x9007]);
-            await endpoint.configureReporting('genOnOff', [{
-                attribute: {ID: 0x9007, type: Zcl.DataType.uint16},
-                minimumReportInterval: 1,
-                maximumReportInterval: 1800,
-                reportableChange: 1},
-            ]);
-            // E_CLD_ONOFF_ATTR_ID_GAS_TIMER_VOLUME             = 0x9008
-            await endpoint.read('genOnOff', [0x9008]);
-            await endpoint.configureReporting('genOnOff', [{
-                attribute: {ID: 0x9008, type: Zcl.DataType.uint8},
-                minimumReportInterval: 1,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1},
-            ]);
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             await utils.sleep(300);
             await endpoint.read('genOnOff', ['onOff']);
         },
