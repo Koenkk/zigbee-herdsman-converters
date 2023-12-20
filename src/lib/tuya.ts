@@ -1480,18 +1480,18 @@ function getHandlersForDP(name: string, attribute: {dp: number, type: number}, c
 }
 
 export interface TuyaDPEnumLookupArgs {
-    name: string, attribute: {dp: number, type: number}, lookup: KeyValue,
+    name: string, attribute?: {dp: number, type: number}, lookup: KeyValue,
     description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
     expose?: Expose,
 }
 export interface TuyaDPBinaryArgs {
-    name: string, attribute: {dp: number, type: number}, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown],
+    name: string, attribute?: {dp: number, type: number}, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown],
     description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
     expose?: Expose,
 }
 
 export interface TuyaDPNumericArgs {
-    name: string, attribute: {dp: number, type: number},
+    name: string, attribute?: {dp: number, type: number},
     description?: string, readOnly?: boolean, endpoint?: string, unit?: string, skip?: (meta: Tz.Meta) => boolean,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number | [number, number, number, number],
     expose?: exposes.Numeric,
@@ -1627,6 +1627,29 @@ const tuyaModernExtend = {
         // combine extends for one expose
         return {exposes: [exp], fromZigbee: fromZigbee, toZigbee: toZigbee, isModernExtend: true};
     },
+    dpTemperature(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
+        return tuyaModernExtend.dpNumeric({name: 'temperature', expose: e.temperature(), ...args});
+    },
+    dpHumidity(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
+        return tuyaModernExtend.dpNumeric({name: 'humidity', expose: e.humidity(), ...args});
+    },
+    dpBattery(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
+        return tuyaModernExtend.dpNumeric({name: 'battery', expose: e.battery(), ...args});
+    },
+    dpBatteryState(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        return tuyaModernExtend.dpEnumLookup({name: 'battery_state', lookup: {'low': 0, 'medium': 1, 'high': 2},
+            expose: tuyaExposes.batteryState(), ...args});
+    },
+    dpTemperatureUnit(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        return tuyaModernExtend.dpEnumLookup({name: 'temperature_unit', lookup: {'celsius': 0, 'fahrenheit': 1},
+            expose: tuyaExposes.temperatureUnit(), ...args});
+    },
+    dpContact(args?: Partial<TuyaDPBinaryArgs>, invert?: boolean): ModernExtend {
+        return tuyaModernExtend.dpBinary({name: 'contact',
+            valueOn: (invert) ? ['ON', true] : ['ON', false], valueOff: (invert) ? ['OFF', false] : ['OFF', true],
+            expose: e.contact(), ...args});
+    },
+    
 };
 export {tuyaModernExtend as modernExtend};
 
