@@ -11,7 +11,6 @@ import {Tz, Fz, Definition, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-// Radiator Thermostat II
 const boschManufacturer = {manufacturerCode: 0x1209};
 
 const sirenVolume = {
@@ -326,7 +325,7 @@ const tzLocal = {
             }
             if (key === 'system_mode') {
                 // Map system_mode (Off/Auto/Heat) to Bosch operating mode
-                utils.assertString(value, 'system_mode');
+                utils.assertString(value, key);
                 value = value.toLowerCase();
 
                 let opMode = operatingModes.manual; // OperatingMode 1 = Manual (Default)
@@ -340,18 +339,20 @@ const tzLocal = {
                 return {state: {system_mode: value}};
             }
             if (key === 'pi_heating_demand') {
+                let demand = utils.toNumber(value, key);
+                demand = utils.numberWithinRange(demand, 0, 100);
                 await entity.write('hvacThermostat',
-                    {0x4020: {value: value, type: Zcl.DataType.enum8}},
+                    {0x4020: {value: demand, type: Zcl.DataType.enum8}},
                     boschManufacturer);
-                return {state: {pi_heating_demand: value}};
+                return {state: {pi_heating_demand: demand}};
             }
             if (key === 'remote_temperature') {
-                const temperature = utils.toNumber(value, 'remote_temperature');
-                const roundedTemperature = utils.precisionRound(temperature, 1);
-                const remoteTemperature = utils.precisionRound(roundedTemperature * 100, 0);
+                let temperature = utils.toNumber(value, key);
+                temperature = utils.precisionRound(temperature, 1);
+                const convertedTemperature = utils.precisionRound(temperature * 100, 0);
                 await entity.write('hvacThermostat',
-                    {0x4040: {value: remoteTemperature, type: Zcl.DataType.int16}}, boschManufacturer);
-                return {state: {remote_temperature: roundedTemperature}};
+                    {0x4040: {value: convertedTemperature, type: Zcl.DataType.int16}}, boschManufacturer);
+                return {state: {remote_temperature: temperature}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -386,12 +387,16 @@ const tzLocal = {
                 return {state: {display_orientation: value}};
             }
             if (key === 'display_ontime') {
-                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: value, type: Zcl.DataType.enum8}}, boschManufacturer);
-                return {state: {display_onTime: value}};
+                let onTime = utils.toNumber(value, key);
+                onTime = utils.numberWithinRange(onTime, 5, 30);
+                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: onTime, type: Zcl.DataType.enum8}}, boschManufacturer);
+                return {state: {display_onTime: onTime}};
             }
             if (key === 'display_brightness') {
-                await entity.write('hvacUserInterfaceCfg', {0x403b: {value: value, type: Zcl.DataType.enum8}}, boschManufacturer);
-                return {state: {display_brightness: value}};
+                let brightness = utils.toNumber(value, key);
+                brightness = utils.numberWithinRange(brightness, 0, 10);
+                await entity.write('hvacUserInterfaceCfg', {0x403b: {value: brightness, type: Zcl.DataType.enum8}}, boschManufacturer);
+                return {state: {display_brightness: brightness}};
             }
             if (key === 'child_lock') {
                 const keypadLockout = Number(value === 'LOCK');
