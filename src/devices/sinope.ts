@@ -10,6 +10,7 @@ import {Definition, Fz, KeyValue, KeyValueAny, Tz} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import {precisionRound} from '../lib/utils';
+import {onOff, electricityMeter} from '../lib/modernExtend';
 
 const manuSinope = {manufacturerCode: 0x119C};
 
@@ -1435,27 +1436,18 @@ const definitions: Definition[] = [
         model: 'RM3500ZB',
         vendor: 'Sinopé',
         description: 'Calypso smart water heater controller',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fzLocal.ias_water_leak_alarm,
-            fzLocal.sinope, fz.temperature],
-        toZigbee: [tz.on_off, tzLocal.low_water_temp_protection],
-        exposes: [e.switch(),
+        extend: [onOff(), electricityMeter()],
+        fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
+        toZigbee: [tzLocal.low_water_temp_protection],
+        exposes: [
             e.numeric('low_water_temp_protection', ea.ALL).withUnit('°C').withValueMin(0).withValueMax(65).withValueStep(1)
                 .withDescription('Temperature at which water heating will resume automatically (default: 45°C)'),
-            e.power(), e.current(), e.voltage(), e.energy(), e.water_leak(), e.temperature()],
+            e.water_leak(), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement', 'ssIasZone',
-                'manuSpecificSinope'];
+            const binds = ['msTemperatureMeasurement', 'ssIasZone', 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.onOff(endpoint);
-            await reporting.temperature(endpoint, {min: 10, max: 301, change: 10}); // divider 100: 0.1C
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint, {min: 10, max: 305, change: 2}); // divider 1 : 2W
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 1000: 0.01Arms
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 1}); // divider 1: 1Vrms
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [10, 10]}); // divider 1000: 0,01kWh
-
+            await reporting.temperature(endpoint, {min: 60, max: 60, change: 0}); // divider 100: 0.1C
             await endpoint.configureReporting('ssIasZone', [{attribute: 'zoneStatus', minimumReportInterval: 1,
                 maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
         },
