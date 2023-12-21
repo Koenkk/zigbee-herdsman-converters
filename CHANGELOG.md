@@ -1,5 +1,16 @@
 # Changelog
 
+## [16.15.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.15.0...v16.15.1) (2023-12-21)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_ljhbw1c9` as TuYa TS0012_switch_module https://github.com/Koenkk/zigbee2mqtt/issues/20162 ([e92a9ef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e92a9ef4ba241d572651c462793df4a18c15f2bf))
+* Fix mcuVersionRequest log for Zemismart ZM25RX-08/30 ([#6748](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6748)) ([095ef2b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/095ef2bd1428327a9b3508360d90cf9716704234))
+* **ignore:** fix 7a2898b5aa37a740a62cb0189d4ebc0d8a76a6e9 ([dc6db4b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dc6db4b3f991d3d8754d8dd2e0f41ebe593d3f02))
+* **ignore:** fix 7a2898b5aa37a740a62cb0189d4ebc0d8a76a6e9 ([fa36136](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fa36136ef04831aa8c529493925cb49816665775))
+* **ignore:** Hue lights don't support hue/saturation https://github.com/Koenkk/zigbee2mqtt/issues/20306 ([7a2898b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7a2898b5aa37a740a62cb0189d4ebc0d8a76a6e9))
+
 ## [16.15.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.14.1...v16.15.0) (2023-12-20)
 
 
