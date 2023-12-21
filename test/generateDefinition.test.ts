@@ -36,14 +36,14 @@ describe('GenerateDefinition', () => {
         await assertGeneratedDefinition({
             device: mockDevice({modelID: 'temp', endpoints: [{inputClusters: ['msTemperatureMeasurement'], outputClusters:['genIdentify']}]}),
             meta: undefined,
-            fromZigbee: [fz.temperature],
-            toZigbee: ['identify'],
+            fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'})],
+            toZigbee: ['temperature', 'identify'],
             exposes: ['linkquality', 'temperature'],
             bind: {1: ['msTemperatureMeasurement']},
             read: {1: [['msTemperatureMeasurement', ['measuredValue']]]},
             configureReporting: {
                 1: [
-                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 0, repInterval.MAX, 1)]],
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                 ],
             },
         });
@@ -53,14 +53,14 @@ describe('GenerateDefinition', () => {
         await assertGeneratedDefinition({
             device: mockDevice({modelID: 'pressure', endpoints: [{inputClusters: ['msPressureMeasurement'], outputClusters:[]}]}),
             meta: undefined,
-            fromZigbee: [fz.pressure],
-            toZigbee: [],
+            fromZigbee: [expect.objectContaining({cluster: 'msPressureMeasurement'})],
+            toZigbee: ['pressure'],
             exposes: ['linkquality', 'pressure'],
             bind: {1: ['msPressureMeasurement']},
             read: {1: [['msPressureMeasurement', ['measuredValue']]]},
             configureReporting: {
                 1: [
-                    ['msPressureMeasurement', [reportingItem('measuredValue', 0, repInterval.MAX, 1)]],
+                    ['msPressureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                 ],
             },
         });
@@ -70,14 +70,14 @@ describe('GenerateDefinition', () => {
         await assertGeneratedDefinition({
             device: mockDevice({modelID: 'humidity', endpoints: [{inputClusters: ['msRelativeHumidity'], outputClusters:[]}]}),
             meta: undefined,
-            fromZigbee: [fz.humidity],
-            toZigbee: [],
+            fromZigbee: [expect.objectContaining({cluster: 'msRelativeHumidity'})],
+            toZigbee: ['humidity'],
             exposes: ['humidity', 'linkquality'],
             bind: {1: ['msRelativeHumidity']},
             read: {1: [['msRelativeHumidity', ['measuredValue']]]},
             configureReporting: {
                 1: [
-                    ['msRelativeHumidity', [reportingItem('measuredValue', 0, repInterval.MAX, 1)]],
+                    ['msRelativeHumidity', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                 ],
             },
         });
@@ -87,8 +87,8 @@ describe('GenerateDefinition', () => {
         await assertGeneratedDefinition({
             device: mockDevice({modelID: 'combo', endpoints: [{inputClusters: ['msTemperatureMeasurement', 'genOnOff'], outputClusters:[]}]}),
             meta: undefined,
-            fromZigbee: [fz.temperature, fz.on_off],
-            toZigbee: ['state', 'on_time', 'off_wait_time'],
+            fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
+            toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
             exposes: ['linkquality', 'switch(state)', 'temperature'],
             bind: {1: ['msTemperatureMeasurement', 'genOnOff']},
             read: {1: [
@@ -97,7 +97,7 @@ describe('GenerateDefinition', () => {
             ]},
             configureReporting: {
                 1: [
-                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 0, repInterval.MAX, 1)]],
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                     ['genOnOff', [reportingItem('onOff', 0, repInterval.MAX, 1)]],
                 ],
             },
