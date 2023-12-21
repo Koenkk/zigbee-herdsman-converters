@@ -110,6 +110,8 @@ const definitions: Definition[] = [
         model: 'ZM25RX-08/30',
         vendor: 'Zemismart',
         description: 'Tubular motor',
+        // mcuVersionResponse spsams: https://github.com/Koenkk/zigbee2mqtt/issues/19817
+        onEvent: tuya.onEvent({respondToMcuVersionResponse: false}),
         configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
