@@ -1646,8 +1646,26 @@ const tuyaModernExtend = {
     },
     dpContact(args?: Partial<TuyaDPBinaryArgs>, invert?: boolean): ModernExtend {
         return tuyaModernExtend.dpBinary({name: 'contact', type: dataTypes.bool,
-            valueOn: (invert) ? ['ON', true] : ['ON', false], valueOff: (invert) ? ['OFF', false] : ['OFF', true],
+            valueOn: (invert) ? [true, true] : [true, false], valueOff: (invert) ? [false, false] : [false, true],
             readOnly: true, expose: e.contact(), ...args});
+    },
+    dpAction(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        const {lookup} = args;
+        return tuyaModernExtend.dpEnumLookup({name: 'action', type: dataTypes.number, readOnly: true,
+            expose: e.action(Object.keys(lookup)), ...args});
+    },
+    dpIlluminance(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
+        return tuyaModernExtend.dpNumeric({name: 'illuminance', type: dataTypes.number, readOnly: true,
+            expose: e.illuminance(), ...args});
+    },
+    dpGas(args?: Partial<TuyaDPBinaryArgs>, invert?: boolean): ModernExtend {
+        return tuyaModernExtend.dpBinary({name: 'gas', type: dataTypes.enum,
+            valueOn: (invert) ? [true, 1] : [true, 0], valueOff: (invert) ? [false, 0] : [false, 1],
+            readOnly: true, expose: e.gas(), ...args});
+    },
+    dpOnOff(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
+        return tuyaModernExtend.dpBinary({name: 'state', type: dataTypes.bool,
+            valueOn: ['ON', true], valueOff: ['OFF', false], expose: e.switch(), ...args});
     },
 };
 export {tuyaModernExtend as modernExtend};
