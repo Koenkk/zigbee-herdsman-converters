@@ -3867,7 +3867,7 @@ const definitions: Definition[] = [
         description: '2 gang switch module - (without neutral)',
         whiteLabel: [
             {vendor: 'AVATTO', model: '2gang N-ZLWSM01'},
-            tuya.whitelabel('AVATTO', 'LZWSM16-2', '2 gang switch module - (without neutral)', ['_TZ3000_kpatq5pq']),
+            tuya.whitelabel('AVATTO', 'LZWSM16-2', '2 gang switch module - (without neutral)', ['_TZ3000_kpatq5pq', '_TZ3000_ljhbw1c9']),
         ],
         extend: tuya.extend.switch({switchType: true, endpoints: ['left', 'right']}),
         endpoint: (device) => {
