@@ -13,44 +13,29 @@ let dataDir: string = null;
  * Helper functions
  */
 
-
-function isValidUrl(url: string) {
-    let parsed;
-    try {
-        parsed = URI.parse(url);
-    } catch (_) {
-        return false;
-    }
-    return parsed.scheme === 'http' || parsed.scheme === 'https';
-}
-
-function readLocalFile(fileName: string, logger: Logger) {
-    logger.debug(`JetHomeOTA: call readLocalFile`);
-    // If the file name is not a full path, then treat it as a relative to the data directory
-    if (!path.isAbsolute(fileName) && dataDir) {
-        fileName = path.join(dataDir, fileName);
-    }
-
-    logger.debug(`JetHomeOTA: getting local firmware file ${fileName}`);
-    return fs.readFileSync(fileName);
-}
-
 async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
-    const urlOrName = image.url;
+    let urlOrName = image.url;
 
     // First try to download firmware file with the URL provided
-    if (isValidUrl(urlOrName)) {
+    if (common.isValidUrl(urlOrName)) {
         logger.debug(`JetHomeOTA: downloading firmware image from ${urlOrName}`);
         return await axios.get(urlOrName, {responseType: 'arraybuffer'});
     }
 
-    return {data: readLocalFile(urlOrName, logger)};
+    logger.debug(`JetHomeOTA: call readLocalFile`);
+    // If the file name is not a full path, then treat it as a relative to the data directory
+    if (!path.isAbsolute(urlOrName) && dataDir) {
+        urlOrName = path.join(dataDir, urlOrName);
+    }
+
+    logger.debug(`JetHomeOTA: getting local firmware file ${urlOrName}`);
+    return {data: fs.readFileSync(urlOrName)};
 }
 
 async function getIndex(logger: Logger, modelId: string) {
     if (overrideIndexFileName) {
         logger.debug(`JetHomeOTA: Loading override index ${overrideIndexFileName}`);
-        if (isValidUrl(overrideIndexFileName)) {
+        if (common.isValidUrl(overrideIndexFileName)) {
             const index = (await axios.get(overrideIndexFileName)).data;
             return index;
         }
