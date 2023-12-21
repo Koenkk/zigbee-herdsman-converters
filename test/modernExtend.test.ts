@@ -221,7 +221,7 @@ describe('ModernExtend', () => {
     test(`philipsLight({gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}, colorTemp: {range: [153, 500]}})`, async () => {
         await assertDefintion({
             device: mockDevice({modelID: 'LCX012', endpoints: [{inputClusters: ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl']}]}),
-            meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
+            meta: {turnsOffAtBrightness1: true},
             fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior, philipsFz.gradient],
             toZigbee: [
                 'state', 'brightness', 'brightness_percent', 'on_time', 'transition', 'level_config', 'rate', 'brightness_move', 'brightness_move_onoff',
