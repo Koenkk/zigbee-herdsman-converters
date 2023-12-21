@@ -4,7 +4,6 @@ import {
     calibrateAndPrecisionRoundOptionsIsPercentual,
     postfixWithEndpointName,
     precisionRound,
-    getKey,
     assertNumber,
     getFromLookup,
 } from './utils';
@@ -514,11 +513,6 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 payload.gas_sensitivity = getFromLookup(value, {1: '15%LEL', 2: '10%LEL'});
             }
             break;
-        case '276':
-            if (['VOCKQJK11LM'].includes(model.model)) {
-                payload.display_unit = getKey(VOCKQJK11LMDisplayUnit, value);
-            }
-            break;
         case '293':
             payload.click_mode = getFromLookup(value, {1: 'fast', 2: 'multi'});
             break;
@@ -565,7 +559,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '320':
             if (['MCCGQ13LM'].includes(model.model)) {
-                payload.battery_cover = getFromLookup(value, {0: 'CLOSE', 1: 'OPEN'});
+                payload.tamper = getFromLookup(value, {0: false, 1: true});
             }
             break;
         case '322':
@@ -766,6 +760,12 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case 'illuminance':
             // It contains the illuminance and occupancy, but in z2m we use a custom timer to do it, so we ignore it
             break;
+        case 'displayUnit':
+            // Use aqaraDisplayUnit modernExtend, but we add it here to not shown an unknown key in the log
+            break;
+        case 'airQuality':
+            // Use aqaraAirQuality modernExtend, but we add it here to not shown an unknown key in the log
+            break;
         default:
             if (meta.logger) meta.logger.debug(`${model.model}: unknown key ${key} with value ${value}`);
         }
@@ -774,13 +774,6 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
     if (meta.logger) meta.logger.debug(`${model.model}: Processed data into payload ${JSON.stringify(payload)}`);
 
     return payload;
-};
-
-export const VOCKQJK11LMDisplayUnit = {
-    'mgm3_celsius': 0x00, // mg/m³, °C (default)
-    'ppb_celsius': 0x01, // ppb, °C
-    'mgm3_fahrenheit': 0x10, // mg/m³, °F
-    'ppb_fahrenheit': 0x11, // ppb, °F
 };
 
 export const numericAttributes2Options = (definition: Definition) => {
@@ -1348,37 +1341,74 @@ export const trv = {
 export const manufacturerCode = 0x115f;
 
 export const xiaomiModernExtend = {
-    switchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    xiaomiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
         cluster: 'aqaraOpple',
-        attribute: {id: 0x000a, type: 0x20},
+        attribute: {ID: 0x000a, type: 0x20},
         description: 'External switch type',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    powerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    xiaomiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'power_on_behavior',
         lookup: {'on': 0, 'previous': 1, 'off': 2},
         cluster: 'aqaraOpple',
-        attribute: {id: 0x0517, type: 0x20},
+        attribute: {ID: 0x0517, type: 0x20},
         description: 'Controls the behavior when the device is powered on after power loss',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    operationMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    xiaomiOperationMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'operation_mode',
         lookup: {'decoupled': 0, 'control_relay': 1},
         cluster: 'aqaraOpple',
-        attribute: {id: 0x0200, type: 0x20},
+        attribute: {ID: 0x0200, type: 0x20},
         description: 'Decoupled mode for relay',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    action: (args?: Partial<modernExtend.ActionEnumLookupArgs>) => modernExtend.actionEnumLookup({
+    xiaomiAction: (args?: Partial<modernExtend.ActionEnumLookupArgs>) => modernExtend.actionEnumLookup({
         lookup: {'single': 1},
         cluster: 'genMultistateInput',
         attribute: 'presentValue',
+        ...args,
+    }),
+    aqaraVoc: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'voc',
+        cluster: 'genAnalogInput',
+        attribute: 'presentValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5},
+        endpointID: 1,
+        description: 'Measured VOC value',
+        unit: 'ppb',
+        readOnly: true,
+        ...args,
+    }),
+    aqaraAirQuality: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'air_quality',
+        lookup: {'excellent': 1, 'good': 2, 'moderate': 3, 'poor': 4, 'unhealthy': 5},
+        cluster: 'aqaraOpple',
+        attribute: 'airQuality',
+        endpointID: 1,
+        zigbeeCommandOptions: {disableDefaultResponse: true},
+        description: 'Measured air quality',
+        readOnly: true,
+        ...args,
+    }),
+    aqaraDisplayUnit: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'display_unit',
+        lookup: {
+            'mgm3_celsius': 0x00, // mg/m³, °C (default)
+            'ppb_celsius': 0x01, // ppb, °C
+            'mgm3_fahrenheit': 0x10, // mg/m³, °F
+            'ppb_fahrenheit': 0x11, // ppb, °F
+        },
+        cluster: 'aqaraOpple',
+        attribute: 'displayUnit',
+        endpointID: 1,
+        zigbeeCommandOptions: {disableDefaultResponse: true},
+        description: 'Units to show on the display',
         ...args,
     }),
 };
@@ -1420,7 +1450,6 @@ export const fromZigbee = {
 exports.buffer2DataObject = buffer2DataObject;
 exports.numericAttributes2Payload = numericAttributes2Payload;
 exports.numericAttributes2Options = numericAttributes2Options;
-exports.VOCKQJK11LMDisplayUnit = VOCKQJK11LMDisplayUnit;
 exports.fp1 = fp1;
 exports.trv = trv;
 exports.manufacturerCode = manufacturerCode;
