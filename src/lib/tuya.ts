@@ -35,14 +35,14 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-export function onEvent(options?: {queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000'}): OnEvent {
+export function onEvent(args?: {queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000', respondToMcuVersionResponse?: boolean}): OnEvent {
     return async (type, data, device, settings, state) => {
-        options = {queryOnDeviceAnnounce: false, timeStart: '1970', ...options};
+        args = {queryOnDeviceAnnounce: false, timeStart: '1970', respondToMcuVersionResponse: true, ...args};
 
         const endpoint = device.endpoints[0];
 
         if (type === 'message' && data.cluster === 'manuSpecificTuya') {
-            if (data.type === 'commandMcuVersionResponse') {
+            if (args.respondToMcuVersionResponse && data.type === 'commandMcuVersionResponse') {
                 await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
             } else if (data.type === 'commandMcuGatewayConnectionStatus') {
                 // "payload" can have the following values:
@@ -56,7 +56,7 @@ export function onEvent(options?: {queryOnDeviceAnnounce?: boolean, timeStart?: 
 
         if (data.type === 'commandMcuSyncTime' && data.cluster === 'manuSpecificTuya') {
             try {
-                const offset = options.timeStart === '2000' ? constants.OneJanuary2000 : 0;
+                const offset = args.timeStart === '2000' ? constants.OneJanuary2000 : 0;
                 const utcTime = Math.round(((new Date()).getTime() - offset) / 1000);
                 const localTime = utcTime - (new Date()).getTimezoneOffset() * 60;
                 const payload = {
@@ -73,7 +73,7 @@ export function onEvent(options?: {queryOnDeviceAnnounce?: boolean, timeStart?: 
         }
 
         // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-        if (options.queryOnDeviceAnnounce && type === 'deviceAnnounce') {
+        if (args.queryOnDeviceAnnounce && type === 'deviceAnnounce') {
             await endpoint.command('manuSpecificTuya', 'dataQuery', {});
         }
     };
