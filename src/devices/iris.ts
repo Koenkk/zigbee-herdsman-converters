@@ -102,20 +102,20 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['3460-L'],
-        model: '3460-L',
-        vendor: 'Iris',
-        description: 'Smart button',
-        fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.temperature],
-        toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.action(['on', 'off'])],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.temperature(endpoint);
-        },
+      zigbeeModel: ['3460-L'],
+      model: '3460-L',
+      vendor: 'Iris',
+      description: 'Smart button',
+      fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.temperature],
+      toZigbee: [],
+      exposes: [e.battery(), e.temperature(), e.action(['on', 'off'])],
+      meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
+      configure: async (device, coordinatorEndpoint, logger) => {
+          const endpoint = device.getEndpoint(1);
+          await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg', 'msTemperatureMeasurement']);
+          await reporting.batteryVoltage(endpoint);
+          await reporting.temperature(endpoint);
+      },
     },
     {
         zigbeeModel: ['1117-S'],
