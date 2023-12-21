@@ -1400,7 +1400,7 @@ export {tuyaExtend as extend};
 
 
 function getHandlersForDP(name: string, dp: number, type: number, converter: Tuya.ValueConverterSingle,
-    skip?: (meta: Tz.Meta) => boolean, endpoint?: string, useGlobalSequence?: boolean): [Fz.Converter, Tz.Converter] {
+    readOnly?: boolean, skip?: (meta: Tz.Meta) => boolean, endpoint?: string, useGlobalSequence?: boolean): [Fz.Converter, Tz.Converter] {
     const keyName = (endpoint) ? `${name}_${endpoint}` : name;
     const fromZigbee: Fz.Converter = {
         cluster: 'manuSpecificTuya',
@@ -1436,7 +1436,7 @@ function getHandlersForDP(name: string, dp: number, type: number, converter: Tuy
         },
     };
 
-    const toZigbee: Tz.Converter = {
+    const toZigbee: Tz.Converter = (readOnly) ? undefined : {
         key: [name],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
@@ -1521,7 +1521,7 @@ const tuyaModernExtend = {
         const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, dp, type, {
             from: (value) => utils.getFromLookupByValue(value, lookup),
             to: (value) => utils.getFromLookup(value, lookup),
-        }, skip, endpoint);
+        }, readOnly, skip, endpoint);
 
         return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
     },
@@ -1538,7 +1538,7 @@ const tuyaModernExtend = {
         const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, dp, type, {
             from: (value) => (value === valueOn[1]) ? valueOn[0] : valueOff[0],
             to: (value) => (value === valueOn[0]) ? valueOn[1] : valueOff[1],
-        }, skip, endpoint);
+        }, readOnly, skip, endpoint);
 
         return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
     },
@@ -1567,7 +1567,7 @@ const tuyaModernExtend = {
             }
         }
 
-        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, dp, type, converter, skip, endpoint);
+        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, dp, type, converter, readOnly, skip, endpoint);
 
         return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
     },
@@ -1618,36 +1618,36 @@ const tuyaModernExtend = {
         }
         if (color) {
             const handlers = getHandlersForDP('color', color.dp, color.type,
-                valueConverterBasic.color1000(), undefined, endpoint);
+                valueConverterBasic.color1000(), undefined, undefined, endpoint);
 
             fromZigbee = [...fromZigbee, handlers[0]];
             toZigbee = [...toZigbee, handlers[1]];
         }
 
         // combine extends for one expose
-        return {exposes: [exp], fromZigbee: fromZigbee, toZigbee: toZigbee, isModernExtend: true};
+        return {exposes: [exp], fromZigbee, toZigbee, isModernExtend: true};
     },
     dpTemperature(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'temperature', type: dataTypes.number, expose: e.temperature(), ...args});
+        return tuyaModernExtend.dpNumeric({name: 'temperature', type: dataTypes.number, readOnly: true, expose: e.temperature(), ...args});
     },
     dpHumidity(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'humidity', type: dataTypes.number, expose: e.humidity(), ...args});
+        return tuyaModernExtend.dpNumeric({name: 'humidity', type: dataTypes.number, readOnly: true, expose: e.humidity(), ...args});
     },
     dpBattery(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'battery', type: dataTypes.number, expose: e.battery(), ...args});
+        return tuyaModernExtend.dpNumeric({name: 'battery', type: dataTypes.number, readOnly: true, expose: e.battery(), ...args});
     },
     dpBatteryState(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
         return tuyaModernExtend.dpEnumLookup({name: 'battery_state', type: dataTypes.number, lookup: {'low': 0, 'medium': 1, 'high': 2},
-            expose: tuyaExposes.batteryState(), ...args});
+            readOnly: true, expose: tuyaExposes.batteryState(), ...args});
     },
     dpTemperatureUnit(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
         return tuyaModernExtend.dpEnumLookup({name: 'temperature_unit', type: dataTypes.enum, lookup: {'celsius': 0, 'fahrenheit': 1},
-            expose: tuyaExposes.temperatureUnit(), ...args});
+            readOnly: true, expose: tuyaExposes.temperatureUnit(), ...args});
     },
     dpContact(args?: Partial<TuyaDPBinaryArgs>, invert?: boolean): ModernExtend {
         return tuyaModernExtend.dpBinary({name: 'contact', type: dataTypes.bool,
             valueOn: (invert) ? ['ON', true] : ['ON', false], valueOff: (invert) ? ['OFF', false] : ['OFF', true],
-            expose: e.contact(), ...args});
+            readOnly: true, expose: e.contact(), ...args});
     },
 };
 export {tuyaModernExtend as modernExtend};
