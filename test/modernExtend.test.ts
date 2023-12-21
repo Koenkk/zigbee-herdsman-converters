@@ -229,7 +229,7 @@ describe('ModernExtend', () => {
                 'color_temp_move', 'color_temp_step', 'color_temp_startup', 'hue_move', 'saturation_move', 'hue_step', 'saturation_step', 'power_on_behavior',
                 'hue_power_on_behavior', 'hue_power_on_brightness', 'hue_power_on_color_temperature', 'hue_power_on_color', 'effect', 'gradient_scene', 'gradient'
             ],
-            exposes: ['effect', 'gradient', 'gradient_scene', 'light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)', 'linkquality', 'power_on_behavior'],
+            exposes: ['effect', 'gradient', 'gradient_scene', 'light(state,brightness,color_temp,color_temp_startup,color_xy)', 'linkquality', 'power_on_behavior'],
             bind: {1: ['manuSpecificPhilips2']},
             read: {1: [
                 ['lightingColorCtrl', ['colorCapabilities']],
