@@ -1399,7 +1399,7 @@ const tuyaExtend = {
 export {tuyaExtend as extend};
 
 
-function getHandlersForDP(name: string, attribute: {dp: number, type: number}, converter: Tuya.ValueConverterSingle,
+function getHandlersForDP(name: string, dp: number, type: number, converter: Tuya.ValueConverterSingle,
     skip?: (meta: Tz.Meta) => boolean, endpoint?: string, useGlobalSequence?: boolean): [Fz.Converter, Tz.Converter] {
     const keyName = (endpoint) ? `${name}_${endpoint}` : name;
     const fromZigbee: Fz.Converter = {
@@ -1417,7 +1417,7 @@ function getHandlersForDP(name: string, attribute: {dp: number, type: number}, c
             const result: KeyValue = {};
             let found = false;
             for (const dpValue of msg.data.dpValues) {
-                if (dpValue.dp == attribute.dp) {
+                if (dpValue.dp == dp) {
                     result[keyName] = converter.from(getDataValue(dpValue));
                     found = true;
                     break;
@@ -1454,18 +1454,18 @@ function getHandlersForDP(name: string, attribute: {dp: number, type: number}, c
 
                 if (convertedValue === undefined) {
                     // conversion done inside converter, ignore.
-                } else if (attribute.type == dataTypes.bool) {
-                    await sendDataPointBool(entity, attribute.dp, convertedValue as boolean, sendCommand, seq);
-                } else if (attribute.type == dataTypes.number) {
-                    await sendDataPointValue(entity, attribute.dp, convertedValue as number, sendCommand, seq);
-                } else if (attribute.type == dataTypes.string) {
-                    await sendDataPointStringBuffer(entity, attribute.dp, convertedValue as string, sendCommand, seq);
-                } else if (attribute.type == dataTypes.raw) {
-                    await sendDataPointRaw(entity, attribute.dp, convertedValue as number[], sendCommand, seq);
-                } else if (attribute.type == dataTypes.enum) {
-                    await sendDataPointEnum(entity, attribute.dp, convertedValue as number, sendCommand, seq);
-                } else if (attribute.type == dataTypes.bitmap) {
-                    await sendDataPointBitmap(entity, attribute.dp, convertedValue as number, sendCommand, seq);
+                } else if (type == dataTypes.bool) {
+                    await sendDataPointBool(entity, dp, convertedValue as boolean, sendCommand, seq);
+                } else if (type == dataTypes.number) {
+                    await sendDataPointValue(entity, dp, convertedValue as number, sendCommand, seq);
+                } else if (type == dataTypes.string) {
+                    await sendDataPointStringBuffer(entity, dp, convertedValue as string, sendCommand, seq);
+                } else if (type == dataTypes.raw) {
+                    await sendDataPointRaw(entity, dp, convertedValue as number[], sendCommand, seq);
+                } else if (type == dataTypes.enum) {
+                    await sendDataPointEnum(entity, dp, convertedValue as number, sendCommand, seq);
+                } else if (type == dataTypes.bitmap) {
+                    await sendDataPointBitmap(entity, dp, convertedValue as number, sendCommand, seq);
                 } else {
                     throw new Error(`Don't know how to send type '${typeof convertedValue}'`);
                 }
@@ -1480,18 +1480,18 @@ function getHandlersForDP(name: string, attribute: {dp: number, type: number}, c
 }
 
 export interface TuyaDPEnumLookupArgs {
-    name: string, attribute?: {dp: number, type: number}, lookup: KeyValue,
+    name: string, dp: number, type: number, lookup: KeyValue,
     description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
     expose?: Expose,
 }
 export interface TuyaDPBinaryArgs {
-    name: string, attribute?: {dp: number, type: number}, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown],
+    name: string, dp: number, type: number, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown],
     description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
     expose?: Expose,
 }
 
 export interface TuyaDPNumericArgs {
-    name: string, attribute?: {dp: number, type: number},
+    name: string, dp: number, type: number,
     description?: string, readOnly?: boolean, endpoint?: string, unit?: string, skip?: (meta: Tz.Meta) => boolean,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number | [number, number, number, number],
     expose?: exposes.Numeric,
@@ -1508,8 +1508,8 @@ export interface TuyaDPLightArgs {
 }
 
 const tuyaModernExtend = {
-    dpEnumLookup(args: TuyaDPEnumLookupArgs): ModernExtend {
-        const {name, attribute, lookup, description, readOnly, endpoint, expose, skip} = args;
+    dpEnumLookup(args: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        const {name, dp, type, lookup, description, readOnly, endpoint, expose, skip} = args;
         let exp: Expose;
         if (expose) {
             exp = expose;
@@ -1518,15 +1518,15 @@ const tuyaModernExtend = {
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, attribute, {
+        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, dp, type, {
             from: (value) => utils.getFromLookupByValue(value, lookup),
             to: (value) => utils.getFromLookup(value, lookup),
         }, skip, endpoint);
 
         return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
     },
-    dpBinary(args: TuyaDPBinaryArgs): ModernExtend {
-        const {name, attribute, valueOn, valueOff, description, readOnly, endpoint, expose, skip} = args;
+    dpBinary(args: Partial<TuyaDPBinaryArgs>): ModernExtend {
+        const {name, dp, type, valueOn, valueOff, description, readOnly, endpoint, expose, skip} = args;
         let exp: Expose;
         if (expose) {
             exp = expose;
@@ -1535,15 +1535,15 @@ const tuyaModernExtend = {
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, attribute, {
+        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, dp, type, {
             from: (value) => (value === valueOn[1]) ? valueOn[0] : valueOff[0],
             to: (value) => (value === valueOn[0]) ? valueOn[1] : valueOff[1],
         }, skip, endpoint);
 
         return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
     },
-    dpNumeric(args: TuyaDPNumericArgs): ModernExtend {
-        const {name, attribute, description, readOnly, endpoint, unit, valueMax, valueMin, valueStep, scale, expose, skip} = args;
+    dpNumeric(args: Partial<TuyaDPNumericArgs>): ModernExtend {
+        const {name, dp, type, description, readOnly, endpoint, unit, valueMax, valueMin, valueStep, scale, expose, skip} = args;
         let exp: exposes.Numeric;
         if (expose) {
             exp = expose;
@@ -1567,7 +1567,7 @@ const tuyaModernExtend = {
             }
         }
 
-        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, attribute, converter, skip, endpoint);
+        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, dp, type, converter, skip, endpoint);
 
         return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
     },
@@ -1590,34 +1590,34 @@ const tuyaModernExtend = {
             exp = exp.withColor(['hs']).setAccess('color_hs', ea.STATE_SET);
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
-        ext = tuyaModernExtend.dpBinary({name: 'state', attribute: {dp: state.dp, type: state.type},
+        ext = tuyaModernExtend.dpBinary({name: 'state', dp: state.dp, type: state.type,
             valueOn: state.valueOn, valueOff: state.valueOff, skip: state.skip, endpoint: endpoint});
         fromZigbee = [...fromZigbee, ...ext.fromZigbee];
         toZigbee = [...toZigbee, ...ext.toZigbee];
-        ext = tuyaModernExtend.dpNumeric({name: 'brightness', attribute: {dp: brightness.dp, type: brightness.type},
+        ext = tuyaModernExtend.dpNumeric({name: 'brightness', dp: brightness.dp, type: brightness.type,
             scale: brightness.scale, endpoint: endpoint});
         fromZigbee = [...fromZigbee, ...ext.fromZigbee];
         toZigbee = [...toZigbee, ...ext.toZigbee];
         if (min) {
-            ext = tuyaModernExtend.dpNumeric({name: 'min_brightness', attribute: {dp: min.dp, type: min.type},
+            ext = tuyaModernExtend.dpNumeric({name: 'min_brightness', dp: min.dp, type: min.type,
                 scale: min.scale, endpoint: endpoint});
             fromZigbee = [...fromZigbee, ...ext.fromZigbee];
             toZigbee = [...toZigbee, ...ext.toZigbee];
         }
         if (max) {
-            ext = tuyaModernExtend.dpNumeric({name: 'max_brightness', attribute: {dp: max.dp, type: max.type},
+            ext = tuyaModernExtend.dpNumeric({name: 'max_brightness', dp: max.dp, type: max.type,
                 scale: max.scale, endpoint: endpoint});
             fromZigbee = [...fromZigbee, ...ext.fromZigbee];
             toZigbee = [...toZigbee, ...ext.toZigbee];
         }
         if (colorTemp) {
-            ext = tuyaModernExtend.dpNumeric({name: 'color_temp', attribute: {dp: colorTemp.dp, type: colorTemp.type},
+            ext = tuyaModernExtend.dpNumeric({name: 'color_temp', dp: colorTemp.dp, type: colorTemp.type,
                 scale: colorTemp.scale, endpoint: endpoint});
             fromZigbee = [...fromZigbee, ...ext.fromZigbee];
             toZigbee = [...toZigbee, ...ext.toZigbee];
         }
         if (color) {
-            const handlers = getHandlersForDP('color', {dp: color.dp, type: color.type},
+            const handlers = getHandlersForDP('color', color.dp, color.type,
                 valueConverterBasic.color1000(), undefined, endpoint);
 
             fromZigbee = [...fromZigbee, handlers[0]];
@@ -1628,24 +1628,24 @@ const tuyaModernExtend = {
         return {exposes: [exp], fromZigbee: fromZigbee, toZigbee: toZigbee, isModernExtend: true};
     },
     dpTemperature(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'temperature', expose: e.temperature(), ...args});
+        return tuyaModernExtend.dpNumeric({name: 'temperature', type: dataTypes.number, expose: e.temperature(), ...args});
     },
     dpHumidity(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'humidity', expose: e.humidity(), ...args});
+        return tuyaModernExtend.dpNumeric({name: 'humidity', type: dataTypes.number, expose: e.humidity(), ...args});
     },
     dpBattery(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'battery', expose: e.battery(), ...args});
+        return tuyaModernExtend.dpNumeric({name: 'battery', type: dataTypes.number, expose: e.battery(), ...args});
     },
     dpBatteryState(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
-        return tuyaModernExtend.dpEnumLookup({name: 'battery_state', lookup: {'low': 0, 'medium': 1, 'high': 2},
+        return tuyaModernExtend.dpEnumLookup({name: 'battery_state', type: dataTypes.number, lookup: {'low': 0, 'medium': 1, 'high': 2},
             expose: tuyaExposes.batteryState(), ...args});
     },
     dpTemperatureUnit(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
-        return tuyaModernExtend.dpEnumLookup({name: 'temperature_unit', lookup: {'celsius': 0, 'fahrenheit': 1},
+        return tuyaModernExtend.dpEnumLookup({name: 'temperature_unit', type: dataTypes.enum, lookup: {'celsius': 0, 'fahrenheit': 1},
             expose: tuyaExposes.temperatureUnit(), ...args});
     },
     dpContact(args?: Partial<TuyaDPBinaryArgs>, invert?: boolean): ModernExtend {
-        return tuyaModernExtend.dpBinary({name: 'contact',
+        return tuyaModernExtend.dpBinary({name: 'contact', type: dataTypes.bool,
             valueOn: (invert) ? ['ON', true] : ['ON', false], valueOff: (invert) ? ['OFF', false] : ['OFF', true],
             expose: e.contact(), ...args});
     },
