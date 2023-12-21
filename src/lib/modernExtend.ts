@@ -75,39 +75,6 @@ export function setupConfigureForReporting(
     return configure;
 }
 
-export function temperature(): ModernExtend {
-    return {
-        fromZigbee: [fz.temperature],
-        exposes: [e.temperature()],
-        configure: async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => {
-            await setupAttributes(device, coordinatorEndpoint, 'msTemperatureMeasurement', [{attribute: 'measuredValue'}], logger);
-        },
-        isModernExtend: true,
-    };
-}
-
-export function pressure(): ModernExtend {
-    return {
-        fromZigbee: [fz.pressure],
-        exposes: [e.pressure()],
-        configure: async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => {
-            await setupAttributes(device, coordinatorEndpoint, 'msPressureMeasurement', [{attribute: 'measuredValue'}], logger);
-        },
-        isModernExtend: true,
-    };
-}
-
-export function humidity(): ModernExtend {
-    return {
-        fromZigbee: [fz.humidity],
-        exposes: [e.humidity()],
-        configure: async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => {
-            await setupAttributes(device, coordinatorEndpoint, 'msRelativeHumidity', [{attribute: 'measuredValue'}], logger);
-        },
-        isModernExtend: true,
-    };
-}
-
 export function identify(): ModernExtend {
     return {
         toZigbee: [tz.identify],
@@ -568,3 +535,16 @@ export function humidity(args?: Partial<NumericArgs>) {
     });
 }
 
+export function pressure(args?: Partial<NumericArgs>): ModernExtend {
+    return numeric({
+        name: 'pressure',
+        cluster: 'msPressureMeasurement',
+        attribute: 'measuredValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 100},
+        description: 'The measured atmospheric pressure',
+        unit: 'hPa',
+        scale: 100,
+        readOnly: true,
+        ...args,
+    });
+}
