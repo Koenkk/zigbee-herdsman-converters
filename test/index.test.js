@@ -60,6 +60,37 @@ describe('index.js', () => {
         expect(definition).toBeNull();
     });
 
+    it('Find by device should generate for unknown', () => {
+        const endpoints = [
+            {
+                ID: 1, profileID: undefined, deviceID: undefined,
+                getInputClusters() {
+                    return [];
+                },
+                getOutputClusters() {
+                    return [{name: 'genIdentify'}]
+                },
+            },
+        ];
+        const device = {
+            type: 'EndDevice',
+            manufacturerID: undefined,
+            modelID: 'test_generate',
+            endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device, true);
+        expect(definition.model).toBe('test_generate');
+        expect(definition.vendor).toBe('');
+        expect(definition.description).toBe('Generated from device information');
+        expect(definition.extend).toBeUndefined();
+        expect(definition.fromZigbee).toHaveLength(0);
+        expect(definition.toZigbee).toHaveLength(11);
+        expect(definition.exposes).toHaveLength(1);
+        expect(definition.options).toHaveLength(0);
+    });
+
     it('Find by device when device has modelID should match', () => {
         const endpoints = [
             {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},

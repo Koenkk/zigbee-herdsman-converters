@@ -7,6 +7,7 @@ import assert from 'assert';
 import * as ota from './lib/ota';
 import allDefinitions from './devices';
 import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult } from './lib/types';
+import {generateDefinition} from './lib/generateDefinition';
 
 export {
     Definition as Definition,
@@ -88,7 +89,7 @@ function validateDefinition(definition: Definition) {
     assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
-export function addDefinition(definition: Definition) {
+function processExtensions(definition: Definition): Definition {
     if ('extend' in definition) {
         if (Array.isArray(definition.extend)) {
             // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
@@ -172,6 +173,12 @@ export function addDefinition(definition: Definition) {
         }
     }
 
+    return definition
+}
+
+function prepareDefinition(definition: Definition): Definition {
+    definition = processExtensions(definition);
+
     definition.toZigbee.push(
         toZigbee.scene_store, toZigbee.scene_recall, toZigbee.scene_add, toZigbee.scene_remove, toZigbee.scene_remove_all, 
         toZigbee.scene_rename, toZigbee.read, toZigbee.write,
@@ -182,7 +189,6 @@ export function addDefinition(definition: Definition) {
     }
 
     validateDefinition(definition);
-    definitions.splice(0, 0, definition);
 
     if (!definition.options) definition.options = [];
     const optionKeys = definition.options.map((o) => o.name);
@@ -197,6 +203,14 @@ export function addDefinition(definition: Definition) {
             }
         }
     }
+
+    return definition
+}
+
+export function addDefinition(definition: Definition) {
+    definition = prepareDefinition(definition)
+
+    definitions.splice(0, 0, definition);
 
     if ('fingerprint' in definition) {
         for (const fingerprint of definition.fingerprint) {
@@ -215,8 +229,8 @@ for (const definition of allDefinitions) {
     addDefinition(definition);
 }
 
-export function findByDevice(device: Zh.Device) {
-    let definition = findDefinition(device);
+export function findByDevice(device: Zh.Device, generateForUnknown: boolean = false) {
+    let definition = findDefinition(device, generateForUnknown);
     if (definition && definition.whiteLabel) {
         const match = definition.whiteLabel.find((w) => 'fingerprint' in w && w.fingerprint.find((f) => isFingerprintMatch(f, device)));
         if (match) {
@@ -231,14 +245,20 @@ export function findByDevice(device: Zh.Device) {
     return definition;
 }
 
-export function findDefinition(device: Zh.Device): Definition {
+export function findDefinition(device: Zh.Device, generateForUnknown: boolean = false): Definition {
     if (!device) {
         return null;
     }
 
     const candidates = getFromLookup(device.modelID);
     if (!candidates) {
-        return null;
+        if (!generateForUnknown || device.type === 'Coordinator') {
+            return null;
+        }
+
+        // Do not add this definition to cache,
+        // as device configuration might change.
+        return prepareDefinition(generateDefinition(device));
     } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
         return candidates[0];
     } else {

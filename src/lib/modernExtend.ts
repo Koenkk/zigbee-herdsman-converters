@@ -75,6 +75,13 @@ export function setupConfigureForReporting(
     return configure;
 }
 
+export function identify(): ModernExtend {
+    return {
+        toZigbee: [tz.identify],
+        isModernExtend: true,
+    };
+}
+
 export interface OnOffArgs {
     powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpoints?: {[s: string]: number},
     configureReporting?: boolean,
@@ -548,3 +555,16 @@ export function humidity(args?: Partial<NumericArgs>) {
     });
 }
 
+export function pressure(args?: Partial<NumericArgs>): ModernExtend {
+    return numeric({
+        name: 'pressure',
+        cluster: 'msPressureMeasurement',
+        attribute: 'measuredValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 100},
+        description: 'The measured atmospheric pressure',
+        unit: 'hPa',
+        scale: 100,
+        readOnly: true,
+        ...args,
+    });
+}
