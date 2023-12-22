@@ -33,14 +33,14 @@ export function generateDefinition(device: Zh.Device): Definition {
     });
 
     const definition: Partial<Definition> = {
-        model: device.modelID || '',
-        vendor: device.manufacturerName || '',
+        model: device.modelID ?? '',
+        vendor: device.manufacturerName ?? '',
         description: 'Generated from device information',
         extend: deviceExtenders,
         generated: true,
     };
 
-    return definition as Definition;
+    return definition;
 }
 
 // This configurator type provides some flexibility in terms of how ModernExtend configuration can be obtained.
