@@ -142,7 +142,7 @@ describe('ModernExtend', () => {
             fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
                 'state', 'brightness', 'brightness_percent', 'on_time', 'transition', 'level_config', 'rate', 'brightness_move', 'brightness_move_onoff',
-                'brightness_step', 'brightness_step_onoff', 'color', 'color_temp', 'color_temp_percent', 'color_mode', 'color_options', 'colortemp_move',
+                'brightness_step', 'brightness_step_onoff', 'color_temp', 'color_temp_percent', 'color_mode', 'color_options', 'colortemp_move',
                 'color_temp_move', 'color_temp_step', 'color_temp_startup', 'effect', 'alert', 'flash', 'power_on_behavior'
             ],
             exposes: ['effect', 'light(state,brightness,color_temp,color_temp_startup)', 'linkquality', 'power_on_behavior'],

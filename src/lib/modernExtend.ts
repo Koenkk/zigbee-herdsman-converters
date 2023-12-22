@@ -234,7 +234,10 @@ export function light(args?: LightArgs): ModernExtend {
 
     if (args.colorTemp || argsColor) {
         fromZigbee.push(fz.color_colortemp);
-        toZigbee.push(tz.light_color_colortemp, tz.light_color_mode, tz.light_color_options);
+        if (args.colorTemp && argsColor) toZigbee.push(tz.light_color_colortemp);
+        else if (args.colorTemp) toZigbee.push(tz.light_colortemp);
+        else if (argsColor) toZigbee.push(tz.light_color);
+        toZigbee.push(tz.light_color_mode, tz.light_color_options);
     }
 
     if (args.colorTemp) {
