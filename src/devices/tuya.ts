@@ -3861,6 +3861,7 @@ const definitions: Definition[] = [
         fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_jl7qyupf'},
             {modelID: 'TS0012', manufacturerName: '_TZ3000_nPGIPl5D'},
             {modelID: 'TS0012', manufacturerName: '_TZ3000_kpatq5pq'},
+            {modelID: 'TS0012', manufacturerName: '_TZ3000_ljhbw1c9'},
             {modelID: 'TS0012', manufacturerName: '_TZ3000_4zf0crgo'}],
         model: 'TS0012_switch_module',
         vendor: 'TuYa',
