@@ -1,6 +1,6 @@
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
-import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta} from './types';
+import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent} from './types';
 import {presets as e, access as ea} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
 import {configure as lightConfigure} from './light';
@@ -488,6 +488,23 @@ export function forcePowerSource(args: {powerSource: 'Mains (single phase)' | 'B
         device.save();
     };
     return {configure, isModernExtend: true};
+}
+
+export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
+    const onEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
+        if (type === 'deviceAnnounce') {
+            for (const endpoint of device.endpoints) {
+                for (const c of endpoint.configuredReportings) {
+                    await endpoint.configureReporting(c.cluster.name, [{
+                        attribute: c.attribute.name, minimumReportInterval: c.minimumReportInterval,
+                        maximumReportInterval: c.maximumReportInterval, reportableChange: c.reportableChange,
+                    }]);
+                }
+            }
+        }
+    };
+
+    return {onEvent, isModernExtend: true};
 }
 
 export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExtend {

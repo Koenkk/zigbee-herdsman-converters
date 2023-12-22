@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 import * as ota from '../lib/ota';
-import {light, onOff, electricityMeter} from '../lib/modernExtend';
+import {light, onOff, electricityMeter, reconfigureReportingsOnDeviceAnnounce} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -677,6 +677,9 @@ const definitions: Definition[] = [
         extend: [
             onOff(),
             electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
+            // Device looses reporting config on power cycle
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/6747
+            reconfigureReportingsOnDeviceAnnounce(),
         ],
     },
     {
