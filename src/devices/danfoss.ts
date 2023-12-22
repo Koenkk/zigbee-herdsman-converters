@@ -12,7 +12,7 @@ const definitions: Definition[] = [
     {
         // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
         // changing those two too.
-        zigbeeModel: ['eTRV0100', 'eTRV0101', 'eTRV0103', 'TRV001', 'TRV003', 'eT093WRO', 'eT093WRG'],
+        zigbeeModel: ['eTRV0100', 'eTRV0101', 'eTRV0103', 'TRV001', 'TRV003', 'eT093WRO', 'eT093WRG', 'eTRV0103'],
         model: '014G2461',
         vendor: 'Danfoss',
         description: 'Ally thermostat',
