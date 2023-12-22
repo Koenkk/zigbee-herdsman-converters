@@ -1,5 +1,23 @@
 # Changelog
 
+## [16.16.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.15.1...v16.16.0) (2023-12-22)
+
+
+### Features
+
+* Generate definition for unsupported devices (disabled for now) ([#6692](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6692)) ([3468c09](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3468c097176b1eb98ecf471050ed14cf987da30d))
+* Support more actions for Philips 8719514440937/8719514440999 https://github.com/Koenkk/zigbee2mqtt/issues/20321 ([f7c316d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f7c316d79fb9f0c789faa9e82bf6b28d2b4a24f0))
+
+
+### Bug Fixes
+
+* Change max `occupied_heating_setpoint_scheduled` for Danfoss 014G2461 to 32 https://github.com/Koenkk/zigbee2mqtt/issues/20331 ([c714ce2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c714ce25c4fe9c9baa6e2cb3aa8d55889fdcdc79))
+* **detect:** Detect `eTRV0103` as Danfoss 014G2461 https://github.com/Koenkk/zigbee2mqtt/discussions/20339 ([baf2bff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/baf2bffb7a8e3ed45ffb0abfd5472b48b9dcd063))
+* Fix Innr SP 242 losing reporting configuration on power-cycle https://github.com/Koenkk/zigbee-herdsman-converters/issues/6747 ([9e34323](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e34323d8071d1fb87939c1acda1663c2fed1229))
+* Fix Iris 3460-L battery and action reporting ([#6750](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6750)) ([6a36902](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6a36902673bc99da076ad80fce1fe20dd3f942ad))
+* **ignore:** fix e92a9ef4ba241d572651c462793df4a18c15f2bf ([65cd37f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/65cd37f3025fd166d41e028ce3b64d90682bf005))
+* **ignore:** Fix modernExtend color/color temp read https://github.com/Koenkk/zigbee2mqtt/issues/20306 ([473b9c0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/473b9c03e99fdc73d04dcfbaf5f14369e666a399))
+
 ## [16.15.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.15.0...v16.15.1) (2023-12-21)
 
 
