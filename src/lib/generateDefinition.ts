@@ -32,7 +32,8 @@ export function generateDefinition(device: Zh.Device): Definition {
         });
     });
 
-    const definition: Partial<Definition> = {
+    const definition: Definition = {
+        zigbeeModel: [device.modelID],
         model: device.modelID ?? '',
         vendor: device.manufacturerName ?? '',
         description: 'Generated from device information',

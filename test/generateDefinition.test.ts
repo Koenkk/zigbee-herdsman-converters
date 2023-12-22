@@ -2,11 +2,11 @@ import { Definition } from '../src/lib/types';
 import fz from '../src/converters/fromZigbee'
 
 import { repInterval } from '../src/lib/constants';
-import {assertDefintion, assertDefinitionArgs, mockDevice, reportingItem} from './modernExtend.test';
+import {assertDefintion, AssertDefinitionArgs, mockDevice, reportingItem} from './utils';
 import { findByDevice} from '../src';
 import Device from 'zigbee-herdsman/dist/controller/model/device';
 
-const assertGeneratedDefinition = async (args: assertDefinitionArgs) => {
+const assertGeneratedDefinition = async (args: AssertDefinitionArgs) => {
     const getDefinition = (device: Device): Definition => {
         return findByDevice(device, true);
     }
