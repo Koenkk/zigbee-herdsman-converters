@@ -1400,9 +1400,9 @@ export {tuyaExtend as extend};
 
 
 function getHandlersForDP(name: string, dp: number, type: number, converter: Tuya.ValueConverterSingle,
-    readOnly?: boolean, skip?: (meta: Tz.Meta) => boolean, endpoint?: string, useGlobalSequence?: boolean): [Fz.Converter, Tz.Converter] {
+    readOnly?: boolean, skip?: (meta: Tz.Meta) => boolean, endpoint?: string, useGlobalSequence?: boolean): [Fz.Converter[], Tz.Converter[]] {
     const keyName = (endpoint) ? `${name}_${endpoint}` : name;
-    const fromZigbee: Fz.Converter = {
+    const fromZigbee: Fz.Converter[] = [{
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
         options: (definition) => {
@@ -1434,10 +1434,11 @@ function getHandlersForDP(name: string, dp: number, type: number, converter: Tuy
             }
             return result;
         },
-    };
+    }];
 
-    const toZigbee: Tz.Converter = (readOnly) ? undefined : {
+    const toZigbee: Tz.Converter[] = (readOnly) ? undefined : [{
         key: [name],
+        endpoint: endpoint,
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
             const state: KeyValue = {};
@@ -1445,12 +1446,14 @@ function getHandlersForDP(name: string, dp: number, type: number, converter: Tuy
             for (const [attr, value] of Object.entries(meta.message)) {
                 const convertedKey: string = meta.mapped.meta && meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
                     `${attr}_${meta.endpoint_name}` : attr;
+                meta.logger.debug(`key: ${key}, convertedKey: ${convertedKey}, keyName: ${keyName}`);
                 if (convertedKey !== keyName) continue;
                 if (skip && skip(meta)) continue;
 
                 const convertedValue = await converter.to(value, meta);
                 const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
                 const seq = (useGlobalSequence) ? undefined : 1;
+                meta.logger.debug(`dp: ${dp}, value: ${value}, convertedValue: ${convertedValue}`);
 
                 if (convertedValue === undefined) {
                     // conversion done inside converter, ignore.
@@ -1474,7 +1477,7 @@ function getHandlersForDP(name: string, dp: number, type: number, converter: Tuy
             }
             return {state};
         },
-    };
+    }];
 
     return [fromZigbee, toZigbee];
 }
@@ -1518,12 +1521,12 @@ const tuyaModernExtend = {
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, dp, type, {
+        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(name, dp, type, {
             from: (value) => utils.getFromLookupByValue(value, lookup),
             to: (value) => utils.getFromLookup(value, lookup),
         }, readOnly, skip, endpoint);
 
-        return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
+        return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
     },
     dpBinary(args: Partial<TuyaDPBinaryArgs>): ModernExtend {
         const {name, dp, type, valueOn, valueOff, description, readOnly, endpoint, expose, skip} = args;
@@ -1531,16 +1534,16 @@ const tuyaModernExtend = {
         if (expose) {
             exp = expose;
         } else {
-            exp = e.binary(name, readOnly ? ea.STATE_GET : ea.ALL, valueOn[0], valueOff[0]).withDescription(description);
+            exp = e.binary(name, readOnly ? ea.STATE : ea.STATE_SET, valueOn[0], valueOff[0]).withDescription(description);
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, dp, type, {
+        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(name, dp, type, {
             from: (value) => (value === valueOn[1]) ? valueOn[0] : valueOff[0],
             to: (value) => (value === valueOn[0]) ? valueOn[1] : valueOff[1],
         }, readOnly, skip, endpoint);
 
-        return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
+        return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
     },
     dpNumeric(args: Partial<TuyaDPNumericArgs>): ModernExtend {
         const {name, dp, type, description, readOnly, endpoint, unit, valueMax, valueMin, valueStep, scale, expose, skip} = args;
@@ -1548,7 +1551,7 @@ const tuyaModernExtend = {
         if (expose) {
             exp = expose;
         } else {
-            exp = e.numeric(name, readOnly ? ea.STATE_GET : ea.ALL).withDescription(description);
+            exp = e.numeric(name, readOnly ? ea.STATE : ea.STATE_SET).withDescription(description);
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
         if (unit) exp = exp.withUnit(unit);
@@ -1567,9 +1570,9 @@ const tuyaModernExtend = {
             }
         }
 
-        const handlers: [Fz.Converter, Tz.Converter] = getHandlersForDP(name, dp, type, converter, readOnly, skip, endpoint);
+        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(name, dp, type, converter, readOnly, skip, endpoint);
 
-        return {exposes: [exp], fromZigbee: [handlers[0]], toZigbee: [handlers[1]], isModernExtend: true};
+        return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
     },
     dpLight(args: TuyaDPLightArgs): ModernExtend {
         const {state, brightness, min, max, colorTemp, color, endpoint} = args;
@@ -1620,8 +1623,8 @@ const tuyaModernExtend = {
             const handlers = getHandlersForDP('color', color.dp, color.type,
                 valueConverterBasic.color1000(), undefined, undefined, endpoint);
 
-            fromZigbee = [...fromZigbee, handlers[0]];
-            toZigbee = [...toZigbee, handlers[1]];
+            fromZigbee = [...fromZigbee, ...handlers[0]];
+            toZigbee = [...toZigbee, ...handlers[1]];
         }
 
         // combine extends for one expose
@@ -1664,8 +1667,9 @@ const tuyaModernExtend = {
             readOnly: true, expose: e.gas(), ...args});
     },
     dpOnOff(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
+        const {readOnly} = args;
         return tuyaModernExtend.dpBinary({name: 'state', type: dataTypes.bool,
-            valueOn: ['ON', true], valueOff: ['OFF', false], expose: e.switch(), ...args});
+            valueOn: ['ON', true], valueOff: ['OFF', false], expose: e.switch().setAccess('state', readOnly ? ea.STATE : ea.STATE_SET), ...args});
     },
 };
 export {tuyaModernExtend as modernExtend};
