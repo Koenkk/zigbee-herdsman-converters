@@ -256,13 +256,9 @@ export function findDefinition(device: Zh.Device, generateForUnknown: boolean = 
             return null;
         }
 
-        const definition = generateDefinition(device);
-        if (!definition) {
-            return null
-        }
         // Do not add this definition to cache,
         // as device configuration might change.
-        return prepareDefinition(definition);
+        return prepareDefinition(generateDefinition(device));
     } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
         return candidates[0];
     } else {
