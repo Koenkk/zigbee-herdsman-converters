@@ -2847,7 +2847,7 @@ const definitions: Definition[] = [
         model: '8719514440937/8719514440999',
         vendor: 'Philips',
         description: 'Hue Tap dial switch',
-        fromZigbee: [fz.ignore_command_step, philipsFz.hue_tap_dial, fz.battery],
+        fromZigbee: [fz.ignore_command_step, philipsFz.hue_tap_dial, fz.battery, fz.command_step],
         toZigbee: [],
         exposes: [e.battery(),
             e.action(['button_1_press', 'button_1_press_release', 'button_1_hold', 'button_1_hold_release',
@@ -2855,7 +2855,8 @@ const definitions: Definition[] = [
                 'button_3_press', 'button_3_press_release', 'button_3_hold', 'button_3_hold_release',
                 'button_4_press', 'button_4_press_release', 'button_4_hold', 'button_4_hold_release',
                 'dial_rotate_left_step', 'dial_rotate_left_slow', 'dial_rotate_left_fast',
-                'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast']),
+                'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast',
+                'brightness_step_up', 'brightness_step_down']),
             e.enum('action_direction', ea.STATE, ['right', 'left']).withDescription('Direction in which the dial was turned'),
             e.enum('action_type', ea.STATE, ['step', 'rotate'])
                 .withDescription('Type of the rotation, value in the first message is `step` and in the next messages value is `rotate`'),
