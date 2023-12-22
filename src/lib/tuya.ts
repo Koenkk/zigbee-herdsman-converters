@@ -1446,14 +1446,14 @@ function getHandlersForDP(name: string, dp: number, type: number, converter: Tuy
             for (const [attr, value] of Object.entries(meta.message)) {
                 const convertedKey: string = meta.mapped.meta && meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
                     `${attr}_${meta.endpoint_name}` : attr;
-                meta.logger.debug(`key: ${key}, convertedKey: ${convertedKey}, keyName: ${keyName}`);
+                // meta.logger.debug(`key: ${key}, convertedKey: ${convertedKey}, keyName: ${keyName}`);
                 if (convertedKey !== keyName) continue;
                 if (skip && skip(meta)) continue;
 
                 const convertedValue = await converter.to(value, meta);
                 const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
                 const seq = (useGlobalSequence) ? undefined : 1;
-                meta.logger.debug(`dp: ${dp}, value: ${value}, convertedValue: ${convertedValue}`);
+                // meta.logger.debug(`dp: ${dp}, value: ${value}, convertedValue: ${convertedValue}`);
 
                 if (convertedValue === undefined) {
                     // conversion done inside converter, ignore.
