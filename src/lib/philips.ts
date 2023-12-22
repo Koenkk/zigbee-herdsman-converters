@@ -8,6 +8,7 @@ import {Zcl} from 'zigbee-herdsman';
 import * as globalStore from './store';
 import {Fz, KeyValue, KeyValueAny, Tz} from './types';
 import * as modernExtend from './modernExtend';
+import {isObject} from './utils';
 const ea = exposes.access;
 const e = exposes.presets;
 
@@ -54,6 +55,7 @@ const knownEffects = {
 export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolean, gradient?: true | {extraEffects: string[]}}) {
     args = {hueEffect: true, turnsOffAtBrightness1: true, ota: ota.zigbeeOTA, ...args};
     if (args.hueEffect || args.gradient) args.effect = false;
+    if (args.color) args.color = {modes: ['xy', 'hs'], ...(isObject(args.color) ? args.color : {})};
     const result = modernExtend.light(args);
     result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
     if (args.hueEffect || args.gradient) {
