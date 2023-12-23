@@ -229,8 +229,8 @@ for (const definition of allDefinitions) {
     addDefinition(definition);
 }
 
-export function findByDevice(device: Zh.Device, generateForUnknown: boolean = false) {
-    let definition = findDefinition(device, generateForUnknown);
+export async function findByDevice(device: Zh.Device, generateForUnknown: boolean = false) {
+    let definition = await findDefinition(device, generateForUnknown);
     if (definition && definition.whiteLabel) {
         const match = definition.whiteLabel.find((w) => 'fingerprint' in w && w.fingerprint.find((f) => isFingerprintMatch(f, device)));
         if (match) {
@@ -245,7 +245,7 @@ export function findByDevice(device: Zh.Device, generateForUnknown: boolean = fa
     return definition;
 }
 
-export function findDefinition(device: Zh.Device, generateForUnknown: boolean = false): Definition {
+export async function findDefinition(device: Zh.Device, generateForUnknown: boolean = false): Promise<Definition> {
     if (!device) {
         return null;
     }
@@ -258,7 +258,7 @@ export function findDefinition(device: Zh.Device, generateForUnknown: boolean = 
 
         // Do not add this definition to cache,
         // as device configuration might change.
-        return prepareDefinition(generateDefinition(device).definition);
+        return prepareDefinition((await generateDefinition(device)).definition);
     } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
         return candidates[0];
     } else {
@@ -291,8 +291,8 @@ export function findDefinition(device: Zh.Device, generateForUnknown: boolean = 
     return null;
 }
 
-export function generateExternalDefinitionSource(device: Zh.Device): string {
-    return generateDefinition(device).externalDefinitionSource;
+export async function generateExternalDefinitionSource(device: Zh.Device): Promise<string> {
+    return (await generateDefinition(device)).externalDefinitionSource;
 }
 
 function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device) {
