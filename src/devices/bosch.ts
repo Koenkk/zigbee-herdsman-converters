@@ -1022,7 +1022,7 @@ const definitions: Definition[] = [
 
             // Report setpoint_change_source
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x0030, type: Zcl.DataType.enum8},
+                attribute: 'setpointChangeSource',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR * 12,
                 reportableChange: null,
@@ -1063,7 +1063,7 @@ const definitions: Definition[] = [
                 reportableChange: null,
             }], manufacturerOptions);
 
-            await endpoint.read('hvacThermostat', ['localTemperatureCalibration', 0x0030]);
+            await endpoint.read('hvacThermostat', ['localTemperatureCalibration', 'setpointChangeSource']);
             await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4022, 0x4040, 0x4042, 0x4043], manufacturerOptions);
 
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
