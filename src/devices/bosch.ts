@@ -635,11 +635,9 @@ const fzLocal = {
             if (data.hasOwnProperty(0x4022)) {
                 result.valve_adapt_status = utils.getFromLookupByValue(data[0x4022], adaptationStatus);
 
-                switch (data[0x4022]) {
-                case adaptationStatus.calibration_in_progress:
+                if (data[0x4022] === adaptationStatus.calibration_in_progress) {
                     result.valve_adapt_process = true;
-                    break;
-                default:
+                } else {
                     result.valve_adapt_process = false;
                 }
             }
