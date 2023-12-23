@@ -403,6 +403,10 @@ const tzLocal = {
             case 'remote_temperature':
                 await entity.read('hvacThermostat', [0x4040], manufacturerOptions);
                 break;
+            case 'valve_adapt_process':
+                // Reads the current valve adaptation status as it depends solely on it
+                await entity.read('hvacThermostat', [0x4022], manufacturerOptions);
+                break;
 
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bosch_thermostat.convertGet ${key}`);
@@ -1007,7 +1011,7 @@ const definitions: Definition[] = [
             e.enum('valve_adapt_status', ea.STATE, Object.keys(adaptationStatus))
                 .withLabel('Adaptation status')
                 .withDescription('Specifies the current status of the valve adaptation'),
-            e.binary('valve_adapt_process', ea.SET, true, false)
+            e.binary('valve_adapt_process', ea.ALL, true, false)
                 .withLabel('Trigger adaptation process')
                 .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
                     'is "ready_to_calibrate" or "error".'),
