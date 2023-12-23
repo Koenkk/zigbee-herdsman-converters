@@ -4,7 +4,7 @@ import {Zh, Ota, Logger, KeyValueAny, KeyValue, KeyValueNumberString} from '../t
 import assert from 'assert';
 import crc32 from 'buffer-crc32';
 import axios from 'axios';
-import {Zcl} from "zigbee-herdsman";
+import {Zcl} from 'zigbee-herdsman';
 const maxTimeout = 2147483647; // +- 24 days
 const imageBlockResponseDelay = 250;
 const endRequestCodeLookup: KeyValueNumberString = {

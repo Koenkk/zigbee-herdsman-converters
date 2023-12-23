@@ -1011,7 +1011,7 @@ const definitions: Definition[] = [
             e.enum('valve_adapt_status', ea.STATE, Object.keys(adaptationStatus))
                 .withLabel('Adaptation status')
                 .withDescription('Specifies the current status of the valve adaptation'),
-            e.binary('valve_adapt_process', ea.ALL, true, false)
+            e.binary('valve_adapt_process', ea.SET, true, false)
                 .withLabel('Trigger adaptation process')
                 .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
                     'is "ready_to_calibrate" or "error".'),
