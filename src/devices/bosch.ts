@@ -96,6 +96,14 @@ const displayedTemperature = {
     'measured': 1,
 };
 
+const adaptationStatus = {
+    'none': 0,
+    'ready_to_calibrate': 1,
+    'calibration_in_progress': 2,
+    'error': 3,
+    'success': 4,
+};
+
 // Universal Switch II
 const buttonMap: {[key: string]: number} = {
     config_led_top_left_press: 0x10,
@@ -607,6 +615,10 @@ const fzLocal = {
                 result.running_state = demand > 0 ? 'heat' : 'idle';
             }
 
+            if (data.hasOwnProperty(0x4022)) {
+                result.valve_adapt_status = utils.getFromLookupByValue(data[0x4022], adaptationStatus);
+            }
+
             return result;
         },
     } satisfies Fz.Converter,
@@ -963,6 +975,9 @@ const definitions: Definition[] = [
             e.battery(),
             e.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
                 .withDescription('States where the current setpoint originated.'),
+            e.enum('valve_adapt_status', ea.STATE, Object.keys(adaptationStatus))
+                .withLabel('Adaptation status')
+                .withDescription('Specifies the current status of the valve adaptation.'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -993,6 +1008,13 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
+            // Report valve_adapt_status (adaptation status)
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4022, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: 1,
+            }], manufacturerOptions);
             // report window_open
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
@@ -1009,7 +1031,7 @@ const definitions: Definition[] = [
             }], manufacturerOptions);
 
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration', 0x0030]);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4040, 0x4042, 0x4043], manufacturerOptions);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4022, 0x4040, 0x4042, 0x4043], manufacturerOptions);
 
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x4039, 0x403a, 0x403b], manufacturerOptions);
