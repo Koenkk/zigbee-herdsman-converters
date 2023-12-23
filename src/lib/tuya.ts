@@ -5,8 +5,8 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import extend from './extend';
-import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueAny} from './types';
-import {Color} from './color';
+import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range} from './types';
+// import {Color} from './color';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -430,91 +430,91 @@ export const valueConverterBasic = {
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
     },
-    color1000: () => {
-        return {
-            // eslint-disable-next-line
-            to: (value: any, meta?: Tz.Meta) => {
-                const make4sizedString = (v: string) => {
-                    if (v.length >= 4) {
-                        return v;
-                    } else if (v.length === 3) {
-                        return '0' + v;
-                    } else if (v.length === 2) {
-                        return '00' + v;
-                    } else if (v.length === 1) {
-                        return '000' + v;
-                    } else {
-                        return '0000';
-                    }
-                };
+    // color1000: () => {
+    //     return {
+    //         // eslint-disable-next-line
+    //         to: (value: any, meta?: Tz.Meta) => {
+    //             const make4sizedString = (v: string) => {
+    //                 if (v.length >= 4) {
+    //                     return v;
+    //                 } else if (v.length === 3) {
+    //                     return '0' + v;
+    //                 } else if (v.length === 2) {
+    //                     return '00' + v;
+    //                 } else if (v.length === 1) {
+    //                     return '000' + v;
+    //                 } else {
+    //                     return '0000';
+    //                 }
+    //             };
 
-                const fillInHSB = (h: number, s: number, b: number, state: KeyValueAny) => {
-                    // Define default values. Device expects leading zero in string.
-                    const hsb = {
-                        h: '0168', // 360
-                        s: '03e8', // 1000
-                        b: '03e8', // 1000
-                    };
+    //             const fillInHSB = (h: number, s: number, b: number, state: KeyValueAny) => {
+    //                 // Define default values. Device expects leading zero in string.
+    //                 const hsb = {
+    //                     h: '0168', // 360
+    //                     s: '03e8', // 1000
+    //                     b: '03e8', // 1000
+    //                 };
 
-                    if (h) {
-                        // The device expects 0-359
-                        if (h >= 360) {
-                            h = 359;
-                        }
-                        hsb.h = make4sizedString(h.toString(16));
-                    } else if (state.color && state.color.hue) {
-                        hsb.h = make4sizedString(state.color.hue.toString(16));
-                    }
+    //                 if (h) {
+    //                     // The device expects 0-359
+    //                     if (h >= 360) {
+    //                         h = 359;
+    //                     }
+    //                     hsb.h = make4sizedString(h.toString(16));
+    //                 } else if (state.color && state.color.hue) {
+    //                     hsb.h = make4sizedString(state.color.hue.toString(16));
+    //                 }
 
-                    // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
-                    // The device expects a round number, otherwise everything breaks
-                    if (s) {
-                        hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
-                    } else if (state.color && state.color.saturation) {
-                        hsb.s = make4sizedString(utils.mapNumberRange(state.color.saturation, 0, 100, 0, 1000).toString(16));
-                    }
+    //                 // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
+    //                 // The device expects a round number, otherwise everything breaks
+    //                 if (s) {
+    //                     hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
+    //                 } else if (state.color && state.color.saturation) {
+    //                     hsb.s = make4sizedString(utils.mapNumberRange(state.color.saturation, 0, 100, 0, 1000).toString(16));
+    //                 }
 
-                    // Scale 0-255 to 0-1000 what the device expects.
-                    if (b != null) {
-                        hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
-                    } else if (state.brightness != null) {
-                        hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
-                    }
-                    return hsb;
-                };
-                const newColor = Color.fromConverterArg(value);
-                let hsv;
-                if (newColor.isRGB()) {
-                    hsv = newColor.rgb.toHSV();
-                } else {
-                    if (newColor.isHSV()) {
-                        hsv = newColor.hsv;
-                    }
-                }
-                const hsb = fillInHSB(
-                    utils.precisionRound(hsv.hue, 0) || null,
-                    utils.precisionRound(hsv.saturation, 0) || null,
-                    utils.precisionRound(hsv.brightness, 0) || null,
-                    meta.state,
-                );
-                const data: string = hsb.h + hsb.s + hsb.b;
+    //                 // Scale 0-255 to 0-1000 what the device expects.
+    //                 if (b != null) {
+    //                     hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
+    //                 } else if (state.brightness != null) {
+    //                     hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
+    //                 }
+    //                 return hsb;
+    //             };
+    //             const newColor = Color.fromConverterArg(value);
+    //             let hsv;
+    //             if (newColor.isRGB()) {
+    //                 hsv = newColor.rgb.toHSV();
+    //             } else {
+    //                 if (newColor.isHSV()) {
+    //                     hsv = newColor.hsv;
+    //                 }
+    //             }
+    //             const hsb = fillInHSB(
+    //                 utils.precisionRound(hsv.hue, 0) || null,
+    //                 utils.precisionRound(hsv.saturation, 0) || null,
+    //                 utils.precisionRound(hsv.brightness, 0) || null,
+    //                 meta.state,
+    //             );
+    //             const data: string = hsb.h + hsb.s + hsb.b;
 
-                return data;
-            },
-            // eslint-disable-next-line
-            from: (value: any) => {
-                const result: KeyValueAny = {};
-                const h = parseInt(value.substring(0, 4), 16);
-                const s = parseInt(value.substring(4, 8), 16);
-                const b = parseInt(value.substring(8, 12), 16);
-                result.color_mode = 'hs';
-                result.color = {hue: h, saturation: utils.mapNumberRange(s, 0, 1000, 0, 100)};
-                result.brightness = utils.mapNumberRange(b, 0, 1000, 0, 255);
+    //             return data;
+    //         },
+    //         // eslint-disable-next-line
+    //         from: (value: any) => {
+    //             const result: KeyValueAny = {};
+    //             const h = parseInt(value.substring(0, 4), 16);
+    //             const s = parseInt(value.substring(4, 8), 16);
+    //             const b = parseInt(value.substring(8, 12), 16);
+    //             result.color_mode = 'hs';
+    //             result.color = {hue: h, saturation: utils.mapNumberRange(s, 0, 1000, 0, 100)};
+    //             result.brightness = utils.mapNumberRange(b, 0, 1000, 0, 255);
 
-                return result;
-            },
-        };
-    },
+    //             return result;
+    //         },
+    //     };
+    // },
 };
 
 export const valueConverter = {
@@ -1414,25 +1414,16 @@ function getHandlersForDP(name: string, dp: number, type: number, converter: Tuy
             return result;
         },
         convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            let found = false;
-            for (const dpValue of msg.data.dpValues) {
-                if (dpValue.dp == dp) {
-                    result[keyName] = converter.from(getDataValue(dpValue));
-                    found = true;
-                    break;
+            const dpValue = msg.data.dpValues.find((d: Tuya.DpValue) => d.dp === dp);
+            if (dpValue) {
+                const value = converter.from(getDataValue(dpValue));
+                const result = {[keyName]: value};
+                if (name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
+                    const valueNumber = utils.toNumber(value, keyName);
+                    result[keyName] = utils.calibrateAndPrecisionRoundOptions(valueNumber, options, keyName);
                 }
+                return result;
             }
-            if (!found) return;
-            // Apply calibrateAndPrecisionRoundOptions
-            const keys = Object.keys(utils.calibrateAndPrecisionRoundOptionsDefaultPrecision);
-            for (const entry of Object.entries(result)) {
-                if (keys.includes(entry[0])) {
-                    const number = utils.toNumber(entry[1], entry[0]);
-                    result[entry[0]] = utils.calibrateAndPrecisionRoundOptions(number, options, entry[0]);
-                }
-            }
-            return result;
         },
     }];
 
@@ -1506,7 +1497,7 @@ export interface TuyaDPLightArgs {
     max?: {dp: number, type: number, scale?: number | [number, number, number, number]},
     min?: {dp: number, type: number, scale?: number | [number, number, number, number]},
     colorTemp?: {dp: number, type: number, range: Range, scale?: number | [number, number, number, number]},
-    color?: {dp: number, type: number, scale?: number | [number, number, number, number]},
+    // color?: {dp: number, type: number, scale?: number | [number, number, number, number]},
     endpoint?: string,
 }
 
@@ -1575,7 +1566,7 @@ const tuyaModernExtend = {
         return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
     },
     dpLight(args: TuyaDPLightArgs): ModernExtend {
-        const {state, brightness, min, max, colorTemp, color, endpoint} = args;
+        const {state, brightness, min, max, colorTemp, endpoint} = args;
         let exp = e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET);
         let fromZigbee: Fz.Converter[] = [];
         let toZigbee: Tz.Converter[] = [];
@@ -1589,9 +1580,9 @@ const tuyaModernExtend = {
         if (colorTemp) {
             exp = exp.withColorTemp(colorTemp.range).setAccess('color_temp', ea.STATE_SET);
         }
-        if (color) {
-            exp = exp.withColor(['hs']).setAccess('color_hs', ea.STATE_SET);
-        }
+        // if (color) {
+        //     exp = exp.withColor(['hs']).setAccess('color_hs', ea.STATE_SET);
+        // }
         if (endpoint) exp = exp.withEndpoint(endpoint);
         ext = tuyaModernExtend.dpBinary({name: 'state', dp: state.dp, type: state.type,
             valueOn: state.valueOn, valueOff: state.valueOff, skip: state.skip, endpoint: endpoint});
@@ -1619,13 +1610,13 @@ const tuyaModernExtend = {
             fromZigbee = [...fromZigbee, ...ext.fromZigbee];
             toZigbee = [...toZigbee, ...ext.toZigbee];
         }
-        if (color) {
-            const handlers = getHandlersForDP('color', color.dp, color.type,
-                valueConverterBasic.color1000(), undefined, undefined, endpoint);
+        // if (color) {
+        //     const handlers = getHandlersForDP('color', color.dp, color.type,
+        //         valueConverterBasic.color1000(), undefined, undefined, endpoint);
 
-            fromZigbee = [...fromZigbee, ...handlers[0]];
-            toZigbee = [...toZigbee, ...handlers[1]];
-        }
+        //     fromZigbee = [...fromZigbee, ...handlers[0]];
+        //     toZigbee = [...toZigbee, ...handlers[1]];
+        // }
 
         // combine extends for one expose
         return {exposes: [exp], fromZigbee, toZigbee, isModernExtend: true};
