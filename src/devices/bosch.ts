@@ -96,6 +96,12 @@ const displayedTemperature = {
     'measured': 1,
 };
 
+const setpointSource = {
+    'manual': 0,
+    'schedule': 1,
+    'external': 2,
+};
+
 const adaptationStatus = {
     'none': 0,
     'ready_to_calibrate': 1,
@@ -996,7 +1002,7 @@ const definitions: Definition[] = [
                 .withDescription('Temperature displayed on the thermostat'),
             e.child_lock().setAccess('state', ea.ALL),
             e.battery(),
-            e.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
+            e.enum('setpoint_change_source', ea.STATE, Object.keys(setpointSource))
                 .withDescription('States where the current setpoint originated.'),
             e.enum('valve_adapt_status', ea.STATE, Object.keys(adaptationStatus))
                 .withLabel('Adaptation status')
