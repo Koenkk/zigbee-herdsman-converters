@@ -40,13 +40,16 @@ const sirenPowerSupply = {
 const stateDeviceMode: KeyValue = {
     'light': 0x04,
     'shutter': 0x01,
+    'not configured': 0x00,
 };
+
 // BMCT
 const stateMotor: KeyValue = {
     'idle': 0x00,
     'opening': 0x01,
     'closing': 0x02,
 };
+
 // BMCT
 const stateSwitchType: KeyValue = {
     'button': 0x01,
@@ -54,7 +57,6 @@ const stateSwitchType: KeyValue = {
     'rocker_switch': 0x03,
     'rocker_switch_key_change': 0x04,
 };
-
 
 // Twinguard
 const smokeSensitivity = {
@@ -243,6 +245,11 @@ const tzLocal = {
                 } else {
                     await tz.on_off.convertSet(entity, key, value, meta);
                 }
+            }
+            if (key === 'device_mode') {
+                const index = utils.getFromLookup(value, stateDeviceMode);
+                await entity.write('manuSpecificBosch10', {device_mode: index});
+                return {state: {device_mode: value}};
             }
             if (key === 'switch_type') {
                 const index = utils.getFromLookup(value, stateSwitchType);
@@ -1304,13 +1311,13 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint3);
         },
         options: [
-            e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode))
-            .withDescription('Device mode: '),],
+            e.enum('device_mode', ea.STATE_SET, Object.keys(stateDeviceMode).filter(key => key !== 'not configured'))
+            .withDescription('Device mode'),],
         exposes: (device, options) => {
-            const commonExposes = [
+            const deviceModeExpose =
                 e.enum('device_mode', ea.STATE_GET, Object.keys(stateDeviceMode))
-                    .withDescription('Device mode'),
-            ];
+                    .withDescription('Device mode');
+
             const lightExposes = [
                 e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
                     .withDescription('Module controlled by a rocker switch or a button'),
@@ -1334,12 +1341,16 @@ const definitions: Definition[] = [
                     .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
             ];
 
-            if (options.device_mode ==='light') {
-                return [...commonExposes, ...lightExposes];
-            } else if (options.device_mode ==='shutter') {
-                return [...commonExposes, ...coverExposes];
+            const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue('manuSpecificBosch10', 'device_mode');
+            const deviceMode = options.device_mode ?? Object.keys(stateDeviceMode).find(key => stateDeviceMode[key] === deviceModeKey);
+
+            if (deviceMode ==='light') {
+                return [deviceModeExpose, ...lightExposes];
+            } else if (deviceMode ==='shutter') {
+                return [deviceModeExpose, ...coverExposes];
             }
-            return [...commonExposes, ...lightExposes, ...coverExposes];
+            deviceModeExpose.access = ea.ALL;
+            return [deviceModeExpose, ...lightExposes, ...coverExposes];
         },
     },
     {
