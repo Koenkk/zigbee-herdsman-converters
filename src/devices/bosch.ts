@@ -961,6 +961,8 @@ const definitions: Definition[] = [
                 .withDescription('Temperature displayed on the thermostat'),
             e.child_lock().setAccess('state', ea.ALL),
             e.battery(),
+            e.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
+                .withDescription('States where the current setpoint originated.'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
