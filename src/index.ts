@@ -258,7 +258,7 @@ export function findDefinition(device: Zh.Device, generateForUnknown: boolean = 
 
         // Do not add this definition to cache,
         // as device configuration might change.
-        return prepareDefinition(generateDefinition(device));
+        return prepareDefinition(generateDefinition(device).definition);
     } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
         return candidates[0];
     } else {
@@ -289,6 +289,10 @@ export function findDefinition(device: Zh.Device, generateForUnknown: boolean = 
     }
 
     return null;
+}
+
+export function generateExternalDefinitionSource(device: Zh.Device): string {
+    return generateDefinition(device).externalDefinitionSource;
 }
 
 function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device) {

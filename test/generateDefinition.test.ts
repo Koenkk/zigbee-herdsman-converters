@@ -3,18 +3,16 @@ import fz from '../src/converters/fromZigbee'
 
 import { repInterval } from '../src/lib/constants';
 import {assertDefintion, AssertDefinitionArgs, mockDevice, reportingItem} from './utils';
-import { findByDevice} from '../src';
+import { findByDevice, generateExternalDefinitionSource } from '../src';
 import Device from 'zigbee-herdsman/dist/controller/model/device';
 
-const assertGeneratedDefinition = async (args: AssertDefinitionArgs) => {
-    const getDefinition = (device: Device): Definition => {
-        return findByDevice(device, true);
-    }
-
+const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalDefintionSource?: string}) => {
+    const getDefinition = (device: Device): Definition => findByDevice(device, true);
     const definition = getDefinition(args.device)
-
-    expect(definition.model).toEqual(args.device.modelID)
-
+    expect(definition.model).toEqual(args.device.modelID);
+    if (args.externalDefintionSource) {
+        expect(args.externalDefintionSource.trim()).toEqual(generateExternalDefinitionSource(args.device).trim());
+    }
     return await assertDefintion({findByDeviceFn: getDefinition, ...args})
 }
 
@@ -83,7 +81,7 @@ describe('GenerateDefinition', () => {
         });
     });
 
-    test('input(msTemperatureMeasurement, genOnOff)', async () => {
+    test('onlythis input(msTemperatureMeasurement, genOnOff)', async () => {
         await assertGeneratedDefinition({
             device: mockDevice({modelID: 'combo', endpoints: [{inputClusters: ['msTemperatureMeasurement', 'genOnOff'], outputClusters:[]}]}),
             meta: undefined,
@@ -101,6 +99,19 @@ describe('GenerateDefinition', () => {
                     ['genOnOff', [reportingItem('onOff', 0, repInterval.MAX, 1)]],
                 ],
             },
+            externalDefintionSource: `
+const {temperature, onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
+
+const definition = {
+    zigbeeModel: ['combo'],
+    model: 'combo',
+    vendor: 'undefined',
+    description: 'Generated from device information',
+    extend: [temperature(), onOff({powerOnBehavior: false})],
+};
+
+module.exports = definition;
+            `
         });
     });
 });

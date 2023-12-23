@@ -1,35 +1,40 @@
 import {Cluster} from 'zigbee-herdsman/dist/zcl/tstype';
 import {Definition, ModernExtend, Zh} from './types';
-import * as e from './modernExtend';
-import {Endpoint} from 'zigbee-herdsman/dist/controller/model';
+import {temperature, pressure, humidity, identify, onOff} from './modernExtend';
 
-export function generateDefinition(device: Zh.Device): Definition {
-    const deviceExtenders: ModernExtend[] = [];
+interface GeneratedExtend {extend: ModernExtend, source: string}
+type ExtendGenerator = (endpoint: Zh.Endpoint) => GeneratedExtend[];
+interface ExtendGeneratorLookup {[s: string]: ExtendGenerator}
+
+function generateSource(device: Zh.Device, generatedExtend: GeneratedExtend[]): string {
+    const imports = generatedExtend.map((e) => e.source.split('(')[0]);
+    return `const {${imports.join(', ')}} = require('zigbee-herdsman-converters/lib/modernExtend');
+
+const definition = {
+    zigbeeModel: ['${device.modelID}'],
+    model: '${device.modelID}',
+    vendor: '${device.manufacturerName}',
+    description: 'Generated from device information',
+    extend: [${generatedExtend.map((e) => e.source).join(', ')}],
+};
+
+module.exports = definition;`;
+}
+
+export function generateDefinition(device: Zh.Device): {externalDefinitionSource: string, definition: Definition} {
+    const generatedExtend: GeneratedExtend[] = [];
 
     device.endpoints.forEach((endpoint) => {
-        const addExtenders = (cluster: Cluster, knownExtenders: extendersObject) => {
+        const addExtenders = (cluster: Cluster, knownExtenders: ExtendGeneratorLookup) => {
             const clusterName = cluster.name || cluster.ID.toString();
             if (!knownExtenders.hasOwnProperty(clusterName)) {
                 return;
             }
-
-            const extenderProviders = knownExtenders[clusterName];
-            const extenders = extenderProviders.map((extender: extenderProvider): ModernExtend => {
-                if (typeof extender !== 'function') {
-                    return extender;
-                }
-                return extender(endpoint, cluster);
-            });
-
-            deviceExtenders.push(...(extenders));
+            generatedExtend.push(...knownExtenders[clusterName](endpoint));
         };
 
-        endpoint.getInputClusters().forEach((cluster) => {
-            addExtenders(cluster, inputExtenders);
-        });
-        endpoint.getOutputClusters().forEach((cluster) => {
-            addExtenders(cluster, outputExtenders);
-        });
+        endpoint.getInputClusters().forEach((cluster) => addExtenders(cluster, inputExtenders));
+        endpoint.getOutputClusters().forEach((cluster) => addExtenders(cluster, outputExtenders));
     });
 
     const definition: Definition = {
@@ -37,29 +42,21 @@ export function generateDefinition(device: Zh.Device): Definition {
         model: device.modelID ?? '',
         vendor: device.manufacturerName ?? '',
         description: 'Generated from device information',
-        extend: deviceExtenders,
+        extend: generatedExtend.map((e) => e.extend),
         generated: true,
     };
 
-    return definition;
+    const externalDefinitionSource = generateSource(device, generatedExtend);
+    return {externalDefinitionSource, definition};
 }
 
-// This configurator type provides some flexibility in terms of how ModernExtend configuration can be obtained.
-// I.e. if cluster has optional attributes - this type can be used
-// to define function that will generate more feature-full extension.
-type extenderConfigurator = (endpoint: Endpoint, cluster: Cluster) => ModernExtend
-// extenderProvider defines a type that will produce a `ModernExtend`
-// either directly, or by calling a function.
-type extenderProvider = ModernExtend | extenderConfigurator
-type extendersObject = {[name: string]: extenderProvider[]}
-
-const inputExtenders: extendersObject = {
-    'msTemperatureMeasurement': [e.temperature()],
-    'msPressureMeasurement': [e.pressure()],
-    'msRelativeHumidity': [e.humidity()],
-    'genOnOff': [e.onOff({powerOnBehavior: false})],
+const inputExtenders: ExtendGeneratorLookup = {
+    msTemperatureMeasurement: (endpoint) => [{extend: temperature(), source: 'temperature()'}],
+    msPressureMeasurement: (endpoint) => [{extend: pressure(), source: 'pressure()'}],
+    msRelativeHumidity: (endpoint) => [{extend: humidity(), source: 'humidity()'}],
+    genOnOff: (endpoint) => [{extend: onOff({powerOnBehavior: false}), source: 'onOff({powerOnBehavior: false})'}],
 };
 
-const outputExtenders: extendersObject = {
-    'genIdentify': [e.identify()],
+const outputExtenders: ExtendGeneratorLookup = {
+    genIdentify: (endpoint) => [{extend: identify(), source: 'identify()'}],
 };
