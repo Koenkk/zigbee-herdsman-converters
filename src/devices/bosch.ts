@@ -970,6 +970,13 @@ const definitions: Definition[] = [
             await reporting.thermostatKeypadLockMode(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
 
+            // Report setpoint_change_source
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x0030, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: 1,
+            }]);
             // report operating_mode (system_mode)
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4007, type: Zcl.DataType.enum8},
@@ -999,7 +1006,7 @@ const definitions: Definition[] = [
                 reportableChange: 1,
             }], manufacturerOptions);
 
-            await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
+            await endpoint.read('hvacThermostat', ['localTemperatureCalibration', 0x0030]);
             await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4040, 0x4042, 0x4043], manufacturerOptions);
 
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
