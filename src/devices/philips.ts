@@ -832,6 +832,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['LCG005'],
+        model: '929003575501',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance GU5.3/MR16',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LWA003', 'LWW002', 'LWA025'],
         model: '9290022268',
         vendor: 'Philips',
