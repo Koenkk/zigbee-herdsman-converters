@@ -96,12 +96,14 @@ const displayedTemperature = {
     'measured': 1,
 };
 
+// Radiator Thermostat II
 const setpointSource = {
     'manual': 0,
     'schedule': 1,
     'external': 2,
 };
 
+// Radiator Thermostat II
 const adaptationStatus = {
     'none': 0,
     'ready_to_calibrate': 1,
