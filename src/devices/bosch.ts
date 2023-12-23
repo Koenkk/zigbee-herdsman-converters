@@ -978,7 +978,7 @@ const definitions: Definition[] = [
                 .withPiHeatingDemand(ea.ALL)
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.binary('boost', ea.ALL, 'ON', 'OFF')
-                .withDescription('Activate Boost heating'),
+                .withDescription('Activate boost heating'),
             e.binary('window_open', ea.ALL, 'ON', 'OFF')
                 .withDescription('Window open'),
             e.enum('display_orientation', ea.ALL, Object.keys(displayOrientation))
@@ -993,7 +993,7 @@ const definitions: Definition[] = [
             e.numeric('display_ontime', ea.ALL)
                 .withValueMin(5)
                 .withValueMax(30)
-                .withDescription('Specifies the display On-time'),
+                .withDescription('Specifies the display on-time'),
             e.numeric('display_brightness', ea.ALL)
                 .withValueMin(0)
                 .withValueMax(10)
@@ -1003,10 +1003,10 @@ const definitions: Definition[] = [
             e.child_lock().setAccess('state', ea.ALL),
             e.battery(),
             e.enum('setpoint_change_source', ea.STATE, Object.keys(setpointSource))
-                .withDescription('States where the current setpoint originated.'),
+                .withDescription('States where the current setpoint originated'),
             e.enum('valve_adapt_status', ea.STATE, Object.keys(adaptationStatus))
                 .withLabel('Adaptation status')
-                .withDescription('Specifies the current status of the valve adaptation.'),
+                .withDescription('Specifies the current status of the valve adaptation'),
             e.binary('valve_adapt_process', ea.SET, true, false)
                 .withLabel('Trigger adaptation process')
                 .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
@@ -1015,9 +1015,9 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg']);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatKeypadLockMode(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR * 12, change: 1});
+            await reporting.thermostatTemperature(endpoint, {min: 30, max: 900, change: 20});
+            await reporting.thermostatKeypadLockMode(endpoint, {min: 0, max: constants.repInterval.HOUR * 12, change: null});
             await reporting.batteryPercentageRemaining(endpoint);
 
             // Report setpoint_change_source
@@ -1025,42 +1025,42 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x0030, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR * 12,
-                reportableChange: 1,
+                reportableChange: null,
             }]);
             // report operating_mode (system_mode)
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4007, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: null,
             }], manufacturerOptions);
             // report pi_heating_demand (valve opening)
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4020, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: null,
             }], manufacturerOptions);
             // Report valve_adapt_status (adaptation status)
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4022, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR * 12,
-                reportableChange: 1,
+                reportableChange: null,
             }], manufacturerOptions);
             // report window_open
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: null,
             }], manufacturerOptions);
             // report boost as it's disabled by thermostat after 5 minutes
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: null,
             }], manufacturerOptions);
 
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration', 0x0030]);
