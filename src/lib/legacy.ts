@@ -360,6 +360,7 @@ const tvThermostatMode: KeyValueAny = {
 const tvThermostatPreset: KeyValueAny = {
     0: 'auto',
     1: 'manual',
+    2: 'holiday',
     3: 'holiday',
 };
 // Zemismart ZM_AM02 Roller Shade Converter
