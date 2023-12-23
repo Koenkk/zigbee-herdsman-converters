@@ -319,7 +319,7 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     bosch_thermostat: {
-        key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature'],
+        key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature', 'valve_adapt_process'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'window_open') {
                 const index = utils.getFromLookup(value, stateOffOn);
@@ -361,6 +361,23 @@ const tzLocal = {
                 await entity.write('hvacThermostat',
                     {0x4040: {value: convertedTemperature, type: Zcl.DataType.int16}}, manufacturerOptions);
                 return {state: {remote_temperature: temperature}};
+            }
+
+            if (key === 'valve_adapt_process') {
+                if (value == true) {
+                    const adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, adaptationStatus);
+
+                    switch (adaptStatus) {
+                    case adaptationStatus.ready_to_calibrate:
+                    case adaptationStatus.error:
+                        await entity.command('hvacThermostat', 'boschCalibrateValve', {}, manufacturerOptions);
+                        break;
+                    default:
+                        throw new Error('Valve adaptation process not possible right now.');
+                    }
+                }
+
+                return {state: {valve_adapt_process: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -617,6 +634,14 @@ const fzLocal = {
 
             if (data.hasOwnProperty(0x4022)) {
                 result.valve_adapt_status = utils.getFromLookupByValue(data[0x4022], adaptationStatus);
+
+                switch (data[0x4022]) {
+                case adaptationStatus.calibration_in_progress:
+                    result.valve_adapt_process = true;
+                    break;
+                default:
+                    result.valve_adapt_process = false;
+                }
             }
 
             return result;
@@ -978,6 +1003,10 @@ const definitions: Definition[] = [
             e.enum('valve_adapt_status', ea.STATE, Object.keys(adaptationStatus))
                 .withLabel('Adaptation status')
                 .withDescription('Specifies the current status of the valve adaptation.'),
+            e.binary('valve_adapt_process', ea.SET, true, false)
+                .withLabel('Trigger adaptation process')
+                .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
+                    'is "ready_to_calibrate" or "error".'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
