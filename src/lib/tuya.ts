@@ -1662,6 +1662,12 @@ const tuyaModernExtend = {
         return tuyaModernExtend.dpBinary({name: 'state', type: dataTypes.bool,
             valueOn: ['ON', true], valueOff: ['OFF', false], expose: e.switch().setAccess('state', readOnly ? ea.STATE : ea.STATE_SET), ...args});
     },
+    dpPowerOnBehavior(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        let {readOnly, lookup} = args;
+        lookup = lookup || {'off': 0, 'on': 1, 'previous': 2};
+        return tuyaModernExtend.dpEnumLookup({name: 'power_on_behavior', lookup: lookup, type: dataTypes.enum,
+            expose: e.power_on_behavior(Object.keys(lookup)).withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
