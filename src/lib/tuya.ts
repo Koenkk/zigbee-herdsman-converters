@@ -5,11 +5,12 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import extend from './extend';
-import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent} from './types';
+import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range} from './types';
+// import {Color} from './color';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const dataTypes = {
+export const dataTypes = {
     raw: 0, // [ bytes ]
     bool: 1, // [0/1]
     number: 2, // [ 4 byte value ]
@@ -429,6 +430,91 @@ export const valueConverterBasic = {
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
     },
+    // color1000: () => {
+    //     return {
+    //         // eslint-disable-next-line
+    //         to: (value: any, meta?: Tz.Meta) => {
+    //             const make4sizedString = (v: string) => {
+    //                 if (v.length >= 4) {
+    //                     return v;
+    //                 } else if (v.length === 3) {
+    //                     return '0' + v;
+    //                 } else if (v.length === 2) {
+    //                     return '00' + v;
+    //                 } else if (v.length === 1) {
+    //                     return '000' + v;
+    //                 } else {
+    //                     return '0000';
+    //                 }
+    //             };
+
+    //             const fillInHSB = (h: number, s: number, b: number, state: KeyValueAny) => {
+    //                 // Define default values. Device expects leading zero in string.
+    //                 const hsb = {
+    //                     h: '0168', // 360
+    //                     s: '03e8', // 1000
+    //                     b: '03e8', // 1000
+    //                 };
+
+    //                 if (h) {
+    //                     // The device expects 0-359
+    //                     if (h >= 360) {
+    //                         h = 359;
+    //                     }
+    //                     hsb.h = make4sizedString(h.toString(16));
+    //                 } else if (state.color && state.color.hue) {
+    //                     hsb.h = make4sizedString(state.color.hue.toString(16));
+    //                 }
+
+    //                 // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
+    //                 // The device expects a round number, otherwise everything breaks
+    //                 if (s) {
+    //                     hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
+    //                 } else if (state.color && state.color.saturation) {
+    //                     hsb.s = make4sizedString(utils.mapNumberRange(state.color.saturation, 0, 100, 0, 1000).toString(16));
+    //                 }
+
+    //                 // Scale 0-255 to 0-1000 what the device expects.
+    //                 if (b != null) {
+    //                     hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
+    //                 } else if (state.brightness != null) {
+    //                     hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
+    //                 }
+    //                 return hsb;
+    //             };
+    //             const newColor = Color.fromConverterArg(value);
+    //             let hsv;
+    //             if (newColor.isRGB()) {
+    //                 hsv = newColor.rgb.toHSV();
+    //             } else {
+    //                 if (newColor.isHSV()) {
+    //                     hsv = newColor.hsv;
+    //                 }
+    //             }
+    //             const hsb = fillInHSB(
+    //                 utils.precisionRound(hsv.hue, 0) || null,
+    //                 utils.precisionRound(hsv.saturation, 0) || null,
+    //                 utils.precisionRound(hsv.brightness, 0) || null,
+    //                 meta.state,
+    //             );
+    //             const data: string = hsb.h + hsb.s + hsb.b;
+
+    //             return data;
+    //         },
+    //         // eslint-disable-next-line
+    //         from: (value: any) => {
+    //             const result: KeyValueAny = {};
+    //             const h = parseInt(value.substring(0, 4), 16);
+    //             const s = parseInt(value.substring(4, 8), 16);
+    //             const b = parseInt(value.substring(8, 12), 16);
+    //             result.color_mode = 'hs';
+    //             result.color = {hue: h, saturation: utils.mapNumberRange(s, 0, 1000, 0, 100)};
+    //             result.brightness = utils.mapNumberRange(b, 0, 1000, 0, 255);
+
+    //             return result;
+    //         },
+    //     };
+    // },
 };
 
 export const valueConverter = {
@@ -1312,8 +1398,282 @@ const tuyaExtend = {
 };
 export {tuyaExtend as extend};
 
+
+function getHandlersForDP(name: string, dp: number, type: number, converter: Tuya.ValueConverterSingle,
+    readOnly?: boolean, skip?: (meta: Tz.Meta) => boolean, endpoint?: string, useGlobalSequence?: boolean): [Fz.Converter[], Tz.Converter[]] {
+    const keyName = (endpoint) ? `${name}_${endpoint}` : name;
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
+        options: (definition) => {
+            const result = [];
+            if (name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
+                const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(name) ? 'percentual' : 'absolute';
+                result.push(exposes.options.precision(name), exposes.options.calibration(name, type));
+            }
+            return result;
+        },
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = msg.data.dpValues.find((d: Tuya.DpValue) => d.dp === dp);
+            if (dpValue) {
+                const value = converter.from(getDataValue(dpValue));
+                const result = {[keyName]: value};
+                if (name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
+                    const valueNumber = utils.toNumber(value, keyName);
+                    result[keyName] = utils.calibrateAndPrecisionRoundOptions(valueNumber, options, keyName);
+                }
+                return result;
+            }
+        },
+    }];
+
+    const toZigbee: Tz.Converter[] = (readOnly) ? undefined : [{
+        key: [name],
+        endpoint: endpoint,
+        convertSet: async (entity, key, value, meta) => {
+            // A set converter is only called once; therefore we need to loop
+            const state: KeyValue = {};
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            for (const [attr, value] of Object.entries(meta.message)) {
+                const convertedKey: string = meta.mapped.meta && meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
+                    `${attr}_${meta.endpoint_name}` : attr;
+                // meta.logger.debug(`key: ${key}, convertedKey: ${convertedKey}, keyName: ${keyName}`);
+                if (convertedKey !== keyName) continue;
+                if (skip && skip(meta)) continue;
+
+                const convertedValue = await converter.to(value, meta);
+                const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+                const seq = (useGlobalSequence) ? undefined : 1;
+                // meta.logger.debug(`dp: ${dp}, value: ${value}, convertedValue: ${convertedValue}`);
+
+                if (convertedValue === undefined) {
+                    // conversion done inside converter, ignore.
+                } else if (type == dataTypes.bool) {
+                    await sendDataPointBool(entity, dp, convertedValue as boolean, sendCommand, seq);
+                } else if (type == dataTypes.number) {
+                    await sendDataPointValue(entity, dp, convertedValue as number, sendCommand, seq);
+                } else if (type == dataTypes.string) {
+                    await sendDataPointStringBuffer(entity, dp, convertedValue as string, sendCommand, seq);
+                } else if (type == dataTypes.raw) {
+                    await sendDataPointRaw(entity, dp, convertedValue as number[], sendCommand, seq);
+                } else if (type == dataTypes.enum) {
+                    await sendDataPointEnum(entity, dp, convertedValue as number, sendCommand, seq);
+                } else if (type == dataTypes.bitmap) {
+                    await sendDataPointBitmap(entity, dp, convertedValue as number, sendCommand, seq);
+                } else {
+                    throw new Error(`Don't know how to send type '${typeof convertedValue}'`);
+                }
+
+                state[convertedKey] = value;
+            }
+            return {state};
+        },
+    }];
+
+    return [fromZigbee, toZigbee];
+}
+
+export interface TuyaDPEnumLookupArgs {
+    name: string, dp: number, type: number, lookup: KeyValue,
+    description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
+    expose?: Expose,
+}
+export interface TuyaDPBinaryArgs {
+    name: string, dp: number, type: number, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown],
+    description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
+    expose?: Expose,
+}
+
+export interface TuyaDPNumericArgs {
+    name: string, dp: number, type: number,
+    description?: string, readOnly?: boolean, endpoint?: string, unit?: string, skip?: (meta: Tz.Meta) => boolean,
+    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number | [number, number, number, number],
+    expose?: exposes.Numeric,
+}
+
+export interface TuyaDPLightArgs {
+    state: {dp: number, type: number, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], skip?: (meta: Tz.Meta) => boolean},
+    brightness: {dp: number, type: number, scale?: number | [number, number, number, number]},
+    max?: {dp: number, type: number, scale?: number | [number, number, number, number]},
+    min?: {dp: number, type: number, scale?: number | [number, number, number, number]},
+    colorTemp?: {dp: number, type: number, range: Range, scale?: number | [number, number, number, number]},
+    // color?: {dp: number, type: number, scale?: number | [number, number, number, number]},
+    endpoint?: string,
+}
+
+const tuyaModernExtend = {
+    dpEnumLookup(args: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        const {name, dp, type, lookup, description, readOnly, endpoint, expose, skip} = args;
+        let exp: Expose;
+        if (expose) {
+            exp = expose;
+        } else {
+            exp = new exposes.Enum(name, readOnly ? ea.STATE : ea.STATE_SET, Object.keys(lookup)).withDescription(description);
+        }
+        if (endpoint) exp = exp.withEndpoint(endpoint);
+
+        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(name, dp, type, {
+            from: (value) => utils.getFromLookupByValue(value, lookup),
+            to: (value) => utils.getFromLookup(value, lookup),
+        }, readOnly, skip, endpoint);
+
+        return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
+    },
+    dpBinary(args: Partial<TuyaDPBinaryArgs>): ModernExtend {
+        const {name, dp, type, valueOn, valueOff, description, readOnly, endpoint, expose, skip} = args;
+        let exp: Expose;
+        if (expose) {
+            exp = expose;
+        } else {
+            exp = e.binary(name, readOnly ? ea.STATE : ea.STATE_SET, valueOn[0], valueOff[0]).withDescription(description);
+        }
+        if (endpoint) exp = exp.withEndpoint(endpoint);
+
+        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(name, dp, type, {
+            from: (value) => (value === valueOn[1]) ? valueOn[0] : valueOff[0],
+            to: (value) => (value === valueOn[0]) ? valueOn[1] : valueOff[1],
+        }, readOnly, skip, endpoint);
+
+        return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
+    },
+    dpNumeric(args: Partial<TuyaDPNumericArgs>): ModernExtend {
+        const {name, dp, type, description, readOnly, endpoint, unit, valueMax, valueMin, valueStep, scale, expose, skip} = args;
+        let exp: exposes.Numeric;
+        if (expose) {
+            exp = expose;
+        } else {
+            exp = e.numeric(name, readOnly ? ea.STATE : ea.STATE_SET).withDescription(description);
+        }
+        if (endpoint) exp = exp.withEndpoint(endpoint);
+        if (unit) exp = exp.withUnit(unit);
+        if (valueMin !== undefined) exp = exp.withValueMin(valueMin);
+        if (valueMax !== undefined) exp = exp.withValueMax(valueMax);
+        if (valueStep !== undefined) exp = exp.withValueStep(valueStep);
+
+        let converter;
+        if (scale === undefined) {
+            converter = valueConverterBasic.raw();
+        } else {
+            if (Array.isArray(scale)) {
+                converter = valueConverterBasic.scale(scale[0], scale[1], scale[2], scale[3]);
+            } else {
+                converter = valueConverterBasic.divideBy(scale);
+            }
+        }
+
+        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(name, dp, type, converter, readOnly, skip, endpoint);
+
+        return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
+    },
+    dpLight(args: TuyaDPLightArgs): ModernExtend {
+        const {state, brightness, min, max, colorTemp, endpoint} = args;
+        let exp = e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET);
+        let fromZigbee: Fz.Converter[] = [];
+        let toZigbee: Tz.Converter[] = [];
+        let ext: ModernExtend;
+        if (min) {
+            exp = exp.withMinBrightness().setAccess('min_brightness', ea.STATE_SET);
+        }
+        if (max) {
+            exp = exp.withMaxBrightness().setAccess('max_brightness', ea.STATE_SET);
+        }
+        if (colorTemp) {
+            exp = exp.withColorTemp(colorTemp.range).setAccess('color_temp', ea.STATE_SET);
+        }
+        // if (color) {
+        //     exp = exp.withColor(['hs']).setAccess('color_hs', ea.STATE_SET);
+        // }
+        if (endpoint) exp = exp.withEndpoint(endpoint);
+        ext = tuyaModernExtend.dpBinary({name: 'state', dp: state.dp, type: state.type,
+            valueOn: state.valueOn, valueOff: state.valueOff, skip: state.skip, endpoint: endpoint});
+        fromZigbee = [...fromZigbee, ...ext.fromZigbee];
+        toZigbee = [...toZigbee, ...ext.toZigbee];
+        ext = tuyaModernExtend.dpNumeric({name: 'brightness', dp: brightness.dp, type: brightness.type,
+            scale: brightness.scale, endpoint: endpoint});
+        fromZigbee = [...fromZigbee, ...ext.fromZigbee];
+        toZigbee = [...toZigbee, ...ext.toZigbee];
+        if (min) {
+            ext = tuyaModernExtend.dpNumeric({name: 'min_brightness', dp: min.dp, type: min.type,
+                scale: min.scale, endpoint: endpoint});
+            fromZigbee = [...fromZigbee, ...ext.fromZigbee];
+            toZigbee = [...toZigbee, ...ext.toZigbee];
+        }
+        if (max) {
+            ext = tuyaModernExtend.dpNumeric({name: 'max_brightness', dp: max.dp, type: max.type,
+                scale: max.scale, endpoint: endpoint});
+            fromZigbee = [...fromZigbee, ...ext.fromZigbee];
+            toZigbee = [...toZigbee, ...ext.toZigbee];
+        }
+        if (colorTemp) {
+            ext = tuyaModernExtend.dpNumeric({name: 'color_temp', dp: colorTemp.dp, type: colorTemp.type,
+                scale: colorTemp.scale, endpoint: endpoint});
+            fromZigbee = [...fromZigbee, ...ext.fromZigbee];
+            toZigbee = [...toZigbee, ...ext.toZigbee];
+        }
+        // if (color) {
+        //     const handlers = getHandlersForDP('color', color.dp, color.type,
+        //         valueConverterBasic.color1000(), undefined, undefined, endpoint);
+
+        //     fromZigbee = [...fromZigbee, ...handlers[0]];
+        //     toZigbee = [...toZigbee, ...handlers[1]];
+        // }
+
+        // combine extends for one expose
+        return {exposes: [exp], fromZigbee, toZigbee, isModernExtend: true};
+    },
+    dpTemperature(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
+        return tuyaModernExtend.dpNumeric({name: 'temperature', type: dataTypes.number, readOnly: true, expose: e.temperature(), ...args});
+    },
+    dpHumidity(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
+        return tuyaModernExtend.dpNumeric({name: 'humidity', type: dataTypes.number, readOnly: true, expose: e.humidity(), ...args});
+    },
+    dpBattery(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
+        return tuyaModernExtend.dpNumeric({name: 'battery', type: dataTypes.number, readOnly: true, expose: e.battery(), ...args});
+    },
+    dpBatteryState(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        return tuyaModernExtend.dpEnumLookup({name: 'battery_state', type: dataTypes.number, lookup: {'low': 0, 'medium': 1, 'high': 2},
+            readOnly: true, expose: tuyaExposes.batteryState(), ...args});
+    },
+    dpTemperatureUnit(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        return tuyaModernExtend.dpEnumLookup({name: 'temperature_unit', type: dataTypes.enum, lookup: {'celsius': 0, 'fahrenheit': 1},
+            readOnly: true, expose: tuyaExposes.temperatureUnit(), ...args});
+    },
+    dpContact(args?: Partial<TuyaDPBinaryArgs>, invert?: boolean): ModernExtend {
+        return tuyaModernExtend.dpBinary({name: 'contact', type: dataTypes.bool,
+            valueOn: (invert) ? [true, true] : [true, false], valueOff: (invert) ? [false, false] : [false, true],
+            readOnly: true, expose: e.contact(), ...args});
+    },
+    dpAction(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        const {lookup} = args;
+        return tuyaModernExtend.dpEnumLookup({name: 'action', type: dataTypes.number, readOnly: true,
+            expose: e.action(Object.keys(lookup)), ...args});
+    },
+    dpIlluminance(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
+        return tuyaModernExtend.dpNumeric({name: 'illuminance', type: dataTypes.number, readOnly: true,
+            expose: e.illuminance(), ...args});
+    },
+    dpGas(args?: Partial<TuyaDPBinaryArgs>, invert?: boolean): ModernExtend {
+        return tuyaModernExtend.dpBinary({name: 'gas', type: dataTypes.enum,
+            valueOn: (invert) ? [true, 1] : [true, 0], valueOff: (invert) ? [false, 0] : [false, 1],
+            readOnly: true, expose: e.gas(), ...args});
+    },
+    dpOnOff(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
+        const {readOnly} = args;
+        return tuyaModernExtend.dpBinary({name: 'state', type: dataTypes.bool,
+            valueOn: ['ON', true], valueOff: ['OFF', false], expose: e.switch().setAccess('state', readOnly ? ea.STATE : ea.STATE_SET), ...args});
+    },
+    dpPowerOnBehavior(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        let {readOnly, lookup} = args;
+        lookup = lookup || {'off': 0, 'on': 1, 'previous': 2};
+        return tuyaModernExtend.dpEnumLookup({name: 'power_on_behavior', lookup: lookup, type: dataTypes.enum,
+            expose: e.power_on_behavior(Object.keys(lookup)).withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
+    },
+};
+export {tuyaModernExtend as modernExtend};
+
 exports.exposes = tuyaExposes;
 exports.extend = tuyaExtend;
+exports.modernExtend = tuyaModernExtend;
 exports.tz = tuyaTz;
 exports.fz = tuyaFz;
 exports.enum = (value: number) => new Enum(value);
@@ -1329,3 +1689,4 @@ exports.skip = skip;
 exports.configureMagicPacket = configureMagicPacket;
 exports.fingerprint = fingerprint;
 exports.whitelabel = whitelabel;
+exports.dataTypes = dataTypes;
