@@ -7998,12 +7998,10 @@ const toZigbee2 = {
 
                     if (h) {
                         // The device expects 0-359
-                        if (h >= 360) {
-                            h = 359;
-                        }
-                        hsb.h = make4sizedString(h.toString(16));
+                        // The device expects a round number, otherwise everything breaks
+                        hsb.h = make4sizedString(utils.numberWithinRange(utils.precisionRound(h, 0), 0, 359).toString(16));
                     } else if (state.color && state.color.h) {
-                        hsb.h = make4sizedString(state.color.h.toString(16));
+                        hsb.h = make4sizedString(utils.numberWithinRange(utils.precisionRound(state.color.h, 0), 0, 359).toString(16));
                     }
 
                     // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
