@@ -4,6 +4,7 @@ import {Zh, Ota, Logger, KeyValueAny, KeyValue, KeyValueNumberString} from '../t
 import assert from 'assert';
 import crc32 from 'buffer-crc32';
 import axios from 'axios';
+import * as URI from 'uri-js';
 import {Zcl} from 'zigbee-herdsman';
 const maxTimeout = 2147483647; // +- 24 days
 const imageBlockResponseDelay = 250;
@@ -38,6 +39,16 @@ const eblImageSignature = 0xe350;
 
 const gblTagHeader = 0xeb17a603;
 const gblTagEnd = 0xfc0404fc;
+
+export function isValidUrl(url: string) {
+    let parsed;
+    try {
+        parsed = URI.parse(url);
+    } catch (_) {
+        return false;
+    }
+    return parsed.scheme === 'http' || parsed.scheme === 'https';
+}
 
 function getOTAEndpoint(device: Zh.Device) {
     return device.endpoints.find((e) => e.supportsOutputCluster('genOta'));
@@ -546,3 +557,4 @@ exports.isNewImageAvailable = isNewImageAvailable;
 exports.updateToLatest = updateToLatest;
 exports.getNewImage = getNewImage;
 exports.getAxios = getAxios;
+exports.isValidUrl = isValidUrl;

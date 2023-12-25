@@ -3,7 +3,6 @@ import * as common from './common';
 import {Logger, Zh, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
 import fs from 'fs';
-import * as URI from 'uri-js';
 import path from 'path';
 
 let overrideIndexFileName: string = null;
@@ -14,18 +13,8 @@ let dataDir: string = null;
  */
 
 
-function isValidUrl(url: string) {
-    let parsed;
-    try {
-        parsed = URI.parse(url);
-    } catch (_) {
-        return false;
-    }
-    return parsed.scheme === 'http' || parsed.scheme === 'https';
-}
-
 async function getIndexFile(urlOrName: string) {
-    if (isValidUrl(urlOrName)) {
+    if (common.isValidUrl(urlOrName)) {
         return (await axios.get(urlOrName)).data;
     }
 
@@ -46,7 +35,7 @@ async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
     const urlOrName = image.url;
 
     // First try to download firmware file with the URL provided
-    if (isValidUrl(urlOrName)) {
+    if (common.isValidUrl(urlOrName)) {
         logger.debug(`ZigbeeOTA: downloading firmware image from ${urlOrName}`);
         return await axios.get(urlOrName, {responseType: 'arraybuffer'});
     }
@@ -56,7 +45,7 @@ async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
 
 function fillImageInfo(meta: KeyValueAny, logger: Logger) {
     // Web-hosted images must come with all fields filled already
-    if (isValidUrl(meta.url)) {
+    if (common.isValidUrl(meta.url)) {
         return meta;
     }
 
@@ -89,7 +78,7 @@ async function getIndex(logger: Logger) {
         const localIndex = await getIndexFile(overrideIndexFileName);
 
         // Resulting index will have overridden items first
-        return localIndex.concat(index).map((item: KeyValueAny) => isValidUrl(item.url) ? item : fillImageInfo(item, logger));
+        return localIndex.concat(index).map((item: KeyValueAny) => common.isValidUrl(item.url) ? item : fillImageInfo(item, logger));
     }
 
     return index;
