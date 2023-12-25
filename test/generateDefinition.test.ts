@@ -106,7 +106,7 @@ const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: 'undefined',
-    description: 'Generated from device information',
+    description: 'Automatically generated definition',
     extend: [temperature(), onOff({powerOnBehavior: false})],
 };
 
@@ -145,7 +145,7 @@ const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: 'undefined',
-    description: 'Generated from device information',
+    description: 'Automatically generated definition',
     extend: [light({colorTemp:{range:[100,500]},color:{enhancedHue:true}})],
 };
 
@@ -184,7 +184,7 @@ const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: 'undefined',
-    description: 'Generated from device information',
+    description: 'Automatically generated definition',
     extend: [light({colorTemp:{range:[100,500]},color:{enhancedHue:true}})],
 };
 
@@ -224,7 +224,7 @@ const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: 'undefined',
-    description: 'Generated from device information',
+    description: 'Automatically generated definition',
     extend: [philipsLight({colorTemp:{range:[100,500]},color:{enhancedHue:true}})],
 };
 
@@ -274,7 +274,7 @@ const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: 'undefined',
-    description: 'Generated from device information',
+    description: 'Automatically generated definition',
     extend: [onOff({powerOnBehavior: false}), electricityMeter()],
 };
 

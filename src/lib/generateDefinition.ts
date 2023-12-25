@@ -26,7 +26,7 @@ const definition = {
     zigbeeModel: ['${device.modelID}'],
     model: '${device.modelID}',
     vendor: '${device.manufacturerName}',
-    description: 'Generated from device information',
+    description: 'Automatically generated definition',
     extend: [${generatedExtend.map((e) => e.source).join(', ')}],
 };
 
@@ -59,7 +59,7 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         zigbeeModel: [device.modelID],
         model: device.modelID ?? '',
         vendor: device.manufacturerName ?? '',
-        description: 'Generated from device information',
+        description: 'Automatically generated definition',
         extend: generatedExtend.map((e) => e.extend),
         generated: true,
     };
@@ -104,7 +104,7 @@ async function extenderOnOffLight(endpoint: Zh.Endpoint): Promise<GeneratedExten
             }
         }
 
-        const argsStr = JSON.stringify(args).replaceAll(`"`, ``);
+        const argsStr = JSON.stringify(args);
         if (endpoint.getDevice().manufacturerID === zh.Zcl.ManufacturerCode.Philips) {
             return [{extend: philipsLight(args), source: `philipsLight(${argsStr})`, lib: 'philips'}];
         } else {
@@ -122,7 +122,7 @@ async function extenderElectricityMeter(endpoint: Zh.Endpoint): Promise<Generate
     if (!metering || !electricalMeasurements) {
         args.cluster = metering ? 'metering' : 'electrical';
     }
-    const argsStr = Object.keys(args).length ? JSON.stringify(args).replaceAll(`"`, ``) : '';
+    const argsStr = Object.keys(args).length ? JSON.stringify(args) : '';
     return [{extend: electricityMeter(args), source: `electricityMeter(${argsStr})`}];
 }
 
