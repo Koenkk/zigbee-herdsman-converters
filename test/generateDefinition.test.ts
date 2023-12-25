@@ -146,7 +146,7 @@ const definition = {
     model: 'combo',
     vendor: 'undefined',
     description: 'Automatically generated definition',
-    extend: [light({colorTemp:{range:[100,500]},color:{enhancedHue:true}})],
+    extend: [light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
 };
 
 module.exports = definition;
@@ -185,7 +185,7 @@ const definition = {
     model: 'combo',
     vendor: 'undefined',
     description: 'Automatically generated definition',
-    extend: [light({colorTemp:{range:[100,500]},color:{enhancedHue:true}})],
+    extend: [light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
 };
 
 module.exports = definition;
@@ -225,7 +225,7 @@ const definition = {
     model: 'combo',
     vendor: 'undefined',
     description: 'Automatically generated definition',
-    extend: [philipsLight({colorTemp:{range:[100,500]},color:{enhancedHue:true}})],
+    extend: [philipsLight({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
 };
 
 module.exports = definition;
