@@ -1,5 +1,16 @@
 # Changelog
 
+## [17.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.18.0...v17.0.0) (2023-12-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ignore:** Extend definition generator ([#6760](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6760))
+
+### Features
+
+* **ignore:** Extend definition generator ([#6760](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6760)) ([12e159a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/12e159a64823dd899f4d0953a0782bb52f68da65))
+
 ## [16.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.17.0...v16.18.0) (2023-12-25)
 
 
