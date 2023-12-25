@@ -4,33 +4,12 @@ import * as common from './common';
 import {Logger, Zh, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
 import fs from 'fs';
-import path from 'path';
 
 let overrideIndexFileName: string = null;
-let dataDir: string = null;
 
 /**
  * Helper functions
  */
-
-async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
-    let urlOrName = image.url;
-
-    // First try to download firmware file with the URL provided
-    if (common.isValidUrl(urlOrName)) {
-        logger.debug(`JetHomeOTA: downloading firmware image from ${urlOrName}`);
-        return await axios.get(urlOrName, {responseType: 'arraybuffer'});
-    }
-
-    logger.debug(`JetHomeOTA: call readLocalFile`);
-    // If the file name is not a full path, then treat it as a relative to the data directory
-    if (!path.isAbsolute(urlOrName) && dataDir) {
-        urlOrName = path.join(dataDir, urlOrName);
-    }
-
-    logger.debug(`JetHomeOTA: getting local firmware file ${urlOrName}`);
-    return {data: fs.readFileSync(urlOrName)};
-}
 
 async function getIndex(logger: Logger, modelId: string) {
     if (overrideIndexFileName) {
@@ -76,18 +55,14 @@ export async function isUpdateAvailable(device: Zh.Device, logger: Logger, reque
 }
 
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
+    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, common.getFirmwareFile);
 }
 
 export const useIndexOverride = (indexFileName: string) => {
     overrideIndexFileName = indexFileName;
-};
-export const setDataDir = (dir: string) => {
-    dataDir = dir;
 };
 
 exports.getImageMeta = getImageMeta;
 exports.isUpdateAvailable = isUpdateAvailable;
 exports.updateToLatest = updateToLatest;
 exports.useIndexOverride = useIndexOverride;
-exports.setDataDir = setDataDir;

@@ -5,7 +5,10 @@ import assert from 'assert';
 import crc32 from 'buffer-crc32';
 import axios from 'axios';
 import * as URI from 'uri-js';
+import fs from 'fs';
+import path from 'path';
 import {Zcl} from 'zigbee-herdsman';
+let dataDir: string = null;
 const maxTimeout = 2147483647; // +- 24 days
 const imageBlockResponseDelay = 250;
 const endRequestCodeLookup: KeyValueNumberString = {
@@ -40,6 +43,16 @@ const eblImageSignature = 0xe350;
 const gblTagHeader = 0xeb17a603;
 const gblTagEnd = 0xfc0404fc;
 
+
+/**
+ * Helper functions
+ */
+
+
+export const setDataDir = (dir: string) => {
+    dataDir = dir;
+};
+
 export function isValidUrl(url: string) {
     let parsed;
     try {
@@ -49,6 +62,34 @@ export function isValidUrl(url: string) {
     }
     return parsed.scheme === 'http' || parsed.scheme === 'https';
 }
+
+export function readLocalFile(fileName: string, logger: Logger) {
+    // If the file name is not a full path, then treat it as a relative to the data directory
+    if (!path.isAbsolute(fileName) && dataDir) {
+        fileName = path.join(dataDir, fileName);
+    }
+
+    logger.debug(`OTA: getting local firmware file ${fileName}`);
+    return fs.readFileSync(fileName);
+}
+
+export async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
+    const urlOrName = image.url;
+
+    // First try to download firmware file with the URL provided
+    if (isValidUrl(urlOrName)) {
+        logger.debug(`OTA: downloading firmware image from ${urlOrName}`);
+        return await axios.get(urlOrName, {responseType: 'arraybuffer'});
+    }
+
+    logger.debug(`OTA: Try to read firmware image from local file ${urlOrName}`);
+    return {data: readLocalFile(urlOrName, logger)};
+}
+
+
+/**
+ * OTA functions
+ */
 
 function getOTAEndpoint(device: Zh.Device) {
     return device.endpoints.find((e) => e.supportsOutputCluster('genOta'));
@@ -558,3 +599,6 @@ exports.updateToLatest = updateToLatest;
 exports.getNewImage = getNewImage;
 exports.getAxios = getAxios;
 exports.isValidUrl = isValidUrl;
+exports.setDataDir = setDataDir;
+exports.getFirmwareFile = getFirmwareFile;
+exports.readLocalFile = readLocalFile;
