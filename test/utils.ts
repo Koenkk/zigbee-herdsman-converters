@@ -4,28 +4,34 @@ import {Zh, Logger, DefinitionMeta, Fz, Definition} from '../src/lib/types';
 import tz from '../src/converters/toZigbee';
 import { Device } from 'zigbee-herdsman/dist/controller/model';
 
+interface MockEndpointArgs {ID?: number, inputClusters?: string[], outputClusters?: string[], attributes?: {[s: string]: {[s: string]: unknown}}}
+
 export function reportingItem(attribute: string, min: number, max: number, change: number | [number, number]) {
     return {attribute: attribute, minimumReportInterval: min, maximumReportInterval: max, reportableChange: change};
 }
 
-export function mockDevice(args: {modelID: string, endpoints: {ID?: number, inputClusters?: string[], outputClusters?: string[]}[]}): Zh.Device {
+export function mockDevice(args: {modelID: string, manufacturerID?: number, endpoints: MockEndpointArgs[]}): Zh.Device {
     const ieeeAddr = '0x12345678';
-    const endpoints = args.endpoints.map((endpoint) => mockEndpoint(endpoint));
-    return {
+    const device: Zh.Device = {
         // @ts-expect-error
         constructor: {name: 'Device'},
         ieeeAddr,
         ...args,
-        getEndpoint: (ID: number) => {
-            const endpoint = endpoints.find((e) => e.ID === ID);
-            if (!endpoint) throw new Error(`No endpoint ${ID}`);
-            return endpoint;
-        },
-        endpoints,
     };
+
+    const endpoints = args.endpoints.map((e) => mockEndpoint(e, device));
+    // @ts-expect-error
+    device.endpoints = endpoints;
+    device.getEndpoint = (ID: number) => {
+        const endpoint = endpoints.find((e) => e.ID === ID);
+        if (!endpoint) throw new Error(`No endpoint ${ID}`);
+        return endpoint;
+    };
+    return device;
 }
 
-function mockEndpoint(args?: {ID?: number, inputClusters?: string[], outputClusters?: string[]}): Zh.Endpoint {
+function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh.Endpoint {
+    const attributes = args.attributes ?? {};
     return {
         ID: args?.ID ?? 1,
         // @ts-expect-error
@@ -33,12 +39,13 @@ function mockEndpoint(args?: {ID?: number, inputClusters?: string[], outputClust
         bind: jest.fn(),
         configureReporting: jest.fn(),
         read: jest.fn(),
+        getDevice: () => device,
         getInputClusters: jest.fn().mockReturnValue(args?.inputClusters?.map((name) => ({name}))),
         getOutputClusters: jest.fn().mockReturnValue(args?.outputClusters?.map((name) => ({name}))),
         supportsInputCluster: jest.fn().mockImplementation((cluster) => args?.inputClusters?.includes(cluster)),
-        saveClusterAttributeKeyValue: jest.fn(),
+        saveClusterAttributeKeyValue: jest.fn().mockImplementation((cluster, values) => attributes[cluster] = {...attributes[cluster], ...values}),
         save: jest.fn(),
-        getClusterAttributeValue: jest.fn(),
+        getClusterAttributeValue: jest.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),
     };
 }
 
@@ -59,20 +66,12 @@ export type AssertDefinitionArgs = {
     read: {[s: number]: [string, string[]][]},
     configureReporting: {[s: number]: [string, ReturnType<typeof reportingItem>[]][]},
     endpoints?: {[s: string]: number},
-    findByDeviceFn?: (device: Device) => Definition,
+    findByDeviceFn?: (device: Device) => Promise<Definition>,
 }
 export async function assertDefintion(args: AssertDefinitionArgs) {
     args.findByDeviceFn = args.findByDeviceFn ?? findByDevice
-    const coordinatorEndpoint = mockEndpoint();
-    const definition = args.findByDeviceFn(args.device);
-
-    for (const endpoint of args.device.endpoints) {
-        const attributes = {}
-        // @ts-expect-error
-        endpoint.saveClusterAttributeKeyValue.mockImplementation((cluster, values) => attributes[cluster] = {...attributes[cluster], ...values});
-        // @ts-expect-error
-        endpoint.getClusterAttributeValue.mockImplementation((cluster, attribute) => attributes[cluster][attribute]);
-    }
+    const coordinatorEndpoint = mockEndpoint({}, undefined);
+    const definition = await args.findByDeviceFn(args.device);
 
     await definition.configure?.(args.device, coordinatorEndpoint, MockLogger);
 

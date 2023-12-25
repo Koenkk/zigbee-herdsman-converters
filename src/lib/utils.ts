@@ -445,6 +445,14 @@ export function validateValue(value: unknown, allowed: unknown[]) {
     }
 }
 
+export async function getClusterAttributeValue<T>(endpoint: Zh.Endpoint, cluster: string, attribute: string): Promise<T> {
+    if (endpoint.getClusterAttributeValue(cluster, attribute) == null) {
+        await endpoint.read(cluster, [attribute]);
+    }
+
+    return endpoint.getClusterAttributeValue(cluster, attribute) as T;
+}
+
 export function normalizeCelsiusVersionOfFahrenheit(value: number) {
     const fahrenheit = (value * 1.8) + 32;
     const roundedFahrenheit = Number((Math.round(Number((fahrenheit * 2).toFixed(1))) / 2).toFixed(1));
@@ -544,7 +552,7 @@ export function isString(value: unknown): value is string {
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
     property = property ? `'${property}'` : 'Value';
-    if (typeof value !== 'number' || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
+    if (typeof value !== 'number' || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value?.toString()})`);
 }
 
 export function toNumber(value: unknown, property?: string): number {

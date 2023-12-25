@@ -119,7 +119,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
 }
 
 type MultiplierDivisor = {multiplier?: number, divisor?: number}
-interface ElectricityMeterArgs {
+export interface ElectricityMeterArgs {
     cluster?: 'both' | 'metering' | 'electrical',
     current?: false | MultiplierDivisor,
     power?: false | MultiplierDivisor,

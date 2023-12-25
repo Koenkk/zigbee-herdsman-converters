@@ -27,7 +27,7 @@ describe('index.js', () => {
         expect(() => utils.toNumber('')).toThrowError('Value is not a number, got string ()');
     });
 
-    it('Find by device where modelID is null', () => {
+    it('Find by device where modelID is null', async () => {
         const endpoints = [
             {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
             {ID: 232, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
@@ -40,11 +40,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe('XBee');
     });
 
-    it('Find by device shouldn\'t match when modelID is null and there is no fingerprint match', () => {
+    it('Find by device shouldn\'t match when modelID is null and there is no fingerprint match', async () => {
         const endpoints = [
             {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},
         ];
@@ -56,11 +56,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition).toBeNull();
     });
 
-    it('Find by device should generate for unknown', () => {
+    it('Find by device should generate for unknown', async () => {
         const endpoints = [
             {
                 ID: 1, profileID: undefined, deviceID: undefined,
@@ -80,10 +80,10 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device, true);
+        const definition = await index.findByDevice(device, true);
         expect(definition.model).toBe('test_generate');
         expect(definition.vendor).toBe('');
-        expect(definition.description).toBe('Generated from device information');
+        expect(definition.description).toBe('Automatically generated definition');
         expect(definition.extend).toBeUndefined();
         expect(definition.fromZigbee).toHaveLength(0);
         expect(definition.toZigbee).toHaveLength(11);
@@ -91,7 +91,7 @@ describe('index.js', () => {
         expect(definition.options).toHaveLength(0);
     });
 
-    it('Find by device when device has modelID should match', () => {
+    it('Find by device when device has modelID should match', async () => {
         const endpoints = [
             {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},
         ];
@@ -103,11 +103,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe("RTCGQ01LM");
     });
 
-    it('Find by fingerprint with priority', () => {
+    it('Find by fingerprint with priority', async () => {
         const HG06338 = {
             type: 'Router',
             manufacturerName: '_TZ3000_vzopcetz',
@@ -126,12 +126,12 @@ describe('index.js', () => {
             modelID: 'TS011F',
             applicationVersion: 1,
         };
-        expect(index.findByDevice(HG06338).model).toBe('HG06338');
-        expect(index.findByDevice(TS011F_plug_3).model).toBe('TS011F_plug_3');
-        expect(index.findByDevice(TS011F_plug_1).model).toBe('TS011F_plug_1');
+        expect((await index.findByDevice(HG06338)).model).toBe('HG06338');
+        expect((await index.findByDevice(TS011F_plug_3)).model).toBe('TS011F_plug_3');
+        expect((await index.findByDevice(TS011F_plug_1)).model).toBe('TS011F_plug_1');
     });
 
-    it('Find by device should prefer fingerprint match over zigbeeModel', () => {
+    it('Find by device should prefer fingerprint match over zigbeeModel', async () => {
         const mullerEndpoints = [
             {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
             {ID: 242, profileID: 41440, deviceID: 102, inputClusters: [33], outputClusters: [33]},
@@ -157,11 +157,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => null,
         };
 
-        expect(index.findByDevice(sunricher).model).toBe('ZG192910-4');
-        expect(index.findByDevice(muller).model).toBe('404031');
+        expect((await index.findByDevice(sunricher)).model).toBe('ZG192910-4');
+        expect((await index.findByDevice(muller)).model).toBe('404031');
     });
 
-    it('Find by device when fingerprint has zigbeeModel of other definition', () => {
+    it('Find by device when fingerprint has zigbeeModel of other definition', async () => {
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
         const endpoints = [
             {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0,3,1280,1], outputClusters: [3]},
@@ -176,11 +176,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe("SNZB-04");
     });
 
-    it('Find by device when fingerprint has zigbeeModel of other definition shouldn\'t match when fingerprint doesn\t match', () => {
+    it('Find by device when fingerprint has zigbeeModel of other definition shouldn\'t match when fingerprint doesn\t match', async () => {
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
         const endpoints = [
             {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0,3,1026,1029,1], outputClusters: [3]},
@@ -195,7 +195,7 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe("SNZB-02");
     });
 
@@ -347,9 +347,9 @@ describe('index.js', () => {
         expect(device.model).toBe(mockDevice.model);
     });
 
-    it('Verify addDefinition overwrite existing', () => {
+    it('Verify addDefinition overwrite existing', async () => {
         const device = {type: 'Router', modelID: 'lumi.light.aqcn02'};
-        expect(index.findByDevice(device).vendor).toBe('Xiaomi');
+        expect((await index.findByDevice(device)).vendor).toBe('Xiaomi');
 
         const overwriteDefinition = {
             model: 'mock-model',
@@ -361,7 +361,7 @@ describe('index.js', () => {
             exposes: []
         };
         index.addDefinition(overwriteDefinition);
-        expect(index.findByDevice(device).vendor).toBe('other-vendor');
+        expect((await index.findByDevice(device)).vendor).toBe('other-vendor');
     });
 
     it('Exposes light with endpoint', () => {
@@ -459,7 +459,7 @@ describe('index.js', () => {
         });
     });
 
-    it('Find by fingerprint - whitelabel', () => {
+    it('Find by fingerprint - whitelabel', async () => {
         const HG06492B = {
             type: 'Router',
             manufacturerName: '_TZ3000_oborybow',
@@ -473,12 +473,12 @@ describe('index.js', () => {
             endpoints: [],
         };
 
-        const HG06492B_match = index.findByDevice(HG06492B)
+        const HG06492B_match = await index.findByDevice(HG06492B)
         expect(HG06492B_match.model).toBe('HG06492B');
         expect(HG06492B_match.description).toBe('Livarno Lux E14 candle CCT');
         expect(HG06492B_match.vendor).toBe('Lidl');
 
-        const TS0502A_match = index.findByDevice(TS0502A)
+        const TS0502A_match = await index.findByDevice(TS0502A)
         expect(TS0502A_match.model).toBe('TS0502A');
         expect(TS0502A_match.description).toBe('Light controller');
         expect(TS0502A_match.vendor).toBe('TuYa');

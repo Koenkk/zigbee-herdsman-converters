@@ -4,6 +4,9 @@
 Collection of device converters to be used with zigbee-herdsman.
 
 ## Breaking changes
+17.0.0
+- Various methods in `index.ts` are now async and return a `Promise`
+
 15.0.0
 - OTA `isUpdateAvailable` now returns an object instead of a boolean (e.g. `{available: true, currentFileVersion: 120, otaFileVersion: 125}`)
 - OTA `updateToLatest` now returns a number (`fileVersion` of the new OTA) instead of a void
