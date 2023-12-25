@@ -11,7 +11,7 @@ import * as globalStore from '../lib/store';
 import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueNumberString, KeyValueString} from '../lib/types';
+import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
 import {electricityMeter, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
@@ -3202,19 +3202,9 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, null,
-                    {
-                        from: (v) => {
-                            utils.assertNumber(v, 'system_mode');
-                            const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
-                            const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
-                            return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
-                        },
-                    },
-                ],
-                [1, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(1), 'off': tuya.enum(2), 'heat': tuya.enum(3)})],
-                [1, 'preset', tuya.valueConverterBasic.lookup(
-                    {'auto': tuya.enum(0), 'manual': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)})],
+                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
                 [4, 'boost_heating', tuya.valueConverter.onOff],
@@ -3272,19 +3262,9 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, null,
-                    {
-                        from: (v) => {
-                            utils.assertNumber(v, 'system_mode');
-                            const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
-                            const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
-                            return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
-                        },
-                    },
-                ],
-                [1, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(1), 'off': tuya.enum(2), 'heat': tuya.enum(3)})],
-                [1, 'preset', tuya.valueConverterBasic.lookup(
-                    {'auto': tuya.enum(0), 'manual': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)})],
+                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
                 [6, 'running_state', tuya.valueConverterBasic.lookup({'heat': 1, 'idle': 0})],
