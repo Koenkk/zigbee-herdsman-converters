@@ -5097,7 +5097,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_pay2byax']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_pay2byax', '_TZE200_ijey4q29']),
         model: 'ZG-102ZL',
         vendor: 'TuYa',
         description: 'Luminance door sensor',
@@ -5264,8 +5264,8 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: '1 channel dimmer',
         whiteLabel: [
-            {vendor: 'RTX', model: 'QS-Zigbee-D02-TRIAC-LN'},
             tuya.whitelabel('Lonsonho', 'QS-Zigbee-D02-TRIAC-L_1', '1 channel dimmer', ['_TZ3210_weaqkhab']),
+            tuya.whitelabel('Lonsonho', 'QS-Zigbee-D02-TRIAC-LN_1', '1 channel dimmer', ['_TZ3210_ngqk6jia']),
         ],
         fromZigbee: [fzLocal.TS110E, fzLocal.TS110E_light_type, tuya.fz.power_on_behavior_1, fz.on_off],
         toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],

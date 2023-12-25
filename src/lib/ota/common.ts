@@ -4,6 +4,7 @@ import {Zh, Ota, Logger, KeyValueAny, KeyValue, KeyValueNumberString} from '../t
 import assert from 'assert';
 import crc32 from 'buffer-crc32';
 import axios from 'axios';
+import {Zcl} from 'zigbee-herdsman';
 const maxTimeout = 2147483647; // +- 24 days
 const imageBlockResponseDelay = 250;
 const endRequestCodeLookup: KeyValueNumberString = {
@@ -329,6 +330,13 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
             // (https://github.com/Koenkk/zigbee-herdsman-converters/issues/6657)
             if ( request.payload.manufacturerCode == 4742 && request.payload.imageType == 8199 ) {
                 imageBlockOrPageRequestTimeoutMs = 3600000;
+            }
+
+            // Bosch transmits the firmware updates in the background in their native implementation.
+            // According to the app, this can take up to 2 days. Therefore, we assume to get at least
+            // one package request per hour from the device here.
+            if (request.payload.manufacturerCode == Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH) {
+                imageBlockOrPageRequestTimeoutMs = 60 * 60 * 1000;
             }
 
             const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, imageBlockOrPageRequestTimeoutMs);

@@ -1,5 +1,34 @@
 # Changelog
 
+## [16.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.17.0...v16.18.0) (2023-12-25)
+
+
+### Features
+
+* **ignore:** Prepare merging TuYa datapoints to modernExtend ([#6733](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6733)) ([8f9e954](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8f9e954506791a951d5789e41a9d06838b126da9))
+* Improvements and fixes for Bosch BTH-RA ([#6761](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6761)) ([47412c4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/47412c46cd83d019ed23f679fdeb852abadbcfc6))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_ngqk6jia` as Lonsonho QS-Zigbee-D02-TRIAC-LN_1 https://github.com/Koenkk/zigbee2mqtt/issues/20361 ([53fe338](https://github.com/Koenkk/zigbee-herdsman-converters/commit/53fe338ac097f2a02961b9f2765dc639da750aad))
+* **detect:** Detect `_TZE200_ijey4q29` as TuYa ZG-102ZL ([#6767](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6767)) ([387deaa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/387deaac511c07cb08da88ffbbed0bafb8efcd32))
+* Fix colour glitches for Lidl HG06467  ([#6765](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6765)) ([0a382df](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0a382dffcee0e1513c2d0a5aa4f1320ae25b3847))
+* **ignore:** update dependencies ([#6763](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6763)) ([3b8c681](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3b8c6819ef037872f9e1a73cf502616f97cca8fb))
+
+## [16.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.16.0...v16.17.0) (2023-12-23)
+
+
+### Features
+
+* **add:** 929003575501 ([#6758](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6758)) ([08e1f8d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/08e1f8d6ffad7abc991805c957675b92cead8e66))
+
+
+### Bug Fixes
+
+* Fix `Value '2' is not allowed` error for TuYa TV02-Zigbee https://github.com/Koenkk/zigbee-herdsman-converters/issues/6755 ([1757241](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1757241e8ea3b557c22aa45746a5f7a5278a61f3))
+* Fix Ubisys H10 vacation_mode after firmware upgrade ([#6754](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6754)) ([cd26e33](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cd26e33826bb5e29e01f571e48cd467e1b40014c))
+
 ## [16.16.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.15.1...v16.16.0) (2023-12-22)
 
 
