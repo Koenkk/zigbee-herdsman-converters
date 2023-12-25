@@ -423,11 +423,10 @@ const fzLocal = {
     humidity10: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const humidity = parseFloat(msg.data['measuredValue']) / 10.0;
             if (humidity >= 0 && humidity <= 100) {
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+                return {humidity};
             }
         },
     } satisfies Fz.Converter,

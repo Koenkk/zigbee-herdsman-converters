@@ -1236,17 +1236,6 @@ const tuyaFz = {
     datapoints: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
-        options: (definition) => {
-            const result = [];
-            for (const datapoint of definition.meta.tuyaDatapoints) {
-                const dpKey = datapoint[1];
-                if (dpKey in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
-                    const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(dpKey) ? 'percentual' : 'absolute';
-                    result.push(exposes.options.precision(dpKey), exposes.options.calibration(dpKey, type));
-                }
-            }
-            return result;
-        },
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (!model.meta || !model.meta.tuyaDatapoints) throw new Error('No datapoints map defined');
@@ -1264,15 +1253,6 @@ const tuyaFz = {
                 } else {
                     meta.logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' ` +
                         `with value ${value}`);
-                }
-            }
-
-            // Apply calibrateAndPrecisionRoundOptions
-            const keys = Object.keys(utils.calibrateAndPrecisionRoundOptionsDefaultPrecision);
-            for (const entry of Object.entries(result)) {
-                if (keys.includes(entry[0])) {
-                    const number = utils.toNumber(entry[1], entry[0]);
-                    result[entry[0]] = utils.calibrateAndPrecisionRoundOptions(number, options, entry[0]);
                 }
             }
             return result;
@@ -1405,24 +1385,10 @@ function getHandlersForDP(name: string, dp: number, type: number, converter: Tuy
     const fromZigbee: Fz.Converter[] = [{
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
-        options: (definition) => {
-            const result = [];
-            if (name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
-                const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(name) ? 'percentual' : 'absolute';
-                result.push(exposes.options.precision(name), exposes.options.calibration(name, type));
-            }
-            return result;
-        },
         convert: (model, msg, publish, options, meta) => {
             const dpValue = msg.data.dpValues.find((d: Tuya.DpValue) => d.dp === dp);
             if (dpValue) {
-                const value = converter.from(getDataValue(dpValue));
-                const result = {[keyName]: value};
-                if (name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
-                    const valueNumber = utils.toNumber(value, keyName);
-                    result[keyName] = utils.calibrateAndPrecisionRoundOptions(valueNumber, options, keyName);
-                }
-                return result;
+                return {[keyName]: converter.from(getDataValue(dpValue))};
             }
         },
     }];

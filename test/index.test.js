@@ -568,10 +568,22 @@ describe('index.js', () => {
         }
     });
 
-    it('Check TuYa tuya.fz.datapoints calibration/precision options', () => {
+    it('Calibration/precision', () => {
         const TS0601_soil = index.definitions.find((d) => d.model == 'TS0601_soil');
-        expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(
-            ['temperature_precision', 'temperature_calibration']);
+        expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(['temperature_precision', 'temperature_calibration']);
+        let payload = {temperature: 1.193};
+        let options = {temperature_calibration: 2.5, temperature_precision: 1};
+        index.postProcessFromZigbeeMessage(TS0601_soil, payload, options);
+        expect(payload).toStrictEqual({temperature: 3.7});
+
+        // For multi endpoint property
+        const SPP04G = index.findByModel('SPP04G');
+        expect(SPP04G.options.map((t) => t.name)).toStrictEqual(['power_precision', 'power_calibration', 'current_precision', 'current_calibration',
+            'voltage_precision', 'voltage_calibration', 'energy_precision', 'energy_calibration', 'state_action']);
+        payload = {power_left: 5.31};
+        options = {power_calibration: 100, power_precision: 0}; // calibration for power is percentual
+        index.postProcessFromZigbeeMessage(SPP04G, payload, options);
+        expect(payload).toStrictEqual({power_left: 10});
     });
 
     it('Check getFromLookup', () => {
