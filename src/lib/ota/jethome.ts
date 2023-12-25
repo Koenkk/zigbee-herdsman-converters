@@ -1,7 +1,7 @@
 const baseurl = 'https://fw.jethome.ru';
 const deviceurl = baseurl + '/api/devices/';
 import * as common from './common';
-import {Logger, Zh, Ota, KeyValueAny} from '../types';
+import {Logger, Zh, Ota} from '../types';
 const axios = common.getAxios();
 import fs from 'fs';
 
