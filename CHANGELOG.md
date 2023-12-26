@@ -1,5 +1,15 @@
 # Changelog
 
+## [17.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v17.0.0...v17.1.0) (2023-12-26)
+
+
+### Features
+
+* **add:** TRV602 ([#6766](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6766)) ([c4dedf1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c4dedf14530cfe96159f4f7b2718d37c4ae1edfd))
+* Expose `illuminance_lux` for IKEA E2134 ([#6770](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6770)) ([3b3f41b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3b3f41bd8ad7fd8f9e465a80857b471933096a57))
+* Support battery and lock in definition generator https://github.com/Koenkk/zigbee2mqtt/issues/20383 ([d7f5dad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d7f5dad746b682cd59bcdb7d8f3e239c53824eb5))
+* Support JetHome OTA for WS7 ([#6575](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6575)) ([a768618](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a7686185f41f09471a7c5a1ef23c6d161da64058))
+
 ## [17.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v16.18.0...v17.0.0) (2023-12-25)
 
 
