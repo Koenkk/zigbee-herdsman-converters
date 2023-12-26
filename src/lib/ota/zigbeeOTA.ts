@@ -3,60 +3,25 @@ import * as common from './common';
 import {Logger, Zh, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
 import fs from 'fs';
-import * as URI from 'uri-js';
-import path from 'path';
 
 let overrideIndexFileName: string = null;
-let dataDir: string = null;
 
 /**
  * Helper functions
  */
 
 
-function isValidUrl(url: string) {
-    let parsed;
-    try {
-        parsed = URI.parse(url);
-    } catch (_) {
-        return false;
-    }
-    return parsed.scheme === 'http' || parsed.scheme === 'https';
-}
-
 async function getIndexFile(urlOrName: string) {
-    if (isValidUrl(urlOrName)) {
+    if (common.isValidUrl(urlOrName)) {
         return (await axios.get(urlOrName)).data;
     }
 
     return JSON.parse(fs.readFileSync(urlOrName, 'utf-8'));
 }
 
-function readLocalFile(fileName: string, logger: Logger) {
-    // If the file name is not a full path, then treat it as a relative to the data directory
-    if (!path.isAbsolute(fileName) && dataDir) {
-        fileName = path.join(dataDir, fileName);
-    }
-
-    logger.debug(`ZigbeeOTA: getting local firmware file ${fileName}`);
-    return fs.readFileSync(fileName);
-}
-
-async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
-    const urlOrName = image.url;
-
-    // First try to download firmware file with the URL provided
-    if (isValidUrl(urlOrName)) {
-        logger.debug(`ZigbeeOTA: downloading firmware image from ${urlOrName}`);
-        return await axios.get(urlOrName, {responseType: 'arraybuffer'});
-    }
-
-    return {data: readLocalFile(urlOrName, logger)};
-}
-
 function fillImageInfo(meta: KeyValueAny, logger: Logger) {
     // Web-hosted images must come with all fields filled already
-    if (isValidUrl(meta.url)) {
+    if (common.isValidUrl(meta.url)) {
         return meta;
     }
 
@@ -68,7 +33,7 @@ function fillImageInfo(meta: KeyValueAny, logger: Logger) {
     }
 
     // If no fields provided - get them from the image file
-    const buffer = readLocalFile(meta.url, logger);
+    const buffer = common.readLocalFile(meta.url, logger);
     const start = buffer.indexOf(common.upgradeFileIdentifier);
     const image = common.parseImage(buffer.slice(start));
 
@@ -89,7 +54,7 @@ async function getIndex(logger: Logger) {
         const localIndex = await getIndexFile(overrideIndexFileName);
 
         // Resulting index will have overridden items first
-        return localIndex.concat(index).map((item: KeyValueAny) => isValidUrl(item.url) ? item : fillImageInfo(item, logger));
+        return localIndex.concat(index).map((item: KeyValueAny) => common.isValidUrl(item.url) ? item : fillImageInfo(item, logger));
     }
 
     return index;
@@ -146,18 +111,14 @@ export async function isUpdateAvailable(device: Zh.Device, logger: Logger, reque
 }
 
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
+    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, common.getFirmwareFile);
 }
 
 export const useIndexOverride = (indexFileName: string) => {
     overrideIndexFileName = indexFileName;
-};
-export const setDataDir = (dir: string) => {
-    dataDir = dir;
 };
 
 exports.getImageMeta = getImageMeta;
 exports.isUpdateAvailable = isUpdateAvailable;
 exports.updateToLatest = updateToLatest;
 exports.useIndexOverride = useIndexOverride;
-exports.setDataDir = setDataDir;

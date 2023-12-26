@@ -6,6 +6,7 @@ import * as securifi from './securifi';
 import * as tradfri from './tradfri';
 import * as ubisys from './ubisys';
 import * as zigbeeOTA from './zigbeeOTA';
+import * as jethome from './jethome';
 import {Ota} from '../types';
 
 export {
@@ -17,7 +18,7 @@ export {
     tradfri,
     ubisys,
     zigbeeOTA,
+    jethome,
 };
 
 export type ImageInfo = Ota.ImageInfo;
-
