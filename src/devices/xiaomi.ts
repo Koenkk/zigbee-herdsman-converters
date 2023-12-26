@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import {
     light, numeric, binary, enumLookup, forceDeviceType,
-    temperature, humidity,
+    temperature, humidity, forcePowerSource,
 } from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -1797,6 +1797,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
         meta: {multiEndpoint: true},
+        extend: [forceDeviceType({type: 'Router'}), forcePowerSource({powerSource: 'Mains (single phase)'})],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
