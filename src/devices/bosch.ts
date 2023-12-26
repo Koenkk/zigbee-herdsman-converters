@@ -235,7 +235,7 @@ const tzLocal = {
             'device_mode',
             'switch_type',
             'child_lock',
-            'calibration_closing_time', 'calibration_opening_time',
+            'calibration', 'calibration_closing_time', 'calibration_opening_time',
             'state',
         ],
         convertSet: async (entity, key, value, meta) => {
@@ -547,10 +547,10 @@ const fzLocal = {
             const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty('device_mode')) {
-                result.device_mode = Object.keys(stateDeviceMode).find(key => stateDeviceMode[key] === msg.data['device_mode']);
+                result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data['device_mode']);
             }
             if (data.hasOwnProperty('switch_type')) {
-                result.switch_type = Object.keys(stateSwitchType).find(key => stateSwitchType[key] === msg.data['switch_type']);
+                result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data['switch_type']);
             }
             if (data.hasOwnProperty('calibration_opening_time')) {
                 result.calibration_opening_time = msg.data['calibration_opening_time']/10;
@@ -563,7 +563,7 @@ const fzLocal = {
                 result[property] = msg.data['child_lock'] === 1 ? 'ON' : 'OFF';
             }
             if (data.hasOwnProperty('motor_state')) {
-                result.motor_state = Object.keys(stateMotor).find(key => stateMotor[key] === msg.data['motor_state']);
+                result.motor_state = Object.keys(stateMotor).find((key) => stateMotor[key] === msg.data['motor_state']);
             }
             return result;
         },
@@ -1300,7 +1300,8 @@ const definitions: Definition[] = [
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'closuresWindowCovering', 'manuSpecificBosch10']);
             await reporting.currentPositionLiftPercentage(endpoint1);
-            await endpoint1.read('manuSpecificBosch10', ['device_mode', 'switch_type', 'calibration_opening_time', 'calibration_closing_time', 'child_lock', 'motor_state']);
+            await endpoint1.read('manuSpecificBosch10', ['device_mode', 'switch_type',
+                'calibration_opening_time', 'calibration_closing_time', 'child_lock', 'motor_state']);
             const endpoint2 = device.getEndpoint(2);
             await endpoint2.read('manuSpecificBosch10', ['child_lock']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
@@ -1311,13 +1312,9 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint3);
         },
         options: [
-            e.enum('device_mode', ea.STATE_SET, Object.keys(stateDeviceMode).filter(key => key !== 'not configured'))
-            .withDescription('Device mode'),],
+            e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode).filter((key) => key !== 'not configured'))
+                .withDescription('Device mode')],
         exposes: (device, options) => {
-            const deviceModeExpose =
-                e.enum('device_mode', ea.STATE_GET, Object.keys(stateDeviceMode))
-                    .withDescription('Device mode');
-
             const lightExposes = [
                 e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
                     .withDescription('Module controlled by a rocker switch or a button'),
@@ -1341,16 +1338,17 @@ const definitions: Definition[] = [
                     .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
             ];
 
-            const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue('manuSpecificBosch10', 'device_mode');
-            const deviceMode = options.device_mode ?? Object.keys(stateDeviceMode).find(key => stateDeviceMode[key] === deviceModeKey);
-
-            if (deviceMode ==='light') {
-                return [deviceModeExpose, ...lightExposes];
-            } else if (deviceMode ==='shutter') {
-                return [deviceModeExpose, ...coverExposes];
+            if (options?.device_mode ==='light') {
+                return [...lightExposes, e.linkquality()];
+            } else if (options?.device_mode ==='shutter') {
+                return [...coverExposes, e.linkquality()];
             }
-            deviceModeExpose.access = ea.ALL;
-            return [deviceModeExpose, ...lightExposes, ...coverExposes];
+
+            // Setting ea.ALL is required to pass all tests (because OnOff has convertGet())
+            coverExposes[0].setAccess('state', ea.ALL);
+
+            return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'),
+                ...lightExposes, ...coverExposes, e.linkquality()];
         },
     },
     {
