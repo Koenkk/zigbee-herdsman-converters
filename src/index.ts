@@ -224,7 +224,7 @@ function prepareDefinition(definition: Definition): Definition {
     return definition
 }
 
-export function postProcessFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue) {
+export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue) {
     // Apply calibration/precision options
     for (const [key, value] of Object.entries(payload)) {
         const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null);
