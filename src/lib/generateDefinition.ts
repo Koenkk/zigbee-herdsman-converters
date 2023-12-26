@@ -1,7 +1,7 @@
 import {Cluster} from 'zigbee-herdsman/dist/zcl/tstype';
 import {Definition, ModernExtend, Zh} from './types';
 import {getClusterAttributeValue} from './utils';
-import {temperature, pressure, humidity, identify, onOff, light, LightArgs, electricityMeter, ElectricityMeterArgs} from './modernExtend';
+import * as m from './modernExtend';
 import * as zh from 'zigbee-herdsman/dist';
 import {philipsLight} from './philips';
 
@@ -69,16 +69,23 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
 }
 
 const inputExtenders: Extender[] = [
-    [['msTemperatureMeasurement'], async (endpoint) => [{extend: temperature(), source: 'temperature()'}]],
-    [['msPressureMeasurement'], async (endpoint) => [{extend: pressure(), source: 'pressure()'}]],
-    [['msRelativeHumidity'], async (endpoint) => [{extend: humidity(), source: 'humidity()'}]],
+    [['msTemperatureMeasurement'], async (endpoint) => [{extend: m.temperature(), source: 'temperature()'}]],
+    [['msPressureMeasurement'], async (endpoint) => [{extend: m.pressure(), source: 'pressure()'}]],
+    [['msRelativeHumidity'], async (endpoint) => [{extend: m.humidity(), source: 'humidity()'}]],
+    [['genPowerCfg'], async (endpoint) => [{extend: m.batteryPercentage(), source: 'batteryPercentage()'}]],
     [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],
+    [['closuresDoorLock'], extenderLock],
 ];
 
 const outputExtenders: Extender[] = [
-    [['genIdentify'], async (endpoint) => [{extend: identify(), source: 'identify()'}]],
+    [['genIdentify'], async (endpoint) => [{extend: m.identify(), source: 'identify()'}]],
 ];
+
+async function extenderLock(endpoint: Zh.Endpoint): Promise<GeneratedExtend[]> {
+    const pinCodeCount = await getClusterAttributeValue<number>(endpoint, 'closuresDoorLock', 'numOfPinUsersSupported');
+    return [{extend: m.lock({pinCodeCount}), source: `lock({pinCodeCount: ${pinCodeCount}})`}];
+}
 
 async function extenderOnOffLight(endpoint: Zh.Endpoint): Promise<GeneratedExtend[]> {
     if (endpoint.supportsInputCluster('lightingColorCtrl')) {
@@ -87,7 +94,7 @@ async function extenderOnOffLight(endpoint: Zh.Endpoint): Promise<GeneratedExten
         const supportsEnhancedHueSaturation = (colorCapabilities & 1<<1) > 0;
         const supportsColorXY = (colorCapabilities & 1<<3) > 0;
         const supportsColorTemperature = (colorCapabilities & 1<<4) > 0;
-        const args: LightArgs = {};
+        const args: m.LightArgs = {};
 
         if (supportsColorTemperature) {
             const minColorTemp = await getClusterAttributeValue<number>(endpoint, 'lightingColorCtrl', 'colorTempPhysicalMin');
@@ -108,21 +115,21 @@ async function extenderOnOffLight(endpoint: Zh.Endpoint): Promise<GeneratedExten
         if (endpoint.getDevice().manufacturerID === zh.Zcl.ManufacturerCode.Philips) {
             return [{extend: philipsLight(args), source: `philipsLight(${argsStr})`, lib: 'philips'}];
         } else {
-            return [{extend: light(args), source: `light(${argsStr})`}];
+            return [{extend: m.light(args), source: `light(${argsStr})`}];
         }
     } else {
-        return [{extend: onOff({powerOnBehavior: false}), source: 'onOff({powerOnBehavior: false})'}];
+        return [{extend: m.onOff({powerOnBehavior: false}), source: 'onOff({powerOnBehavior: false})'}];
     }
 }
 
 async function extenderElectricityMeter(endpoint: Zh.Endpoint): Promise<GeneratedExtend[]> {
     const metering = endpoint.supportsInputCluster('seMetering');
     const electricalMeasurements = endpoint.supportsInputCluster('haElectricalMeasurement');
-    const args: ElectricityMeterArgs = {};
+    const args: m.ElectricityMeterArgs = {};
     if (!metering || !electricalMeasurements) {
         args.cluster = metering ? 'metering' : 'electrical';
     }
     const argsStr = Object.keys(args).length ? JSON.stringify(args) : '';
-    return [{extend: electricityMeter(args), source: `electricityMeter(${argsStr})`}];
+    return [{extend: m.electricityMeter(args), source: `electricityMeter(${argsStr})`}];
 }
 
