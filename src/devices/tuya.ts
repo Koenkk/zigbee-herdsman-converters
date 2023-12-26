@@ -11,7 +11,7 @@ import * as globalStore from '../lib/store';
 import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueNumberString, KeyValueString} from '../lib/types';
+import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
 import {electricityMeter, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
@@ -2816,9 +2816,9 @@ const definitions: Definition[] = [
             e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Set the motor direction'),
             e.numeric('motor_speed', ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription('Motor speed').withUnit('rpm'),
             e.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
-            e.enum('set_upper_limit', ea.STATE_SET, ['SET']).withDescription('Set the upper limit, to reset limits use factory_reset'),
-            e.enum('set_bottom_limit', ea.STATE_SET, ['SET']).withDescription('Set the bottom limit, to reset limits use factory_reset'),
-            e.binary('factory_reset', ea.STATE_SET, true, false).withDescription('Factory reset the device'),
+            e.enum('set_upper_limit', ea.SET, ['SET']).withDescription('Set the upper limit, to reset limits use factory_reset'),
+            e.enum('set_bottom_limit', ea.SET, ['SET']).withDescription('Set the bottom limit, to reset limits use factory_reset'),
+            e.binary('factory_reset', ea.SET, true, false).withDescription('Factory reset the device'),
         ],
         whiteLabel: [
             tuya.whitelabel('Moes', 'AM43-0.45/40-ES-EB', 'Roller blind/shades drive motor', ['_TZE200_zah67ekd']),
@@ -3165,7 +3165,6 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_a4bpgplm'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_dv8abrrz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_z1tyspqw'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_rtrmfadk'},
         ],
         model: 'TS0601_thermostat_1',
         vendor: 'TuYa',
@@ -3202,19 +3201,9 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, null,
-                    {
-                        from: (v) => {
-                            utils.assertNumber(v, 'system_mode');
-                            const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
-                            const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
-                            return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
-                        },
-                    },
-                ],
-                [1, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(1), 'off': tuya.enum(2), 'heat': tuya.enum(3)})],
-                [1, 'preset', tuya.valueConverterBasic.lookup(
-                    {'auto': tuya.enum(0), 'manual': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)})],
+                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
                 [4, 'boost_heating', tuya.valueConverter.onOff],
@@ -3236,6 +3225,68 @@ const definitions: Definition[] = [
                 [23, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [101, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
                 [102, 'position', tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_rtrmfadk'},
+        ],
+        model: 'TRV602',
+        vendor: 'TuYa',
+        description: 'Thermostatic radiator valve.',
+        onEvent: tuya.onEventSetLocalTime,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.battery(), e.child_lock(), e.max_temperature(), e.min_temperature(),
+            e.position(), e.window_detection(),
+            e.binary('window', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status closed or open '),
+            e.binary('alarm_switch', ea.STATE, 'ON', 'OFF').withDescription('Thermostat in error state'),
+            e.climate()
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                .withPreset(['auto', 'manual', 'off', 'on'],
+                    'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. ' +
+                    'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
+                    'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
+                    'ON - In this mode, the thermostat stays open ' +
+                    'OFF - In this mode, the thermostat stays closed')
+                .withSystemMode(['auto', 'heat', 'off'], ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            e.enum('display_brightness', ea.STATE_SET, ['high', 'medium', 'low']).withDescription('Display brightness'),
+            e.enum('screen_orientation', ea.STATE_SET, ['up', 'right', 'down', 'left']).withDescription('Screen orientation'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset],
+                [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [3, 'local_temperature', tuya.valueConverter.divideBy10],
+                [6, 'running_state', tuya.valueConverterBasic.lookup({'heat': 1, 'idle': 0})],
+                [7, 'window', tuya.valueConverterBasic.lookup({'OPEN': 1, 'CLOSE': 0})],
+                [8, 'window_detection', tuya.valueConverter.onOff],
+                [12, 'child_lock', tuya.valueConverter.lockUnlock],
+                [13, 'battery', tuya.valueConverter.raw],
+                [14, 'alarm_switch', tuya.valueConverter.onOff],
+                [15, 'min_temperature', tuya.valueConverter.divideBy10],
+                [16, 'max_temperature', tuya.valueConverter.divideBy10],
+                [17, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [18, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [19, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [20, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [21, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [22, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [23, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [101, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [108, 'position', tuya.valueConverter.divideBy10],
+                [111, 'display_brightness', tuya.valueConverterBasic.lookup({'high': tuya.enum(0), 'medium': tuya.enum(1), 'low': tuya.enum(2)})],
+                [113, 'screen_orientation', tuya.valueConverterBasic.lookup({
+                    'up': tuya.enum(0), 'right': tuya.enum(1), 'down': tuya.enum(2), 'left': tuya.enum(3),
+                })],
             ],
         },
     },

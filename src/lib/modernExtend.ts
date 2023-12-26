@@ -327,6 +327,23 @@ export function light(args?: LightArgs): ModernExtend {
     return result;
 }
 
+export interface LockArgs {pinCodeCount: number}
+export function lock(args?: LockArgs): ModernExtend {
+    args = {...args};
+
+    const fromZigbee = [fz.lock, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response,
+        fz.lock_user_status_response];
+    const toZigbee = [tz.lock, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume];
+    const exposes = [e.lock(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
+        e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume()];
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        await setupAttributes(device, coordinatorEndpoint, 'closuresDoorLock', [{attribute: 'lockState', min: 0, max: '1_HOUR', change: 0}], logger);
+    };
+    const meta: DefinitionMeta = {pinCodeCount: args.pinCodeCount};
+
+    return {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
+}
+
 export interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, endpoint?: string,
@@ -548,8 +565,20 @@ export function humidity(args?: Partial<NumericArgs>) {
         description: 'Measured relative humidity',
         unit: '%',
         scale: 100,
-        valueMin: 0,
-        valueMax: 100,
+        readOnly: true,
+        ...args,
+    });
+}
+
+export function batteryPercentage(args?: Partial<NumericArgs>) {
+    return numeric({
+        name: 'battery',
+        cluster: 'genPowerCfg',
+        attribute: 'batteryPercentageRemaining',
+        reporting: {min: '1_HOUR', max: 'MAX', change: 10},
+        description: 'Remaining battery in %',
+        unit: '%',
+        scale: 2,
         readOnly: true,
         ...args,
     });

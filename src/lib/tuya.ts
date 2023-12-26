@@ -5,7 +5,7 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import extend from './extend';
-import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range} from './types';
+import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString} from './types';
 // import {Color} from './color';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -827,6 +827,14 @@ export const valueConverter = {
             },
         };
     },
+    thermostatSystemModeAndPreset: {
+        from: (v: string) => {
+            utils.assertNumber(v, 'system_mode');
+            const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
+            const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
+            return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
+        },
+    },
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
             const programmingMode = [];
@@ -1063,7 +1071,8 @@ const tuyaTz = {
             'medium_motion_detection_sensitivity', 'small_detection_distance', 'small_detection_sensitivity', 'switch_type',
             'ph_max', 'ph_min', 'ec_max', 'ec_min', 'orp_max', 'orp_min', 'free_chlorine_max', 'free_chlorine_min', 'target_distance',
             'illuminance_treshold_max', 'illuminance_treshold_min', 'presence_illuminance_switch', 'light_switch', 'light_linkage',
-            'indicator_light', 'find_switch', 'detection_method', 'sensor', 'hysteresis', 'max_temperature_protection',
+            'indicator_light', 'find_switch', 'detection_method', 'sensor', 'hysteresis', 'max_temperature_protection', 'display_brightness',
+            'screen_orientation',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop

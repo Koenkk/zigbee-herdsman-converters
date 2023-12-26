@@ -29,7 +29,8 @@ const definitions: Definition[] = [
         model: 'BASICZBR3',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch',
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
+        // configureReporting fails for this device
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
     },
     {
         zigbeeModel: ['ZBMINI-L'],

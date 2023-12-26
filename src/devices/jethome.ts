@@ -32,7 +32,7 @@ const definitions: Definition[] = [
         description: '3-ch battery discrete input module',
         fromZigbee: [fz.battery, jetHome.fz.multiStateAction],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        ota: ota.jethome,
         exposes: [
             e.battery(), e.battery_voltage(), e.action(
                 ['release_in1', 'single_in1', 'double_in1', 'hold_in1',

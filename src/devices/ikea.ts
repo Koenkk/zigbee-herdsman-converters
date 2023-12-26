@@ -1226,7 +1226,7 @@ const definitions: Definition[] = [
         description: 'VALLHORN wireless motion sensor',
         fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery(), e.illuminance()],
+        exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux()],
         configure: async (device, cordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
