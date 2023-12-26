@@ -2817,9 +2817,9 @@ const definitions: Definition[] = [
             e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Set the motor direction'),
             e.numeric('motor_speed', ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription('Motor speed').withUnit('rpm'),
             e.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
-            e.enum('set_upper_limit', ea.STATE_SET, ['SET']).withDescription('Set the upper limit, to reset limits use factory_reset'),
-            e.enum('set_bottom_limit', ea.STATE_SET, ['SET']).withDescription('Set the bottom limit, to reset limits use factory_reset'),
-            e.binary('factory_reset', ea.STATE_SET, true, false).withDescription('Factory reset the device'),
+            e.enum('set_upper_limit', ea.SET, ['SET']).withDescription('Set the upper limit, to reset limits use factory_reset'),
+            e.enum('set_bottom_limit', ea.SET, ['SET']).withDescription('Set the bottom limit, to reset limits use factory_reset'),
+            e.binary('factory_reset', ea.SET, true, false).withDescription('Factory reset the device'),
         ],
         whiteLabel: [
             tuya.whitelabel('Moes', 'AM43-0.45/40-ES-EB', 'Roller blind/shades drive motor', ['_TZE200_zah67ekd']),
