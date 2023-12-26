@@ -1,5 +1,24 @@
 # Changelog
 
+## [18.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v17.1.1...v18.0.0) (2023-12-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* Improve consistency of calibrate and precision round options ([#6769](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6769))
+
+### Features
+
+* Improve consistency of calibrate and precision round options ([#6769](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6769)) ([204ee90](https://github.com/Koenkk/zigbee-herdsman-converters/commit/204ee901a06953d43762f75b9973c0ab4c9cdc0d))
+
+
+### Bug Fixes
+
+* Fix power source/type for Xiaomi QBKG20LM https://github.com/Koenkk/zigbee2mqtt/issues/20384 ([340228b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/340228b79c44bbac22475bea298ef86039968395))
+* Fix set upper/bottom limit expose for TuYa TS0601_cover_4 https://github.com/Koenkk/zigbee2mqtt/issues/19690 ([bb4a44f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bb4a44f46181cb561661e0de206edb3463571e7c))
+* **ignore:** Fix configure for SONOFF BASICZBR3 failing ([4e5f3ec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4e5f3ec6a016d67fcc637f772bbfde7e488253e1))
+* Support OTA for TuYa TS110E_1gang_2 [@mrmaximas](https://github.com/mrmaximas) https://github.com/Koenkk/zigbee2mqtt/issues/18702 ([0ad15d9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0ad15d9f58a7d75e9611b9531401243dcc052f9d))
+
 ## [17.1.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v17.1.0...v17.1.1) (2023-12-26)
 
 
