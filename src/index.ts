@@ -6,7 +6,8 @@ import fromZigbee from './converters/fromZigbee';
 import assert from 'assert';
 import * as ota from './lib/ota';
 import allDefinitions from './devices';
-import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult } from './lib/types';
+import * as utils from './lib/utils';
+import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue } from './lib/types';
 import {generateDefinition} from './lib/generateDefinition';
 
 export {
@@ -190,8 +191,24 @@ function prepareDefinition(definition: Definition): Definition {
 
     validateDefinition(definition);
 
+    // Add all the options
     if (!definition.options) definition.options = [];
     const optionKeys = definition.options.map((o) => o.name);
+
+    // Add calibration/precision options based on expose
+    for (const expose of Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null)) {
+        if (!optionKeys.includes(expose.name) && utils.isNumericExposeFeature(expose) && expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
+            // Battery voltage is not calibratable
+            if (expose.name === 'voltage' && expose.unit === 'mV') continue;
+            const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? 'percentual' : 'absolute';
+            definition.options.push(exposes.options.calibration(expose.name, type));
+            if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
+                definition.options.push(exposes.options.precision(expose.name));
+            }
+            optionKeys.push(expose.name);
+        }
+    }
+
     for (const converter of [...definition.toZigbee, ...definition.fromZigbee]) {
         if (converter.options) {
             const options = typeof converter.options === 'function' ? converter.options(definition) : converter.options;
@@ -205,6 +222,17 @@ function prepareDefinition(definition: Definition): Definition {
     }
 
     return definition
+}
+
+export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue) {
+    // Apply calibration/precision options
+    for (const [key, value] of Object.entries(payload)) {
+        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null);
+        const expose = definitionExposes.find((e) => e.property === key);
+        if (expose?.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision && utils.isNumber(value)) {
+            payload[key] = utils.calibrateAndPrecisionRoundOptions(value, options, expose.name);
+        }
+    }
 }
 
 export function addDefinition(definition: Definition) {

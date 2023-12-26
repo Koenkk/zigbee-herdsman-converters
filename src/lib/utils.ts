@@ -1,6 +1,7 @@
 import * as globalStore from './store';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
+import {Feature, Numeric} from './exposes';
 
 export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
@@ -78,7 +79,8 @@ export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, I
 
 export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
     temperature: 2, humidity: 2, pressure: 1, pm25: 0, power: 2, current: 2, current_phase_b: 2, current_phase_c: 2,
-    voltage: 2, voltage_phase_b: 2, voltage_phase_c: 2, power_phase_b: 2, power_phase_c: 2, energy: 2,
+    voltage: 2, voltage_phase_b: 2, voltage_phase_c: 2, power_phase_b: 2, power_phase_c: 2, energy: 2, device_temperature: 0,
+    soil_moisture: 2, co2: 0, illuminance: 0, illuminance_lux: 0, voc: 0, formaldehyd: 0, co: 0,
 };
 export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
     return type.startsWith('current') || type.startsWith('energy') || type.startsWith('voltage') || type.startsWith('power') ||
@@ -608,6 +610,10 @@ export function isDevice(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Dev
 
 export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Group {
     return obj.constructor.name.toLowerCase() === 'group';
+}
+
+export function isNumericExposeFeature(feature: Feature): feature is Numeric {
+    return feature?.type === 'numeric';
 }
 
 exports.noOccupancySince = noOccupancySince;

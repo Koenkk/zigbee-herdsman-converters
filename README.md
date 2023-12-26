@@ -4,6 +4,9 @@
 Collection of device converters to be used with zigbee-herdsman.
 
 ## Breaking changes
+18.0.0
+- After converting a message with a fromZigbee converter, `postProcessConvertedFromZigbeeMessage` should be called now (for applying calibration/precision)
+
 17.0.0
 - Various methods in `index.ts` are now async and return a `Promise`
 

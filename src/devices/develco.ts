@@ -134,7 +134,6 @@ const develco = {
         voc: {
             cluster: 'develcoSpecificAirQuality',
             type: ['attributeReport', 'readResponse'],
-            options: [exposes.options.precision('voc'), exposes.options.calibration('voc')],
             convert: (model, msg, publish, options, meta) => {
                 // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
                 // "The mean molar mass of this mixture is 110 g/mol and hence,
@@ -162,7 +161,7 @@ const develco = {
                 } else {
                     airQuality = 'unknown';
                 }
-                return {[vocProperty]: utils.calibrateAndPrecisionRoundOptions(voc, options, 'voc'), [airQualityProperty]: airQuality};
+                return {[vocProperty]: voc, [airQualityProperty]: airQuality};
             },
         } satisfies Fz.Converter,
         voc_battery: {
