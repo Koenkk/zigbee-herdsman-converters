@@ -1,6 +1,7 @@
 import * as globalStore from './store';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
+import {Feature, Numeric} from './exposes';
 
 export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
@@ -609,6 +610,10 @@ export function isDevice(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Dev
 
 export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Group {
     return obj.constructor.name.toLowerCase() === 'group';
+}
+
+export function isNumericExposeFeature(feature: Feature): feature is Numeric {
+    return feature?.type === 'numeric';
 }
 
 exports.noOccupancySince = noOccupancySince;

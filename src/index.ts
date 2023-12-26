@@ -197,9 +197,14 @@ function prepareDefinition(definition: Definition): Definition {
 
     // Add calibration/precision options based on expose
     for (const expose of Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null)) {
-        if (!optionKeys.includes(expose.name) && expose.type === 'numeric' && expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
+        if (!optionKeys.includes(expose.name) && utils.isNumericExposeFeature(expose) && expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
+            // Battery voltage is not calibratable
+            if (expose.name === 'voltage' && expose.unit === 'mV') continue;
             const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? 'percentual' : 'absolute';
-            definition.options.push(exposes.options.precision(expose.name), exposes.options.calibration(expose.name, type));
+            definition.options.push(exposes.options.calibration(expose.name, type));
+            if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
+                definition.options.push(exposes.options.precision(expose.name));
+            }
             optionKeys.push(expose.name);
         }
     }
