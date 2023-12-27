@@ -949,6 +949,18 @@ const definitions: Definition[] = [
                 valueStep: 0.5, // device seems to step in 0.5 ºC - XXX: does this need to be 0.5 or 50 given the scale ?
                 unit: 'ºC',
             }),
+            numeric({
+                name: 'occupied_heating_setpoint_default',
+                cluster: 'hvacThermostat',
+                attribute: 'ubisysDefaultOccupiedHeatingSetpoint',
+                description: 'Specifies the default heating setpoint during occupancy, ' +
+                    'representing the targeted temperature when a recurring weekly schedule ends without a follow-up schedule.',
+                scale: 100,
+                valueStep: 0.5, // device seems to step in 0.5 ºC - XXX: does this need to be 0.5 or 50 given the scale ?
+                valueMin: 7,
+                valueMax: 30,
+                unit: 'ºC',
+            }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
