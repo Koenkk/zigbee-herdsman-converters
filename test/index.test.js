@@ -441,7 +441,7 @@ describe('index.js', () => {
 
                 for (const expose of toCheck) {
                     let property = expose.property;
-                    if (expose.endpoint && expose.property.length > expose.endpoint.length) {
+                    if (expose.endpoint && property && property.length > expose.endpoint.length) {
                         property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
                     }
 
