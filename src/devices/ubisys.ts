@@ -961,6 +961,16 @@ const definitions: Definition[] = [
                 valueMax: 30,
                 unit: 'ºC',
             }),
+            numeric({
+                name: 'remote_temperature',
+                cluster: 'hvacThermostat',
+                attribute: 'ubisysRemoteTemperature',
+                description: 'Indicates the remotely measured temperature value, accessible through attribute reports. ' +
+                    'For heating regulation, a received remote temperature value, as long as valid, takes precedence over the locally measured one.',
+                scale: 100,
+                unit: 'ºC',
+                readOnly: true,
+            }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
