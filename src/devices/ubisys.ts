@@ -971,6 +971,14 @@ const definitions: Definition[] = [
                 unit: 'ºC',
                 readOnly: true,
             }),
+            numeric({
+                name: 'remote_temperature_duration',
+                cluster: 'hvacThermostat',
+                attribute: 'ubisysRemoteTemperatureValidDuration',
+                description: 'Specifies the duration period in seconds, during which a remotely measured temperature value ' +
+                    'remains valid since its reception as attribute report.',
+                unit: 's',
+            }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
