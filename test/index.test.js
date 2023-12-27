@@ -432,16 +432,16 @@ describe('index.js', () => {
                 const toCheck = [];
                 const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
                 for (const expose of expss) {
-                    if (expose.hasOwnProperty('access')) {
+                    if (expose.access !== undefined) {
                         toCheck.push(expose)
                     } else if (expose.features) {
-                        toCheck.push(...expose.features.filter(e => e.hasOwnProperty('access')));
+                        toCheck.push(...expose.features.filter(e => e.access !== undefined));
                     }
                 }
 
                 for (const expose of toCheck) {
                     let property = expose.property;
-                    if (expose.endpoint && property && property.length > expose.endpoint.length) {
+                    if (expose.endpoint && expose.property.length > expose.endpoint.length) {
                         property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
                     }
 

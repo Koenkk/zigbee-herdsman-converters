@@ -37,7 +37,7 @@ export class Base {
     }
 
     withAccess(a: number) {
-        assert(this.hasOwnProperty('access'), 'Cannot add access if not defined yet');
+        assert(this.access !== undefined, 'Cannot add access if not defined yet');
         this.access = a;
         return this;
     }
