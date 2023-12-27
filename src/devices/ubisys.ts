@@ -8,6 +8,7 @@ import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
+import {numeric} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -937,6 +938,17 @@ const definitions: Definition[] = [
                 .withWeeklySchedule(['heat']),
             e.binary('vacation_mode', ea.ALL, true, false)
                 .withDescription('When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.'),
+        ],
+        extend: [
+            numeric({
+                name: 'local_temperature_offset',
+                cluster: 'hvacThermostat',
+                attribute: 'ubisysTemperatureOffset',
+                description: 'Specifies the temperature offset for the locally measured temperature value.',
+                scale: 100,
+                valueStep: 0.5, // device seems to step in 0.5 ºC - XXX: does this need to be 0.5 or 50 given the scale ?
+                unit: 'ºC',
+            }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
