@@ -36,7 +36,9 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-export function onEvent(args?: {queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000', respondToMcuVersionResponse?: boolean}): OnEvent {
+export function onEvent(args?: {
+    queryOnDeviceAnnounce?: boolean, timeStart?: '1970' | '2000', respondToMcuVersionResponse?: boolean, queryIntervalSeconds?: number
+}): OnEvent {
     return async (type, data, device, settings, state) => {
         args = {queryOnDeviceAnnounce: false, timeStart: '1970', respondToMcuVersionResponse: true, ...args};
 
@@ -76,6 +78,24 @@ export function onEvent(args?: {queryOnDeviceAnnounce?: boolean, timeStart?: '19
         // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
         if (args.queryOnDeviceAnnounce && type === 'deviceAnnounce') {
             await endpoint.command('manuSpecificTuya', 'dataQuery', {});
+        }
+
+        if (args.queryIntervalSeconds) {
+            if (type === 'stop') {
+                clearTimeout(globalStore.getValue(device, 'query_interval'));
+                globalStore.clearValue(device, 'query_interval');
+            } else if (!globalStore.hasValue(device, 'query_interval')) {
+                const setTimer = () => {
+                    const timer = setTimeout(async () => {
+                        try {
+                            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
+                        } catch (error) {/* Do nothing*/}
+                        setTimer();
+                    }, args.queryIntervalSeconds * 1000);
+                    globalStore.putValue(device, 'query_interval', timer);
+                };
+                setTimer();
+            }
         }
     };
 }

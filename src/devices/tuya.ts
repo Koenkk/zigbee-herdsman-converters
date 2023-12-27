@@ -6976,7 +6976,8 @@ const definitions: Definition[] = [
         description: 'Smart WiFi Zigbee chlorine meter',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true}),
+        // Query every 10 minutes, otherwise values don't update https://github.com/Koenkk/zigbee2mqtt/issues/18704
+        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true, queryIntervalSeconds: 10 * 60}),
         configure: tuya.configureMagicPacket,
         exposes: [
             e.numeric('tds', ea.STATE).withUnit('ppm').withDescription('Total Dissolved Solids'),
