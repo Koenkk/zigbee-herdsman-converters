@@ -2318,8 +2318,8 @@ const definitions: Definition[] = [
             e.numeric('gas_density', ea.STATE), e.enum('selftest', ea.SET, ['']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.powerSource = 'Battery';
-            device.type = 'EndDevice';
+            device.powerSource = 'Mains (single phase)';
+            device.type = 'Router';
             device.save();
         },
     },
