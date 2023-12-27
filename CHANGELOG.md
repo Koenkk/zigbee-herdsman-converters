@@ -1,5 +1,17 @@
 # Changelog
 
+## [18.0.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.0.0...v18.0.1) (2023-12-27)
+
+
+### Bug Fixes
+
+* Fix TuYa BLE-YL01 values not updating https://github.com/Koenkk/zigbee2mqtt/issues/18704 ([b4918d5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b4918d5028bb810e8bdd1375904d4c6356e7dc9a))
+* **ignore:** fix b27dced8a30875494a4beaa41cceb3bdef7e74f2 ([5bb113c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5bb113c282739febf7f08ec8dca62c213b13c985))
+* **ignore:** Fix unit of ShinaSystem GCM-300Z exposes ([#6776](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6776)) ([39b31cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/39b31cc7f1fb95c7141be7e3e076a0bffaf6852c))
+* **ignore:** Update precision option description ([7f5aa25](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7f5aa253985f6e95323486c792aab724bdca1139))
+* **ignore:** Update tsconfig for Node 18 ([b27dced](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b27dced8a30875494a4beaa41cceb3bdef7e74f2))
+* Update LED2103G5 description https://github.com/Koenkk/zigbee2mqtt/issues/20402 ([c23c72e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c23c72eec516b7855cf1a638b35784bc9a81571e))
+
 ## [18.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v17.1.1...v18.0.0) (2023-12-26)
 
 
