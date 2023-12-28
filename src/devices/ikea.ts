@@ -777,7 +777,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI ON/OFF switch',
         fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff, fz.command_move,
-            fzLocal.battery, legacy.fz.E1743_brightness_up, legacy.fz.E1743_brightness_down, fz.command_stop,
+            fz.battery, legacy.fz.E1743_brightness_up, legacy.fz.E1743_brightness_down, fz.command_stop,
             legacy.fz.E1743_brightness_stop],
         exposes: [
             e.battery().withAccess(ea.STATE_GET),
