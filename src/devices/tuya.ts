@@ -2026,7 +2026,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_3zofvcaa'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_3zofvcaa', '_TZ3000_pvlvoxvt']),
         model: 'TS011F_2_gang_2_usb_wall',
         vendor: 'TuYa',
         description: '2 gang 2 usb wall outlet',
