@@ -11,7 +11,7 @@ import {Tz, Fz, Definition, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH};
+export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH};
 
 const sirenVolume = {
     'low': 0x01,
@@ -104,7 +104,7 @@ const setpointSource = {
 };
 
 // Radiator Thermostat II
-const adaptationStatus = {
+export const adaptationStatus = {
     'none': 0,
     'ready_to_calibrate': 1,
     'calibration_in_progress': 2,
@@ -955,7 +955,7 @@ const definitions: Definition[] = [
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
-        ota: ota.zigbeeOTA,
+        ota: ota.bosch,
         fromZigbee: [
             fz.thermostat,
             fz.battery,
