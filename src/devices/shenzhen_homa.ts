@@ -1,9 +1,5 @@
 import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import extend from '../lib/extend';
 import {light, onOff} from '../lib/modernExtend';
-
-const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
@@ -17,12 +13,7 @@ const definitions: Definition[] = [
         model: 'HOMA1001_RGBW',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver RGBW',
-        extend: extend.light_onoff_brightness_color(),
-        exposes: [e.light_brightness().withEndpoint('white'), e.light_brightness_colorxy().withEndpoint('rgb')],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {white: 10, rgb: 11};
-        },
+        extend: [light({endpoints: {white: 10, rgb: 11}, color: true})],
     },
     {
         fingerprint: [
