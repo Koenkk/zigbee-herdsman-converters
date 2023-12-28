@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import {forcePowerSource, light} from 'src/lib/modernExtend';
+import {forcePowerSource, light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
