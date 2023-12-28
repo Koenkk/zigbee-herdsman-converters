@@ -17,7 +17,7 @@ project.getSourceFiles().forEach((sourceFile) => {
 
     let changed = true;
     let save = false;
-    const type = 'onOff';
+    const type = 'gledoptoLight';
     while (changed) {
         changed = false;
         const definitions = sourceFile.getVariableStatementOrThrow('definitions').getDescendantsOfKind(SyntaxKind.ObjectLiteralExpression);
@@ -27,22 +27,20 @@ project.getSourceFiles().forEach((sourceFile) => {
             const childs = definition.getChildrenOfKind(SyntaxKind.PropertyAssignment);
             const model = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'model');
             const extend = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'extend');
-            const exposes = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'exposes');
-            const configure = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'configure');
+            // const exposes = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'exposes');
+            // const configure = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'configure');
             const fromZigbee = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'fromZigbee');
             const toZigbee = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'toZigbee');
             const meta = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'meta');
-            const endpoint = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'endpoint');
+            // const endpoint = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'endpoint');
 
             // const ota = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'ota');
 
-            if (extend?.getFullText().includes('extend: extend.switch()') &&
-                !fromZigbee && !toZigbee && exposes && endpoint) {
-                exposes?.remove();
+            if (extend?.getFullText().includes('gledoptoExtend.light_onoff') && !fromZigbee && !toZigbee) {
                 console.log(`Handling ${model?.getFullText().trim()}`);
-                const newOpts: {[s: string]: unknown} = {endpoints: eval(`(${endpoint.getFullText().split('return ')[1].split(';')[0]})`)};
-                configure?.remove();
-                endpoint?.remove();
+                const newOpts: {[s: string]: unknown} = {}; // {endpoints: eval(`(${endpoint.getFullText().split('return ')[1].split(';')[0]})`)};
+                // configure?.remove();
+                // endpoint?.remove();
                 const extendFeatures = extend.getFullText().split('(')[0].split('_');
                 if (extendFeatures.includes('colortemp')) {
                     newOpts.colorTemp = {range: null};
