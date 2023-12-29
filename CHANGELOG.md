@@ -1,5 +1,23 @@
 # Changelog
 
+## [18.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.0.2...v18.1.0) (2023-12-29)
+
+
+### Features
+
+* **add:** YRM476 https://github.com/Koenkk/zigbee2mqtt/issues/20383 ([4013a89](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4013a898a980e6b22a2db0ae0248cbbf84433268))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_lmlsduws` as TuYa TS0002_switch_module [@asfyra](https://github.com/asfyra) https://github.com/Koenkk/zigbee2mqtt/issues/19670 ([c3555af](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c3555af2c37c8b1c142c23d8b287abc0f13bdb99))
+* **detect:** Detect `_TZ3000_pvlvoxvt` as TuYa TS011F_2_gang_2_usb_wall ([#6781](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6781)) ([b819271](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b8192713b4c0cc1c2a50191cf4a8b3c04fd2ddec))
+* **detect:** Detect `_TZE204_yojqa8xn` as TuYa TS0601_gas_sensor_2 ([#6783](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6783)) ([7de9f08](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7de9f08996d1874f33ccf72782d6c7505c7e7f3d))
+* **detect:** Detect `TRADFRI bulb E26 WW globe 800lm` as IKEA LED2103G5 https://github.com/Koenkk/zigbee2mqtt/issues/20400 ([29dbbfb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/29dbbfbd8e1dce93005cc6e62774d6e6cc37da09))
+* Disable unsupported `power_on_behavior` for various Dawon DNS devices ([#6784](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6784)) ([d3632de](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d3632de52891e06aaf7720f2a10ae58f51a261a7))
+* Fix IKEA E1743 battery percentage multiplied by two https://github.com/Koenkk/zigbee2mqtt/issues/20299 ([597599e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/597599e7e41d3b882ca01e9834b4e2a5acba2d2d))
+* **ignore:** more fixes for b27dced8a30875494a4beaa41cceb3bdef7e74f2 ([00d8e75](https://github.com/Koenkk/zigbee-herdsman-converters/commit/00d8e75973a440da369f5da81bfca33e398221a2))
+
 ## [18.0.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.0.1...v18.0.2) (2023-12-27)
 
 
