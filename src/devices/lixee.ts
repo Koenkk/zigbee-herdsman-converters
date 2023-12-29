@@ -204,7 +204,7 @@ const fzLocal = {
                         // relais6 Storage or injection
                         // relais7 Unassigned
                         // relais8 Unassigned
-                        for (var i = 0; i < 8; i++) {
+                        for (let i = 0; i < 8; i++) {
                             result[at_snake + (i+1)] = (val & (1<<i)) >>> i;
                         }
                         break;
