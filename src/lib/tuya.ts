@@ -855,6 +855,66 @@ export const valueConverter = {
             return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
         },
     },
+    ZWT07_schedule: {
+         from: (value, meta, options) => {
+            const programmingMode = [];
+            for (let i = 0; i < 8; i++) {
+                const start = i * 4;
+                const time = value[start].toString().padStart(2, '0') + ':' + value[start + 1].toString().padStart(2, '0');
+                const temp = (value[start + 2] * 256 + value[start + 3]) / 10;
+                const tempStr = temp.toFixed(1) + '°C';
+                programmingMode.push(time + '/' + tempStr);
+            }
+            meta.state['schedule_weekday']=programmingMode.slice(0, 6).join(' ');
+            meta.state['schedule_weekend']=programmingMode.slice(6, 8).join(' ');
+            return;
+        },
+        to: async (value, meta) => {
+            const payload = [];
+            let schedule_weekday;
+            let schedule_weekend;
+            if (meta.message.hasOwnProperty('schedule_weekday')) {
+                schedule_weekday = value;
+                schedule_weekend = meta.state['schedule_weekend'];
+            }
+            else {
+                schedule_weekday = meta.state['schedule_weekday'];
+                schedule_weekend = value;
+            }
+
+            function scheduleToRaw(key, input, number, payload, meta) {
+                const items = input.trim().split(/\s+/);
+                if (items.length != number) {
+                    throw new Error('Wrong number of items for ' + key + ' :' + items.length);
+                }
+                else {
+                    for (let i = 0; i < number; i++) {
+                        const timeTemperature = items[i].split('/');
+                        if (timeTemperature.length != 2) {
+                            throw new Error('Invalid schedule: wrong transition format: ' + items[i]);
+                        }
+                        const hourMinute = timeTemperature[0].split(':', 2);
+                        const hour = parseInt(hourMinute[0]);
+                        const minute = parseInt(hourMinute[1]);
+                        const temperature = parseFloat(timeTemperature[1]);
+                        if (!utils.isNumber(hour) || !utils.isNumber(temperature) || !utils.isNumber(minute) ||
+                            hour < 0 || hour >= 24 ||
+                            minute < 0 || minute >= 60 ||
+                            temperature < 5 || temperature >= 35) {
+                            throw new Error('Invalid hour, minute or temperature (5<t<35) in ' + key + ' of: `' +
+                                items[i] + '`; Format is `hh:m/cc.c` or `hh:mm/cc.c°C`');
+                        }
+                        const temperature10 = Math.round(temperature * 10);
+                        payload.push(hour, minute, (temperature10 >> 8) & 0xFF, temperature10 & 0xFF);
+                    }
+                }
+                return;
+            }
+            scheduleToRaw('schedule_weekday', schedule_weekday, 6, payload, meta);
+            scheduleToRaw('schedule_weekend', schedule_weekend, 2, payload, meta);
+            return payload;
+        },
+    },
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
             const programmingMode = [];
@@ -1072,7 +1132,7 @@ const tuyaTz = {
             'countdown', 'light_type', 'silence', 'self_test', 'child_lock', 'open_window', 'open_window_temperature', 'frost_protection',
             'system_mode', 'heating_stop', 'current_heating_setpoint', 'local_temperature_calibration', 'preset', 'boost_timeset_countdown',
             'holiday_start_stop', 'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'working_day',
-            'week_schedule_programming', 'online', 'holiday_mode_date', 'schedule', 'schedule_monday', 'schedule_tuesday',
+            'week_schedule_programming', 'online', 'holiday_mode_date', 'schedule', 'schedule_weekend', 'schedule_monday', 'schedule_tuesday',
             'schedule_wednesday', 'schedule_thursday', 'schedule_friday', 'schedule_saturday', 'schedule_sunday', 'clear_fault',
             'scale_protection', 'error', 'radar_scene', 'radar_sensitivity', 'tumble_alarm_time', 'tumble_switch', 'fall_sensitivity',
             'min_temperature', 'max_temperature', 'window_detection', 'boost_heating', 'alarm_ringtone', 'alarm_time', 'fan_speed',

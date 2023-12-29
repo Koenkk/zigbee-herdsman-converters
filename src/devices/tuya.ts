@@ -4229,22 +4229,41 @@ const definitions: Definition[] = [
         description: 'Wall-mount thermostat',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent({timeStart: '1970'}),
+        onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
+            tuya.exposes.frostProtection(),
+            e.battery(),
+            e.child_lock(),
+            e.text('schedule_weekday', ea.STATE_SET).withDescription('Workdays (6 times `hh:mm/cc.c`)'),
+            e.text('schedule_weekend', ea.STATE_SET).withDescription('weekend (2 times `hh:mm/cc.c)`'),
+            e.enum('working_day', ea.STATE_SET, ['5/2', '6/1', '7/0']).withDescription('Workday setting'),
+            e.climate().withSetpoint('current_heating_setpoint', 5, 50, 0.5, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(['manual', 'program'])
-                .withLocalTemperature(),
-            e.binary('frost', ea.STATE_SET, 'ON', 'OFF').withDescription('Antifreeze function')],
+                .withLocalTemperature()
+                .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, 'system_mode', tuya.valueConverterBasic.lookup({'heat': true, 'off': false})],
                 [2, 'preset', tuya.valueConverterBasic.lookup({'manual': tuya.enum(1), 'program': tuya.enum(0)})],
-                [36, 'running_state', tuya.valueConverterBasic.lookup({'heat': 1, 'idle': 0})],
+                [9, 'battery', tuya.valueConverter.raw],
+                [10, 'frost_protection', tuya.valueConverter.onOff],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [18, 'min_temp_limit', tuya.valueConverter.divideBy10 ], // WIP
+                [19, 'max_heat_setpoint_limit', tuya.valueConverter.divideBy10], // WIP
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
-                [10, 'frost', tuya.valueConverter.onOff],
+                [31, 'working_day', tuya.valueConverterBasic.lookup({'5/2': tuya.enum(0), '6/1': tuya.enum(1),
+                    '7/0': tuya.enum(2)})],
+                [36, 'running_state', tuya.valueConverterBasic.lookup({'heat': 1, 'idle': 0})],
+                [40, 'child_lock', tuya.valueConverter.lockUnlock],
+                [45, 'fault_alarm', null ], //WIP
+                [67, 'heating_schedule', tuya.valueConverter.ZWT07_schedule],
+                [67, 'schedule_weekday', tuya.valueConverter.ZWT07_schedule],
+                [67, 'schedule_weekend', tuya.valueConverter.ZWT07_schedule],
+                [105, 'model', tuya.valueConverter.raw ], // dt3:String, WIP
+                [109, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration3],
             ],
         },
     },
