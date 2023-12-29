@@ -40,7 +40,7 @@ const sirenPowerSupply = {
 const stateDeviceMode: KeyValue = {
     'light': 0x04,
     'shutter': 0x01,
-    'not configured': 0x00,
+    'disabled': 0x00,
 };
 
 // BMCT
