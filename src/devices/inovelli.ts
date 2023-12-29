@@ -146,7 +146,7 @@ const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesLis
  * Some of the descriptions, max, min or value properties may be overridden for each device
  */
 const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
-    dimmingSpeedUpRemote: {
+    speedUpRemote: {
         ID: 1,
         dataType: UINT8,
         min: 0,
@@ -156,7 +156,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
       'A setting of 0 turns the light immediately on. Increasing the value slows down the transition speed. ' +
       'Every number represents 100ms. Default = 25 (2.5s)',
     },
-    dimmingSpeedUpLocal: {
+    speedUpLocal: {
         ID: 2,
         dataType: UINT8,
         min: 0,
@@ -164,7 +164,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         description:
       'This changes the speed that the light dims up when controlled at the switch. ' +
       'A setting of 0 turns the light immediately on. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with speedUpRemote setting.',
     },
     rampRateOffToOnRemote: {
         ID: 3,
@@ -174,7 +174,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         description:
       'This changes the speed that the light turns on when controlled from the hub. ' +
       'A setting of 0 turns the light immediately on. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with speedUpRemote setting.',
     },
     rampRateOffToOnLocal: {
         ID: 4,
@@ -184,9 +184,9 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         description:
       'This changes the speed that the light turns on when controlled at the switch. ' +
       'A setting of 0 turns the light immediately on. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnRemote setting.',
     },
-    dimmingSpeedDownRemote: {
+    speedDownRemote: {
         ID: 5,
         dataType: UINT8,
         min: 0,
@@ -194,9 +194,9 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         description:
       'This changes the speed that the light dims down when controlled from the hub. ' +
       'A setting of 0 turns the light immediately off. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with speedUpRemote setting.',
     },
-    dimmingSpeedDownLocal: {
+    speedDownLocal: {
         ID: 6,
         dataType: UINT8,
         min: 0,
@@ -204,7 +204,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         description:
       'This changes the speed that the light dims down when controlled at the switch. ' +
       'A setting of 0 turns the light immediately off. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpLocal setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with speedUpLocal setting.',
     },
     rampRateOnToOffRemote: {
         ID: 7,
@@ -336,15 +336,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 3,
         description: 'Set the switch configuration.',
     },
-    higherOutputInNonNeutral: {
-        ID: 25,
-        dataType: BOOLEAN,
-        displayType: 'enum',
-        values: {'Disabled (default)': 0, 'Enabled': 1},
-        min: 0,
-        max: 1,
-        description: 'Increase level in non-neutral mode',
-    },
+
     internalTemperature: {
         ID: 32,
         dataType: UINT8,
@@ -426,111 +418,6 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 254,
         description: 'Set this level on double-tap DOWN (if enabled by P54).',
-    },
-    ledColorWhenOn: {
-        ID: 95,
-        dataType: UINT8,
-        min: 0,
-        max: 255,
-        values: {
-            Red: 0,
-            Orange: 21,
-            Yellow: 42,
-            Green: 85,
-            Cyan: 127,
-            Blue: 170,
-            Violet: 212,
-            Pink: 234,
-            White: 255,
-        },
-        description: 'Set the color of the LED Indicator when the load is on.',
-    },
-    ledColorWhenOff: {
-        ID: 96,
-        dataType: UINT8,
-        min: 0,
-        max: 255,
-        values: {
-            Red: 0,
-            Orange: 21,
-            Yellow: 42,
-            Green: 85,
-            Cyan: 127,
-            Blue: 170,
-            Violet: 212,
-            Pink: 234,
-            White: 255,
-        },
-        description: 'Set the color of the LED Indicator when the load is off.',
-    },
-    ledIntensityWhenOn: {
-        ID: 97,
-        dataType: UINT8,
-        min: 0,
-        max: 100,
-        description: 'Set the intensity of the LED Indicator when the load is on.',
-    },
-    ledIntensityWhenOff: {
-        ID: 98,
-        dataType: UINT8,
-        min: 0,
-        max: 100,
-        description: 'Set the intensity of the LED Indicator when the load is off.',
-    },
-    auxSwitchUniqueScenes: {
-        ID: 123,
-        dataType: BOOLEAN,
-        displayType: 'enum',
-        values: {'Disabled': 0, 'Enabled': 1},
-        description: 'Have unique scene numbers for scenes activated with the aux switch.',
-    },
-    bindingOffToOnSyncLevel: {
-        ID: 125,
-        dataType: BOOLEAN,
-        displayType: 'enum',
-        values: {'Disabled': 0, 'Enabled': 1},
-        description: 'Send Move_To_Level using Default Level with Off/On to bound devices.',
-    },
-    localProtection: {
-        ID: 256,
-        dataType: BOOLEAN,
-        values: {Disabled: 0, Enabled: 1},
-        description: 'Ability to control switch from the wall.',
-        displayType: 'enum',
-    },
-    remoteProtection: {
-        ID: 257,
-        dataType: BOOLEAN,
-        values: {Disabled: 0, Enabled: 1},
-        readOnly: true,
-        description: 'Ability to control switch from the hub.',
-        displayType: 'enum',
-    },
-    outputMode: {
-        ID: 258,
-        min: 0,
-        max: 1,
-        values: {'Dimmer': 0, 'On/Off': 1},
-        dataType: BOOLEAN,
-        description: 'Use device as a Dimmer or an On/Off switch.',
-        displayType: 'enum',
-    },
-    onOffLedMode: {
-        ID: 259,
-        min: 0,
-        max: 1,
-        values: {All: 0, One: 1},
-        dataType: BOOLEAN,
-        description:
-      'When the device is in On/Off mode, use full LED bar or just one LED.',
-        displayType: 'enum',
-    },
-    firmwareUpdateInProgressIndicator: {
-        ID: 260,
-        dataType: BOOLEAN,
-        values: {Disabled: 0, Enabled: 1},
-        description: 'Display progress on LED bar during firmware update.',
-        displayType: 'enum',
     },
     defaultLed1ColorWhenOn: {
         ID: 60,
@@ -756,6 +643,111 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         description:
       'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
+    ledColorWhenOn: {
+        ID: 95,
+        dataType: UINT8,
+        min: 0,
+        max: 255,
+        values: {
+            Red: 0,
+            Orange: 21,
+            Yellow: 42,
+            Green: 85,
+            Cyan: 127,
+            Blue: 170,
+            Violet: 212,
+            Pink: 234,
+            White: 255,
+        },
+        description: 'Set the color of the LED Indicator when the load is on.',
+    },
+    ledColorWhenOff: {
+        ID: 96,
+        dataType: UINT8,
+        min: 0,
+        max: 255,
+        values: {
+            Red: 0,
+            Orange: 21,
+            Yellow: 42,
+            Green: 85,
+            Cyan: 127,
+            Blue: 170,
+            Violet: 212,
+            Pink: 234,
+            White: 255,
+        },
+        description: 'Set the color of the LED Indicator when the load is off.',
+    },
+    ledIntensityWhenOn: {
+        ID: 97,
+        dataType: UINT8,
+        min: 0,
+        max: 100,
+        description: 'Set the intensity of the LED Indicator when the load is on.',
+    },
+    ledIntensityWhenOff: {
+        ID: 98,
+        dataType: UINT8,
+        min: 0,
+        max: 100,
+        description: 'Set the intensity of the LED Indicator when the load is off.',
+    },
+    auxSwitchUniqueScenes: {
+        ID: 123,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Enabled': 1},
+        description: 'Have unique scene numbers for scenes activated with the aux switch.',
+    },
+    bindingOffToOnSyncLevel: {
+        ID: 125,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Enabled': 1},
+        description: 'Send Move_To_Level using Default Level with Off/On to bound devices.',
+    },
+    localProtection: {
+        ID: 256,
+        dataType: BOOLEAN,
+        values: {Disabled: 0, Enabled: 1},
+        description: 'Ability to control switch from the wall.',
+        displayType: 'enum',
+    },
+    remoteProtection: {
+        ID: 257,
+        dataType: BOOLEAN,
+        values: {Disabled: 0, Enabled: 1},
+        readOnly: true,
+        description: 'Ability to control switch from the hub.',
+        displayType: 'enum',
+    },
+    outputMode: {
+        ID: 258,
+        min: 0,
+        max: 1,
+        values: {'Dimmer': 0, 'On/Off': 1},
+        dataType: BOOLEAN,
+        description: 'Use device as a Dimmer or an On/Off switch.',
+        displayType: 'enum',
+    },
+    onOffLedMode: {
+        ID: 259,
+        min: 0,
+        max: 1,
+        values: {All: 0, One: 1},
+        dataType: BOOLEAN,
+        description:
+      'When the device is in On/Off mode, use full LED bar or just one LED.',
+        displayType: 'enum',
+    },
+    firmwareUpdateInProgressIndicator: {
+        ID: 260,
+        dataType: BOOLEAN,
+        values: {Disabled: 0, Enabled: 1},
+        description: 'Display progress on LED bar during firmware update.',
+        displayType: 'enum',
+    },
     doubleTapClearNotifications: {
         ID: 262,
         dataType: BOOLEAN,
@@ -795,6 +787,28 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
       'Energy reports Energy level change which will result in sending a new energy report.' +
       '0 = disabled, 1-32767 = 0.01kWh-327.67kWh. Default setting: 10 (0.1 kWh)',
     },
+    higherOutputInNonNeutral: {
+        ID: 25,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled (default)': 0, 'Enabled': 1},
+        min: 0,
+        max: 1,
+        description: 'Increase level in non-neutral mode',
+    },
+    leadingTrailingEdge: {
+        ID: 26,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Leading Edge': 0, 'Trailing Edge': 1},
+        min: 0,
+        max: 1,
+        description: 
+      'Leading Edge has a value of 0 and is the default value, whereas Trailing Edge has a value of 1. ' +
+      'Please note that Trailing Edge is only available on neutral single-pole and neutral multi-way with an ' +
+      'aux/add-on switch (multi-way with a dumb/existing switch and non-neutral setups are not supported and ' +
+      'will default back to Leading Edge). This feature is available on firmware version 2.15+.',
+    },
     ledBarScaling: {
         ID: 100,
         dataType: BOOLEAN,
@@ -818,6 +832,62 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
 
 const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
     ...COMMON_ATTRIBUTES,
+    speedUpRemote: {
+        ...COMMON_ATTRIBUTES.speedUpRemote,
+        description: 
+      'This changes the speed that the fan ramps up when controlled from the hub. ' +
+      'A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. ' +
+      'Every number represents 100ms. Default = 25 (2.5s)',
+    },
+    speedUpLocal: {
+        ...COMMON_ATTRIBUTES.speedUpLocal,
+        description: 
+      'This changes the speed that the fan ramps up when controlled at the switch. ' +
+      'A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. ' +
+      'Every number represents 100ms. Default = 127 - Keep in sync with speedUpRemote setting.',
+    },
+    rampRateOffToOnRemote: {
+        ...COMMON_ATTRIBUTES.rampRateOffToOnRemote,
+        description: 
+      'This changes the speed that the fan turns on when controlled from the hub. ' +
+      'A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. ' +
+      'Every number represents 100ms. Default = 127 - Keep in sync with speedUpRemote setting.',
+    },
+    rampRateOffToOnLocal: {
+        ...COMMON_ATTRIBUTES.rampRateOffToOnLocal,
+        description: 
+      'This changes the speed that the fan turns on when controlled at the switch. ' +
+      'A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. ' +
+      'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnRemote setting.',
+    },
+    speedDownRemote: {
+        ...COMMON_ATTRIBUTES.speedDownRemote,
+        description: 
+      'This changes the speed that the fan ramps down when controlled from the hub. ' +
+      'A setting of 0 turns the fan immediately off. Increasing the value slows down the transition speed. ' +
+      'Every number represents 100ms. Default = 127 - Keep in sync with speedUpRemote setting.',
+    },
+    speedDownLocal: {
+        ...COMMON_ATTRIBUTES.speedDownLocal,
+        description: 
+      'This changes the speed that the fan ramps down when controlled at the switch. ' +
+      'A setting of 0 turns the fan immediately off. Increasing the value slows down the transition speed. ' +
+      'Every number represents 100ms. Default = 127 - Keep in sync with speedUpLocal setting.',
+    },
+    rampRateOnToOffRemote: {
+        ...COMMON_ATTRIBUTES.rampRateOnToOffRemote,
+        description: 
+      'This changes the speed that the fan turns off when controlled from the hub. ' +
+      'A setting of \'instant\' turns the fan immediately off. Increasing the value slows down the transition speed. ' +
+      'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnRemote setting.',
+    },
+    rampRateOnToOffLocal: {
+        ...COMMON_ATTRIBUTES.rampRateOnToOffLocal,
+        description: 
+      'This changes the speed that the fan turns off when controlled at the switch. ' +
+      'A setting of \'instant\' turns the fan immediately off. Increasing the value slows down the transition speed. ' +
+      'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnLocal setting.',
+    },
     minimumLevel: {
         ...COMMON_ATTRIBUTES.minimumLevel,
         description: '1-84: The level corresponding to the fan is Low, Medium, High. ' +
@@ -827,6 +897,33 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
     maximumLevel: {
         ...COMMON_ATTRIBUTES.maximumLevel,
         description: '2-84: The level corresponding to the fan is Low, Medium, High.',
+    },
+    defaultLevelLocal: {
+        ...COMMON_ATTRIBUTES.defaultLevelLocal,
+        description:
+        'Default level for the dimmer when it is turned on from the switch. ' +
+        '1-84: The level corresponding to the fan is Low. ' +
+        '85-170: The level corresponding to the fan is Medium. '+
+        '170-254: The level corresponding to the fan is High. ' +
+        '255: The switch will return to the level that it was on before it was turned off.',
+    },
+    defaultLevelRemote: {
+        ...COMMON_ATTRIBUTES.defaultLevelRemote,
+        description:
+        'Default level for the dimmer when it is turned on from the hub. ' +
+        '1-84: The level corresponding to the fan is Low. ' +
+        '85-170: The level corresponding to the fan is Medium. '+
+        '170-254: The level corresponding to the fan is High. ' +
+        '255: The switch will return to the level that it was on before it was turned off.',
+    },
+    stateAfterPowerRestored: {
+        ...COMMON_ATTRIBUTES.stateAfterPowerRestored,
+        description:
+      'The state the switch should return to when power is restored after power failure. ' +
+      '1-84: The level corresponding to the fan is Low. ' +
+      '85-170: The level corresponding to the fan is Medium. '+
+      '170-254: The level corresponding to the fan is High. ' +
+      '255: The switch will return to the level that it was on before it was turned off.',
     },
     switchType: {
         ...COMMON_ATTRIBUTES.switchType,
@@ -838,12 +935,20 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
         description: 'Use this mode to synchronize and control other fan switches or controllers.',
         values: {'Disabled': 0, 'Remote Control Mode': 1},
     },
+
+    quickStartTime: {
+        ID: 23,
+        dataType: UINT8,
+        min: 0,
+        max: 10,
+        description: 'Quick start time.',
+    },
     nonNeutralAuxMediumGear: {
         ID: 30,
         dataType: UINT8,
         min: 42,
         max: 135,
-        description: 'Identification value in Non-nuetral, medium gear, aux switch',
+        description: 'Identification value in Non-nuetral, medium gear, aux switch.',
     },
     nonNeutralAuxLowGear: {
         ID: 31,
