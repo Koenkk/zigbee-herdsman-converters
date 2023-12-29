@@ -1386,7 +1386,7 @@ const tuyaExtend = {
     light_onoff_brightness: (options:{
         endpoints?: string[], disablePowerOnBehavior?: boolean, minBrightness?: boolean,
         toZigbee?:Tz.Converter[], exposes?: Expose[], noConfigure?: boolean, disableMoveStep?: boolean,
-        disableTransition?: boolean,
+        disableTransition?: boolean, switchType?: boolean,
     }={}) => {
         options = {
             disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb], exposes: [tuyaExposes.doNotDisturb()],
@@ -1401,6 +1401,11 @@ const tuyaExtend = {
         }
         if (options.endpoints) {
             result.exposes = result.exposes.map((e, i) => e.withEndpoint(options.endpoints[i]));
+        }
+        if (options.switchType) {
+            result.fromZigbee.push(tuyaFz.switch_type);
+            result.toZigbee.push(tuyaTz.switch_type);
+            result.exposes.push(tuyaExposes.switchType());
         }
         return result;
     },

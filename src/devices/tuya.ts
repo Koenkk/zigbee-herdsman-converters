@@ -4797,7 +4797,7 @@ const definitions: Definition[] = [
         model: 'TS0052',
         vendor: 'TuYa',
         description: 'Zigbee dimmer module 1 channel',
-        extend: tuya.extend.light_onoff_brightness(),
+        extend: tuya.extend.light_onoff_brightness({switchType: true}),
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
