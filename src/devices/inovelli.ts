@@ -803,7 +803,7 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
         values: {'Leading Edge': 0, 'Trailing Edge': 1},
         min: 0,
         max: 1,
-        description: 
+        description:
       'Leading Edge has a value of 0 and is the default value, whereas Trailing Edge has a value of 1. ' +
       'Please note that Trailing Edge is only available on neutral single-pole and neutral multi-way with an ' +
       'aux/add-on switch (multi-way with a dumb/existing switch and non-neutral setups are not supported and ' +
@@ -834,65 +834,66 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
     ...COMMON_ATTRIBUTES,
     speedUpRemote: {
         ...COMMON_ATTRIBUTES.speedUpRemote,
-        description: 
+        description:
       'This changes the speed that the fan ramps up when controlled from the hub. ' +
       'A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. ' +
       'Every number represents 100ms. Default = 25 (2.5s)',
     },
     speedUpLocal: {
         ...COMMON_ATTRIBUTES.speedUpLocal,
-        description: 
+        description:
       'This changes the speed that the fan ramps up when controlled at the switch. ' +
       'A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. ' +
       'Every number represents 100ms. Default = 127 - Keep in sync with speedUpRemote setting.',
     },
     rampRateOffToOnRemote: {
         ...COMMON_ATTRIBUTES.rampRateOffToOnRemote,
-        description: 
+        description:
       'This changes the speed that the fan turns on when controlled from the hub. ' +
       'A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. ' +
       'Every number represents 100ms. Default = 127 - Keep in sync with speedUpRemote setting.',
     },
     rampRateOffToOnLocal: {
         ...COMMON_ATTRIBUTES.rampRateOffToOnLocal,
-        description: 
+        description:
       'This changes the speed that the fan turns on when controlled at the switch. ' +
       'A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. ' +
       'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnRemote setting.',
     },
     speedDownRemote: {
         ...COMMON_ATTRIBUTES.speedDownRemote,
-        description: 
+        description:
       'This changes the speed that the fan ramps down when controlled from the hub. ' +
       'A setting of 0 turns the fan immediately off. Increasing the value slows down the transition speed. ' +
       'Every number represents 100ms. Default = 127 - Keep in sync with speedUpRemote setting.',
     },
     speedDownLocal: {
         ...COMMON_ATTRIBUTES.speedDownLocal,
-        description: 
+        description:
       'This changes the speed that the fan ramps down when controlled at the switch. ' +
       'A setting of 0 turns the fan immediately off. Increasing the value slows down the transition speed. ' +
       'Every number represents 100ms. Default = 127 - Keep in sync with speedUpLocal setting.',
     },
     rampRateOnToOffRemote: {
         ...COMMON_ATTRIBUTES.rampRateOnToOffRemote,
-        description: 
+        description:
       'This changes the speed that the fan turns off when controlled from the hub. ' +
       'A setting of \'instant\' turns the fan immediately off. Increasing the value slows down the transition speed. ' +
       'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnRemote setting.',
     },
     rampRateOnToOffLocal: {
         ...COMMON_ATTRIBUTES.rampRateOnToOffLocal,
-        description: 
+        description:
       'This changes the speed that the fan turns off when controlled at the switch. ' +
       'A setting of \'instant\' turns the fan immediately off. Increasing the value slows down the transition speed. ' +
       'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnLocal setting.',
     },
     minimumLevel: {
         ...COMMON_ATTRIBUTES.minimumLevel,
-        description: '1-84: The level corresponding to the fan is Low, Medium, High. ' +
-        '85-170: The level corresponding to the fan is Medium, Medium, High. '+
-        '170-254: The level corresponding to the fan is High, High, High ',
+        description:
+       '1-84: The level corresponding to the fan is Low, Medium, High. ' +
+       '85-170: The level corresponding to the fan is Medium, Medium, High. '+
+       '170-254: The level corresponding to the fan is High, High, High ',
     },
     maximumLevel: {
         ...COMMON_ATTRIBUTES.maximumLevel,
