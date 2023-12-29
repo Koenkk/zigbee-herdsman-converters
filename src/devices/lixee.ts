@@ -205,7 +205,7 @@ const fzLocal = {
                         // relais7 Unassigned
                         // relais8 Unassigned
                         for (var i = 0; i < 8; i++) {
-                            results[at_snake + (i+1)] = (val & (1<<i)) >>> i;
+                            result[at_snake + (i+1)] = (val & (1<<i)) >>> i;
                         }
                         break;
                     }
