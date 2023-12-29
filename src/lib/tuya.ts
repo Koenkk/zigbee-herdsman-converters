@@ -856,7 +856,7 @@ export const valueConverter = {
         },
     },
     ZWT07_schedule: {
-         from: (value, meta, options) => {
+        from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
             const programmingMode = [];
             for (let i = 0; i < 8; i++) {
                 const start = i * 4;
@@ -869,7 +869,7 @@ export const valueConverter = {
             meta.state['schedule_weekend']=programmingMode.slice(6, 8).join(' ');
             return;
         },
-        to: async (value, meta) => {
+        to: async (value: string, meta: Tz.Meta) => {
             const payload = [];
             let schedule_weekday;
             let schedule_weekend;
@@ -882,7 +882,7 @@ export const valueConverter = {
                 schedule_weekend = value;
             }
 
-            function scheduleToRaw(key, input, number, payload, meta) {
+            function scheduleToRaw(key: string, input: string, number: number, payload: number[], meta: Tz.Meta) {
                 const items = input.trim().split(/\s+/);
                 if (items.length != number) {
                     throw new Error('Wrong number of items for ' + key + ' :' + items.length);
