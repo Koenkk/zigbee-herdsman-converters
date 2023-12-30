@@ -845,7 +845,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
-	},
+        },
     },
     {
         zigbeeModel: ['4512763'],
