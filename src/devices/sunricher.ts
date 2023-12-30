@@ -207,7 +207,7 @@ const definitions: Definition[] = [
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch',
-        extend: [onOff()],
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['Micro Smart Dimmer', 'SM311', 'HK-SL-RDIM-A', 'HK-SL-DIM-EU-A'],
