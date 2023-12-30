@@ -4,6 +4,11 @@ import {Zh, Ota, Logger, KeyValueAny, KeyValue, KeyValueNumberString} from '../t
 import assert from 'assert';
 import crc32 from 'buffer-crc32';
 import axios from 'axios';
+import * as URI from 'uri-js';
+import fs from 'fs';
+import path from 'path';
+import {Zcl} from 'zigbee-herdsman';
+let dataDir: string = null;
 const maxTimeout = 2147483647; // +- 24 days
 const imageBlockResponseDelay = 250;
 const endRequestCodeLookup: KeyValueNumberString = {
@@ -37,6 +42,54 @@ const eblImageSignature = 0xe350;
 
 const gblTagHeader = 0xeb17a603;
 const gblTagEnd = 0xfc0404fc;
+
+
+/**
+ * Helper functions
+ */
+
+
+export const setDataDir = (dir: string) => {
+    dataDir = dir;
+};
+
+export function isValidUrl(url: string) {
+    let parsed;
+    try {
+        parsed = URI.parse(url);
+    } catch (_) {
+        return false;
+    }
+    return parsed.scheme === 'http' || parsed.scheme === 'https';
+}
+
+export function readLocalFile(fileName: string, logger: Logger) {
+    // If the file name is not a full path, then treat it as a relative to the data directory
+    if (!path.isAbsolute(fileName) && dataDir) {
+        fileName = path.join(dataDir, fileName);
+    }
+
+    logger.debug(`OTA: getting local firmware file ${fileName}`);
+    return fs.readFileSync(fileName);
+}
+
+export async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
+    const urlOrName = image.url;
+
+    // First try to download firmware file with the URL provided
+    if (isValidUrl(urlOrName)) {
+        logger.debug(`OTA: downloading firmware image from ${urlOrName}`);
+        return await axios.get(urlOrName, {responseType: 'arraybuffer'});
+    }
+
+    logger.debug(`OTA: Try to read firmware image from local file ${urlOrName}`);
+    return {data: readLocalFile(urlOrName, logger)};
+}
+
+
+/**
+ * OTA functions
+ */
 
 function getOTAEndpoint(device: Zh.Device) {
     return device.endpoints.find((e) => e.supportsOutputCluster('genOta'));
@@ -324,8 +377,22 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
 
     return new Promise((resolve, reject) => {
         const answerNextImageBlockOrPageRequest = () => {
-            const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, 150000);
-            const imagePageRequest = endpoint.waitForCommand('genOta', 'imagePageRequest', null, 150000);
+            let imageBlockOrPageRequestTimeoutMs: number = 150000;
+            // increase the upgradeEndReq wait time to solve the problem of OTA timeout failure of Sonoff Devices
+            // (https://github.com/Koenkk/zigbee-herdsman-converters/issues/6657)
+            if ( request.payload.manufacturerCode == 4742 && request.payload.imageType == 8199 ) {
+                imageBlockOrPageRequestTimeoutMs = 3600000;
+            }
+
+            // Bosch transmits the firmware updates in the background in their native implementation.
+            // According to the app, this can take up to 2 days. Therefore, we assume to get at least
+            // one package request per hour from the device here.
+            if (request.payload.manufacturerCode == Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH) {
+                imageBlockOrPageRequestTimeoutMs = 60 * 60 * 1000;
+            }
+
+            const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, imageBlockOrPageRequestTimeoutMs);
+            const imagePageRequest = endpoint.waitForCommand('genOta', 'imagePageRequest', null, imageBlockOrPageRequestTimeoutMs);
             waiters.imageBlockOrPageRequest = {
                 promise: Promise.race([imageBlockRequest.promise, imagePageRequest.promise]),
                 cancel: () => {
@@ -497,7 +564,30 @@ export function getAxios() {
         };
     }
 
-    return axios.create(config);
+    const axiosInstance = axios.create(config);
+    axiosInstance.defaults.maxRedirects = 0; // Set to 0 to prevent automatic redirects
+    // Add work with 302 redirects without hostname in Location header
+    axiosInstance.interceptors.response.use(
+        (response) => response,
+        (error) => {
+            // get domain from basic url
+            if (error.response && [301, 302].includes(error.response.status)) {
+                let redirectUrl = error.response.headers.location;
+                try {
+                    const parsedUrl = new URL(redirectUrl);
+                    if (!parsedUrl.protocol || !parsedUrl.host) {
+                        throw new Error('No scheme or domain');
+                    }
+                } catch {
+                    // Prepend scheme and domain from the original request's base URL
+                    const baseURL = new URL(error.config.url);
+                    redirectUrl = `${baseURL.origin}${redirectUrl}`;
+                }
+                return axiosInstance.get(redirectUrl, {responseType: error.config.responseType || 'arraybuffer'});
+            }
+        },
+    );
+    return axiosInstance;
 }
 
 exports.upgradeFileIdentifier = upgradeFileIdentifier;
@@ -508,3 +598,7 @@ exports.isNewImageAvailable = isNewImageAvailable;
 exports.updateToLatest = updateToLatest;
 exports.getNewImage = getNewImage;
 exports.getAxios = getAxios;
+exports.isValidUrl = isValidUrl;
+exports.setDataDir = setDataDir;
+exports.getFirmwareFile = getFirmwareFile;
+exports.readLocalFile = readLocalFile;

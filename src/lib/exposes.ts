@@ -37,7 +37,7 @@ export class Base {
     }
 
     withAccess(a: number) {
-        assert(this.hasOwnProperty('access'), 'Cannot add access if not defined yet');
+        assert(this.access !== undefined, 'Cannot add access if not defined yet');
         this.access = a;
         return this;
     }
@@ -590,7 +590,7 @@ const a = access;
 
 export const options = {
     calibration: (name: string, type='absolute') => new Numeric(`${name}_calibration`, access.SET).withDescription(`Calibrates the ${name} value (${type} offset), takes into effect on next report of device.`),
-    precision: (name: string) => new Numeric(`${name}_precision`, access.SET).withValueMin(0).withValueMax(3).withDescription(`Number of digits after decimal point for ${name}, takes into effect on next report of device.`),
+    precision: (name: string) => new Numeric(`${name}_precision`, access.SET).withValueMin(0).withValueMax(3).withDescription(`Number of digits after decimal point for ${name}, takes into effect on next report of device. This option can only decrease the precision, not increase it.`),
     invert_cover: () => new Binary(`invert_cover`, access.SET, true, false).withDescription(`Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).`),
     color_sync: () => new Binary(`color_sync`, access.SET, true, false).withDescription(`When enabled colors will be synced, e.g. if the light supports both color x/y and color temperature a conversion from color x/y to color temperature will be done when setting the x/y color (default true).`),
     thermostat_unit: () => new Enum('thermostat_unit', access.SET, ['celsius', 'fahrenheit']).withDescription('Controls the temperature unit of the thermostat (default celsius).'),

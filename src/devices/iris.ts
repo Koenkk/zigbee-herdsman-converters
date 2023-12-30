@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
-import extend from '../lib/extend';
+import {forcePowerSource, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -109,10 +109,10 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.temperature],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.action(['on', 'off'])],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg', 'msTemperatureMeasurement']);
             await reporting.batteryVoltage(endpoint);
             await reporting.temperature(endpoint);
         },
@@ -152,14 +152,7 @@ const definitions: Definition[] = [
         model: 'iL03_1',
         vendor: 'Iris',
         description: 'Smart plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['3315-L'],

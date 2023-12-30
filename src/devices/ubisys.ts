@@ -536,12 +536,11 @@ const ubisys = {
         thermostat_vacation_mode: {
             key: ['vacation_mode'],
             convertSet: async (entity, key, value, meta) => {
-                /* Both Ubisys H1 and H10 use hvacThermostat cluster with the ubisys manufacturerCode for custom attributes
-                 *  0x0005 is used on both but with different functions and data types which is rather annoying
-                 *  manually massaging of the writeAttribute is needed :(
-                 */
                 if (typeof value === 'boolean') {
-                    await entity.write('hvacThermostat', {0x0005: {value: value, type: Zcl.DataType.boolean}}, manufacturerOptions.ubisys);
+                    // NOTE: DataType is boolean in zcl definition as per the device technical reference
+                    //       passing a boolean type 'value' throws INVALID_DATA_TYPE, we need to pass 1 (true) or 0 (false)
+                    //       ZCL DataType used does still need to be 0x0010 (Boolean)
+                    await entity.write('hvacThermostat', {ubisysVacationMode: value ? 1 : 0}, manufacturerOptions.ubisys);
                 } else {
                     meta.logger.error('vacation_mode must be a boolean!');
                 }

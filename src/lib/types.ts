@@ -95,6 +95,7 @@ export interface ModernExtend {
     meta?: DefinitionMeta,
     ota?: DefinitionOta,
     onEvent?: OnEvent,
+    endpoint?: (device: Zh.Device) => {[s: string]: number},
     isModernExtend: true,
 }
 
@@ -122,6 +123,7 @@ export type Definition = {
     meta?: DefinitionMeta,
     onEvent?: OnEvent,
     ota?: DefinitionOta,
+    generated?: boolean,
 } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
     & ({ extend: Extend | ModernExtend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
         exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[])) } |
@@ -163,6 +165,7 @@ export namespace Tz {
     export interface Converter {
         key: string[],
         options?: Option[] | ((definition: Definition) => Option[]);
+        endpoint?: string,
         convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult>,
         convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>,
     }

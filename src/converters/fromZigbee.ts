@@ -1,9 +1,8 @@
 import {
     precisionRound, mapNumberRange, isLegacyEnabled, toLocalISOString, numberWithinRange, hasAlreadyProcessedMessage,
-    calibrateAndPrecisionRoundOptions, addActionGroup, postfixWithEndpointName, getKey,
-    batteryVoltageToPercentage,
+    addActionGroup, postfixWithEndpointName, getKey, batteryVoltageToPercentage, calibrateAndPrecisionRoundOptions,
 } from '../lib/utils';
-import {Fz, KeyValueAny, KeyValueNumberString, Option} from '../lib/types';
+import {Fz, KeyValueAny, KeyValueNumberString} from '../lib/types';
 import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
 import * as libColor from '../lib/color';
@@ -396,30 +395,27 @@ const converters1 = {
     temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('measuredValue')) {
                 const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
                 const property = postfixWithEndpointName('temperature', msg, model, meta);
-                return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+                return {[property]: temperature};
             }
         },
     } satisfies Fz.Converter,
     device_temperature: {
         cluster: 'genDeviceTempCfg',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.calibration('device_temperature')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentTemperature')) {
                 const value = parseInt(msg.data['currentTemperature']);
-                return {device_temperature: calibrateAndPrecisionRoundOptions(value, options, 'device_temperature')};
+                return {device_temperature: value};
             }
         },
     } satisfies Fz.Converter,
     humidity: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
             const property = postfixWithEndpointName('humidity', msg, model, meta);
@@ -428,7 +424,7 @@ const converters1 = {
             // Sometimes the sensor publishes non-realistic vales, it should only publish message
             // in the 0 - 100 range, don't produce messages beyond these values.
             if (humidity >= 0 && humidity <= 100) {
-                return {[property]: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+                return {[property]: humidity};
             }
         },
     } satisfies Fz.Converter,
@@ -444,30 +440,24 @@ const converters1 = {
     soil_moisture: {
         cluster: 'msSoilMoisture',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('soil_moisture'), exposes.options.calibration('soil_moisture')],
         convert: (model, msg, publish, options, meta) => {
             const soilMoisture = parseFloat(msg.data['measuredValue']) / 100.0;
-            return {soil_moisture: calibrateAndPrecisionRoundOptions(soilMoisture, options, 'soil_moisture')};
+            return {soil_moisture: soilMoisture};
         },
     } satisfies Fz.Converter,
     illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.calibration('illuminance', 'percentual'), exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
-            return {
-                illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
-                illuminance_lux: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
-            };
+            return {illuminance: illuminance, illuminance_lux: illuminanceLux};
         },
     } satisfies Fz.Converter,
     pressure: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('pressure'), exposes.options.calibration('pressure')],
         convert: (model, msg, publish, options, meta) => {
             let pressure = 0;
             if (msg.data.hasOwnProperty('scaledValue')) {
@@ -476,7 +466,7 @@ const converters1 = {
             } else {
                 pressure = parseFloat(msg.data['measuredValue']);
             }
-            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+            return {pressure};
         },
     } satisfies Fz.Converter,
     co2: {
@@ -704,20 +694,6 @@ const converters1 = {
          */
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
-        // FIXME: Why are we expecting errors here? Sounds like a codesmell
-        options: (definition) => {
-            const result: Option[] = [];
-            // @ts-expect-error
-            if (definition.exposes.find((e) => e.name === 'power')) {
-                result.push(exposes.options.precision('power'), exposes.options.calibration('power', 'percentual'));
-            }
-            // @ts-expect-error
-            if (definition.exposes.find((e) => e.name === 'energy')) {
-                result.push(exposes.options.precision('energy'), exposes.options.calibration('energy', 'percentual'));
-            }
-            return result;
-        },
-
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const payload: KeyValueAny = {};
@@ -730,7 +706,7 @@ const converters1 = {
                 if (factor != null) {
                     power = (power * factor) * 1000; // kWh to Watt
                 }
-                payload.power = calibrateAndPrecisionRoundOptions(power, options, 'power');
+                payload.power = power;
             }
 
             if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
@@ -746,7 +722,7 @@ const converters1 = {
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
                     energy -= value * factor;
                 }
-                payload.energy = calibrateAndPrecisionRoundOptions(energy, options, 'energy');
+                payload.energy = energy;
             }
 
             return payload;
@@ -759,11 +735,6 @@ const converters1 = {
          */
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [
-            exposes.options.calibration('power', 'percentual'), exposes.options.precision('power'),
-            exposes.options.calibration('current', 'percentual'), exposes.options.precision('current'),
-            exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
-        ],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const getFactor = (key: string) => {
@@ -794,7 +765,7 @@ const converters1 = {
                     const factor = getFactor(entry.factor);
                     const property = postfixWithEndpointName(entry.name, msg, model, meta);
                     const value = msg.data[entry.key] * factor;
-                    payload[property] = calibrateAndPrecisionRoundOptions(value, options, entry.name);
+                    payload[property] = value;
                 }
             }
             if (msg.data.hasOwnProperty('powerFactor')) {
@@ -2156,10 +2127,9 @@ const converters1 = {
     terncy_temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 10.0;
-            return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+            return {temperature: temperature};
         },
     } satisfies Fz.Converter,
     ts0216_siren: {
@@ -3477,18 +3447,12 @@ const converters1 = {
     lifecontrolVoc: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
             const humidity = parseFloat(msg.data['minMeasuredValue']) / 100.0;
             const eco2 = parseFloat(msg.data['maxMeasuredValue']);
             const voc = parseFloat(msg.data['tolerance']);
-            return {
-                temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature'),
-                humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity'),
-                eco2, voc,
-            };
+            return {temperature, humidity, eco2, voc};
         },
     } satisfies Fz.Converter,
     _8840100H_water_leak_alarm: {
@@ -3556,10 +3520,9 @@ const converters1 = {
     _3310_humidity: {
         cluster: 'manuSpecificCentraliteHumidity',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
-            return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+            return {humidity};
         },
     } satisfies Fz.Converter,
     smartthings_acceleration: {
@@ -3741,9 +3704,8 @@ const converters1 = {
     xiaomi_power: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.calibration('power', 'percentual'), exposes.options.precision('power')],
         convert: (model, msg, publish, options, meta) => {
-            return {power: calibrateAndPrecisionRoundOptions(msg.data['presentValue'], options, 'power')};
+            return {power: msg.data['presentValue']};
         },
     } satisfies Fz.Converter,
     xiaomi_on_off_action: {
@@ -3823,8 +3785,7 @@ const converters1 = {
         // Therefore we need to publish the no_motion detected by ourselves.
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true(),
-            exposes.options.calibration('illuminance', 'percentual')],
+        options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true()],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('illuminance')) {
                 // The occupancy sensor only sends a message when motion detected.
@@ -3849,7 +3810,7 @@ const converters1 = {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/12596
                 const illuminance = msg.data['illuminance'] > 130536 ? 0 : msg.data['illuminance'] - 65536;
 
-                const payload = {occupancy: true, illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
+                const payload = {occupancy: true, illuminance};
                 utils.noOccupancySince(msg.endpoint, options, publish, 'start');
                 return payload;
             }
@@ -3960,7 +3921,6 @@ const converters1 = {
     } satisfies Fz.Converter,
     xiaomi_temperature: {
         cluster: 'msTemperatureMeasurement',
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
@@ -3968,7 +3928,7 @@ const converters1 = {
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
             // Sometimes the sensor publishes non-realistic vales.
             if (temperature > -65 && temperature < 65) {
-                return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+                return {temperature};
             }
         },
     } satisfies Fz.Converter,
@@ -4275,10 +4235,9 @@ const converters1 = {
     keen_home_smart_vent_pressure: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('pressure'), exposes.options.calibration('pressure')],
         convert: (model, msg, publish, options, meta) => {
             const pressure = msg.data.hasOwnProperty('measuredValue') ? msg.data.measuredValue : parseFloat(msg.data['32']) / 1000.0;
-            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+            return {pressure};
         },
     } satisfies Fz.Converter,
     U02I007C01_contact: {
@@ -4308,7 +4267,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['measuredValue']) {
-                return {hcho: parseFloat(msg.data['measuredValue']) / 100.0};
+                return {hcho: parseFloat(msg.data['measuredValue']) / 1000.0};
             }
         },
     } satisfies Fz.Converter,
@@ -4860,7 +4819,12 @@ const converters1 = {
     DJT11LM_vibration: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.vibration_timeout()],
+        options: [
+            exposes.options.vibration_timeout(),
+            exposes.options.calibration('x'),
+            exposes.options.calibration('y'),
+            exposes.options.calibration('z'),
+        ],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
 
@@ -4911,10 +4875,20 @@ const converters1 = {
                 // data[1][bit16..bit31]: y
                 // data[0][bit0..bit15] : z
                 // left shift first to preserve sign extension for 'x'
-                const x = ((data['1'] << 16) >> 16);
-                const y = (data['1'] >> 16);
+                let x = ((data['1'] << 16) >> 16);
+                let y = (data['1'] >> 16);
                 // left shift first to preserve sign extension for 'z'
-                const z = ((data['0'] << 16) >> 16);
+                let z = ((data['0'] << 16) >> 16);
+
+                // simple offset calibration
+                x=calibrateAndPrecisionRoundOptions(x, options, 'x');
+                y=calibrateAndPrecisionRoundOptions(y, options, 'y');
+                z=calibrateAndPrecisionRoundOptions(z, options, 'z');
+
+                // calibrated accelerometer values
+                result.x_axis=x;
+                result.y_axis=y;
+                result.z_axis=z;
 
                 // calculate angle
                 result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
@@ -5401,11 +5375,10 @@ const converters1 = {
     schneider_temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
             const property = postfixWithEndpointName('local_temperature', msg, model, meta);
-            return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+            return {[property]: temperature};
         },
     } satisfies Fz.Converter,
     wiser_smart_thermostat_client: {
@@ -5518,13 +5491,6 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const scenes: KeyValueAny = {2: '1', 52: '2', 102: '3', 153: '4', 194: '5', 254: '6'};
             return {action: `scene_${scenes[msg.data.level]}`};
-        },
-    } satisfies Fz.Converter,
-    xiaomi_tvoc: {
-        cluster: 'genAnalogInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {voc: msg.data.presentValue};
         },
     } satisfies Fz.Converter,
     heiman_doorbell_button: {
@@ -5709,7 +5675,6 @@ const converters1 = {
     SNZB02_temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
 
@@ -5717,21 +5682,20 @@ const converters1 = {
             // SNZB-02 reports stranges values sometimes
             if (temperature > -33 && temperature < 100) {
                 const property = postfixWithEndpointName('temperature', msg, model, meta);
-                return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+                return {[property]: temperature};
             }
         },
     } satisfies Fz.Converter,
     SNZB02_humidity: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/13640
             // SNZB-02 reports stranges values sometimes
             if (humidity >= 0 && humidity <= 99.75) {
-                return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+                return {humidity};
             }
         },
     } satisfies Fz.Converter,
@@ -5788,167 +5752,167 @@ const converters1 = {
     ignore_onoff_report: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_basic_report: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_illuminance_report: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_occupancy_report: {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_temperature_report: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_humidity_report: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_pressure_report: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_analog_report: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_multistate_report: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_power_report: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_light_brightness_report: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_light_color_colortemp_report: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_closuresWindowCovering_report: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_thermostat_report: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_iaszone_attreport: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_iaszone_statuschange: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_iaszone_report: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_iasace_commandgetpanelstatus: {
         cluster: 'ssIasAce',
         type: ['commandGetPanelStatus'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_genIdentify: {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_command_on: {
         cluster: 'genOnOff',
         type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_command_off: {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_command_step: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_command_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_poll_ctrl: {
         cluster: 'genPollCtrl',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_genLevelCtrl_report: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_genOta: {
         cluster: 'genOta',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_haDiagnostic: {
         cluster: 'haDiagnostic',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_zclversion_read: {
         cluster: 'genBasic',
         type: 'read',
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_time_read: {
         cluster: 'genTime',
         type: 'read',
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_tuya_set_time: {
         cluster: 'manuSpecificTuya',
         type: ['commandMcuSyncTime'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_tuya_raw: {
         cluster: 'manuSpecificTuya',
         type: ['raw'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     ignore_electrical_measurement: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => null,
+        convert: (model, msg, publish, options, meta) => {},
     } satisfies Fz.Converter,
     // #endregion
 };
@@ -6137,7 +6101,6 @@ const converters2 = {
     RTCGQ11LM_illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.calibration('illuminance', 'percentual'), exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: async (model, msg, publish, options, meta) => {
             // also trigger movement, because there is no illuminance without movement
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1925
@@ -6146,8 +6109,8 @@ const converters2 = {
             if (payload) {
                 // DEPRECATED: remove illuminance_lux here.
                 const illuminance = msg.data['measuredValue'];
-                payload.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
-                payload.illuminance_lux = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux');
+                payload.illuminance = illuminance;
+                payload.illuminance_lux = illuminance;
             }
             return payload;
         },

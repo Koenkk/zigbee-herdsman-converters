@@ -1,6 +1,7 @@
 import * as globalStore from './store';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
+import {Feature, Numeric} from './exposes';
 
 export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
@@ -65,19 +66,21 @@ export function mapNumberRange(value: number, fromLow: number, fromHigh: number,
     return precisionRound(mappedValue, precision);
 }
 
-const transactionStore: {[s: string]: number} = {};
+const transactionStore: {[s: string]: number[]} = {};
 export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number=null, key: string=null) {
     if (model.meta && model.meta.publishDuplicateTransaction) return false;
     const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
     key = key || msg.device.ieeeAddr;
-    if (transactionStore[key] === currentID) return true;
-    transactionStore[key] = currentID;
+    if (transactionStore[key]?.includes(currentID)) return true;
+    // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
+    transactionStore[key] = [currentID, ...(transactionStore[key] ?? [])].slice(0, 5);
     return false;
 }
 
 export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
     temperature: 2, humidity: 2, pressure: 1, pm25: 0, power: 2, current: 2, current_phase_b: 2, current_phase_c: 2,
-    voltage: 2, voltage_phase_b: 2, voltage_phase_c: 2, power_phase_b: 2, power_phase_c: 2, energy: 2,
+    voltage: 2, voltage_phase_b: 2, voltage_phase_c: 2, power_phase_b: 2, power_phase_c: 2, energy: 2, device_temperature: 0,
+    soil_moisture: 2, co2: 0, illuminance: 0, illuminance_lux: 0, voc: 0, formaldehyd: 0, co: 0,
 };
 export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
     return type.startsWith('current') || type.startsWith('energy') || type.startsWith('voltage') || type.startsWith('power') ||
@@ -444,6 +447,14 @@ export function validateValue(value: unknown, allowed: unknown[]) {
     }
 }
 
+export async function getClusterAttributeValue<T>(endpoint: Zh.Endpoint, cluster: string, attribute: string): Promise<T> {
+    if (endpoint.getClusterAttributeValue(cluster, attribute) == null) {
+        await endpoint.read(cluster, [attribute]);
+    }
+
+    return endpoint.getClusterAttributeValue(cluster, attribute) as T;
+}
+
 export function normalizeCelsiusVersionOfFahrenheit(value: number) {
     const fahrenheit = (value * 1.8) + 32;
     const roundedFahrenheit = Number((Math.round(Number((fahrenheit * 2).toFixed(1))) / 2).toFixed(1));
@@ -543,7 +554,7 @@ export function isString(value: unknown): value is string {
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
     property = property ? `'${property}'` : 'Value';
-    if (typeof value !== 'number' || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
+    if (typeof value !== 'number' || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value?.toString()})`);
 }
 
 export function toNumber(value: unknown, property?: string): number {
@@ -599,6 +610,10 @@ export function isDevice(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Dev
 
 export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Group {
     return obj.constructor.name.toLowerCase() === 'group';
+}
+
+export function isNumericExposeFeature(feature: Feature): feature is Numeric {
+    return feature?.type === 'numeric';
 }
 
 exports.noOccupancySince = noOccupancySince;

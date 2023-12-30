@@ -12,7 +12,7 @@ const definitions: Definition[] = [
     {
         // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
         // changing those two too.
-        zigbeeModel: ['eTRV0100', 'eTRV0101', 'eTRV0103', 'TRV001', 'TRV003', 'eT093WRO', 'eT093WRG'],
+        zigbeeModel: ['eTRV0100', 'eTRV0101', 'eTRV0103', 'TRV001', 'TRV003', 'eT093WRO', 'eT093WRG', 'eTRV0103'],
         model: '014G2461',
         vendor: 'Danfoss',
         description: 'Ally thermostat',
@@ -56,7 +56,7 @@ const definitions: Definition[] = [
             e.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5).withLocalTemperature().withPiHeatingDemand()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
             e.numeric('occupied_heating_setpoint_scheduled', ea.ALL)
-                .withValueMin(5).withValueMax(35).withValueStep(0.5).withUnit('°C')
+                .withValueMin(5).withValueMax(32).withValueStep(0.5).withUnit('°C')
                 .withDescription('Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite ' +
                   'to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. ' +
                   '(more suitable for scheduled changes)'),
