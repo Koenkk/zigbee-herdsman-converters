@@ -1246,7 +1246,7 @@ const definitions: Definition[] = [
         description: 'PARASOLL door/window Sensor',
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.battery_low(), e.tamper(), e.contact()],
+        exposes: [e.contact()],
     },
     {
         zigbeeModel: ['SOMRIG shortcut button'],
@@ -1268,15 +1268,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
             await reporting.batteryVoltage(endpoint1);
         },
-    },
-    {
-        zigbeeModel: ['PARASOLL Door/Window Sensor'],
-        model: 'E2013',
-        vendor: 'IKEA',
-        description: 'PARASOLL door/window Sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact()],
     },
 ];
 
