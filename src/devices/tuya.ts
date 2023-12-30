@@ -12,7 +12,7 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {electricityMeter, onOff} from '../lib/modernExtend';
+import {onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
