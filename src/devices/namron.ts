@@ -835,7 +835,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['4512762'],
         model: '4512762',
-        vendor: 'Namron AS',
+        vendor: 'Namron',
         description: 'Zigbee Door Sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ias_contact_alarm_1_report],
         toZigbee: [],
