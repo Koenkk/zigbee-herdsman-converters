@@ -1276,7 +1276,7 @@ const definitions: Definition[] = [
         description: 'PARASOLL door/window Sensor',
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.battery_low(), e.tamper(), e.contact()],
+        exposes: [e.contact()],
     },
 ];
 
