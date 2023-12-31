@@ -252,7 +252,7 @@ const definitions: Definition[] = [
             legacy.fz.wiser_thermostat, legacy.fz.wiser_itrv_battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
-        exposes: [e.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature(ea.STATE)
+        exposes: [e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature(ea.STATE)
             .withRunningState(['idle', 'heat'], ea.STATE).withPiHeatingDemand(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

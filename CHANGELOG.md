@@ -1,5 +1,25 @@
 # Changelog
 
+## [18.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.1.0...v18.2.0) (2023-12-30)
+
+
+### Features
+
+* **add:** 4512762 ([#6794](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6794)) ([e3271b4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e3271b4dcb7e3c253b174a915d492f9671cf452f))
+* **add:** NSPanelP-Router https://github.com/Koenkk/zigbee2mqtt/issues/19721 ([1c6a720](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c6a720f5d8132d619ce3d73ebdafc0067261806))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_nlrfgpny` as Neo NAS-AB06B2 ([#6792](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6792)) ([1b578ea](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1b578eab93a79b9c74881b0d488127c260172e8f))
+* **detect:** Detect `929003479601` as Philips 915005987701 ([#6790](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6790)) ([bec9cad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bec9cad6eaec95e173cbb437734ff09a0f24beae))
+* Fix Schneider Electric WV704R0A0902 `occupied_heating_setpoint` min and step size ([#6797](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6797)) ([925865d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/925865db2ef7e162811777f4f1ef59122ab82c8b))
+* **ignore:** fix 88cb63243947360c57d0999f08573014398fdb1f ([3b36bc7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3b36bc7b5e6dbbd795821ac1301e812a130a65e6))
+* **ignore:** Revert 5f511d3 https://github.com/Koenkk/zigbee-herdsman-converters/pull/6731 ([88cb632](https://github.com/Koenkk/zigbee-herdsman-converters/commit/88cb63243947360c57d0999f08573014398fdb1f))
+* Improve a5a837e https://github.com/Koenkk/zigbee2mqtt/issues/20431 ([63a738d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/63a738d34bfeb920f2af798170f8879287b5f757))
+* Remove unsupported `power_on_behaviour` for Sunricher ZG9101SAC-HP-Switch ([#6796](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6796)) ([50adc01](https://github.com/Koenkk/zigbee-herdsman-converters/commit/50adc0122937011b6ca475ebd6e3a09623f0ca2a))
+* Rename `BSD29` to `BSD29/BSD59` https://github.com/Koenkk/zigbee2mqtt/issues/20431 ([a5a837e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a5a837e63d8204528f6a8f35e108db8d4a01ec0a))
+
 ## [18.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.0.2...v18.1.0) (2023-12-29)
 
 

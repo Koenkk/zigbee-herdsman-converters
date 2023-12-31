@@ -1878,7 +1878,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
-        zigbeeModel: ['929003479701', '915005987701'],
+        zigbeeModel: ['929003479701', '915005987701', '929003479601'],
         model: '915005987701',
         vendor: 'Philips',
         description: 'Hue Gradient Signe floor lamp (wood)',
