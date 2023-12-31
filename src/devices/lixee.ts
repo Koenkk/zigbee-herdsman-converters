@@ -191,6 +191,23 @@ const fzLocal = {
                         // @ts-expect-error
                         val = utils.precisionRound(val / 1000, kWh_p); // from Wh to kWh
                         break;
+                    case 'relais':
+                        // relais is a decimal value representing the bits
+                        // of 8 virtual dry contacts.
+                        // 0 for an open relay
+                        // 1 for a closed relay
+                        // relais1 Hot water === legacy dry contact
+                        // relais2 Main heater
+                        // relais3 Secondary heater
+                        // relais4 AC or Heat pump
+                        // relais5 EV charge
+                        // relais6 Storage or injection
+                        // relais7 Unassigned
+                        // relais8 Unassigned
+                        for (let i = 0; i < 8; i++) {
+                            result[at_snake + (i+1)] = (val & (1<<i)) >>> i;
+                        }
+                        break;
                     }
                     result[at_snake] = val;
                 }
@@ -579,6 +596,14 @@ const allPhaseData = [
     {cluster: clustersDef._0xFF66, att: 'message1', reportable: false, onlyProducer: false, exposes: e.text('MSG1', ea.STATE).withProperty('message1').withDescription('Message short')},
     {cluster: clustersDef._0xFF66, att: 'message2', reportable: false, onlyProducer: false, exposes: e.text('MSG2', ea.STATE).withProperty('message2').withDescription('Message ultra-short')},
     {cluster: clustersDef._0xFF66, att: 'relais', reportable: false, onlyProducer: false, exposes: e.numeric('RELAIS', ea.STATE).withProperty('relais')},
+    {cluster: clustersDef._0xFF66, att: 'relais1', reportable: false, onlyProducer: false, exposes: e.numeric('RELAIS1', ea.STATE).withProperty('relais1')},
+    {cluster: clustersDef._0xFF66, att: 'relais2', reportable: false, onlyProducer: false, exposes: e.numeric('RELAIS2', ea.STATE).withProperty('relais2')},
+    {cluster: clustersDef._0xFF66, att: 'relais3', reportable: false, onlyProducer: false, exposes: e.numeric('RELAIS3', ea.STATE).withProperty('relais3')},
+    {cluster: clustersDef._0xFF66, att: 'relais4', reportable: false, onlyProducer: false, exposes: e.numeric('RELAIS4', ea.STATE).withProperty('relais4')},
+    {cluster: clustersDef._0xFF66, att: 'relais5', reportable: false, onlyProducer: false, exposes: e.numeric('RELAIS5', ea.STATE).withProperty('relais5')},
+    {cluster: clustersDef._0xFF66, att: 'relais6', reportable: false, onlyProducer: false, exposes: e.numeric('RELAIS6', ea.STATE).withProperty('relais6')},
+    {cluster: clustersDef._0xFF66, att: 'relais7', reportable: false, onlyProducer: false, exposes: e.numeric('RELAIS7', ea.STATE).withProperty('relais7')},
+    {cluster: clustersDef._0xFF66, att: 'relais8', reportable: false, onlyProducer: false, exposes: e.numeric('RELAIS8', ea.STATE).withProperty('relais8')},
     {cluster: clustersDef._0xFF66, att: 'startMobilePoint1', reportable: false, onlyProducer: false, exposes: e.numeric('DPM1', ea.STATE).withProperty('start_mobile_point1').withDescription('Start mobile point 1')},
     {cluster: clustersDef._0xFF66, att: 'startMobilePoint2', reportable: false, onlyProducer: false, exposes: e.numeric('DPM2', ea.STATE).withProperty('start_mobile_point2').withDescription('Start mobile point 2')},
     {cluster: clustersDef._0xFF66, att: 'startMobilePoint3', reportable: false, onlyProducer: false, exposes: e.numeric('DPM3', ea.STATE).withProperty('start_mobile_point3').withDescription('Start mobile point 3')},
