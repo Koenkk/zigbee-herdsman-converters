@@ -248,29 +248,29 @@ const tzLocal = {
             }
             if (key === 'device_mode') {
                 const index = utils.getFromLookup(value, stateDeviceMode);
-                await entity.write('manuSpecificBosch10', {device_mode: index});
+                await entity.write('manuSpecificBosch10', {deviceMode: index});
                 return {state: {device_mode: value}};
             }
             if (key === 'switch_type') {
                 const index = utils.getFromLookup(value, stateSwitchType);
-                await entity.write('manuSpecificBosch10', {switch_type: index});
+                await entity.write('manuSpecificBosch10', {switchType: index});
                 return {state: {switch_type: value}};
             }
             if (key === 'child_lock') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('manuSpecificBosch10', {child_lock: index});
+                await entity.write('manuSpecificBosch10', {childLock: index});
                 return {state: {child_lock: value}};
             }
             if (key === 'calibration_opening_time') {
                 const number = utils.toNumber(value, 'calibration_opening_time');
                 const index = number * 10;
-                await entity.write('manuSpecificBosch10', {calibration_opening_time: index});
+                await entity.write('manuSpecificBosch10', {calibrationOpeningTime: index});
                 return {state: {calibration_opening_time: number}};
             }
             if (key === 'calibration_closing_time') {
                 const number = utils.toNumber(value, 'calibration_closing_time');
                 const index = number * 10;
-                await entity.write('manuSpecificBosch10', {calibration_closing_time: index});
+                await entity.write('manuSpecificBosch10', {calibrationClosingTime: index});
                 return {state: {calibration_closing_time: number}};
             }
         },
@@ -280,11 +280,19 @@ const tzLocal = {
                 await entity.read('genOnOff', ['onOff']);
                 break;
             case 'device_mode':
+                await entity.read('manuSpecificBosch10', ['deviceMode']);
+                break;
             case 'switch_type':
+                await entity.read('manuSpecificBosch10', ['switchType']);
+                break;
             case 'child_lock':
+                await entity.read('manuSpecificBosch10', ['childLock']);
+                break;
             case 'calibration_opening_time':
+                await entity.read('manuSpecificBosch10', ['calibrationOpeningTime']);
+                break;
             case 'calibration_closing_time':
-                await entity.read('manuSpecificBosch10', [key]);
+                await entity.read('manuSpecificBosch10', ['calibrationClosingTime']);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bcmt.convertGet ${key}`);
@@ -546,24 +554,24 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty('device_mode')) {
-                result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data['device_mode']);
+            if (data.hasOwnProperty('deviceMode')) {
+                result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data['deviceMode']);
             }
-            if (data.hasOwnProperty('switch_type')) {
-                result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data['switch_type']);
+            if (data.hasOwnProperty('switchType')) {
+                result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data['switchType']);
             }
-            if (data.hasOwnProperty('calibration_opening_time')) {
-                result.calibration_opening_time = msg.data['calibration_opening_time']/10;
+            if (data.hasOwnProperty('calibrationOpeningTime')) {
+                result.calibration_opening_time = msg.data['calibrationOpeningTime']/10;
             }
-            if (data.hasOwnProperty('calibration_closing_time')) {
-                result.calibration_closing_time = msg.data['calibration_closing_time']/10;
+            if (data.hasOwnProperty('calibrationClosingTime')) {
+                result.calibration_closing_time = msg.data['calibrationClosingTime']/10;
             }
-            if (data.hasOwnProperty('child_lock')) {
+            if (data.hasOwnProperty('childLock')) {
                 const property = utils.postfixWithEndpointName('child_lock', msg, model, meta);
-                result[property] = msg.data['child_lock'] === 1 ? 'ON' : 'OFF';
+                result[property] = msg.data['childLock'] === 1 ? 'ON' : 'OFF';
             }
-            if (data.hasOwnProperty('motor_state')) {
-                result.motor_state = Object.keys(stateMotor).find((key) => stateMotor[key] === msg.data['motor_state']);
+            if (data.hasOwnProperty('motorState')) {
+                result.motor_state = Object.keys(stateMotor).find((key) => stateMotor[key] === msg.data['motorState']);
             }
             return result;
         },
@@ -1288,9 +1296,9 @@ const definitions: Definition[] = [
             if (type === 'start' || type === 'deviceOptionsChanged') {
                 if (options.device_mode) {
                     const index = utils.getFromLookup(options.device_mode, stateDeviceMode);
-                    await device.getEndpoint(1).write('manuSpecificBosch10', {device_mode: index});
+                    await device.getEndpoint(1).write('manuSpecificBosch10', {deviceMode: index});
                 }
-                await device.getEndpoint(1).read('manuSpecificBosch10', ['device_mode']);
+                await device.getEndpoint(1).read('manuSpecificBosch10', ['deviceMode']);
             }
         },
         endpoint: (device) => {
@@ -1300,19 +1308,19 @@ const definitions: Definition[] = [
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'closuresWindowCovering', 'manuSpecificBosch10']);
             await reporting.currentPositionLiftPercentage(endpoint1);
-            await endpoint1.read('manuSpecificBosch10', ['device_mode', 'switch_type',
-                'calibration_opening_time', 'calibration_closing_time', 'child_lock', 'motor_state']);
+            await endpoint1.read('manuSpecificBosch10', ['deviceMode', 'switchType',
+                'calibrationOpeningTime', 'calibrationClosingTime', 'childLock', 'motorState']);
             const endpoint2 = device.getEndpoint(2);
-            await endpoint2.read('manuSpecificBosch10', ['child_lock']);
+            await endpoint2.read('manuSpecificBosch10', ['childLock']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
             await reporting.onOff(endpoint2);
             const endpoint3 = device.getEndpoint(3);
-            await endpoint3.read('manuSpecificBosch10', ['child_lock']);
+            await endpoint3.read('manuSpecificBosch10', ['childLock']);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
             await reporting.onOff(endpoint3);
         },
         options: [
-            e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode).filter((key) => key !== 'not configured'))
+            e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode).filter((key) => key !== 'disabled'))
                 .withDescription('Device mode')],
         exposes: (device, options) => {
             const lightExposes = [
