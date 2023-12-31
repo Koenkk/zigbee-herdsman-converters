@@ -215,6 +215,13 @@ const definitions: Definition[] = [
         extend: [onOff()],
     },
     {
+        zigbeeModel: ['LDSENK01S'],
+        model: 'LDSENK01S',
+        vendor: 'ADEO',
+        description: '10A EU smart plug',
+        extend: [onOff()],
+    },
+    {
         zigbeeModel: ['LXEK-5', 'ZBEK-26'],
         model: 'HR-C99C-Z-C045',
         vendor: 'ADEO',
