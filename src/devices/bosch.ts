@@ -37,24 +37,26 @@ const sirenPowerSupply = {
 };
 
 // BMCT
-const stateDeviceType = {
+const stateDeviceMode: KeyValue = {
     'light': 0x04,
     'shutter': 0x01,
+    'disabled': 0x00,
 };
+
 // BMCT
-const stateMotor = {
+const stateMotor: KeyValue = {
     'idle': 0x00,
-    'opening': 0x02,
-    'closing': 0x01,
+    'opening': 0x01,
+    'closing': 0x02,
 };
+
 // BMCT
-const stateSwitchType = {
+const stateSwitchType: KeyValue = {
     'button': 0x01,
     'button_key_change': 0x02,
     'rocker_switch': 0x03,
-    'rocker_rwitch_key_change': 0x04,
+    'rocker_switch_key_change': 0x04,
 };
-
 
 // Twinguard
 const smokeSensitivity = {
@@ -230,56 +232,46 @@ const tzLocal = {
     } satisfies Tz.Converter,
     bmct: {
         key: [
-            'device_type',
+            'device_mode',
             'switch_type',
-            'child_lock', 'child_lock_left', 'child_lock_right',
-            'calibration_closing_time', 'calibration_opening_time',
+            'child_lock',
+            'calibration', 'calibration_closing_time', 'calibration_opening_time',
             'state',
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state') {
-                utils.assertString(value, 'state');
-                const state = value.toLowerCase();
-                utils.validateValue(state, ['toggle', 'off', 'on', 'open', 'close', 'stop']);
-                if ( state === 'on' || state === 'off' || state === 'toggle') {
-                    await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
-                    if (state === 'toggle') {
-                        const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
-                        return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
-                    } else {
-                        return {state: {state: state.toUpperCase()}};
-                    }
-                } else if ( state === 'open' || state === 'close' || state === 'stop') {
-                    const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
-                    await entity.command('closuresWindowCovering', utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
+                if ('ID' in entity && entity.ID === 1) {
+                    await tz.cover_state.convertSet(entity, key, value, meta);
+                } else {
+                    await tz.on_off.convertSet(entity, key, value, meta);
                 }
             }
-            if (key === 'device_type') {
-                const index = utils.getFromLookup(value, stateDeviceType);
-                await entity.write(0xFCA0, {0x0000: {value: index, type: 0x30}}, manufacturerOptions);
-                return {state: {device_type: value}};
+            if (key === 'device_mode') {
+                const index = utils.getFromLookup(value, stateDeviceMode);
+                await entity.write('manuSpecificBosch10', {deviceMode: index});
+                return {state: {device_mode: value}};
             }
             if (key === 'switch_type') {
                 const index = utils.getFromLookup(value, stateSwitchType);
-                await entity.write(0xFCA0, {0x0001: {value: index, type: 0x30}}, manufacturerOptions);
+                await entity.write('manuSpecificBosch10', {switchType: index});
                 return {state: {switch_type: value}};
             }
             if (key === 'child_lock') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write(0xFCA0, {0x0008: {value: index, type: 0x10}}, manufacturerOptions);
+                await entity.write('manuSpecificBosch10', {childLock: index});
                 return {state: {child_lock: value}};
-            }
-            if (key === 'calibration_closing_time') {
-                const number = utils.toNumber(value, 'calibration_closing_time');
-                const index = number *10;
-                await entity.write(0xFCA0, {0x0002: {value: index, type: 0x23}}, manufacturerOptions);
-                return {state: {calibration_closing_time: number}};
             }
             if (key === 'calibration_opening_time') {
                 const number = utils.toNumber(value, 'calibration_opening_time');
-                const index = number *10;
-                await entity.write(0xFCA0, {0x0003: {value: index, type: 0x23}}, manufacturerOptions);
+                const index = number * 10;
+                await entity.write('manuSpecificBosch10', {calibrationOpeningTime: index});
                 return {state: {calibration_opening_time: number}};
+            }
+            if (key === 'calibration_closing_time') {
+                const number = utils.toNumber(value, 'calibration_closing_time');
+                const index = number * 10;
+                await entity.write('manuSpecificBosch10', {calibrationClosingTime: index});
+                return {state: {calibration_closing_time: number}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -287,20 +279,20 @@ const tzLocal = {
             case 'state':
                 await entity.read('genOnOff', ['onOff']);
                 break;
-            case 'device_type':
-                await entity.read(0xFCA0, [0x0000], manufacturerOptions);
+            case 'device_mode':
+                await entity.read('manuSpecificBosch10', ['deviceMode']);
                 break;
             case 'switch_type':
-                await entity.read(0xFCA0, [0x0001], manufacturerOptions);
+                await entity.read('manuSpecificBosch10', ['switchType']);
                 break;
             case 'child_lock':
-                await entity.read(0xFCA0, [0x0008], manufacturerOptions);
-                break;
-            case 'calibration_closing_time':
-                await entity.read(0xFCA0, [0x0002], manufacturerOptions);
+                await entity.read('manuSpecificBosch10', ['childLock']);
                 break;
             case 'calibration_opening_time':
-                await entity.read(0xFCA0, [0x0003], manufacturerOptions);
+                await entity.read('manuSpecificBosch10', ['calibrationOpeningTime']);
+                break;
+            case 'calibration_closing_time':
+                await entity.read('manuSpecificBosch10', ['calibrationClosingTime']);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bcmt.convertGet ${key}`);
@@ -557,21 +549,29 @@ const tzLocal = {
 
 const fzLocal = {
     bmct: {
-        cluster: '64672',
+        cluster: 'manuSpecificBosch10',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x0000)) {
-                result.device_type = (Object.keys(stateDeviceType)[msg.data[0x0000]]);
-            } else if (data.hasOwnProperty(0x0001)) {
-                result.switch_type = (Object.keys(stateSwitchType)[msg.data[0x0001]]);
-            } else if (data.hasOwnProperty(0x0002)) {
-                result.calibration_closing_time = msg.data[0x0002];
-            } else if (data.hasOwnProperty(0x0003)) {
-                result.calibration_opening_time = msg.data[0x0003];
-            } else if (data.hasOwnProperty(0x0013)) {
-                result.motor_state = (Object.keys(stateMotor)[msg.data[0x0013]]);
+            if (data.hasOwnProperty('deviceMode')) {
+                result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data['deviceMode']);
+            }
+            if (data.hasOwnProperty('switchType')) {
+                result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data['switchType']);
+            }
+            if (data.hasOwnProperty('calibrationOpeningTime')) {
+                result.calibration_opening_time = msg.data['calibrationOpeningTime']/10;
+            }
+            if (data.hasOwnProperty('calibrationClosingTime')) {
+                result.calibration_closing_time = msg.data['calibrationClosingTime']/10;
+            }
+            if (data.hasOwnProperty('childLock')) {
+                const property = utils.postfixWithEndpointName('child_lock', msg, model, meta);
+                result[property] = msg.data['childLock'] === 1 ? 'ON' : 'OFF';
+            }
+            if (data.hasOwnProperty('motorState')) {
+                result.motor_state = Object.keys(stateMotor).find((key) => stateMotor[key] === msg.data['motorState']);
             }
             return result;
         },
@@ -1288,47 +1288,72 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.on_off, fz.power_on_behavior],
         toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.on_off, tz.power_on_behavior],
         meta: {multiEndpoint: true},
+        onEvent: async (type, data, device, options) => {
+            if (type === 'start' || type === 'deviceOptionsChanged') {
+                if (options.device_mode) {
+                    const index = utils.getFromLookup(options.device_mode, stateDeviceMode);
+                    await device.getEndpoint(1).write('manuSpecificBosch10', {deviceMode: index});
+                }
+                await device.getEndpoint(1).read('manuSpecificBosch10', ['deviceMode']);
+            }
+        },
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'closuresWindowCovering', 64672]);
-            await endpoint1.unbind('genOnOff', coordinatorEndpoint);
-            await endpoint1.read(64672, [0x0000, 0x0001, 0x0002, 0x0003, 0x0008, 0x0013], manufacturerOptions);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'closuresWindowCovering', 'manuSpecificBosch10']);
+            await reporting.currentPositionLiftPercentage(endpoint1);
+            await endpoint1.read('manuSpecificBosch10', ['deviceMode', 'switchType',
+                'calibrationOpeningTime', 'calibrationClosingTime', 'childLock', 'motorState']);
             const endpoint2 = device.getEndpoint(2);
-            await endpoint2.read(64672, [0x0008], manufacturerOptions);
+            await endpoint2.read('manuSpecificBosch10', ['childLock']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
             await reporting.onOff(endpoint2);
             const endpoint3 = device.getEndpoint(3);
-            await endpoint3.read(64672, [0x0008], manufacturerOptions);
+            await endpoint3.read('manuSpecificBosch10', ['childLock']);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
             await reporting.onOff(endpoint3);
         },
-        exposes: [
-            // light
-            e.enum('device_type', ea.ALL, Object.keys(stateDeviceType))
-                .withDescription('Device type: '),
-            e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
-                .withDescription('Module controlled by a rocker switch or a button'),
-            e.switch().withEndpoint('left'),
-            e.switch().withEndpoint('right'),
-            e.power_on_behavior().withEndpoint('right'),
-            e.power_on_behavior().withEndpoint('left'),
-            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left')
-                .withDescription('Enable/Disable child lock'),
-            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
-                .withDescription('Enable/Disable child lock'),
-            // cover
-            e.cover_position().setAccess('state', ea.ALL),
-            e.enum('motor_state', ea.STATE, Object.keys(stateMotor))
-                .withDescription('Shutter motor actual state '),
-            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
-            e.numeric('calibration_closing_time', ea.ALL).withUnit('s')
-                .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
-            e.numeric('calibration_opening_time', ea.ALL).withUnit('s')
-                .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
-        ],
+        options: [
+            e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode).filter((key) => key !== 'disabled'))
+                .withDescription('Device mode')],
+        exposes: (device, options) => {
+            const lightExposes = [
+                e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
+                    .withDescription('Module controlled by a rocker switch or a button'),
+                e.switch().withEndpoint('left'),
+                e.switch().withEndpoint('right'),
+                e.power_on_behavior().withEndpoint('right'),
+                e.power_on_behavior().withEndpoint('left'),
+                e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left')
+                    .withDescription('Enable/Disable child lock'),
+                e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
+                    .withDescription('Enable/Disable child lock'),
+            ];
+            const coverExposes = [
+                e.cover_position(),
+                e.enum('motor_state', ea.STATE, Object.keys(stateMotor))
+                    .withDescription('Shutter motor actual state '),
+                e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
+                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('closing_time')
+                    .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
+                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('opening_time')
+                    .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
+            ];
+
+            if (options?.device_mode ==='light') {
+                return [...lightExposes, e.linkquality()];
+            } else if (options?.device_mode ==='shutter') {
+                return [...coverExposes, e.linkquality()];
+            }
+
+            // Setting ea.ALL is required to pass all tests (because OnOff has convertGet())
+            coverExposes[0].setAccess('state', ea.ALL);
+
+            return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'),
+                ...lightExposes, ...coverExposes, e.linkquality()];
+        },
     },
     {
         zigbeeModel: ['RBSH-US4BTN-ZB-EU'],
