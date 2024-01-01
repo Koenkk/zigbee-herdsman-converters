@@ -2759,6 +2759,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
+        zigbeeModel: ['LCX005'],
+        model: '8719514434479',
+        vendor: 'Philips',
+        description: 'Hue Play gradient lightstrip for PC',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
         zigbeeModel: ['LCX006'],
         model: '8719514434530',
         vendor: 'Philips',
