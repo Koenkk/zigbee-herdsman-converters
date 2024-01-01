@@ -10,7 +10,7 @@ const definitions: Definition[] = [
         extend: [onOff()],
     },
     {
-        zigbeeModel: ['Built-in Switch'],
+        fingerprint: [{modelID: 'Built-in Switch', manufacturerName: 'KlikAanKlikUit'}],
         model: 'ZCM-1800',
         vendor: 'KlikAanKlikUit',
         description: 'Zigbee switch module',
