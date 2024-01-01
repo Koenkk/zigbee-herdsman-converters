@@ -91,16 +91,16 @@ const definitions: Definition[] = [
         model: 'R7052',
         vendor: 'Woox',
         description: 'Smart SOS button',
-        fromZigbee: [fz.command_emergency,fz.battery],
+        fromZigbee: [fz.command_emergency, fz.battery],
         toZigbee: [],
-    	exposes: [e.battery(),e.battery_voltage(),e.action(['emergency'])],
-    	configure: async (device, coordinatorEndpoint) => {
-    		const endpoint = device.getEndpoint(1);
+        exposes: [e.battery(), e.battery_voltage(), e.action(['emergency'])],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
             const bindClusters = ['genPowerCfg'];
-    		await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
             await reporting.batteryVoltage(endpoint);
-    		await reporting.batteryPercentageRemaining(endpoint);
-    	},
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
 ];
 
