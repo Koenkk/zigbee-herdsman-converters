@@ -1,5 +1,21 @@
 # Changelog
 
+## [18.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.2.0...v18.3.0) (2024-01-01)
+
+
+### Features
+
+* **add:** 8719514434479 https://github.com/Koenkk/zigbee2mqtt/issues/20453 ([762460a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/762460abd2c42f462aabb933099c5e1b33e1665f))
+* **add:** LDSENK01S ([#6800](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6800)) ([78e4abc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/78e4abc54ae437c68bc956e891c3c533d2bf5bb9))
+* **add:** ZCM-1800 ([#6793](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6793)) ([6e7a912](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e7a9124713ed417b2fd15e737f553d84f04c12b))
+* Expose relais for LiXee ([#6791](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6791)) ([0413087](https://github.com/Koenkk/zigbee-herdsman-converters/commit/04130873bf4a6115e5937a0e6c0a4078a8e5540a))
+
+
+### Bug Fixes
+
+* **ignore:** update dependencies ([#6798](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6798)) ([1ec95a3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1ec95a3c898e426093419e1fd527b0681784955f))
+* Several fixes for Bosch BMCT-SLZ Light/Roller Shutter Switch ([#6785](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6785)) ([caddaab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/caddaab299888c38bf2d3f7127f42c5e26baf51d))
+
 ## [18.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.1.0...v18.2.0) (2023-12-30)
 
 
