@@ -845,7 +845,8 @@ const definitions: Definition[] = [
                 coverExpose,
                 e.power().withAccess(ea.STATE_GET),
                 e.energy().withAccess(ea.STATE_GET),
-                e.linkquality()];
+                e.linkquality()
+            ];
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
