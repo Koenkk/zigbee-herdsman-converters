@@ -1436,7 +1436,7 @@ const definitions: Definition[] = [
         model: 'RM3500ZB',
         vendor: 'Sinopé',
         description: 'Calypso smart water heater controller',
-        extend: [onOff(), electricityMeter()],
+        extend: [onOff({powerOnBehavior: false}), electricityMeter()],
         fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
         toZigbee: [tzLocal.low_water_temp_protection],
         exposes: [
