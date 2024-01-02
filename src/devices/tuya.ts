@@ -2342,7 +2342,7 @@ const definitions: Definition[] = [
         model: 'TS0003',
         vendor: 'TuYa',
         description: '3 gang switch',
-        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}})],
+        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}, powerOnBehavior: false})],
         whiteLabel: [{vendor: 'BSEED', model: 'TS0003', description: 'Zigbee switch'}],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
