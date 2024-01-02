@@ -994,15 +994,10 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_p3lqqy2r',
-            },
-        ],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_p3lqqy2r']),
         model: '4512752/4512753',
         vendor: 'Namron',
-        description: 'Touch Thermostat 16A 2.0',
+        description: 'Touch thermostat 16A 2.0',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
