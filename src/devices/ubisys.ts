@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
-import {numeric} from '../lib/modernExtend';
+import { ubisysModernExtend } from '../lib/ubisys';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -940,45 +940,10 @@ const definitions: Definition[] = [
                 .withDescription('When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.'),
         ],
         extend: [
-            numeric({
-                name: 'local_temperature_offset',
-                cluster: 'hvacThermostat',
-                attribute: 'ubisysTemperatureOffset',
-                description: 'Specifies the temperature offset for the locally measured temperature value.',
-                scale: 100,
-                valueStep: 0.5, // device seems to step in 0.5 ºC - XXX: does this need to be 0.5 or 50 given the scale ?
-                unit: 'ºC',
-            }),
-            numeric({
-                name: 'occupied_heating_setpoint_default',
-                cluster: 'hvacThermostat',
-                attribute: 'ubisysDefaultOccupiedHeatingSetpoint',
-                description: 'Specifies the default heating setpoint during occupancy, ' +
-                    'representing the targeted temperature when a recurring weekly schedule ends without a follow-up schedule.',
-                scale: 100,
-                valueStep: 0.5, // device seems to step in 0.5 ºC - XXX: does this need to be 0.5 or 50 given the scale ?
-                valueMin: 7,
-                valueMax: 30,
-                unit: 'ºC',
-            }),
-            numeric({
-                name: 'remote_temperature',
-                cluster: 'hvacThermostat',
-                attribute: 'ubisysRemoteTemperature',
-                description: 'Indicates the remotely measured temperature value, accessible through attribute reports. ' +
-                    'For heating regulation, a received remote temperature value, as long as valid, takes precedence over the locally measured one.',
-                scale: 100,
-                unit: 'ºC',
-                readOnly: true,
-            }),
-            numeric({
-                name: 'remote_temperature_duration',
-                cluster: 'hvacThermostat',
-                attribute: 'ubisysRemoteTemperatureValidDuration',
-                description: 'Specifies the duration period in seconds, during which a remotely measured temperature value ' +
-                    'remains valid since its reception as attribute report.',
-                unit: 's',
-            }),
+            ubisysModernExtend.localTemperatureOffset(),
+            ubisysModernExtend.occupiedHeatingSetpointDefault(),
+            ubisysModernExtend.remoteTemperature(),
+            ubisysModernExtend.remoteTemperatureDuration(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
