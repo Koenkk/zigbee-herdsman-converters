@@ -1292,9 +1292,9 @@ const definitions: Definition[] = [
             if (type === 'start' || type === 'deviceOptionsChanged') {
                 if (options.device_mode) {
                     const index = utils.getFromLookup(options.device_mode, stateDeviceMode);
-                    await device.getEndpoint(1).write('manuSpecificBosch10', {deviceMode: index});
+                    await device.getEndpoint(1).write('manuSpecificBosch10', {deviceMode: index}).catch((e) => {});
                 }
-                await device.getEndpoint(1).read('manuSpecificBosch10', ['deviceMode']);
+                await device.getEndpoint(1).read('manuSpecificBosch10', ['deviceMode']).catch((e) => {});
             }
         },
         endpoint: (device) => {
@@ -1305,13 +1305,13 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'closuresWindowCovering', 'manuSpecificBosch10']);
             await reporting.currentPositionLiftPercentage(endpoint1);
             await endpoint1.read('manuSpecificBosch10', ['deviceMode', 'switchType',
-                'calibrationOpeningTime', 'calibrationClosingTime', 'childLock', 'motorState']);
+                'calibrationOpeningTime', 'calibrationClosingTime', 'childLock', 'motorState']).catch((e) => {});
             const endpoint2 = device.getEndpoint(2);
             await endpoint2.read('manuSpecificBosch10', ['childLock']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff']).catch((e) => {});
             await reporting.onOff(endpoint2);
             const endpoint3 = device.getEndpoint(3);
-            await endpoint3.read('manuSpecificBosch10', ['childLock']);
+            await endpoint3.read('manuSpecificBosch10', ['childLock']).catch((e) => {});
             await reporting.bind(endpoint3, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
             await reporting.onOff(endpoint3);
         },
