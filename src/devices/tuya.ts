@@ -444,7 +444,7 @@ const fzLocal = {
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
         convert: async (model, msg, publish, options, meta) => {
-            const result = await fz.electrical_measurement.convert(model, msg, publish, options, meta);
+            const result = await fz.electrical_measurement.convert(model, msg, publish, options, meta) ?? {};
             const lookup: KeyValueString = {power: 'activePower', current: 'rmsCurrent', voltage: 'rmsVoltage'};
 
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
