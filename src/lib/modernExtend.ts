@@ -549,7 +549,7 @@ export function temperature(args?: Partial<NumericArgs>) {
         attribute: 'measuredValue',
         reporting: {min: '10_SECONDS', max: '1_HOUR', change: 100},
         description: 'Measured temperature value',
-        unit: 'ºC',
+        unit: '°C',
         scale: 100,
         readOnly: true,
         ...args,
