@@ -330,7 +330,6 @@ class ColorHSV {
     hue: number;
     saturation: number;
     value: number;
-    brightness: number;
 
     /**
      * Create color in HSV space
@@ -524,7 +523,7 @@ class ColorHSV {
      * @return {ColorHSV} hue corrected color
      */
     hueCorrected(meta: Tz.Meta) {
-        return new ColorHSV(ColorHSV.correctHue(this.hue, meta), this.saturation, this.brightness);
+        return new ColorHSV(ColorHSV.correctHue(this.hue, meta), this.saturation, this.value);
     }
 
     /**
