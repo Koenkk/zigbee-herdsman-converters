@@ -37,6 +37,7 @@ const definitions: Definition[] = [
         exposes: (device, options) => {
             const maxSetpoint = ['TRV001', 'TRV003'].includes(device?.modelID) ? 32 : 35;
             return [
+                e.linkquality(),
                 e.battery(), e.keypad_lockout(), e.programming_operation_mode(),
                 e.binary('mounted_mode_active', ea.STATE_GET, true, false)
                     .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
