@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: 'KS-SM001',
         vendor: 'Ksentry Electronics',
         description: 'Zigbee on/off controller',
-        extend: [onOff()],
+        extend: [onOff({powerOnBehavior: false})],
     },
 ];
 
