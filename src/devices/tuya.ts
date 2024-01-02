@@ -3897,7 +3897,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Smart light switch - 2 gang',
         whiteLabel: [{vendor: 'Vrey', model: 'VR-X712U-0013'}, {vendor: 'TUYATEC', model: 'GDKES-02TZXD'},
-            {vendor: 'Earda', model: 'ESW-2ZAA-EU'}, {vendor: 'Moes', model: 'ZS-US2-BK-MS'},
+            {vendor: 'Earda', model: 'ESW-2ZAA-EU'}, {vendor: 'Moes', model: 'ZS-US2-BK-MS'}],
         extend: tuya.extend.switch({backlightModeOffNormalInverted: true, endpoints: ['left', 'right']}),
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
