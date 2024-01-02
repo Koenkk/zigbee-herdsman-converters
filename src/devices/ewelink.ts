@@ -80,7 +80,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW01',
         vendor: 'eWeLink',
         description: 'Smart light switch - 1 gang',
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
