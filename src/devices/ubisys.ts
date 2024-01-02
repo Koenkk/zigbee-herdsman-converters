@@ -819,24 +819,24 @@ const definitions: Definition[] = [
             const coverExpose = e.cover();
             if (device) {
                 const coverType = device.getEndpoint(1).getClusterAttributeValue('closuresWindowCovering', 'windowCoveringType');
-                switch(coverType) { //cf. Ubisys J1 Technical Reference Manual, chapter 7.2.5.1 Calibration
-                    case 0: // Roller Shade, Lift only
-                    case 1: // Roller Shade two motors, Lift only
-                    case 2: // Roller Shade exterior, Lift only
-                    case 3: // Roller Shade two motors exterior, Lift only
-                    case 4: // Drapery, Lift only
-                    case 5: // Awning, Lift only
-                    case 9: // Projector Screen, Lift only
-                        coverExpose.withPosition();
-                        break;
-                    case 6: // Shutter, Tilt only
-                    case 7: // Tilt Blind, Tilt only
-                        coverExpose.withTilt();
-                        break;
-                    case 8: // Tilt Blind, Lift & Tilt
-                    default:
-                        coverExpose.withPosition().withTilt();
-                        break;
+                switch (coverType) { // cf. Ubisys J1 Technical Reference Manual, chapter 7.2.5.1 Calibration
+                case 0: // Roller Shade, Lift only
+                case 1: // Roller Shade two motors, Lift only
+                case 2: // Roller Shade exterior, Lift only
+                case 3: // Roller Shade two motors exterior, Lift only
+                case 4: // Drapery, Lift only
+                case 5: // Awning, Lift only
+                case 9: // Projector Screen, Lift only
+                    coverExpose.withPosition();
+                    break;
+                case 6: // Shutter, Tilt only
+                case 7: // Tilt Blind, Tilt only
+                    coverExpose.withTilt();
+                    break;
+                case 8: // Tilt Blind, Lift & Tilt
+                default:
+                    coverExpose.withPosition().withTilt();
+                    break;
                 }
             } else {
                 coverExpose.withPosition().withTilt();
