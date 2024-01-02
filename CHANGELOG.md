@@ -1,5 +1,34 @@
 # Changelog
 
+## [18.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.3.0...v18.4.0) (2024-01-02)
+
+
+### Features
+
+* Adapt exposes according to covering type for Ubisys J1 ([#6809](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6809)) ([d2993ee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d2993ee036f98144adaf5ea36c9e2da28e79c920))
+* **add:** 4512752/4512753 ([#6811](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6811)) ([9f28f8f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9f28f8fdc0f20998ec717b1da1f5dc7f680d75de))
+* Expose `keypad_lockout` for Schneider Electric WV704R0A0902 ([#6807](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6807)) ([ee056c7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ee056c7d8dd9ba19887e24f1d075e793f63bfc4a))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_ssp0maqm` as TuYa TS0215A_sos https://github.com/Koenkk/zigbee2mqtt/discussions/20496 ([57e427e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/57e427e2b2d4dc113c15698a039b8deb3dabc54b))
+* Disable powerOnBehavior for RM3500ZB ([#6814](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6814)) ([c8db692](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c8db692e00aef02ca91a0e338164d06207264dcc))
+* Disable unsupported `power_on_behavior` for TS0003 https://github.com/Koenkk/zigbee2mqtt/issues/20354 ([a23709b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a23709b2e1072b66dd45db67c491ccf02b17e6da))
+* Disable unsupported `power_on_behaviour` for Ksentry KS-SM001 https://github.com/Koenkk/zigbee2mqtt/issues/20515 ([2fa71de](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2fa71de9f11e7251db9b853e75e14a340005b9e4))
+* Fix `Cannot set properties of undefined (setting 'power')}` for TuYa TS011F_plug_1 https://github.com/Koenkk/zigbee2mqtt/issues/16709 ([30722e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30722e41aca92d23154cc8f9610fe5fbc1d112cc))
+* Fix `Error: Cluster 'liXeePrivate' has no attribute 'relaisX'` https://github.com/Koenkk/zigbee2mqtt/issues/20492 ([6f232dd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f232dd7d0fbc62e48c0c3ab6b784190a2d08f22))
+* Fix Bosch BMCT-SLZ configure failing ([#6806](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6806)) ([4968ced](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4968ced60aecf4633fa68dc164c78d752a101f13))
+* Fix color not supported for Xiaomi LGYCDD01LM ([#6812](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6812)) ([ab0a776](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab0a77682e1fdd04b8cfdcd59b2b01de3aed1d54))
+* Fix color temperature not supported for Ltech TY-75-24-G2Z2_CCT https://github.com/Koenkk/zigbee2mqtt/issues/17953 ([1c88a37](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c88a37fc06ff27be9205e1dda925c87c49c3d25))
+* Fix configure failing for eWeLink ZB-SW01 https://github.com/Koenkk/zigbee2mqtt/issues/20483 ([5d1d217](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5d1d217ebaa21b00035bff1966280624302fbf63))
+* Fix Hue firework effect ([#6802](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6802)) ([8282949](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8282949d9113ea14d35eeebe7beba7f1663a22fd))
+* Fix light turning off when setting color through HSV https://github.com/Koenkk/zigbee2mqtt/issues/20276 ([67cd975](https://github.com/Koenkk/zigbee-herdsman-converters/commit/67cd97504ece586fd10e857378877c50b8b950a5))
+* Fix max setpoint for Hive UK7004240 https://github.com/Koenkk/zigbee2mqtt/issues/20331 ([ac7f50b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ac7f50b41073120f8b69606c9ac58fea6201ca6d))
+* Fix no `action` for Xiaomi ZNQBKG25LM [@utegental](https://github.com/utegental) https://github.com/Koenkk/zigbee2mqtt/issues/20503 ([7979578](https://github.com/Koenkk/zigbee-herdsman-converters/commit/79795781289bd5b2a576b4e18cdfc1abfdf58264))
+* **ignore:** fix ac7f50b ([b75df02](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b75df027ad75e9885985d4c2d8722d3fb96c06a4))
+* Temperature expose unit https://github.com/Koenkk/zigbee-herdsman-converters/issues/6808 ([ecc31f6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ecc31f69d49fa270b48f50a5389aaba75463d8ac))
+
 ## [18.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.2.0...v18.3.0) (2024-01-01)
 
 
