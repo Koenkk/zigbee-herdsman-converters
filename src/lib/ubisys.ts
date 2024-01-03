@@ -14,7 +14,7 @@ export const ubisysModernExtend = {
         ...args,
     }),
     occupiedHeatingSetpointDefault: (args?: Partial<NumericArgs>) => numeric({
-        name: 'occupied_heating_setpoint_default',
+        name: 'occupied_heating_default_setpoint',
         cluster: 'hvacThermostat',
         attribute: 'ubisysDefaultOccupiedHeatingSetpoint',
         description: 'Specifies the default heating setpoint during occupancy, ' +
