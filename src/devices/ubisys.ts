@@ -819,7 +819,7 @@ const definitions: Definition[] = [
         exposes: (device, options) => {
             const coverExpose = e.cover();
             if (device) {
-                const coverType = device.getEndpoint(1).getClusterAttributeValue('closuresWindowCovering', 'windowCoveringType');
+                const coverType = device?.getEndpoint(1).getClusterAttributeValue('closuresWindowCovering', 'windowCoveringType') ?? null;
                 switch (coverType) { // cf. Ubisys J1 Technical Reference Manual, chapter 7.2.5.1 Calibration
                 case 0: // Roller Shade, Lift only
                 case 1: // Roller Shade two motors, Lift only
