@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
-import { ubisysModernExtend } from '../lib/ubisys';
+import {ubisysModernExtend} from '../lib/ubisys';
 const e = exposes.presets;
 const ea = exposes.access;
 

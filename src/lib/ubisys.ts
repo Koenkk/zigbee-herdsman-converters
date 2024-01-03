@@ -1,4 +1,4 @@
-import { numeric, NumericArgs } from './modernExtend';
+import {numeric, NumericArgs} from './modernExtend';
 
 export const ubisysModernExtend = {
     localTemperatureOffset: (args?: Partial<NumericArgs>) => numeric({
@@ -8,8 +8,8 @@ export const ubisysModernExtend = {
         description: 'Specifies the temperature offset for the locally measured temperature value.',
         scale: 100,
         valueStep: 0.5, // H1 interface uses 0.5 step
-	valueMin: -10,
-	valueMax: 10,
+        valueMin: -10,
+        valueMax: 10,
         unit: 'ºC',
         ...args,
     }),
