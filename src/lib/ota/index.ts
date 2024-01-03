@@ -10,7 +10,7 @@ import * as zigbeeOTA from './zigbeeOTA';
 import * as jethome from './jethome';
 import {Ota} from '../types';
 
-const {setDataDir} = common;
+const {setDataDir, useInsecureTls, useCustomCaBundle} = common;
 
 export {
     inovelli,
@@ -23,6 +23,8 @@ export {
     zigbeeOTA,
     jethome,
     setDataDir,
+    useInsecureTls,
+    useCustomCaBundle,
 };
 
 export type ImageInfo = Ota.ImageInfo;
