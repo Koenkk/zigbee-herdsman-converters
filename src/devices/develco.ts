@@ -54,6 +54,8 @@ const develco = {
         // https://github.com/Koenkk/zigbee2mqtt/issues/13329
         electrical_measurement: {
             ...fz.electrical_measurement,
+            cluster: 'haElectricalMeasurement',
+            type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
                     return fz.electrical_measurement.convert(model, msg, publish, options, meta);
