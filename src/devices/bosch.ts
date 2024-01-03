@@ -1283,7 +1283,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['RBSH-MMR-ZB-EU'],
         model: 'BMCT-RZ',
-        vendor: 'BOSCH',
+        vendor: 'Bosch',
         description: 'Relay, potential free',
         fromZigbee: [fz.on_off, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
