@@ -11,6 +11,7 @@ import type {
 } from 'zigbee-herdsman/dist/zcl';
 
 import * as exposes from './exposes';
+import {Enum} from './tuya';
 
 export interface Logger {
     info: (message: string) => void;
@@ -23,6 +24,7 @@ export type Range = [number, number];
 export interface KeyValue {[s: string]: unknown}
 export interface KeyValueString {[s: string]: string}
 export interface KeyValueNumberString {[s: number]: string}
+export interface KeyValueStringEnum {[s: string]: Enum}
 // eslint-disable-next-line
 export interface KeyValueAny {[s: string]: any}
 export type Publish = (payload: KeyValue) => void;
