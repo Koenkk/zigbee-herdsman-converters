@@ -2854,6 +2854,8 @@ const definitions: Definition[] = [
             '_TZE200_mudxchsu', /* model: 'TV05-ZG curve', vendor: 'TuYa' */
             '_TZE200_7yoranx2', /* model: 'TV01-ZB', vendor: 'Moes' */
             '_TZE200_kds0pmmv', /* model: 'TV01-ZB', vendor: 'Moes' */
+            '_TZE200_py4cm3he', /* model: 'TV06-Zigbee', vendor: 'TuYa' */
+
         ]),
         model: 'TV02-Zigbee',
         vendor: 'TuYa',
