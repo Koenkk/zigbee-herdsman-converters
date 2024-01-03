@@ -1,4 +1,7 @@
-import {numeric, NumericArgs} from './modernExtend';
+import {Fz, Tz, ModernExtend} from './types';
+import {presets as e, access as ea} from './exposes';
+import {numeric, NumericArgs, setupConfigureForReporting, ReportingConfigWithoutAttribute} from './modernExtend';
+import {Zcl} from 'zigbee-herdsman';
 
 export const ubisysModernExtend = {
     localTemperatureOffset: (args?: Partial<NumericArgs>) => numeric({
@@ -48,4 +51,49 @@ export const ubisysModernExtend = {
         unit: 's',
         ...args,
     }),
+    vacationMode: (): ModernExtend => {
+        const clusterName = 'hvacThermostat';
+        const writeableAttributeName = 'ubisysVacationMode';
+        const readableAttributeName = 'occupancy';
+        const propertyName = 'vacation_mode';
+
+        const expose = e.binary(propertyName, ea.ALL, true, false)
+            .withDescription('When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.');
+
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: clusterName,
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty(readableAttributeName)) {
+                    return {[propertyName]: (msg.data.occupancy === 0)};
+                }
+            },
+        }];
+
+        const toZigbee: Tz.Converter[] = [{
+            key: [propertyName],
+            convertSet: async (entity, key, value, meta) => {
+                if (typeof value === 'boolean') {
+                    // NOTE: DataType is boolean in zcl definition as per the device technical reference
+                    //       passing a boolean type 'value' throws INVALID_DATA_TYPE, we need to pass 1 (true) or 0 (false)
+                    //       ZCL DataType used does still need to be 0x0010 (Boolean)
+                    await entity.write(clusterName, {[writeableAttributeName]: value ? 1 : 0}, {manufacturerCode: Zcl.ManufacturerCode.UBISYS});
+                } else {
+                    meta.logger.error(`${propertyName} must be a boolean!`);
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read(clusterName, [readableAttributeName]);
+            },
+        }];
+
+        const configure = setupConfigureForReporting(
+            clusterName,
+            readableAttributeName,
+            undefined,
+            {min: 0, max: '1_HOUR', change: 0} as ReportingConfigWithoutAttribute,
+        );
+
+        return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
 };
