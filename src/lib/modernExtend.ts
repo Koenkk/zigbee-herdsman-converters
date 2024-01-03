@@ -116,7 +116,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
                         [{attribute: 'startUpOnOff', min: 0, max: 'MAX', change: 1}], logger, true);
                 } catch (e) {
                     if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
-                        logger.debug('Reading startUpOnOff failed, ignoring...');
+                        logger.debug('Reading startUpOnOff failed, this features is unsupported');
                     } else {
                         throw e;
                     }
