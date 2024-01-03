@@ -62,12 +62,10 @@ const develco = {
                 }
                 const result: KeyValue = {};
                 if (msg.data.hasOwnProperty('totalActivePower')) {
-                    const value = msg.data['totalActivePower'];
                     result[utils.postfixWithEndpointName('total_active_power', msg, model, meta)] =
                         msg.data['totalActivePower'];
                 }
                 if (msg.data.hasOwnProperty('totalReactivePower')) {
-                    const value = msg.data['totalReactivePower'];
                     result[utils.postfixWithEndpointName('total_reactive_power', msg, model, meta)] =
                         msg.data['totalReactivePower'];
                 }
@@ -449,9 +447,9 @@ const definitions: Definition[] = [
                 await reporting.rmsCurrent(endpoint);
                 await reporting.activePower(endpoint);
                 await endpoint.configureReporting('haElectricalMeasurement', [{attribute: 'totalActivePower', minimumReportInterval: 5,
-                maximumReportInterval: 3600, reportableChange: 1}], manufacturerOptions);
+                    maximumReportInterval: 3600, reportableChange: 1}], manufacturerOptions);
                 await endpoint.configureReporting('haElectricalMeasurement', [{attribute: 'totalReactivePower', minimumReportInterval: 5,
-                maximumReportInterval: 3600, reportableChange: 1}], manufacturerOptions);
+                    maximumReportInterval: 3600, reportableChange: 1}], manufacturerOptions);
             } catch (e) {
                 e;
             }
@@ -465,7 +463,7 @@ const definitions: Definition[] = [
         },
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c(),
-            e.numeric('total_active_power', ea.STATE).withUnit('W').withDescription('Total active power'), 
+            e.numeric('total_active_power', ea.STATE).withUnit('W').withDescription('Total active power'),
             e.numeric('total_reactive_power', ea.STATE).withUnit('VAr').withDescription('Total reactive power')],
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'seMetering' && data.data['divisor']) {
