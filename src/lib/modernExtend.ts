@@ -110,8 +110,17 @@ export function onOff(args?: OnOffArgs): ModernExtend {
         result.configure = async (device, coordinatorEndpoint, logger) => {
             await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff', min: 0, max: 'MAX', change: 1}], logger);
             if (args.powerOnBehavior) {
-                await setupAttributes(device, coordinatorEndpoint, 'genOnOff',
-                    [{attribute: 'startUpOnOff', min: 0, max: 'MAX', change: 1}], logger, true);
+                try {
+                    // Don't fail configure if reading this attribute fails, some devices don't support it.
+                    await setupAttributes(device, coordinatorEndpoint, 'genOnOff',
+                        [{attribute: 'startUpOnOff', min: 0, max: 'MAX', change: 1}], logger, true);
+                } catch (e) {
+                    if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
+                        logger.debug('Reading startUpOnOff failed, ignoring...');
+                    } else {
+                        throw e;
+                    }
+                }
             }
         };
     }
