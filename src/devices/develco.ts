@@ -449,9 +449,9 @@ const definitions: Definition[] = [
                 await reporting.rmsCurrent(endpoint);
                 await reporting.activePower(endpoint);
                 await endpoint.configureReporting('haElectricalMeasurement', [{attribute: 'totalActivePower', minimumReportInterval: 5,
-                maximumReportInterval: 3600}], manufacturerOptions);
+                maximumReportInterval: 3600, reportableChange: 1}], manufacturerOptions);
                 await endpoint.configureReporting('haElectricalMeasurement', [{attribute: 'totalReactivePower', minimumReportInterval: 5,
-                maximumReportInterval: 3600}], manufacturerOptions);
+                maximumReportInterval: 3600, reportableChange: 1}], manufacturerOptions);
             } catch (e) {
                 e;
             }
