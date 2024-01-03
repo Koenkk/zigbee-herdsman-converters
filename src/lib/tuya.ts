@@ -5,25 +5,12 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import extend from './extend';
-import {
-    Tuya,
-    OnEventType,
-    OnEventData,
-    Zh,
-    KeyValue,
-    Tz,
-    Logger,
-    Fz,
-    Expose,
-    OnEvent,
-    ModernExtend,
-    Range,
-    KeyValueNumberString,
-    KeyValueStringEnum,
-} from './types';
+import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString} from './types';
 // import {Color} from './color';
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface KeyValueStringEnum {[s: string]: Enum}
 
 export const dataTypes = {
     raw: 0, // [ bytes ]
