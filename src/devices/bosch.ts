@@ -1281,6 +1281,16 @@ const definitions: Definition[] = [
         exposes: [e.battery_low(), e.contact(), e.vibration(), e.action(['single', 'long'])],
     },
     {
+        zigbeeModel: ['RBSH-MMR-ZB-EU'],
+        model: 'BMCT-RZ',
+        vendor: 'BOSCH',
+        description: 'Relay, potential free',
+        extend: [onOff({powerOnBehavior: false})],
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+    },
+    {
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
