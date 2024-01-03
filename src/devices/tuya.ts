@@ -3202,9 +3202,9 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset],
-                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset],
-                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset(null)],
+                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset('system_mode')],
+                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset('preset')],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
                 [4, 'boost_heating', tuya.valueConverter.onOff],
@@ -3262,9 +3262,9 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset],
-                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset],
-                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset(null)],
+                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset('system_mode')],
+                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset('preset')],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
                 [6, 'running_state', tuya.valueConverterBasic.lookup({'heat': 1, 'idle': 0})],

@@ -10,6 +10,8 @@ import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, On
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface KeyValueStringEnum {[s: string]: Enum}
+
 export const dataTypes = {
     raw: 0, // [ bytes ]
     bool: 1, // [0/1]
@@ -847,13 +849,21 @@ export const valueConverter = {
             },
         };
     },
-    thermostatSystemModeAndPreset: {
-        from: (v: string) => {
-            utils.assertNumber(v, 'system_mode');
-            const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
-            const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
-            return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
-        },
+    thermostatSystemModeAndPreset: (toKey: string) => {
+        return {
+            from: (v: string) => {
+                utils.assertNumber(v, 'system_mode');
+                const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
+                const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
+                return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
+            },
+            to: (v: string) => {
+                const presetLookup: KeyValueStringEnum = {'auto': new Enum(0), 'manual': new Enum(1), 'off': new Enum(2), 'on': new Enum(3)};
+                const systemModeLookup: KeyValueStringEnum = {'auto': new Enum(1), 'off': new Enum(2), 'heat': new Enum(3)};
+                const lookup: KeyValueStringEnum = toKey === 'preset' ? presetLookup : systemModeLookup;
+                return utils.getFromLookup(v, lookup);
+            },
+        };
     },
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
