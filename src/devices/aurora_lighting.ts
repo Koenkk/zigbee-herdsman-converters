@@ -109,7 +109,7 @@ const definitions: Definition[] = [
         model: 'AU-A1ZBMPRO1ZX',
         vendor: 'Aurora Lighting',
         description: 'AOne MPROZX fixed IP65 fire rated smart tuneable LED downlight',
-        extend: [light({colorTemp: {range: [200, 455]}, powerOnBehaviour: false})],
+        extend: [light({colorTemp: {range: [200, 455]}, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FWG125Bulb50AU'],

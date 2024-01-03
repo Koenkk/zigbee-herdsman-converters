@@ -227,12 +227,12 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 }
 
 export interface LightArgs {
-    effect?: boolean, powerOnBehaviour?: boolean, colorTemp?: {startup?: boolean, range: Range},
+    effect?: boolean, powerOnBehavior?: boolean, colorTemp?: {startup?: boolean, range: Range},
     color?: boolean | {modes?: ('xy' | 'hs')[], applyRedFix?: boolean, enhancedHue?: boolean}, turnsOffAtBrightness1?: boolean,
     configureReporting?: boolean, endpoints?: {[s: string]: number}, ota?: DefinitionOta,
 }
 export function light(args?: LightArgs): ModernExtend {
-    args = {effect: true, powerOnBehaviour: true, configureReporting: false, ...args};
+    args = {effect: true, powerOnBehavior: true, configureReporting: false, ...args};
     if (args.colorTemp) {
         args.colorTemp = {startup: true, ...args.colorTemp};
     }
@@ -290,7 +290,7 @@ export function light(args?: LightArgs): ModernExtend {
         toZigbee.push(tz.effect);
     }
 
-    if (args.powerOnBehaviour) {
+    if (args.powerOnBehavior) {
         exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
