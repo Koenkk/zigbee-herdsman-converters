@@ -58,6 +58,17 @@ const develco = {
                 if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
                     return fz.electrical_measurement.convert(model, msg, publish, options, meta);
                 }
+                if (msg.data.hasOwnProperty('totalActivePower')) {
+                    const value = msg.data['totalActivePower'];
+                    result[utils.postfixWithEndpointName('total_active_power', msg, model, meta)] =
+                        msg.data['totalActivePower'];
+                }
+                if (msg.data.hasOwnProperty('totalReactivePower')) {
+                    const value = msg.data['totalReactivePower'];
+                    result[utils.postfixWithEndpointName('total_reactive_power', msg, model, meta)] =
+                        msg.data['totalReactivePower'];
+                }
+                return result;
             },
         } satisfies Fz.Converter,
         device_temperature: {
@@ -434,6 +445,8 @@ const definitions: Definition[] = [
                 await reporting.rmsVoltage(endpoint);
                 await reporting.rmsCurrent(endpoint);
                 await reporting.activePower(endpoint);
+                await reporting.totalActivePower(endpoint);
+                await reporting.totalReactivePower(endpoint);
             } catch (e) {
                 e;
             }
@@ -446,7 +459,9 @@ const definitions: Definition[] = [
             await develco.configure.read_sw_hw_version(device, logger);
         },
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
-            e.voltage_phase_c()],
+            e.voltage_phase_c(),
+            e.numeric('total_active_power', ea.STATE).withUnit('W').withDescription('Total active power'), 
+            e.numeric('total_reactive_power', ea.STATE).withUnit('VAr').withDescription('Total reactive power')],
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'seMetering' && data.data['divisor']) {
                 // Device sends wrong divisor (512) while it should be fixed to 1000
