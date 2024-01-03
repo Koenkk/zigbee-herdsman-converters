@@ -224,8 +224,8 @@ const fzLocal = {
                 result.minimum_brightness = msg.data['minimumBrightness'];
             }
             if (msg.data.hasOwnProperty('actionReport')) {
-                const lookup = {2: 'up_single', 3: 'up_hold', 4: 'up_double',
-                    18: 'down_single', 19: 'down_hold', 20: 'down_double'};
+                const lookup = {1: 'up_clickdown', 2: 'up_single', 3: 'up_hold', 4: 'up_double',
+                    17: 'down_clickdown', 18: 'down_single', 19: 'down_hold', 20: 'down_double'};
                 result.action = utils.getFromLookup(msg.data['actionReport'], lookup);
             }
             if (msg.data.hasOwnProperty('keypadLockout')) {
