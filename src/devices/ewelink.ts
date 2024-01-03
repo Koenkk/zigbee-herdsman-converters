@@ -60,7 +60,7 @@ const definitions: Definition[] = [
         model: 'SWITCH-ZR02',
         vendor: 'eWeLink',
         description: 'Zigbee smart switch',
-        extend: [onOff({skipDuplicateTransaction: true})],
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
