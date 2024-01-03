@@ -389,24 +389,6 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_18ejxno0'}],
-        model: 'ZS-EUB_2gang',
-        vendor: 'Moes',
-        description: 'Wall light switch (2 gang)',
-        extend: tuya.extend.switch({backlightModeOffNormalInverted: true, endpoints: ['left', 'right']}),
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
-    },
-    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_rjxqso4a'}],
         model: 'ZC-HM',
         vendor: 'Moes',
