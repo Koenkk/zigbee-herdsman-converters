@@ -58,6 +58,7 @@ const develco = {
                 if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
                     return fz.electrical_measurement.convert(model, msg, publish, options, meta);
                 }
+                const result: KeyValue = {};
                 if (msg.data.hasOwnProperty('totalActivePower')) {
                     const value = msg.data['totalActivePower'];
                     result[utils.postfixWithEndpointName('total_active_power', msg, model, meta)] =
