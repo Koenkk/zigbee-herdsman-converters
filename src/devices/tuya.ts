@@ -2642,10 +2642,10 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0),'STOP': tuya.enum(1),'CLOSE': tuya.enum(2)})],
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
                 [2, 'position', tuya.valueConverter.coverPositionInverted],
                 [3, 'position', tuya.valueConverter.coverPositionInverted],
-                [5, 'reverse_direction', tuya.valueConverterBasic.lookup({'forward': tuya.enum(0),'back': tuya.enum(1)})],
+                [5, 'reverse_direction', tuya.valueConverterBasic.lookup({'forward': tuya.enum(0), 'back': tuya.enum(1)})],
                 [12, 'motor_fault', tuya.valueConverter.trueFalse1],
             ],
         },
