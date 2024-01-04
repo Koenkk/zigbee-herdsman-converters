@@ -2642,8 +2642,8 @@ const definitions: Definition[] = [
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverterBasic.lookup(
                     {
-                        'OPEN': tuya.enum(0), 
-                        'STOP': tuya.enum(1), 
+                        'OPEN': tuya.enum(0),
+                        'STOP': tuya.enum(1),
                         'CLOSE': tuya.enum(2),
                     },
                 )],
@@ -2651,8 +2651,8 @@ const definitions: Definition[] = [
                 [3, 'position', tuya.valueConverter.coverPositionInverted],
                 [5, 'reverse_direction', tuya.valueConverterBasic.lookup(
                     {
-                        'forward': tuya.enum(0), 
-                        'back': tuya.enum(1)
+                        'forward': tuya.enum(0),
+                        'back': tuya.enum(1),
                     },
                 )],
                 [12, 'motor_fault', tuya.valueConverter.trueFalse1],
