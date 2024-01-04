@@ -103,6 +103,18 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [],
     },
+    {
+        // Newer remotes. These expose a bunch of things but they are bound to
+        // the cover and don't seem to communicate with the coordinator, so
+        // nothing is likely to be doable in Z2M.
+        zigbeeModel: ['MAI-ZTS'],
+        model: 'MAI-ZTM20C',
+        vendor: 'Profalux',
+        description: 'Cover remote',
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+    },
 ];
 
 export default definitions;
