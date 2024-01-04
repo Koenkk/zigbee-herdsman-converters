@@ -110,7 +110,7 @@ const definitions: Definition[] = [
         fingerprint: [
             {type: 'EndDevice', manufacturerName: 'Profalux', modelID: 'MAI-ZTS', manufacturerID: 4368, endpoints: [
                 {ID: 1, profileID: 260, deviceID: 513, inputClusters: [0, 3, 21, 64514, 64544], outputClusters: [3, 4, 5, 6, 8, 256, 64544, 64545]},
-                {ID: 2, profileID: 260, deviceID: 515, inputClusters: [0, 1, 3, 9, 21, 32, 64514, 64544], 
+                {ID: 2, profileID: 260, deviceID: 515, inputClusters: [0, 1, 3, 9, 21, 32, 64514, 64544],
                     outputClusters: [3, 4, 5, 25, 258, 64544, 64545]},
             ]},
         ],
