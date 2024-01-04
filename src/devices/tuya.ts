@@ -2512,7 +2512,6 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_llm0epxg'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_n1aauwb4'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xu4a5rhj'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_r0jdjrvi'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjzrowv2'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_axgvo9jh'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_gaj531w3'},
@@ -2622,6 +2621,33 @@ const definitions: Definition[] = [
                 [101, 'battery', tuya.valueConverter.raw],
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_r0jdjrvi']),
+        model: 'TS0601_cover_8',
+        vendor: 'TuYa',
+        description: 'Cover motor',
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.enum('reverse_direction', ea.STATE_SET, ['forward', 'back']).withDescription('Reverse the motor direction'),
+            e.binary('motor_fault', ea.STATE, true, false).withDescription('Motor Fault'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPositionInverted],
+                [3, 'position', tuya.valueConverter.coverPositionInverted],
+                [5, 'reverse_direction', tuya.valueConverterBasic.lookup({'forward': tuya.enum(0), 'back': tuya.enum(1)})],
+                [12, 'motor_fault', tuya.valueConverter.trueFalse1],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Lilistore', 'TS0601_lilistore', 'Cover motor', ['_TZE204_r0jdjrvi']), // https://www.amazon.ae/dp/B09JG92Z88 - Tuya ZigBee Intelligent Curtain Blind Switch Electric Motorized Curtain Roller
+        ],
     },
     {
         zigbeeModel: ['kud7u2l'],
