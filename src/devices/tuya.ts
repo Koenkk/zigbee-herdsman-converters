@@ -458,14 +458,16 @@ const fzLocal = {
                             const configuredReporting = msg.endpoint.configuredReportings.find((c) =>
                                 c.cluster.name === 'haElectricalMeasurement' && c.attribute.name === lookup[key]);
                             const time = ((configuredReporting ? configuredReporting.minimumReportInterval : 5) * 2) + 1;
-                            globalStore.putValue(msg.endpoint, key, setTimeout(() => publish({[key]: value}), time * 1000));
+                            globalStore.putValue(msg.endpoint, key, setTimeout(() => {
+                                const payload = {[key]: value};
+                                // Device takes a lot of time to report power 0 in some cases. When current == 0 we can assume power == 0
+                                // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
+                                if (key === 'current') {
+                                    payload.power = 0;
+                                }
+                                publish(payload);
+                            }, time * 1000));
                             delete result[key];
-
-                            // Device takes a lot of time to report power 0 in some cases. When current == 0 we can assume power == 0
-                            // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
-                            if (key === 'current') {
-                                result.power = 0;
-                            }
                         }
                     }
                 }
