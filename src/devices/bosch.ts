@@ -58,10 +58,6 @@ const stateSwitchType: KeyValue = {
     'rocker_switch_key_change': 0x04,
 };
 
-// BMCT-RZ
-const {onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
-        
-
 // Twinguard
 const smokeSensitivity = {
     'low': 3,
@@ -1289,7 +1285,7 @@ const definitions: Definition[] = [
         model: 'BMCT-RZ',
         vendor: 'Bosch',
         description: 'Relay, potential free',
-        extend: [onOff({powerOnBehavior: false})],
+        exposes: [e.switch()],
     },
     {
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
