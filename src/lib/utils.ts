@@ -447,12 +447,16 @@ export function validateValue(value: unknown, allowed: unknown[]) {
     }
 }
 
-export async function getClusterAttributeValue<T>(endpoint: Zh.Endpoint, cluster: string, attribute: string): Promise<T> {
-    if (endpoint.getClusterAttributeValue(cluster, attribute) == null) {
-        await endpoint.read(cluster, [attribute]);
+export async function getClusterAttributeValue<T>(endpoint: Zh.Endpoint, cluster: string, attribute: string, fallback: T = undefined): Promise<T> {
+    try {
+        if (endpoint.getClusterAttributeValue(cluster, attribute) == null) {
+            await endpoint.read(cluster, [attribute]);
+        }
+        return endpoint.getClusterAttributeValue(cluster, attribute) as T;
+    } catch (error) {
+        if (fallback !== undefined) return fallback;
+        throw error;
     }
-
-    return endpoint.getClusterAttributeValue(cluster, attribute) as T;
 }
 
 export function normalizeCelsiusVersionOfFahrenheit(value: number) {
