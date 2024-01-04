@@ -30,7 +30,7 @@ const reportingConfigTimeLookup = {
 type ReportingConfigTime = number | keyof typeof reportingConfigTimeLookup;
 type ReportingConfigAttribute = string | number | {ID: number, type: number};
 type ReportingConfig = {min: ReportingConfigTime, max: ReportingConfigTime, change: number | [number, number], attribute: ReportingConfigAttribute}
-type ReportingConfigWithoutAttribute = Omit<ReportingConfig, 'attribute'>;
+export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, 'attribute'>;
 
 function convertReportingConfigTime(time: ReportingConfigTime): number {
     if (isString(time)) {
