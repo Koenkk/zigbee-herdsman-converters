@@ -1281,6 +1281,7 @@ const definitions: Definition[] = [
         exposes: [e.battery_low(), e.contact(), e.vibration(), e.action(['single', 'long'])],
     },
     {
+        const {onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
         zigbeeModel: ['RBSH-MMR-ZB-EU'],
         model: 'BMCT-RZ',
         vendor: 'Bosch',
