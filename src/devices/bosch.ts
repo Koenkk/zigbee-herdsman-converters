@@ -1286,7 +1286,7 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Relay, potential free',
         fromZigbee: [fz.on_off],
-        toZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
         exposes: [e.switch()],
     },
     {
