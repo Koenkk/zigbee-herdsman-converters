@@ -16,6 +16,7 @@ export class Base {
     property?: string;
     description?: string;
     features?: Feature[];
+    category?: string;
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -54,6 +55,11 @@ export class Base {
 
     withDescription(description: string) {
         this.description = description;
+        return this;
+    }
+
+    withCategory(category: string) {
+        this.category = category;
         return this;
     }
 
