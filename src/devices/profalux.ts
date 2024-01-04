@@ -107,7 +107,10 @@ const definitions: Definition[] = [
         // Newer remotes. These expose a bunch of things but they are bound to
         // the cover and don't seem to communicate with the coordinator, so
         // nothing is likely to be doable in Z2M.
-        zigbeeModel: ['MAI-ZTS'],
+        fingerprint: [{type:'EndDevice', manufacturerName:'Profalux', manufacturerID: 4368, endpoints: [
+                        {ID: 1, profileID: 260, deviceID: 513, inputClusters: [0, 3, 21,64514,64544],outputClusters: [3, 4, 5, 6, 8, 256, 64544, 64545]},
+                        {ID: 2, profileID: 260, deviceID: 515, inputClusters: [0,1,3,9,21,32,64514,64544],outputClusters: [3,4,5,25,258,64544,64545]}]
+                    }],
         model: 'MAI-ZTM20C',
         vendor: 'Profalux',
         description: 'Cover remote',
