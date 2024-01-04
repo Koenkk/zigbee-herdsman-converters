@@ -1,3 +1,4 @@
+import {onOff} from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -1285,9 +1286,7 @@ const definitions: Definition[] = [
         model: 'BMCT-RZ',
         vendor: 'Bosch',
         description: 'Relay, potential free',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch()],
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
