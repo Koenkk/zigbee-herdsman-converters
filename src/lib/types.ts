@@ -28,6 +28,7 @@ export interface KeyValueAny {[s: string]: any}
 export type Publish = (payload: KeyValue) => void;
 export type OnEventType = 'start' | 'stop' | 'message' | 'deviceJoined' | 'deviceInterview' | 'deviceAnnounce' |
     'deviceNetworkAddressChanged' | 'deviceOptionsChanged';
+export type TriggerEventType = 'devicesChanged';
 export type Access = 0b001 | 0b010 | 0b100 | 0b011 | 0b101 | 0b111;
 export type Expose = exposes.Numeric | exposes.Binary | exposes.Enum | exposes.Composite | exposes.List | exposes.Light | exposes.Switch |
     exposes.Lock | exposes.Cover | exposes.Climate | exposes.Text;
@@ -122,6 +123,7 @@ export type Definition = {
     options?: Option[],
     meta?: DefinitionMeta,
     onEvent?: OnEvent,
+    triggers?: Fz.Trigger[],
     ota?: DefinitionOta,
     generated?: boolean,
 } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
@@ -147,6 +149,12 @@ export namespace Fz {
         type: string[] | string,
         options?: Option[] | ((definition: Definition) => Option[]);
         convert: (model: Definition, msg: Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => KeyValueAny | void | Promise<void>;
+    }
+    export interface Trigger {
+        cluster: string | number,
+        attribute: string,
+        event: TriggerEventType,
+        getEvents: (data: KeyValue, device: Zh.Device) => TriggerEventType[] | void;
     }
 }
 

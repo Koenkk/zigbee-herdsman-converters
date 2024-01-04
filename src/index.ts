@@ -7,12 +7,13 @@ import assert from 'assert';
 import * as ota from './lib/ota';
 import allDefinitions from './devices';
 import * as utils from './lib/utils';
-import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, Logger } from './lib/types';
+import { Definition, Fingerprint, Zh, OnEventData, OnEventType, TriggerEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, Logger } from './lib/types';
 import {generateDefinition} from './lib/generateDefinition';
 
 export {
     Definition as Definition,
     OnEventType as OnEventType,
+    TriggerEventType as TriggerEventType,
     Feature as Feature,
     Expose as Expose,
     Numeric as Numeric,
