@@ -1285,8 +1285,8 @@ const definitions: Definition[] = [
         model: 'BMCT-RZ',
         vendor: 'Bosch',
         description: 'Relay, potential free',
-        fromZigbee: [],
-        toZigbee: [],
+        fromZigbee: [fz.on_off]
+        toZigbee: [fz.on_off]
         exposes: [e.switch()],
     },
     {
