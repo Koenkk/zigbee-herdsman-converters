@@ -1,5 +1,41 @@
 # Changelog
 
+## [18.5.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.4.0...v18.5.0) (2024-01-04)
+
+
+### Features
+
+* Add new features to Ubisys H1 ([#6810](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6810)) ([e8c2180](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8c218041009807d6942985f7e55438326550cd5))
+* **add:** 8719514343320 https://github.com/Koenkk/zigbee2mqtt/issues/20561 ([73c9c1c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/73c9c1caa36ba2be13e36250754e22ae6d7b1c7a))
+* **add:** TS0601_cover_8 ([#6830](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6830)) ([d07f94b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d07f94b5284ac7a73361686d716cb9029e087313))
+
+
+### Bug Fixes
+
+* Add `up_clickdown` and `down_clickdown` action to Sinopé TH1123ZB  ([#6822](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6822)) ([2ae708f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2ae708f119f31c0c49d20f5a8a7b1d52182e9d7a))
+* **detect:** Detect `_TZ3000_ssp0maqm` as Woox R7052 ([#6817](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6817)) ([43e9e24](https://github.com/Koenkk/zigbee-herdsman-converters/commit/43e9e24c44cc81828b960021f670b1a8ff88f8cd))
+* **detect:** Detect `_TZE200_py4cm3he` as TuYa TV02-Zigbee ([#6821](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6821)) ([aa1f112](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aa1f11216d4cfd94a043ebc676eb213b982e45cb))
+* **detect:** Detect `\u001TRADFRI bulb GU10 WW 345lm` as IKEA LED2104R3 https://github.com/Koenkk/zigbee2mqtt/issues/20551 ([e50b811](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e50b811b06a1250f09603ec26e64d3457d93110d))
+* Disable unsupported `powerOnBehaviour` for Quotra B07JHL6DRV ([#6813](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6813)) ([4c1d6c5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c1d6c5546a8ee10ce92c05a50a70d29895d5a91))
+* Disable unsupported powerOnBehavior for eWelink SWITCH-ZR02 ([#6824](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6824)) ([e9024c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e9024c1d58d43ca03eee42bab3ea0b1bf52df8d7))
+* Disable unsuppoted `powerOnBehaviour` for 43082 ([#6815](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6815)) ([0673e92](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0673e9273c24440b59c25c68617012e65b550356))
+* Don't fail configure when reading `startUpOnOff` fails https://github.com/Koenkk/zigbee2mqtt/issues/20526 ([0de716c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0de716c31bd420f7e53682df21eb1e4a16735bbd))
+* Expose `door_state` for Dataek 0402946 https://github.com/Koenkk/zigbee-herdsman-converters/issues/6820 ([72804c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/72804c1aeda64b98fee0f4e84e0ebccbab97fae1))
+* Expose `week` for TuYa TS0601_thermostat https://github.com/nurikk/zigbee2mqtt-frontend/pull/1851 ([55389d5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/55389d5b680de4384fd6bf01a3fd7e36aa7f06e1))
+* Fix `preset` and `system_mode` not settable for TuYa TS0601_thermostat_1 and TRV602 ([#6819](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6819)) ([807c248](https://github.com/Koenkk/zigbee-herdsman-converters/commit/807c248b599563ab86651c5e2a82886cc419db62))
+* Fix `Value '2' is not allowed` for TuYa TV02-Zigbee https://github.com/Koenkk/zigbee2mqtt/issues/20486 ([9fee202](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9fee202e9aa729ac51b5628734f213dfb4682ade))
+* Fix `week` missing for HKGK BAC-002-ALZB https://github.com/nurikk/zigbee2mqtt-frontend/pull/1851 ([e89fbef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e89fbefb6b23e0d7687521547dc20aff0bf00067))
+* Fix definition generator crashing startup https://github.com/Koenkk/zigbee2mqtt/issues/20528 ([f2b5c3c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f2b5c3cfc6c80b7cc75d0729dd8ff15f529602d8))
+* Fix IKEA E1743 battery % divided by 2 https://github.com/Koenkk/zigbee-herdsman-converters/commit/597599e7e41d3b882ca01e9834b4e2a5acba2d2d ([dfc62f1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dfc62f1c843dd1ecdf6e3309c2fc1b44222d6f5c))
+* Fix invalid power 0 for TS011F_plug_1 https://github.com/Koenkk/zigbee2mqtt/issues/20493 ([61c6a96](https://github.com/Koenkk/zigbee-herdsman-converters/commit/61c6a96dfb615baee39d2f2ea8a3ab6499d89e8a))
+* Fix no electrical measurements for MakeGood MG-AUZG01 https://github.com/Koenkk/zigbee2mqtt/issues/20531 ([82afaaf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/82afaafe198fbf4477b7bb4d008f77d1dbab086e))
+* Fix no value when calibration/precision option is invalid https://github.com/Koenkk/zigbee2mqtt/issues/20493 ([9c7f6dd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c7f6dd30a1e96b238584ac0e66339da9b5fafa3))
+* **ignore:** `powerOnBehaviour` -&gt; `powerOnBehavior` https://github.com/Koenkk/zigbee-herdsman-converters/pull/6815 ([eef38b0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eef38b0c159d5ce052ca0dc4f1f26b32f649ae58))
+* **ignore:** fix 0673e9273c24440b59c25c68617012e65b550356 ([6fd241f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6fd241fb4bbac24620de7b887368d8fd161a6a28))
+* **ignore:** fix 72804c1 ([f01e0f4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f01e0f40bd7363c06726929a4c3e501415ba0f7c))
+* **ignore:** fix lint ([779c652](https://github.com/Koenkk/zigbee-herdsman-converters/commit/779c652f666aed6c8afa41b2b27b8bf7645cffa9))
+* **ignore:** improve message of 0de716c ([91bad76](https://github.com/Koenkk/zigbee-herdsman-converters/commit/91bad76ae9f8af8ce50e48716c3c568a5eb6bff6))
+
 ## [18.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.3.0...v18.4.0) (2024-01-02)
 
 
