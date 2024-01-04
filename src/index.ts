@@ -7,7 +7,7 @@ import assert from 'assert';
 import * as ota from './lib/ota';
 import allDefinitions from './devices';
 import * as utils from './lib/utils';
-import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue } from './lib/types';
+import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, Logger } from './lib/types';
 import {generateDefinition} from './lib/generateDefinition';
 
 export {
@@ -224,13 +224,17 @@ function prepareDefinition(definition: Definition): Definition {
     return definition
 }
 
-export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue) {
+export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue, logger: Logger) {
     // Apply calibration/precision options
     for (const [key, value] of Object.entries(payload)) {
         const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null);
         const expose = definitionExposes.find((e) => e.property === key);
         if (expose?.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision && utils.isNumber(value)) {
-            payload[key] = utils.calibrateAndPrecisionRoundOptions(value, options, expose.name);
+            try {
+                payload[key] = utils.calibrateAndPrecisionRoundOptions(value, options, expose.name);
+            } catch (error) {
+                logger.error(`Failed to apply calibration to '${expose.name}': ${error.message}`);
+            }
         }
     }
 }
