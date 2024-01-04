@@ -849,6 +849,24 @@ export const valueConverter = {
             },
         };
     },
+    tv02Preset: () => {
+        return {
+            from: (v: number) => {
+                if (v === 0) return 'auto';
+                else if (v === 1) return 'manual';
+                else return 'holiday'; // 2 and 3 are holiday
+            },
+            to: (v: string, meta: Tz.Meta) => {
+                if (v === 'auto') return new Enum(0);
+                else if (v === 'manual') return new Enum(1);
+                else if (v === 'holiday') {
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/20486
+                    if (meta.device.manufacturerName === '_TZE200_mudxchsu') return new Enum(2);
+                    else return new Enum(3);
+                } else throw new Error(`Unsupported preset '${v}'`);
+            },
+        };
+    },
     thermostatSystemModeAndPreset: (toKey: string) => {
         return {
             from: (v: string) => {

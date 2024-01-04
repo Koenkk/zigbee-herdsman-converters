@@ -2911,7 +2911,7 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [2, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1), 'holiday': tuya.enum(3)})],
+                [2, 'preset', tuya.valueConverter.tv02Preset()],
                 [8, 'open_window', tuya.valueConverter.onOff],
                 [10, null, tuya.valueConverter.TV02FrostProtection],
                 [10, 'frost_protection', tuya.valueConverter.TV02FrostProtection],
