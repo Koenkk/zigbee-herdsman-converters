@@ -6777,7 +6777,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e', '_TZE204_iaeejhvf']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e', '_TZE204_iaeejhvf', '_TZE204_mtoaryre']),
         model: 'MTG075-ZB-RL',
         vendor: 'TuYa',
         description: '2.4G/5.8G human presence sensor with relay',
@@ -6814,71 +6814,6 @@ const definitions: Definition[] = [
                 .withDescription('Illumination threshold for local (automatic) switching mode operation'),
             e.enum('status_indication', ea.STATE_SET, ['OFF', 'ON'])
                 .withDescription('Indicator light will flash when human presence is detected'),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, 'presence', tuya.valueConverter.trueFalse1],
-                [2, 'radar_sensitivity', tuya.valueConverter.raw],
-                [3, 'shield_range', tuya.valueConverter.divideBy100],
-                [4, 'detection_range', tuya.valueConverter.divideBy100],
-                [6, 'equipment_status', tuya.valueConverter.raw],
-                [9, 'target_distance', tuya.valueConverter.divideBy100],
-                [101, 'entry_filter_time', tuya.valueConverter.divideBy10],
-                [102, 'departure_delay', tuya.valueConverter.raw],
-                [103, 'cline', tuya.valueConverter.raw],
-                [104, 'illuminance_lux', tuya.valueConverter.divideBy10],
-                [105, 'entry_sensitivity', tuya.valueConverter.raw],
-                [106, 'entry_distance_indentation', tuya.valueConverter.divideBy100],
-                [107, 'breaker_mode', tuya.valueConverterBasic.lookup({'standard': tuya.enum(0), 'local': tuya.enum(1)})],
-                [108, 'breaker_status', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
-                [109, 'status_indication', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
-                [110, 'illuminance_threshold', tuya.valueConverter.divideBy10],
-                [111, 'breaker_polarity', tuya.valueConverterBasic.lookup({'NC': tuya.enum(0), 'NO': tuya.enum(1)})],
-                [112, 'block_time', tuya.valueConverter.divideBy10],
-                [113, 'parameter_setting_result', tuya.valueConverter.raw],
-                [114, 'factory_parameters', tuya.valueConverter.raw],
-                [115, 'sensor', tuya.valueConverter.onOff],
-            ],
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_mtoaryre']),
-        model: 'MTG035-ZB-RL',
-        vendor: 'TuYa',
-        description: '5.8G human presence sensor with relay',
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        exposes: [
-            e.presence(), e.illuminance_lux(),
-            e.numeric('target_distance', ea.STATE).withUnit('m')
-                .withDescription('Distance to target'),
-            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
-                .withDescription('When the sensor is working. The detection threshold for the strength of object energy'),
-            e.numeric('entry_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
-                .withDescription('The sensitivity threshold when the target enters the detection range. Mainly used to filter out false positives'),
-            e.numeric('illuminance_threshold', ea.STATE_SET).withValueMin(0).withValueMax(420).withValueStep(0.1).withUnit('lx')
-                .withDescription('Illumination threshold for switching on'),
-            e.numeric('detection_range', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('m')
-                .withDescription('The maximum distance detected by the sensor during working'),
-            e.numeric('shield_range', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('m')
-                .withDescription('The nearest distance detected by the sensor during working. Its value must be less than detection range'),
-            e.numeric('entry_distance_indentation', ea.STATE_SET).withValueMin(0).withValueMax(8).withValueStep(0.1).withUnit('m')
-                .withDescription('Indent the distance inward based on the detection distance.'),
-            e.numeric('entry_filter_time', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('sec')
-                .withDescription('Entry filter time'),
-            e.numeric('departure_delay', ea.STATE_SET).withValueMin(0).withValueMax(600).withValueStep(1).withUnit('sec')
-                .withDescription('Turn off delay'),
-            e.numeric('block_time', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1).withUnit('sec')
-                .withDescription('Time for the target to be detected again. Solves the interference of power ripple and radiation.'),
-            e.binary('breaker_status', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Breaker status changes with breaker_mode->standard'),
-            e.enum('breaker_mode', ea.STATE_SET, ['standard', 'local', 'mandatory', 'not support'])
-                .withDescription('Status Breaker mode: standard is external, local is auto '),
-            e.enum('status_indication', ea.STATE_SET, ['OFF', 'ON'])
-                .withDescription('Led backlight when triggered'),
-            e.enum('sensor', ea.STATE_SET, ['turn_on', 'turn_off', 'occupied', 'unoccupied'])
-                .withDescription('occupied: maintain presence. unoccupied: state will be maintained continuously.'),
         ],
         meta: {
             tuyaDatapoints: [
