@@ -187,6 +187,16 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['3RTHS0224BZ'],
+        model: '3RTHS0224BZ',
+        vendor: 'Third Reality',
+        description: 'Temperature and humidity sensor v2',
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['3RSP02028BZ'],
         model: '3RSP02028BZ',
         vendor: 'Third Reality',
