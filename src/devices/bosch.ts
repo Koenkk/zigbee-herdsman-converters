@@ -1285,9 +1285,7 @@ const definitions: Definition[] = [
         model: 'BMCT-RZ',
         vendor: 'Bosch',
         description: 'Relay, potential free',
-        fromZigbee: [fz.on_off, fz.power_on_behavior],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [e.switch()],
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
