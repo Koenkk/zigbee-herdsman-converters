@@ -12,6 +12,27 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_1vxgqfba']),
+        model: 'ZM25R1',
+        vendor: 'Zemismart',
+        description: 'Tubular motor',
+        fromZigbee: [legacy.fromZigbee.tuya_cover],
+        toZigbee: [legacy.toZigbee.tuya_cover_control, legacy.toZigbee.tuya_cover_options, tuya.tz.datapoints],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
+            e.enum('upper_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Reset / Set the upper stroke limit'),
+            e.enum('middle_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Reset / Set the middle stroke limit'),
+            e.enum('lower_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Reset / Set the lower stroke limit'),
+        ],
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [103, 'upper_stroke_limit', tuya.valueConverterBasic.lookup({'SET': tuya.enum(1), 'RESET': tuya.enum(0)})],
+                [104, 'middle_stroke_limit', tuya.valueConverterBasic.lookup({'SET': tuya.enum(1), 'RESET': tuya.enum(0)})],
+                [105, 'lower_stroke_limit', tuya.valueConverterBasic.lookup({'SET': tuya.enum(1), 'RESET': tuya.enum(0)})],
+            ],
+        },
+    },
+    {
         zigbeeModel: ['NUET56-DL27LX1.1'],
         model: 'LXZB-12A',
         vendor: 'Zemismart',
