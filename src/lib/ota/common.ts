@@ -11,8 +11,6 @@ import {Zcl} from 'zigbee-herdsman';
 import https from 'https';
 import tls from 'tls';
 let dataDir: string = null;
-let insecureTLS = false;
-const caBundle: string[] = null;
 const maxTimeout = 2147483647; // +- 24 days
 const imageBlockResponseDelay = 250;
 const endRequestCodeLookup: KeyValueNumberString = {
@@ -57,10 +55,6 @@ export const setDataDir = (dir: string) => {
     dataDir = dir;
 };
 
-export const useInsecureTls = () => {
-    insecureTLS = true;
-};
-
 export function isValidUrl(url: string) {
     let parsed;
     try {
@@ -94,15 +88,14 @@ export async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
     return {data: readLocalFile(urlOrName, logger)};
 }
 
-export async function useCustomCaBundle(uri: string) {
-    if (!path.isAbsolute(uri) && dataDir) {
-        uri = path.join(dataDir, uri);
-    }
-
+export async function processCustomCaBundle(uri: string) {
     let rawCaBundle = '';
     if (isValidUrl(uri)) {
         rawCaBundle = (await axios.get(uri)).data;
     } else {
+        if (!path.isAbsolute(uri) && dataDir) {
+            uri = path.join(dataDir, uri);
+        }
         rawCaBundle = fs.readFileSync(uri, {encoding: 'utf-8'});
     }
 
@@ -124,6 +117,8 @@ export async function useCustomCaBundle(uri: string) {
             currentCert = '';
         }
     }
+
+    return caBundle;
 }
 
 
@@ -591,27 +586,26 @@ export async function getNewImage(current: Ota.ImageInfo, logger: Logger, device
     return image;
 }
 
-export function getAxios() {
+export function getAxios(caBundle: string[] = null) {
     let config = {};
+    const httpsAgentOptions: https.AgentOptions = {};
+    if (caBundle !== null) {
+        // We also include all system default CAs, as setting custom CAs fully replaces the default list
+        httpsAgentOptions.ca = [...tls.rootCertificates, ...caBundle];
+    }
+
     const proxy = process.env.HTTPS_PROXY;
     if (proxy) {
         config = {
             proxy: false,
-            httpsAgent: new HttpsProxyAgent(proxy),
+            httpsAgent: new HttpsProxyAgent(proxy, httpsAgentOptions),
             headers: {
                 'Accept-Encoding': '*',
             },
         };
     } else {
-        const agentOptions: https.AgentOptions = {
-            rejectUnauthorized: !insecureTLS,
-        };
-        if (caBundle) {
-            // We also include all system default CAs, as setting custom CAs fully replaces the default list
-            agentOptions.ca = [...tls.rootCertificates, ...caBundle];
-        }
         config = {
-            httpsAgent: new https.Agent(agentOptions),
+            httpsAgent: new https.Agent(httpsAgentOptions),
         };
     }
 
@@ -653,5 +647,3 @@ exports.isValidUrl = isValidUrl;
 exports.setDataDir = setDataDir;
 exports.getFirmwareFile = getFirmwareFile;
 exports.readLocalFile = readLocalFile;
-exports.useInsecureTls = useInsecureTls;
-exports.useCustomCaBundle = useCustomCaBundle;

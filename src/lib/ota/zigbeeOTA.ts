@@ -1,4 +1,5 @@
 const url = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.json';
+const caBundleUrl = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/cacerts.pem';
 import * as common from './common';
 import {Logger, Zh, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
@@ -102,6 +103,21 @@ async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger, devic
     return common.isNewImageAvailable(current, logger, device, getImageMeta);
 }
 
+export async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
+    const urlOrName = image.url;
+
+    // First try to download firmware file with the URL provided
+    if (common.isValidUrl(urlOrName)) {
+        logger.debug(`OTA: downloading firmware image from ${urlOrName} using the zigbeeOTA custom CA certificates`);
+        const otaCaBundle = await common.processCustomCaBundle(caBundleUrl);
+        const response = await common.getAxios(otaCaBundle).get(urlOrName, {responseType: 'arraybuffer'});
+        return response;
+    }
+
+    logger.debug(`OTA: Try to read firmware image from local file ${urlOrName}`);
+    return {data: common.readLocalFile(urlOrName, logger)};
+}
+
 /**
  * Interface implementation
  */
@@ -111,7 +127,7 @@ export async function isUpdateAvailable(device: Zh.Device, logger: Logger, reque
 }
 
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, common.getFirmwareFile);
+    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, getFirmwareFile);
 }
 
 export const useIndexOverride = (indexFileName: string) => {
