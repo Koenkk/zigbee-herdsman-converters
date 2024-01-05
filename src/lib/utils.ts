@@ -94,7 +94,7 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
-        calibrationOffset = Math.round(number * calibrationOffset / 100);
+        calibrationOffset = number * calibrationOffset / 100;
     }
     number = number + calibrationOffset;
 
