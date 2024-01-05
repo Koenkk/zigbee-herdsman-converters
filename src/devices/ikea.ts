@@ -1228,6 +1228,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux()],
+        ota: ota.tradfri,
         configure: async (device, cordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
