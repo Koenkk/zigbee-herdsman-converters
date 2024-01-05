@@ -6,6 +6,7 @@ import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import {Definition, Fz, KeyValue} from '../lib/types';
 import {light, onOff} from '../lib/modernExtend';
+import {temperature, humidity, batteryPercentage} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -191,9 +192,7 @@ const definitions: Definition[] = [
         model: '3RTHS0224BZ',
         vendor: 'Third Reality',
         description: 'Temperature and humidity sensor v2',
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
-        toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        extend: [temperature(), humidity(), batteryPercentage()],
         ota: ota.zigbeeOTA,
     },
     {
