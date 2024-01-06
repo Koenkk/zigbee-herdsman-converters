@@ -3,7 +3,6 @@ const deviceurl = `${baseurl}/api/devices/`;
 import * as common from './common';
 import {Logger, Zh, Ota} from '../types';
 const axios = common.getAxios();
-import fs from 'fs';
 
 let overrideIndexFileName: string = null;
 
@@ -19,7 +18,7 @@ async function getIndex(logger: Logger, modelID: string) {
         return overrideIndex;
     } else {
         const url = `${deviceurl}${modelID}/info`;
-        const { data : index } = await axios.get(url);
+        const {data : index} = await axios.get(url);
 
         if (!index) {
             throw new Error(`JetHomeOTA: Error getting firmware page at ${url}`);

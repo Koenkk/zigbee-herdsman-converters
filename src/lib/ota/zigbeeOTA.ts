@@ -2,7 +2,6 @@ const url = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.js
 import * as common from './common';
 import {Logger, Zh, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
-import fs from 'fs';
 
 let overrideIndexFileName: string = null;
 
@@ -36,7 +35,7 @@ function fillImageInfo(meta: KeyValueAny, logger: Logger) {
 }
 
 async function getIndex(logger: Logger) {
-    const { data : mainIndex } = await axios.get(url);
+    const {data: mainIndex} = await axios.get(url);
 
     if (!mainIndex) {
         throw new Error(`ZigbeeOTA: Error getting firmware page at ${url}`);

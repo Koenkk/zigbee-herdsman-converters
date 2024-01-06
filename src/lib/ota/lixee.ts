@@ -9,7 +9,7 @@ const axios = common.getAxios();
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
     logger.debug(`LixeeOTA: call getImageMeta for ${device.modelID}`);
-    const { data : releases } = await axios.get(firmwareOrigin);
+    const {data: releases} = await axios.get(firmwareOrigin);
 
     if (!releases?.length) {
         throw new Error(`LixeeOTA: Error getting firmware page at ${firmwareOrigin}`);

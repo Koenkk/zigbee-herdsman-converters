@@ -12,7 +12,7 @@ let useTestURL = false;
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
     logger.debug(`TradfriOTA: call getImageMeta for ${device.modelID}`);
     const url = useTestURL ? testURL : productionURL;
-    const { data : images } = await axios.get(url);
+    const {data: images} = await axios.get(url);
 
     if (!images?.length) {
         throw new Error(`TradfriOTA: Error getting firmware page at ${url}`);

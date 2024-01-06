@@ -88,7 +88,7 @@ export async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
 
 export async function getOverrideIndexFile(urlOrName: string) {
     if (isValidUrl(urlOrName)) {
-        const { data : index } = await getAxios().get(urlOrName);
+        const {data: index} = await getAxios().get(urlOrName);
 
         if (!index) {
             throw new Error(`OTA: Error getting override index file from ${urlOrName}`);
@@ -335,7 +335,8 @@ function callOnProgress(startTime: number, lastUpdate: number, imageBlockRequest
     }
 }
 
-export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload: Ota.ImageInfo, isNewImageAvailable: IsNewImageAvailable = null, getImageMeta: Ota.GetImageMeta = null) {
+export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload: Ota.ImageInfo,
+    isNewImageAvailable: IsNewImageAvailable = null, getImageMeta: Ota.GetImageMeta = null) {
     logger.debug(`OTA: Checking if update available for '${device.ieeeAddr}' (${device.modelID})`);
 
     if (requestPayload === null) {

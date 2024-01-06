@@ -10,7 +10,7 @@ const axios = common.getAxios();
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
     logger.debug(`SalusOTA: call getImageMeta for ${device.modelID}`);
-    const { data } = await axios.get(url);
+    const {data} = await axios.get(url);
 
     if (!data?.versions?.length) {
         throw new Error(`SalusOTA: Error getting firmware page at ${url}`);

@@ -21,7 +21,7 @@ const axios = common.getAxios();
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
     logger.debug(`UbisysOTA: call getImageMeta for ${device.modelID}`);
-    const { status, data : pageHtml } = await axios.get(firmwareHtmlPageUrl, {maxContentLength: -1});
+    const {status, data: pageHtml} = await axios.get(firmwareHtmlPageUrl, {maxContentLength: -1});
 
     if (status !== 200 || !pageHtml?.length) {
         throw new Error(`UbisysOTA: Error getting firmware page at ${firmwareHtmlPageUrl}`);
