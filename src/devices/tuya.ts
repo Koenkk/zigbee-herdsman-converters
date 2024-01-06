@@ -7045,7 +7045,7 @@ const definitions: Definition[] = [
                 .withValueMin(0).withValueMax(15),
             e.numeric('free_chlorine_min', ea.STATE_SET).withUnit('mg/L').withDescription('Free Chlorine minimal value')
                 .withValueMin(0).withValueMax(15),
-            e.numeric('salinity', ea.STATE).withUnit('µS/cm').withDescription('Salt value'),
+            e.numeric('salinity', ea.STATE).withUnit('ppm').withDescription('Salt value'),
             // e.numeric('backlightvalue', ea.STATE).withUnit('gg').withDescription('Backlight Value'),
         ],
         meta: {
