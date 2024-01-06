@@ -1266,7 +1266,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['PARASOLL Door/Window Sensor'],
         model: 'E2013',
         vendor: 'IKEA',
-        description: 'PARASOLL Door/Window Sensor',
+        description: 'PARASOLL door/window Sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         ota: ota.tradfri,
