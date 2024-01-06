@@ -3369,6 +3369,8 @@ const definitions: Definition[] = [
                 .withSystemMode(['off', 'heat'], ea.ALL)
                 .withPreset(['manual', 'away', 'auto']).setAccess('preset', ea.ALL),
             e.temperature_sensor_select(['internal', 'external']).withAccess(ea.ALL),
+            e.numeric('sensor_temp', ea.ALL).withUnit('°C').withValueMin(0).withValueMax(55)
+                .withDescription('Input for remote temperature sensor (when sensor is set to external)'),
             e.binary('calibrated', ea.STATE, true, false)
                 .withDescription('Indicates if this valve is calibrated, use the calibrate option to calibrate'),
             e.enum('calibrate', ea.ALL, ['calibrate']).withDescription('Calibrates the valve'),
