@@ -14,7 +14,7 @@ const definitions: Definition[] = [
         model: 'B07JHL6DRV',
         vendor: 'Quotra',
         description: 'RGB WW LED strip',
-        extend: [light({colorTemp: {range: [150, 500]}, color: true})],
+        extend: [light({colorTemp: {range: [150, 500]}, color: true, powerOnBehavior: false})],
     },
 ];
 

@@ -30,7 +30,7 @@ const reportingConfigTimeLookup = {
 type ReportingConfigTime = number | keyof typeof reportingConfigTimeLookup;
 type ReportingConfigAttribute = string | number | {ID: number, type: number};
 type ReportingConfig = {min: ReportingConfigTime, max: ReportingConfigTime, change: number | [number, number], attribute: ReportingConfigAttribute}
-type ReportingConfigWithoutAttribute = Omit<ReportingConfig, 'attribute'>;
+export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, 'attribute'>;
 
 function convertReportingConfigTime(time: ReportingConfigTime): number {
     if (isString(time)) {
@@ -110,8 +110,17 @@ export function onOff(args?: OnOffArgs): ModernExtend {
         result.configure = async (device, coordinatorEndpoint, logger) => {
             await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff', min: 0, max: 'MAX', change: 1}], logger);
             if (args.powerOnBehavior) {
-                await setupAttributes(device, coordinatorEndpoint, 'genOnOff',
-                    [{attribute: 'startUpOnOff', min: 0, max: 'MAX', change: 1}], logger, true);
+                try {
+                    // Don't fail configure if reading this attribute fails, some devices don't support it.
+                    await setupAttributes(device, coordinatorEndpoint, 'genOnOff',
+                        [{attribute: 'startUpOnOff', min: 0, max: 'MAX', change: 1}], logger, true);
+                } catch (e) {
+                    if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
+                        logger.debug('Reading startUpOnOff failed, this features is unsupported');
+                    } else {
+                        throw e;
+                    }
+                }
             }
         };
     }
@@ -218,12 +227,12 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 }
 
 export interface LightArgs {
-    effect?: boolean, powerOnBehaviour?: boolean, colorTemp?: {startup?: boolean, range: Range},
+    effect?: boolean, powerOnBehavior?: boolean, colorTemp?: {startup?: boolean, range: Range},
     color?: boolean | {modes?: ('xy' | 'hs')[], applyRedFix?: boolean, enhancedHue?: boolean}, turnsOffAtBrightness1?: boolean,
     configureReporting?: boolean, endpoints?: {[s: string]: number}, ota?: DefinitionOta,
 }
 export function light(args?: LightArgs): ModernExtend {
-    args = {effect: true, powerOnBehaviour: true, configureReporting: false, ...args};
+    args = {effect: true, powerOnBehavior: true, configureReporting: false, ...args};
     if (args.colorTemp) {
         args.colorTemp = {startup: true, ...args.colorTemp};
     }
@@ -281,7 +290,7 @@ export function light(args?: LightArgs): ModernExtend {
         toZigbee.push(tz.effect);
     }
 
-    if (args.powerOnBehaviour) {
+    if (args.powerOnBehavior) {
         exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
@@ -549,7 +558,7 @@ export function temperature(args?: Partial<NumericArgs>) {
         attribute: 'measuredValue',
         reporting: {min: '10_SECONDS', max: '1_HOUR', change: 100},
         description: 'Measured temperature value',
-        unit: 'ºC',
+        unit: '°C',
         scale: 100,
         readOnly: true,
         ...args,

@@ -32,9 +32,9 @@ const fzLocal = {
 const definitions: Definition[] = [
     {
         zigbeeModel: ['CK-BL702-SWP-01(7020)'],
-        model: 'BSD29',
+        model: 'BSD29/BSD59',
         vendor: 'Woolley',
-        description: 'Zigbee 3.0 smart plug 13A (UK version)',
+        description: 'Zigbee 3.0 smart plug',
         fromZigbee: [fz.on_off_skip_duplicate_transaction, fzLocal.BSD29],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {

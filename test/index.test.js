@@ -583,7 +583,17 @@ describe('index.js', () => {
         payload = {power_left: 5.31};
         options = {power_calibration: 100, power_precision: 0}; // calibration for power is percentual
         index.postProcessConvertedFromZigbeeMessage(SPP04G, payload, options);
-        expect(payload).toStrictEqual({power_left: 10});
+        expect(payload).toStrictEqual({power_left: 11});
+
+        const TS011F_plug_1 = index.definitions.find((d) => d.model == 'TS011F_plug_1');
+        expect(TS011F_plug_1.options.map((t) => t.name)).toStrictEqual([
+            'power_calibration','power_precision', 'current_calibration', 'current_precision', 'voltage_calibration',
+            'voltage_precision', 'energy_calibration', 'energy_precision', 'state_action'
+        ]);
+        payload = {current: 0.0585};
+        options = {current_calibration: -50};
+        index.postProcessConvertedFromZigbeeMessage(TS011F_plug_1, payload, options);
+        expect(payload).toStrictEqual({current: 0.03});
     });
 
     it('Check getFromLookup', () => {

@@ -10,6 +10,8 @@ import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, On
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface KeyValueStringEnum {[s: string]: Enum}
+
 export const dataTypes = {
     raw: 0, // [ bytes ]
     bool: 1, // [0/1]
@@ -847,13 +849,39 @@ export const valueConverter = {
             },
         };
     },
-    thermostatSystemModeAndPreset: {
-        from: (v: string) => {
-            utils.assertNumber(v, 'system_mode');
-            const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
-            const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
-            return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
-        },
+    tv02Preset: () => {
+        return {
+            from: (v: number) => {
+                if (v === 0) return 'auto';
+                else if (v === 1) return 'manual';
+                else return 'holiday'; // 2 and 3 are holiday
+            },
+            to: (v: string, meta: Tz.Meta) => {
+                if (v === 'auto') return new Enum(0);
+                else if (v === 'manual') return new Enum(1);
+                else if (v === 'holiday') {
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/20486
+                    if (meta.device.manufacturerName === '_TZE200_mudxchsu') return new Enum(2);
+                    else return new Enum(3);
+                } else throw new Error(`Unsupported preset '${v}'`);
+            },
+        };
+    },
+    thermostatSystemModeAndPreset: (toKey: string) => {
+        return {
+            from: (v: string) => {
+                utils.assertNumber(v, 'system_mode');
+                const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
+                const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
+                return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
+            },
+            to: (v: string) => {
+                const presetLookup: KeyValueStringEnum = {'auto': new Enum(0), 'manual': new Enum(1), 'off': new Enum(2), 'on': new Enum(3)};
+                const systemModeLookup: KeyValueStringEnum = {'auto': new Enum(1), 'off': new Enum(2), 'heat': new Enum(3)};
+                const lookup: KeyValueStringEnum = toKey === 'preset' ? presetLookup : systemModeLookup;
+                return utils.getFromLookup(v, lookup);
+            },
+        };
     },
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
@@ -1092,7 +1120,7 @@ const tuyaTz = {
             'ph_max', 'ph_min', 'ec_max', 'ec_min', 'orp_max', 'orp_min', 'free_chlorine_max', 'free_chlorine_min', 'target_distance',
             'illuminance_treshold_max', 'illuminance_treshold_min', 'presence_illuminance_switch', 'light_switch', 'light_linkage',
             'indicator_light', 'find_switch', 'detection_method', 'sensor', 'hysteresis', 'max_temperature_protection', 'display_brightness',
-            'screen_orientation',
+            'screen_orientation', 'regulator_period', 'regulator_set_point', 'upper_stroke_limit', 'middle_stroke_limit', 'lower_stroke_limit',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop

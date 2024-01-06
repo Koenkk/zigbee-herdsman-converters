@@ -191,6 +191,23 @@ const fzLocal = {
                         // @ts-expect-error
                         val = utils.precisionRound(val / 1000, kWh_p); // from Wh to kWh
                         break;
+                    case 'relais':
+                        // relais is a decimal value representing the bits
+                        // of 8 virtual dry contacts.
+                        // 0 for an open relay
+                        // 1 for a closed relay
+                        // relais1 Hot water === legacy dry contact
+                        // relais2 Main heater
+                        // relais3 Secondary heater
+                        // relais4 AC or Heat pump
+                        // relais5 EV charge
+                        // relais6 Storage or injection
+                        // relais7 Unassigned
+                        // relais8 Unassigned
+                        for (let i = 0; i < 8; i++) {
+                            result[at_snake + (i+1)] = (val & (1<<i)) >>> i;
+                        }
+                        break;
                     }
                     result[at_snake] = val;
                 }

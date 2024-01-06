@@ -3754,7 +3754,7 @@ const converters1 = {
                 buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             }
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
-            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG28LM', 'QBKG31LM'].includes(model.model)) {
+            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG28LM', 'QBKG31LM', 'ZNQBKG25LM'].includes(model.model)) {
                 buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
             }
             if (['QBKG25LM', 'QBKG26LM', 'QBKG29LM', 'QBKG32LM', 'QBKG34LM', 'ZNQBKG31LM', 'ZNQBKG26LM'].includes(model.model)) {

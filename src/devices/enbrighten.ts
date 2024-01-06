@@ -51,7 +51,7 @@ const definitions: Definition[] = [
         model: '43082',
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart dimmer',
-        extend: [light({configureReporting: true, effect: false}), electricityMeter({cluster: 'metering'})],
+        extend: [light({configureReporting: true, effect: false, powerOnBehavior: false}), electricityMeter({cluster: 'metering'})],
     },
     {
         zigbeeModel: ['43084'],

@@ -224,8 +224,8 @@ const fzLocal = {
                 result.minimum_brightness = msg.data['minimumBrightness'];
             }
             if (msg.data.hasOwnProperty('actionReport')) {
-                const lookup = {2: 'up_single', 3: 'up_hold', 4: 'up_double',
-                    18: 'down_single', 19: 'down_hold', 20: 'down_double'};
+                const lookup = {1: 'up_clickdown', 2: 'up_single', 3: 'up_hold', 4: 'up_double',
+                    17: 'down_clickdown', 18: 'down_single', 19: 'down_hold', 20: 'down_double'};
                 result.action = utils.getFromLookup(msg.data['actionReport'], lookup);
             }
             if (msg.data.hasOwnProperty('keypadLockout')) {
@@ -1371,6 +1371,23 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['WL4210'],
+        model: 'WL4210',
+        vendor: 'Sinopé',
+        description: 'Zigbee smart water leak detector with external sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.temperature, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.temperature(), e.battery()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'msTemperatureMeasurement'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.temperature(endpoint, {min: 600, max: constants.repInterval.MAX, change: 100});
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryAlarmState(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['VA4200WZ'],
         model: 'VA4200WZ',
         vendor: 'Sinopé',
@@ -1436,7 +1453,7 @@ const definitions: Definition[] = [
         model: 'RM3500ZB',
         vendor: 'Sinopé',
         description: 'Calypso smart water heater controller',
-        extend: [onOff(), electricityMeter()],
+        extend: [onOff({powerOnBehavior: false}), electricityMeter()],
         fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
         toZigbee: [tzLocal.low_water_temp_protection],
         exposes: [

@@ -43,6 +43,7 @@ const definitions: Definition[] = [
                 .withPreset(['hold', 'program'])
                 .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET),
             e.temperature_sensor_select(['IN', 'AL', 'OU']),
+            e.week(),
             e.text('workdays_schedule', ea.STATE_SET)
                 .withDescription('Workdays schedule, 6 entries max, example: "00:20/5°C 01:20/5°C 6:59/15°C 18:00/5°C 20:00/5°C 23:30/5°C"'),
             e.text('holidays_schedule', ea.STATE_SET)

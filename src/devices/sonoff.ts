@@ -25,6 +25,15 @@ const fzLocal = {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['NSPanelP-Router'],
+        model: 'NSPanelP-Router',
+        vendor: 'SONOFF',
+        description: 'Router',
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        exposes: [],
+    },
+    {
         zigbeeModel: ['BASICZBR3'],
         model: 'BASICZBR3',
         vendor: 'SONOFF',

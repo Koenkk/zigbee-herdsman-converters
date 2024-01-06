@@ -171,7 +171,7 @@ const definitions: Definition[] = [
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
-        extend: [light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehaviour: false})],
+        extend: [light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false})],
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}, {modelID: 'TS0003', manufacturerName: '_TYZB01_uqkphoed'}],
@@ -195,7 +195,7 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-S05-LN',
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [onOff({powerOnBehavior: false, configureReporting: false})],
         toZigbee: [tz.TYZB01_on_off],
     },
     {

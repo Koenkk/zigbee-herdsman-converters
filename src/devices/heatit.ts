@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: '1444420',
         vendor: 'Heatit',
         description: 'Zig Dim 250W',
-        extend: [light({configureReporting: true, powerOnBehaviour: false})],
+        extend: [light({configureReporting: true, powerOnBehavior: false})],
     },
 ];
 

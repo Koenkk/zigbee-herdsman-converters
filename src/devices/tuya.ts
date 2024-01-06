@@ -12,7 +12,7 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {electricityMeter, onOff} from '../lib/modernExtend';
+import {onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -444,7 +444,7 @@ const fzLocal = {
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
         convert: async (model, msg, publish, options, meta) => {
-            const result = await fz.electrical_measurement.convert(model, msg, publish, options, meta);
+            const result = await fz.electrical_measurement.convert(model, msg, publish, options, meta) ?? {};
             const lookup: KeyValueString = {power: 'activePower', current: 'rmsCurrent', voltage: 'rmsVoltage'};
 
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
@@ -458,14 +458,16 @@ const fzLocal = {
                             const configuredReporting = msg.endpoint.configuredReportings.find((c) =>
                                 c.cluster.name === 'haElectricalMeasurement' && c.attribute.name === lookup[key]);
                             const time = ((configuredReporting ? configuredReporting.minimumReportInterval : 5) * 2) + 1;
-                            globalStore.putValue(msg.endpoint, key, setTimeout(() => publish({[key]: value}), time * 1000));
+                            globalStore.putValue(msg.endpoint, key, setTimeout(() => {
+                                const payload = {[key]: value};
+                                // Device takes a lot of time to report power 0 in some cases. When current == 0 we can assume power == 0
+                                // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
+                                if (key === 'current') {
+                                    payload.power = 0;
+                                }
+                                publish(payload);
+                            }, time * 1000));
                             delete result[key];
-
-                            // Device takes a lot of time to report power 0 in some cases. When current == 0 we can assume power == 0
-                            // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
-                            if (key === 'current') {
-                                result.power = 0;
-                            }
                         }
                     }
                 }
@@ -1839,7 +1841,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0215A', ['_TZ3000_4fsgukof', '_TZ3000_wr2ucaj9', '_TZ3000_zsh6uat3', '_TZ3000_tj4pwzzm',
-            '_TZ3000_2izubafb', '_TZ3000_pkfazisv', '_TZ3000_0dumfk2z']),
+            '_TZ3000_2izubafb', '_TZ3000_pkfazisv', '_TZ3000_0dumfk2z', '_TZ3000_ssp0maqm']),
         model: 'TS0215A_sos',
         vendor: 'TuYa',
         description: 'SOS button',
@@ -1848,6 +1850,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         whiteLabel: [
             tuya.whitelabel('TuYa', 'BT400B', 'Zigbee Panic Button', ['_TZ3000_0dumfk2z']),
+            tuya.whitelabel('Woox', 'R7052', 'Smart SOS button', ['_TZ3000_ssp0maqm']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -2342,7 +2345,7 @@ const definitions: Definition[] = [
         model: 'TS0003',
         vendor: 'TuYa',
         description: '3 gang switch',
-        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}})],
+        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}, powerOnBehavior: false})],
         whiteLabel: [{vendor: 'BSEED', model: 'TS0003', description: 'Zigbee switch'}],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2511,7 +2514,6 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_llm0epxg'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_n1aauwb4'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xu4a5rhj'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_r0jdjrvi'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjzrowv2'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_axgvo9jh'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_gaj531w3'},
@@ -2623,6 +2625,37 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_r0jdjrvi']),
+        model: 'TS0601_cover_8',
+        vendor: 'TuYa',
+        description: 'Cover motor',
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.enum('reverse_direction', ea.STATE_SET, ['forward', 'back'])
+                .withDescription('Reverse the motor direction'),
+            e.binary('motor_fault', ea.STATE, true, false)
+                .withDescription('Motor Fault'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPositionInverted],
+                [3, 'position', tuya.valueConverter.coverPositionInverted],
+                [5, 'reverse_direction', tuya.valueConverterBasic.lookup({'forward': tuya.enum(0), 'back': tuya.enum(1)})],
+                [12, 'motor_fault', tuya.valueConverter.trueFalse1],
+            ],
+        },
+        whiteLabel: [
+            // https://www.amazon.ae/dp/B09JG92Z88
+            // Tuya ZigBee Intelligent Curtain Blind Switch Electric Motorized Curtain Roller
+            tuya.whitelabel('Lilistore', 'TS0601_lilistore', 'Cover motor', ['_TZE204_r0jdjrvi']),
+        ],
+    },
+    {
         zigbeeModel: ['kud7u2l'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'},
@@ -2679,6 +2712,7 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature().withValueMin(16).withValueMax(70), e.min_temperature(), e.away_preset_temperature(),
+            e.week(),
             e.text('workdays_schedule', ea.STATE_SET)
                 .withDescription('Workdays schedule, 6 entries max, example: "00:20/5°C 01:20/5°C 6:59/15°C 18:00/5°C 20:00/5°C 23:30/5°C"'),
             e.text('holidays_schedule', ea.STATE_SET)
@@ -2853,6 +2887,7 @@ const definitions: Definition[] = [
             '_TZE200_mudxchsu', /* model: 'TV05-ZG curve', vendor: 'TuYa' */
             '_TZE200_7yoranx2', /* model: 'TV01-ZB', vendor: 'Moes' */
             '_TZE200_kds0pmmv', /* model: 'TV01-ZB', vendor: 'Moes' */
+            '_TZE200_py4cm3he', /* model: 'TV06-Zigbee', vendor: 'TuYa' */
         ]),
         model: 'TV02-Zigbee',
         vendor: 'TuYa',
@@ -2910,7 +2945,7 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [2, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1), 'holiday': tuya.enum(3)})],
+                [2, 'preset', tuya.valueConverter.tv02Preset()],
                 [8, 'open_window', tuya.valueConverter.onOff],
                 [10, null, tuya.valueConverter.TV02FrostProtection],
                 [10, 'frost_protection', tuya.valueConverter.TV02FrostProtection],
@@ -3201,9 +3236,9 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset],
-                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset],
-                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset(null)],
+                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset('system_mode')],
+                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset('preset')],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
                 [4, 'boost_heating', tuya.valueConverter.onOff],
@@ -3261,9 +3296,9 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset],
-                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset],
-                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset],
+                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset(null)],
+                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset('system_mode')],
+                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset('preset')],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
                 [6, 'running_state', tuya.valueConverterBasic.lookup({'heat': 1, 'idle': 0})],
@@ -3361,16 +3396,21 @@ const definitions: Definition[] = [
             powerOutageMemory: true, indicatorMode: true, childLock: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await onOff({powerOnBehavior: false}).configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
 
-            const acCurrentDivisor = device.manufacturerName === '_TZ3000_typdpbpg' ? 2000 : 1000;
-            await electricityMeter({power: false, voltage: {divisor: 1}, current: {divisor: acCurrentDivisor}, energy: {divisor: 100}});
             if (!['_TZ3000_0zfrhq4i', '_TZ3000_okaz9tjs', '_TZ3000_typdpbpg'].includes(device.manufacturerName)) {
                 // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i (as well as a few others in issue 20028)
                 // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
-                await electricityMeter({power: {divisor: 1}, voltage: false, current: false, energy: false})
-                    .configure(device, coordinatorEndpoint, logger);
+                await reporting.activePower(endpoint, {change: 10});
             }
+            await reporting.currentSummDelivered(endpoint);
+            const acCurrentDivisor = device.manufacturerName === '_TZ3000_typdpbpg' ? 2000 : 1000;
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
         },
     },
     {
@@ -6771,7 +6811,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e', '_TZE204_iaeejhvf']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_sbyx0lm6', '_TZE204_clrdrnya', '_TZE204_dtzziy1e', '_TZE204_iaeejhvf', '_TZE204_mtoaryre']),
         model: 'MTG075-ZB-RL',
         vendor: 'TuYa',
         description: '2.4G/5.8G human presence sensor with relay',
@@ -7005,7 +7045,7 @@ const definitions: Definition[] = [
                 .withValueMin(0).withValueMax(15),
             e.numeric('free_chlorine_min', ea.STATE_SET).withUnit('mg/L').withDescription('Free Chlorine minimal value')
                 .withValueMin(0).withValueMax(15),
-            e.numeric('salinity', ea.STATE).withUnit('µS/cm').withDescription('Salt value'),
+            e.numeric('salinity', ea.STATE).withUnit('ppm').withDescription('Salt value'),
             // e.numeric('backlightvalue', ea.STATE).withUnit('gg').withDescription('Backlight Value'),
         ],
         meta: {

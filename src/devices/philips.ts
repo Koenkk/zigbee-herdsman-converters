@@ -608,6 +608,13 @@ const definitions: Definition[] = [
         extend: [philipsLight()],
     },
     {
+        zigbeeModel: ['LWA031'],
+        model: '8719514343320',
+        vendor: 'Philips',
+        description: 'Hue white A67 bulb E26 with Bluetooth (1600 Lumen)',
+        extend: [philipsLight()],
+    },
+    {
         zigbeeModel: ['LCT026', '7602031P7', '7602031U7', '7602031PU', '7602031J6'],
         model: '7602031P7',
         vendor: 'Philips',
@@ -1878,7 +1885,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
-        zigbeeModel: ['929003479701', '915005987701'],
+        zigbeeModel: ['929003479701', '915005987701', '929003479601'],
         model: '915005987701',
         vendor: 'Philips',
         description: 'Hue Gradient Signe floor lamp (wood)',
@@ -2756,6 +2763,13 @@ const definitions: Definition[] = [
         model: '929002422901',
         vendor: 'Philips',
         description: 'Hue Play gradient lightstrip 75',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
+        zigbeeModel: ['LCX005'],
+        model: '8719514434479',
+        vendor: 'Philips',
+        description: 'Hue Play gradient lightstrip for PC',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {

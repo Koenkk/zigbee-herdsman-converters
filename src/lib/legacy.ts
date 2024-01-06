@@ -310,7 +310,7 @@ const silvercrestEffects: KeyValueAny = {
     rainbow: '02',
     snake: '03',
     twinkle: '04',
-    firework: '08',
+    firework: '05',
     horizontal_flag: '06',
     waves: '07',
     updown: '08',

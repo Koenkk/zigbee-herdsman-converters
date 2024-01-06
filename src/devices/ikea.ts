@@ -12,6 +12,7 @@ import * as globalStore from '../lib/store';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {postfixWithEndpointName, precisionRound, isObject, replaceInArray} from '../lib/utils';
 import {onOff, LightArgs, light as lightDontUse} from '../lib/modernExtend';
+import * as semver from 'semver';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -204,13 +205,13 @@ const fzLocal = {
                 // IKEA corrected this on newer remote fw version, but many people are still
                 // 2.2.010 which is the last version supporting group bindings. We try to be
                 // smart and pick the correct one for IKEA remotes.
-                let dontDividePercentage = false;
-                let percentage = msg.data['batteryPercentageRemaining'];
-                const fwVer = meta.device.softwareBuildID.split('.').map((e) => Number(e));
-                if ((fwVer[0] < 2) || (fwVer[0] == 2 && fwVer[1] <= 3)) {
-                    dontDividePercentage = true;
+                let dividePercentage = true;
+                // If softwareBuildID is below 2.4.0 it should not be divided
+                if (semver.lt(meta.device.softwareBuildID, '2.4.0', true)) {
+                    dividePercentage = false;
                 }
-                percentage = dontDividePercentage ? percentage : percentage / 2;
+                let percentage = msg.data['batteryPercentageRemaining'];
+                percentage = dividePercentage ? percentage / 2 : percentage;
                 payload.battery = precisionRound(percentage, 2);
             }
 
@@ -462,7 +463,7 @@ const definitions: Definition[] = [
         extend: [tradfriLight()],
     },
     {
-        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm8', 'TRADFRI bulb GU10 WW 345lm'],
+        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm8', 'TRADFRI bulb GU10 WW 345lm', '\\u001TRADFRI bulb GU10 WW 345lm'],
         model: 'LED2104R3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 WW 345 lumen, dimmable',
@@ -477,7 +478,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['TRADFRIbulbE27WSglobeopal1055lm', 'TRADFRIbulbE26WSglobeopal1100lm', 'TRADFRIbulbE26WSglobeopal1160lm',
-            'TRADFRIbulbE26WSglobeopal1055lm'],
+            'TRADFRIbulbE26WSglobeopal1055lm', 'TRADFRI bulb E26 WS globe 1160lm'],
         model: 'LED2003G10',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/27 1100/1055/1160 lumen, dimmable, white spectrum, opal white',
@@ -777,7 +778,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI ON/OFF switch',
         fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff, fz.command_move,
-            fz.battery, legacy.fz.E1743_brightness_up, legacy.fz.E1743_brightness_down, fz.command_stop,
+            fzLocal.battery, legacy.fz.E1743_brightness_up, legacy.fz.E1743_brightness_down, fz.command_stop,
             legacy.fz.E1743_brightness_stop],
         exposes: [
             e.battery().withAccess(ea.STATE_GET),
@@ -1227,6 +1228,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux()],
+        ota: ota.tradfri,
         configure: async (device, cordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -1247,9 +1249,9 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fzLocal.ikea_dots_click_v2_somrig],
         toZigbee: [tz.battery_percentage_remaining],
         exposes: [
-            e.battery().withAccess(ea.STATE_GET), e.action(['dots_1_initial_press',
-                'dots_2_initial_press', 'dots_1_long_press', 'dots_2_long_press',
-                'dots_1_short_release', 'dots_2_short_release', 'dots_1_long_release']),
+            e.battery().withAccess(ea.STATE_GET), e.action(['1_initial_press', '2_initial_press',
+                '1_long_press', '2_long_press', '1_short_release', '2_short_release',
+                '1_long_release', '2_long_release', '1_double_press', '2_double_press']),
         ],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
