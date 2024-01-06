@@ -42,7 +42,8 @@ const definitions: Definition[] = [
         model: 'GLSK6ZB-1716',
         vendor: 'Hej',
         description: 'Goqual 6 gang Switch',
-        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6}, powerOnBehavior: false})],
+        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6},
+            powerOnBehavior: false})],
     },
 ];
 
