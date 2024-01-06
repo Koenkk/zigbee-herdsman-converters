@@ -1371,6 +1371,23 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['WL4210'],
+        model: 'WL4210',
+        vendor: 'Sinopé',
+        description: 'Zigbee smart water leak detector with external sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.temperature, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.temperature(), e.battery()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'msTemperatureMeasurement'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.temperature(endpoint, {min: 600, max: constants.repInterval.MAX, change: 100});
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryAlarmState(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['VA4200WZ'],
         model: 'VA4200WZ',
         vendor: 'Sinopé',
