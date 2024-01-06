@@ -12,7 +12,8 @@ const definitions: Definition[] = [
         description: 'Smart Energy Sensor',
         fromZigbee: [fz.electrical_measurement, fz.metering],
         toZigbee: [],
-        exposes: [e.ac_frequency(), e.power(), e.power_reactive(), e.power_apparent(), e.current(), e.voltage(), e.power_factor(), e.energy(), e.produced_energy()],
+        exposes: [e.ac_frequency(), e.power(), e.power_reactive(), e.power_apparent(), e.current(),
+            e.voltage(), e.power_factor(), e.energy(), e.produced_energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
@@ -20,8 +21,7 @@ const definitions: Definition[] = [
                 acPowerMultiplier: 1, acPowerDivisor: 1,
             });
         },
-    }
-    
+    },
 ];
 
 export default definitions;
