@@ -16,6 +16,7 @@ export function mockDevice(args: {modelID: string, manufacturerID?: number, endp
         // @ts-expect-error
         constructor: {name: 'Device'},
         ieeeAddr,
+        save: jest.fn(),
         ...args,
     };
 
