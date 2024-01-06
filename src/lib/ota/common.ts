@@ -399,7 +399,8 @@ export async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger
 
     // Soft-fail because no images in repo/URL for specified device
     if (!meta) {
-        logger.warn(`OTA: Images currently unavailable for device '${device.modelID}', hardwareVersion '${device.hardwareVersion}', ${currentS}'`);
+        const metaS = `device '${device.modelID}', hardwareVersion '${device.hardwareVersion}', manufacturerName ${device.manufacturerName}`;
+        logger.warn(`OTA: Images currently unavailable for ${metaS}, ${currentS}'`);
 
         return {
             available: 0,
