@@ -1,5 +1,18 @@
 # Changelog
 
+## [18.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.7.0...v18.8.0) (2024-01-06)
+
+
+### Features
+
+* Expose `action` for MiBoxer FUT089Z https://github.com/Koenkk/zigbee2mqtt-user-extensions/issues/7 ([b881ab3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b881ab3ece047f96ca55ad15521772d56112abed))
+
+
+### Bug Fixes
+
+* Disable configure for Lonsonho QS-Zigbee-S05-LN https://github.com/Koenkk/zigbee2mqtt/issues/20526 ([ae89e9c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ae89e9cf37e1b17219a8508089b42cf2255fb11c))
+* Improved OTA errors & logging ([#6843](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6843)) ([087f797](https://github.com/Koenkk/zigbee-herdsman-converters/commit/087f7978318fe551a7bb89f019348374319cc86d))
+
 ## [18.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.6.0...v18.7.0) (2024-01-06)
 
 
