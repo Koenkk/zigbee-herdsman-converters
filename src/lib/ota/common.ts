@@ -8,6 +8,8 @@ import * as URI from 'uri-js';
 import fs from 'fs';
 import path from 'path';
 import {Zcl} from 'zigbee-herdsman';
+import https from 'https';
+import tls from 'tls';
 let dataDir: string = null;
 const maxTimeout = 2147483647; // +- 24 days
 const imageBlockResponseDelay = 250;
@@ -79,11 +81,44 @@ export async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
     // First try to download firmware file with the URL provided
     if (isValidUrl(urlOrName)) {
         logger.debug(`OTA: downloading firmware image from ${urlOrName}`);
-        return await axios.get(urlOrName, {responseType: 'arraybuffer'});
+        return await getAxios().get(urlOrName, {responseType: 'arraybuffer'});
     }
 
     logger.debug(`OTA: Try to read firmware image from local file ${urlOrName}`);
     return {data: readLocalFile(urlOrName, logger)};
+}
+
+export async function processCustomCaBundle(uri: string) {
+    let rawCaBundle = '';
+    if (isValidUrl(uri)) {
+        rawCaBundle = (await axios.get(uri)).data;
+    } else {
+        if (!path.isAbsolute(uri) && dataDir) {
+            uri = path.join(dataDir, uri);
+        }
+        rawCaBundle = fs.readFileSync(uri, {encoding: 'utf-8'});
+    }
+
+    // Parse the raw CA bundle into clean, separate CA certs
+    const lines = rawCaBundle.split('\n');
+    const caBundle = [];
+    let inCert = false;
+    let currentCert = '';
+    for (const line of lines) {
+        if (line === '-----BEGIN CERTIFICATE-----') {
+            inCert = true;
+        }
+        if (inCert) {
+            currentCert = currentCert + line + '\n';
+        }
+        if (line === '-----END CERTIFICATE-----') {
+            inCert = false;
+            caBundle.push(currentCert);
+            currentCert = '';
+        }
+    }
+
+    return caBundle;
 }
 
 
@@ -551,16 +586,26 @@ export async function getNewImage(current: Ota.ImageInfo, logger: Logger, device
     return image;
 }
 
-export function getAxios() {
+export function getAxios(caBundle: string[] = null) {
     let config = {};
+    const httpsAgentOptions: https.AgentOptions = {};
+    if (caBundle !== null) {
+        // We also include all system default CAs, as setting custom CAs fully replaces the default list
+        httpsAgentOptions.ca = [...tls.rootCertificates, ...caBundle];
+    }
+
     const proxy = process.env.HTTPS_PROXY;
     if (proxy) {
         config = {
             proxy: false,
-            httpsAgent: new HttpsProxyAgent(proxy),
+            httpsAgent: new HttpsProxyAgent(proxy, httpsAgentOptions),
             headers: {
                 'Accept-Encoding': '*',
             },
+        };
+    } else {
+        config = {
+            httpsAgent: new https.Agent(httpsAgentOptions),
         };
     }
 
