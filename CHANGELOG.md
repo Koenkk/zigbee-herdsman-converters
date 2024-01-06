@@ -1,5 +1,25 @@
 # Changelog
 
+## [18.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.6.0...v18.7.0) (2024-01-06)
+
+
+### Features
+
+* **add:** WL4210 ([#6842](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6842)) ([45c7c68](https://github.com/Koenkk/zigbee-herdsman-converters/commit/45c7c681e38f605e20c09434f6975fa3932d98d7))
+* **add:** ZM25R1 [@vinta7](https://github.com/vinta7) https://github.com/Koenkk/zigbee2mqtt/issues/19605 ([0573868](https://github.com/Koenkk/zigbee-herdsman-converters/commit/05738687fce5bae056292b15e2ab08d4bf9e31c7))
+* Expose `sensor_temp` for Xiaomi SRTS-A01 ([#6841](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6841)) ([f8a1b2c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f8a1b2c3ee663e3aafd70ff2ebaff9a4836cddca))
+* Support custom CA certs for OTA firmware downloads (fixes Hue OTA updates) ([#6831](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6831)) ([228f25b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/228f25b81c17e80b1cf18944e634357002d2ecfe))
+
+
+### Bug Fixes
+
+* **detect:** Detect `TRADFRI bulb E26 WS globe 1160lm` as IKEA LED2003G10 https://github.com/Koenkk/zigbee2mqtt/issues/20592 ([f91372d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f91372db3030021364d2f0fb4a6e3524e0b9578e))
+* Disable unsupported powerOnBehavior for various Hej switches ([#6844](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6844)) ([b0f0563](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b0f0563a28d14d120140b1a4b199fec9b963bbab))
+* Fix LELLKI WP33-EU/WP34-EU single switch toggling all switches https://github.com/Koenkk/zigbee2mqtt/issues/20590 ([d9af38f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d9af38ff1eba586f58c23c385da24d185172d197))
+* Fix TuYa BLE-YL01 salinity unit https://github.com/Koenkk/zigbee2mqtt/issues/18704 ([7915542](https://github.com/Koenkk/zigbee-herdsman-converters/commit/79155421e0526738dfdb338fe8ee9f4c4c89b1d0))
+* Fix Zemismart ZM25TQ power source https://github.com/Koenkk/zigbee2mqtt/discussions/14689 ([adc15fe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/adc15fe430a42709d3caf095103e1279df8b79f4))
+* **ignore:** Update `power_on_behaviour` exposes text ([dc248ab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dc248ab82e7ee6007b8da776e3a7390a55330299))
+
 ## [18.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.5.0...v18.6.0) (2024-01-05)
 
 
