@@ -3665,8 +3665,8 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [tuya.exposes.switch(), e.ac_frequency(), e.energy(), e.power(), e.power_factor(), e.voltage(), e.current(),
-            e.produced_energy(), e.power_reactive(),
+        exposes: [tuya.exposes.switch(), e.ac_frequency(), e.energy(), e.power(), e.power_factor().withUnit('%'), 
+            e.voltage(), e.current(), e.produced_energy(), e.power_reactive(),
             e.numeric('energy_reactive', ea.STATE).withUnit('kVArh').withDescription('Sum of reactive energy'),
             e.numeric('total_energy', ea.STATE).withUnit('kWh').withDescription('Total consumed and produced energy')],
         meta: {
@@ -5965,7 +5965,7 @@ const definitions: Definition[] = [
         exposes: [e.voltage(), e.power(), e.current(),
             e.energy().withDescription('Total forward active energy'),
             e.produced_energy().withDescription('Total reverse active energy'),
-            e.power_factor(), e.ac_frequency(),
+            e.power_factor().withUnit('%'), e.ac_frequency(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -5994,7 +5994,7 @@ const definitions: Definition[] = [
             tuya.exposes.currentWithPhase('a'), tuya.exposes.currentWithPhase('b'), tuya.exposes.currentWithPhase('c'),
             e.energy().withDescription('Total forward active energy'),
             e.produced_energy().withDescription('Total reverse active energy'),
-            e.power_factor(), e.power(),
+            e.power_factor().withUnit('%'), e.power(),
             e.ac_frequency(),
         ],
         meta: {
