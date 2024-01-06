@@ -1,6 +1,5 @@
 const firmwareOrigin = 'https://api.github.com/repos/fairecasoimeme/Zlinky_TIC/releases';
 import {Zh, Logger, Ota, KeyValueAny} from '../types';
-import assert from 'assert';
 import * as common from './common';
 const axios = common.getAxios();
 
@@ -9,14 +8,17 @@ const axios = common.getAxios();
  */
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    const manufacturerCode = current.manufacturerCode;
-    const imageType = current.imageType;
-    const releasesLIST = (await axios.get(firmwareOrigin)).data;
+    logger.debug(`LixeeOTA: call getImageMeta for ${device.modelID}`);
+    const {data: releases} = await axios.get(firmwareOrigin);
+
+    if (!releases?.length) {
+        throw new Error(`LixeeOTA: Error getting firmware page at ${firmwareOrigin}`);
+    }
 
     let firmURL;
 
     // Find the most recent OTA file available
-    for (const e of releasesLIST.sort((a: KeyValueAny, b: KeyValueAny) => a.published_at - a.published_at)) {
+    for (const e of releases.sort((a: KeyValueAny, b: KeyValueAny) => a.published_at - a.published_at)) {
         if (e.assets) {
             const targetObj = e.assets.find((a: KeyValueAny) => a.name.endsWith('.ota'));
             if (targetObj && targetObj.browser_download_url) {
@@ -26,10 +28,11 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
         }
     }
 
-    assert(firmURL,
-        `No image available for manufacturerCode '${manufacturerCode}' imageType '${imageType} on Github repo'`);
+    if (!firmURL) {
+        return null;
+    }
 
-    logger.info(`Using firmware file ` + firmURL.name);
+    logger.info(`LixeeOTA: Using firmware file ` + firmURL.name);
     const image = common.parseImage((await common.getAxios().get(firmURL.browser_download_url, {responseType: 'arraybuffer'})).data);
 
     return {
@@ -44,7 +47,7 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
  */
 
 export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
-    return common.isUpdateAvailable(device, logger, common.isNewImageAvailable, requestPayload, getImageMeta);
+    return common.isUpdateAvailable(device, logger, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {

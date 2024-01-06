@@ -3,22 +3,12 @@ const caBundleUrl = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/
 import * as common from './common';
 import {Logger, Zh, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
-import fs from 'fs';
 
 let overrideIndexFileName: string = null;
 
 /**
  * Helper functions
  */
-
-
-async function getIndexFile(urlOrName: string) {
-    if (common.isValidUrl(urlOrName)) {
-        return (await axios.get(urlOrName)).data;
-    }
-
-    return JSON.parse(fs.readFileSync(urlOrName, 'utf-8'));
-}
 
 function fillImageInfo(meta: KeyValueAny, logger: Logger) {
     // Web-hosted images must come with all fields filled already
@@ -46,38 +36,38 @@ function fillImageInfo(meta: KeyValueAny, logger: Logger) {
 }
 
 async function getIndex(logger: Logger) {
-    const index = (await axios.get(url)).data;
+    const {data: mainIndex} = await axios.get(url);
+
+    if (!mainIndex) {
+        throw new Error(`ZigbeeOTA: Error getting firmware page at ${url}`);
+    }
 
     logger.debug(`ZigbeeOTA: downloaded main index`);
 
     if (overrideIndexFileName) {
         logger.debug(`ZigbeeOTA: Loading override index ${overrideIndexFileName}`);
-        const localIndex = await getIndexFile(overrideIndexFileName);
+        const localIndex = await common.getOverrideIndexFile(overrideIndexFileName);
 
         // Resulting index will have overridden items first
-        return localIndex.concat(index).map((item: KeyValueAny) => common.isValidUrl(item.url) ? item : fillImageInfo(item, logger));
+        return localIndex.concat(mainIndex).map((item: KeyValueAny) => common.isValidUrl(item.url) ? item : fillImageInfo(item, logger));
     }
 
-    return index;
+    return mainIndex;
 }
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    const modelId = device.modelID;
-    const imageType = current.imageType;
-    const manufacturerCode = current.manufacturerCode;
-    const manufacturerName = device.manufacturerName;
+    logger.debug(`ZigbeeOTA: call getImageMeta for ${device.modelID}`);
     const images = await getIndex(logger);
-
     // NOTE: Officially an image can be determined with a combination of manufacturerCode and imageType.
     // However Gledopto pro products use the same imageType (0) for every device while the image is different.
     // For this case additional identification through the modelId is done.
     // In the case of Tuya and Moes, additional identification is carried out through the manufacturerName.
-    const image = images.find((i: KeyValueAny) => i.imageType === imageType && i.manufacturerCode === manufacturerCode &&
+    const image = images.find((i: KeyValueAny) => i.imageType === current.imageType && i.manufacturerCode === current.manufacturerCode &&
         (!i.minFileVersion || current.fileVersion >= i.minFileVersion) && (!i.maxFileVersion || current.fileVersion <= i.maxFileVersion) &&
-        (!i.modelId || i.modelId === modelId) && (!i.manufacturerName || i.manufacturerName.includes(manufacturerName)));
+        (!i.modelId || i.modelId === device.modelID) && (!i.manufacturerName || i.manufacturerName.includes(device.manufacturerName)));
 
     if (!image) {
-        throw new Error(`No image available for imageType '${imageType}'`);
+        return null;
     }
 
     return {
@@ -123,7 +113,7 @@ export async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
  */
 
 export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
-    return common.isUpdateAvailable(device, logger, isNewImageAvailable, requestPayload, getImageMeta);
+    return common.isUpdateAvailable(device, logger, requestPayload, isNewImageAvailable, getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {

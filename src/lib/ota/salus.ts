@@ -1,5 +1,4 @@
 const url = 'https://eu.salusconnect.io/demo/default/status/firmware?timestamp=0';
-import assert from 'assert';
 import * as common from './common';
 import tar from 'tar-stream';
 import {Zh, Logger, Ota, KeyValue, KeyValueAny} from '../types';
@@ -10,10 +9,19 @@ const axios = common.getAxios();
  */
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    const modelID = device.modelID;
-    const images = (await axios.get(url)).data.versions;
-    const image = images.find((i: KeyValue) => i.model === modelID);
-    assert(image, `No image available for modelID '${modelID}'`);
+    logger.debug(`SalusOTA: call getImageMeta for ${device.modelID}`);
+    const {data} = await axios.get(url);
+
+    if (!data?.versions?.length) {
+        throw new Error(`SalusOTA: Error getting firmware page at ${url}`);
+    }
+
+    const image = data.versions.find((i: KeyValue) => i.model === device.modelID);
+
+    if (!image) {
+        return null;
+    }
+
     return {
         fileVersion: parseInt(image.version, 16),
         url: image.url.replace(/^http:\/\//, 'https://'),
@@ -71,7 +79,7 @@ async function downloadImage(meta: KeyValueAny, logger: Logger) {
  */
 
 export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
-    return common.isUpdateAvailable(device, logger, common.isNewImageAvailable, requestPayload, getImageMeta);
+    return common.isUpdateAvailable(device, logger, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
