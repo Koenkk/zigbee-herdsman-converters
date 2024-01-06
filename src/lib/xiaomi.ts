@@ -1362,7 +1362,7 @@ export const xiaomiModernExtend = {
     }),
     aqaraAirQuality: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'air_quality',
-        lookup: {'excellent': 1, 'good': 2, 'moderate': 3, 'poor': 4, 'unhealthy': 5},
+        lookup: {'excellent': 1, 'good': 2, 'moderate': 3, 'poor': 4, 'unhealthy': 5, 'unknown': 0},
         cluster: 'aqaraOpple',
         attribute: 'airQuality',
         zigbeeCommandOptions: {disableDefaultResponse: true},
