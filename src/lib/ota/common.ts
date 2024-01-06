@@ -422,14 +422,11 @@ export async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress, getNewImage: GetNewImage,
     getImageMeta: Ota.GetImageMeta = null, downloadImage: DownloadImage = null): Promise<number> {
     logger.debug(`OTA: Updating to latest '${device.ieeeAddr}' (${device.modelID})`);
-
     const endpoint = getOTAEndpoint(device);
     assert(endpoint != null, `Failed to find endpoint which support OTA cluster`);
     logger.debug(`OTA: Using endpoint '${endpoint.ID}'`);
-
     const request = await requestOTA(endpoint);
     logger.debug(`OTA: Got request '${JSON.stringify(request.payload)}'`);
-
     const image = await getNewImage(request.payload, logger, device, getImageMeta, downloadImage);
     logger.debug(`OTA: Got new image for '${device.ieeeAddr}'`);
 

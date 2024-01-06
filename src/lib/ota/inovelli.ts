@@ -8,7 +8,7 @@ const axios = common.getAxios();
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
     logger.debug(`InovelliOTA: call getImageMeta for ${device.modelID}`);
-    const {data: images}= await axios.get(url);
+    const {data: images} = await axios.get(url);
 
     if (!images) {
         throw new Error(`InovelliOTA: Error getting firmware page at ${url}`);
