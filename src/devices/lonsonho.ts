@@ -195,7 +195,7 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-S05-LN',
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [onOff({powerOnBehavior: false, configureReporting: false})],
         toZigbee: [tz.TYZB01_on_off],
     },
     {
