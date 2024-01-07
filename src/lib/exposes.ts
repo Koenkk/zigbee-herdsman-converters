@@ -16,6 +16,7 @@ export class Base {
     property?: string;
     description?: string;
     features?: Feature[];
+    category?: 'config' | 'diagnostic';
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -39,6 +40,7 @@ export class Base {
     withAccess(a: number) {
         assert(this.access !== undefined, 'Cannot add access if not defined yet');
         this.access = a;
+        this.validateCategory();
         return this;
     }
 
@@ -57,6 +59,23 @@ export class Base {
         return this;
     }
 
+    withCategory(category: 'config' | 'diagnostic') {
+        this.category = category;
+        this.validateCategory();
+        return this;
+    }
+
+    validateCategory() {
+        switch (this.category) {
+        case 'config':
+            assert(this.access & a.SET, 'Config expose must be settable');
+            break;
+        case 'diagnostic':
+            assert(!(this.access & a.SET), 'Diagnostic expose must not be settable');
+            break;
+        }
+    }
+
     removeFeature(feature: string) {
         assert(this.features, 'Does not have any features');
         const f = this.features.find((f) => f.name === feature);
@@ -70,6 +89,7 @@ export class Base {
         const f = this.features.find((f) => f.name === feature);
         assert(f.access !== a, `Access mode not changed for '${f.name}'`);
         f.access = a;
+        f.validateCategory();
         return this;
     }
 }
