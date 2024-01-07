@@ -21,6 +21,7 @@ import bankamp from './bankamp';
 import bega from './bega';
 import belkin from './belkin';
 import bitron from './bitron';
+import bituo_technik from './bituo_technik';
 import blaupunkt from './blaupunkt';
 import blitzwolf from './blitzwolf';
 import bosch from './bosch';
@@ -312,6 +313,7 @@ export default [
     ...bega,
     ...belkin,
     ...bitron,
+    ...bituo_technik,
     ...blaupunkt,
     ...blitzwolf,
     ...bosch,

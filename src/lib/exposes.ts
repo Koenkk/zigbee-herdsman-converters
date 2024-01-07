@@ -715,7 +715,7 @@ export const presets = {
     pm25: () => new Numeric('pm25', access.STATE).withLabel('PM25').withUnit('µg/m³').withDescription('Measured PM2.5 (particulate matter) concentration'),
     position: () => new Numeric('position', access.STATE).withUnit('%').withDescription('Position'),
     power: () => new Numeric('power', access.STATE).withUnit('W').withDescription('Instantaneous measured power'),
-    power_factor: () => new Numeric('power_factor', access.STATE).withUnit('%').withDescription('Instantaneous measured power factor'),
+    power_factor: () => new Numeric('power_factor', access.STATE).withDescription('Instantaneous measured power factor'),
     power_apparent: () => new Numeric('power_apparent', access.STATE).withUnit('VA').withDescription('Instantaneous measured apparent power'),
     power_on_behavior: (values=['off', 'previous', 'on']) => new Enum('power_on_behavior', access.ALL, values).withLabel('Power-on behavior').withDescription('Controls the behavior when the device is powered on after power loss. If you get an `UNSUPPORTED_ATTRIBUTE` error, the device does not support it.'),
     power_outage_count: (resetsWhenPairing = true) => new Numeric('power_outage_count', access.STATE).withDescription('Number of power outages' + (resetsWhenPairing ? ' (since last pairing)' : '')),
