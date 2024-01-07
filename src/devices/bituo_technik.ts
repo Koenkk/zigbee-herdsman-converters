@@ -9,7 +9,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SPM01X001'],
         model: 'SPM01-D2TZ-U01',
         vendor: 'BITUO TECHNIK',
-        description: 'Smart Energy Sensor',
+        description: 'Smart energy sensor',
         fromZigbee: [fz.electrical_measurement, fz.metering],
         toZigbee: [],
         exposes: [e.ac_frequency(), e.power(), e.power_reactive(), e.power_apparent(), e.current(),
