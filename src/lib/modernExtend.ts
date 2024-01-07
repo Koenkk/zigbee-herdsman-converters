@@ -541,31 +541,27 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
             return;
         }
 
-        if (inputClusters !== undefined) {
-            inputClusters.forEach((cluster: number | string) => {
-                const clusterID = isString(cluster) ?
-                    Zcl.Utils.getCluster(cluster, device.manufacturerID).ID :
-                    cluster;
+        inputClusters?.forEach((cluster: number | string) => {
+            const clusterID = isString(cluster) ?
+                Zcl.Utils.getCluster(cluster, device.manufacturerID).ID :
+                cluster;
 
-                if (!endpoint.inputClusters?.includes(clusterID)) {
-                    logger.debug(`Quirk: adding input cluster ${clusterID} to endpoint ${endpointID}.`);
-                    endpoint.inputClusters?.push(clusterID);
-                }
-            });
-        }
+            if (!endpoint.inputClusters.includes(clusterID)) {
+                logger.debug(`Quirk: adding input cluster ${clusterID} to endpoint ${endpointID}.`);
+                endpoint.inputClusters.push(clusterID);
+            }
+        });
 
-        if (outputClusters !== undefined) {
-            outputClusters.forEach((cluster: number | string) => {
-                const clusterID = isString(cluster) ?
-                    Zcl.Utils.getCluster(cluster, device.manufacturerID).ID :
-                    cluster;
+        outputClusters?.forEach((cluster: number | string) => {
+            const clusterID = isString(cluster) ?
+                Zcl.Utils.getCluster(cluster, device.manufacturerID).ID :
+                cluster;
 
-                if (!endpoint.outputClusters?.includes(clusterID)) {
-                    logger.debug(`Quirk: adding output cluster ${clusterID} to endpoint ${endpointID}.`);
-                    endpoint.outputClusters?.push(clusterID);
-                }
-            });
-        }
+            if (!endpoint.outputClusters.includes(clusterID)) {
+                logger.debug(`Quirk: adding output cluster ${clusterID} to endpoint ${endpointID}.`);
+                endpoint.outputClusters.push(clusterID);
+            }
+        });
 
         device.save();
     };
