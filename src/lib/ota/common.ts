@@ -582,9 +582,8 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
 export async function getNewImage(current: Ota.ImageInfo, logger: Logger, device: Zh.Device,
     getImageMeta: Ota.GetImageMeta, downloadImage: DownloadImage): Promise<Ota.Image> {
     const meta = await getImageMeta(current, logger, device);
-    logger.debug(`OTA: Get new image for '${device.ieeeAddr}' (${device.modelID})`);
-    assert(meta, 'Images currently unavailable');
-    logger.debug(`OTA: Get new image for '${device.ieeeAddr}' (${device.modelID}), latest meta ${JSON.stringify(meta)}`);
+    assert(meta, `Images for '${device.ieeeAddr}' (${device.modelID}) currently unavailable`);
+    logger.debug(`OTA: Getting new image for '${device.ieeeAddr}' (${device.modelID}), latest meta ${JSON.stringify(meta)}`);
     assert(meta.fileVersion > current.fileVersion || meta.force, `No new image available`);
 
     const download = downloadImage ? await downloadImage(meta, logger) :
