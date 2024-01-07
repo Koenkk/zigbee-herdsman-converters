@@ -4293,7 +4293,7 @@ const definitions: Definition[] = [
         model: 'X5H-GB-B',
         vendor: 'TuYa',
         description: 'Wall-mount thermostat',
-        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.x5h_thermostat],
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, legacy.fromZigbee.x5h_thermostat],
         toZigbee: [legacy.toZigbee.x5h_thermostat],
         whiteLabel: [{vendor: 'Beok', model: 'TGR85-ZB'}, {vendor: 'AVATTO', model: 'ZWT-100-16A'}],
         exposes: [
