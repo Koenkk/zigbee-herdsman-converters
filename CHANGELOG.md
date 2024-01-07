@@ -1,5 +1,21 @@
 # Changelog
 
+## [18.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.8.0...v18.9.0) (2024-01-07)
+
+
+### Features
+
+* **add:** 7377019 ([#6852](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6852)) ([1471bc8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1471bc864a811adba8c55402162199bae3aaeb93))
+
+
+### Bug Fixes
+
+* Add `ignore_tuya_set_time` to TuYa X5H-GB-B ([#6850](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6850)) ([ec2e9b5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ec2e9b5b6a3e1a24e28ba5edaf1754572a92791a))
+* **detect:** Detect `_TZE200_kvpwq8z7` as TuYa TS0601_gas_sensor_1 ([#6848](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6848)) ([763ae37](https://github.com/Koenkk/zigbee-herdsman-converters/commit/763ae373866f95460fa2a82cff3662d092500fb6))
+* Expose `battery` for IKEA E2013 ([#6846](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6846)) ([5403c8a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5403c8aa704fa1a8db7f2fcc01623dd26215b7a9))
+* Fix `power_factor` unit for various devices and add SPM01-D2TZ-U01 ([#6847](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6847)) ([57e7990](https://github.com/Koenkk/zigbee-herdsman-converters/commit/57e7990018ccdad7d4e79ff592e7185c737ae9b2))
+* **ignore:** update dependencies ([#6849](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6849)) ([acc678b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/acc678bfd04f07526ef1f147059fc7193425b206))
+
 ## [18.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.7.0...v18.8.0) (2024-01-06)
 
 
