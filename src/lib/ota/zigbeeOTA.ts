@@ -39,24 +39,22 @@ async function getIndex(logger: Logger) {
     const {data: mainIndex} = await axios.get(url);
 
     if (!mainIndex) {
-        throw new Error(`ZigbeeOTA: Error getting firmware page at ${url}`);
+        throw new Error(`ZigbeeOTA: Error getting firmware page at '${url}'`);
     }
-
-    logger.debug(`ZigbeeOTA: downloaded main index`);
+    logger.debug(`ZigbeeOTA: Downloaded main index`);
 
     if (overrideIndexFileName) {
-        logger.debug(`ZigbeeOTA: Loading override index ${overrideIndexFileName}`);
+        logger.debug(`ZigbeeOTA: Loading override index '${overrideIndexFileName}'`);
         const localIndex = await common.getOverrideIndexFile(overrideIndexFileName);
 
         // Resulting index will have overridden items first
         return localIndex.concat(mainIndex).map((item: KeyValueAny) => common.isValidUrl(item.url) ? item : fillImageInfo(item, logger));
     }
-
     return mainIndex;
 }
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`ZigbeeOTA: call getImageMeta for ${device.modelID}`);
+    logger.debug(`ZigbeeOTA: Getting image metadata for '${device.modelID}'`);
     const images = await getIndex(logger);
     // NOTE: Officially an image can be determined with a combination of manufacturerCode and imageType.
     // However Gledopto pro products use the same imageType (0) for every device while the image is different.
@@ -89,7 +87,6 @@ async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger, devic
             current = {...current, fileVersion: device.meta.aqaraFileVersion};
         }
     }
-
     return common.isNewImageAvailable(current, logger, device, getImageMeta);
 }
 
@@ -98,13 +95,13 @@ export async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
 
     // First try to download firmware file with the URL provided
     if (common.isValidUrl(urlOrName)) {
-        logger.debug(`OTA: downloading firmware image from ${urlOrName} using the zigbeeOTA custom CA certificates`);
+        logger.debug(`OTA: Downloading firmware image from '${urlOrName}' using the zigbeeOTA custom CA certificates`);
         const otaCaBundle = await common.processCustomCaBundle(caBundleUrl);
         const response = await common.getAxios(otaCaBundle).get(urlOrName, {responseType: 'arraybuffer'});
         return response;
     }
 
-    logger.debug(`OTA: Try to read firmware image from local file ${urlOrName}`);
+    logger.debug(`OTA: Trying to read firmware image from local file '${urlOrName}'`);
     return {data: common.readLocalFile(urlOrName, logger)};
 }
 

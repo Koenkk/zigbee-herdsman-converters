@@ -71,7 +71,7 @@ export function readLocalFile(fileName: string, logger: Logger) {
         fileName = path.join(dataDir, fileName);
     }
 
-    logger.debug(`OTA: getting local firmware file ${fileName}`);
+    logger.debug(`OTA: Getting local firmware file '${fileName}'`);
     return fs.readFileSync(fileName);
 }
 
@@ -80,11 +80,11 @@ export async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
 
     // First try to download firmware file with the URL provided
     if (isValidUrl(urlOrName)) {
-        logger.debug(`OTA: downloading firmware image from ${urlOrName}`);
+        logger.debug(`OTA: Downloading firmware image from '${urlOrName}'`);
         return await getAxios().get(urlOrName, {responseType: 'arraybuffer'});
     }
 
-    logger.debug(`OTA: Try to read firmware image from local file ${urlOrName}`);
+    logger.debug(`OTA: Try to read firmware image from local file '${urlOrName}'`);
     return {data: readLocalFile(urlOrName, logger)};
 }
 
@@ -126,7 +126,7 @@ export async function getOverrideIndexFile(urlOrName: string) {
         const {data: index} = await getAxios().get(urlOrName);
 
         if (!index) {
-            throw new Error(`OTA: Error getting override index file from ${urlOrName}`);
+            throw new Error(`OTA: Error getting override index file from '${urlOrName}'`);
         }
 
         return index;
@@ -182,7 +182,7 @@ export function parseImage(buffer: Buffer): Ota.Image {
 
     const raw = buffer.slice(0, header.totalImageSize);
 
-    assert(Buffer.compare(header.otaUpgradeFileIdentifier, upgradeFileIdentifier) === 0, 'Not an OTA file');
+    assert(Buffer.compare(header.otaUpgradeFileIdentifier, upgradeFileIdentifier) === 0, `Not an OTA file`);
 
     let position = header.otaHeaderLength;
     const elements = [];
@@ -192,7 +192,7 @@ export function parseImage(buffer: Buffer): Ota.Image {
         position += element.data.length + 6;
     }
 
-    assert(position === header.totalImageSize, 'Size mismatch');
+    assert(position === header.totalImageSize, `Size mismatch`);
     return {header, elements, raw};
 }
 
@@ -515,7 +515,7 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
                 },
                 () => {
                     cancelWaiters(waiters);
-                    reject(new Error('OTA: Timeout, device did not request any image blocks'));
+                    reject(new Error(`OTA: Timeout, device did not request any image blocks`));
                 },
             );
         };
@@ -570,7 +570,7 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
             }
         });
 
-        logger.debug('OTA: Starting upgrade');
+        logger.debug(`OTA: Starting upgrade`);
         answerNextImageBlockOrPageRequest();
         answerNextImageRequest();
 
@@ -585,7 +585,7 @@ export async function getNewImage(current: Ota.ImageInfo, logger: Logger, device
     logger.debug(`OTA: Get new image for '${device.ieeeAddr}'`);
     assert(meta, 'Images currently unavailable');
     logger.debug(`OTA: Get new image for '${device.ieeeAddr}', latest meta ${JSON.stringify(meta)}`);
-    assert(meta.fileVersion > current.fileVersion || meta.force, 'No new image available');
+    assert(meta.fileVersion > current.fileVersion || meta.force, `No new image available`);
 
     const download = downloadImage ? await downloadImage(meta, logger) :
         await getAxios().get(meta.url, {responseType: 'arraybuffer'});
@@ -594,20 +594,20 @@ export async function getNewImage(current: Ota.ImageInfo, logger: Logger, device
     if (checksum) {
         const hash = crypto.createHash(meta.sha512 ? 'sha512' : 'sha256');
         hash.update(download.data);
-        assert(hash.digest('hex') === checksum, 'File checksum validation failed');
+        assert(hash.digest('hex') === checksum, `File checksum validation failed`);
         logger.debug(`OTA: Update checksum validation succeeded for '${device.ieeeAddr}'`);
     }
 
     const start = download.data.indexOf(upgradeFileIdentifier);
     const image = parseImage(download.data.slice(start));
     logger.debug(`OTA: Get new image for '${device.ieeeAddr}', image header ${JSON.stringify(image.header)}`);
-    assert(image.header.fileVersion === meta.fileVersion, 'File version mismatch');
-    assert(!meta.fileSize || image.header.totalImageSize === meta.fileSize, 'Image size mismatch');
-    assert(image.header.manufacturerCode === current.manufacturerCode, 'Manufacturer code mismatch');
-    assert(image.header.imageType === current.imageType, 'Image type mismatch');
+    assert(image.header.fileVersion === meta.fileVersion, `File version mismatch`);
+    assert(!meta.fileSize || image.header.totalImageSize === meta.fileSize, `Image size mismatch`);
+    assert(image.header.manufacturerCode === current.manufacturerCode, `Manufacturer code mismatch`);
+    assert(image.header.imageType === current.imageType, `Image type mismatch`);
     if ('minimumHardwareVersion' in image.header && 'maximumHardwareVersion' in image.header) {
         assert(image.header.minimumHardwareVersion <= device.hardwareVersion &&
-            device.hardwareVersion <= image.header.maximumHardwareVersion, 'Hardware version mismatch');
+            device.hardwareVersion <= image.header.maximumHardwareVersion, `Hardware version mismatch`);
     }
     validateImageData(image);
     return image;
@@ -648,7 +648,7 @@ export function getAxios(caBundle: string[] = null) {
                 try {
                     const parsedUrl = new URL(redirectUrl);
                     if (!parsedUrl.protocol || !parsedUrl.host) {
-                        throw new Error('OTA: Get Axios, no scheme or domain');
+                        throw new Error(`OTA: Get Axios, no scheme or domain`);
                     }
                 } catch {
                     // Prepend scheme and domain from the original request's base URL
