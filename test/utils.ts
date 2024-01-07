@@ -16,7 +16,9 @@ export function mockDevice(args: {modelID: string, manufacturerID?: number, endp
         // @ts-expect-error
         constructor: {name: 'Device'},
         ieeeAddr,
-        save: jest.fn(),
+        save: jest.fn().mockImplementation(() => {
+            device.endpoints.forEach((e: Zh.Endpoint) => { e.save(); });
+        }),
         ...args,
     };
 
@@ -45,7 +47,9 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         getOutputClusters: jest.fn().mockReturnValue(args?.outputClusters?.map((name) => ({name}))),
         supportsInputCluster: jest.fn().mockImplementation((cluster) => args?.inputClusters?.includes(cluster)),
         saveClusterAttributeKeyValue: jest.fn().mockImplementation((cluster, values) => attributes[cluster] = {...attributes[cluster], ...values}),
-        save: jest.fn(),
+        save: jest.fn().mockImplementation(() => {
+            console.log(JSON.stringify(device));
+        }),
         getClusterAttributeValue: jest.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),
     };
 }
