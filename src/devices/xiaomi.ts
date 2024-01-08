@@ -8,7 +8,8 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import {
     light, numeric, binary, enumLookup, forceDeviceType,
-    temperature, humidity, forcePowerSource,
+    temperature, humidity, forcePowerSource, quirkAddEndpointCluster,
+    quirkSendWhenActive,
 } from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -3118,10 +3119,20 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.device_temperature(), e.battery(), e.battery_voltage()],
         extend: [
+            quirkSendWhenActive(),
+            quirkAddEndpointCluster({
+                endpointID: 1,
+                inputClusters: [
+                    'msTemperatureMeasurement',
+                    'msRelativeHumidity',
+                    'genAnalogInput',
+                    'aqaraOpple',
+                ],
+            }),
             aqaraAirQuality(),
             aqaraVoc(),
-            temperature({endpointID: 1}),
-            humidity({endpointID: 1}),
+            temperature(),
+            humidity(),
             aqaraDisplayUnit(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {

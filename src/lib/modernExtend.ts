@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent} from './types';
@@ -523,6 +524,57 @@ export function forcePowerSource(args: {powerSource: 'Mains (single phase)' | 'B
         device.powerSource = args.powerSource;
         device.save();
     };
+    return {configure, isModernExtend: true};
+}
+
+export interface QuirkAddEndpointClusterArgs {
+    endpointID: number, inputClusters?: string[] | number[], outputClusters?: string[] | number[],
+}
+export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): ModernExtend {
+    const {endpointID, inputClusters, outputClusters} = args;
+
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        const endpoint = device.getEndpoint(endpointID);
+
+        if (endpoint == undefined) {
+            logger.error(`Quirk: cannot add clusters to endpoint ${endpointID}, endpoint does not exist!`);
+            return;
+        }
+
+        inputClusters?.forEach((cluster: number | string) => {
+            const clusterID = isString(cluster) ?
+                Zcl.Utils.getCluster(cluster, device.manufacturerID).ID :
+                cluster;
+
+            if (!endpoint.inputClusters.includes(clusterID)) {
+                logger.debug(`Quirk: adding input cluster ${clusterID} to endpoint ${endpointID}.`);
+                endpoint.inputClusters.push(clusterID);
+            }
+        });
+
+        outputClusters?.forEach((cluster: number | string) => {
+            const clusterID = isString(cluster) ?
+                Zcl.Utils.getCluster(cluster, device.manufacturerID).ID :
+                cluster;
+
+            if (!endpoint.outputClusters.includes(clusterID)) {
+                logger.debug(`Quirk: adding output cluster ${clusterID} to endpoint ${endpointID}.`);
+                endpoint.outputClusters.push(clusterID);
+            }
+        });
+
+        device.save();
+    };
+
+    return {configure, isModernExtend: true};
+}
+
+export function quirkSendWhenActive(): ModernExtend {
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        device.defaultSendRequestWhen = 'active';
+        device.save();
+    };
+
     return {configure, isModernExtend: true};
 }
 
