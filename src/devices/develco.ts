@@ -69,6 +69,7 @@ const develco = {
                     result[utils.postfixWithEndpointName('power_reactive', msg, model, meta)] =
                         msg.data['totalReactivePower'];
                 }
+                return result;
             },
         } satisfies Fz.Converter,
         device_temperature: {
@@ -458,7 +459,7 @@ const definitions: Definition[] = [
             await reporting.currentSummReceived(endpoint);
             await develco.configure.read_sw_hw_version(device, logger);
         },
-        exposes: [e.numeric('power', ea.STATE).withUnit('W').withDescription('Total active power'), 
+        exposes: [e.numeric('power', ea.STATE).withUnit('W').withDescription('Total active power'),
             e.numeric('power_reactive', ea.STATE).withUnit('VAr').withDescription('Total reactive power'),
             e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c()],
