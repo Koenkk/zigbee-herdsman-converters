@@ -985,7 +985,8 @@ const definitions: Definition[] = [
             e.binary('window_open', ea.ALL, 'ON', 'OFF')
                 .withDescription('Window open'),
             e.enum('display_orientation', ea.ALL, Object.keys(displayOrientation))
-                .withDescription('Display orientation'),
+                .withDescription('Display orientation')
+                .withCategory('config'),
             e.numeric('remote_temperature', ea.ALL)
                 .withValueMin(0)
                 .withValueMax(35)
@@ -996,24 +997,29 @@ const definitions: Definition[] = [
             e.numeric('display_ontime', ea.ALL)
                 .withValueMin(5)
                 .withValueMax(30)
-                .withDescription('Specifies the display on-time'),
+                .withDescription('Specifies the display on-time')
+                .withCategory('config'),
             e.numeric('display_brightness', ea.ALL)
                 .withValueMin(0)
                 .withValueMax(10)
-                .withDescription('Specifies the brightness level of the display'),
+                .withDescription('Specifies the brightness level of the display')
+                .withCategory('config'),
             e.enum('displayed_temperature', ea.ALL, Object.keys(displayedTemperature))
-                .withDescription('Temperature displayed on the thermostat'),
+                .withDescription('Temperature displayed on the thermostat')
+                .withCategory('config'),
             e.child_lock().setAccess('state', ea.ALL),
             e.battery(),
             e.enum('setpoint_change_source', ea.STATE, Object.keys(setpointSource))
                 .withDescription('States where the current setpoint originated'),
             e.enum('valve_adapt_status', ea.STATE, Object.keys(adaptationStatus))
                 .withLabel('Adaptation status')
-                .withDescription('Specifies the current status of the valve adaptation'),
+                .withDescription('Specifies the current status of the valve adaptation')
+                .withCategory('diagnostic'),
             e.binary('valve_adapt_process', ea.ALL, true, false)
                 .withLabel('Trigger adaptation process')
                 .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
-                    'is "ready_to_calibrate" or "error".'),
+                    'is "ready_to_calibrate" or "error".')
+                .withCategory('config'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1375,21 +1381,29 @@ const definitions: Definition[] = [
             e.battery_low(),
             e.battery_voltage(),
             e.text('config_led_top_left_press', ea.ALL).withLabel('LED config (top left short press)')
-                .withDescription(labelShortPress),
+                .withDescription(labelShortPress)
+                .withCategory('config'),
             e.text('config_led_top_right_press', ea.ALL).withLabel('LED config (top right short press)')
-                .withDescription(labelShortPress),
+                .withDescription(labelShortPress)
+                .withCategory('config'),
             e.text('config_led_bottom_left_press', ea.ALL).withLabel('LED config (bottom left short press)')
-                .withDescription(labelShortPress),
+                .withDescription(labelShortPress)
+                .withCategory('config'),
             e.text('config_led_bottom_right_press', ea.ALL).withLabel('LED config (bottom right short press)')
-                .withDescription(labelShortPress),
+                .withDescription(labelShortPress)
+                .withCategory('config'),
             e.text('config_led_top_left_longpress', ea.ALL).withLabel('LED config (top left long press)')
-                .withDescription(labelLongPress),
+                .withDescription(labelLongPress)
+                .withCategory('config'),
             e.text('config_led_top_right_longpress', ea.ALL).withLabel('LED config (top right long press)')
-                .withDescription(labelLongPress),
+                .withDescription(labelLongPress)
+                .withCategory('config'),
             e.text('config_led_bottom_left_longpress', ea.ALL).withLabel('LED config (bottom left long press)')
-                .withDescription(labelLongPress),
+                .withDescription(labelLongPress)
+                .withCategory('config'),
             e.text('config_led_bottom_right_longpress', ea.ALL).withLabel('LED config (bottom right long press)')
-                .withDescription(labelLongPress),
+                .withDescription(labelLongPress)
+                .withCategory('config'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

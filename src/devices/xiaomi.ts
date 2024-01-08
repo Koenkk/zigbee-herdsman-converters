@@ -1500,10 +1500,12 @@ const definitions: Definition[] = [
                 'single_left', 'single_right', 'hold_release_left', 'hold_release_left']),
             e.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for left button')
-                .withEndpoint('left'),
+                .withEndpoint('left')
+                .withCategory('config'),
             e.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for right button')
-                .withEndpoint('right'),
+                .withEndpoint('right')
+                .withCategory('config'),
         ],
         toZigbee: [tz.on_off, {...tz.xiaomi_switch_operation_mode_basic, convertGet: null}, tz.xiaomi_power],
         meta: {multiEndpoint: true},
