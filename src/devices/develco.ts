@@ -56,20 +56,19 @@ const develco = {
             ...fz.electrical_measurement,
             cluster: 'haElectricalMeasurement',
             type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
-                    return fz.electrical_measurement.convert(model, msg, publish, options, meta);
-                }
+            convert: async (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
+                if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
+                    const result = await fz.electrical_measurement.convert(model, msg, publish, options, meta);
+                }
                 if (msg.data.hasOwnProperty('totalActivePower')) {
-                    result[utils.postfixWithEndpointName('total_active_power', msg, model, meta)] =
+                    result[utils.postfixWithEndpointName('power', msg, model, meta)] =
                         msg.data['totalActivePower'];
                 }
                 if (msg.data.hasOwnProperty('totalReactivePower')) {
-                    result[utils.postfixWithEndpointName('total_reactive_power', msg, model, meta)] =
+                    result[utils.postfixWithEndpointName('power_reactive', msg, model, meta)] =
                         msg.data['totalReactivePower'];
                 }
-                return result;
             },
         } satisfies Fz.Converter,
         device_temperature: {
@@ -445,7 +444,6 @@ const definitions: Definition[] = [
                 await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
                 await reporting.rmsVoltage(endpoint);
                 await reporting.rmsCurrent(endpoint);
-                await reporting.activePower(endpoint);
                 await endpoint.configureReporting('haElectricalMeasurement', [{attribute: 'totalActivePower', minimumReportInterval: 5,
                     maximumReportInterval: 3600, reportableChange: 1}], manufacturerOptions);
                 await endpoint.configureReporting('haElectricalMeasurement', [{attribute: 'totalReactivePower', minimumReportInterval: 5,
@@ -456,15 +454,14 @@ const definitions: Definition[] = [
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
-            await reporting.instantaneousDemand(endpoint);
             await reporting.currentSummDelivered(endpoint);
             await reporting.currentSummReceived(endpoint);
             await develco.configure.read_sw_hw_version(device, logger);
         },
-        exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
-            e.voltage_phase_c(),
-            e.numeric('total_active_power', ea.STATE).withUnit('W').withDescription('Total active power'),
-            e.numeric('total_reactive_power', ea.STATE).withUnit('VAr').withDescription('Total reactive power')],
+        exposes: [e.numeric('power', ea.STATE).withUnit('W').withDescription('Total active power'), 
+            e.numeric('power_reactive', ea.STATE).withUnit('VAr').withDescription('Total reactive power'),
+            e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
+            e.voltage_phase_c()],
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'seMetering' && data.data['divisor']) {
                 // Device sends wrong divisor (512) while it should be fixed to 1000
