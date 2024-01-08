@@ -1841,7 +1841,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0215A', ['_TZ3000_4fsgukof', '_TZ3000_wr2ucaj9', '_TZ3000_zsh6uat3', '_TZ3000_tj4pwzzm',
-            '_TZ3000_2izubafb', '_TZ3000_pkfazisv', '_TZ3000_0dumfk2z', '_TZ3000_ssp0maqm', '_TZ3000_ssp0maqm']),
+            '_TZ3000_2izubafb', '_TZ3000_pkfazisv', '_TZ3000_0dumfk2z', '_TZ3000_ssp0maqm']),
         model: 'TS0215A_sos',
         vendor: 'TuYa',
         description: 'SOS button',
