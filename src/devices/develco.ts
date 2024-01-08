@@ -54,13 +54,17 @@ const develco = {
         // https://github.com/Koenkk/zigbee2mqtt/issues/13329
         electrical_measurement: {
             ...fz.electrical_measurement,
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
+                    return fz.electrical_measurement.convert(model, msg, publish, options, meta);
+                }
+            },
+        } satisfies Fz.Converter,
+        total_power: {
             cluster: 'haElectricalMeasurement',
             type: ['attributeReport', 'readResponse'],
-            convert: async (model, msg, publish, options, meta) => {
+            convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
-                    const result = await fz.electrical_measurement.convert(model, msg, publish, options, meta);
-                }
                 if (msg.data.hasOwnProperty('totalActivePower')) {
                     result[utils.postfixWithEndpointName('power', msg, model, meta)] =
                         msg.data['totalActivePower'];
@@ -432,7 +436,7 @@ const definitions: Definition[] = [
         model: 'EMIZB-132',
         vendor: 'Develco',
         description: 'Wattle AMS HAN power-meter sensor',
-        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement],
+        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.total_power],
         toZigbee: [tz.EMIZB_132_mode],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
