@@ -1319,14 +1319,15 @@ const converters2 = {
                     // accept 24h time notation (e.g. 19:30)
                     if (typeof elem['transitionTime'] === 'string') {
                         const time = elem['transitionTime'].split(':');
-                        utils.assertNumber(time[0], 'transitionTime hour');
-                        utils.assertNumber(time[1], 'transitionTime minute');
-                        if ((time.length != 2) || isNaN(time[0]) || isNaN(time[1])) {
+                        const timeHour = (parseInt(time[0]) * 60);
+                        const timeMinute = parseInt(time[1]);
+
+                        if ((time.length != 2) || isNaN(timeHour) || isNaN(timeMinute)) {
                             meta.logger.warn(
                                 `weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem['transitionTime']}'!`,
                             );
                         } else {
-                            elem['transitionTime'] = ((parseInt(time[0]) * 60) + parseInt(time[1]));
+                            elem['transitionTime'] = (timeHour + timeMinute);
                         }
                     } else if (typeof elem['transitionTime'] === 'object') {
                         if (!elem['transitionTime'].hasOwnProperty('hour') || !elem['transitionTime'].hasOwnProperty('minute')) {
