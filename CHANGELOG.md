@@ -1,5 +1,26 @@
 # Changelog
 
+## [18.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.9.0...v18.10.0) (2024-01-08)
+
+
+### Features
+
+* Add category attribute to exposes  ([#6837](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6837)) ([3a1b7a9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a1b7a9b0c12499f93044c0f00d356673d8acc4a))
+* Add missing clusters to Xioami VOCKQJK11LM ([#6840](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6840)) ([148e14e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/148e14e8438b86e3c0452b61b29c3220f7531906))
+* Expose action_group for paul neuhaus q-remote ([#6863](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6863)) ([2b640b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2b640b72a242e3de213b2a478f46335a74299dd6))
+
+
+### Bug Fixes
+
+* Add categories to several config/diagnostic exposes ([#6855](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6855)) ([2c08cdc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2c08cdc6cae73555f66469036f2dd6c5b0535a14))
+* **detect:** Detect `_TZ3000_ssp0maqm` as TuYa TS0215A_sos https://github.com/Koenkk/zigbee-herdsman-converters/pull/6817 ([30e111d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30e111d339c74a27b40680ce29f19e963dd03023))
+* **detect:** Detect `_TZE204_n9ctkb6j` as TuYa TS0601_dimmer_1 ([#6861](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6861)) ([ff2c3ed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ff2c3ed2a9f08b989d9296662a0e4336a63a03d5))
+* **detect:** Detect `HK-SENSOR-CT-A` as Sunricher SR-ZG9010A ([#6857](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6857)) ([0d84a96](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0d84a967ba21429a42618e9ec9b6a3c1b8d6db53))
+* Fix `weekly_schedule` `Error: 'transitionTime hour' is not a number, got string (00)` error ([#6860](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6860)) ([6a2bd70](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6a2bd70604ce107505db9d26225ba002dab08a49))
+* **ignore:** Fix battery description https://github.com/Koenkk/zigbee2mqtt.io/pull/2474 ([df0e52d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/df0e52d8e85812ba3bb564cbbe31f2fddf0ca936))
+* OTA logging: fixed typos / minor changes ([#6854](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6854)) ([22c4673](https://github.com/Koenkk/zigbee-herdsman-converters/commit/22c4673533b9380dc4d8abb115c70069e607ee13))
+* Rename LED2005R5 to LED2005R5/LED2106R3 https://github.com/Koenkk/zigbee2mqtt/issues/20660 ([2e1df4e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2e1df4e586d3f4d1f0dad9df45910892991e181d))
+
 ## [18.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.8.0...v18.9.0) (2024-01-07)
 
 
