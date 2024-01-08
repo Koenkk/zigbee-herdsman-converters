@@ -569,9 +569,9 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
     return {configure, isModernExtend: true};
 }
 
-export function quirkSendWhenActive(): ModernExtend {
+export function quirkPendingRequestTimeout(): ModernExtend {
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        device.defaultSendRequestWhen = 'active';
+        device.pendingRequestTimeout = 3600000; // milliseconds => 1 hour
         device.save();
     };
 
