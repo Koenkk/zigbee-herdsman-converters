@@ -158,8 +158,8 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         seMetering: {
             // Report change with every 5W change
             power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 5},
-            // Report change with every 0.1kWh change
-            energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1},
+            // Report change with every 0.01kWh change
+            energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.01},
         },
     };
 
