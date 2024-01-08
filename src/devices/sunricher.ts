@@ -602,7 +602,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TERNCY-DC01', manufacturerName: 'Sunricher'}],
+        fingerprint: [{modelID: 'TERNCY-DC01', manufacturerName: 'Sunricher'}, {modelID: 'HK-SENSOR-CT-A', manufacturerName: 'Sunricher'}],
         model: 'SR-ZG9010A',
         vendor: 'Sunricher',
         description: 'Door windows sensor',
