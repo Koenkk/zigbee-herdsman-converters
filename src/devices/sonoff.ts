@@ -87,7 +87,13 @@ const definitions: Definition[] = [
         model: 'S31ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Device does not support configureReporting for onOff, therefore just bind here.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/20618
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
     },
     {
         fingerprint: [
