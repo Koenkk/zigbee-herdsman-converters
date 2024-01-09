@@ -1,5 +1,19 @@
 # Changelog
 
+## [18.10.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.10.0...v18.10.1) (2024-01-09)
+
+
+### Bug Fixes
+
+* **detect:** Detect `TH1320ZB-04` as Sinopé TH1320ZB-04 ([#6867](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6867)) ([0c33647](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0c336472fbdea3a80296bbe36a35917cfc41cc73))
+* Fix configure for Hej switches https://github.com/Koenkk/zigbee2mqtt/issues/20666 ([5ffd5a7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5ffd5a7d791bc6d446d4aa402aa6d9e14d431c1f))
+* Fix configure for SONOFF S31ZB. https://github.com/Koenkk/zigbee2mqtt/issues/20618 ([759a395](https://github.com/Koenkk/zigbee-herdsman-converters/commit/759a395a34b1b89586e10d44d3ca78d396c4b0cf))
+* Fix LiXee typo activeEnerfyOutD0x to activeEnergyOutD0x ([#6866](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6866)) ([91a7de4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/91a7de4478e5e914766d80c7dfe65d2edbb035cd))
+* Fix reported "latest version" when "no update available" ([#6864](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6864)) ([5f26292](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5f2629252c2778655f6798695da00ae386dd9fc7))
+* ptvo.switch: fixed an error message when Z2M tries to read an OnOff ([#6868](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6868)) ([f88f026](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f88f026fb9094e4881dcdf39b9265d04081aa54d))
+* Replace `defaultSendRequestWhen` with `pendingRequestTimeout` ([#6865](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6865)) ([05e8da6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/05e8da64a684904d5e8301e6beb31964f616c29f))
+* Update `power` expose and add `power_reactive` to Develco EMIZB-132 ([#6823](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6823)) ([0f7b04b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f7b04b3729ef186d1a0df32d3d1c78bf4bbdc29))
+
 ## [18.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.9.0...v18.10.0) (2024-01-08)
 
 
