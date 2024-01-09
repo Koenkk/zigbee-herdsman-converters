@@ -21,22 +21,22 @@ function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | numbe
     return endpoints;
 }
 
-const reportingConfigTimeLookup = {
+const timeLookup = {
     '1_HOUR': 3600,
     'MAX': 65000,
     '30_MINUTES': 1800,
     '10_SECONDS': 10,
 };
 
-type ReportingConfigTime = number | keyof typeof reportingConfigTimeLookup;
+type ReportingConfigTime = number | keyof typeof timeLookup;
 type ReportingConfigAttribute = string | number | {ID: number, type: number};
 type ReportingConfig = {min: ReportingConfigTime, max: ReportingConfigTime, change: number | [number, number], attribute: ReportingConfigAttribute}
 export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, 'attribute'>;
 
 function convertReportingConfigTime(time: ReportingConfigTime): number {
     if (isString(time)) {
-        if (!(time in reportingConfigTimeLookup)) throw new Error(`Reporting time '${time}' is unknown`);
-        return reportingConfigTimeLookup[time];
+        if (!(time in timeLookup)) throw new Error(`Reporting time '${time}' is unknown`);
+        return timeLookup[time];
     } else {
         return time;
     }
@@ -569,9 +569,10 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
     return {configure, isModernExtend: true};
 }
 
-export function quirkSendWhenActive(): ModernExtend {
+export function quirkPendingRequestTimeout(timeout: keyof typeof timeLookup): ModernExtend {
+    const timeoutMs = timeLookup[timeout] * 1000;
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        device.defaultSendRequestWhen = 'active';
+        device.pendingRequestTimeout = timeoutMs;
         device.save();
     };
 

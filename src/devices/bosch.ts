@@ -850,7 +850,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read(0x0502, [0xa000, 0xa001, 0xa002, 0xa003, 0xa004, 0xa005], manufacturerOptions);
-            device.defaultSendRequestWhen = 'immediate';
+            device.pendingRequestTimeout = 0;
             device.save();
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },

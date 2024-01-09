@@ -276,7 +276,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.warning],
         exposes: [e.warning(), e.battery(), e.battery_low(), e.tamper()],
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.defaultSendRequestWhen = 'immediate';
+            device.pendingRequestTimeout = 0;
             device.save();
             await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
         },
