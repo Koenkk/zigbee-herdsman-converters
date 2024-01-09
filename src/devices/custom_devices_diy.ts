@@ -169,14 +169,14 @@ const tzLocal = {
     } satisfies Tz.Converter,
     ptvo_on_off: {
         key: ['state'],
-	    convertSet: async (entity, key, value, meta) => {
-		    return await tz.on_off.convertSet(entity, key, value, meta); 
-	    },
+        convertSet: async (entity, key, value, meta) => {
+            return await tz.on_off.convertSet(entity, key, value, meta);
+        },
         convertGet: async (entity, key, meta) => {
             const cluster = 'genOnOff';
-	        if (isEndpoint(entity) && (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster))) {
-	                return await tz.on_off.convertGet(entity, key, meta);
-	        }
+            if (isEndpoint(entity) && (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster))) {
+                return await tz.on_off.convertGet(entity, key, meta);
+            }
             return;
         },
     } satisfies Tz.Converter,
