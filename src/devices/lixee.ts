@@ -141,10 +141,10 @@ const fzLocal = {
                 /* 0x0200 */ 'currentPrice',
                 /* 0x0201 */ 'currentIndexTarif',
                 /* 0x0202 */ 'currentDate',
-                /* 0x0203 */ 'activeEnerfyOutD01',
-                /* 0x0204 */ 'activeEnerfyOutD02',
-                /* 0x0205 */ 'activeEnerfyOutD03',
-                /* 0x0206 */ 'activeEnerfyOutD04',
+                /* 0x0203 */ 'activeEnergyOutD01',
+                /* 0x0204 */ 'activeEnergyOutD02',
+                /* 0x0205 */ 'activeEnergyOutD03',
+                /* 0x0206 */ 'activeEnergyOutD04',
                 /* 0x0207 */ 'injectedVA',
                 /* 0x0208 */ 'injectedVAMaxN',
                 /* 0x0209 */ 'injectedVAMaxN1',
@@ -184,10 +184,10 @@ const fzLocal = {
                         val = val.replace(/\s+/g, ' ').trim(); // Remove extra and leading spaces
                     }
                     switch (at) {
-                    case 'activeEnerfyOutD01':
-                    case 'activeEnerfyOutD02':
-                    case 'activeEnerfyOutD03':
-                    case 'activeEnerfyOutD04':
+                    case 'activeEnergyOutD01':
+                    case 'activeEnergyOutD02':
+                    case 'activeEnergyOutD03':
+                    case 'activeEnergyOutD04':
                         // @ts-expect-error
                         val = utils.precisionRound(val / 1000, kWh_p); // from Wh to kWh
                         break;
@@ -576,10 +576,10 @@ const allPhaseData = [
     {cluster: clustersDef._0x0B04, att: 'reactivePowerPhC', reportable: true, onlyProducer: true, exposes: e.numeric('ERQ4', ea.STATE).withUnit('VArh').withProperty('reactive_power_ph_c').withDescription('Total reactive power (Q4)')},
     {cluster: clustersDef._0x0B04, att: 'rmsCurrent', reportable: true, onlyProducer: false, exposes: e.numeric('IRMS1', ea.STATE).withUnit('A').withProperty('rms_current').withDescription('RMS current')},
     {cluster: clustersDef._0x0B04, att: 'rmsVoltage', reportable: true, onlyProducer: false, exposes: e.numeric('URMS1', ea.STATE).withUnit('V').withProperty('rms_voltage').withDescription('RMS voltage')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD01', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD01', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d01').withDescription('Active energy withdrawn Distributor (index 01)')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD02', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD02', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d02').withDescription('Active energy withdrawn Distributor (index 02)')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD03', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD03', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d03').withDescription('Active energy withdrawn Distributor (index 03)')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD04', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD04', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d04').withDescription('Active energy withdrawn Distributor (index 04)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnergyOutD01', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD01', ea.STATE).withUnit('kWh').withProperty('active_energy_out_d01').withDescription('Active energy withdrawn Distributor (index 01)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnergyOutD02', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD02', ea.STATE).withUnit('kWh').withProperty('active_energy_out_d02').withDescription('Active energy withdrawn Distributor (index 02)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnergyOutD03', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD03', ea.STATE).withUnit('kWh').withProperty('active_energy_out_d03').withDescription('Active energy withdrawn Distributor (index 03)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnergyOutD04', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD04', ea.STATE).withUnit('kWh').withProperty('active_energy_out_d04').withDescription('Active energy withdrawn Distributor (index 04)')},
     {cluster: clustersDef._0xFF66, att: 'currentDate', reportable: false, onlyProducer: false, exposes: e.text('DATE', ea.STATE).withProperty('current_date').withDescription('Current date and time')},
     {cluster: clustersDef._0xFF66, att: 'currentIndexTarif', reportable: false, onlyProducer: false, exposes: e.numeric('NTARF', ea.STATE).withProperty('current_index_tarif').withDescription('Current tariff index number')},
     {cluster: clustersDef._0xFF66, att: 'currentPrice', reportable: false, onlyProducer: false, exposes: e.text('LTARF', ea.STATE).withProperty('current_price').withDescription('Current supplier price label')},
