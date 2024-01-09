@@ -915,10 +915,13 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['TH1300ZB'],
+        zigbeeModel: ['TH1300ZB', 'TH1320ZB-04'],
         model: 'TH1300ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart floor heating thermostat',
+        whiteLabel: [
+            {model: 'TH1320ZB-04', vendor: 'Sinopé', description: 'Zigbee smart floor heating thermostat', fingerprint: [{modelID: 'TH1320ZB-04'}]},
+        ],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface,
             fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
