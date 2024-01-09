@@ -405,7 +405,7 @@ export async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger
         return {
             available: 0,
             currentFileVersion: current.fileVersion,
-            otaFileVersion: -1,
+            otaFileVersion: current.fileVersion,
         };
     }
 
