@@ -1000,6 +1000,91 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['TH1320ZB-04'],
+        model: 'TH1320ZB-04',
+        vendor: 'Sinopé',
+        description: 'Zigbee smart floor heating thermostat',
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface,
+            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
+            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.second_display_mode,
+            tzLocal.thermostat_outdoor_temperature, tzLocal.outdoor_temperature_timeout, tzLocal.thermostat_occupancy,
+            tzLocal.floor_control_mode, tzLocal.ambiant_max_heat_setpoint, tzLocal.floor_min_heat_setpoint,
+            tzLocal.floor_max_heat_setpoint, tzLocal.temperature_sensor, tz.electrical_measurement_power],
+        exposes: [
+            e.climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 36, 0.5)
+                .withSetpoint('unoccupied_heating_setpoint', 5, 36, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
+                .withPiHeatingDemand()
+                .withRunningState(['idle', 'heat'], ea.STATE),
+            e.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
+                .withDescription('Occupancy state of the thermostat'),
+            e.enum('second_display_mode', ea.ALL, ['auto', 'setpoint', 'outdoor temp'])
+                .withDescription('Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
+                    'in "outdoor temp" mode when expired.'),
+            e.numeric('thermostat_outdoor_temperature', ea.ALL).withUnit('°C').withValueMin(-99.5).withValueMax(99.5).withValueStep(0.5)
+                .withDescription('Outdoor temperature for the secondary display'),
+            e.numeric('outdoor_temperature_timeout', ea.ALL).withUnit('s').withValueMin(30).withValueMax(64800)
+                .withPreset('15 min', 900, '15 minutes').withPreset('30 min', 1800, '30 minutes').withPreset('1 hour', 3600, '1 hour')
+                .withDescription('Time in seconds after which the outdoor temperature is considered to have expired'),
+            e.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+                .withDescription('DEPRECATED: Use second_display_mode or control via outdoor_temperature_timeout'),
+            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the thermostat screen'),
+            e.enum('time_format', ea.ALL, ['24h', '12h'])
+                .withDescription('The time format featured on the thermostat display'),
+            e.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
+                .withDescription('Control backlight dimming behavior'),
+            e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
+                .withDescription('Enables or disables the device’s buttons'),
+            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'haElectricalMeasurement', 'msTemperatureMeasurement', 'seMetering', 'manuSpecificSinope'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            try {
+                await reporting.readMeteringMultiplierDivisor(endpoint);
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
+            } catch (error) {/* Do nothing*/}
+            try {
+                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
+            } catch (error) {
+                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {'acPowerMultiplier': 1, 'acPowerDivisor': 1});
+            }
+            try {
+                await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+                await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
+            } catch (error) {/* Do nothing*/}
+            try {
+                await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
+                await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
+            } catch (error) {/* Do nothing*/}
+
+            try {
+                await reporting.thermostatKeypadLockMode(endpoint);
+            } catch (error) {
+                // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
+            }
+
+            await endpoint.configureReporting('manuSpecificSinope', [{attribute: 'GFCiStatus', minimumReportInterval: 1,
+                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
+            await endpoint.configureReporting('manuSpecificSinope', [{attribute: 'floorLimitStatus', minimumReportInterval: 1,
+                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
+            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // disable reporting
+        },
+    },
+    {
         zigbeeModel: ['TH1400ZB'],
         model: 'TH1400ZB',
         vendor: 'Sinopé',
