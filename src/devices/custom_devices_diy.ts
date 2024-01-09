@@ -9,7 +9,7 @@ import extend from '../lib/extend';
 import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
-import {getFromLookup, getKey, postfixWithEndpointName} from '../lib/utils';
+import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib/utils';
 import {light, onOff} from '../lib/modernExtend';
 
 const switchTypesList = {
@@ -165,6 +165,19 @@ const tzLocal = {
             const payload = {switchType: data};
             await entity.write('genOnOffSwitchCfg', payload);
             return {state: {[`${key}`]: value}};
+        },
+    } satisfies Tz.Converter,
+    ptvo_on_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            return await tz.on_off.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            const cluster = 'genOnOff';
+            if (isEndpoint(entity) && (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster))) {
+                return await tz.on_off.convertGet(entity, key, meta);
+            }
+            return;
         },
     } satisfies Tz.Converter,
 };
@@ -507,7 +520,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report, fz.temperature,
             fzLocal.humidity2, fzLocal.pressure2, fzLocal.illuminance2],
-        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tz.on_off],
+        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tzLocal.ptvo_on_off],
         exposes: (device, options) => {
             const expose: Expose[] = [];
             const exposeDeviceOptions: KeyValue = {};
