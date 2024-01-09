@@ -3,12 +3,12 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import {binary, forcePowerSource, numeric, enumLookup, onOff} from '../lib/modernExtend';
-import {Definition, Fz, KeyValue} from '../lib/types';
+import {binary, enumLookup, forcePowerSource, numeric, onOff} from '../lib/modernExtend';
+import {Definition, Fz, KeyValue, ModernExtend} from '../lib/types';
+import * as ota from '../lib/ota';
 
 const e = exposes.presets;
 const ea = exposes.access;
-import * as ota from '../lib/ota';
 
 const fzLocal = {
     router_config: {
@@ -21,6 +21,59 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+};
+
+const sonoffExtend = {
+    trvSchedule: (): ModernExtend => {
+
+        const cluster = 'hvacThermostat';
+
+        const exposes = e.composite('schedule', 'weekly_schedule', ea.STATE_SET)
+            .withFeature(e.text('sunday', ea.STATE_SET))
+            .withFeature(e.text('monday', ea.STATE_SET))
+            .withFeature(e.text('tuesday', ea.STATE_SET))
+            .withFeature(e.text('wednesday', ea.STATE_SET))
+            .withFeature(e.text('thursday', ea.STATE_SET))
+            .withFeature(e.text('friday', ea.STATE_SET))
+            .withFeature(e.text('saturday', ea.STATE_SET));
+
+        const fromZigbee: Fz.Converter[] = [{
+            cluster,
+            type: ['commandGetWeeklyScheduleRsp'],
+            convert: (model, msg, publish, options, meta) => {
+
+                const day = Object.entries(constants.thermostatDayOfWeek)
+                    .find((d) => msg.data.dayofweek & 1<<+d[0])[1];
+
+                const transitions = msg.data.transitions
+                    .map((t: { heatSetpoint: number, transitionTime: number }) => {
+                        const totalMinutes = t.transitionTime;
+                        const hours = totalMinutes / 60;
+                        const rHours = Math.floor(hours);
+                        const minutes = (hours - rHours) * 60;
+                        const rMinutes = Math.round(minutes);
+                        const strHours = rHours.toString().padStart(2, '0');
+                        const strMinutes = rMinutes.toString().padStart(2, '0');
+
+                        return `${strHours}:${strMinutes}/${t.heatSetpoint / 100}`;
+                    })
+                    .join(' ');
+
+                return {
+                    weekly_schedule: {
+                        ...meta.state.schedule as Record<string, string>[],
+                        [day]: transitions,
+                    },
+                };
+            },
+        }];
+
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 
 const definitions: Definition[] = [
@@ -504,6 +557,7 @@ const definitions: Definition[] = [
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
+            sonoffExtend.trvSchedule(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -530,6 +584,8 @@ const definitions: Definition[] = [
         extend: [onOff()],
     },
 ];
+
+
 
 export default definitions;
 module.exports = definitions;
