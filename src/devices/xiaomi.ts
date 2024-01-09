@@ -3121,7 +3121,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.device_temperature(), e.battery(), e.battery_voltage()],
         extend: [
-            quirkPendingRequestTimeout(),
+            quirkPendingRequestTimeout(3600000), // 1 hour
             quirkAddEndpointCluster({
                 endpointID: 1,
                 inputClusters: [
