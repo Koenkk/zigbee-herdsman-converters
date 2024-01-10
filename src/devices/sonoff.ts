@@ -4,8 +4,10 @@ import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import {binary, enumLookup, forcePowerSource, numeric, onOff} from '../lib/modernExtend';
-import {Definition, Fz, KeyValue, ModernExtend} from '../lib/types';
+import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as ota from '../lib/ota';
+import * as utils from "../lib/utils";
+import * as console from "console";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -25,9 +27,6 @@ const fzLocal = {
 
 const sonoffExtend = {
     trvSchedule: (): ModernExtend => {
-
-        const cluster = 'hvacThermostat';
-
         const exposes = e.composite('schedule', 'weekly_schedule', ea.STATE_SET)
             .withFeature(e.text('sunday', ea.STATE_SET))
             .withFeature(e.text('monday', ea.STATE_SET))
@@ -38,7 +37,7 @@ const sonoffExtend = {
             .withFeature(e.text('saturday', ea.STATE_SET));
 
         const fromZigbee: Fz.Converter[] = [{
-            cluster,
+            cluster: 'hvacThermostat',
             type: ['commandGetWeeklyScheduleRsp'],
             convert: (model, msg, publish, options, meta) => {
 
@@ -68,9 +67,57 @@ const sonoffExtend = {
             },
         }];
 
+        const toZigbee: Tz.Converter[] = [{
+            key: ['weekly_schedule'],
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertObject(value, key);
+
+                for (let [dayOfWeekBit, dayOfWeekName] of Object.entries(constants.thermostatDayOfWeek)) {
+                    if (!value.hasOwnProperty(dayOfWeekName)) {
+                        return;
+                    }
+
+                    const transitions = value[dayOfWeekName]?.split(' ') ?? [];
+
+                    if (transitions.length > 6) {
+                        throw new Error('Invalid schedule: each day must have no more than 6 transitions');
+                    }
+
+                    const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+)$/;
+
+                    const payload: KeyValueAny = {
+                        dayofweek: (1 << Number(dayOfWeekBit)),
+                        numoftrans: transitions.length,
+                        mode: (1 << 0), // heat
+                        transitions: [],
+                    };
+
+                    for (const transition of transitions) {
+                        const matches = transition.match(transitionRegex);
+
+                        if (!matches) {
+                            throw new Error('Invalid schedule: expected transition format HH:mm/temp, found: ' + transition);
+                        }
+
+                        const hour = parseInt(matches[1]);
+                        const mins = parseInt(matches[2]);
+                        const temp = parseFloat(matches[3]);
+
+                        payload.transitions.push({
+                            transitionTime: (hour * 60) + mins,
+                            heatSetpoint: Math.round(temp * 100),
+                        });
+                    }
+
+                    await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
+                }
+            },
+        }];
+
         return {
             exposes: [exposes],
             fromZigbee,
+            toZigbee,
             isModernExtend: true,
         };
     },
@@ -567,6 +614,22 @@ const definitions: Definition[] = [
             await reporting.thermostatSystemMode(endpoint);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007]);
+        },
+        onEvent: async (type, data, device) => {
+            device.skipTimeResponse = true;
+            // The Zigbee Cluster Library specification states that the genTime.time response should be the
+            // number of seconds since 1st Jan 2020 00:00:00 UTC.
+            // This device, however, expects it to be number of seconds since the Unix Epoch (1st Jan 1970 00:00:00 UTC).
+            // Disable the responses of zigbee-herdsman and respond here instead.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/19269#issuecomment-1802898476
+            if (type === 'message' && data.type === 'read' && data.cluster === 'genTime') {
+                const secondsUTC = Math.round(((new Date()).getTime()) / 1000);
+                const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
+                await device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {
+                    time: secondsUTC,
+                    localTime: secondsLocal,
+                });
+            }
         },
     },
     {
