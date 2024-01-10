@@ -1004,7 +1004,7 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true, color: true, turnsOffAtBrightness1: true})],
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WWclear250lm', 'TRADFRIbulbE12WWclear250lm'],
+        zigbeeModel: ['TRADFRIbulbE14WWclear250lm', 'TRADFRIbulbE12WWclear250lm', 'TRADFRIbulbE17WWclear250lm'],
         model: 'LED1935C3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E12/E14 WW clear 250 lumen, dimmable',
