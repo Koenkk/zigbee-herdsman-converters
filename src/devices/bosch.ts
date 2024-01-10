@@ -558,6 +558,11 @@ const fzLocal = {
             const data = msg.data;
             if (data.hasOwnProperty('deviceMode')) {
                 result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data['deviceMode']);
+                const deviceMode = msg.data['deviceMode'];
+                if (deviceMode !== meta.device.meta.deviceMode) {
+                    meta.device.meta.deviceMode = deviceMode;
+                    meta.deviceExposesChanged();
+                }
             }
             if (data.hasOwnProperty('switchType')) {
                 result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data['switchType']);
@@ -578,20 +583,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
-    bmct_trigger: {
-        cluster: 'manuSpecificBosch10',
-        attribute: 'deviceMode',
-        event: 'devicesChanged',
-        getEvents: (data, device) => {
-            if (data.hasOwnProperty('deviceMode')) {
-                const deviceMode = data['deviceMode'];
-                if (deviceMode !== device.meta.deviceMode) {
-                    device.meta.deviceMode = deviceMode;
-                    return ['devicesChanged'];
-                }
-            }
-        },
-    } satisfies Fz.Trigger,
     bwa1_alarm_on_motion: {
         cluster: '64684',
         type: ['attributeReport', 'readResponse'],
@@ -1317,7 +1308,6 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.on_off, fz.power_on_behavior],
         toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.on_off, tz.power_on_behavior],
         meta: {multiEndpoint: true},
-        triggers: [fzLocal.bmct_trigger],
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
         },
