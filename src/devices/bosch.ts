@@ -99,6 +99,15 @@ const displayedTemperature = {
     'measured': 1,
 };
 
+// Smoke detector II bsd-2
+const smokeDetectorAlarmState = {
+    smoke_on: 46080,
+    smoke_off: 0,
+    intruder_on: 46081,
+    intruder_off: 1,
+};
+interface smokeSensorData{cluster:string, command:number, payload:{data:smokeSensorData}}
+
 // Radiator Thermostat II
 const setpointSource = {
     'manual': 0,
@@ -909,14 +918,90 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Smoke alarm detector',
         fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
-        toZigbee: [],
+        toZigbee: [{
+            key: ['intruder_alarm_state', 'smoke_alarm_state', 'boschSmokeDetectorSiren', 'command'],
+            convertSet: async (entity, key, value:smokeSensorData, meta) => {
+                const dataToSend = {
+                    cluster: value?.cluster,
+                    command: value?.command,
+                    payload: value?.payload,
+                };
+                if (key === 'smoke_alarm_state' || key==='intruder_alarm_state') {
+                    dataToSend.cluster = 'ssIasZone';
+                    dataToSend.payload = {data: value};
+                    dataToSend.command = 128;
+                }
+
+                //
+                // the data of the payload can either be decimal:
+                // 1: this disables the intruder alarm state
+                // 46081: this enables the intruder alert siren
+                // 256: this enables the smoke test alarm siren
+                const endpoint = meta.device.getEndpoint(1);
+                await endpoint.command(
+                    dataToSend.cluster,
+                    dataToSend.command,
+                    dataToSend.payload,
+                    {
+                        ...boschManufacturer,
+                        ...utils.getOptions(meta.mapped, entity),
+                    },
+                );
+                return {state: {alarm_state: dataToSend.payload.data}};
+            },
+            convertGet: async (entity, key, meta) => {
+                switch (key) {
+                case 'alarm_state':
+                    await entity.read(
+                        'ssIasZone',
+                        [0xf0],
+                        boschManufacturer,
+                    );
+                    break;
+                case 'intruder_state':
+                    await entity.read(
+                        'ssIasZone',
+                        [0xf0],
+                        boschManufacturer,
+                    );
+                    break;
+                default: // Unknown key
+                    throw new Error(
+                        `Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`,
+                    );
+                }
+            },
+        }],
         meta: {},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 64684]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg',
+                'ssIasZone',
+                'ssIasWd',
+                'genBasic',
+                64684]);
             await reporting.batteryPercentageRemaining(endpoint);
+            device.defaultSendRequestWhen = 'immediate';
+            device.save();
+            await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
-        exposes: [e.smoke(), e.battery(), e.battery_low(), e.test()],
+        exposes: [e.smoke(), e.battery(), e.battery_low(), e.test(),
+            e
+                .binary(
+                    'intruder_alarm_state',
+                    ea.SET,
+                    smokeDetectorAlarmState.intruder_on.toString(),
+                    smokeDetectorAlarmState.intruder_off.toString(),
+                )
+                .withDescription('Toggle the intruder alarm on or off'),
+            e
+                .binary(
+                    'smoke_alarm_state',
+                    ea.SET,
+                    smokeDetectorAlarmState.smoke_on.toString(),
+                    smokeDetectorAlarmState.smoke_off.toString(),
+                )
+                .withDescription('Toggle the smoke alarm on or off')],
     },
     {
         zigbeeModel: ['RFDL-ZB', 'RFDL-ZB-EU', 'RFDL-ZB-H', 'RFDL-ZB-K', 'RFDL-ZB-CHI', 'RFDL-ZB-MS', 'RFDL-ZB-ES', 'RFPR-ZB',
