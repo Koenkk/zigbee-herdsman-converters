@@ -633,7 +633,7 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true})],
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WSglobeopal470lm', 'TRADFRIbulbE12WSglobeopal470lm'],
+        zigbeeModel: ['TRADFRIbulbE14WSglobeopal470lm', 'TRADFRIbulbE12WSglobeopal470lm', 'TRADFRI bulb E17 WS globe 440lm'],
         model: 'LED2002G5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E12 470 lumen, dimmable, white spectrum, clear',
