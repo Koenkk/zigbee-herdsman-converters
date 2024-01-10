@@ -633,7 +633,8 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true})],
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WSglobeopal470lm', 'TRADFRIbulbE12WSglobeopal470lm'],
+        zigbeeModel: ['TRADFRIbulbE14WSglobeopal470lm', 'TRADFRIbulbE12WSglobeopal470lm', 'TRADFRI bulb E17 WS globe 440lm',
+            'TRADFRIbulbE17WSglobeopal470lm'],
         model: 'LED2002G5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E12 470 lumen, dimmable, white spectrum, clear',
@@ -976,7 +977,7 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true})],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E12 WS opal 600lm'],
+        zigbeeModel: ['TRADFRI bulb E12 WS opal 600lm', 'TRADFRI bulb E17 WS opal 600lm'],
         model: 'LED1738G7',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E12 600 lumen, dimmable, white spectrum, opal white',
@@ -1004,7 +1005,7 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true, color: true, turnsOffAtBrightness1: true})],
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WWclear250lm', 'TRADFRIbulbE12WWclear250lm'],
+        zigbeeModel: ['TRADFRIbulbE14WWclear250lm', 'TRADFRIbulbE12WWclear250lm', 'TRADFRIbulbE17WWclear250lm'],
         model: 'LED1935C3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E12/E14 WW clear 250 lumen, dimmable',
