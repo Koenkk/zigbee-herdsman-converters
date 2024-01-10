@@ -22,10 +22,11 @@ function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | numbe
 }
 
 const timeLookup = {
-    '1_HOUR': 3600,
     'MAX': 65000,
+    '1_HOUR': 3600,
     '30_MINUTES': 1800,
     '10_SECONDS': 10,
+    'IMMEDIATE': 0,
 };
 
 type ReportingConfigTime = number | keyof typeof timeLookup;
