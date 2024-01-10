@@ -875,7 +875,7 @@ const definitions: Definition[] = [
             e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in'),
         ],
         extend: [
-            quirkPendingRequestTimeout('IMMEDIATE'),
+            quirkPendingRequestTimeout(0),
         ],
     },
     {
