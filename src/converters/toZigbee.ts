@@ -1806,7 +1806,7 @@ const converters2 = {
     elko_display_text: {
         key: ['display_text'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertArray(value);
+            utils.assertString(value);
             if (value.length <= 14) {
                 await entity.write('hvacThermostat', {'elkoDisplayText': value});
                 return {state: {display_text: value}};
