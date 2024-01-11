@@ -22,8 +22,8 @@ function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | numbe
 }
 
 const timeLookup = {
-    '1_HOUR': 3600,
     'MAX': 65000,
+    '1_HOUR': 3600,
     '30_MINUTES': 1800,
     '10_SECONDS': 10,
 };
@@ -569,8 +569,8 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
     return {configure, isModernExtend: true};
 }
 
-export function quirkPendingRequestTimeout(timeout: keyof typeof timeLookup): ModernExtend {
-    const timeoutMs = timeLookup[timeout] * 1000;
+export function quirkPendingRequestTimeout(timeout: number | keyof typeof timeLookup): ModernExtend {
+    const timeoutMs: number = (typeof timeout == 'number') ? timeout : timeLookup[timeout] * 1000;
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
         device.pendingRequestTimeout = timeoutMs;
         device.save();

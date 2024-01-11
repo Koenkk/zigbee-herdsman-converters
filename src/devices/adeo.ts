@@ -3,7 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 import tz from '../converters/toZigbee';
-import {electricityMeter, light, onOff} from '../lib/modernExtend';
+import {electricityMeter, light, onOff, quirkPendingRequestTimeout} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -275,9 +275,10 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.ias_siren],
         toZigbee: [tz.warning],
         exposes: [e.warning(), e.battery(), e.battery_low(), e.tamper()],
+        extend: [
+            quirkPendingRequestTimeout(0),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.pendingRequestTimeout = 0;
-            device.save();
             await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
         },
     },

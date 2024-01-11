@@ -1,4 +1,4 @@
-import {onOff} from '../lib/modernExtend';
+import {onOff, quirkPendingRequestTimeout} from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -850,8 +850,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read(0x0502, [0xa000, 0xa001, 0xa002, 0xa003, 0xa004, 0xa005], manufacturerOptions);
-            device.pendingRequestTimeout = 0;
-            device.save();
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
         exposes: [
@@ -875,6 +873,9 @@ const definitions: Definition[] = [
                 .removeFeature('duration'),
             e.test(), e.tamper(), e.battery(), e.battery_voltage(), e.battery_low(),
             e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in'),
+        ],
+        extend: [
+            quirkPendingRequestTimeout(0),
         ],
     },
     {
