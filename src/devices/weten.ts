@@ -1,6 +1,11 @@
 import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
+import * as tuya from '../lib/tuya';
 import extend from '../lib/extend';
+import * as exposes from '../lib/exposes';
+
+const e = exposes.presets;
+const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
@@ -11,24 +16,17 @@ const definitions: Definition[] = [
         extend: extend.switch(),
         fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.ignore_time_read],
     },
-        {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_6fk3gewc',
-            },
-        ],
-        zigbeeModel: ['TS0601'],
-    	model: 'PCI E',
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_6fk3gewc']),
+        model: 'PCI E',
         vendor: 'WETEN',
-        description: 'PC-SWITCH',
+        description: 'PC switch',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
             e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l1').withDescription('PC Power'),
             e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l2').withDescription('Shutdown or Reset? Does not seem to actually do anything'),
-/* if possible would be good to swap the values, as currently on means no buzzer noise. */
             e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l3').withDescription('Buzzer on means no buzzer noise'),
 		    e.binary('child_lock', ea.STATE_SET, 'LOCK', 'UNLOCK').withEndpoint('l4').withDescription('Child safety lock'),
 		    e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l5').withDescription('To enable or disable the use of RF remote control, does not seem to actually work'),
@@ -48,7 +46,8 @@ const definitions: Definition[] = [
                 [103, 'state_l6', tuya.valueConverter.onOff],
             ],
         },
-    };    
+    },
 ];
+
 export default definitions;
 module.exports = definitions;
