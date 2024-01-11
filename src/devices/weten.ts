@@ -27,11 +27,12 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l1').withDescription('PC Power'),
-            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l2').withDescription('Power on/off'),
-            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l3').withDescription('Buzzer off/on'),
-    		e.binary('child_lock', ea.STATE_SET, 'LOCK', 'UNLOCK').withEndpoint('l4').withDescription('Child safety lock on/off'),
-    		e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l5').withDescription('To enable or disable the use of RF remote control'),
-    		e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l6').withDescription('To pair with a RF 433 remote, such as the one that was supplied')
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l2').withDescription('Shutdown or Reset? Does not seem to actually do anything'),
+/* if possible would be good to swap the values, as currently on means no buzzer noise. */
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l3').withDescription('Buzzer on means no buzzer noise'),
+		    e.binary('child_lock', ea.STATE_SET, 'LOCK', 'UNLOCK').withEndpoint('l4').withDescription('Child safety lock'),
+		    e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l5').withDescription('To enable or disable the use of RF remote control, does not seem to actually work'),
+		    e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l6').withDescription('To pair a RF 433 remote, such as the one supplied')
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
@@ -40,7 +41,7 @@ const definitions: Definition[] = [
             multiEndpoint: true,
             tuyaDatapoints: [
                 [1, 'state_l1', tuya.valueConverter.onOff],
-                [105, 'state_l105', tuya.valueConverter.onOff],
+                [105, 'state_l2', tuya.valueConverter.onOff],
                 [104, 'state_l3', tuya.valueConverter.onOff],
                 [106, 'child_lock_l4', tuya.valueConverter.lockUnlock],
                 [102, 'state_l5', tuya.valueConverter.onOff],
