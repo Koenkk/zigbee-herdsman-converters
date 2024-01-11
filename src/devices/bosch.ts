@@ -919,7 +919,7 @@ const definitions: Definition[] = [
         description: 'Smoke alarm detector',
         fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
         toZigbee: [{
-            key: ['intruder_alarm_state', 'smoke_alarm_state', 'boschSmokeDetectorSiren', 'command'],
+            key: ['intruder_alarm_state', 'smoke_alarm_state'],
             convertSet: async (entity, key, value:smokeSensorData, meta) => {
                 const dataToSend = {
                     cluster: value?.cluster,
