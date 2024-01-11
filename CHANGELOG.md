@@ -1,5 +1,25 @@
 # Changelog
 
+## [18.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.10.1...v18.11.0) (2024-01-11)
+
+
+### Features
+
+* **add:** 41ECSFWMZ-VW ([#6875](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6875)) ([c84bfd7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c84bfd7b05af3961f9c49193dbb848599810b23a))
+* **add:** ZB-TTS01 ([#6881](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6881)) ([45bddc0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/45bddc002cee6a7389c6e6d4467e9e2b51d6f26b))
+* Improve OWON PC321: add power factor and summation attributes ([#6879](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6879)) ([76310d5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/76310d5cdffda9a4992b8d11b90ebb2a28d14001))
+* Lixee : explode STGE into sub-values ([#6882](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6882)) ([4bc707a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4bc707ad415dfc29b47cad1880b82416a6f7a881))
+* Support OTA for AU-A1ZBDSS https://github.com/Koenkk/zigbee-OTA/issues/403 ([5feb3b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5feb3b6adeb0e1d264025fc09929e9dfb1527914))
+
+
+### Bug Fixes
+
+* Add new model IDs to `LED2002G5`, `LED1738G7` and `LED1935C3` ([#6872](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6872)) ([11df892](https://github.com/Koenkk/zigbee-herdsman-converters/commit/11df892b390c435ae1d72b3cbfc8efe3fd539bcc))
+* **detect:** Detect `_TZE200_yia0p3tr` as TuYa TS0601_cover_1 @IceEyz https://github.com/Koenkk/zigbee2mqtt/issues/20725 ([f83994e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f83994e792b09f87f26119e0691dca660d07e758))
+* Fix setting ELKO 4523430 `display_text` https://github.com/Koenkk/zigbee-herdsman-converters/issues/6883 ([495a32e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/495a32ee5fe63b2b8e75de12b250269f086a82b8))
+* Move devices to modernExtend.quirkPendingRequestTimeout ([#6874](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6874)) ([d284368](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d284368128618053c7efca8d75152d8026e6bc7e))
+* Remove unused `imageSize` parameter from `upgradeEndResponse` https://github.com/Koenkk/zigbee2mqtt/issues/17374 ([42e1cec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/42e1cecd35fd7c45919a2d7d102bba78dec3e684))
+
 ## [18.10.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.10.0...v18.10.1) (2024-01-09)
 
 
