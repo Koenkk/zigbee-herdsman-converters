@@ -989,7 +989,7 @@ const definitions: Definition[] = [
             e
                 .binary(
                     'intruder_alarm_state',
-                    ea.SET,
+                    ea.ALL,
                     smokeDetectorAlarmState.intruder_on.toString(),
                     smokeDetectorAlarmState.intruder_off.toString(),
                 )
@@ -997,7 +997,7 @@ const definitions: Definition[] = [
             e
                 .binary(
                     'smoke_alarm_state',
-                    ea.SET,
+                    ea.ALL,
                     smokeDetectorAlarmState.smoke_on.toString(),
                     smokeDetectorAlarmState.smoke_off.toString(),
                 )
