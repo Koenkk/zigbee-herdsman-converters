@@ -951,14 +951,14 @@ const definitions: Definition[] = [
             },
             convertGet: async (entity, key, meta) => {
                 switch (key) {
-                case 'alarm_state':
+                case 'smoke_alarm_state':
                     await entity.read(
                         'ssIasZone',
                         [0xf0],
                         manufacturerOptions,
                     );
                     break;
-                case 'intruder_state':
+                case 'intruder_alarm_state':
                     await entity.read(
                         'ssIasZone',
                         [0xf0],
