@@ -537,8 +537,7 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
             if (data.payload.status === 0) {
                 const payload = {
                     manufacturerCode: image.header.manufacturerCode, imageType: image.header.imageType,
-                    fileVersion: image.header.fileVersion, imageSize: image.header.totalImageSize,
-                    currentTime: 0, upgradeTime: 1,
+                    fileVersion: image.header.fileVersion, currentTime: 0, upgradeTime: 1,
                 };
 
                 endpoint.commandResponse('genOta', 'upgradeEndResponse', payload, null, data.header.transactionSequenceNumber).then(
