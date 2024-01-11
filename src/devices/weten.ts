@@ -11,7 +11,43 @@ const definitions: Definition[] = [
         extend: extend.switch(),
         fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.ignore_time_read],
     },
+        {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_6fk3gewc',
+            },
+        ],
+        zigbeeModel: ['TS0601'],
+    	model: 'PCI E',
+        vendor: 'WETEN',
+        description: 'PC-SWITCH',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l1').withDescription('PC Power'),
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l2').withDescription('Power on/off'),
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l3').withDescription('Buzzer off/on'),
+    		e.binary('child_lock', ea.STATE_SET, 'LOCK', 'UNLOCK').withEndpoint('l4').withDescription('Child safety lock on/off'),
+    		e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l5').withDescription('To enable or disable the use of RF remote control'),
+    		e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l6').withDescription('To pair with a RF 433 remote, such as the one that was supplied')
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [105, 'state_l105', tuya.valueConverter.onOff],
+                [104, 'state_l3', tuya.valueConverter.onOff],
+                [106, 'child_lock_l4', tuya.valueConverter.lockUnlock],
+                [102, 'state_l5', tuya.valueConverter.onOff],
+                [103, 'state_l6', tuya.valueConverter.onOff],
+            ],
+        },
+    };    
 ];
-
 export default definitions;
 module.exports = definitions;
