@@ -22,24 +22,37 @@ const fzLocal = {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            const factor = 0.001;
             const payload: KeyValue = {};
             if (msg.data.hasOwnProperty('owonL1Energy')) {
-                payload.energy_l1 = msg.data['owonL1Energy'][1] / 1000.0;
+                const data = msg.data['owonL1Energy'];
+                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                payload.energy_l1 = value * factor;
             }
             if (msg.data.hasOwnProperty('owonL2Energy')) {
-                payload.energy_l2 = msg.data['owonL2Energy'][1] / 1000.0;
+                const data = msg.data['owonL2Energy'];
+                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                payload.energy_l2 = value * factor;
             }
             if (msg.data.hasOwnProperty('owonL3Energy')) {
-                payload.energy_l3 = msg.data['owonL3Energy'][1] / 1000.0;
+                const data = msg.data['owonL3Energy'];
+                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                payload.energy_l3 = value * factor;
             }
             if (msg.data.hasOwnProperty('owonL1ReactiveEnergy')) {
-                payload.reactive_energy_l1 = msg.data['owonL1ReactiveEnergy'][1] / 1000.0;
+                const data = msg.data['owonL1ReactiveEnergy'];
+                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                payload.reactive_energy_l1 = value * factor;
             }
             if (msg.data.hasOwnProperty('owonL2ReactiveEnergy')) {
-                payload.reactive_energy_l2 = msg.data['owonL2ReactiveEnergy'][1] / 1000.0;
+                const data = msg.data['owonL2ReactiveEnergy'];
+                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                payload.reactive_energy_l2 = value * factor;
             }
             if (msg.data.hasOwnProperty('owonL3ReactiveEnergy')) {
-                payload.reactive_energy_l3 = msg.data['owonL3ReactiveEnergy'][1] / 1000.0;
+                const data = msg.data['owonL3ReactiveEnergy'];
+                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                payload.reactive_energy_l3 = value / 1000;
             }
             if (msg.data.hasOwnProperty('owonL1PhasePower')) {
                 payload.power_l1 = msg.data['owonL1PhasePower'];
@@ -69,20 +82,42 @@ const fzLocal = {
                 payload.voltage_l3 = msg.data['owonL3PhaseVoltage'] / 10.0;
             }
             if (msg.data.hasOwnProperty('owonL1PhaseCurrent')) {
-                payload.current_l1 = msg.data['owonL1PhaseCurrent'] / 1000.0;
+                payload.current_l1 = msg.data['owonL1PhaseCurrent'] * factor;
             }
             if (msg.data.hasOwnProperty('owonL2PhaseCurrent')) {
-                payload.current_l2 = msg.data['owonL2PhaseCurrent'] / 1000.0;
+                payload.current_l2 = msg.data['owonL2PhaseCurrent'] * factor;
             }
             if (msg.data.hasOwnProperty('owonL3PhaseCurrent')) {
-                payload.current_l3 = msg.data['owonL3PhaseCurrent'] / 1000.0;
+                payload.current_l3 = msg.data['owonL3PhaseCurrent'] * factor;
             }
             if (msg.data.hasOwnProperty('owonFrequency')) {
                 payload.frequency = msg.data['owonFrequency'];
             }
-            if (msg.data.hasOwnProperty('owonReactiveEnergySum')) {
-                payload.reactive_energy_sum = msg.data['owonReactiveEnergySum'];
+            // Issue #20719 summation manufacturer attributes are not well parsed
+            if (msg.data.hasOwnProperty('owonReactivePowerSum') || msg.data.hasOwnProperty('8451')) { // 0x2103 -> 8451
+                const value = msg.data['owonReactiveEnergySum'] || msg.data['8451'];
+                payload.power_reactive = value;
             }
+            if (msg.data.hasOwnProperty('owonCurrentSum') || msg.data.hasOwnProperty('12547')) { // 0x3103 -> 12547
+                const data = msg.data['owonCurrentSum'] || msg.data['12547'];
+                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                payload.current = value * factor;
+            }
+            if (msg.data.hasOwnProperty('owonReactiveEnergySum') || msg.data.hasOwnProperty('16643')) { // 0x4103 -> 16643
+                const data = msg.data['owonReactiveEnergySum'] || msg.data['16643'];
+                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                payload.reactive_energy = value * factor;
+            }
+            if (msg.data.hasOwnProperty('owonL1PowerFactor')) {
+                payload.power_factor_l1 = msg.data['owonL1PowerFactor'] / 100;
+            }
+            if (msg.data.hasOwnProperty('owonL2PowerFactor')) {
+                payload.power_factor_l2 = msg.data['owonL2PowerFactor'] / 100;
+            }
+            if (msg.data.hasOwnProperty('owonL3PowerFactor')) {
+                payload.power_factor_l3 = msg.data['owonL3PowerFactor'] / 100;
+            }
+
             return payload;
         },
     } satisfies Fz.Converter,
@@ -267,7 +302,8 @@ const definitions: Definition[] = [
             }
         },
         meta: {publishDuplicateTransaction: true},
-        exposes: [e.energy(),
+        exposes: [e.current(), e.power(), e.power_reactive(), e.energy(),
+            e.numeric('reactive_energy', ea.STATE).withUnit('kVArh').withDescription('Reactive energy for all phase'),
             e.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
             e.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),
             e.numeric('voltage_l3', ea.STATE).withUnit('V').withDescription('Phase 3 voltage'),
@@ -286,6 +322,9 @@ const definitions: Definition[] = [
             e.numeric('reactive_power_l1', ea.STATE).withUnit('VAr').withDescription('Phase 1 reactive power'),
             e.numeric('reactive_power_l2', ea.STATE).withUnit('VAr').withDescription('Phase 2 reactive power'),
             e.numeric('reactive_power_l3', ea.STATE).withUnit('VAr').withDescription('Phase 3 reactive power'),
+            e.numeric('power_factor_l1', ea.STATE).withDescription('Phase 1 power factor'),
+            e.numeric('power_factor_l2', ea.STATE).withDescription('Phase 2 power factor'),
+            e.numeric('power_factor_l3', ea.STATE).withDescription('Phase 3 power factor'),
         ],
     },
     {

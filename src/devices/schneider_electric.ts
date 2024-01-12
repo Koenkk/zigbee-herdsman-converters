@@ -42,6 +42,14 @@ const tzLocal = {
             await endpoint.read(0xFF17, [0x0000], {manufacturerCode: 0x105e});
         },
     } satisfies Tz.Converter,
+    fan_mode: {
+        ...tz.fan_mode,
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
+            if (value.toLowerCase() === 'on') value = 'low';
+            return tz.fan_mode.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -473,6 +481,20 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['CHFAN/SWITCH/1'],
+        model: '41ECSFWMZ-VW',
+        vendor: 'Schneider Electric',
+        description: 'Wiser 40/300-Series Module AC Fan Controller',
+        fromZigbee: [fz.fan],
+        toZigbee: [tzLocal.fan_mode],
+        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(7);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
+            await reporting.fanMode(endpoint);
         },
     },
     {

@@ -7,6 +7,7 @@ import extend from '../lib/extend';
 const e = exposes.presets;
 import * as utils from '../lib/utils';
 import {light} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
 
 const ea = exposes.access;
 
@@ -224,6 +225,7 @@ const definitions: Definition[] = [
                 .withDescription('Brightness of this backlight LED')],
         toZigbee: [tzLocal.backlight_brightness, tz.on_off],
         meta: {multiEndpoint: true},
+        ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },

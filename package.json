@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "18.10.1",
+  "version": "18.11.0",
   "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "types": "index.d.ts",
@@ -45,6 +45,7 @@
     "axios": "^1.6.5",
     "buffer-crc32": "^0.2.13",
     "https-proxy-agent": "^7.0.2",
+    "iconv-lite": "^0.6.3",
     "semver": "^7.5.4",
     "tar-stream": "^3.1.6",
     "zigbee-herdsman": "^0.30.0"
