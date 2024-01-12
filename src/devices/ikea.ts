@@ -1260,7 +1260,7 @@ const definitions: Definition[] = [
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['tradfriButton', 'genPollCtrl']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
-            await reporting.batteryVoltage(endpoint1);
+            await reporting.batteryPercentageRemaining(endpoint1);
         },
     },
     {
@@ -1272,6 +1272,9 @@ const definitions: Definition[] = [
         toZigbee: [],
         ota: ota.tradfri,
         exposes: [e.battery(), e.contact()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.batteryPercentageRemaining(endpoint1);
+        },
     },
 ];
 
