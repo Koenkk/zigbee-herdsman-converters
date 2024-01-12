@@ -196,6 +196,13 @@ const tzLocal = {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['NF-YRD622 TSDB'],
+        model: 'NF-YRD622 TSDB',
+        vendor: 'Yale',
+        description: 'Automatically generated definition',
+        extend: lockExtend(),
+    },
+    {
         zigbeeModel: ['YRD446 BLE TSDB'],
         model: 'YRD426NRSC',
         vendor: 'Yale',
