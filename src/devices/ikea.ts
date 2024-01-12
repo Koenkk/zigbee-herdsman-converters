@@ -1230,15 +1230,16 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux()],
         ota: ota.tradfri,
-        configure: async (device, cordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint1, cordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint1);
-            await reporting.bind(endpoint2, cordinatorEndpoint, ['msOccupancySensing']);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msOccupancySensing']);
             await reporting.occupancy(endpoint2);
-            await reporting.bind(endpoint3, cordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint3);
         },
     },
@@ -1250,17 +1251,18 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fzLocal.ikea_dots_click_v2_somrig],
         toZigbee: [tz.battery_percentage_remaining],
         exposes: [
-            e.battery().withAccess(ea.STATE_GET), e.action(['1_initial_press', '2_initial_press',
-                '1_long_press', '2_long_press', '1_short_release', '2_short_release',
-                '1_long_release', '2_long_release', '1_double_press', '2_double_press']),
+            e.battery().withAccess(ea.STATE_GET), e.action(['dots_1_initial_press',
+                'dots_2_initial_press', 'dots_1_long_press', 'dots_2_long_press',
+                'dots_1_short_release', 'dots_2_short_release', 'dots_1_long_release']),
         ],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['tradfriButton', 'genPollCtrl']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
             await reporting.batteryPercentageRemaining(endpoint1);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
         },
     },
     {
@@ -1268,12 +1270,17 @@ const definitions: Definition[] = [
         model: 'E2013',
         vendor: 'IKEA',
         description: 'PARASOLL door/window Sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
-        toZigbee: [],
+        fromZigbee: [fz.battery, fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
         exposes: [e.battery(), e.contact()],
         configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPollCtrl']);
             await reporting.batteryPercentageRemaining(endpoint1);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genBasic', 'ssIasZone']);
         },
     },
 ];
