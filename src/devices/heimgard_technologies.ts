@@ -130,6 +130,21 @@ const definitions: Definition[] = [
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
+    {
+        zigbeeModel: ['HT-INS-2'],
+        model: 'HT-INS-2',
+        vendor: 'Heimgard',
+        description: 'Indoor Siren',
+        fromZigbee: [fz.battery, fz.ignore_basic_report],
+        toZigbee: [tz.warning],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.battery(), e.warning()],
+    },
 ];
 
 export default definitions;
