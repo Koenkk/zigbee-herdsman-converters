@@ -1270,7 +1270,7 @@ const definitions: Definition[] = [
         model: 'E2013',
         vendor: 'IKEA',
         description: 'PARASOLL door/window Sensor',
-        fromZigbee: [fz.battery, fz.ias_contact_alarm_1, fz.battery],
+        fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
         toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
         exposes: [e.battery(), e.contact()],
