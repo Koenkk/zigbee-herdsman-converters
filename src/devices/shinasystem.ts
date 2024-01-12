@@ -344,8 +344,8 @@ const definitions: Definition[] = [
         model: 'SBM300Z6',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 6 gang',
-        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6}
-            , powerOnBehavior: false})],
+        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6},
+            powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['BSM-300Z'],
