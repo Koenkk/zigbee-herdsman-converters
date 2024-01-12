@@ -1250,10 +1250,9 @@ const definitions: Definition[] = [
         description: 'SOMRIG shortcut button',
         fromZigbee: [fz.battery, fzLocal.ikea_dots_click_v2_somrig],
         toZigbee: [tz.battery_percentage_remaining],
-        exposes: [
-            e.battery().withAccess(ea.STATE_GET), e.action(['1_initial_press',
-                '2_initial_press', '1_long_press', '2_long_press',
-                '1_short_release', '2_short_release', '1_long_release']),
+            e.battery().withAccess(ea.STATE_GET), e.action(['1_initial_press', '2_initial_press',
+                '1_long_press', '2_long_press', '1_short_release', '2_short_release',
+                '1_long_release', '2_long_release', '1_double_press', '2_double_press']),
         ],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
