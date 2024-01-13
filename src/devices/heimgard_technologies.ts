@@ -133,7 +133,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['HT-INS-2'],
         model: 'HT-INS-2',
-        vendor: 'Heimgard',
+        vendor: 'Heimgard Technologies',
         description: 'Indoor Siren',
         fromZigbee: [fz.battery, fz.ignore_basic_report],
         toZigbee: [tz.warning],
