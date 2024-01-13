@@ -5,7 +5,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 import * as ota from '../lib/ota';
-import {batteryPercentage} from 'src/lib/modernExtend';
+import {batteryPercentage} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
