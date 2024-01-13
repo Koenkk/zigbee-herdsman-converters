@@ -63,8 +63,7 @@ const definitions: Definition[] = [
         description: 'X-Mitter Smart Remote Control',
         extend: [batteryPercentage(), identify()],
         fromZigbee: [fz.command_off, fz.command_on, fz.command_stop, fz.command_move],
-        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['recall_*', 'on', 'off', 'brightness_move_up', 'brightness_move_down']),
-        ],
+        exposes: [e.action(['recall_*', 'on', 'off', 'brightness_move_up', 'brightness_move_down'])],
     },
 ];
 
