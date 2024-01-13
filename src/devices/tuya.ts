@@ -5043,6 +5043,7 @@ const definitions: Definition[] = [
         description: 'Smart button',
         whiteLabel: [
             tuya.whitelabel('Loginovo', 'ZG-101ZL', 'Smart button', ['_TZ3000_ja5osu5g']),
+            tuya.whitelabel('Moes', 'ERS-10TZBVB-AA', 'Smart button', ['_TZ3000_ja5osu5g']),
         ],
         fromZigbee: [
             fz.command_step, fz.command_on, fz.command_off, fz.command_move_to_color_temp, fz.command_move_to_level,
