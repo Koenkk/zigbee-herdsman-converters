@@ -2,7 +2,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import * as ota from '../lib/ota';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
@@ -16,47 +15,13 @@ const ea = exposes.access;
 import * as globalStore from '../lib/store';
 import * as xiaomi from '../lib/xiaomi';
 const {
-    xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior,
-    xiaomiSwitchType, aqaraAirQuality, aqaraVoc, aqaraDisplayUnit,
+    xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior, xiaomiZigbeeOTA,
+    xiaomiSwitchType, aqaraAirQuality, aqaraVoc, aqaraDisplayUnit, xiaomiLight,
 } = xiaomi.modernExtend;
 import * as utils from '../lib/utils';
-import {Definition, OnEvent, Fz, KeyValue, Tz, Extend} from '../lib/types';
+import {Definition, OnEvent, Fz, KeyValue, Tz} from '../lib/types';
 const {printNumbersAsHexSequence} = utils;
 const {fp1, manufacturerCode, trv} = xiaomi;
-
-interface xiaomi_options_light_onoff_brightness_colortemp extends Extend.options_light_onoff_brightness_colortemp {
-    disableAqaraOpple?: boolean, disableSwitchPowerOutageMemory?: boolean,
-}
-
-const xiaomiExtend = {
-    light_onoff_brightness_colortemp: (options: xiaomi_options_light_onoff_brightness_colortemp = {}): Extend => {
-        options = {
-            disableEffect: true, disableColorTempStartup: true, disablePowerOnBehavior: true,
-            colorTempRange: [153, 370], toZigbee: [], fromZigbee: [], exposes: [], ...options,
-        };
-        const fromZigbee = [
-            ...extend.light_onoff_brightness_colortemp(options).fromZigbee,
-            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
-            fz.ignore_pressure_report, fz.ignore_temperature_report, ...options.fromZigbee];
-        const toZigbee = [
-            ...extend.light_onoff_brightness_colortemp(options).toZigbee, ...options.toZigbee];
-        const exposes = [
-            ...extend.light_onoff_brightness_colortemp(options).exposes, ...options.exposes];
-
-        if (!options.disableSwitchPowerOutageMemory) {
-            toZigbee.push(tz.xiaomi_switch_power_outage_memory);
-            exposes.push(e.power_outage_memory());
-        }
-
-        if (!options.disableAqaraOpple) {
-            fromZigbee.push(xiaomi.fromZigbee.aqara_opple);
-            exposes.push(e.device_temperature());
-            exposes.push(e.power_outage_count());
-        }
-
-        return {fromZigbee, toZigbee, exposes};
-    },
-};
 
 const preventReset: OnEvent = async (type, data, device) => {
     if (
@@ -577,7 +542,7 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.airm.fhac01'],
@@ -587,7 +552,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.humidity, fzLocal.aqara_s1_pm25, fzLocal.aqara_s1_co2],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.pm25(), e.co2()],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.magnet.acn001'],
@@ -603,7 +568,7 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
         // OTA request: "fieldControl":0, "manufacturerCode":4447, "imageType":10635
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.magnet.ac01'],
@@ -639,42 +604,33 @@ const definitions: Definition[] = [
             e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('l2'),
             e.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct'])
                 .withDescription('Switch between rgbw mode or dual color temperature mode')],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.aqcn02'],
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart LED bulb',
-        toZigbee: xiaomiExtend.light_onoff_brightness_colortemp({disableSwitchPowerOutageMemory: true})
-            .toZigbee.concat([tz.xiaomi_light_power_outage_memory]),
-        fromZigbee: xiaomiExtend.light_onoff_brightness_colortemp({disableSwitchPowerOutageMemory: true})
-            .fromZigbee,
-        // power_on_behavior 'toggle' does not seem to be supported
-        exposes: xiaomiExtend.light_onoff_brightness_colortemp({disableSwitchPowerOutageMemory: true})
-            .exposes.concat([e.power_outage_memory().withAccess(ea.STATE_SET)]),
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiLight({colorTemp: true, powerOutageMemory: 'light'}), xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.acn003'],
         model: 'ZNXDD01LM',
         vendor: 'Xiaomi',
         description: 'Aqara ceiling light L1-350',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiLight({colorTemp: true}), xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.cwac02', 'lumi.light.acn014'],
         model: 'ZNLDP13LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 smart LED bulb',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
-        ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.type = 'Router';
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [
+            xiaomiZigbeeOTA(),
+            xiaomiLight({colorTemp: true}),
+            forceDeviceType({type: 'Router'}),
+            forcePowerSource({powerSource: 'Mains (single phase)'}),
+        ],
     },
     {
         zigbeeModel: ['lumi.light.cwopcn01'],
@@ -682,8 +638,7 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX960',
         meta: {turnsOffAtBrightness1: true},
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiLight({colorTemp: true}), xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.cwopcn02'],
@@ -691,8 +646,7 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX650',
         meta: {turnsOffAtBrightness1: true},
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA(), xiaomiLight({colorTemp: true})],
     },
     {
         zigbeeModel: ['lumi.light.cwopcn03'],
@@ -700,22 +654,21 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX480',
         meta: {turnsOffAtBrightness1: true},
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiLight({colorTemp: true}), xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn01'],
         model: 'JWSP001A',
         vendor: 'Xiaomi',
         description: 'Jiawen LED Driver & Dimmer',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({disablePowerOnBehavior: true}),
+        extend: [xiaomiLight({colorTemp: true})],
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn02'],
         model: 'JWDL001A',
         vendor: 'Xiaomi',
         description: 'Aqara embedded spot led light',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
+        extend: [xiaomiLight({colorTemp: true})],
     },
     {
         zigbeeModel: ['lumi.sensor_switch'],
@@ -880,8 +833,8 @@ const definitions: Definition[] = [
                 description: 'Effect speed',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+            xiaomiZigbeeOTA(),
         ],
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.sensor_86sw2', 'lumi.sensor_86sw2.es1'],
@@ -928,7 +881,7 @@ const definitions: Definition[] = [
             // set "event" mode
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2laus01'],
@@ -968,7 +921,7 @@ const definitions: Definition[] = [
                 'aqaraOpple', {mode: 1}, {manufacturerCode: 0x115f, disableResponse: true},
             );
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b1naus01'],
@@ -989,7 +942,7 @@ const definitions: Definition[] = [
             // set "event" mode
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2naus01'],
@@ -1027,7 +980,7 @@ const definitions: Definition[] = [
                 'aqaraOpple', {mode: 1}, {manufacturerCode: 0x115f, disableResponse: true},
             );
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.l2acn1'],
@@ -1052,7 +1005,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n1acn1'],
@@ -1069,7 +1022,7 @@ const definitions: Definition[] = [
                 .withDescription('Decoupled mode'),
             e.power_outage_count()],
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n2acn1'],
@@ -1094,7 +1047,7 @@ const definitions: Definition[] = [
                 .withDescription('Decoupled mode for right button').withEndpoint('right'),
             e.power_outage_count()],
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n3acn1'],
@@ -1123,7 +1076,7 @@ const definitions: Definition[] = [
                 .withDescription('Decoupled mode for center button').withEndpoint('center'),
             e.power_outage_count()],
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.l1aeu1'],
@@ -1231,7 +1184,7 @@ const definitions: Definition[] = [
             // set "event" mode
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n2aeu1'],
@@ -1278,12 +1231,11 @@ const definitions: Definition[] = [
         },
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            utils.attachOutputCluster(device, 'genOta');
             // Device advertises itself as Router but is an EndDevice
             device.type = 'EndDevice';
             device.save();
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.ctrl_ln1.aq1', 'lumi.ctrl_ln1'],
@@ -1304,7 +1256,7 @@ const definitions: Definition[] = [
             return {'system': 1};
         },
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -1343,7 +1295,7 @@ const definitions: Definition[] = [
             device.type = 'EndDevice';
             device.save();
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.ctrl_ln2.aq1', 'lumi.ctrl_ln2'],
@@ -1373,7 +1325,7 @@ const definitions: Definition[] = [
             return {'left': 1, 'right': 2, 'system': 1};
         },
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -1488,7 +1440,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n3acn3'],
@@ -1524,7 +1476,7 @@ const definitions: Definition[] = [
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b1nacn02'],
@@ -1549,7 +1501,7 @@ const definitions: Definition[] = [
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn02'],
@@ -1578,7 +1530,7 @@ const definitions: Definition[] = [
                 .withEndpoint('right'),
         ],
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2lacn01'],
@@ -1596,7 +1548,7 @@ const definitions: Definition[] = [
                 .withDescription('Decoupled mode for left button'),
         ],
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b1nacn01'],
@@ -1614,7 +1566,7 @@ const definitions: Definition[] = [
                 .withDescription('Decoupled mode for left button'),
         ],
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn01'],
@@ -1625,7 +1577,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
         meta: {multiEndpoint: true},
-        extend: [forceDeviceType({type: 'Router'}), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [forceDeviceType({type: 'Router'}), forcePowerSource({powerSource: 'Mains (single phase)'}), xiaomiZigbeeOTA()],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -1643,7 +1595,6 @@ const definitions: Definition[] = [
                 .withEndpoint('right'),
         ],
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.b3n01'],
@@ -1677,7 +1628,7 @@ const definitions: Definition[] = [
                 .withEndpoint('right'),
         ],
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
@@ -1721,7 +1672,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_motion'],
@@ -1764,7 +1715,7 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.agl04'],
@@ -1783,10 +1734,8 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
-            // This cluster is not discovered automatically and needs to be explicitly attached to enable OTA
-            utils.attachOutputCluster(device, 'genOta');
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.ac02'],
@@ -1815,7 +1764,7 @@ const definitions: Definition[] = [
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x0152], {manufacturerCode: 0x115f});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.acn001'],
@@ -1835,7 +1784,7 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.ac01'],
@@ -1904,7 +1853,7 @@ const definitions: Definition[] = [
             await endpoint.read('aqaraOpple', [0x0144], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x0146], {manufacturerCode: 0x115f});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet'],
@@ -1951,7 +1900,7 @@ const definitions: Definition[] = [
         fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.ias_water_leak_alarm_1],
         toZigbee: [],
         exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_cube', 'lumi.sensor_cube.aqgl01'],
@@ -1973,7 +1922,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature(), e.power_outage_memory()],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.mitw01'],
@@ -1999,7 +1948,7 @@ const definitions: Definition[] = [
             e.voltage(), e.current(), e.consumer_connected(), e.led_disabled_night(),
             e.power_outage_memory(), e.auto_off(20),
             e.overload_protection(100, 2300)],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.maus01'],
@@ -2015,14 +1964,14 @@ const definitions: Definition[] = [
             e.voltage(), e.current(), e.consumer_connected(), e.led_disabled_night(),
             e.power_outage_memory(), e.auto_off(20),
             e.overload_protection(100, 2300)],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.maeu01'],
         model: 'SP-EUC01',
         description: 'Aqara EU smart plug',
         vendor: 'Xiaomi',
-        extend: [forceDeviceType({type: 'Router'})],
+        extend: [forceDeviceType({type: 'Router'}), xiaomiZigbeeOTA()],
         fromZigbee: [fz.on_off, xiaomi.fromZigbee.xiaomi_basic, fz.electrical_measurement, fz.metering,
             xiaomi.fromZigbee.aqara_opple, fz.xiaomi_power, fz.device_temperature],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
@@ -2079,7 +2028,6 @@ const definitions: Definition[] = [
             e.device_temperature().withDescription('Device temperature (polled every 30 min)'),
             e.consumer_connected(), e.led_disabled_night(), e.overload_protection(100, 2300),
             e.auto_off(20), e.button_lock()],
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.plug.aq1'],
@@ -2115,7 +2063,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage(), e.power_outage_memory()],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_smoke'],
@@ -2192,7 +2140,7 @@ const definitions: Definition[] = [
             await endpoint.read('aqaraOpple', [0x014b], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x0002], {manufacturerCode: 0x115f});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_smoke.acn03'],
@@ -2234,7 +2182,7 @@ const definitions: Definition[] = [
             await endpoint.read('aqaraOpple', [0x0126], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x014b], {manufacturerCode: 0x115f});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.lock.v1'],
@@ -2268,7 +2216,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.DJT12LM_vibration],
         exposes: [e.action(['vibration'])],
         toZigbee: [],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain'],
@@ -2290,7 +2238,7 @@ const definitions: Definition[] = [
                 .withDescription('Whether the motor is moving or not'),
             e.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
                 .withDescription('Motor state')],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain.aq2'],
@@ -2303,7 +2251,7 @@ const definitions: Definition[] = [
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not')],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain.vagl02'],
@@ -2315,10 +2263,7 @@ const definitions: Definition[] = [
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not')],
-        ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            utils.attachOutputCluster(device, 'genOta');
-        },
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain.hagl04'],
@@ -2339,7 +2284,7 @@ const definitions: Definition[] = [
                 .withDescription('Whether the motor is moving or not'),
             e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
                 .withDescription('The current state of the motor.'), e.power_outage_count()],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain.hagl07'],
@@ -2360,7 +2305,7 @@ const definitions: Definition[] = [
                 .withDescription('Whether the motor is moving or not'),
             e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
                 .withDescription('The current state of the motor.'), e.power_outage_count()],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain.acn002'],
@@ -2391,7 +2336,7 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         // 'lumi.curtain.acn003' - CN version (ZNCLBL01LM), 'lumi.curtain.agl001' - global version (CM-M01)
@@ -2440,9 +2385,8 @@ const definitions: Definition[] = [
             await endpoint.read('aqaraOpple', [0x0428], {manufacturerCode: 0x115f});
             await endpoint.read('genBasic', ['powerSource']);
             await endpoint.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
-            utils.attachOutputCluster(device, 'genOta');
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.relay.c2acn01'],
@@ -2461,7 +2405,7 @@ const definitions: Definition[] = [
             e.binary('interlock', ea.STATE_SET, true, false)
                 .withDescription('Enabling prevents both relais being on at the same time'),
         ],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -2515,8 +2459,8 @@ const definitions: Definition[] = [
                 description: 'Impulse length in Dry mode with impulse',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+            xiaomiZigbeeOTA(),
         ],
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.lock.acn02'],
@@ -2540,7 +2484,7 @@ const definitions: Definition[] = [
             device.type = 'EndDevice';
             device.save();
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.lock.acn03'],
@@ -2580,7 +2524,7 @@ const definitions: Definition[] = [
                 'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
             ]),
         ],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.remote.b286opcn01'],
@@ -2675,40 +2619,35 @@ const definitions: Definition[] = [
         model: 'TDL01LM',
         vendor: 'Xiaomi',
         description: 'Aqara spotlight T3',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
-        ota: ota.zigbeeOTA,
+        extend: [light({colorTemp: {range: undefined}, color: true}), xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.rgbac1'],
         model: 'ZNTGMK11LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart RGBW light controller',
-        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
-        ota: ota.zigbeeOTA,
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}}), xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.cbacn1'],
         model: 'HLQDQ01LM',
         vendor: 'Xiaomi',
         description: 'Aqara zigbee LED-controller ',
-        extend: [light()],
-        ota: ota.zigbeeOTA,
+        extend: [light(), xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.acn004'],
         model: 'SSWQD02LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart dimmer controller t1 pro',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA(), xiaomiLight({colorTemp: true})],
     },
     {
         zigbeeModel: ['lumi.light.acn026'],
         model: 'SSWQD03LM',
         vendor: 'Xiaomi',
         description: 'Aqara spotlight T2',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA(), xiaomiLight({colorTemp: true})],
     },
     {
         zigbeeModel: ['lumi.switch.n0agl1'],
@@ -2727,12 +2666,11 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
             await reporting.deviceTemperature(endpoint);
-            utils.attachOutputCluster(device, 'genOta');
             device.powerSource = 'Mains (single phase)';
             device.type = 'Router';
             device.save();
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n0acn2'],
@@ -2748,7 +2686,7 @@ const definitions: Definition[] = [
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.l0agl1'],
@@ -2835,7 +2773,7 @@ const definitions: Definition[] = [
             // await reporting.onOff(device.getEndpoint(2)); ToDo: Currently fails
             // await reporting.onOff(device.getEndpoint(3)); ToDo: Currently fails
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.remote.b186acn03'],
@@ -2902,7 +2840,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2lc04'],
@@ -2934,7 +2872,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.airmonitor.acn01'],
@@ -2961,6 +2899,7 @@ const definitions: Definition[] = [
             temperature(),
             humidity(),
             aqaraDisplayUnit(),
+            xiaomiZigbeeOTA(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -2968,7 +2907,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint);
         },
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.b2nc01'],
@@ -2997,7 +2935,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.macn01'],
@@ -3011,7 +2949,7 @@ const definitions: Definition[] = [
             e.voltage(), e.current(), e.consumer_connected().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             e.overload_protection(100, 2500)],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b1nc01'],
@@ -3027,7 +2965,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.remote.b1acn02'],
@@ -3042,7 +2980,7 @@ const definitions: Definition[] = [
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sen_ill.agl01'],
@@ -3059,11 +2997,8 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
             await endpoint.read('aqaraOpple', [0x0000], {manufacturerCode: 0x115f});
-
-            // This cluster is not discovered automatically and needs to be explicitly attached to enable OTA
-            utils.attachOutputCluster(device, 'genOta');
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.sacn03'],
@@ -3084,7 +3019,7 @@ const definitions: Definition[] = [
             e.enum('button_switch_mode', exposes.access.ALL, ['relay', 'relay_and_usb'])
                 .withDescription('Control both relay and usb or only the relay with the physical switch button'),
             e.overload_protection(100, 2500)],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.magnet.agl02'],
@@ -3094,7 +3029,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.xiaomi_contact, xiaomi.fromZigbee.aqara_opple, fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.sacn02'],
@@ -3109,7 +3044,7 @@ const definitions: Definition[] = [
             e.device_temperature().withAccess(ea.STATE), e.voltage(),
             e.current(), e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             e.overload_protection(100, 2500)],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.remote.rkba01'],
@@ -3238,11 +3173,8 @@ const definitions: Definition[] = [
             // Initialize battery percentage and voltage
             await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
-
-            // This cluster is not discovered automatically and needs to be explicitly attached to enable OTA
-            utils.attachOutputCluster(device, 'genOta');
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['aqara.feeder.acn001'],
@@ -3275,7 +3207,7 @@ const definitions: Definition[] = [
             e.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight')
                 .withUnit('g'),
         ],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0xfff1], {manufacturerCode: 0x115f});
@@ -3345,7 +3277,7 @@ const definitions: Definition[] = [
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
             'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
         ])],
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.remote.cagl02'],
@@ -3354,7 +3286,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'MFCZQ12LM'}],
         description: 'Aqara magic cube T1 Pro',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
         fromZigbee: [xiaomi.fromZigbee.aqara_opple, fzLocal.CTPR01_action_multistate, fzLocal.CTPR01_action_analog, fz.ignore_onoff_report],
         toZigbee: [tzLocal.CTPR01_operation_mode],
         exposes: [
@@ -3417,7 +3349,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn029'],
@@ -3437,7 +3369,7 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
         ],
         onEvent: preventReset,
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn030'],
@@ -3466,7 +3398,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn031'],
@@ -3499,7 +3431,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        ota: ota.zigbeeOTA,
+        extend: [xiaomiZigbeeOTA()],
     },
 ];
 

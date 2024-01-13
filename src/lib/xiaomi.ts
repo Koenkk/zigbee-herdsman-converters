@@ -7,9 +7,16 @@ import {
     getKey,
 } from './utils';
 
+import * as ota from '../lib/ota';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 import * as globalStore from './store';
-import {Fz, Definition, KeyValue, KeyValueAny, Tz} from './types';
+import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range} from './types';
 import * as modernExtend from './modernExtend';
+import * as exposes from '../lib/exposes';
+
+const e = exposes.presets;
+const ea = exposes.access;
 
 declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -1318,6 +1325,26 @@ export const trv = {
 export const manufacturerCode = 0x115f;
 
 export const xiaomiModernExtend = {
+    xiaomiLight: (args?: Omit<modernExtend.LightArgs, 'colorTemp'> & {colorTemp?: true, powerOutageMemory?: 'switch' | 'light'}) => {
+        args = {powerOutageMemory: 'switch', ...args};
+        const colorTemp: {range: Range, startup: boolean} = args.colorTemp ? {startup: false, range: [153, 370]} : undefined;
+        const result = modernExtend.light({effect: false, powerOnBehavior: false, ...args, colorTemp});
+        result.fromZigbee.push(
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report, fromZigbee.aqara_opple,
+        );
+        result.exposes.push(e.device_temperature(), e.power_outage_count());
+
+        if (args.powerOutageMemory === 'switch') {
+            result.toZigbee.push(tz.xiaomi_switch_power_outage_memory);
+            result.exposes.push(e.power_outage_memory());
+        } else if (args.powerOutageMemory === 'light') {
+            result.toZigbee.push(tz.xiaomi_light_power_outage_memory);
+            result.exposes.push(e.power_outage_memory().withAccess(ea.STATE_SET));
+        }
+
+        return result;
+    },
     xiaomiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
@@ -1385,6 +1412,16 @@ export const xiaomiModernExtend = {
         description: 'Units to show on the display',
         ...args,
     }),
+    xiaomiZigbeeOTA: (): ModernExtend => {
+        // Many Xiaomi devices miss OTA on endpoint 1 even while supporting it.
+        // https://github.com/Koenkk/zigbee2mqtt/issues/10660
+        const result = modernExtend.quirkAddEndpointCluster({
+            endpointID: 1,
+            inputClusters: ['genOta'],
+        });
+        result.ota = ota.zigbeeOTA;
+        return result;
+    },
 };
 
 export {xiaomiModernExtend as modernExtend};
