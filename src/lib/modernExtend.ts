@@ -402,14 +402,14 @@ export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, unit?: string,
     endpoint?: string, endpointID?: number, reporting?: ReportingConfigWithoutAttribute,
-    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
+    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number, label?: string,
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
         name, cluster, attribute, description,
         zigbeeCommandOptions, readOnly, unit, endpoint,
         endpointID, reporting,
-        valueMin, valueMax, valueStep, scale,
+        valueMin, valueMax, valueStep, scale, label,
     } = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
@@ -419,6 +419,7 @@ export function numeric(args: NumericArgs): ModernExtend {
     if (valueMin !== undefined) expose = expose.withValueMin(valueMin);
     if (valueMax !== undefined) expose = expose.withValueMax(valueMax);
     if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
+    if (label !== undefined) expose = expose.withLabel(label);
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
@@ -626,6 +627,21 @@ export function humidity(args?: Partial<NumericArgs>) {
         description: 'Measured relative humidity',
         unit: '%',
         scale: 100,
+        readOnly: true,
+        ...args,
+    });
+}
+
+export function co2(args?: Partial<NumericArgs>) {
+    return numeric({
+        name: 'co2',
+        cluster: 'msCO2',
+        label: 'CO2',
+        attribute: 'measuredValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 0.00005}, // 50 ppm change
+        description: 'Measured value',
+        unit: 'ppm',
+        scale: 0.00001,
         readOnly: true,
         ...args,
     });
