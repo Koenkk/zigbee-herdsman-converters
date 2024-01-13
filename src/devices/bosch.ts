@@ -981,7 +981,6 @@ const definitions: Definition[] = [
                 'genBasic',
                 64684]);
             await reporting.batteryPercentageRemaining(endpoint);
-            device.defaultSendRequestWhen = 'immediate';
             device.save();
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
