@@ -60,6 +60,7 @@ const definitions: Definition[] = [
         vendor: 'HEIMAN',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
+        whiteLabel: [{vendor: 'Schneider Electric', model: 'CCTFR6500'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
