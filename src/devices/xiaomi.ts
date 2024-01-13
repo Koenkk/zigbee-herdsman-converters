@@ -9,7 +9,7 @@ import extend from '../lib/extend';
 import {
     light, numeric, binary, enumLookup, forceDeviceType,
     temperature, humidity, forcePowerSource, quirkAddEndpointCluster,
-    quirkPendingRequestTimeout,
+    quirkCheckinInterval,
 } from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -2946,7 +2946,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.device_temperature(), e.battery(), e.battery_voltage()],
         extend: [
-            quirkPendingRequestTimeout('1_HOUR'),
+            quirkCheckinInterval('1_HOUR'),
             quirkAddEndpointCluster({
                 endpointID: 1,
                 inputClusters: [

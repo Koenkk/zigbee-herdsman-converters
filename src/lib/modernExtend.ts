@@ -569,10 +569,9 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
     return {configure, isModernExtend: true};
 }
 
-export function quirkPendingRequestTimeout(timeout: number | keyof typeof timeLookup): ModernExtend {
-    const timeoutMs: number = (typeof timeout == 'number') ? timeout : timeLookup[timeout] * 1000;
+export function quirkCheckinInterval(timeout: number | keyof typeof timeLookup): ModernExtend {
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        device.pendingRequestTimeout = timeoutMs;
+        device.checkinInterval = (typeof timeout == 'number') ? timeout : timeLookup[timeout];
         device.save();
     };
 
