@@ -3,7 +3,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import {light} from '../lib/modernExtend';
+import {light, batteryPercentage, identify} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -56,6 +56,17 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['HA-ZX1'],
+        model: 'HA-ZX1',
+        vendor: 'Halemeier GmbH',
+        description: 'X-Mitter Smart Remote Control',
+        extend: [batteryPercentage(), identify()],
+        fromZigbee: [fz.command_off, fz.command_on, fz.command_stop, fz.command_move],
+        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['recall_*', 'on', 'off', 
+            'brightness_move_up', 'brightness_move_down']),
+        ],
+    },	
 ];
 
 export default definitions;
