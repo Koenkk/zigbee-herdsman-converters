@@ -5036,39 +5036,6 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'}],
-        model: 'ERS-10TZBVB-AA',
-        vendor: 'TuYa',
-        description: 'Smart button',
-        fromZigbee: [
-            fz.command_step, fz.command_on, fz.command_off, fz.command_move_to_color_temp, fz.command_move_to_level,
-            fz.tuya_multi_action, fz.tuya_operation_mode, fz.battery,
-        ],
-        toZigbee: [tz.tuya_operation_mode],
-        exposes: [
-            e.action([
-                'single', 'double', 'hold', 'brightness_move_to_level', 'color_temperature_move',
-                'brightness_step_up', 'brightness_step_down', 'on', 'off',
-            ]),
-            e.battery(),
-            e.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
-                'Operation mode: "command" - for group control, "event" - for clicks'),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
-            await endpoint.write('genOnOff', {'tuyaOperationMode': 1});
-            await endpoint.read('genOnOff', ['tuyaOperationMode']);
-            try {
-                await endpoint.read(0xE001, [0xD011]);
-            } catch (err) {/* do nothing */}
-            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
-    },
-    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zyrdrmno'}],
         model: 'ZB-Sm',
         vendor: 'TuYa',

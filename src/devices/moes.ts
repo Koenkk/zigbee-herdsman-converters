@@ -432,7 +432,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_ja5osu5g'}],
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_ja5osu5g'},
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'}],
         model: 'ERS-10TZBVB-AA',
         vendor: 'Moes',
         description: 'Smart button',
