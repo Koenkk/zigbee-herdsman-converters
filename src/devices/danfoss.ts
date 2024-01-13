@@ -60,7 +60,7 @@ const definitions: Definition[] = [
                 e.climate().withSetpoint('occupied_heating_setpoint', 5, maxSetpoint, 0.5).withLocalTemperature().withPiHeatingDemand()
                     .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
                 e.numeric('occupied_heating_setpoint_scheduled', ea.ALL)
-                    .withValueMin(5).withValueMax(32).withValueStep(0.5).withUnit('°C')
+                    .withValueMin(5).withValueMax(maxSetpoint).withValueStep(0.5).withUnit('°C')
                     .withDescription('Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite ' +
                       'to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. ' +
                       '(more suitable for scheduled changes)'),
