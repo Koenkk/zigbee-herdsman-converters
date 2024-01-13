@@ -1,5 +1,29 @@
 # Changelog
 
+## [18.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.11.0...v18.12.0) (2024-01-13)
+
+
+### Features
+
+* **add:** HT-INS-2 ([#6895](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6895)) ([fa2b139](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fa2b139da542385630a31a7f8e571c4b7da8707c))
+* **add:** L2207 ([#6891](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6891)) ([4da96c5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4da96c5fb50fb991b0c01f40e2eb37cd8e89d18d))
+* Support co2 in defintion generator https://github.com/Koenkk/zigbee-herdsman-converters/pull/6890 ([6c724a1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6c724a19be51f9b6844a9da91fd5b8183f35c128))
+
+
+### Bug Fixes
+
+* Added White Label For Moes ERS-10TZBVB-AA ([#6897](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6897)) ([14422ce](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14422ce4fdcb07da2e3b2e1bcfe91712007069a4))
+* Added White Label For Schneider CCTFR6500 ([#6896](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6896)) ([80cc974](https://github.com/Koenkk/zigbee-herdsman-converters/commit/80cc9740c579c677403f859394a18b52369e2b1a))
+* **detect:** Detect `_TZ3000_0ht8dnxj` as TuYa TS004F ([#6888](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6888)) ([d49a030](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d49a0303b55f8a67a444b6e36f2f2753693e0e0b))
+* **detect:** Detect `_TZ3000_8h7wgocw` as Danor SK-Z802C-US ([#6900](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6900)) ([5e57f13](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e57f133087057606a9fa38ab825a051c84cc691))
+* Disable unsupported `power_on_behavior` for various ShinaSystem devices ([#6886](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6886)) ([a7277de](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a7277de441b54b2adbeb433b4397a3ae37c19ccf))
+* Fix battery reporting for E2013 ([#6892](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6892)) ([af0d9e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/af0d9e424e4f20c21e4b489a318376e6e5ba2ab7))
+* Fix Danfoss 014G2461 setpoint limit ([#6901](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6901)) ([9abfb9c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9abfb9c8b0002fc1430522e6e4b289b9a4aeed29))
+* Fix no OTA endpoint available for various Xiaomi devices https://github.com/Koenkk/zigbee2mqtt/issues/10660 ([166b7af](https://github.com/Koenkk/zigbee-herdsman-converters/commit/166b7afd06aec1c553b04f0e670e1bc59113c1e1))
+* Fix Xiaomi ZNCWWSQ01LM 0 days schedule parsing https://github.com/Koenkk/zigbee2mqtt/issues/20130 ([9496119](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9496119f286c9761f14bae65577c3c00029ebf4b))
+* **ignore:** change pendingRequestTimeout quirk to checkinInterval ([#6884](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6884)) ([35f962c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/35f962cf7401811f7139b9d150eadf771c46dab8))
+* **ignore:** update dependencies ([#6899](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6899)) ([5e58f2e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e58f2e66e9ebfb863539bcca233a2ee2ca6bf37))
+
 ## [18.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.10.1...v18.11.0) (2024-01-11)
 
 
