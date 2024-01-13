@@ -5,6 +5,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 import * as ota from '../lib/ota';
+import {batteryPercentage} from 'src/lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -134,16 +135,11 @@ const definitions: Definition[] = [
         zigbeeModel: ['HT-INS-2'],
         model: 'HT-INS-2',
         vendor: 'Heimgard Technologies',
-        description: 'Indoor Siren',
-        fromZigbee: [fz.battery, fz.ignore_basic_report],
+        description: 'Indoor siren',
         toZigbee: [tz.warning],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [e.battery(), e.warning()],
+        extend: [batteryPercentage()],
+        exposes: [e.warning()],
     },
 ];
 
