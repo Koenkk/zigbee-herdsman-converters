@@ -1,4 +1,4 @@
-import {onOff, quirkPendingRequestTimeout} from '../lib/modernExtend';
+import {onOff, quirkCheckinInterval} from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -875,7 +875,7 @@ const definitions: Definition[] = [
             e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in'),
         ],
         extend: [
-            quirkPendingRequestTimeout(0),
+            quirkCheckinInterval(0),
         ],
     },
     {

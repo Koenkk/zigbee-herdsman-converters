@@ -72,6 +72,7 @@ const inputExtenders: Extender[] = [
     [['msTemperatureMeasurement'], async (endpoint) => [{extend: m.temperature(), source: 'temperature()'}]],
     [['msPressureMeasurement'], async (endpoint) => [{extend: m.pressure(), source: 'pressure()'}]],
     [['msRelativeHumidity'], async (endpoint) => [{extend: m.humidity(), source: 'humidity()'}]],
+    [['msCO2'], async (endpoint) => [{extend: m.co2(), source: 'co2()'}]],
     [['genPowerCfg'], async (endpoint) => [{extend: m.batteryPercentage(), source: 'batteryPercentage()'}]],
     [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],

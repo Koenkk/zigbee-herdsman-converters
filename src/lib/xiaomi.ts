@@ -4,11 +4,19 @@ import {
     precisionRound,
     assertNumber,
     getFromLookup,
+    getKey,
 } from './utils';
 
+import * as ota from '../lib/ota';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 import * as globalStore from './store';
-import {Fz, Definition, KeyValue, KeyValueAny} from './types';
+import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range} from './types';
 import * as modernExtend from './modernExtend';
+import * as exposes from '../lib/exposes';
+
+const e = exposes.presets;
+const ea = exposes.access;
 
 declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -1317,6 +1325,26 @@ export const trv = {
 export const manufacturerCode = 0x115f;
 
 export const xiaomiModernExtend = {
+    xiaomiLight: (args?: Omit<modernExtend.LightArgs, 'colorTemp'> & {colorTemp?: true, powerOutageMemory?: 'switch' | 'light'}) => {
+        args = {powerOutageMemory: 'switch', ...args};
+        const colorTemp: {range: Range, startup: boolean} = args.colorTemp ? {startup: false, range: [153, 370]} : undefined;
+        const result = modernExtend.light({effect: false, powerOnBehavior: false, ...args, colorTemp});
+        result.fromZigbee.push(
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report, fromZigbee.aqara_opple,
+        );
+        result.exposes.push(e.device_temperature(), e.power_outage_count());
+
+        if (args.powerOutageMemory === 'switch') {
+            result.toZigbee.push(tz.xiaomi_switch_power_outage_memory);
+            result.exposes.push(e.power_outage_memory());
+        } else if (args.powerOutageMemory === 'light') {
+            result.toZigbee.push(tz.xiaomi_light_power_outage_memory);
+            result.exposes.push(e.power_outage_memory().withAccess(ea.STATE_SET));
+        }
+
+        return result;
+    },
     xiaomiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
@@ -1384,11 +1412,122 @@ export const xiaomiModernExtend = {
         description: 'Units to show on the display',
         ...args,
     }),
+    xiaomiZigbeeOTA: (): ModernExtend => {
+        // Many Xiaomi devices miss OTA on endpoint 1 even while supporting it.
+        // https://github.com/Koenkk/zigbee2mqtt/issues/10660
+        const result = modernExtend.quirkAddEndpointCluster({
+            endpointID: 1,
+            inputClusters: ['genOta'],
+        });
+        result.ota = ota.zigbeeOTA;
+        return result;
+    },
 };
 
 export {xiaomiModernExtend as modernExtend};
 
+const feederDaysLookup = {
+    0x7f: 'everyday',
+    0x1f: 'workdays',
+    0x60: 'weekend',
+    0x01: 'mon',
+    0x02: 'tue',
+    0x04: 'wed',
+    0x08: 'thu',
+    0x10: 'fri',
+    0x20: 'sat',
+    0x40: 'sun',
+    0x55: 'mon-wed-fri-sun',
+    0x2a: 'tue-thu-sat',
+};
+
 export const fromZigbee = {
+    aqara_feeder: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            Object.entries(msg.data).forEach(([key, value]) => {
+                switch (parseInt(key)) {
+                case 0xfff1: {
+                    // @ts-expect-error
+                    const attr = value.slice(3, 7);
+                    // @ts-expect-error
+                    const len = value.slice(7, 8).readUInt8();
+                    // @ts-expect-error
+                    const val = value.slice(8, 8 + len);
+                    switch (attr.readInt32BE()) {
+                    case 0x04150055: // feeding
+                        result['feed'] = '';
+                        break;
+                    case 0x041502bc: { // feeding report
+                        const report = val.toString();
+                        result['feeding_source'] = {0: 'schedule', 1: 'manual', 2: 'remote'}[parseInt(report.slice(0, 2))];
+                        result['feeding_size'] = parseInt(report.slice(3, 4));
+                        break;
+                    }
+                    case 0x0d680055: // portions per day
+                        result['portions_per_day'] = val.readUInt16BE();
+                        break;
+                    case 0x0d690055: // weight per day
+                        result['weight_per_day'] = val.readUInt32BE();
+                        break;
+                    case 0x0d0b0055: // error ?
+                        result['error'] = getFromLookup(val.readUInt8(), {1: true, 0: false});
+                        break;
+                    case 0x080008c8: { // schedule string
+                        const schlist = val.toString().split(',');
+                        const schedule: unknown[] = [];
+                        schlist.forEach((str: string) => { // 7f13000100
+                            if (str !== '//') {
+                                const feedtime = Buffer.from(str, 'hex');
+                                schedule.push({
+                                    'days': getFromLookup(feedtime[0], feederDaysLookup),
+                                    'hour': feedtime[1],
+                                    'minute': feedtime[2],
+                                    'size': feedtime[3],
+                                });
+                            }
+                        });
+                        result['schedule'] = schedule;
+                        break;
+                    }
+                    case 0x04170055: // indicator
+                        result['led_indicator'] = getFromLookup(val.readUInt8(), {1: 'ON', 0: 'OFF'});
+                        break;
+                    case 0x04160055: // child lock
+                        result['child_lock'] = getFromLookup(val.readUInt8(), {1: 'LOCK', 0: 'UNLOCK'});
+                        break;
+                    case 0x04180055: // mode
+                        result['mode'] = getFromLookup(val.readUInt8(), {1: 'schedule', 0: 'manual'});
+                        break;
+                    case 0x0e5c0055: // serving size
+                        result['serving_size'] = val.readUInt8();
+                        break;
+                    case 0x0e5f0055: // portion weight
+                        result['portion_weight'] = val.readUInt8();
+                        break;
+                    case 0x080007d1: // ? 64
+                    case 0x0d090055: // ? 00
+                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled attribute ${attr} = ${val}`);
+                        break;
+                    default:
+                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown attribute ${attr} = ${val}`);
+                    }
+                    break;
+                }
+                case 0x00ff: // 80:13:58:91:24:33:20:24:58:53:44:07:05:97:75:17
+                case 0x0007: // 00:00:00:00:1d:b5:a6:ed
+                case 0x00f7: // 05:21:14:00:0d:23:21:25:00:00:09:21:00:01
+                    meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key} = ${value}`);
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown key ${key} = ${value}`);
+                }
+            });
+            return result;
+        },
+    } satisfies Fz.Converter,
     xiaomi_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -1415,6 +1554,84 @@ export const fromZigbee = {
             return await numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     } satisfies Fz.Converter,
+};
+
+export const toZigbee = {
+    aqara_feeder: {
+        key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
+        convertSet: async (entity, key, value, meta) => {
+            const sendAttr = async (attrCode: number, value: number, length: number) => {
+                // @ts-expect-error
+                entity.sendSeq = ((entity.sendSeq || 0)+1) % 256;
+                // @ts-expect-error
+                const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
+                // @ts-expect-error
+                entity.sendSeq += 1;
+                val.writeInt32BE(attrCode, 3);
+                val.writeUInt8(length, 7);
+                let v = Buffer.alloc(length);
+                switch (length) {
+                case 1:
+                    v.writeUInt8(value);
+                    break;
+                case 2:
+                    v.writeUInt16BE(value);
+                    break;
+                case 4:
+                    v.writeUInt32BE(value);
+                    break;
+                default:
+                    // @ts-expect-error
+                    v = value;
+                }
+                await entity.write('aqaraOpple', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
+                    {manufacturerCode: 0x115f});
+            };
+            switch (key) {
+            case 'feed':
+                sendAttr(0x04150055, 1, 1);
+                break;
+            case 'schedule': {
+                const schedule: string[] = [];
+                // @ts-expect-error
+                value.forEach((item) => {
+                    const schedItem = Buffer.from([
+                        getKey(feederDaysLookup, item.days, 0x7f),
+                        item.hour,
+                        item.minute,
+                        item.size,
+                        0,
+                    ]);
+                    schedule.push(schedItem.toString('hex'));
+                });
+                const val = Buffer.concat([Buffer.from(schedule.join(',')), Buffer.from([0])]);
+                // @ts-expect-error
+                sendAttr(0x080008c8, val, val.length);
+                break;
+            }
+            case 'led_indicator':
+                sendAttr(0x04170055, getFromLookup(value, {'OFF': 0, 'ON': 1}), 1);
+                break;
+            case 'child_lock':
+                sendAttr(0x04160055, getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), 1);
+                break;
+            case 'mode':
+                sendAttr(0x04180055, getFromLookup(value, {'manual': 0, 'schedule': 1}), 1);
+                break;
+            case 'serving_size':
+                // @ts-expect-error
+                sendAttr(0x0e5c0055, value, 4);
+                break;
+            case 'portion_weight':
+                // @ts-expect-error
+                sendAttr(0x0e5f0055, value, 4);
+                break;
+            default: // Unknown key
+                meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key}`);
+            }
+            return {state: {[key]: value}};
+        },
+    } satisfies Tz.Converter,
 };
 
 exports.buffer2DataObject = buffer2DataObject;
