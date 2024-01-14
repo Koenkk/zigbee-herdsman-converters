@@ -980,17 +980,22 @@ const converters1 = {
     ias_contact_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
+        options: [exposes.options.state_action()],
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
             const contactProperty = postfixWithEndpointName('contact', msg, model, meta);
             const tamperProperty = postfixWithEndpointName('tamper', msg, model, meta);
             const batteryLowProperty = postfixWithEndpointName('battery_low', msg, model, meta);
 
-            return {
+            const payload: KeyValueAny = {
                 [contactProperty]: !((zoneStatus & 1) > 0),
                 [tamperProperty]: (zoneStatus & 1<<2) > 0,
                 [batteryLowProperty]: (zoneStatus & 1<<3) > 0,
             };
+            if (options && options.state_action) {
+                payload['action'] = postfixWithEndpointName((zoneStatus & 1) > 0 ? 'open' : 'close', msg, model, meta);
+            }
+            return payload;
         },
     } satisfies Fz.Converter,
     ias_contact_alarm_1_report: {
@@ -3903,10 +3908,16 @@ const converters1 = {
         },
     } satisfies Fz.Converter,
     xiaomi_contact: {
+        options: [exposes.options.state_action()],
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {contact: msg.data['onOff'] === 0};
+            const contact = msg.data['onOff'] === 0;
+            const payload: KeyValueAny = {contact: contact};
+            if (options && options.state_action) {
+                payload['action'] = contact ? 'close' : 'open';
+            }
+            return payload;
         },
     } satisfies Fz.Converter,
     W2_module_carbon_monoxide: {
