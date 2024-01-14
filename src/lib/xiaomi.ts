@@ -1412,6 +1412,52 @@ export const xiaomiModernExtend = {
         description: 'Units to show on the display',
         ...args,
     }),
+    xiaomiOutageCountRestoreBindReporting: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'aqaraOpple',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                // At least the Aqara TVOC sensor does not send a deviceAnnounce after comming back online.
+                // The reconfigureReportingsOnDeviceAnnounce modernExtend is not usable because of this,
+                //  there is however an outage counter published in the 'special' buffer  data reported
+                //  under the aqaraOpple cluster as attribute 247, we simple decode and grab value with ID 5.
+                // Normal attribute publishing and decoding will be left to the classic fromZigbee or modernExtends.
+                if (msg.data.hasOwnProperty('247')) {
+                    const dataDecoded = buffer2DataObject(meta, model, msg.data['247']);
+                    if (dataDecoded.hasOwnProperty('5')) {
+                        assertNumber(dataDecoded['5']);
+
+                        const currentOutageCount = dataDecoded['5'] - 1;
+                        const previousOutageCount = meta.device?.meta?.outageCount ? meta.device.meta.outageCount : 0;
+
+                        if (currentOutageCount > previousOutageCount) {
+                            meta.logger.debug('Restoring binding and reporting, device came back after losing power.');
+                            for (const endpoint of meta.device.endpoints) {
+                                // restore bindings
+                                for (const b of endpoint.binds) {
+                                    endpoint.bind(b.cluster.name, b.target);
+                                }
+
+                                // restore reporting
+                                for (const c of endpoint.configuredReportings) {
+                                    endpoint.configureReporting(c.cluster.name, [{
+                                        attribute: c.attribute.name, minimumReportInterval: c.minimumReportInterval,
+                                        maximumReportInterval: c.maximumReportInterval, reportableChange: c.reportableChange,
+                                    }]);
+                                }
+                            }
+
+                            // update outageCount in database
+                            meta.device.meta.outageCount = currentOutageCount;
+                            meta.device.save();
+                        }
+                    }
+                }
+            },
+        }];
+
+        return {fromZigbee, isModernExtend: true};
+    },
     xiaomiZigbeeOTA: (): ModernExtend => {
         // Many Xiaomi devices miss OTA on endpoint 1 even while supporting it.
         // https://github.com/Koenkk/zigbee2mqtt/issues/10660
