@@ -332,6 +332,24 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
     },
     {
+        zigbeeModel: ['CCTFR6730'],
+        model: 'CCTFR6730',
+        vendor: 'Schneider Electric',
+        description: 'Wiser Power Module',
+        whiteLabel: [{vendor: 'Elko', model: 'EKO20004'}],
+        fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
+            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
+            await reporting.readMeteringMultiplierDivisor(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
+        },
+    },
+    {
         zigbeeModel: ['NHROTARY/DIMMER/1'],
         model: 'WDE002334',
         vendor: 'Schneider Electric',
