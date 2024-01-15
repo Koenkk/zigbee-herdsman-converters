@@ -16,34 +16,33 @@ const definitions: Definition[] = [
         extend: extend.switch(),
         fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.ignore_time_read],
     },
+const tzDatapoints = {
+    ...tuya.tz.datapoints,
+        key: ['PC_Power', 'shutdown_reset', 'buzzer', 'child_lock', 'RF', 'pair_RF_remote']
+}
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_6fk3gewc']),
         model: 'PCI E',
         vendor: 'WETEN',
         description: 'PC switch',
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        toZigbee: [tzDatapoints],
         exposes: [
-            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l1').withDescription('PC Power'),
-            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l2').withDescription('Shutdown or Reset? Does not seem to actually do anything'),
-            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l3').withDescription('Buzzer on means no buzzer noise'),
-		    e.binary('child_lock', ea.STATE_SET, 'LOCK', 'UNLOCK').withEndpoint('l4').withDescription('Child safety lock'),
-		    e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l5').withDescription('To enable or disable the use of RF remote control, does not seem to actually work'),
-		    e.binary('state', ea.STATE_SET, 'ON', 'OFF').withEndpoint('l6').withDescription('To pair a RF 433 remote, such as the one supplied')
+            e.binary('PC_Power', ea.STATE_SET, 'ON', 'OFF').withDescription('PC Power'),		
+	    e.binary('shutdown_reset', ea.STATE_SET, 'ON', 'OFF').withDescription('Shutdown or Reset? Does not seem to actually do anything'),
+            e.binary('buzzer', ea.STATE_SET, 'ON', 'OFF').withDescription('Buzzer on means no buzzer noise'),
+	    e.binary('child_lock', ea.STATE_SET, 'LOCK', 'UNLOCK').withDescription('Child safety lock'),
+	    e.binary('RF', ea.STATE_SET, 'ON', 'OFF').withDescription('To enable or disable the use of RF remote control, does not seem to actually work'),
+	    e.binary('pair_RF_remote', ea.STATE_SET, 'ON', 'OFF').withDescription('To pair a RF 433 remote, such as the one supplied')
         ],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
-        },
         meta: {
-            multiEndpoint: true,
             tuyaDatapoints: [
-                [1, 'state_l1', tuya.valueConverter.onOff],
-                [105, 'state_l2', tuya.valueConverter.onOff],
-                [104, 'state_l3', tuya.valueConverter.onOff],
-                [106, 'child_lock_l4', tuya.valueConverter.lockUnlock],
-                [102, 'state_l5', tuya.valueConverter.onOff],
-                [103, 'state_l6', tuya.valueConverter.onOff],
+                [1, 'PC_Power', tuya.valueConverter.onOff],
+            	[105, 'shutdown_reset', tuya.valueConverter.onOff],
+            	[104, 'buzzer', tuya.valueConverter.onOff],
+            	[106, 'child_lock', tuya.valueConverter.lockUnlock],
+            	[102, 'RF', tuya.valueConverter.onOff],
+            	[103, 'pair_RF_remote', tuya.valueConverter.onOff],
             ],
         },
     },
