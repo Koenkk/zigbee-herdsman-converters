@@ -1537,8 +1537,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wxtp7c5y'},
-            {modelID: 'TS011F', manufacturerName: '_TYZB01_mtunwanm'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_o1jzcxou'}],
+            {modelID: 'TS011F', manufacturerName: '_TYZB01_mtunwanm'}],
         model: 'TS011F_wall_outlet',
         vendor: 'TuYa',
         description: 'In-wall outlet',
