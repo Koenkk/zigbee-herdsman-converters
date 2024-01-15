@@ -213,6 +213,7 @@ describe('ModernExtend', () => {
                 expect.objectContaining({cluster: 'msTemperatureMeasurement'}),
                 expect.objectContaining({cluster: 'msRelativeHumidity'}),
                 expect.objectContaining({cluster: 'aqaraOpple'}),
+                expect.objectContaining({cluster: 'aqaraOpple'}),
             ],
             toZigbee: ['air_quality', 'voc', 'temperature', 'humidity', 'display_unit'],
             exposes: ['air_quality', 'battery', 'device_temperature', 'display_unit', 'humidity', 'linkquality', 'temperature', 'voc', 'voltage'],

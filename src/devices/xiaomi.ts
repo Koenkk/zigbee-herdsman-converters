@@ -17,6 +17,7 @@ import * as xiaomi from '../lib/xiaomi';
 const {
     xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior, xiaomiZigbeeOTA,
     xiaomiSwitchType, aqaraAirQuality, aqaraVoc, aqaraDisplayUnit, xiaomiLight,
+    xiaomiOutageCountRestoreBindReporting,
 } = xiaomi.modernExtend;
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz} from '../lib/types';
@@ -2899,6 +2900,7 @@ const definitions: Definition[] = [
             temperature(),
             humidity(),
             aqaraDisplayUnit(),
+            xiaomiOutageCountRestoreBindReporting(),
             xiaomiZigbeeOTA(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
