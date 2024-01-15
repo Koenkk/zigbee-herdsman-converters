@@ -920,16 +920,31 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
         toZigbee: [{
             key: ['intruder_alarm_state', 'smoke_alarm_state'],
-            convertSet: async (entity, key, value:smokeSensorData, meta) => {
+            convertSet: async (entity, key, value:string, meta) => {
                 const dataToSend = {
-                    cluster: value?.cluster,
-                    command: value?.command,
-                    payload: value?.payload,
+                    cluster: 'ssIasZone',
+                    command: 128,
+                    payload: {data: ''},
                 };
                 if (key === 'smoke_alarm_state' || key==='intruder_alarm_state') {
-                    dataToSend.cluster = 'ssIasZone';
-                    dataToSend.payload = {data: value};
-                    dataToSend.command = 128;
+                    let convertedValue='';
+                    if (key === 'smoke_alarm_state') {
+                        if (value==='ON') {
+                            convertedValue=smokeDetectorAlarmState.smoke_on.toString();
+                        }
+                        if (value==='OFF') {
+                            convertedValue=smokeDetectorAlarmState.smoke_off.toString();
+                        }
+                    }
+                    if (key === 'intruder_alarm_state') {
+                        if (value==='ON') {
+                            convertedValue=smokeDetectorAlarmState.intruder_on.toString();
+                        }
+                        if (value==='OFF') {
+                            convertedValue=smokeDetectorAlarmState.intruder_off.toString();
+                        }
+                    }
+                    dataToSend.payload.data = convertedValue;
                 }
 
                 //
@@ -989,16 +1004,16 @@ const definitions: Definition[] = [
                 .binary(
                     'intruder_alarm_state',
                     ea.ALL,
-                    smokeDetectorAlarmState.intruder_on.toString(),
-                    smokeDetectorAlarmState.intruder_off.toString(),
+                    'ON',
+                    'OFF',
                 )
                 .withDescription('Toggle the intruder alarm on or off'),
             e
                 .binary(
                     'smoke_alarm_state',
                     ea.ALL,
-                    smokeDetectorAlarmState.smoke_on.toString(),
-                    smokeDetectorAlarmState.smoke_off.toString(),
+                    'ON',
+                    'OFF',
                 )
                 .withDescription('Toggle the smoke alarm on or off')],
     },
