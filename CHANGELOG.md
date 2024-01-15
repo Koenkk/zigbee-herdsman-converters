@@ -1,5 +1,27 @@
 # Changelog
 
+## [18.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.12.0...v18.13.0) (2024-01-15)
+
+
+### Features
+
+* Add ability to re-evaluate exposes on incoming Zigbee messages ([#6869](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6869)) ([132d45e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/132d45e5f68b133ff02242153d9f458b74c5b260))
+* **add:** HA-ZX1 ([#6903](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6903)) ([e8e0b87](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8e0b87b215fa83ec058a8ca95d4ee1d4cfb6903))
+* Support `do_not_disturb` for TuYa TS0505B_2 https://github.com/Koenkk/zigbee2mqtt/issues/19718 ([af81fbd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/af81fbdc08d1a83e96bfebfdc34aaa880d3c3cce))
+* Support alarm triggering for Bosch BSD-2 ([#6862](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6862)) ([6362f20](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6362f2085610a2568388bdfb4d6909775bc2634c))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_o1jzcxou` as TuYa TS011F_plug_1 https://github.com/Koenkk/zigbee2mqtt/issues/20702 ([cca57d7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cca57d722f13818af0b1a841c075ab791dcb7de5))
+* **detect:** Detect `_TZE200_9p5xmj5r` as Hiladuo B09M3R35GC ([#6893](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6893)) ([cfc2937](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cfc2937f612b687080b4b2557a167bbb02a78c46))
+* **detect:** Detect `_TZE204_9yapgbuv` as TuYa ZTH02 ([#6894](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6894)) ([a413f00](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a413f00e42f9b719ab35b955bf422eec2aafed21))
+* Fix `max_temperature_limit` range for Moes BHT-002-GCLZB https://github.com/Koenkk/zigbee2mqtt/issues/20809 ([6ef3528](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6ef352835316d3d1cfc8d6b1e264a40263dd9823))
+* Fix no OTA cluster for TuYa TS011F_plug_1 https://github.com/Koenkk/zigbee2mqtt/issues/20765 ([ec95294](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ec95294f063279679f6ecb3ade68e3d896991311))
+* Fix Xiaomi VOCKQJK11LM losing bindings on power outage ([#6909](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6909)) ([6acce9c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6acce9ccdceb1f2dd162e30c1036b2d28732c77d))
+* **ignore:** fix a413f00e42f9b719ab35b955bf422eec2aafed21 ([ae01713](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ae01713a859ebf87da03a10c16758440bbd8ceb2))
+* **ignore:** update dependencies ([#6905](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6905)) ([55894cb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/55894cbd3aaf36800d86bf9208b62084164ffe7d))
+
 ## [18.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.11.0...v18.12.0) (2024-01-13)
 
 
