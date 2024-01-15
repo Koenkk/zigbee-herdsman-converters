@@ -250,6 +250,7 @@ const tzLocal = {
             if (key === 'device_mode') {
                 const index = utils.getFromLookup(value, stateDeviceMode);
                 await entity.write('manuSpecificBosch10', {deviceMode: index});
+                await entity.read('manuSpecificBosch10', ['deviceMode']);
                 return {state: {device_mode: value}};
             }
             if (key === 'switch_type') {
@@ -557,6 +558,11 @@ const fzLocal = {
             const data = msg.data;
             if (data.hasOwnProperty('deviceMode')) {
                 result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data['deviceMode']);
+                const deviceMode = msg.data['deviceMode'];
+                if (deviceMode !== meta.device.meta.deviceMode) {
+                    meta.device.meta.deviceMode = deviceMode;
+                    meta.deviceExposesChanged();
+                }
             }
             if (data.hasOwnProperty('switchType')) {
                 result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data['switchType']);
@@ -1303,15 +1309,6 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.on_off, fz.power_on_behavior],
         toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.on_off, tz.power_on_behavior],
         meta: {multiEndpoint: true},
-        onEvent: async (type, data, device, options) => {
-            if (type === 'start' || type === 'deviceOptionsChanged') {
-                if (options.device_mode) {
-                    const index = utils.getFromLookup(options.device_mode, stateDeviceMode);
-                    await device.getEndpoint(1).write('manuSpecificBosch10', {deviceMode: index}).catch((e) => {});
-                }
-                await device.getEndpoint(1).read('manuSpecificBosch10', ['deviceMode']).catch((e) => {});
-            }
-        },
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
         },
@@ -1330,9 +1327,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint3, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
             await reporting.onOff(endpoint3);
         },
-        options: [
-            e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode).filter((key) => key !== 'disabled'))
-                .withDescription('Device mode')],
         exposes: (device, options) => {
             const lightExposes = [
                 e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
@@ -1357,17 +1351,18 @@ const definitions: Definition[] = [
                     .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
             ];
 
-            if (options?.device_mode ==='light') {
-                return [...lightExposes, e.linkquality()];
-            } else if (options?.device_mode ==='shutter') {
-                return [...coverExposes, e.linkquality()];
+            if (device) {
+                const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue('manuSpecificBosch10', 'deviceMode');
+                const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
+
+                if (deviceMode === 'light') {
+                    return [...lightExposes, e.linkquality()];
+                } else if (deviceMode === 'shutter') {
+                    return [...coverExposes, e.linkquality()];
+                }
             }
-
-            // Setting ea.ALL is required to pass all tests (because OnOff has convertGet())
-            coverExposes[0].setAccess('state', ea.ALL);
-
             return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'),
-                ...lightExposes, ...coverExposes, e.linkquality()];
+                e.linkquality()];
         },
     },
     {
