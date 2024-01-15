@@ -59,8 +59,8 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['HA-ZX1'],
         model: 'HA-ZX1',
-        vendor: 'Halemeier GmbH',
-        description: 'X-Mitter Smart Remote Control',
+        vendor: 'Halemeier',
+        description: 'X-Mitter smart remote control',
         extend: [batteryPercentage(), identify()],
         fromZigbee: [fz.command_off, fz.command_on, fz.command_stop, fz.command_move],
         exposes: [e.action(['recall_*', 'on', 'off', 'brightness_move_up', 'brightness_move_down'])],
