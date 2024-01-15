@@ -337,7 +337,7 @@ const definitions: Definition[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser Power Micromodule',
         whiteLabel: [{vendor: 'Elko', model: 'EKO20004'}],
-        extend: [onOff({powerOnBehavior: true}), electricityMeter({"cluster":"metering"}), identify()],
+        extend: [onOff({powerOnBehavior: true}), electricityMeter({'cluster':'metering'}), identify()],
     },
     {
         zigbeeModel: ['NHROTARY/DIMMER/1'],
