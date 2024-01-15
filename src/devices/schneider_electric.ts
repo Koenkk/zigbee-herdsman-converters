@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {onOff, light} from '../lib/modernExtend';
+import {onOff, light, electricityMeter, identify} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -337,17 +337,7 @@ const definitions: Definition[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser Power Micromodule',
         whiteLabel: [{vendor: 'Elko', model: 'EKO20004'}],
-        fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
-            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
-            await reporting.readMeteringMultiplierDivisor(ep);
-            await reporting.instantaneousDemand(ep);
-            await reporting.currentSummDelivered(ep);
-        },
+        extend: [onOff({powerOnBehavior: true}), electricityMeter({"cluster":"metering"}), identify()],
     },
     {
         zigbeeModel: ['NHROTARY/DIMMER/1'],
