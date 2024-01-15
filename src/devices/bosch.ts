@@ -106,7 +106,6 @@ const smokeDetectorAlarmState = {
     intruder_on: 46081,
     intruder_off: 1,
 };
-interface smokeSensorData{cluster:string, command:number, payload:{data:smokeSensorData}}
 
 // Radiator Thermostat II
 const setpointSource = {
@@ -162,6 +161,61 @@ Example: 30ff00000102010001`;
 
 
 const tzLocal = {
+    alarm_state: {
+        key: ['intruder_alarm_state', 'smoke_alarm_state'],
+        convertSet: async (entity, key, value: string, meta) => {
+            const dataToSend = {cluster: 'ssIasZone', command: 128, payload: {data: ''}};
+            if (key === 'smoke_alarm_state' || key==='intruder_alarm_state') {
+                let convertedValue='';
+                if (key === 'smoke_alarm_state') {
+                    if (value==='ON') {
+                        convertedValue=smokeDetectorAlarmState.smoke_on.toString();
+                    }
+                    if (value==='OFF') {
+                        convertedValue=smokeDetectorAlarmState.smoke_off.toString();
+                    }
+                }
+                if (key === 'intruder_alarm_state') {
+                    if (value==='ON') {
+                        convertedValue=smokeDetectorAlarmState.intruder_on.toString();
+                    }
+                    if (value==='OFF') {
+                        convertedValue=smokeDetectorAlarmState.intruder_off.toString();
+                    }
+                }
+                dataToSend.payload.data = convertedValue;
+            }
+
+            //
+            // the data of the payload can either be decimal:
+            // 1: this disables the intruder alarm state
+            // 46081: this enables the intruder alert siren
+            // 256: this enables the smoke test alarm siren
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.command(
+                dataToSend.cluster,
+                dataToSend.command,
+                dataToSend.payload,
+                {
+                    ...manufacturerOptions,
+                    ...utils.getOptions(meta.mapped, entity),
+                },
+            );
+            return {state: {alarm_state: dataToSend.payload.data}};
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'smoke_alarm_state':
+                await entity.read('ssIasZone', [0xf0], manufacturerOptions);
+                break;
+            case 'intruder_alarm_state':
+                await entity.read('ssIasZone', [0xf0], manufacturerOptions);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
+            }
+        },
+    } satisfies Tz.Converter,
     rbshoszbeu: {
         key: ['light_delay', 'siren_delay', 'light_duration', 'siren_duration', 'siren_volume', 'alarm_state', 'power_source', 'siren_and_light'],
         convertSet: async (entity, key, value, meta) => {
@@ -918,104 +972,18 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Smoke alarm detector',
         fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
-        toZigbee: [{
-            key: ['intruder_alarm_state', 'smoke_alarm_state'],
-            convertSet: async (entity, key, value:string, meta) => {
-                const dataToSend = {
-                    cluster: 'ssIasZone',
-                    command: 128,
-                    payload: {data: ''},
-                };
-                if (key === 'smoke_alarm_state' || key==='intruder_alarm_state') {
-                    let convertedValue='';
-                    if (key === 'smoke_alarm_state') {
-                        if (value==='ON') {
-                            convertedValue=smokeDetectorAlarmState.smoke_on.toString();
-                        }
-                        if (value==='OFF') {
-                            convertedValue=smokeDetectorAlarmState.smoke_off.toString();
-                        }
-                    }
-                    if (key === 'intruder_alarm_state') {
-                        if (value==='ON') {
-                            convertedValue=smokeDetectorAlarmState.intruder_on.toString();
-                        }
-                        if (value==='OFF') {
-                            convertedValue=smokeDetectorAlarmState.intruder_off.toString();
-                        }
-                    }
-                    dataToSend.payload.data = convertedValue;
-                }
-
-                //
-                // the data of the payload can either be decimal:
-                // 1: this disables the intruder alarm state
-                // 46081: this enables the intruder alert siren
-                // 256: this enables the smoke test alarm siren
-                const endpoint = meta.device.getEndpoint(1);
-                await endpoint.command(
-                    dataToSend.cluster,
-                    dataToSend.command,
-                    dataToSend.payload,
-                    {
-                        ...manufacturerOptions,
-                        ...utils.getOptions(meta.mapped, entity),
-                    },
-                );
-                return {state: {alarm_state: dataToSend.payload.data}};
-            },
-            convertGet: async (entity, key, meta) => {
-                switch (key) {
-                case 'smoke_alarm_state':
-                    await entity.read(
-                        'ssIasZone',
-                        [0xf0],
-                        manufacturerOptions,
-                    );
-                    break;
-                case 'intruder_alarm_state':
-                    await entity.read(
-                        'ssIasZone',
-                        [0xf0],
-                        manufacturerOptions,
-                    );
-                    break;
-                default: // Unknown key
-                    throw new Error(
-                        `Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`,
-                    );
-                }
-            },
-        }],
-        meta: {},
+        toZigbee: [tzLocal.alarm_state],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg',
-                'ssIasZone',
-                'ssIasWd',
-                'genBasic',
-                64684]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 64684]);
             await reporting.batteryPercentageRemaining(endpoint);
             device.save();
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
         exposes: [e.smoke(), e.battery(), e.battery_low(), e.test(),
-            e
-                .binary(
-                    'intruder_alarm_state',
-                    ea.ALL,
-                    'ON',
-                    'OFF',
-                )
-                .withDescription('Toggle the intruder alarm on or off'),
-            e
-                .binary(
-                    'smoke_alarm_state',
-                    ea.ALL,
-                    'ON',
-                    'OFF',
-                )
-                .withDescription('Toggle the smoke alarm on or off')],
+            e.binary('intruder_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
+            e.binary('smoke_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
+        ],
     },
     {
         zigbeeModel: ['RFDL-ZB', 'RFDL-ZB-EU', 'RFDL-ZB-H', 'RFDL-ZB-K', 'RFDL-ZB-CHI', 'RFDL-ZB-MS', 'RFDL-ZB-ES', 'RFPR-ZB',
