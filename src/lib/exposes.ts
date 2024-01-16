@@ -2,7 +2,7 @@
 /* eslint camelcase: 0 */
 
 import assert from 'assert';
-import {Range} from './types';
+import {Access, Range} from './types';
 import {getLabelFromName} from './utils';
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
@@ -579,7 +579,14 @@ export class Climate extends Base {
 /**
  * The access property is a 3-bit bitmask.
  */
-export const access = {
+export const access: {
+    STATE: Access,
+    SET: Access,
+    GET: Access,
+    STATE_SET: Access,
+    STATE_GET: Access,
+    ALL: Access,
+} = {
     /**
      * Bit 0: The property can be found in the published state of this device
      */
