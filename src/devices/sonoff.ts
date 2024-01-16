@@ -364,7 +364,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x2001, type: 0x20},
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
                 description: 'Only updated when occupancy is detected',
-                access: 'STATE_GET',
+                access: 'STATE',
             }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -406,7 +406,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x2001, type: 0x20},
                 description: 'Only updated when occupancy is detected',
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
-                access: 'STATE_GET',
+                access: 'STATE',
             }),
         ],
     },
