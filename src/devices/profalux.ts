@@ -88,7 +88,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
-            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.brightness(endpoint);
         },
     },
     {
