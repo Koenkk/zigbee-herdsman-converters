@@ -4332,8 +4332,8 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7']),
-        model: 'ZWT198',
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_viy9ihs7', '_TZE204_lzriup1j']),
+        model: 'ZWT198/ZWT100-BH',
         vendor: 'TuYa',
         description: 'Avatto wall thermostat',
         onEvent: tuya.onEvent({timeStart: '1970'}),
@@ -4346,7 +4346,7 @@ const definitions: Definition[] = [
             e.child_lock(),
             e.climate()
                 .withSystemMode(['off', 'heat'], ea.STATE_SET)
-                .withPreset(['auto', 'manual', 'temporary_manual'])
+                .withPreset(['manual', 'auto', 'temporary_manual'])
                 .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withLocalTemperature(ea.STATE)
@@ -4394,7 +4394,7 @@ const definitions: Definition[] = [
                 [1, 'system_mode', tuya.valueConverterBasic.lookup({'heat': true, 'off': false})],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
-                [4, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1), 'temporary_manual': tuya.enum(2)})],
+                [4, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(1), 'manual': tuya.enum(0), 'temporary_manual': tuya.enum(2)})],
                 [9, 'child_lock', tuya.valueConverter.lockUnlock],
                 [11, 'faultalarm', tuya.valueConverter.raw],
                 [15, 'max_temperature_limit', tuya.valueConverter.divideBy10],
