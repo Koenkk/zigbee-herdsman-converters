@@ -335,7 +335,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['CCTFR6730'],
         model: 'CCTFR6730',
         vendor: 'Schneider Electric',
-        description: 'Wiser Power Micromodule',
+        description: 'Wiser power micromodule',
         whiteLabel: [{vendor: 'Elko', model: 'EKO20004'}],
         extend: [onOff({powerOnBehavior: true}), electricityMeter({'cluster': 'metering'}), identify()],
     },
