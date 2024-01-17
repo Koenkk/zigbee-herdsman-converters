@@ -1010,6 +1010,16 @@ const definitions: Definition[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint('TS0501B', ['_TZB210_rkgngb5o']),
+        model: 'TS0501B_dimmer',
+        description: 'Zigbee dimmer',
+        vendor: 'TuYa',
+        extend: [tuyaLight({configureReporting: true, effect: false})],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'L1(ZW)', 'Light dimmer 0-10V', ['_TZB210_rkgngb5o']),
+        ],
+    },
+    {
         zigbeeModel: ['TS0501B'],
         model: 'TS0501B',
         description: 'Zigbee light',
