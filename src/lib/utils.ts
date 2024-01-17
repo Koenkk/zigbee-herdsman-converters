@@ -1,7 +1,7 @@
 import * as globalStore from './store';
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
-import {Feature, Numeric} from './exposes';
+import {Definition, Expose, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
+import {Feature, Light, Numeric} from './exposes';
 
 export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
@@ -618,6 +618,10 @@ export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Grou
 
 export function isNumericExposeFeature(feature: Feature): feature is Numeric {
     return feature?.type === 'numeric';
+}
+
+export function isLightExpose(expose: Expose): expose is Light {
+    return expose?.type === 'light';
 }
 
 exports.noOccupancySince = noOccupancySince;

@@ -5,6 +5,7 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import extend from './extend';
+import * as modernExtend from './modernExtend';
 import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString} from './types';
 // import {Color} from './color';
 const e = exposes.presets;
@@ -1411,27 +1412,6 @@ const tuyaExtend = {
         const meta = {applyRedFix: true, supportsEnhancedHue: false};
         return {...extend.light_onoff_brightness_color(options), meta};
     },
-    light_onoff_brightness: (options:{
-        endpoints?: string[], disablePowerOnBehavior?: boolean, minBrightness?: boolean,
-        toZigbee?:Tz.Converter[], exposes?: Expose[], noConfigure?: boolean, disableMoveStep?: boolean,
-        disableTransition?: boolean,
-    }={}) => {
-        options = {
-            disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb], exposes: [tuyaExposes.doNotDisturb()],
-            minBrightness: false, ...options,
-        };
-        const result = extend.light_onoff_brightness(options);
-        const exposes_ = options.endpoints ? options.endpoints.map((ee) => e.light_brightness()) : [e.light_brightness()];
-        if (options.minBrightness) {
-            result.fromZigbee.push(tuyaFz.min_brightness);
-            result.toZigbee.push(tuyaTz.min_brightness);
-            result.exposes = exposes_.map((e) => e.withMinBrightness());
-        }
-        if (options.endpoints) {
-            result.exposes = result.exposes.map((e, i) => e.withEndpoint(options.endpoints[i]));
-        }
-        return result;
-    },
 };
 export {tuyaExtend as extend};
 
@@ -1690,6 +1670,21 @@ const tuyaModernExtend = {
         lookup = lookup || {'off': 0, 'on': 1, 'previous': 2};
         return tuyaModernExtend.dpEnumLookup({name: 'power_on_behavior', lookup: lookup, type: dataTypes.enum,
             expose: e.power_on_behavior(Object.keys(lookup)).withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
+    },
+    tuyaLight: (args?: modernExtend.LightArgs & {minBrightness?: boolean}) => {
+        args = {minBrightness: false, powerOnBehavior: false, ...args};
+        const result = modernExtend.light(args);
+
+        result.toZigbee.push(tuyaTz.do_not_disturb);
+        result.exposes.push(tuyaExposes.doNotDisturb());
+
+        if (args.minBrightness) {
+            result.fromZigbee.push(tuyaFz.min_brightness);
+            result.toZigbee.push(tuyaTz.min_brightness);
+            result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness() : e);
+        }
+
+        return result;
     },
 };
 export {tuyaModernExtend as modernExtend};
