@@ -2211,7 +2211,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'siren_led': 3, 'siren': 2, 'led': 1, 'nothing': 0};
             await entity.write('genBasic', {0x400a: {value: utils.getFromLookup(value, lookup), type: 32}},
-                {manufacturerCode: 0x1168, disableDefaultResponse: true, sendWhen: 'active'});
+                {manufacturerCode: 0x1168, disableDefaultResponse: true});
             return {state: {alert_behaviour: value}};
         },
     } satisfies Tz.Converter,
@@ -4496,12 +4496,11 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'sensitivity':
-                await entity.write('ssIasZone', {currentZoneSensitivityLevel: utils.getFromLookup(value, {'low': 0, 'medium': 1, 'high': 2})},
-                    {sendWhen: 'active'});
+                await entity.write('ssIasZone', {currentZoneSensitivityLevel: utils.getFromLookup(value, {'low': 0, 'medium': 1, 'high': 2})});
                 break;
             case 'keep_time':
                 await entity.write('ssIasZone',
-                    {61441: {value: utils.getFromLookup(value, {30: 0, 60: 1, 120: 2}), type: 0x20}}, {sendWhen: 'active'});
+                    {61441: {value: utils.getFromLookup(value, {30: 0, 60: 1, 120: 2}), type: 0x20}});
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key ${key}`);
@@ -4510,7 +4509,7 @@ const converters2 = {
         convertGet: async (entity, key, meta) => {
             // Apparently, reading values may interfere with a commandStatusChangeNotification for changed occupancy.
             // Therefore, read "zoneStatus" as well.
-            await entity.read('ssIasZone', ['currentZoneSensitivityLevel', 61441, 'zoneStatus'], {sendWhen: 'active'});
+            await entity.read('ssIasZone', ['currentZoneSensitivityLevel', 61441, 'zoneStatus']);
         },
     } satisfies Tz.Converter,
     TS0210_sensitivity: {
@@ -4704,7 +4703,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
             const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
-            entity.write('hvacUserInterfaceCfg', {keypadLockout}, {sendWhen: 'active'});
+            entity.write('hvacUserInterfaceCfg', {keypadLockout});
             entity.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout});
             return {state: {keypad_lockout: value}};
         },
@@ -4942,7 +4941,7 @@ const converters2 = {
         key: ['calibrate_valve'],
         convertSet: async (entity, key, value, meta) => {
             await entity.command('hvacThermostat', 'wiserSmartCalibrateValve', {},
-                {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
+                {srcEndpoint: 11, disableDefaultResponse: true});
             return {state: {'calibrate_valve': value}};
         },
     } satisfies Tz.Converter,
@@ -4967,7 +4966,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
             entity.write('hvacThermostat', {localTemperatureCalibration: Math.round(value * 10)},
-                {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
+                {srcEndpoint: 11, disableDefaultResponse: true});
             return {state: {local_temperature_calibration: value}};
         },
     } satisfies Tz.Converter,
@@ -4976,7 +4975,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
             await entity.write('hvacUserInterfaceCfg', {keypadLockout},
-                {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
+                {srcEndpoint: 11, disableDefaultResponse: true});
             return {state: {keypad_lockout: value}};
         },
     } satisfies Tz.Converter,

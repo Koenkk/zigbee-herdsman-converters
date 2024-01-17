@@ -329,7 +329,7 @@ const definitions: Definition[] = [
                 valueOn: [true, 0x01],
                 valueOff: [false, 0x00],
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
-                readOnly: true,
+                access: 'STATE_GET',
             }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -364,7 +364,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x2001, type: 0x20},
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
                 description: 'Only updated when occupancy is detected',
-                readOnly: true,
+                access: 'STATE',
             }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -406,7 +406,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x2001, type: 0x20},
                 description: 'Only updated when occupancy is detected',
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
-                readOnly: true,
+                access: 'STATE',
             }),
         ],
     },
@@ -471,14 +471,14 @@ const definitions: Definition[] = [
                 cluster: 0xFC11,
                 attribute: {ID: 0x6003, type: 0x21},
                 description: 'Number of steps used for calibration (no-load steps)',
-                readOnly: true,
+                access: 'STATE_GET',
             }),
             numeric({
                 name: 'closing_steps',
                 cluster: 0xFC11,
                 attribute: {ID: 0x6004, type: 0x21},
                 description: 'Number of steps it takes to close the valve',
-                readOnly: true,
+                access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_opening_limit_voltage',
@@ -486,7 +486,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x6005, type: 0x21},
                 description: 'Valve opening limit voltage',
                 unit: 'mV',
-                readOnly: true,
+                access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_closing_limit_voltage',
@@ -494,7 +494,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x6006, type: 0x21},
                 description: 'Valve closing limit voltage',
                 unit: 'mV',
-                readOnly: true,
+                access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_motor_running_voltage',
@@ -502,7 +502,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x6007, type: 0x21},
                 description: 'Valve motor running voltage',
                 unit: 'mV',
-                readOnly: true,
+                access: 'STATE_GET',
             }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {

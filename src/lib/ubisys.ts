@@ -1,6 +1,6 @@
 import {Fz, Tz, ModernExtend} from './types';
 import {presets as e, access as ea} from './exposes';
-import {numeric, NumericArgs, setupConfigureForReporting, ReportingConfigWithoutAttribute} from './modernExtend';
+import {numeric, NumericArgs, setupConfigureForReporting} from './modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 
 export const ubisysModernExtend = {
@@ -37,7 +37,7 @@ export const ubisysModernExtend = {
             'For heating regulation, a received remote temperature value, as long as valid, takes precedence over the locally measured one.',
         scale: 100,
         unit: 'ºC',
-        readOnly: true,
+        access: 'STATE_GET',
         ...args,
     }),
     remoteTemperatureDuration: (args?: Partial<NumericArgs>) => numeric({
@@ -56,8 +56,9 @@ export const ubisysModernExtend = {
         const writeableAttributeName = 'ubisysVacationMode';
         const readableAttributeName = 'occupancy';
         const propertyName = 'vacation_mode';
+        const access = ea.ALL;
 
-        const expose = e.binary(propertyName, ea.ALL, true, false)
+        const expose = e.binary(propertyName, access, true, false)
             .withDescription('When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.');
 
         const fromZigbee: Fz.Converter[] = [{
@@ -87,12 +88,7 @@ export const ubisysModernExtend = {
             },
         }];
 
-        const configure = setupConfigureForReporting(
-            clusterName,
-            readableAttributeName,
-            undefined,
-            {min: 0, max: '1_HOUR', change: 0} as ReportingConfigWithoutAttribute,
-        );
+        const configure = setupConfigureForReporting(clusterName, readableAttributeName, {min: 0, max: '1_HOUR', change: 0}, access);
 
         return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
     },

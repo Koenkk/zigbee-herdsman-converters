@@ -1385,7 +1385,7 @@ export const xiaomiModernExtend = {
         reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5},
         description: 'Measured VOC value',
         unit: 'ppb',
-        readOnly: true,
+        access: 'STATE_GET',
         ...args,
     }),
     aqaraAirQuality: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
@@ -1395,7 +1395,7 @@ export const xiaomiModernExtend = {
         attribute: 'airQuality',
         zigbeeCommandOptions: {disableDefaultResponse: true},
         description: 'Measured air quality',
-        readOnly: true,
+        access: 'STATE_GET',
         ...args,
     }),
     aqaraDisplayUnit: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
