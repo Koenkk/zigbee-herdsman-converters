@@ -4347,6 +4347,7 @@ const definitions: Definition[] = [
             e.binary('factory_reset', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Full factory reset, use with caution!'),
             e.child_lock(),
+            e.temperature_sensor_select(['internal', 'external', 'both']),
             e.climate()
                 .withSystemMode(['off', 'heat'], ea.STATE_SET)
                 .withPreset(['manual', 'auto', 'temporary_manual'])
@@ -4406,6 +4407,7 @@ const definitions: Definition[] = [
                 [102, 'frost_protection', tuya.valueConverter.onOff],
                 [103, 'factory_reset', tuya.valueConverter.onOff],
                 [104, 'working_day', tuya.valueConverter.workingDay],
+                [106, 'sensor', tuya.valueConverterBasic.lookup({'internal': tuya.enum(0), 'external': tuya.enum(1), 'both': tuya.enum(2)})],
                 [107, 'deadzone_temperature', tuya.valueConverter.divideBy10],
                 [109, null, tuya.valueConverter.ZWT198_schedule],
                 [109, 'schedule_weekday', tuya.valueConverter.ZWT198_schedule],
