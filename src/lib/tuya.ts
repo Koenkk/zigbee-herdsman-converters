@@ -265,7 +265,7 @@ function dpValueFromBitmap(dp: number, bitmapBuffer: number) {
     return {dp, datatype: dataTypes.bitmap, data: [bitmapBuffer]};
 }
 
-async function sendDataPointValue(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
+export async function sendDataPointValue(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromNumberValue(dp, value)], cmd, seq);
 }
 
@@ -277,15 +277,15 @@ export async function sendDataPointEnum(entity: Zh.Group | Zh.Endpoint, dp: numb
     return await sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
 }
 
-async function sendDataPointRaw(entity: Zh.Group | Zh.Endpoint, dp: number, value: number[], cmd?: string, seq?: number) {
+export async function sendDataPointRaw(entity: Zh.Group | Zh.Endpoint, dp: number, value: number[], cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
 }
 
-async function sendDataPointBitmap(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
+export async function sendDataPointBitmap(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromBitmap(dp, value)], cmd, seq);
 }
 
-async function sendDataPointStringBuffer(entity: Zh.Group | Zh.Endpoint, dp: number, value: string, cmd?: string, seq?: number) {
+export async function sendDataPointStringBuffer(entity: Zh.Group | Zh.Endpoint, dp: number, value: string, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromString(dp, value)], cmd, seq);
 }
 
