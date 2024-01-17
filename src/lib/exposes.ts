@@ -758,8 +758,7 @@ export const presets = {
     valve_position: () => new Numeric('position', access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of the valve'),
     valve_switch: () => new Binary('state', access.ALL, 'OPEN', 'CLOSE').withDescription('Valve state if open or closed'),
     valve_state: () => new Binary('valve_state', access.STATE, 'OPEN', 'CLOSED').withDescription('Valve state if open or closed'),
-    valve_detection: () => new Switch().withLabel('Valve detection').withState('valve_detection', true, 'Valve detection').setAccess('state', access.STATE_SET),
-    valve_detection_new: () => new Binary('valve_detection', access.ALL, true, false).withDescription('Determines if temperature control abnormalities should be detected').withCategory('config'),
+    valve_detection: () => new Binary('valve_detection', access.ALL, true, false).withDescription('Determines if temperature control abnormalities should be detected').withCategory('config'),
     vibration: () => new Binary('vibration', access.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
     voc: () => new Numeric('voc', access.STATE).withLabel('VOC').withUnit('µg/m³').withDescription('Measured VOC value'),
     voc_index: () => new Numeric('voc_index', access.STATE).withLabel('VOC index').withDescription('VOC index'),
@@ -777,7 +776,7 @@ export const presets = {
         .withFeature(new Numeric('strobe_duty_cycle', access.SET).withValueMax(10).withValueMin(0).withDescription('Length of the flash cycle'))
         .withFeature(new Numeric('duration', access.SET).withUnit('s').withDescription('Duration in seconds of the alarm')),
     week: () => new Enum('week', access.STATE_SET, ['5+2', '6+1', '7']).withDescription('Week format user for schedule'),
-    window_detection: () => new Switch().withLabel('Window detection').withState('window_detection', true, 'Enables/disables window detection on the device', access.STATE_SET),
+    window_detection: () => new Binary('window_detection', access.ALL, true, false).withDescription('Enables/disables window detection on the device').withCategory('config'),
     moving: () => new Binary('moving', access.STATE, true, false).withDescription('Indicates if the device is moving'),
     x_axis: () => new Numeric('x_axis', access.STATE).withDescription('Accelerometer X value'),
     y_axis: () => new Numeric('y_axis', access.STATE).withDescription('Accelerometer Y value'),
