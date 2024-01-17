@@ -6,8 +6,7 @@ import * as reporting from '../lib/reporting';
 import {binary, enumLookup, forcePowerSource, numeric, onOff} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as ota from '../lib/ota';
-import * as utils from "../lib/utils";
-import * as console from "console";
+import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -26,8 +25,13 @@ const fzLocal = {
 };
 
 const sonoffExtend = {
-    trvSchedule: (): ModernExtend => {
+    weeklySchedule: (): ModernExtend => {
         const exposes = e.composite('schedule', 'weekly_schedule', ea.STATE_SET)
+            .withDescription('The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
+                'Up to 6 transitions can be defined per day, where a transition is expressed in the format \'HH:mm/temperature\', each ' +
+                'separated by a space. The first transition for each day must start at 00:00 and the valid temperature range is 4-35°C ' +
+                '(in 0.5°C steps). The temperature will be set at the time of the first transition until the time of the next transition, ' +
+                'e.g. \'04:00/20 10:00/25\' will result in the temperature being set to 20°C at 04:00 until 10:00, when it will change to 25°C.')
             .withFeature(e.text('sunday', ea.STATE_SET))
             .withFeature(e.text('monday', ea.STATE_SET))
             .withFeature(e.text('tuesday', ea.STATE_SET))
@@ -56,11 +60,12 @@ const sonoffExtend = {
 
                         return `${strHours}:${strMinutes}/${t.heatSetpoint / 100}`;
                     })
+                    .sort()
                     .join(' ');
 
                 return {
                     weekly_schedule: {
-                        ...meta.state.schedule as Record<string, string>[],
+                        ...meta.state.weekly_schedule as Record<string, string>[],
                         [day]: transitions,
                     },
                 };
@@ -70,20 +75,25 @@ const sonoffExtend = {
         const toZigbee: Tz.Converter[] = [{
             key: ['weekly_schedule'],
             convertSet: async (entity, key, value, meta) => {
+                // Transition format: HH:mm/temperature
+                const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
+
                 utils.assertObject(value, key);
 
-                for (let [dayOfWeekBit, dayOfWeekName] of Object.entries(constants.thermostatDayOfWeek)) {
-                    if (!value.hasOwnProperty(dayOfWeekName)) {
-                        return;
+                for (const dayOfWeekName of Object.keys(value)) {
+                    const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName.toLowerCase(), null);
+
+                    if (dayKey === null) {
+                        throw new Error(`Invalid schedule: invalid day name, found: ${dayOfWeekName}`);
                     }
 
-                    const transitions = value[dayOfWeekName]?.split(' ') ?? [];
+                    const dayOfWeekBit = Number(dayKey);
+
+                    const transitions = value[dayOfWeekName].split(' ').sort();
 
                     if (transitions.length > 6) {
-                        throw new Error('Invalid schedule: each day must have no more than 6 transitions');
+                        throw new Error('Invalid schedule: days must have no more than 6 transitions');
                     }
-
-                    const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+)$/;
 
                     const payload: KeyValueAny = {
                         dayofweek: (1 << Number(dayOfWeekBit)),
@@ -96,17 +106,26 @@ const sonoffExtend = {
                         const matches = transition.match(transitionRegex);
 
                         if (!matches) {
-                            throw new Error('Invalid schedule: expected transition format HH:mm/temp, found: ' + transition);
+                            throw new Error('Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), ' +
+                                'found: ' + transition);
                         }
 
                         const hour = parseInt(matches[1]);
                         const mins = parseInt(matches[2]);
                         const temp = parseFloat(matches[3]);
 
+                        if (temp < 4 || temp > 35) {
+                            throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temp}`);
+                        }
+
                         payload.transitions.push({
                             transitionTime: (hour * 60) + mins,
                             heatSetpoint: Math.round(temp * 100),
                         });
+                    }
+
+                    if (payload.transitions[0].transitionTime !== 0) {
+                        throw new Error('Invalid schedule: the first transition of each day should start at 00:00');
                     }
 
                     await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
@@ -604,7 +623,7 @@ const definitions: Definition[] = [
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
-            sonoffExtend.trvSchedule(),
+            sonoffExtend.weeklySchedule(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
