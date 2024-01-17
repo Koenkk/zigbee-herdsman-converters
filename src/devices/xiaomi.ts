@@ -78,7 +78,7 @@ const fzLocal = {
                     result['window_detection'] = utils.getFromLookup(value, {1: 'ON', 0: 'OFF'});
                     break;
                 case 0x0274:
-                    result['valve_detection'] = utils.getFromLookup(value, {1: 'ON', 0: 'OFF'});
+                    result['valve_detection'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x0277:
                     result['child_lock'] = utils.getFromLookup(value, {1: 'LOCK', 0: 'UNLOCK'});
@@ -284,7 +284,7 @@ const tzLocal = {
                     {manufacturerCode: 0x115f});
                 break;
             case 'valve_detection':
-                await entity.write('aqaraOpple', {0x0274: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: 0x20}},
+                await entity.write('aqaraOpple', {0x0274: {value: utils.getFromLookup(value, {false: 0, true: 1}), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'child_lock':
@@ -3142,18 +3142,28 @@ const definitions: Definition[] = [
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature(ea.STATE, 'Current temperature measured by the internal or external sensor')
                 .withSystemMode(['off', 'heat'], ea.ALL)
-                .withPreset(['manual', 'away', 'auto']).setAccess('preset', ea.ALL),
+                .withPreset(['manual', 'away', 'auto'])
+                .setAccess('preset', ea.ALL),
             e.temperature_sensor_select(['internal', 'external']).withAccess(ea.ALL),
-            e.numeric('sensor_temp', ea.ALL).withUnit('°C').withValueMin(0).withValueMax(55)
-                .withDescription('Input for remote temperature sensor (when sensor is set to external)'),
+            e.numeric('sensor_temp', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(0)
+                .withValueMax(55)
+                .withDescription('Input for remote temperature sensor (when sensor is set to external)')
+                .withCategory('config'),
             e.binary('calibrated', ea.STATE, true, false)
                 .withDescription('Indicates if this valve is calibrated, use the calibrate option to calibrate'),
-            e.enum('calibrate', ea.ALL, ['calibrate']).withDescription('Calibrates the valve'),
+            e.enum('calibrate', ea.ALL, ['calibrate'])
+                .withDescription('Calibrates the valve')
+                .withCategory('config'),
             e.child_lock().setAccess('state', ea.ALL),
             e.window_detection().setAccess('state', ea.ALL),
             e.binary('window_open', ea.STATE, true, false),
-            e.valve_detection().setAccess('state', ea.ALL)
-                .withDescription('Determines if temperature control abnormalities should be detected'),
+            // e.valve_detection(),
+            e.binary('valve_detection', ea.ALL, true, false)
+                .withDescription('Determines if temperature control abnormalities should be detected')
+                .withCategory('config')
+                .withLabel('Valve detection'),
             e.binary('valve_alarm', ea.STATE, true, false)
                 .withDescription('Notifies of a temperature control abnormality if valve detection is enabled ' +
                     '(e.g., thermostat not installed correctly, valve failure or incorrect calibration, ' +
@@ -3167,7 +3177,8 @@ const definitions: Definition[] = [
                 'When being ON, the thermostat will change its state based on your settings',
                 ea.ALL, 'ON', 'OFF'),
             e.text('schedule_settings', ea.ALL)
-                .withDescription('Smart schedule configuration (default: mon,tue,wed,thu,fri|8:00,24.0|18:00,17.0|23:00,22.0|8:00,22.0)'),
+                .withDescription('Smart schedule configuration (default: mon,tue,wed,thu,fri|8:00,24.0|18:00,17.0|23:00,22.0|8:00,22.0)')
+                .withCategory('config'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
