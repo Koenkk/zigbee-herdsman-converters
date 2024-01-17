@@ -3908,7 +3908,6 @@ const converters1 = {
         },
     } satisfies Fz.Converter,
     xiaomi_contact: {
-        options: [exposes.options.state_action()],
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {

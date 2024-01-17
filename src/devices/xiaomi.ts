@@ -1876,6 +1876,7 @@ const definitions: Definition[] = [
         fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_contact],
         toZigbee: [],
         exposes: [e.battery(), e.contact(), e.device_temperature(), e.battery_voltage(), e.power_outage_count(false)],
+        options: [exposes.options.state_action()],
         configure: async (device) => {
             device.powerSource = 'Battery';
             device.save();
