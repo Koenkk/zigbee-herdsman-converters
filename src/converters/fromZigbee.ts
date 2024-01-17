@@ -1351,7 +1351,7 @@ const converters1 = {
         type: ['commandMoveColorTemp'],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            const direction = utils.getFromLookup(msg.data.movemode, {0: 'stop', 1: 'up', 3: 'down'});
             const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model, meta);
             const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
             addActionGroup(payload, msg, model);
