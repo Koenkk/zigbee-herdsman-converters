@@ -692,8 +692,8 @@ export function pressure(args?: Partial<NumericArgs>): ModernExtend {
         attribute: 'measuredValue',
         reporting: {min: '10_SECONDS', max: '1_HOUR', change: 100},
         description: 'The measured atmospheric pressure',
-        unit: 'hPa',
-        scale: 100,
+        unit: 'kPa',
+        scale: 10,
         access: 'STATE_GET',
         ...args,
     });
