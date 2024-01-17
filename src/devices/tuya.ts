@@ -5403,7 +5403,10 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        whiteLabel: [{vendor: 'MatSee Plus', model: 'PC321-Z-TY'}],
+        whiteLabel: [
+            {vendor: 'MatSee Plus', model: 'PC321-Z-TY'},
+            {vendor: 'Owon', model: 'PC321-Z-TY'},
+        ],
         exposes: [
             e.ac_frequency(), e.temperature(), e.current(), e.power(), e.energy(),
             tuya.exposes.energyWithPhase('a'), tuya.exposes.energyWithPhase('b'), tuya.exposes.energyWithPhase('c'),
