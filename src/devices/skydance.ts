@@ -99,13 +99,6 @@ const definitions: Definition[] = [
         ],
         meta: {separateWhite: true},
     },
-    {
-        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZB210_rkgngb5o'}],
-        model: 'WZ1',
-        vendor: 'Skydance',
-        description: 'Zigbee & RF 2 channel LED controller',
-        extend: [tuya.modernExtend.tuyaLight({configureReporting: true})],
-    },
 ];
 
 export default definitions;

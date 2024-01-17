@@ -1681,7 +1681,7 @@ const tuyaModernExtend = {
         if (args.minBrightness) {
             result.fromZigbee.push(tuyaFz.min_brightness);
             result.toZigbee.push(tuyaTz.min_brightness);
-            result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness() : e);
+            // result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness() : e);
         }
 
         return result;

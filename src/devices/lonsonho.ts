@@ -124,9 +124,6 @@ const definitions: Definition[] = [
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module with neutral',
         extend: [tuya.modernExtend.tuyaLight({minBrightness: true, endpoints: {l1: 1, l2: 2}})],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
