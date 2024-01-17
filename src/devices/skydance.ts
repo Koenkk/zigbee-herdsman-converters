@@ -2,7 +2,6 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as tuya from '../lib/tuya';
-import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -105,14 +104,7 @@ const definitions: Definition[] = [
         model: 'WZ1',
         vendor: 'Skydance',
         description: 'Zigbee & RF 2 channel LED controller',
-        extend: tuya.extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        extend: [tuya.modernExtend.tuyaLight({configureReporting: true})],
     },
 ];
 
