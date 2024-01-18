@@ -3145,9 +3145,7 @@ const definitions: Definition[] = [
                 .withSystemMode(['off', 'heat'], ea.ALL)
                 .withPreset(['manual', 'away', 'auto'])
                 .setAccess('preset', ea.ALL),
-            e.temperature_sensor_select(['internal', 'external'])
-                .withAccess(ea.ALL)
-                .withCategory('config'),
+            e.temperature_sensor_select(['internal', 'external']),
             e.numeric('sensor_temp', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(0)
@@ -3161,7 +3159,9 @@ const definitions: Definition[] = [
                 .withDescription('Calibrates the valve')
                 .withCategory('config'),
             e.child_lock()
-                .setAccess('state', ea.ALL),
+                .setAccess('state', ea.ALL)
+                .withAccess(ea.ALL)
+                .withCategory('config'),
             e.window_detection(),
             e.binary('window_open', ea.STATE, true, false),
             e.valve_detection(),
