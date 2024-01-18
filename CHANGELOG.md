@@ -1,5 +1,16 @@
 # Changelog
 
+## [18.15.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.15.0...v18.15.1) (2024-01-18)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_0s9gukzt` as Nous E4 ([#6929](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6929)) ([db9facf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db9facfab396232460176e4dd57d839cfa6ee8e3))
+* **detect:** Detect `_TZE204_9qhuzgo0` as TuYa TS0601_dimmer_1 https://github.com/Koenkk/zigbee2mqtt/issues/20801 ([cb26d75](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb26d750cc2e2e8cd2f0b9c6d7ded2d20a644e48))
+* **detect:** Detect `929003053901` as Philips 3261048P6 ([#6921](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6921)) ([bdbda27](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bdbda2777ab713d9f8531a761c3c057e7ffe4ea0))
+* **detect:** Detect `E220-KR5N0Z0-HA` as LELLKI WP33-EU/WP34-EU ([#6923](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6923)) ([f840df6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f840df6e771282b14f5053a100c197e6f308970e))
+* Fix negative temperature values for TuYa TS0601_air_quality_sensor incorrect https://github.com/Koenkk/zigbee2mqtt/issues/20774 ([3840ea4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3840ea49154cc3585b28bc2fcd60213e07247688))
+
 ## [18.15.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.14.0...v18.15.0) (2024-01-17)
 
 
