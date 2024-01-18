@@ -41,7 +41,7 @@ describe('GenerateDefinition', () => {
             read: {1: [['msTemperatureMeasurement', ['measuredValue']]]},
             configureReporting: {
                 1: [
-                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 1)]],
                 ],
             },
         });
@@ -58,7 +58,7 @@ describe('GenerateDefinition', () => {
             read: {1: [['msPressureMeasurement', ['measuredValue']]]},
             configureReporting: {
                 1: [
-                    ['msPressureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                    ['msPressureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 10)]],
                 ],
             },
         });
@@ -75,7 +75,7 @@ describe('GenerateDefinition', () => {
             read: {1: [['msRelativeHumidity', ['measuredValue']]]},
             configureReporting: {
                 1: [
-                    ['msRelativeHumidity', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                    ['msRelativeHumidity', [reportingItem('measuredValue', 10, repInterval.HOUR, 1)]],
                 ],
             },
         });
@@ -95,7 +95,7 @@ describe('GenerateDefinition', () => {
             ]},
             configureReporting: {
                 1: [
-                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 1)]],
                     ['genOnOff', [reportingItem('onOff', 0, repInterval.MAX, 1)]],
                 ],
             },
