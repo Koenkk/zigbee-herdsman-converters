@@ -44,7 +44,6 @@ const sonoffExtend = {
             cluster: 'hvacThermostat',
             type: ['commandGetWeeklyScheduleRsp'],
             convert: (model, msg, publish, options, meta) => {
-
                 const day = Object.entries(constants.thermostatDayOfWeek)
                     .find((d) => msg.data.dayofweek & 1<<+d[0])[1];
 
@@ -666,8 +665,6 @@ const definitions: Definition[] = [
         extend: [onOff()],
     },
 ];
-
-
 
 export default definitions;
 module.exports = definitions;
