@@ -8,7 +8,7 @@ import extend from '../lib/extend';
 import {
     light, numeric, binary, enumLookup, forceDeviceType,
     temperature, humidity, forcePowerSource, quirkAddEndpointCluster,
-    quirkCheckinInterval,
+    quirkCheckinInterval, onOff,
 } from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -17,7 +17,8 @@ import * as xiaomi from '../lib/xiaomi';
 const {
     xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior, xiaomiZigbeeOTA,
     xiaomiSwitchType, aqaraAirQuality, aqaraVoc, aqaraDisplayUnit, xiaomiLight,
-    xiaomiOutageCountRestoreBindReporting,
+    xiaomiOutageCountRestoreBindReporting, xiaomiElectricityMeter, xiaomiPower,
+    xiaomiOverloadProtection, xiaomiDoNotDisturb, xiaomiButtonLock,
 } = xiaomi.modernExtend;
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz} from '../lib/types';
@@ -3434,6 +3435,44 @@ const definitions: Definition[] = [
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [xiaomiZigbeeOTA()],
+    },
+    {
+        zigbeeModel: ['lumi.plug.aeu001'],
+        model: 'WP-P01D',
+        vendor: 'Aqara',
+        description: 'Aqara wall outlet H2',
+        extend: [
+            xiaomiZigbeeOTA(),
+            onOff({powerOnBehavior: false}),
+            xiaomiPowerOnBehavior(),
+            xiaomiPower(),
+            xiaomiElectricityMeter(),
+            xiaomiOverloadProtection(),
+            xiaomiDoNotDisturb(),
+            xiaomiButtonLock(),
+            binary({
+                name: 'charging_protection',
+                cluster: 'aqaraOpple',
+                attribute: {ID: 0x0202, type: 0x10},
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Turn off the outlet if the power is below the set limit for half an hour',
+                access: 'ALL',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            numeric({
+                name: 'charging_limit',
+                cluster: 'aqaraOpple',
+                attribute: {ID: 0x0206, type: 0x39},
+                valueMin: 0.1,
+                valueMax: 2,
+                valueStep: 0.1,
+                unit: "W",
+                description: 'Charging protection power limit',
+                access: 'ALL',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+        ],
     },
 ];
 

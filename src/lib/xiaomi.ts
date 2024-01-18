@@ -1468,6 +1468,68 @@ export const xiaomiModernExtend = {
         result.ota = ota.zigbeeOTA;
         return result;
     },
+    xiaomiPower: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'power',
+        cluster: 'genAnalogInput',
+        attribute: 'presentValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5},
+        description: 'Instantaneous measured power',
+        unit: 'W',
+        access: 'STATE',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    xiaomiElectricityMeter: (): ModernExtend => {
+        const exposes = [
+            e.energy(),
+            e.voltage(),
+            e.current(),
+            e.device_temperature(),
+        ];
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'aqaraOpple',
+            type: ['attributeReport', 'readResponse'],
+            convert: async (model, msg, publish, options, meta) => {
+                return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+            },
+        }];
+
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
+    xiaomiOverloadProtection: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'overload_protection',
+        cluster: 'aqaraOpple',
+        attribute: {ID: 0x020b, type: 0x39},
+        description: 'Maximum allowed load, turns off if exceeded',
+        valueMin: 100,
+        valueMax: 3840,
+        unit: 'W',
+        access: 'ALL',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    xiaomiDoNotDisturb: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'do_not_disturb',
+        cluster: 'aqaraOpple',
+        attribute: {ID: 0x0203, type: 0x10},
+        valueOn: ['ON', 0],
+        valueOff: ['OFF', 1],
+        description: 'Do not disturb mode, when enabled this function will keep the light OFF after a power outage',
+        access: 'ALL',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    xiaomiButtonLock: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'button_lock',
+        cluster: 'aqaraOpple',
+        attribute: {ID: 0x0200, type: 0x20},
+        valueOn: ['ON', 0],
+        valueOff: ['OFF', 1],
+        description: 'Disables the physical switch button',
+        access: 'ALL',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
 };
 
 export {xiaomiModernExtend as modernExtend};
