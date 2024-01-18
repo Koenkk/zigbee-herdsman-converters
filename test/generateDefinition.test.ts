@@ -107,7 +107,7 @@ const definition = {
     model: 'combo',
     vendor: 'undefined',
     description: 'Automatically generated definition',
-    extend: [temperature(), onOff({powerOnBehavior: false})],
+    extend: [temperature({"endpoint":"1"}), onOff({"powerOnBehavior":false})],
 };
 
 module.exports = definition;
@@ -275,7 +275,7 @@ const definition = {
     model: 'combo',
     vendor: 'undefined',
     description: 'Automatically generated definition',
-    extend: [onOff({powerOnBehavior: false}), electricityMeter()],
+    extend: [onOff({"powerOnBehavior":false}), electricityMeter()],
 };
 
 module.exports = definition;

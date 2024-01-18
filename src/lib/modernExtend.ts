@@ -67,13 +67,15 @@ async function setupAttributes(
 
 export function setupConfigureForReporting(
     cluster: string | number, attribute: ReportingConfigAttribute, config: ReportingConfigWithoutAttribute, access: Access,
+    endpointID?: number,
 ) {
     const configureReporting = !!config;
     const read = !!(access & ea.GET);
     if (configureReporting || read) {
         const configure: Configure = async (device, coordinatorEndpoint, logger) => {
             const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
-            await setupAttributes(device, coordinatorEndpoint, cluster, [reportConfig], logger, configureReporting, read);
+            const deviceOrEndpoint = endpointID ? device.endpoints.find((e) => e.ID === endpointID) : device;
+            await setupAttributes(deviceOrEndpoint, coordinatorEndpoint, cluster, [reportConfig], logger, configureReporting, read);
         };
         return configure;
     } else {
@@ -403,13 +405,20 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
-    endpoint?: string, reporting?: ReportingConfigWithoutAttribute,
+    endpoint?: string, endpointID?: number, reporting?: ReportingConfigWithoutAttribute,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number, label?: string,
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
-        name, cluster, attribute, description, zigbeeCommandOptions, unit, endpoint, reporting, valueMin, valueMax, valueStep, scale, label,
+        name, cluster, attribute, description, zigbeeCommandOptions, unit, reporting, valueMin, valueMax, valueStep, scale, label,
     } = args;
+    let endpoint = args.endpoint
+    if (args.endpointID) {
+        endpoint = args.endpointID.toString()
+    }
+
+    const endpointID = args.endpointID || undefined;
+
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
@@ -448,7 +457,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         } : undefined,
     }];
 
-    const configure = setupConfigureForReporting(cluster, attribute, reporting, access);
+    const configure = setupConfigureForReporting(cluster, attribute, reporting, access, endpointID);
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
