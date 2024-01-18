@@ -3467,7 +3467,7 @@ const definitions: Definition[] = [
                 valueMin: 0.1,
                 valueMax: 2,
                 valueStep: 0.1,
-                unit: "W",
+                unit: 'W',
                 description: 'Charging protection power limit',
                 access: 'ALL',
                 zigbeeCommandOptions: {manufacturerCode},
