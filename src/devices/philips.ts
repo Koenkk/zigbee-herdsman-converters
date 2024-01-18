@@ -1507,11 +1507,11 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['3261048P6'],
+        zigbeeModel: ['3261048P6', '929003053901'],
         model: '3261048P6',
         vendor: 'Philips',
         description: 'Hue Being aluminium',
-        extend: [philipsLight({colorTemp: {range: undefined}})],
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['3216431P6'],
