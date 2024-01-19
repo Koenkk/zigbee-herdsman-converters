@@ -147,7 +147,13 @@ const definitions: Definition[] = [
         model: 'HGZB-42',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang v2.0',
-        extend: [onOff({endpoints: {top: 11, bottom: 12}})],
+        extend: [onOff({endpoints: {top: 11, bottom: 12}, configureReporting: false})],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // ConfigureReporting for onOff fails
+            // https://github.com/Koenkk/zigbee2mqtt/issues/20867
+            await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(12), coordinatorEndpoint, ['genOnOff']);
+        },
     },
     {
         zigbeeModel: ['FNB56-SKT1JXN1.0'],
