@@ -1514,7 +1514,7 @@ export const xiaomiModernExtend = {
         attribute: {ID: 0x0203, type: 0x10},
         valueOn: ['ON', 0],
         valueOff: ['OFF', 1],
-        description: 'Do not disturb mode, when enabled this function will keep the light OFF after a power outage',
+        description: 'Do not disturb mode. Disabling built-in indicator',
         access: 'ALL',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
