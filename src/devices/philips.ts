@@ -3525,6 +3525,13 @@ const definitions: Definition[] = [
         description: 'Hue Festavia gradient light string 250',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle']}})],
     },
+    {
+        zigbeeModel: ['915005914501'],
+        model: '915005914501',
+        vendor: 'Philips',
+        description: 'Hue Being Pendant aluminum',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
 ];
 
 export default definitions;
