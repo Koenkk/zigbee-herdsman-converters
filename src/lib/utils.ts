@@ -584,6 +584,31 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
     return result ?? defaultValue;
 }
 
+// Silly hack, but boolean is not supported as index
+export function getFromLookupBool(value: unknown, lookup: {[s: string | number]: string | number}): boolean | number {
+    let result = undefined;
+    if (typeof value === 'boolean') {
+        const stringValue = value.toString();
+        result = (lookup[stringValue] ?? lookup[stringValue.toLowerCase()] ?? lookup[stringValue.toUpperCase()]);
+        if (typeof result !== 'number') {
+            throw new Error(`Expected number, got: '${value}'`);
+        }
+    } else if (typeof value === 'number') {
+        const stringResult = lookup[value];
+        if (stringResult === 'true') {
+            result = true;
+        } else if (stringResult === 'false') {
+            result = false;
+        } else {
+            throw new Error(`Expected boolean, got: '${value}'`);
+        }
+    }
+    if (result === undefined) {
+        throw new Error(`Expected boolean or number, one of: [${Object.keys(lookup).join(', ')}], got: '${value}'`);
+    }
+    return result;
+}
+
 export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string=undefined): string {
     for (const entry of Object.entries(lookup)) {
         if (entry[1] === value) {
