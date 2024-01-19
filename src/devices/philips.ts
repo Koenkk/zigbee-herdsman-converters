@@ -3530,7 +3530,7 @@ const definitions: Definition[] = [
         model: '915005914501',
         vendor: 'Philips',
         description: 'Hue Being Pendant Aluminum',
-        extend: [philipsLight({"colorTemp":{"range":[153,454]}})],
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
 ];
 
