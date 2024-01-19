@@ -6,6 +6,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -13,6 +14,11 @@ const definitions: Definition[] = [
             {type: 'Router', manufacturerName: 'EcoDim BV', modelID: 'EcoDim-Zigbee 3.0', endpoints: [
                 {ID: 1, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8, 2821, 4096], outputClusters: [25]},
                 {ID: 2, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8], outputClusters: []},
+                {ID: 242, profileID: 41440, inputClusters: [], outputClusters: [33]},
+            ]},
+            {type: 'Router', manufacturerName: 'EcoDim BV', modelID: 'EcoDim-Zigbee 3.0', endpoints: [
+                {ID: 1, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8, 4096], outputClusters: [25]},
+                {ID: 2, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8, 4096], outputClusters: [25]},
                 {ID: 242, profileID: 41440, inputClusters: [], outputClusters: [33]},
             ]},
         ],
@@ -37,7 +43,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {type: 'Router', manufacturerName: 'EcoDim BV', modelID: 'Dimmer-Switch-ZB3.0'},
+            {type: 'Router', manufacturerID: 4714, modelID: 'Dimmer-Switch-ZB3.0'},
             {type: 'Router', manufacturerName: 'EcoDim BV', modelID: 'EcoDim-Zigbee 3.0', endpoints: [
                 {ID: 1, profileID: 260, deviceID: 257, inputClusters: [0, 3, 4, 5, 6, 8, 2821, 4096], outputClusters: [25]},
                 {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
@@ -52,14 +58,7 @@ const definitions: Definition[] = [
         vendor: 'EcoDim',
         description: 'Zigbee & Z-wave dimmer',
         ota: ota.zigbeeOTA,
-        extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ED-10010'],
@@ -133,7 +132,7 @@ const definitions: Definition[] = [
         model: 'ED-10042',
         vendor: 'EcoDim',
         description: 'Zigbee LED filament light dimmable E27, globe G125, flame 2200K',
-        extend: tuya.extend.light_onoff_brightness(),
+        extend: [tuya.modernExtend.tuyaLight()],
     },
     {
         fingerprint: [{modelID: 'CCT Light', manufacturerName: 'ZigBee/CCT', manufacturerID: 4137},
@@ -145,4 +144,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

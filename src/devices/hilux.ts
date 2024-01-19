@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,8 +7,9 @@ const definitions: Definition[] = [
         model: 'DZ8',
         vendor: 'Hilux',
         description: 'Spot 7W',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disablePowerOnBehavior: true}),
+        extend: [light({colorTemp: {range: [153, 370]}, powerOnBehavior: false})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

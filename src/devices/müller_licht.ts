@@ -6,6 +6,8 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as tuya from '../lib/tuya';
+import {light, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -38,24 +40,14 @@ const definitions: Definition[] = [
         model: '404017',
         vendor: 'Müller Licht',
         description: 'Smart power strip',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(11) || device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['tint smart power strip'],
         model: '45391',
         vendor: 'Müller Licht',
         description: 'Smart power strip',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         // Identify through fingerprint as modelID is the same as Airam 4713407
@@ -75,7 +67,7 @@ const definitions: Definition[] = [
         toZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], supportsHueAndSaturation: true}).toZigbee
             .concat([tz.tint_scene]),
         // GU10 bulb does not support supportsEnhancedHue,
-        // we can identify these based on the presense of haDiagnostic input cluster
+        // we can identify these based on the presence of haDiagnostic input cluster
         meta: {supportsEnhancedHue: (entity: Zh.Endpoint) => !entity.getDevice().getEndpoint(1).inputClusters.includes(2821)},
     },
     {
@@ -100,6 +92,14 @@ const definitions: Definition[] = [
         vendor: 'Müller Licht',
         description: 'Tint LED Stripe, color, opal white',
         extend: extend.light_onoff_brightness_colortemp_color(),
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
+    },
+    {
+        fingerprint: [{manufacturerName: 'MLI', modelID: 'LED Strip'}],
+        model: '404127',
+        vendor: 'Müller Licht',
+        description: 'Tint LED-Strip white+color, 3 m / 6W RGB',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
     {
@@ -137,9 +137,9 @@ const definitions: Definition[] = [
         model: '404002',
         description: 'Tint dim remote control',
         vendor: 'Müller Licht',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall, fz.command_store],
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
-            'brightness_stop', 'recall_1'])],
+            'brightness_stop', 'recall_1', 'store_1'])],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -151,14 +151,10 @@ const definitions: Definition[] = [
         model: '404021',
         description: 'Tint smart switch',
         vendor: 'Müller Licht',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
+        fingerprint: [{modelID: 'Remote Control', manufacturerName: 'MLI'}],
         zigbeeModel: ['tint-Remote-white'],
         model: '404022/404049C',
         description: 'Tint dim remote control',
@@ -172,6 +168,8 @@ const definitions: Definition[] = [
             device.powerSource = 'Battery';
             device.save();
         },
+        whiteLabel: [{vendor: 'Müller Licht', model: '404049D', description: 'Tint dim remote control',
+            fingerprint: [{modelID: 'Remote Control', manufacturerName: 'MLI'}]}],
     },
     {
         zigbeeModel: ['tint-ColorTemperature', 'tint-ColorTemperature2'],
@@ -193,7 +191,7 @@ const definitions: Definition[] = [
         model: '404031',
         vendor: 'Müller Licht',
         description: 'Tint Armaro',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         fingerprint: [{manufacturerName: 'MLI', modelID: 'Bulb white'}],
@@ -219,6 +217,17 @@ const definitions: Definition[] = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
+    {
+        fingerprint: [{manufacturerName: 'MLI', modelID: 'GU10 white+color'}],
+        model: '45723',
+        vendor: 'Müller Licht',
+        description: 'Tint spotlight GU10 white+color',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
+        toZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}).toZigbee
+            .concat([tz.tint_scene]),
+        meta: {supportsEnhancedHue: false},
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

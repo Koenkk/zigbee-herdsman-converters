@@ -1,6 +1,5 @@
 import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -8,13 +7,9 @@ const definitions: Definition[] = [
         model: 'KS-SM001',
         vendor: 'Ksentry Electronics',
         description: 'Zigbee on/off controller',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(11);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({powerOnBehavior: false})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -2,7 +2,7 @@ import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -34,15 +34,9 @@ const definitions: Definition[] = [
         model: 'D077-ZG',
         vendor: 'HZC',
         description: 'Zigbee dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -2,11 +2,11 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as globalStore from '../lib/store';
 import {Definition} from '../lib/types';
+import {light, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -66,56 +66,56 @@ const definitions: Definition[] = [
         model: 'ZL1000100-CCT-US-V1A02',
         vendor: 'Linkind',
         description: 'Zigbee LED 9W A19 bulb, dimmable & tunable',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-C4700107'],
         model: 'ZL1000400-CCT-EU-2-V1A02',
         vendor: 'Linkind',
         description: 'Zigbee LED 5.4W C35 bulb E14, dimmable & tunable',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-M3500107'],
         model: 'ZL00030014',
         vendor: 'Linkind',
         description: 'Zigbee LED 4.8W GU10 bulb, dimmable & tunable',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-D115'],
         model: 'ZL13100314',
         vendor: 'Linkind',
         description: 'Ceiling light 28W, 3000 lm, Ø40CM CCT',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['ZBT-CCTLight-BR300107'],
         model: 'ZL100050004',
         vendor: 'Linkind',
         description: 'Zigbee LED 7.4W BR30 bulb E26, dimmable & tunable',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZBT-DIMLight-GLS0010'],
         model: 'ZL100010008',
         vendor: 'Linkind',
         description: 'Zigbee LED 9W 2700K A19 bulb, dimmable',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZBT-DIMLight-D0120'],
         model: 'ZL1000701-27-EU-V1A02',
         vendor: 'Linkind',
         description: 'Zigbee A60 filament bulb 6.3W',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZBT-DIMLight-A4700003'],
         model: 'ZL1000700-22-EU-V1A02',
         vendor: 'Linkind',
         description: 'Zigbee A60 led filament, dimmable warm light (2200K), E27. 4.2W, 420lm',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZB-MotionSensor-D0003'],
@@ -164,12 +164,7 @@ const definitions: Definition[] = [
         model: 'ZS190000118',
         vendor: 'Linkind',
         description: 'Control outlet',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['ZB-KeyfodGeneric-D0001'],
@@ -205,4 +200,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

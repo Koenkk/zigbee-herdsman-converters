@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,8 +7,9 @@ const definitions: Definition[] = [
         model: 'CS-Z-CZ-2402',
         vendor: 'DNAKE',
         description: 'Smart socket',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

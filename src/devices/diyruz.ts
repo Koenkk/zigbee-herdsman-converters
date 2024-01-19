@@ -6,6 +6,8 @@ import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import {Definition} from '../lib/types';
+import {onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -15,13 +17,7 @@ const definitions: Definition[] = [
         model: 'DIYRuZ_R4_5',
         vendor: 'DIYRuZ',
         description: '[DiY 4 Relays + 4 switches + 1 buzzer](http://modkam.ru/?p=1054)',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('bottom_left'), e.switch().withEndpoint('bottom_right'),
-            e.switch().withEndpoint('top_left'), e.switch().withEndpoint('top_right'), e.switch().withEndpoint('center')],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5};
-        },
+        extend: [onOff({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4, center: 5}})],
     },
     {
         zigbeeModel: ['DIYRuZ_KEYPAD20'],
@@ -206,7 +202,7 @@ const definitions: Definition[] = [
         description: '[Flower sensor](http://modkam.ru/?p=1700)',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.pressure, fz.battery],
         toZigbee: [],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
         endpoint: (device) => {
             return {'bme': 1, 'ds': 2};
         },
@@ -217,15 +213,15 @@ const definitions: Definition[] = [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement',
                 'msIlluminanceMeasurement', 'msSoilMoisture']);
             await reporting.bind(secondEndpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            const overides = {min: 0, max: 3600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
-            await reporting.temperature(firstEndpoint, overides);
-            await reporting.humidity(firstEndpoint, overides);
-            await reporting.pressureExtended(firstEndpoint, overides);
-            await reporting.illuminance(firstEndpoint, overides);
-            await reporting.soil_moisture(firstEndpoint, overides);
-            await reporting.temperature(secondEndpoint, overides);
+            const overrides = {min: 0, max: 3600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overrides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
+            await reporting.temperature(firstEndpoint, overrides);
+            await reporting.humidity(firstEndpoint, overrides);
+            await reporting.pressureExtended(firstEndpoint, overrides);
+            await reporting.illuminance(firstEndpoint, overrides);
+            await reporting.soil_moisture(firstEndpoint, overrides);
+            await reporting.temperature(secondEndpoint, overrides);
             await firstEndpoint.read('msPressureMeasurement', ['scale']);
         },
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.humidity(), e.pressure(),
@@ -306,4 +302,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

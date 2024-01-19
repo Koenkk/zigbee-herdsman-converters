@@ -6,6 +6,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
+import {onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -20,7 +21,7 @@ const fzLocal = {
                 return {[property]: currentLevel > 0 ? 'ON' : 'OFF'};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -29,12 +30,7 @@ const definitions: Definition[] = [
         model: 'DL15S-1BZ',
         vendor: 'Leviton',
         description: 'Lumina RF 15A switch, 120/277V',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['DG6HD'],
@@ -67,24 +63,14 @@ const definitions: Definition[] = [
         model: 'DG15A-1BW',
         vendor: 'Leviton',
         description: 'Indoor Decora smart Zigbee 3.0 certified plug-in outlet',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['DG15S'],
         model: 'DG15S-1BW',
         vendor: 'Leviton',
         description: 'Decora smart Zigbee 3.0 certified 15A switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['65A01-1'],
@@ -126,7 +112,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fzLocal.on_off_via_brightness, fz.lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config],
         exposes: [e.light_brightness(),
-            // Note: ballast_power_on_level used to be here, but it does't appear to work properly with this device
+            // Note: ballast_power_on_level used to be here, but it doesn't appear to work properly with this device
             // If set, it's reset back to 0 when the device is turned off then back to 32 when turned on
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
@@ -143,4 +129,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -34,6 +34,16 @@ const definitions: Definition[] = [
         toZigbee: [],
         configure: tuya.configureMagicPacket,
     },
+    {
+        fingerprint: [{modelID: 'SM0201', manufacturerName: '_TYZB01_lzrhtcxu'}],
+        model: 'SS300',
+        vendor: 'Cleverio',
+        description: 'Temperature/humdity sensor',
+        exposes: [e.battery().withAccess(ea.STATE_GET), e.temperature(), e.humidity()],
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [tz.battery_percentage_remaining],
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {electricityMeter, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -49,31 +49,15 @@ const definitions: Definition[] = [
         model: 'SX885ZB',
         vendor: 'Salus Controls',
         description: 'miniSmartPlug',
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(9);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, change: 10});
-            await reporting.currentSummDelivered(endpoint, {min: 5, change: [0, 10]});
-            await endpoint.read('seMetering', ['multiplier', 'divisor']);
-        },
+        extend: [onOff(), electricityMeter({cluster: 'metering'})],
         ota: ota.salus,
-        exposes: [e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['SR600'],
         model: 'SR600',
         vendor: 'Salus Controls',
         description: 'Relay switch',
-        extend: extend.switch(),
-        ota: ota.salus,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(9);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({ota: ota.salus})],
     },
     {
         zigbeeModel: ['SW600'],
@@ -106,10 +90,7 @@ const definitions: Definition[] = [
         ota: ota.salus,
     },
     {
-        zigbeeModel: [
-            'SS909ZB',
-            'PS600',
-        ],
+        zigbeeModel: ['SS909ZB', 'PS600'],
         model: 'PS600',
         vendor: 'Salus Controls',
         description: 'Pipe temperature sensor',
@@ -137,4 +118,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

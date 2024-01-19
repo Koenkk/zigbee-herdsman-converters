@@ -4,10 +4,10 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as constants from '../lib/constants';
+import {light, onOff} from '../lib/modernExtend';
 
 const fzLocal = {
     thermostat_3156105: {
@@ -32,7 +32,7 @@ const fzLocal = {
             }
             return fz.thermostat.convert(model, msg, publish, options, meta);
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -205,7 +205,7 @@ const definitions: Definition[] = [
         model: '3420-G',
         vendor: 'Centralite',
         description: '3-Series night light repeater',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         fingerprint: [{modelID: '3157100', manufacturerName: 'Centralite'}, {modelID: '3157100-E', manufacturerName: 'Centralite'}],
@@ -271,11 +271,7 @@ const definitions: Definition[] = [
         model: '4200-C',
         vendor: 'Centralite',
         description: 'Smart outlet',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['3310-G'],
@@ -359,4 +355,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

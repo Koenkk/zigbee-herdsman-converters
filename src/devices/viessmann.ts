@@ -9,6 +9,24 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['7377019'],
+        model: '7377019',
+        vendor: 'Viessmann',
+        description: 'ViCare CO2, temperature and humidity sensor',
+        fromZigbee: [fz.co2, fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.co2(), e.temperature(), e.humidity()],
+    },
+    {
+        zigbeeModel: ['7637435'],
+        model: 'ZK03839',
+        vendor: 'Viessmann',
+        description: 'ViCare climate sensor',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+    },
+    {
         zigbeeModel: ['7637434'],
         model: 'ZK03840',
         vendor: 'Viessmann',
@@ -54,4 +72,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

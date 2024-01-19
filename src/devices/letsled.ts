@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,8 +7,9 @@ const definitions: Definition[] = [
         model: 'HLC929-Z-RGBW-4C-IA-OTA-3.0',
         vendor: 'Letsleds',
         description: 'RGBW down light (color temp is inverted)',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

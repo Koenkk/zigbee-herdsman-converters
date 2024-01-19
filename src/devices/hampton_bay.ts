@@ -4,6 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -33,8 +35,9 @@ const definitions: Definition[] = [
         model: '54668161',
         vendor: 'Hampton Bay',
         description: '12 in. LED smart puff',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

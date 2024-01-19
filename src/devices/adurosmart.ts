@@ -4,7 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -40,8 +41,7 @@ const definitions: Definition[] = [
         model: '81809/81813',
         vendor: 'AduroSmart',
         description: 'ERIA colors and white shades smart light bulb A19/BR30',
-        extend: extend.light_onoff_brightness_colortemp_color(),
-        meta: {applyRedFix: true},
+        extend: [light({colorTemp: {range: undefined}, color: {applyRedFix: true}})],
         endpoint: (device) => {
             return {'default': 2};
         },
@@ -51,22 +51,21 @@ const definitions: Definition[] = [
         model: '81809FBA',
         vendor: 'AduroSmart',
         description: 'ERIA colors and white shades smart light bulb A19/BR30',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
-        meta: {applyRedFix: true},
+        extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], applyRedFix: true}})],
     },
     {
         zigbeeModel: ['AD-E14RGBW3001'],
         model: '81895',
         vendor: 'AduroSmart',
         description: 'ERIA E14 Candle Color',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: [light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ['AD-DimmableLight3001'],
         model: '81810',
         vendor: 'AduroSmart',
         description: 'Zigbee Aduro Eria B22 bulb - warm white',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['Adurolight_NCC'],
@@ -85,50 +84,38 @@ const definitions: Definition[] = [
         zigbeeModel: ['AD-Dimmer'],
         model: '81849',
         vendor: 'AduroSmart',
-        description: 'ERIA build-in multi dimmer module 300W',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        description: 'ERIA built-in multi dimmer module 300W',
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['BDP3001'],
         model: '81855',
         vendor: 'AduroSmart',
         description: 'ERIA smart plug (dimmer)',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['BPU3'],
         model: 'BPU3',
         vendor: 'AduroSmart',
         description: 'ERIA smart plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['Extended Color LED Strip V1.0'],
         model: '81863',
         vendor: 'AduroSmart',
         description: 'Eria color LED strip',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 500]}),
-        meta: {applyRedFix: true},
+        extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], applyRedFix: true}})],
+    },
+    {
+        zigbeeModel: ['AD-81812', 'AD-ColorTemperature3001'],
+        model: '81812/81814',
+        vendor: 'AduroSmart',
+        description: 'Eria tunable white A19/BR30 smart bulb',
+        extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs']}})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

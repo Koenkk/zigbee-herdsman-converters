@@ -3,7 +3,8 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -51,7 +52,7 @@ const definitions: Definition[] = [
         model: 'ZLED-2709',
         vendor: 'Trust',
         description: 'Smart Dimmable LED Bulb',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         fingerprint: [
@@ -66,7 +67,7 @@ const definitions: Definition[] = [
         model: 'ZLED-TUNE9',
         vendor: 'Trust',
         description: 'Smart tunable LED bulb',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         fingerprint: [
@@ -80,7 +81,7 @@ const definitions: Definition[] = [
         model: 'ZLED-RGB9',
         vendor: 'Trust',
         description: 'Smart RGB LED bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: [light({colorTemp: {range: [153, 500]}, color: true, powerOnBehavior: false})],
         endpoint: (device) => {
             return {'default': 2};
         },
@@ -113,6 +114,14 @@ const definitions: Definition[] = [
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
+    {
+        zigbeeModel: ['Built-in Dimmer'],
+        model: 'ZCM-300',
+        vendor: 'Trust',
+        description: 'Zigbee smart dimmer',
+        extend: [light({configureReporting: true})],
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

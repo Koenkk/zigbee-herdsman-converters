@@ -5,12 +5,29 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['PIRILLSensor-EF-3.0'],
+        model: 'HS1MIS-3.0',
+        vendor: 'HEIMAN',
+        description: 'Smart occupancy sensor',
+        fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery(), e.illuminance()],
+        configure: async (device, cordinatorEndpoint, logger)=>{
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, cordinatorEndpoint, ['msOccupancySensing', 'genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await reporting.occupancy(endpoint1);
+            await reporting.bind(endpoint1, cordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.illuminance(endpoint1);
+        },
+    },
     {
         fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
         zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba', 'CO_CTPG'],
@@ -43,6 +60,7 @@ const definitions: Definition[] = [
         vendor: 'HEIMAN',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
+        whiteLabel: [{vendor: 'Schneider Electric', model: 'CCTFR6500'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -179,7 +197,7 @@ const definitions: Definition[] = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['WaterSensor-N', 'WaterSensor-EM', 'WaterSensor-N-3.0', 'WaterSensor-EF-3.0'],
+        zigbeeModel: ['WaterSensor-N', 'WaterSensor-EM', 'WaterSensor-N-3.0', 'WaterSensor-EF-3.0', 'WaterSensor2-EF-3.0'],
         model: 'HS1WL/HS3WL',
         vendor: 'HEIMAN',
         description: 'Water leakage sensor',
@@ -638,7 +656,7 @@ const definitions: Definition[] = [
         model: 'BDHM8E27W70-I1',
         vendor: 'GS', // actually it is HEIMAN.
         description: 'Active light, warm to cool white (E27 & B22)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['HS2SW1L-EF-3.0', 'HS2SW1L-EFR-3.0', 'HS2SW1A-N'],
@@ -710,7 +728,7 @@ const definitions: Definition[] = [
         model: 'HS2WDS',
         vendor: 'HEIMAN',
         description: 'LED 9W CCT E27',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['CurtainMo-EF-3.0', 'CurtainMo-EF'],
@@ -806,4 +824,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

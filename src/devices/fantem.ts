@@ -4,9 +4,8 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 const e = exposes.presets;
 const ea = exposes.access;
-import extend from '../lib/extend';
-import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -15,11 +14,10 @@ const definitions: Definition[] = [
         model: 'ZB006-X',
         vendor: 'Fantem',
         description: 'Smart dimmer module',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        fromZigbee: [...extend.light_onoff_brightness({noConfigure: true}).fromZigbee,
-            fz.command_on, fz.command_off, fz.command_move, fz.command_stop, legacy.fz.ZB006X_settings],
-        toZigbee: [...extend.light_onoff_brightness({noConfigure: true}).toZigbee, legacy.tz.ZB006X_settings],
-        exposes: [e.light_brightness(),
+        extend: [light({configureReporting: true})],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, legacy.fz.ZB006X_settings],
+        toZigbee: [legacy.tz.ZB006X_settings],
+        exposes: [
             e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
             e.enum('control_mode', ea.STATE_SET, ['ext_switch', 'remote', 'both']).withDescription('Control mode'),
             e.enum('switch_type', ea.STATE_SET, ['unknown', 'toggle', 'momentary', 'rotary', 'auto_config'])
@@ -39,23 +37,21 @@ const definitions: Definition[] = [
         meta: {disableActionGroup: true},
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
             // Enables reporting of physical state changes
             // https://github.com/Koenkk/zigbee2mqtt/issues/9057#issuecomment-1007742130
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3210_wuhzzfqg'}],
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_0aqbrnts', '_TZ3210_rxqls8v0', '_TZ3210_zmy9hjay', '_TZ3210_wuhzzfqg']),
         model: 'ZB003-X',
         vendor: 'Fantem',
         description: '4 in 1 multi sensor',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
+        whiteLabel: [
+            tuya.whitelabel('EFK', 'is-thpl-zb', '4 in 1 multi sensor', ['_TZ3210_0aqbrnts']),
+        ],
         exposes: [e.occupancy(), e.tamper(), e.illuminance_lux(), e.illuminance(), e.temperature(), e.humidity(),
             e.battery(), e.battery_voltage(),
             e.numeric('battery2', ea.STATE).withUnit('%').withDescription('Remaining battery 2 in %'),
@@ -77,4 +73,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

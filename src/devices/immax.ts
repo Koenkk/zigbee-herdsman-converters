@@ -5,11 +5,36 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as tuya from '../lib/tuya';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
 const definitions: Definition[] = [
+    {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_jak16dll']),
+        model: '07752L',
+        description: 'NEO smart internal double socket',
+        vendor: 'Immax',
+        extend: tuya.extend.switch({
+            electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ['l1', 'l2']}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.currentSummDelivered(endpoint);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'current', 'voltage', 'energy']},
+    },
     {
 
         zigbeeModel: ['Motion-Sensor-ZB3.0'],
@@ -25,35 +50,35 @@ const definitions: Definition[] = [
         model: '07089L',
         vendor: 'Immax',
         description: 'NEO SMART LED E27 5W',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['E27-filament-Dim-ZB3.0'],
         model: '07088L',
         vendor: 'Immax',
         description: 'Neo SMART LED filament E27 6.3W warm white, dimmable, Zigbee 3.0',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['IM-Z3.0-DIM'],
         model: '07001L/07005B',
         vendor: 'Immax',
         description: 'Neo SMART LED E14 5W warm white, dimmable, Zigbee 3.0',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['IM-Z3.0-RGBW'],
         model: '07004D/07005L',
         vendor: 'Immax',
         description: 'Neo SMART LED E27/E14 color, dimmable, Zigbee 3.0',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['IM-Z3.0-RGBCCT'],
         model: '07008L',
         vendor: 'Immax',
         description: 'Neo SMART LED strip RGB + CCT, color, dimmable, Zigbee 3.0',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_pwauw3g2'}],
@@ -126,7 +151,7 @@ const definitions: Definition[] = [
         model: '07115L',
         vendor: 'Immax',
         description: 'Neo SMART LED E27 9W RGB + CCT, dimmable, Zigbee 3.0',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['4in1-Sensor-ZB3.0'],
@@ -152,17 +177,17 @@ const definitions: Definition[] = [
         model: '07073L',
         vendor: 'Immax',
         description: 'Neo CANTO/HIPODROMO SMART, color temp, dimmable, Zigbee 3.0',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['IM-Z3.0-CCT'],
         model: '07042L',
         vendor: 'Immax',
         description: 'Neo RECUADRO SMART, color temp, dimmable, Zigbee 3.0',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_jijr1sss'}],
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_jijr1sss', '_TZ3210_m3mxv66l']),
         model: '07502L',
         vendor: 'Immax',
         description: '4 in 1 multi sensor',
@@ -204,4 +229,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

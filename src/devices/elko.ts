@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 const ea = exposes.access;
 const e = exposes.presets;
 
@@ -14,14 +14,8 @@ const definitions: Definition[] = [
         model: '316GLEDRF',
         vendor: 'ELKO',
         description: 'ZigBee in-wall smart dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
+        extend: [light({configureReporting: true})],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
     },
     {
         zigbeeModel: ['ElkoDimmerRemoteZHA'],
@@ -94,7 +88,7 @@ const definitions: Definition[] = [
                 attribute: 'elkoLoad',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null,
+                reportableChange: 1,
             }]);
             // Power status
             await endpoint.configureReporting('hvacThermostat', [{
@@ -176,4 +170,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

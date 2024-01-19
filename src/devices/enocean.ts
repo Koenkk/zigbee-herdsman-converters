@@ -18,7 +18,7 @@ const definitions: Definition[] = [
             {vendor: 'NodOn', description: 'Smart switch for Philips Hue', model: 'CWS-4-1-01_HUE'},
             {vendor: 'Vimar', description: 'Zigbee Friends of Hue RF switch', model: '03906'},
             {vendor: 'Sunricher', model: 'SR-ZGP2801K4-FOH-E'},
-            {vendor: 'LED Trading', model: '9125'},
+            {vendor: 'LED-Trading', model: '9125'},
             {vendor: 'Feller', description: 'Smart light control for Philips Hue', model: '4120.2.S.FMI.61'},
         ],
     },
@@ -52,4 +52,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

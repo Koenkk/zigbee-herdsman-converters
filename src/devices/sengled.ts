@@ -4,11 +4,11 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
+import {onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
 // Make sure extend.ldight_* is not used (sengledExtend should be used instead)
 import extendDontUse from '../lib/extend';
-const extend = {switch: extendDontUse.switch};
 const sengledExtend = {
     light_onoff_brightness: (options={}) => extendDontUse.light_onoff_brightness(
         {disableEffect: true, disablePowerOnBehavior: true, ...options}),
@@ -280,12 +280,7 @@ const definitions: Definition[] = [
         model: 'E1C-NB6',
         vendor: 'Sengled',
         description: 'Smart plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -332,4 +327,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

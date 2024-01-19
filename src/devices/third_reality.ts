@@ -5,6 +5,9 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import {Definition, Fz, KeyValue} from '../lib/types';
+import {light, onOff} from '../lib/modernExtend';
+import {temperature, humidity, batteryPercentage} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const fzLocal = {
@@ -18,15 +21,15 @@ const fzLocal = {
             if (msg.data['3']) payload.z_axis = msg.data['3'];
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
     thirdreality_private_motion_sensor: {
-        cluster: '64512',
+        cluster: 'manuSpecificUbisysDeviceSetup',
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data[2];
             return {occupancy: (zoneStatus & 1) > 0};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -74,14 +77,14 @@ const definitions: Definition[] = [
         model: '3RSL011Z',
         vendor: 'Third Reality',
         description: 'Smart light A19',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3RSL012Z'],
         model: '3RSL012Z',
         vendor: 'Third Reality',
         description: 'Smart light BR30',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['3RWS18BZ'],
@@ -136,13 +139,8 @@ const definitions: Definition[] = [
         model: '3RSP019BZ',
         vendor: 'Third Reality',
         description: 'Zigbee / BLE smart plug',
-        extend: extend.switch(),
+        extend: [onOff()],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
     },
     {
         zigbeeModel: ['3RSB015BZ'],
@@ -187,6 +185,14 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['3RTHS0224BZ'],
+        model: '3RTHS0224BZ',
+        vendor: 'Third Reality',
+        description: 'Temperature and humidity sensor v2',
+        extend: [temperature(), humidity(), batteryPercentage()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -238,18 +244,42 @@ const definitions: Definition[] = [
         description: 'Zigbee multi-function night light',
         ota: ota.zigbeeOTA,
         fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
-            fzLocal.thirdreality_private_motion_sensor, fz.illuminance]),
+            fzLocal.thirdreality_private_motion_sensor, fz.illuminance, fz.ias_occupancy_alarm_1_report]),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee,
-        exposes: [e.light_brightness_colortemp_color([153, 555]).removeFeature('color_temp_startup'),
+        exposes: [e.light_brightness_colorxy(),
             e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
-        endpoint: (device) => {
-            return {'default': 1};
-        },
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
     },
+    {
+        zigbeeModel: ['3RSPE01044BZ'],
+        model: '3RSPE01044BZ',
+        vendor: 'Third Reality',
+        description: 'Zigbee / BLE smart plug with power',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        ota: ota.zigbeeOTA,
+        exposes: [e.switch(), e.power_on_behavior(), e.ac_frequency(), e.power(), e.power_factor(), e.energy(), e.current(), e.voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 3600000, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
+                acPowerDivisor: 10,
+            });
+            device.save();
+        },
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

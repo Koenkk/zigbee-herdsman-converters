@@ -1,6 +1,6 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
 import * as tuya from '../lib/tuya';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -8,29 +8,28 @@ const definitions: Definition[] = [
         model: 'Aj_Zigbee_Led_Strip',
         vendor: 'Ajax Online',
         description: 'LED Strip',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['AJ_ZB30_GU10', 'AJ_ZB120_GU10'],
         model: 'AJ_ZB_GU10',
         vendor: 'Ajax Online',
         description: 'Smart Zigbee pro GU10 spotlight bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495], disableEffect: true}),
+        extend: [light({colorTemp: {range: [158, 495]}, color: true, effect: false})],
     },
     {
         zigbeeModel: ['AJ_ZBPROA60', 'AJ_ZBPROA6'],
         model: 'AJ_ZIGPROA60',
         vendor: 'Ajax Online',
         description: 'Smart Zigbee pro 12W A60 bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
-        meta: {turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [158, 495]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['ZB_A60_RGBCW'],
         model: 'ZB_A60_RGBCW',
         vendor: 'Ajax Online',
         description: 'Smart Zigbee pro 12W A60 RGBCW bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: [light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_hzy4rjz3'}],
@@ -45,8 +44,9 @@ const definitions: Definition[] = [
         model: 'ZB-CCT_Filament',
         vendor: 'Ajax Online',
         description: 'Zigbee LED filament light dimmable E27, edison ST64, flame 2200K',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: [light({colorTemp: {range: [153, 454]}})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

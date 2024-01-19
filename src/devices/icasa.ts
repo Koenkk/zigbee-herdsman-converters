@@ -2,8 +2,8 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -12,38 +12,21 @@ const definitions: Definition[] = [
         model: 'ICZB-IW11D',
         vendor: 'iCasa',
         description: 'ZigBee AC dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ICZB-DC11'],
         model: 'ICZB-DC11',
         vendor: 'iCasa',
         description: 'ZigBee 12-36V DC LED dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ICZB-IW11SW'],
         model: 'ICZB-IW11SW',
         vendor: 'iCasa',
         description: 'Zigbee 3.0 AC switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['ICZB-KPD12'],
@@ -63,8 +46,11 @@ const definitions: Definition[] = [
         description: 'Zigbee 3.0 Keypad Pulse 4S',
         meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off,
-            legacy.fz.genOnOff_cmdOff, fz.battery, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop_with_onoff],
-        exposes: [e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_move_up', 'brightenss_move_down', 'brightness_stop'])],
+            legacy.fz.genOnOff_cmdOff, fz.battery, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop_with_onoff, fz.command_store],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
+            'recall_1', 'recall_2', 'recall_3', 'recall_4',
+            'store_1', 'store_2', 'store_3', 'store_4'])],
         toZigbee: [],
     },
     {
@@ -73,8 +59,11 @@ const definitions: Definition[] = [
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Keypad Pulse 8S',
         fromZigbee: [fz.command_recall, legacy.fz.scenes_recall_click, fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off,
-            legacy.fz.genOnOff_cmdOff, fz.battery, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop_with_onoff],
-        exposes: [e.battery(), e.action(['on', 'recall_*', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
+            legacy.fz.genOnOff_cmdOff, fz.battery, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop_with_onoff, fz.command_store],
+        exposes: [e.battery(), e.action([
+            'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
+            'recall_1', 'recall_2', 'recall_3', 'recall_4', 'recall_5', 'recall_6',
+            'store_1', 'store_2', 'store_3', 'store_4', 'store_5', 'store_6'])],
         toZigbee: [],
     },
     {
@@ -92,34 +81,23 @@ const definitions: Definition[] = [
         model: 'ICZB-B1FC60/B3FC64/B2FC95/B2FC125',
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Filament Lamp 60/64/95/125 mm, 806 lumen, dimmable, clear',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ICZB-R11D'],
         model: 'ICZB-R11D',
         vendor: 'iCasa',
         description: 'Zigbee AC dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ICZB-R12D'],
         model: 'ICZB-R12D',
         vendor: 'iCasa',
         description: 'Zigbee AC dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

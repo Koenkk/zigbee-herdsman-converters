@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,8 +7,9 @@ const definitions: Definition[] = [
         model: 'PS-ZIGBEE-SMART-CONTROLER-1CH-DIMMABLE',
         vendor: 'Niviss',
         description: 'Zigbee smart controller',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

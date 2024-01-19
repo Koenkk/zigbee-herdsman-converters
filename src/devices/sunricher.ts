@@ -8,13 +8,15 @@ import * as constants from '../lib/constants';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import {Definition, Fz, Zh} from '../lib/types';
+import {light, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
     sunricher_SRZGP2801K45C: {
         cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
+        type: ['commandNotification', 'commandCommissioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
@@ -40,7 +42,7 @@ const fzLocal = {
                 return {action: utils.getFromLookup(commandID, lookup)};
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 async function syncTime(endpoint: Zh.Endpoint) {
@@ -57,35 +59,41 @@ const definitions: Definition[] = [
         model: 'SR-ZG9023A-EU',
         vendor: 'Sunricher',
         description: '4 ports switch with 2 usb ports (no metering)',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}})],
     },
     {
         zigbeeModel: ['ON/OFF(2CH)'],
         model: 'UP-SA-9127D',
         vendor: 'Sunricher',
-        description: 'LED-trading 2 channel AC switch',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        description: 'LED-Trading 2 channel AC switch',
+        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
+    },
+    {
+        fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.9.2_r54'}],
+        model: 'SR-ZG9101SAC-HP-SWITCH-2CH',
+        vendor: 'Sunricher',
+        description: 'Zigbee 2 channel switch',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power(), e.current(),
+            e.voltage(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            await reporting.onOff(endpoint2);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint1);
+            await reporting.activePower(endpoint1);
+            await reporting.rmsCurrent(endpoint1, {min: 10, change: 10});
+            await reporting.rmsVoltage(endpoint1, {min: 10});
+            await reporting.readMeteringMultiplierDivisor(endpoint1);
+            await reporting.currentSummDelivered(endpoint1);
         },
     },
     {
@@ -93,7 +101,7 @@ const definitions: Definition[] = [
         model: 'HK-ZD-CCT-A',
         vendor: 'Sunricher',
         description: '50W Zigbee CCT LED driver (constant current)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+        extend: [light({colorTemp: {range: [160, 450]}})],
     },
     {
         zigbeeModel: ['ZGRC-KEY-004'],
@@ -185,32 +193,21 @@ const definitions: Definition[] = [
         model: 'ZG192910-4',
         vendor: 'Sunricher',
         description: 'Zigbee LED-controller',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['ZG9101SAC-HP'],
         model: 'ZG9101SAC-HP',
         vendor: 'Sunricher',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['ON/OFF -M', 'ON/OFF', 'ZIGBEE-SWITCH'],
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['Micro Smart Dimmer', 'SM311', 'HK-SL-RDIM-A', 'HK-SL-DIM-EU-A'],
@@ -271,14 +268,14 @@ const definitions: Definition[] = [
         model: 'SRP-ZG9105-CC',
         vendor: 'Sunricher',
         description: 'Constant Current Zigbee LED dimmable driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['HK-DIM'],
         model: '50208702',
         vendor: 'Sunricher',
         description: 'LED dimmable driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
         whiteLabel: [{vendor: 'Yphix', model: '50208702'}],
     },
     {
@@ -286,25 +283,14 @@ const definitions: Definition[] = [
         model: 'SR-ZG9040A-S',
         vendor: 'Sunricher',
         description: 'ZigBee AC phase-cut dimmer single-line',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['Micro Smart OnOff', 'HK-SL-RELAY-A'],
         model: 'SR-ZG9100A-S',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch single-line',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['ZG2819S-CCT'],
@@ -427,7 +413,7 @@ const definitions: Definition[] = [
             e.numeric('floor_sensor_calibration', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(-3).withValueMax(3).withValueStep(0.1)
-                .withDescription('The tempearatue calibration for the exernal floor sensor, between -3 and 3 in 0.1°C.  Default: 0.'),
+                .withDescription('The tempearatue calibration for the external floor sensor, between -3 and 3 in 0.1°C.  Default: 0.'),
             e.numeric('dry_time', ea.ALL)
                 .withUnit('min')
                 .withValueMin(5).withValueMax(100)
@@ -616,7 +602,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TERNCY-DC01', manufacturerName: 'Sunricher'}],
+        fingerprint: [{modelID: 'TERNCY-DC01', manufacturerName: 'Sunricher'}, {modelID: 'HK-SENSOR-CT-A', manufacturerName: 'Sunricher'}],
         model: 'SR-ZG9010A',
         vendor: 'Sunricher',
         description: 'Door windows sensor',
@@ -626,4 +612,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

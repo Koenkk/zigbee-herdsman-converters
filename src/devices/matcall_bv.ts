@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,15 +7,16 @@ const definitions: Definition[] = [
         model: 'ZG401224',
         vendor: 'Matcall',
         description: 'LED dimmer driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['ZG 430700', 'ZG  430700'],
         model: 'ZG430700',
         vendor: 'Matcall',
         description: 'LED dimmer driver',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

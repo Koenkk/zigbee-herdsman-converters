@@ -1,0 +1,14 @@
+name: review_request
+
+on: [pull_request]
+
+jobs:
+  review-request:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ethanis/nitpicker@v1
+        with:
+          nitpicks: '.github/nitpicks.yml'
+          token: '${{ secrets.GITHUB_TOKEN }}'

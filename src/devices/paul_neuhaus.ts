@@ -1,7 +1,8 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import extend from '../lib/extend';
+import {light, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -15,7 +16,7 @@ const definitions: Definition[] = [
             fz.tint_scene, fz.command_recall],
         exposes: [e.action(['on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move',
             'brightness_stop', 'brightness_move_up', 'brightness_move_down', 'color_loop_set', 'enhanced_move_to_hue_and_saturation',
-            'recall_*', 'scene_*'])],
+            'recall_*', 'scene_*']), e.action_group()],
         toZigbee: [],
     },
     {
@@ -23,21 +24,21 @@ const definitions: Definition[] = [
         model: 'NLG-CCT light',
         vendor: 'Paul Neuhaus',
         description: 'Various color temperature lights (e.g. 100.424.11)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['Neuhaus NLG-TW light', 'NLG-TW light'],
         model: 'NLG-TW light',
         vendor: 'Paul Neuhaus',
         description: 'Various tunable white lights (e.g. 8195-55)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['NLG-RGBW light '], // the space as the end is intentional, as this is what the device sends
         model: 'NLG-RGBW_light',
         vendor: 'Paul Neuhaus',
         description: 'Various RGBW lights (e.g. 100.110.39)',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
         endpoint: (device) => {
             return {'default': 2};
         },
@@ -47,28 +48,40 @@ const definitions: Definition[] = [
         model: 'NLG-RGBW__light',
         vendor: 'Paul Neuhaus',
         description: 'Various RGBW lights (e.g. 100.111.57)',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['NLG-RGB-TW light'],
         model: 'NLG-RGB-TW light',
         vendor: 'Paul Neuhaus',
         description: 'Various RGB + tunable white lights (e.g. 100.470.92)',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['NLG-plug'],
         model: '100.425.90',
         vendor: 'Paul Neuhaus',
         description: 'Q-PLUG adapter plug with night orientation light',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['JZ-CT-Z01'],
         model: '100.110.51',
         vendor: 'Paul Neuhaus',
         description: 'Q-FLAG LED panel, Smart-Home CCT',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
+    },
+    {
+        zigbeeModel: ['JZ-RC-J4R'],
+        model: 'E0040006',
+        vendor: 'Paul Neuhaus',
+        description: 'Q RGBW remote controller',
+        fromZigbee: [fz.command_step, fz.command_ehanced_move_to_hue_and_saturation, fz.command_move_to_color_temp,
+            fz.command_on, fz.command_off, fz.command_color_loop_set],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_move',
+            'color_temperature_move', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
+            'color_loop_set', 'enhanced_move_to_hue_and_saturation']), e.action_group()],
     },
     {
         zigbeeModel: ['JZ-RGBW-Z01'],
@@ -78,22 +91,23 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'default': 2};
         },
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['JZD60-J4R150'],
         model: '100.001.96',
         vendor: 'Paul Neuhaus',
         description: 'Q-LED Lamp RGBW E27 socket',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['Neuhaus RGB+CCT light'],
         model: '100.491.61',
         vendor: 'Paul Neuhaus',
         description: 'Q-MIA LED RGBW wall lamp, 9185-13',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

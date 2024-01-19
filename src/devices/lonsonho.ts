@@ -6,6 +6,8 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as tuya from '../lib/tuya';
+import {light, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -20,7 +22,7 @@ const definitions: Definition[] = [
         meta: {coverInverted: true},
         exposes: [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             e.binary('calibration', ea.ALL, 'ON', 'OFF'), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
-            e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')],
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_egq7y6pr'}],
@@ -34,10 +36,10 @@ const definitions: Definition[] = [
         exposes: [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             e.binary('calibration', ea.ALL, 'ON', 'OFF'), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
             e.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH']),
-            e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')],
     },
     {
-        fingerprint: tuya.fingerprint('TS130F', ['_TZ3000_j1xl73iw', '_TZ3000_kmsbwdol', '_TZ3000_esynmmox', '_TZ3000_l6iqph4f']),
+        fingerprint: tuya.fingerprint('TS130F', ['_TZ3000_j1xl73iw', '_TZ3000_kmsbwdol', '_TZ3000_esynmmox', '_TZ3000_l6iqph4f', '_TZ3000_xdo0hj1k']),
         model: 'TS130F_dual',
         vendor: 'Lonsonho',
         description: 'Dual curtain/blind module',
@@ -50,9 +52,9 @@ const definitions: Definition[] = [
         exposes: [
             e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('left'),
             e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('right'),
-            e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')
                 .withEndpoint('left'),
-            e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')
                 .withEndpoint('right'),
             e.cover_position().withEndpoint('left'), e.binary('calibration', ea.ALL, 'ON', 'OFF')
                 .withEndpoint('left'), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF').withEndpoint('left'),
@@ -107,27 +109,23 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-D02-TRIAC-L',
         vendor: 'Lonsonho',
         description: '1 gang smart dimmer switch module without neutral',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_qezuin6k'}],
         model: 'QS-Zigbee-D02-TRIAC-LN',
         vendor: 'Lonsonho',
         description: '1 gang smart dimmer switch module with neutral',
-        extend: tuya.extend.light_onoff_brightness({disableMoveStep: true, disableTransition: true, minBrightness: true}),
+        extend: [tuya.modernExtend.tuyaLight({minBrightness: true})],
     },
     {
         fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}],
         model: 'QS-Zigbee-D02-TRIAC-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module with neutral',
-        extend: tuya.extend.light_onoff_brightness({minBrightness: true, endpoints: ['l1', 'l2'], noConfigure: true}),
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
+        extend: [tuya.modernExtend.tuyaLight({minBrightness: true, endpoints: {l1: 1, l2: 2}})],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             // Don't do: await reporting.onOff(endpoint); https://github.com/Koenkk/zigbee2mqtt/issues/6041
@@ -159,12 +157,7 @@ const definitions: Definition[] = [
         model: '4000116784070',
         vendor: 'Lonsonho',
         description: 'Smart plug EU',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(11);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['ZB-RGBCW'],
@@ -174,8 +167,7 @@ const definitions: Definition[] = [
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
-        extend: extend.light_onoff_brightness_colortemp_color(
-            {disableColorTempStartup: true, colorTempRange: [153, 500], disableEffect: true, disablePowerOnBehavior: true}),
+        extend: [light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false})],
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}, {modelID: 'TS0003', manufacturerName: '_TYZB01_uqkphoed'}],
@@ -199,14 +191,11 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-S05-LN',
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        toZigbee: [tz.power_on_behavior, tz.TYZB01_on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({powerOnBehavior: false, configureReporting: false})],
+        toZigbee: [tz.TYZB01_on_off],
     },
     {
-        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_zirycpws'}],
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_zirycpws'}, {modelID: 'TS130F', manufacturerName: '_TZ3210_ol1uhvza'}],
         model: 'QS-Zigbee-C03',
         vendor: 'Lonsonho',
         description: 'Curtain/blind motor controller',
@@ -215,8 +204,47 @@ const definitions: Definition[] = [
         meta: {coverInverted: true},
         exposes: [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             e.binary('calibration', ea.ALL, 'ON', 'OFF'), e.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
-            e.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
+            e.numeric('calibration_time', ea.STATE).withUnit('s').withDescription('Calibration time')],
+    },
+    {
+        fingerprint: [{modelID: 'TS0603', manufacturerName: '_TZE600_wxq8dpha\u0000'}],
+        model: 'VM-Zigbee-S02-0-10V',
+        vendor: 'Lonsonho',
+        description: '2 channel Zigbee 0-10V dimmer module',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l1'),
+            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l2'),
+            tuya.exposes.countdown().withEndpoint('l1'),
+            tuya.exposes.countdown().withEndpoint('l2'),
+            tuya.exposes.switchType().withEndpoint('l1'),
+            tuya.exposes.switchType().withEndpoint('l2'),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [3, 'min_brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [4, 'switch_type_l1', tuya.valueConverter.switchType],
+                [5, 'max_brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [6, 'countdown_l1', tuya.valueConverter.raw],
+                [7, 'state_l2', tuya.valueConverter.onOff],
+                [8, 'brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [9, 'min_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [10, 'switch_type_l2', tuya.valueConverter.switchType],
+                [11, 'max_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [12, 'countdown_l2', tuya.valueConverter.raw],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
+            ],
+        },
     },
 ];
 
+export default definitions;
 module.exports = definitions;

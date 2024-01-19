@@ -4,7 +4,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -33,7 +34,7 @@ const definitions: Definition[] = [
         model: 'MCLH-02',
         vendor: 'LifeControl',
         description: 'RGB LED lamp',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['RICI01'],
@@ -93,4 +94,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -2,7 +2,6 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as tuya from '../lib/tuya';
-import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -26,6 +25,7 @@ const definitions: Definition[] = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_gz3n0tzf'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_nthosjmx'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_na98lvjp'},
         ],
         model: 'WZ5_cct',
         vendor: 'Skydance',
@@ -35,6 +35,9 @@ const definitions: Definition[] = [
         exposes: [
             e.light().withBrightness().setAccess('state',
                 ea.STATE_SET).setAccess('brightness', ea.STATE_SET).withColorTemp([250, 454]).setAccess('color_temp', ea.STATE_SET),
+        ],
+        whiteLabel: [
+            tuya.whitelabel('Ltech', 'TY-75-24-G2Z2_CCT', '150W 24V Zigbee CV tunable white LED driver', ['_TZE200_na98lvjp']),
         ],
     },
     {
@@ -96,20 +99,7 @@ const definitions: Definition[] = [
         ],
         meta: {separateWhite: true},
     },
-    {
-        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZB210_rkgngb5o'}],
-        model: 'WZ1',
-        vendor: 'Skydance',
-        description: 'Zigbee & RF 2 channel LED controller',
-        extend: tuya.extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
-    },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -17,7 +17,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -37,4 +37,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

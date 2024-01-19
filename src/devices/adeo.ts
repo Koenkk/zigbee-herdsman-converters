@@ -1,10 +1,12 @@
-import {Definition, Fz} from '../lib/types';
+import {Definition, Fz, Tz} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import tz from '../converters/toZigbee';
+import {electricityMeter, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
+
 const e = exposes.presets;
+const ea = exposes.access;
 
 const fzLocal = {
     LDSENK08: {
@@ -19,7 +21,17 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
+};
+
+const tzLocal = {
+    LDSENK08_sensitivity: {
+        key: ['sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('ssIasZone', {0x0013: {value, type: 0x20}});
+            return {state: {sensitivity: value}};
+        },
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -29,8 +41,9 @@ const definitions: Definition[] = [
         vendor: 'ADEO',
         description: 'ENKI LEXMAN wireless smart door window sensor with vibration',
         fromZigbee: [fzLocal.LDSENK08, fz.battery],
-        toZigbee: [],
-        exposes: [e.battery_low(), e.contact(), e.vibration(), e.tamper(), e.battery()],
+        toZigbee: [tzLocal.LDSENK08_sensitivity],
+        exposes: [e.battery_low(), e.contact(), e.vibration(), e.tamper(), e.battery(),
+            e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(4).withDescription('Sensitivity of the motion sensor')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -54,107 +67,159 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['ZBEK-7'],
-        model: 'IST-CDZFB2AS007NA-MZN-02',
+        zigbeeModel: ['ZBEK-1'],
+        model: 'IA-CDZOTAAA007MA-MAN',
         vendor: 'ADEO',
-        description: 'ENKI LEXMAN E27 LED Edison white filament 806 lumen',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        description: 'ENKI LEXMAN E27 7.2 to 60W LED RGBW',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
-        zigbeeModel: ['ZBEK-8'],
-        model: 'IG-CDZFB2G009RA-MZN-02',
+        zigbeeModel: ['ZBEK-2'],
+        model: 'IG-CDZOTAAG014RA-MAN',
         vendor: 'ADEO',
-        description: 'ENKI LEXMAN E27 LED white filament 1055 lumen',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-    },
-    {
-        zigbeeModel: ['ZBEK-9'],
-        model: 'IA-CDZFB2AA007NA-MZN-02',
-        vendor: 'ADEO',
-        description: 'ENKI LEXMAN E27 LED white',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
-    },
-    {
-        zigbeeModel: ['ZBEK-6'],
-        model: 'IG-CDZB2AG009RA-MZN-01',
-        vendor: 'ADEO',
-        description: 'ENKI LEXMAN E27 Led white bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
-    },
-    {
-        zigbeeModel: ['ZBEK-4'],
-        model: 'IM-CDZDGAAA0005KA_MAN',
-        vendor: 'ADEO',
-        description: 'ENKI LEXMAN RGBTW GU10 Bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
-    },
-    {
-        zigbeeModel: ['ZBEK-10'],
-        model: 'IC-CDZFB2AC004HA-MZN',
-        vendor: 'ADEO',
-        description: 'ENKI LEXMAN E14 LED white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-    },
-    {
-        zigbeeModel: ['ZBEK-11'],
-        model: 'IM-CDZDGAAG005KA-MZN',
-        vendor: 'ADEO',
-        description: 'ENKI LEXMAN GU-10 LED white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-    },
-    {
-        zigbeeModel: ['ZBEK-12'],
-        model: 'IA-CDZFB2AA007NA-MZN-01',
-        vendor: 'ADEO',
-        description: 'ENKI LEXMAN E27 LED white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-    },
-    {
-        zigbeeModel: ['ZBEK-13'],
-        model: 'IG-CDZFB2AG010RA-MNZ',
-        vendor: 'ADEO',
-        description: 'ENKI LEXMAN E27 LED white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-    },
-    {
-        zigbeeModel: ['ZBEK-14'],
-        model: 'IC-CDZFB2AC005HA-MZN',
-        vendor: 'ADEO',
-        description: 'ENKI LEXMAN E14 LED white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-    },
-    {
-        zigbeeModel: ['ZBEK-22'],
-        model: 'BD05C-FL-21-G-ENK',
-        vendor: 'ADEO',
-        description: 'ENKI RGBCCT lamp',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
-    },
-    {
-        zigbeeModel: ['ZBEK-5'],
-        model: 'IST-CDZFB2AS007NA-MZN-01',
-        vendor: 'ADEO',
-        description: 'ENKI LEXMAN E27 LED white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        description: 'ENKI LEXMAN E27 14W to 100W LED RGBW v2',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['ZBEK-3'],
         model: 'IP-CDZOTAAP005JA-MAN',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN E14 LED RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ['ZBEK-4'],
+        model: 'IM-CDZDGAAA0005KA_MAN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN RGBTW GU10 Bulb',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ['ZBEK-5'],
+        model: 'IST-CDZFB2AS007NA-MZN-01',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white',
+        extend: [light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['SIN-4-1-21_EQU'],
+        model: 'SIN-4-1-21_EQU',
+        vendor: 'ADEO',
+        description: 'Multifunction relay switch with metering',
+        extend: [onOff(), electricityMeter({cluster: 'metering'})],
+    },
+    {
+        zigbeeModel: ['ZBEK-7'],
+        model: 'IST-CDZFB2AS007NA-MZN-02',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED Edison white filament 806 lumen',
+        extend: [light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['ZBEK-8'],
+        model: 'IG-CDZFB2G009RA-MZN-02',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white filament 1055 lumen',
+        extend: [light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['ZBEK-9'],
+        model: 'IA-CDZFB2AA007NA-MZN-02',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white',
+        extend: [light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['ZBEK-6'],
+        model: 'IG-CDZB2AG009RA-MZN-01',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 Led white bulb',
+        extend: [light({colorTemp: {range: [153, 454]}})],
+    },
+
+    {
+        zigbeeModel: ['ZBEK-10'],
+        model: 'IC-CDZFB2AC004HA-MZN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E14 LED white',
+        extend: [light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['ZBEK-11'],
+        model: 'IM-CDZDGAAG005KA-MZN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN GU-10 LED white',
+        extend: [light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['ZBEK-12'],
+        model: 'IA-CDZFB2AA007NA-MZN-01',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white',
+        extend: [light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['ZBEK-13'],
+        model: 'IG-CDZFB2AG010RA-MNZ',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white',
+        extend: [light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['ZBEK-14'],
+        model: 'IC-CDZFB2AC005HA-MZN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E14 LED white',
+        extend: [light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['ZBEK-22'],
+        model: 'BD05C-FL-21-G-ENK',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN RGBCCT lamp',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ['ZBEK-27'],
+        model: '84845506',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN Gdansk',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ['ZBEK-29'],
+        model: '84845509',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN Gdansk LED panel',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ['ZBEK-28'],
+        model: 'PEZ1-042-1020-C1D1',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN Gdansk',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ['ZBEK-34'],
+        model: '84870058',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN Extraflat 225 ',
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['LDSENK01F'],
         model: 'LDSENK01F',
         vendor: 'ADEO',
         description: '10A EU smart plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
+    },
+    {
+        zigbeeModel: ['LDSENK01S'],
+        model: 'LDSENK01S',
+        vendor: 'ADEO',
+        description: '10A EU smart plug',
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['LXEK-5', 'ZBEK-26'],
@@ -179,28 +244,28 @@ const definitions: Definition[] = [
         model: '9CZA-A806ST-Q1A',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN E27 LED RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['LXEK-3'],
         model: '9CZA-P470T-A1A',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN E14 LED RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['LXEK-4'],
         model: '9CZA-M350ST-Q1A',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN GU-10 LED RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['LXEK-2'],
         model: '9CZA-G1521-Q1A',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN E27 14W to 100W LED RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['LDSENK07'],
@@ -210,47 +275,26 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.ias_siren],
         toZigbee: [tz.warning],
         exposes: [e.warning(), e.battery(), e.battery_low(), e.tamper()],
+        extend: [
+            quirkCheckinInterval(0),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.defaultSendRequestWhen = 'immediate';
-            device.save();
             await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
         },
-    },
-    {
-        zigbeeModel: ['ZBEK-2'],
-        model: 'IG-CDZOTAAG014RA-MAN',
-        vendor: 'ADEO',
-        description: 'ENKI LEXMAN E27 14W to 100W LED RGBW v2',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
-    },
-    {
-        zigbeeModel: ['ZBEK-1'],
-        model: 'IA-CDZOTAAA007MA-MAN',
-        vendor: 'ADEO',
-        description: 'ENKI LEXMAN E27 7.2 to 60W LED RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['LXEK-7'],
         model: '9CZA-A806ST-Q1Z',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN E27 LED white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['LDSENK02F'],
         model: 'LDSENK02F',
         description: '10A/16A EU smart plug',
         vendor: 'ADEO',
-        extend: extend.switch({exposes: [e.power(), e.energy()], fromZigbee: [fz.electrical_measurement, fz.metering]}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-        },
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['LDSENK10'],
@@ -266,31 +310,79 @@ const definitions: Definition[] = [
         model: 'LDSENK02S',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN 16A EU smart plug',
-        extend: extend.switch({exposes: [e.power(), e.energy()], fromZigbee: [fz.electrical_measurement, fz.metering]}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-        },
+        extend: [onOff(), electricityMeter()],
     },
     {
         zigbeeModel: ['SIN-4-1-20_LEX'],
         model: 'SIN-4-1-20_LEX',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN 3680W single output relay',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(ep);
-        },
+        extend: [onOff()],
         endpoint: (device) => {
             return {default: 1};
         },
     },
+    {
+        zigbeeModel: ['SIN-4-RS-20_LEX'],
+        model: 'SIN-4-RS-20_LEX',
+        vendor: 'ADEO',
+        description: 'Roller shutter controller (Leroy Merlin version)',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionTiltPercentage(endpoint);
+        },
+        exposes: [e.cover_position()],
+    },
+    {
+        zigbeeModel: ['SIN-4-1-22_LEX'],
+        model: 'SIN-4-1-22_LEX',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN Access Control',
+        extend: [onOff()],
+    },
+    {
+        zigbeeModel: ['SIN-4-FP-21_EQU'],
+        model: 'SIN-4-FP-21_EQU',
+        vendor: 'ADEO',
+        description: 'Equation pilot wire heating module',
+        fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
+        toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
+        exposes: [
+            e.switch(),
+            e.power(),
+            e.energy(),
+            e.pilot_wire_mode(),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);
+            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
+            await reporting.readMeteringMultiplierDivisor(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
+            const p = reporting.payload('mode', 0, 120, 0, {min: 1, max: 3600, change: 0});
+            await ep.configureReporting('manuSpecificNodOnPilotWire', p);
+        },
+    },
+    {
+        zigbeeModel: ['ZB-Remote-D0001'],
+        model: '83633204',
+        vendor: 'ADEO',
+        description: '1-key remote control',
+        fromZigbee: [fz.adeo_button_65024, fz.battery],
+        exposes: [e.action(['single', 'double', 'hold']), e.battery()],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

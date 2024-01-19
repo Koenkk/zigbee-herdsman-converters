@@ -1,7 +1,8 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import extend from '../lib/extend';
+import {light, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -10,14 +11,14 @@ const definitions: Definition[] = [
         model: 'LVS-ZB500D',
         vendor: 'LivingWise',
         description: 'ZigBee smart dimmer switch',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['545df2981b704114945f6df1c780515a'],
         model: 'LVS-ZB15S',
         vendor: 'LivingWise',
         description: 'ZigBee smart in-wall switch',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['e70f96b3773a4c9283c6862dbafb6a99'],
@@ -42,7 +43,7 @@ const definitions: Definition[] = [
         model: 'LVS-ZB15R',
         vendor: 'LivingWise',
         description: 'Zigbee smart outlet',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['75d430d66c164c26ac8601c05932dc94'],
@@ -59,4 +60,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

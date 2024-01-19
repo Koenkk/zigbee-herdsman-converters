@@ -1,18 +1,22 @@
+import {KeyValueAny, KeyValueNumberString} from './types';
+
 export const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
 
 export const defaultBindGroup = 901;
 
 export const repInterval = {
-    MAX: 62000,
     HOUR: 3600,
-    MINUTES_30: 1800,
-    MINUTES_15: 900,
-    MINUTES_10: 600,
-    MINUTES_5: 300,
+    MAX: 65000,
     MINUTE: 60,
+    SECONDS_10: 10,
+    MINUTES_10: 600,
+    MINUTES_15: 900,
+    MINUTES_30: 1800,
+    MINUTES_5: 300,
+    SECONDS_5: 5,
 };
 
-export const thermostatControlSequenceOfOperations = {
+export const thermostatControlSequenceOfOperations: KeyValueNumberString = {
     0: 'cooling_only',
     1: 'cooling_with_reheat',
     2: 'heating_only',
@@ -21,14 +25,14 @@ export const thermostatControlSequenceOfOperations = {
     5: 'cooling_and_heating_4-pipes_with_reheat',
 };
 
-export const thermostatProgrammingOperationModes = {
+export const thermostatProgrammingOperationModes: KeyValueNumberString = {
     0: 'setpoint',
     1: 'schedule',
     3: 'schedule_with_preheat',
     4: 'eco',
 };
 
-export const thermostatSystemModes = {
+export const thermostatSystemModes: KeyValueNumberString = {
     0: 'off',
     1: 'auto',
     3: 'cool',
@@ -40,13 +44,13 @@ export const thermostatSystemModes = {
     9: 'sleep',
 };
 
-export const thermostatRunningMode= {
+export const thermostatRunningMode: KeyValueNumberString= {
     0: 'off',
     3: 'cool',
     4: 'heat',
 };
 
-export const thermostatDayOfWeek = {
+export const thermostatDayOfWeek: KeyValueNumberString = {
     0: 'sunday',
     1: 'monday',
     2: 'tuesday',
@@ -57,7 +61,7 @@ export const thermostatDayOfWeek = {
     7: 'away_or_vacation',
 };
 
-export const thermostatRunningStates = {
+export const thermostatRunningStates: KeyValueAny = {
     0: 'idle',
     1: 'heat',
     2: 'cool',
@@ -75,7 +79,7 @@ export const thermostatRunningStates = {
     22: 'cool',
 };
 
-export const thermostatAcLouverPositions = {
+export const thermostatAcLouverPositions: KeyValueNumberString = {
     0: 'fully_closed',
     1: 'fully_closed',
     2: 'fully_open',
@@ -84,7 +88,7 @@ export const thermostatAcLouverPositions = {
     5: 'three_quarters_open',
 };
 
-export const thermostatScheduleMode = {
+export const thermostatScheduleMode: KeyValueNumberString = {
     0: 'heat',
     1: 'cool',
 };
@@ -99,25 +103,25 @@ export const fanMode = {
     'smart': 6,
 };
 
-export const temperatureDisplayMode = {
+export const temperatureDisplayMode: KeyValueNumberString = {
     0: 'celsius',
     1: 'fahrenheit',
 };
 
-export const danfossAdaptionRunStatus= {
+export const danfossAdaptionRunStatus: KeyValueNumberString= {
     0: 'none',
     1: 'in_progress',
     2: 'found',
     4: 'lost',
 };
 
-export const danfossAdaptionRunControl = {
+export const danfossAdaptionRunControl: KeyValueNumberString = {
     0: 'none',
     1: 'initiate_adaptation',
     2: 'cancel_adaptation',
 };
 
-export const danfossWindowOpen = {
+export const danfossWindowOpen: KeyValueNumberString = {
     0: 'quarantine',
     1: 'closed',
     2: 'hold',
@@ -125,7 +129,7 @@ export const danfossWindowOpen = {
     4: 'external_open',
 };
 
-export const danfossRoomStatusCode = {
+export const danfossRoomStatusCode: KeyValueNumberString = {
     0x0000: 'no_error',
     0x0101: 'missing_rt',
     0x0201: 'rt_touch_error',
@@ -133,17 +137,17 @@ export const danfossRoomStatusCode = {
     0x0801: 'floor_sensor_disconnected',
 };
 
-export const danfossOutputStatus = {
+export const danfossOutputStatus: KeyValueNumberString = {
     0: 'inactive',
     1: 'active',
 };
 
-export const danfossSystemStatusWater = {
+export const danfossSystemStatusWater: KeyValueNumberString = {
     0: 'hot_water_flow_in_pipes',
     1: 'cool_water_flow_in_pipes',
 };
 
-export const danfossSystemStatusCode = {
+export const danfossSystemStatusCode: KeyValueNumberString = {
     0x0000: 'no_error',
     0x0101: 'missing_expansion_board',
     0x0201: 'missing_radio_module',
@@ -156,14 +160,14 @@ export const danfossSystemStatusCode = {
     0x0102: 'error_on_one_or_more_output',
 };
 
-export const danfossMultimasterRole = {
+export const danfossMultimasterRole: KeyValueNumberString = {
     0: 'invalid_unused',
     1: 'master',
     2: 'slave_1',
     3: 'slave_2',
 };
 
-export const develcoInterfaceMode = {
+export const develcoInterfaceMode: KeyValueAny = {
     0: 'electricity',
     1: 'gas',
     2: 'water',
@@ -174,7 +178,7 @@ export const develcoInterfaceMode = {
     260: 'DSMR-4.0',
 };
 
-export const keypadLockoutMode = {
+export const keypadLockoutMode: KeyValueAny = {
     0: 'unlock',
     1: 'lock1',
     2: 'lock2',
@@ -183,14 +187,15 @@ export const keypadLockoutMode = {
     5: 'lock5',
 };
 
-export const lockSourceName = {
+export const lockSourceName: KeyValueNumberString = {
     0: 'keypad',
     1: 'rf',
     2: 'manual',
     3: 'rfid',
+    4: 'fingerprint',
 };
 
-export const armMode = {
+export const armMode: KeyValueNumberString = {
     0: 'disarm',
     1: 'arm_day_zones',
     2: 'arm_night_zones',
@@ -230,13 +235,13 @@ export const colorModeLookup = {
 
 export const lockSoundVolume = ['silent_mode', 'low_volume', 'high_volume'];
 
-export const lockUserStatus = {
+export const lockUserStatus: KeyValueNumberString = {
     0: 'available',
     1: 'enabled',
     3: 'disabled',
 };
 
-export const easyCodeTouchActions = {
+export const easyCodeTouchActions: KeyValueNumberString = {
     // First byte are source / msg.data[3]
     // 0x00 KeyPad: If the user uses the code panel.
     // 0x02 Manual: If the user used a key, button or fingerprint.
@@ -273,7 +278,7 @@ export const easyCodeTouchActions = {
     0xFF0E: 'zigbee_unlock',
 };
 
-export const wiserDimmerControlMode = {
+export const wiserDimmerControlMode: KeyValueNumberString = {
     0: 'auto',
     1: 'rc',
     2: 'rl',

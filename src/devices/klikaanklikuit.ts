@@ -1,6 +1,5 @@
 import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -8,13 +7,16 @@ const definitions: Definition[] = [
         model: 'ZCC-3500',
         vendor: 'KlikAanKlikUit',
         description: 'Zigbee socket switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
+    },
+    {
+        fingerprint: [{modelID: 'Built-in Switch', manufacturerName: 'KlikAanKlikUit'}],
+        model: 'ZCM-1800',
+        vendor: 'KlikAanKlikUit',
+        description: 'Zigbee switch module',
+        extend: [onOff()],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

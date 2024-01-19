@@ -45,7 +45,7 @@ export function clearValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: stri
     }
 }
 
-function clear() {
+export function clear() {
     store = new Map();
 }
 

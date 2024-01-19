@@ -22,8 +22,9 @@ const definitions: Definition[] = [
         model: 'YSR-MINI-01_dimmer',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (Dimmer)',
-        extend: tuya.extend.light_onoff_brightness(),
+        extend: [tuya.modernExtend.tuyaLight()],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

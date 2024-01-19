@@ -43,8 +43,8 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [legacy.tz.tuya_dimmer_state, legacy.tz.tuya_dimmer_level],
         exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
-        extend: extend.light_onoff_brightness(),
     },
 ];
 
+export default definitions;
 module.exports = definitions;

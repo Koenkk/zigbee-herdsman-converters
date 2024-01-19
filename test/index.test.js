@@ -1,7 +1,7 @@
-const index = require('../index');
-const exposes = require('../lib/exposes');
-const utils = require('../lib/utils');
-const tuya = require('../lib/tuya');
+const index = require('../src/index');
+const exposes = require('../src/lib/exposes');
+const utils = require('../src/lib/utils');
+const tuya = require('../src/lib/tuya');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
 const fs = require('fs');
@@ -18,37 +18,16 @@ function containsOnly(array1, array2){
 }
 
 describe('index.js', () => {
-    it('Legacy: Find by zigbeeModel', () => {
-        const device = index.findByZigbeeModel('WaterSensor-N');
-        expect(device.model).toBe('HS1WL/HS3WL')
+    it('Test utils.toNumber', () => {
+        expect(utils.toNumber('1')).toBe(1);
+        expect(utils.toNumber(5)).toBe(5);
+        expect(() => utils.toNumber('notanumber')).toThrowError('Value is not a number, got string (notanumber)');
+        expect(utils.toNumber('0')).toBe(0);
+        expect(utils.toNumber(0)).toBe(0);
+        expect(() => utils.toNumber('')).toThrowError('Value is not a number, got string ()');
     });
 
-    it('Legacy: Find by zigbeeModel with strange characters 1', () => {
-        const device = index.findByZigbeeModel('lumi.remote.b1acn01\u0000\u0000\u0000\u0000\u0000\u0000');
-        expect(device.model).toBe('WXKG11LM')
-    });
-
-    it('Legacy: Find by zigbeeModel with strange characters 2', () => {
-        const device = index.findByZigbeeModel('lumi.sensor_86sw1\u0000lu');
-        expect(device.model).toBe('WXKG03LM_rev1')
-    });
-
-    it('Legacy: Find by zigbeeModel with strange characters 3', () => {
-        const device = index.findByZigbeeModel('lumi.sensor_86sw1');
-        expect(device.model).toBe('WXKG03LM_rev1')
-    });
-
-    it('Legacy: Find by zigbeeModel without strange characters', () => {
-        const device = index.findByZigbeeModel('lumi.sensor_switch.aq2\u0000\u0000\u0000\u0000\u0000\u0000');
-        expect(device.model).toBe('WXKG11LM')
-    });
-
-    it('Legacy: Find by zigbeeModel with model ID null', () => {
-        const device = index.findByZigbeeModel(null);
-        expect(device).toBe(null)
-    });
-
-    it('Find by device where modelID is null', () => {
+    it('Find by device where modelID is null', async () => {
         const endpoints = [
             {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
             {ID: 232, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
@@ -61,11 +40,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe('XBee');
     });
 
-    it('Find by device shouldn\'t match when modelID is null and there is no fingerprint match', () => {
+    it('Find by device shouldn\'t match when modelID is null and there is no fingerprint match', async () => {
         const endpoints = [
             {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},
         ];
@@ -77,11 +56,42 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition).toBeNull();
     });
 
-    it('Find by device when device has modelID should match', () => {
+    it('Find by device should generate for unknown', async () => {
+        const endpoints = [
+            {
+                ID: 1, profileID: undefined, deviceID: undefined,
+                getInputClusters() {
+                    return [];
+                },
+                getOutputClusters() {
+                    return [{name: 'genIdentify'}]
+                },
+            },
+        ];
+        const device = {
+            type: 'EndDevice',
+            manufacturerID: undefined,
+            modelID: 'test_generate',
+            endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = await index.findByDevice(device, true);
+        expect(definition.model).toBe('test_generate');
+        expect(definition.vendor).toBe('');
+        expect(definition.description).toBe('Automatically generated definition');
+        expect(definition.extend).toBeUndefined();
+        expect(definition.fromZigbee).toHaveLength(0);
+        expect(definition.toZigbee).toHaveLength(11);
+        expect(definition.exposes).toHaveLength(1);
+        expect(definition.options).toHaveLength(0);
+    });
+
+    it('Find by device when device has modelID should match', async () => {
         const endpoints = [
             {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},
         ];
@@ -93,11 +103,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe("RTCGQ01LM");
     });
 
-    it('Find by fingerprint with priority', () => {
+    it('Find by fingerprint with priority', async () => {
         const HG06338 = {
             type: 'Router',
             manufacturerName: '_TZ3000_vzopcetz',
@@ -116,12 +126,12 @@ describe('index.js', () => {
             modelID: 'TS011F',
             applicationVersion: 1,
         };
-        expect(index.findByDevice(HG06338).model).toBe('HG06338');
-        expect(index.findByDevice(TS011F_plug_3).model).toBe('TS011F_plug_3');
-        expect(index.findByDevice(TS011F_plug_1).model).toBe('TS011F_plug_1');
+        expect((await index.findByDevice(HG06338)).model).toBe('HG06338');
+        expect((await index.findByDevice(TS011F_plug_3)).model).toBe('TS011F_plug_3');
+        expect((await index.findByDevice(TS011F_plug_1)).model).toBe('TS011F_plug_1');
     });
 
-    it('Find by device should prefer fingerprint match over zigbeeModel', () => {
+    it('Find by device should prefer fingerprint match over zigbeeModel', async () => {
         const mullerEndpoints = [
             {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
             {ID: 242, profileID: 41440, deviceID: 102, inputClusters: [33], outputClusters: [33]},
@@ -147,11 +157,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => null,
         };
 
-        expect(index.findByDevice(sunricher).model).toBe('ZG192910-4');
-        expect(index.findByDevice(muller).model).toBe('404031');
+        expect((await index.findByDevice(sunricher)).model).toBe('ZG192910-4');
+        expect((await index.findByDevice(muller)).model).toBe('404031');
     });
 
-    it('Find by device when fingerprint has zigbeeModel of other definition', () => {
+    it('Find by device when fingerprint has zigbeeModel of other definition', async () => {
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
         const endpoints = [
             {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0,3,1280,1], outputClusters: [3]},
@@ -166,11 +176,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe("SNZB-04");
     });
 
-    it('Find by device when fingerprint has zigbeeModel of other definition shouldn\'t match when fingerprint doesn\t match', () => {
+    it('Find by device when fingerprint has zigbeeModel of other definition shouldn\'t match when fingerprint doesn\t match', async () => {
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
         const endpoints = [
             {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0,3,1026,1029,1], outputClusters: [3]},
@@ -185,7 +195,7 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe("SNZB-02");
     });
 
@@ -304,7 +314,7 @@ describe('index.js', () => {
 
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'multiEndpoint', 'multiEndpointSkip', 'multiEndpointEnforce', 'applyRedFix', 'disableDefaultResponse', 'supportsEnhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'coverStateFromTilt', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaDatapoints', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite', 'publishDuplicateTransaction', 'tuyaSendCommand'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'multiEndpointSkip', 'multiEndpointEnforce', 'applyRedFix', 'disableDefaultResponse', 'supportsEnhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'coverStateFromTilt', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaDatapoints', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'separateWhite', 'publishDuplicateTransaction', 'tuyaSendCommand'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
@@ -313,15 +323,15 @@ describe('index.js', () => {
         });
     });
 
-    it('Verify addDeviceDefinition', () => {
+    it('Verify addDefinition', () => {
         const mockZigbeeModel = 'my-mock-device';
         let mockDevice = {toZigbee: []};
-        const undefinedDevice = index.findByZigbeeModel(mockDevice.model);
-        expect(undefinedDevice).toBeNull();
-        const beforeAdditionDeviceCount = index.devices.length;
-        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field model is undefined");
+        const undefinedDevice = index.findByModel('mock-model');
+        expect(undefinedDevice).toBeUndefined();
+        const beforeAdditionDeviceCount = index.definitions.length;
+        expect(()=> index.addDefinition(mockDevice)).toThrow("Converter field model is undefined");
         mockDevice.model = 'mock-model';
-        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field vendor is undefined");
+        expect(()=> index.addDefinition(mockDevice)).toThrow("Converter field vendor is undefined");
         mockDevice = {
             model: 'mock-model',
             vendor: 'dummy',
@@ -331,15 +341,15 @@ describe('index.js', () => {
             toZigbee: [],
             exposes: []
         };
-        index.addDeviceDefinition(mockDevice);
-        expect(beforeAdditionDeviceCount + 1).toBe(index.devices.length);
-        const device = index.findByZigbeeModel(mockZigbeeModel);
+        index.addDefinition(mockDevice);
+        expect(beforeAdditionDeviceCount + 1).toBe(index.definitions.length);
+        const device = index.findByModel('mock-model');
         expect(device.model).toBe(mockDevice.model);
     });
 
-    it('Verify addDeviceDefinition overwrite existing', () => {
+    it('Verify addDefinition overwrite existing', async () => {
         const device = {type: 'Router', modelID: 'lumi.light.aqcn02'};
-        expect(index.findByDevice(device).vendor).toBe('Xiaomi');
+        expect((await index.findByDevice(device)).vendor).toBe('Xiaomi');
 
         const overwriteDefinition = {
             model: 'mock-model',
@@ -350,8 +360,8 @@ describe('index.js', () => {
             toZigbee: [],
             exposes: []
         };
-        index.addDeviceDefinition(overwriteDefinition);
-        expect(index.findByDevice(device).vendor).toBe('other-vendor');
+        index.addDefinition(overwriteDefinition);
+        expect((await index.findByDevice(device)).vendor).toBe('other-vendor');
     });
 
     it('Exposes light with endpoint', () => {
@@ -361,6 +371,7 @@ describe('index.js', () => {
               {
                 "type":"binary",
                 "name":"state",
+                "label": "State",
                 "description": "On/off state of this light",
                 "property":"state_rgb",
                 "access":7,
@@ -372,6 +383,7 @@ describe('index.js', () => {
               {
                 "type":"numeric",
                 "name":"brightness",
+                "label": "Brightness",
                 "description": "Brightness of this light",
                 "property":"brightness_rgb",
                 "access":7,
@@ -383,18 +395,21 @@ describe('index.js', () => {
                 "type":"composite",
                 "property":"color_rgb",
                 "name":"color_xy",
+                "label": "Color (X/Y)",
                 "description": "Color of this light in the CIE 1931 color space (x/y)",
                 "access":7,
                 "features":[
                   {
                     "type":"numeric",
                     "name":"x",
+                    "label": "X",
                     "property":"x",
                     "access":7
                   },
                   {
                     "type":"numeric",
                     "name":"y",
+                    "label": "Y",
                     "property":"y",
                     "access":7
                   }
@@ -417,10 +432,10 @@ describe('index.js', () => {
                 const toCheck = [];
                 const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
                 for (const expose of expss) {
-                    if (expose.hasOwnProperty('access')) {
+                    if (expose.access !== undefined) {
                         toCheck.push(expose)
                     } else if (expose.features) {
-                        toCheck.push(...expose.features.filter(e => e.hasOwnProperty('access')));
+                        toCheck.push(...expose.features.filter(e => e.access !== undefined));
                     }
                 }
 
@@ -444,7 +459,7 @@ describe('index.js', () => {
         });
     });
 
-    it('Find by fingerprint - whitelabel', () => {
+    it('Find by fingerprint - whitelabel', async () => {
         const HG06492B = {
             type: 'Router',
             manufacturerName: '_TZ3000_oborybow',
@@ -458,12 +473,12 @@ describe('index.js', () => {
             endpoints: [],
         };
 
-        const HG06492B_match = index.findByDevice(HG06492B)
+        const HG06492B_match = await index.findByDevice(HG06492B)
         expect(HG06492B_match.model).toBe('HG06492B');
         expect(HG06492B_match.description).toBe('Livarno Lux E14 candle CCT');
         expect(HG06492B_match.vendor).toBe('Lidl');
 
-        const TS0502A_match = index.findByDevice(TS0502A)
+        const TS0502A_match = await index.findByDevice(TS0502A)
         expect(TS0502A_match.model).toBe('TS0502A');
         expect(TS0502A_match.description).toBe('Light controller');
         expect(TS0502A_match.vendor).toBe('TuYa');
@@ -553,10 +568,32 @@ describe('index.js', () => {
         }
     });
 
-    it('Check TuYa tuya.fz.datapoints calibration/presicion options', () => {
+    it('Calibration/precision', () => {
         const TS0601_soil = index.definitions.find((d) => d.model == 'TS0601_soil');
-        expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(
-            ['temperature_precision', 'temperature_calibration']);
+        expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(['temperature_calibration','temperature_precision', 'soil_moisture_calibration', 'soil_moisture_precision']);
+        let payload = {temperature: 1.193};
+        let options = {temperature_calibration: 2.5, temperature_precision: 1};
+        index.postProcessConvertedFromZigbeeMessage(TS0601_soil, payload, options);
+        expect(payload).toStrictEqual({temperature: 3.7});
+
+        // For multi endpoint property
+        const SPP04G = index.findByModel('SPP04G');
+        expect(SPP04G.options.map((t) => t.name)).toStrictEqual(['power_calibration', 'power_precision','current_calibration', 'current_precision',
+        'voltage_calibration', 'voltage_precision', 'energy_calibration', 'energy_precision', 'state_action']);
+        payload = {power_left: 5.31};
+        options = {power_calibration: 100, power_precision: 0}; // calibration for power is percentual
+        index.postProcessConvertedFromZigbeeMessage(SPP04G, payload, options);
+        expect(payload).toStrictEqual({power_left: 11});
+
+        const TS011F_plug_1 = index.definitions.find((d) => d.model == 'TS011F_plug_1');
+        expect(TS011F_plug_1.options.map((t) => t.name)).toStrictEqual([
+            'power_calibration','power_precision', 'current_calibration', 'current_precision', 'voltage_calibration',
+            'voltage_precision', 'energy_calibration', 'energy_precision', 'state_action'
+        ]);
+        payload = {current: 0.0585};
+        options = {current_calibration: -50};
+        index.postProcessConvertedFromZigbeeMessage(TS011F_plug_1, payload, options);
+        expect(payload).toStrictEqual({current: 0.03});
     });
 
     it('Check getFromLookup', () => {
@@ -573,8 +610,9 @@ describe('index.js', () => {
         const list = exposes.list('temperatures', exposes.access.STATE_SET, itemType);
         expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
             "access": 3, 
-            "item_type": {"access": 3, "name": "temperature", "type": "numeric"}, 
+            "item_type": {"access": 3, "name": "temperature", "label": "Temperature", "type": "numeric"}, 
             "name": "temperatures", 
+            "label": "Temperatures",
             "property": "temperatures", 
             "type": "list"
         });
@@ -593,15 +631,18 @@ describe('index.js', () => {
         expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
             type: 'list',
             name: 'schedule',
+            label: 'Schedule',
             property: 'schedule',
             access: 3,
             item_type: {
                 type: 'composite',
                 name: 'dayTime',
+                label: 'DayTime',
                 features: [
                     {
                         access: 3, 
                         name: "day", 
+                        label: "Day",
                         property: "day", 
                         type: "enum",
                         values: ['monday', 'tuesday', 'wednesday'],
@@ -609,12 +650,14 @@ describe('index.js', () => {
                     {
                         access: 3, 
                         name: "hour", 
+                        label: "Hour",
                         property: "hour", 
                         type: "numeric",
                     },
                     {
                         access: 3, 
                         name: "minute", 
+                        label: "Minute",
                         property: "minute", 
                         type: "numeric",
                     },

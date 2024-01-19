@@ -3,10 +3,10 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
+import {onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -29,7 +29,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['PSMP5_00.00.03.11TC', 'PSMP5_00.00.05.12TC'],
+        zigbeeModel: ['PSMP5_00.00.03.11TC', 'PSMP5_00.00.05.12TC', 'PSMP5_00.00.03.05TC'],
         model: '12050',
         vendor: 'Lupus',
         description: 'LUPUSEC mains socket with power meter',
@@ -47,31 +47,17 @@ const definitions: Definition[] = [
         zigbeeModel: ['PRS3CH1_00.00.05.10TC', 'PRS3CH1_00.00.05.11TC'],
         model: '12126',
         vendor: 'Lupus',
-        description: '1 chanel relay',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        description: '1 channel relay',
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['PRS3CH2_00.00.05.10TC', 'PRS3CH2_00.00.05.11TC', 'PRS3CH2_00.00.05.12TC'],
         model: '12127',
         vendor: 'Lupus',
-        description: '2 chanel relay',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-        },
+        description: '2 channel relay',
+        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

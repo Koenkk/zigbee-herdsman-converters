@@ -4,6 +4,8 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import * as utils from '../lib/utils';
 import * as reporting from '../lib/reporting';
+import {light, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const fzLocal = {
@@ -19,7 +21,7 @@ const fzLocal = {
             };
             return {action: utils.getFromLookup(msg.data.sceneid, payload)};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -141,6 +143,35 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
+    {
+        zigbeeModel: ['3AFE292000068621'],
+        model: 'KK-LP-Q01D',
+        vendor: 'Konke',
+        description: 'Light years switch 1 gang',
+        extend: [onOff()],
+    },
+    {
+        zigbeeModel: ['3AFE292000068622'],
+        model: 'KK-LP-Q02D',
+        vendor: 'Konke',
+        description: 'Light years switch 2 gangs',
+        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
+    },
+    {
+        zigbeeModel: ['3AFE292000068623'],
+        model: 'KK-LP-Q03D',
+        vendor: 'Konke',
+        description: 'Light years switch 3 gangs',
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3}})],
+    },
+    {
+        zigbeeModel: ['3AFE2610010C0021'],
+        model: 'KK-QD-Y01w',
+        vendor: 'Konke',
+        description: 'Spotlight driver (cw mode)',
+        extend: [light({colorTemp: {range: [153, 370]}})],
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

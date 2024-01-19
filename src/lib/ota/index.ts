@@ -5,7 +5,12 @@ import * as lixee from './lixee';
 import * as securifi from './securifi';
 import * as tradfri from './tradfri';
 import * as ubisys from './ubisys';
+import * as common from './common';
 import * as zigbeeOTA from './zigbeeOTA';
+import * as jethome from './jethome';
+import {Ota} from '../types';
+
+const {setDataDir} = common;
 
 export {
     inovelli,
@@ -16,13 +21,8 @@ export {
     tradfri,
     ubisys,
     zigbeeOTA,
+    jethome,
+    setDataDir,
 };
 
-exports.inovelli = inovelli;
-exports.ledvance = ledvance;
-exports.salus = salus;
-exports.lixee = lixee;
-exports.securifi = securifi;
-exports.tradfri = tradfri;
-exports.ubisys = ubisys;
-exports.zigbeeOTA = zigbeeOTA;
+export type ImageInfo = Ota.ImageInfo;

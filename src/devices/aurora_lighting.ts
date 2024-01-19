@@ -6,6 +6,9 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 const e = exposes.presets;
 import * as utils from '../lib/utils';
+import {light} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
+
 const ea = exposes.access;
 
 const tzLocal = {
@@ -19,7 +22,7 @@ const tzLocal = {
             await endpoint.command('genOnOff', state, {});
             return {state: {backlight_led: state.toUpperCase()}};
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     backlight_brightness: {
         key: ['brightness'],
         options: [exposes.options.transition()],
@@ -30,7 +33,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', ['currentLevel']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const disableBatteryRotaryDimmerReporting = async (endpoint: Zh.Endpoint) => {
@@ -42,8 +45,8 @@ const disableBatteryRotaryDimmerReporting = async (endpoint: Zh.Endpoint) => {
 };
 
 const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
-    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature] as Fz.Converter[],
-    toZigbee: [] as Tz.Converter[],
+    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature] satisfies Fz.Converter[],
+    toZigbee: [] as Tz.Converter[], // TODO: Needs documented reasoning for asserting this as a type it isn't
     exposes: [e.battery(), e.action([
         'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
     configure: (async (device, coordinatorEndpoint, logger) => {
@@ -58,7 +61,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
 
             await disableBatteryRotaryDimmerReporting(endpoint);
         }
-    }) as Configure,
+    }) satisfies Configure,
     onEvent: (async (type, data, device) => {
         // The rotary dimmer devices appear to lose the configured reportings when they
         // re-announce themselves which they do roughly every 6 hours.
@@ -77,59 +80,58 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
                 }
             }
         }
-    }) as OnEvent,
+    }) satisfies OnEvent,
 });
 
 const definitions: Definition[] = [
     {
         zigbeeModel: ['TWBulb51AU'],
         model: 'AU-A1GSZ9CX',
-        vendor: 'Aurora',
+        vendor: 'Aurora Lighting',
         description: 'AOne GLS lamp 9w tunable dimmable 2200-5000K',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
+        extend: [light({colorTemp: {range: [200, 454]}})],
     },
     {
         zigbeeModel: ['RGBCXStrip50AU'],
         model: 'AU-A1ZBSCRGBCX',
-        vendor: 'Aurora',
+        vendor: 'Aurora Lighting',
         description: 'RGBW LED strip controller',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [166, 400]}),
+        extend: [light({colorTemp: {range: [166, 400]}, color: true})],
     },
     {
         zigbeeModel: ['TWGU10Bulb50AU'],
         model: 'AU-A1GUZBCX5',
         vendor: 'Aurora Lighting',
         description: 'AOne 5.4W smart tuneable GU10 lamp',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['TWMPROZXBulb50AU'],
         model: 'AU-A1ZBMPRO1ZX',
         vendor: 'Aurora Lighting',
         description: 'AOne MPROZX fixed IP65 fire rated smart tuneable LED downlight',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 455]}),
+        extend: [light({colorTemp: {range: [200, 455]}, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FWG125Bulb50AU'],
         model: 'AU-A1VG125Z5E/19',
         vendor: 'Aurora Lighting',
         description: 'AOne 4W smart dimmable G125 lamp 1900K',
-        meta: {turnsOffAtBrightness1: true},
-        extend: extend.light_onoff_brightness(),
+        extend: [light({turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['FWBulb51AU'],
         model: 'AU-A1GSZ9B/27',
         vendor: 'Aurora Lighting',
         description: 'AOne 9W smart GLS B22',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['FWGU10Bulb50AU', 'FWGU10Bulb01UK'],
         model: 'AU-A1GUZB5/30',
         vendor: 'Aurora Lighting',
         description: 'AOne 4.8W smart dimmable GU10 lamp 3000K',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['FWA60Bulb50AU'],
@@ -143,14 +145,14 @@ const definitions: Definition[] = [
         model: 'AU-A1GUZBRGBW',
         vendor: 'Aurora Lighting',
         description: 'AOne 5.6w smart RGBW tuneable GU10 lamp',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['RGBBulb01UK', 'RGBBulb02UK', 'RGBBulb51AU'],
         model: 'AU-A1GSZ9RGBW_HV-GSCXZB269K',
         vendor: 'Aurora Lighting',
         description: 'AOne 9.5W smart RGBW GLS E27/B22',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         zigbeeModel: ['Remote50AU'],
@@ -207,15 +209,9 @@ const definitions: Definition[] = [
         model: 'AU-A1ZB2WDM',
         vendor: 'Aurora Lighting',
         description: 'AOne 250W smart rotary dimmer module',
-        exposes: [...extend.light_onoff_brightness({noConfigure: true}).exposes,
-            e.binary('backlight_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the blue backlight LED')],
-        toZigbee: [...extend.light_onoff_brightness({noConfigure: true}).toZigbee, tzLocal.aOneBacklight],
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
-        },
+        exposes: [e.binary('backlight_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the blue backlight LED')],
+        toZigbee: [tzLocal.aOneBacklight],
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['DoubleSocket50AU'],
@@ -229,6 +225,7 @@ const definitions: Definition[] = [
                 .withDescription('Brightness of this backlight LED')],
         toZigbee: [tzLocal.backlight_brightness, tz.on_off],
         meta: {multiEndpoint: true},
+        ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -293,4 +290,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -2,7 +2,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {forcePowerSource, onOff} from '../lib/modernExtend';
 import {Definition, Fz, Tz} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -18,7 +18,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter,
 };
 
 
@@ -28,7 +28,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('ssIasZone', ['zoneState']);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -110,165 +110,63 @@ const definitions: Definition[] = [
         model: 'PM-S140-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang without neutral wire',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S240-ZB'],
         model: 'PM-S240-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('bottom')],
-        endpoint: (device) => {
-            return {top: 1, bottom: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-        },
+        extend: [onOff({endpoints: {top: 1, bottom: 2}, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S340-ZB'],
         model: 'PM-S340-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('center'), e.switch().withEndpoint('bottom')],
-        endpoint: (device) => {
-            return {top: 1, center: 2, bottom: 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-            await reporting.onOff(device.getEndpoint(3));
-        },
+        extend: [onOff({endpoints: {top: 1, center: 2, bottom: 3}, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S140R-ZB'],
         model: 'PM-S140R-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang router without neutral wire',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S240R-ZB'],
         model: 'PM-S240R-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('bottom')],
-        endpoint: (device) => {
-            return {top: 1, bottom: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-        },
+        extend: [onOff({endpoints: {top: 1, bottom: 2}, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S340R-ZB'],
         model: 'PM-S340R-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('center'), e.switch().withEndpoint('bottom')],
-        endpoint: (device) => {
-            return {top: 1, center: 2, bottom: 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-            await reporting.onOff(device.getEndpoint(3));
-        },
+        extend: [onOff({endpoints: {top: 1, center: 2, bottom: 3}, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['PM-S150-ZB'],
         model: 'PM-S150-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang router without neutral wire',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-            // some firmware is not defined powersource
-            if (device.powerSource === 'Unknown') {
-                device.powerSource = 'Mains (single phase)';
-                device.save();
-            }
-        },
+        extend: [onOff({powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['PM-S250-ZB'],
         model: 'PM-S250-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 2 gang without neutral wire',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('bottom')],
-        endpoint: (device) => {
-            return {top: 1, bottom: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-            // some firmware is not defined powersource
-            if (device.powerSource === 'Unknown') {
-                device.powerSource = 'Mains (single phase)';
-                device.save();
-            }
-        },
+        extend: [onOff({endpoints: {top: 1, bottom: 2}, powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['PM-S350-ZB'],
         model: 'PM-S350-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 3 gang without neutral wire',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('center'), e.switch().withEndpoint('bottom')],
-        endpoint: (device) => {
-            return {top: 1, center: 2, bottom: 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-            await reporting.onOff(device.getEndpoint(3));
-            // some firmware is not defined powersource
-            if (device.powerSource === 'Unknown') {
-                device.powerSource = 'Mains (single phase)';
-                device.save();
-            }
-        },
+        extend: [onOff({endpoints: {top: 1, center: 2, bottom: 3}, powerOnBehavior: false}), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
         zigbeeModel: ['PM-C150-ZB'],
@@ -358,4 +256,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

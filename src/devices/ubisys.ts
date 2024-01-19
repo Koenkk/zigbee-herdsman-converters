@@ -8,6 +8,7 @@ import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
+import {ubisysModernExtend} from '../lib/ubisys';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -22,7 +23,7 @@ const manufacturerOptions = {
     ubisysNull: {manufacturerCode: null},
 };
 
-const ubisysOnEventReadCurrentSummDelivered = async function(type: OnEventType, data: OnEventData, devic: Zh.Device) {
+const ubisysOnEventReadCurrentSummDelivered = async function(type: OnEventType, data: OnEventData, device: Zh.Device) {
     if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
         try {
             await data.endpoint.read('seMetering', ['currentSummDelivered']);
@@ -75,7 +76,7 @@ const ubisys = {
                     };
                 }
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         dimmer_setup_genLevelCtrl: {
             cluster: 'genLevelCtrl',
             type: ['attributeReport', 'readResponse'],
@@ -84,7 +85,7 @@ const ubisys = {
                     return {minimum_on_level: msg.data.ubisysMinimumOnLevel};
                 }
             },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
         configure_device_setup: {
             cluster: 'manuSpecificUbisysDeviceSetup',
             type: ['attributeReport', 'readResponse'],
@@ -100,16 +101,7 @@ const ubisys = {
                 }
                 return {configure_device_setup: result};
             },
-        } as Fz.Converter,
-        thermostat_vacation_mode: {
-            cluster: 'hvacThermostat',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('occupancy')) {
-                    return {vacation_mode: msg.data.occupancy === 0};
-                }
-            },
-        } as Fz.Converter,
+        } satisfies Fz.Converter,
     },
     tz: {
         configure_j1: {
@@ -269,7 +261,7 @@ const ubisys = {
                     'ubisysStartupSteps',
                 ], manufacturerOptions.ubisys));
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         dimmer_setup: {
             key: ['capabilities_forward_phase_control',
                 'capabilities_reverse_phase_control',
@@ -298,7 +290,7 @@ const ubisys = {
                 await entity.read('manuSpecificUbisysDimmerSetup', ['status'], manufacturerOptions.ubisysNull);
                 await entity.read('manuSpecificUbisysDimmerSetup', ['mode'], manufacturerOptions.ubisysNull);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         dimmer_setup_genLevelCtrl: {
             key: ['minimum_on_level'],
             convertSet: async (entity, key, value, meta) => {
@@ -310,7 +302,7 @@ const ubisys = {
             convertGet: async (entity, key, meta) => {
                 await entity.read('genLevelCtrl', ['ubisysMinimumOnLevel'], manufacturerOptions.ubisys);
             },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
         configure_device_setup: {
             key: ['configure_device_setup'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
@@ -449,6 +441,7 @@ const ubisys = {
                     // first input
                     let input = 0;
                     // first client endpoint - depends on actual device
+                    if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
                     let endpoint = {'S1': 2, 'S2': 3, 'D1': 2, 'J1': 2, 'C4': 1}[meta.mapped.model];
                     // default group id
                     let groupId = 0;
@@ -531,13 +524,7 @@ const ubisys = {
                 await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions'],
                     manufacturerOptions.ubisysNull);
             },
-        } as Tz.Converter,
-        thermostat_vacation_mode: {
-            key: ['vacation_mode'],
-            convertGet: async (entity, key, meta) => {
-                await entity.read('hvacThermostat', ['occupancy']);
-            },
-        } as Tz.Converter,
+        } satisfies Tz.Converter,
     },
 };
 
@@ -804,11 +791,35 @@ const definitions: Definition[] = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.metering_power,
             ubisys.tz.configure_j1, ubisys.tz.configure_device_setup,
             tz.currentsummdelivered],
-        exposes: [
-            e.cover_position_tilt(),
-            e.power().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
-        ],
+        exposes: (device, options) => {
+            const coverExpose = e.cover();
+            const coverType = (device?.getEndpoint(1).getClusterAttributeValue('closuresWindowCovering', 'windowCoveringType') ?? undefined);
+            switch (coverType) { // cf. Ubisys J1 Technical Reference Manual, chapter 7.2.5.1 Calibration
+            case 0: // Roller Shade, Lift only
+            case 1: // Roller Shade two motors, Lift only
+            case 2: // Roller Shade exterior, Lift only
+            case 3: // Roller Shade two motors exterior, Lift only
+            case 4: // Drapery, Lift only
+            case 5: // Awning, Lift only
+            case 9: // Projector Screen, Lift only
+                coverExpose.withPosition();
+                break;
+            case 6: // Shutter, Tilt only
+            case 7: // Tilt Blind, Tilt only
+                coverExpose.withTilt();
+                break;
+            case 8: // Tilt Blind, Lift & Tilt
+            default:
+                coverExpose.withPosition().withTilt();
+                break;
+            }
+            return [
+                coverExpose,
+                e.power().withAccess(ea.STATE_GET),
+                e.energy().withAccess(ea.STATE_GET),
+                e.linkquality(),
+            ];
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -878,13 +889,13 @@ const definitions: Definition[] = [
         vendor: 'Ubisys',
         description: 'Heating regulator',
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule, ubisys.fz.thermostat_vacation_mode],
+        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_local_temperature, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_running_mode, ubisys.tz.thermostat_vacation_mode,
-            tz.thermostat_pi_heating_demand, tz.battery_percentage_remaining,
+            tz.thermostat_running_mode, tz.thermostat_pi_heating_demand,
+            tz.battery_percentage_remaining,
         ],
         exposes: [
             e.battery().withAccess(ea.STATE_GET),
@@ -892,11 +903,17 @@ const definitions: Definition[] = [
                 .withSystemMode(['off', 'heat'], ea.ALL)
                 .withRunningMode(['off', 'heat'])
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withSetpoint('unoccupied_heating_setpoint', 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET)
                 .withWeeklySchedule(['heat']),
-            e.binary('vacation_mode', ea.STATE_GET, true, false)
-                .withDescription('When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.'),
+        ],
+        extend: [
+            ubisysModernExtend.vacationMode(),
+            ubisysModernExtend.localTemperatureOffset(),
+            ubisysModernExtend.occupiedHeatingSetpointDefault(),
+            ubisysModernExtend.remoteTemperature(),
+            ubisysModernExtend.remoteTemperatureDuration(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -916,13 +933,12 @@ const definitions: Definition[] = [
                 {min: 0, max: constants.repInterval.HOUR, change: 50});
             await reporting.thermostatPIHeatingDemand(endpoint,
                 {min: 15, max: constants.repInterval.HOUR, change: 1});
-            await reporting.thermostatOccupancy(endpoint);
             await reporting.batteryPercentageRemaining(endpoint,
                 {min: constants.repInterval.HOUR, max: 43200, change: 1});
 
 
             // read attributes
-            // NOTE: configuring reporting on hvacThermostat seems to trigger an imediat
+            // NOTE: configuring reporting on hvacThermostat seems to trigger an immediate
             //       report, so the values are available after configure has run.
             //       this does not seem to be the case for genPowerCfg, so we read
             //       the battery percentage
@@ -937,6 +953,44 @@ const definitions: Definition[] = [
         ota: ota.ubisys,
     },
     {
+        zigbeeModel: ['H10'],
+        model: 'H10',
+        vendor: 'Ubisys',
+        description: 'Heatingcontrol 10-Way',
+        meta: {thermostat: {dontMapPIHeatingDemand: true}, multiEndpoint: true},
+        fromZigbee: [fz.on_off, fz.thermostat, fz.thermostat_weekly_schedule],
+        toZigbee: [
+            tz.on_off, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_local_temperature,
+            tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_running_mode,
+            tz.thermostat_pi_heating_demand,
+        ],
+        endpoint: (device) => {
+            return {
+                'l1': 11, 'l2': 12, 'l3': 13, 'l4': 14, 'l5': 15,
+                'l6': 16, 'l7': 17, 'l8': 18, 'l9': 19, 'l10': 20,
+                'default': 21,
+            };
+        },
+        exposes: [
+            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'),
+            e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6'),
+            e.switch().withEndpoint('l7'), e.switch().withEndpoint('l8'),
+            e.switch().withEndpoint('l9'), e.switch().withEndpoint('l10'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // setup ep 11-20 as on/off switches
+            const heaterCoolerBinds = ['genOnOff'];
+            for (let ep = 11; ep <= 20; ep++) {
+                const endpoint = device.getEndpoint(ep);
+                await reporting.bind(endpoint, coordinatorEndpoint, heaterCoolerBinds);
+                await reporting.onOff(endpoint);
+            }
+        },
+    },
+    {
         zigbeeModel: ['R0 (5501)'],
         model: 'R0',
         vendor: 'Ubisys',
@@ -948,4 +1002,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

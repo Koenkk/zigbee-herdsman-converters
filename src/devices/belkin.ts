@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,8 +7,9 @@ const definitions: Definition[] = [
         model: 'F7C033',
         vendor: 'Belkin',
         description: 'WeMo smart LED bulb',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

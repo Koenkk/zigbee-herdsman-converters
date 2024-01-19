@@ -3,7 +3,8 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {forcePowerSource, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -13,7 +14,7 @@ const definitions: Definition[] = [
         model: 'PSS-23ZBS',
         vendor: 'Climax',
         description: 'Power plug',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['SD8SC_00.00.03.12TC'],
@@ -127,15 +128,9 @@ const definitions: Definition[] = [
         model: 'PRL-1ZBS-12/24V',
         vendor: 'Climax',
         description: 'Zigbee 12-24V relay controller',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
 ];
 
+export default definitions;
 module.exports = definitions;

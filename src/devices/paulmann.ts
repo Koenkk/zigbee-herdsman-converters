@@ -1,7 +1,8 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import extend from '../lib/extend';
+import {light, onOff} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -21,71 +22,70 @@ const definitions: Definition[] = [
         model: '968.93',
         vendor: 'Paulmann',
         description: 'URail rail adapter smart home Zigbee on/off/dimm',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht GmbH'}],
-        zigbeeModel: ['RGBW'],
-        model: '948.47',
+        model: '948.47/29165',
         vendor: 'Paulmann',
-        description: 'RGBW wall light',
-        extend: extend.light_onoff_brightness_color(),
+        description: 'RGBW light',
+        extend: [light({colorTemp: {range: [153, 454]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['H036-0007'],
         model: '929.66',
         vendor: 'Paulmann',
         description: 'Smart home Zigbee LED module coin 1x2.5W RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['Switch Controller'],
         model: '50043',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Cephei Switch Controller',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['50131'],
         model: '501.31',
         vendor: 'Paulmann',
         description: 'Smart plug for Euro- and Schuko-sockets',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['Dimmablelight'],
         model: '50044/50045',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Dimmer or LED-stripe',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['500.47'],
         model: '500.47',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee MaxLED RGBW controller max. 72W 24V DC',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['RGBW light', '500.49', 'RGBW_light'],
         model: '50049/500.63',
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee YourLED RGB Controller max. 60W / Smart Home Zigbee LED Reflektor 3,5W GU10 RGBW dimmbar',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['RGBCW_LIGHT'],
         model: '4137',
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee LED bulb 9,3W Matt E27 RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         fingerprint: [{modelID: 'RGBW Controller', manufacturerName: 'Paulmann Licht'}],
         model: '94191',
         vendor: 'Paulmann',
         description: 'Plug & shine LED strip',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         fingerprint: [
@@ -96,70 +96,72 @@ const definitions: Definition[] = [
         model: '50064',
         vendor: 'Paulmann',
         description: 'SmartHome led spot',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['500.46', 'H036-0006'],
         model: '929.63',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee LED-Modul Coin 1x6W Tunable White',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['H036-0005'],
         model: '929.60',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee LED-Modul Coin 1x6W White',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['371000001'],
         model: '371000001',
         vendor: 'Paulmann',
         description: 'SmartHome led spot tuneable white',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: [light({colorTemp: {range: undefined}})],
     },
     {
+        fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht'}],
         zigbeeModel: ['371000002'],
         model: '371000002',
         vendor: 'Paulmann',
         description: 'Amaris LED panels',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['371232040'],
         model: '371232040',
         vendor: 'Paulmann',
         description: 'LED panels',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 350]}),
+        extend: [light({colorTemp: {range: [153, 350]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         zigbeeModel: ['500.44'],
         model: '500.44',
         vendor: 'Paulmann',
         description: 'URail power supply',
-        extend: extend.light_onoff_brightness_color(),
+        extend: [light({color: true})],
     },
     {
         zigbeeModel: ['500.45'],
         model: '500.45',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Pendulum Light Aptare',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['500.48'],
         model: '500.48',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee YourLED dim/switch controller max. 60 W',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
+        fingerprint: [{manufacturerName: 'Paulmann Licht GmbH', modelID: 'Dimmable'}],
         zigbeeModel: ['H036-0001'],
         model: '93999',
         vendor: 'Paulmann',
         description: 'Plug Shine Zigbee controller',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['RemoteControl'],
@@ -174,6 +176,31 @@ const definitions: Definition[] = [
             'on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move', 'brightness_stop',
             'brightness_move_down', 'brightness_move_up', 'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*'])],
     },
+    {
+        fingerprint: [{modelID: 'RGB', manufacturerName: 'Paulmann Licht GmbH'}],
+        model: '150257',
+        vendor: 'Paulmann',
+        description: 'SimpLED SmartHome dimmable RGB LED-stripe',
+        extend: [light({color: true})],
+    },
+    {
+        fingerprint: [
+            {modelID: 'Dimmable Light', manufacturerName: 'Paulmann lamp'},
+            {modelID: 'Dimmable Light ', manufacturerName: 'Paulmann lamp '},
+        ],
+        model: '501.22',
+        vendor: 'Paulmann',
+        description: 'White E27 LED bulb, dimmable',
+        extend: [light()],
+    },
+    {
+        zigbeeModel: ['RGBWW'],
+        model: '291.52',
+        vendor: 'Paulmann',
+        description: 'Smart Home Zigbee LED bulb 4,9W Matt E14 RGBW',
+        extend: [light({colorTemp: {range: [153, 454]}, color: {modes: ['xy', 'hs']}})],
+    },
 ];
 
+export default definitions;
 module.exports = definitions;

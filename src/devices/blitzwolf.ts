@@ -4,6 +4,7 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -22,11 +23,8 @@ const definitions: Definition[] = [
         model: 'BW-SS7_1gang',
         vendor: 'BlitzWolf',
         description: 'Zigbee 3.0 smart light switch module 1 gang',
-        extend: extend.switch(),
-        toZigbee: [tz.TYZB01_on_off, tz.power_on_behavior],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
+        toZigbee: [tz.TYZB01_on_off],
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_digziiav'}],
@@ -47,4 +45,5 @@ const definitions: Definition[] = [
     },
 ];
 
+export default definitions;
 module.exports = definitions;

@@ -1,7 +1,8 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
+import {light} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -10,14 +11,14 @@ const definitions: Definition[] = [
         model: '12226',
         vendor: 'AwoX',
         description: 'Dimmable filament lamp',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
     },
     {
         zigbeeModel: ['TLSR82xx'],
         model: '33951/33948',
         vendor: 'AwoX',
         description: 'LED white',
-        extend: extend.light_onoff_brightness(),
+        extend: [light()],
         whiteLabel: [{vendor: 'EGLO', model: '12229'}],
     },
     {
@@ -79,7 +80,7 @@ const definitions: Definition[] = [
         model: '33943/33944/33946',
         vendor: 'AwoX',
         description: 'LED RGB & brightness',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370], supportsHueAndSaturation: true}),
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs']}})],
     },
     {
         fingerprint: [
@@ -114,7 +115,7 @@ const definitions: Definition[] = [
         model: '33957',
         vendor: 'AwoX',
         description: 'LED light with color temperature',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: [light({colorTemp: {range: [153, 454]}})],
         whiteLabel: [{vendor: 'EGLO', model: '12239'}],
     },
     {
@@ -130,9 +131,10 @@ const definitions: Definition[] = [
         model: '33955',
         vendor: 'AwoX',
         description: 'LED light with color temperature',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
         whiteLabel: [{vendor: 'EGLO', model: '900316'}, {vendor: 'EGLO', model: '900317'}, {vendor: 'EGLO', model: '900053'}],
     },
 ];
 
+export default definitions;
 module.exports = definitions;
