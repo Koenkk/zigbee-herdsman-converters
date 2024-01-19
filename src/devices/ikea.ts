@@ -1234,7 +1234,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'VALLHORN wireless motion sensor',
         fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
-        toZigbee: [],
+        toZigbee: [tz.identify],
         exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux()],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1278,7 +1278,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'PARASOLL door/window Sensor',
         fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
-        toZigbee: [],
+        toZigbee: [tz.identify],
         ota: ota.tradfri,
         exposes: [e.battery(), e.contact()],
         configure: async (device, coordinatorEndpoint, logger) => {
