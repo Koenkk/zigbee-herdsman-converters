@@ -3529,7 +3529,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['915005914501'],
         model: '915005914501',
         vendor: 'Philips',
-        description: 'Hue Being Pendant Aluminium',
+        description: 'Hue Being Pendant Aluminum',
         extend: [philipsLight({"colorTemp":{"range":[153,454]}})],
     },
 ];
