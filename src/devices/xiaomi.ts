@@ -3161,7 +3161,8 @@ const definitions: Definition[] = [
                 .withCategory('config'),
             e.child_lock_bool(),
             e.window_detection_bool(),
-            e.binary('window_open', ea.STATE, true, false),
+            e.binary('window_open', ea.STATE, true, false)
+                .withDescription('Notifies if window opening is detected'),
             e.valve_detection_bool(),
             e.binary('valve_alarm', ea.STATE, true, false)
                 .withDescription('Notifies of a temperature control abnormality if valve detection is enabled ' +
