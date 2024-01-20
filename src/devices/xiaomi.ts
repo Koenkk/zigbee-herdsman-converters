@@ -262,7 +262,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
     aqara_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
-            'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_settings'],
+            'calibrate', 'sensor', 'external_temperature_input', 'identify', 'schedule', 'schedule_settings'],
         convertSet: async (entity, key, value, meta) => {
             const aqaraHeader = (counter: number, params: number[], action: number) => {
                 const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
@@ -355,7 +355,7 @@ const tzLocal = {
                 }
                 break;
             }
-            case 'sensor_temp':
+            case 'external_temperature_input':
                 if (meta.state['sensor'] === 'external') {
                     const temperatureBuf = Buffer.alloc(4);
                     const number = utils.toNumber(value);
@@ -1090,9 +1090,9 @@ const definitions: Definition[] = [
             tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night, tz.aqara_switch_mode_switch],
         exposes: [e.switch(), e.action(['single', 'double']), e.power_outage_memory(), e.flip_indicator_light(),
             e.led_disabled_night(), e.power_outage_count(), e.device_temperature().withAccess(ea.STATE),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
-            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
-                .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
+            e.operation_mode_select(['control_relay', 'decoupled']).withDescription('Switches between direct relay control and action sending only'),
+            e.mode_switch_select(['anti_flicker_mode', 'quick_mode'])
+                .withDescription('Features. Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1749,12 +1749,9 @@ const definitions: Definition[] = [
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity, tz.RTCGQ14LM_trigger_indicator],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
-            e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high'])
-                .withDescription('. Press pairing button right before changing this otherwise it will fail.'),
-            e.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions. ' +
-                    'Press pairing button right before changing this otherwise it will fail.'),
-            e.binary('trigger_indicator', ea.ALL, true, false).withDescription('When this option is enabled then ' +
+            e.motion_sensitivity_select(['low', 'medium', 'high'])
+                .withDescription('Select motion sensitivity to use. Press pairing button right before changing this otherwise it will fail.'),
+            e.trigger_indicator().withDescription('When this option is enabled then ' +
                 'blue LED will blink once when motion is detected. ' +
                 'Press pairing button right before changing this otherwise it will fail.'),
             e.device_temperature(), e.battery(), e.battery_voltage()],
@@ -3137,9 +3134,7 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.aqara_trv, fz.thermostat, fz.battery],
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
         exposes: [
-            e.binary('setup', ea.STATE, true, false)
-                .withDescription('Indicates if the device is in setup mode (E11)')
-                .withCategory('diagnostic'),
+            e.setup().withDescription('Indicates if the device is in setup mode (E11)'),
             e.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature(ea.STATE, 'Current temperature measured by the internal or external sensor')
@@ -3147,39 +3142,19 @@ const definitions: Definition[] = [
                 .withPreset(['manual', 'away', 'auto'])
                 .setAccess('preset', ea.ALL),
             e.temperature_sensor_select(['internal', 'external']).withAccess(ea.ALL),
-            e.numeric('sensor_temp', ea.ALL)
-                .withUnit('°C')
-                .withValueMin(0)
-                .withValueMax(55)
-                .withDescription('Input for remote temperature sensor (when sensor is set to external)')
-                .withCategory('config'),
-            e.binary('calibrated', ea.STATE, true, false)
-                .withDescription('Indicates if this valve is calibrated, use the calibrate option to calibrate')
-                .withCategory('diagnostic'),
+            e.external_temperature_input().withDescription('Input for remote temperature sensor (when sensor is set to external)'),
+            e.calibrated().withDescription('Indicates if this valve is calibrated, use the calibrate option to calibrate'),
             e.enum('calibrate', ea.ALL, ['calibrate'])
                 .withDescription('Calibrates the valve')
                 .withCategory('config'),
-            e.child_lock_bool(),
-            e.window_detection_bool(),
-            e.binary('window_open', ea.STATE, true, false)
-                .withDescription('Notifies if window opening is detected'),
-            e.valve_detection_bool(),
-            e.binary('valve_alarm', ea.STATE, true, false)
-                .withDescription('Notifies of a temperature control abnormality if valve detection is enabled ' +
+            e.child_lock_bool(), e.window_detection_bool(), e.window_open(), e.valve_detection_bool(),
+            e.valve_alarm().withDescription('Notifies of a temperature control abnormality if valve detection is enabled ' +
                     '(e.g., thermostat not installed correctly, valve failure or incorrect calibration, ' +
                     'incorrect link to external temperature sensor)'),
-            e.away_preset_temperature()
-                .withAccess(ea.ALL),
-            e.battery_voltage(),
-            e.battery(),
-            e.power_outage_count(),
-            e.device_temperature(),
-            e.binary('schedule', ea.ALL, true, false)
-                .withDescription('When enabled, the thermostat will change its state based on your schedule settings')
-                .withCategory('config'),
-            e.text('schedule_settings', ea.ALL)
-                .withDescription('Smart schedule configuration (default: mon,tue,wed,thu,fri|8:00,24.0|18:00,17.0|23:00,22.0|8:00,22.0)')
-                .withCategory('config'),
+            e.away_preset_temperature().withAccess(ea.ALL), e.battery_voltage(), e.battery(),
+            e.power_outage_count(), e.device_temperature(), e.schedule(),
+            e.schedule_settings()
+                .withDescription('Smart schedule configuration (default: mon,tue,wed,thu,fri|8:00,24.0|18:00,17.0|23:00,22.0|8:00,22.0)'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
