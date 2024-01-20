@@ -919,6 +919,17 @@ const
             dataType: UINT8,
             min: 0,
             max: 255,
+            values: {
+                Red: 0,
+                Orange: 21,
+                Yellow: 42,
+                Green: 85,
+                Cyan: 127,
+                Blue: 170,
+                Violet: 212,
+                Pink: 234,
+                White: 255,
+            },
             description: 'LED color used to display fan control mode.',
         },
     };
