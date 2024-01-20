@@ -1508,13 +1508,13 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiDoNotDisturb: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
-        name: 'do_not_disturb',
+    xiaomiLedIndicator: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'led_indicator',
         cluster: 'aqaraOpple',
         attribute: {ID: 0x0203, type: 0x10},
-        valueOn: ['ON', 0],
-        valueOff: ['OFF', 1],
-        description: 'Do not disturb mode. Disabling built-in indicator',
+        valueOn: ['ON', 1],
+        valueOff: ['OFF', 0],
+        description: 'LED indicator',
         access: 'ALL',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,

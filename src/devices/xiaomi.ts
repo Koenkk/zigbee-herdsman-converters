@@ -18,7 +18,7 @@ const {
     xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior, xiaomiZigbeeOTA,
     xiaomiSwitchType, aqaraAirQuality, aqaraVoc, aqaraDisplayUnit, xiaomiLight,
     xiaomiOutageCountRestoreBindReporting, xiaomiElectricityMeter, xiaomiPower,
-    xiaomiOverloadProtection, xiaomiDoNotDisturb, xiaomiButtonLock,
+    xiaomiOverloadProtection, xiaomiLedIndicator, xiaomiButtonLock,
 } = xiaomi.modernExtend;
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz} from '../lib/types';
@@ -3448,7 +3448,7 @@ const definitions: Definition[] = [
             xiaomiPower(),
             xiaomiElectricityMeter(),
             xiaomiOverloadProtection(),
-            xiaomiDoNotDisturb(),
+            xiaomiLedIndicator(),
             xiaomiButtonLock(),
             binary({
                 name: 'charging_protection',
