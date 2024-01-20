@@ -41,7 +41,7 @@ describe('GenerateDefinition', () => {
             read: {1: [['msTemperatureMeasurement', ['measuredValue']]]},
             configureReporting: {
                 1: [
-                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 1)]],
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                 ],
             },
         });
@@ -75,7 +75,7 @@ describe('GenerateDefinition', () => {
             read: {1: [['msRelativeHumidity', ['measuredValue']]]},
             configureReporting: {
                 1: [
-                    ['msRelativeHumidity', [reportingItem('measuredValue', 10, repInterval.HOUR, 1)]],
+                    ['msRelativeHumidity', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                 ],
             },
         });
@@ -95,7 +95,7 @@ describe('GenerateDefinition', () => {
             ]},
             configureReporting: {
                 1: [
-                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 1)]],
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                     ['genOnOff', [reportingItem('onOff', 0, repInterval.MAX, 1)]],
                 ],
             },
@@ -138,11 +138,11 @@ module.exports = definition;
             },
             configureReporting: {
                 1: [
-                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 1)]],
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                     ['genOnOff', [reportingItem('onOff', 0, repInterval.MAX, 1)]],
                 ],
                 2: [
-                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 1)]],
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                 ],
             },
             externalDefintionSource: `
