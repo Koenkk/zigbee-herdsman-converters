@@ -699,7 +699,7 @@ export function pressure(args?: Partial<NumericArgs>): ModernExtend {
         name: 'pressure',
         cluster: 'msPressureMeasurement',
         attribute: 'measuredValue',
-        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 10},
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 50}, // 5 kPa
         description: 'The measured atmospheric pressure',
         unit: 'kPa',
         scale: 10,

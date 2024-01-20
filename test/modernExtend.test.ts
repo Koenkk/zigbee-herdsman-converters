@@ -234,8 +234,8 @@ describe('ModernExtend', () => {
                 1: [
                     ['genPowerCfg', [reportingItem('batteryVoltage', repInterval.HOUR, repInterval.MAX, 0)]],
                     ['genAnalogInput', [reportingItem('presentValue', 10, repInterval.HOUR, 5)]],
-                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 1)]],
-                    ['msRelativeHumidity', [reportingItem('measuredValue', 10, repInterval.HOUR, 1)]],
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                    ['msRelativeHumidity', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
                 ],
             },
         });
