@@ -1559,6 +1559,11 @@ export const fromZigbee = {
                 switch (parseInt(key)) {
                 case 0xfff1: {
                     // @ts-expect-error
+                    if (value.length < 8) {
+                        meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: cannot handle ${value}, frame too small`);
+                        return;
+                    }
+                    // @ts-expect-error
                     const attr = value.slice(3, 7);
                     // @ts-expect-error
                     const len = value.slice(7, 8).readUInt8();
@@ -1617,10 +1622,10 @@ export const fromZigbee = {
                         break;
                     case 0x080007d1: // ? 64
                     case 0x0d090055: // ? 00
-                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled attribute ${attr} = ${val}`);
+                        meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unhandled attribute ${attr} = ${val}`);
                         break;
                     default:
-                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown attribute ${attr} = ${val}`);
+                        meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unknown attribute ${attr} = ${val}`);
                     }
                     break;
                 }
@@ -1630,7 +1635,7 @@ export const fromZigbee = {
                     meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key} = ${value}`);
                     break;
                 default:
-                    meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown key ${key} = ${value}`);
+                    meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unknown key ${key} = ${value}`);
                 }
             });
             return result;

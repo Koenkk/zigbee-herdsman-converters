@@ -258,6 +258,11 @@ describe('lib/xiaomi', () => {
                 const result = fromZigbee.aqara_feeder.convert(null, {data: {'65521': data}}, null, null, {logger: {warn: jest.fn(), debug: jest.fn()}});
                 expect(result).toStrictEqual({ schedule: [ { days: 'everyday', hour: 1, minute: 1, size: 1 } ] });
             });
+            it.only('Too small frame', () => {
+                const data = Buffer.from([128,2,2,48]);
+                const result = fromZigbee.aqara_feeder.convert(null, {data: {'65521': data}}, null, null, {logger: {warn: jest.fn(), debug: jest.fn()}});
+                expect(result).toStrictEqual({});
+            });
         });
     });
 });

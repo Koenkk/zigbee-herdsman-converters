@@ -8,7 +8,7 @@ import extend from '../lib/extend';
 import {
     light, numeric, binary, enumLookup, forceDeviceType,
     temperature, humidity, forcePowerSource, quirkAddEndpointCluster,
-    quirkCheckinInterval, onOff,
+    quirkCheckinInterval, onOff, customTimeResponse,
 } from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -2042,19 +2042,7 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature(), e.voltage(),
             e.power_outage_memory(), e.led_disabled_night(),
             e.auto_off(30)],
-        onEvent: async (type, data, device) => {
-            device.skipTimeResponse = true;
-            // According to the Zigbee the genTime.time should be the seconds since 1 January 2020 UTC
-            // However the device expects this to be the seconds since 1 January in the local time zone.
-            // Disable the responses of zigbee-herdsman and respond here instead.
-            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2843#issuecomment-888532667
-            if (type === 'message' && data.type === 'read' && data.cluster === 'genTime') {
-                const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
-                const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
-                const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
-                device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal});
-            }
-        },
+        extend: [customTimeResponse('2000_LOCAL')],
     },
     {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],

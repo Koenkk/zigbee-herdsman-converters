@@ -1507,11 +1507,11 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['3261048P6'],
+        zigbeeModel: ['3261048P6', '929003053901'],
         model: '3261048P6',
         vendor: 'Philips',
         description: 'Hue Being aluminium',
-        extend: [philipsLight({colorTemp: {range: undefined}})],
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['3216431P6'],
@@ -3524,6 +3524,13 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue Festavia gradient light string 250',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle']}})],
+    },
+    {
+        zigbeeModel: ['915005914501'],
+        model: '915005914501',
+        vendor: 'Philips',
+        description: 'Hue Being Pendant aluminum',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
 ];
 
