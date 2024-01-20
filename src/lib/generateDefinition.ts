@@ -10,12 +10,19 @@ interface GeneratedExtend {extend?: ModernExtend, extendFn?: (a: object) => Mode
 type ExtendGenerator = (endpoint: Zh.Endpoint) => Promise<GeneratedExtend[]>;
 type Extender = [string[], ExtendGenerator];
 
-function generateSource(device: Zh.Device, generatedExtend: GeneratedExtend[]): string {
+function generateSource(zigbeeModel: string, definition: Definition, generatedExtend: GeneratedExtend[]): string {
     const imports: {[s: string]: string[]} = {};
+    const importsDeduplication = new Map<string, boolean>();
     generatedExtend.forEach((e) => {
         const lib = e.lib ?? 'modernExtend';
         if (!(lib in imports)) imports[lib] = [];
-        imports[lib].push(e.source.split('(')[0]);
+
+        const importName = e.source.split('(')[0]
+        if (!importsDeduplication.has(importName)) {
+            importsDeduplication.set(importName, true);
+
+            imports[lib].push(importName);
+        }
     });
 
     const importsStr = Object.entries(imports)
@@ -38,11 +45,12 @@ function generateSource(device: Zh.Device, generatedExtend: GeneratedExtend[]): 
     return `${importsStr}
 
 const definition = {
-    zigbeeModel: ['${device.modelID}'],
-    model: '${device.modelID}',
-    vendor: '${device.manufacturerName}',
+    zigbeeModel: ['${zigbeeModel}'],
+    model: '${definition.model}',
+    vendor: '${definition.vendor}',
     description: 'Automatically generated definition',
     extend: [${generatedExtend.map(genSource).join(', ')}],
+    meta: ${JSON.stringify(definition.meta || {})},
 };
 
 module.exports = definition;`;
@@ -88,18 +96,18 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
     };
 
     if (device.endpoints.length > 1) {
-        definition.meta = {multiEndpoint: true}
+        definition.meta = {multiEndpoint: true};
     }
 
-    const externalDefinitionSource = generateSource(device, generatedExtend);
+    const externalDefinitionSource = generateSource(definition.zigbeeModel[0], definition, generatedExtend);
     return {externalDefinitionSource, definition};
 }
 
 const inputExtenders: Extender[] = [
-    [['msTemperatureMeasurement'], async (endpoint) => [{extendFn: m.temperature, args: {endpoint: endpoint.ID.toString()}, source: 'temperature'}]],
-    [['msPressureMeasurement'], async (endpoint) => [{extendFn: m.pressure, args: {endpoint: endpoint.ID.toString()}, source: 'pressure'}]],
-    [['msRelativeHumidity'], async (endpoint) => [{extendFn: m.humidity, args: {endpoint: endpoint.ID.toString()}, source: 'humidity'}]],
-    [['msCO2'], async (endpoint) => [{extendFn: m.co2, args: {endpoint: endpoint.ID.toString()}, source: 'co2'}]],
+    [['msTemperatureMeasurement'], async (endpoint) => [{extendFn: m.temperature, args: {endpointID: endpoint.ID}, source: 'temperature'}]],
+    [['msPressureMeasurement'], async (endpoint) => [{extendFn: m.pressure, args: {endpointID: endpoint.ID}, source: 'pressure'}]],
+    [['msRelativeHumidity'], async (endpoint) => [{extendFn: m.humidity, args: {endpointID: endpoint.ID}, source: 'humidity'}]],
+    [['msCO2'], async (endpoint) => [{extendFn: m.co2, args: {endpointID: endpoint.ID}, source: 'co2'}]],
     [['genPowerCfg'], async (endpoint) => [{extendFn: m.batteryPercentage, source: 'batteryPercentage'}]],
     [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],

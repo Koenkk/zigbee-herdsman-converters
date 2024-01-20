@@ -412,9 +412,9 @@ export function numeric(args: NumericArgs): ModernExtend {
     const {
         name, cluster, attribute, description, zigbeeCommandOptions, unit, reporting, valueMin, valueMax, valueStep, scale, label,
     } = args;
-    let endpoint = args.endpoint
+    let endpoint = args.endpoint;
     if (args.endpointID) {
-        endpoint = args.endpointID.toString()
+        endpoint = args.endpointID.toString();
     }
 
     const endpointID = args.endpointID || undefined;
