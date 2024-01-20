@@ -594,6 +594,32 @@ export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
     return {onEvent, isModernExtend: true};
 }
 
+export function customTimeResponse(start: '1970_UTC' | '2000_LOCAL'): ModernExtend {
+    const onEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
+        device.skipTimeResponse = true;
+        // The Zigbee Cluster Library specification states that the genTime.time response should be the
+        // number of seconds since 1st Jan 2000 00:00:00 UTC. This extend modifies that:
+        // 1970_UTC: number of seconds since the Unix Epoch (1st Jan 1970 00:00:00 UTC)
+        // 2000_LOCAL: seconds since 1 January in the local time zone.
+        // Disable the responses of zigbee-herdsman and respond here instead.
+        if (type === 'message' && data.type === 'read' && data.cluster === 'genTime') {
+            const payload: KeyValue = {};
+            if (start === '1970_UTC') {
+                const time = Math.round(((new Date()).getTime()) / 1000);
+                payload.time = time;
+                payload.localTime = time - (new Date()).getTimezoneOffset() * 60;
+            } else if (start === '2000_LOCAL') {
+                const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+                const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
+                payload.time = secondsUTC - (new Date()).getTimezoneOffset() * 60;
+            }
+            data.endpoint.readResponse('genTime', data.meta.zclTransactionSequenceNumber, payload);
+        }
+    };
+
+    return {onEvent, isModernExtend: true};
+}
+
 export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExtend {
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
         device.type = args.type;
