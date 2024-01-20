@@ -571,42 +571,29 @@ export function toNumber(value: unknown, property?: string): number {
     return result;
 }
 
-export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V=undefined): V {
+export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V=undefined, keyIsBool: boolean=false): V {
     let result = undefined;
-    if (typeof value === 'string') {
-        result = lookup[value] ?? lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
-    } else if (typeof value === 'number') {
-        result = lookup[value];
+    if (!keyIsBool) {
+        if (typeof value === 'string') {
+            result = lookup[value] ?? lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
+        } else if (typeof value === 'number') {
+            result = lookup[value];
+        } else {
+            throw new Error(`Expected string or number, got: ${typeof value}`);
+        }
+    } else {
+        // Silly hack, but boolean is not supported as index
+        if (typeof value === 'boolean') {
+            const stringValue = value.toString();
+            result = (lookup[stringValue] ?? lookup[stringValue.toLowerCase()] ?? lookup[stringValue.toUpperCase()]);
+        } else {
+            throw new Error(`Expected boolean, got: ${typeof value}`);
+        }
     }
     if (result === undefined && defaultValue === undefined) {
-        throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
+        throw new Error(`Value: '${value}' not found in: [${Object.keys(lookup).join(', ')}]`);
     }
     return result ?? defaultValue;
-}
-
-// Silly hack, but boolean is not supported as index
-export function getFromLookupBool(value: unknown, lookup: {[s: string | number]: string | number}): boolean | number {
-    let result = undefined;
-    if (typeof value === 'boolean') {
-        const stringValue = value.toString();
-        result = (lookup[stringValue] ?? lookup[stringValue.toLowerCase()] ?? lookup[stringValue.toUpperCase()]);
-        if (typeof result !== 'number') {
-            throw new Error(`Expected number, got: '${value}'`);
-        }
-    } else if (typeof value === 'number') {
-        const stringResult = lookup[value];
-        if (stringResult === 'true') {
-            result = true;
-        } else if (stringResult === 'false') {
-            result = false;
-        } else {
-            throw new Error(`Expected boolean, got: '${value}'`);
-        }
-    }
-    if (result === undefined) {
-        throw new Error(`Expected boolean or number, one of: [${Object.keys(lookup).join(', ')}], got: '${value}'`);
-    }
-    return result;
 }
 
 export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string=undefined): string {

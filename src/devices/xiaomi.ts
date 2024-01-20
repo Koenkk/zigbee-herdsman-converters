@@ -76,13 +76,13 @@ const fzLocal = {
                     Object.assign(result, trv.decodePreset(value));
                     break;
                 case 0x0273:
-                    result['window_detection'] = utils.getFromLookupBool(value, {1: 'true', 0: 'false'});
+                    result['window_detection'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x0274:
-                    result['valve_detection'] = utils.getFromLookupBool(value, {1: 'true', 0: 'false'});
+                    result['valve_detection'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x0277:
-                    result['child_lock'] = utils.getFromLookupBool(value, {1: 'true', 0: 'false'});
+                    result['child_lock'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x0279:
                     utils.assertNumber(value);
@@ -124,7 +124,7 @@ const fzLocal = {
                     break;
                 }
                 case 0x027d:
-                    result['schedule'] = utils.getFromLookupBool(value, {1: 'true', 0: 'false'});
+                    result['schedule'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x0276: {
                     // @ts-expect-error
@@ -281,15 +281,15 @@ const tzLocal = {
                     {manufacturerCode: 0x115f});
                 break;
             case 'window_detection':
-                await entity.write('aqaraOpple', {0x0273: {value: utils.getFromLookupBool(value, {'false': 0, 'true': 1}), type: 0x20}},
+                await entity.write('aqaraOpple', {0x0273: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'valve_detection':
-                await entity.write('aqaraOpple', {0x0274: {value: utils.getFromLookupBool(value, {'false': 0, 'true': 1}), type: 0x20}},
+                await entity.write('aqaraOpple', {0x0274: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'child_lock':
-                await entity.write('aqaraOpple', {0x0277: {value: utils.getFromLookupBool(value, {'false': 0, 'true': 1}), type: 0x20}},
+                await entity.write('aqaraOpple', {0x0277: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'away_preset_temperature':
@@ -374,7 +374,7 @@ const tzLocal = {
                 await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
                 break;
             case 'schedule':
-                await entity.write('aqaraOpple', {0x027d: {value: utils.getFromLookupBool(value, {'false': 0, 'true': 1}), type: 0x20}},
+                await entity.write('aqaraOpple', {0x027d: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'schedule_settings': {
