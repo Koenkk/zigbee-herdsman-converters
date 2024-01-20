@@ -3,7 +3,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import {binary, enumLookup, forcePowerSource, numeric, onOff} from '../lib/modernExtend';
+import {binary, enumLookup, forcePowerSource, numeric, onOff, customTimeResponse} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
@@ -623,6 +623,7 @@ const definitions: Definition[] = [
                 access: 'STATE_GET',
             }),
             sonoffExtend.weeklySchedule(),
+            customTimeResponse('1970_UTC'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -632,22 +633,6 @@ const definitions: Definition[] = [
             await reporting.thermostatSystemMode(endpoint);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007]);
-        },
-        onEvent: async (type, data, device) => {
-            device.skipTimeResponse = true;
-            // The Zigbee Cluster Library specification states that the genTime.time response should be the
-            // number of seconds since 1st Jan 2020 00:00:00 UTC.
-            // This device, however, expects it to be number of seconds since the Unix Epoch (1st Jan 1970 00:00:00 UTC).
-            // Disable the responses of zigbee-herdsman and respond here instead.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/19269#issuecomment-1802898476
-            if (type === 'message' && data.type === 'read' && data.cluster === 'genTime') {
-                const secondsUTC = Math.round(((new Date()).getTime()) / 1000);
-                const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
-                await device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {
-                    time: secondsUTC,
-                    localTime: secondsLocal,
-                });
-            }
         },
     },
     {
