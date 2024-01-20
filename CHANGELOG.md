@@ -1,5 +1,21 @@
 # Changelog
 
+## [18.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.16.0...v18.17.0) (2024-01-20)
+
+
+### Features
+
+* Add ability to set weekly schedule to Sonoff TRVZB ([#6443](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6443)) ([241fc9a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/241fc9a63f74cc9fcad0774da94d0a5d0ec5da8d))
+* **add:** 3137309 [@agoberg2](https://github.com/agoberg2) https://github.com/Koenkk/zigbee2mqtt/issues/20886 ([8caf853](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8caf8537ddb4ca8e8061e84f3e6da497c9ad946b))
+* **add:** WP-P01D ([#6925](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6925)) ([a9e5efa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a9e5efa06d319100a51e9f8998d8dbe9b42e7b19))
+* Enable identify for IKEA Vallhorn and Parasoll ([#6934](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6934)) ([c8a2cee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c8a2cee2caef969a32d18f4723d3e3734e3f80d9))
+
+
+### Bug Fixes
+
+* Disable unsupported configure reporting for ShinaSystem SBM300ZX https://github.com/Koenkk/zigbee2mqtt/issues/20687 ([8ff72e7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ff72e77e2d09bb217f2b8bf16a95d99d17a92fb))
+* Remove unsupported color from Innr RB 278 T https://github.com/Koenkk/zigbee2mqtt/issues/20884 ([d0b3cd6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0b3cd66d46d662b1dd462fa4648414f4dd95a67))
+
 ## [18.16.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.15.1...v18.16.0) (2024-01-19)
 
 
