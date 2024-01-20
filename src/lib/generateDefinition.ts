@@ -17,7 +17,7 @@ function generateSource(zigbeeModel: string, definition: Definition, generatedEx
         const lib = e.lib ?? 'modernExtend';
         if (!(lib in imports)) imports[lib] = [];
 
-        const importName = e.source.split('(')[0]
+        const importName = e.source.split('(')[0];
         if (!importsDeduplication.has(importName)) {
             importsDeduplication.set(importName, true);
 
