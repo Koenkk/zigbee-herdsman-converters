@@ -65,8 +65,7 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.nimly_pro_lock_actions, fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event,
             fz.easycodetouch_action],
         toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume, tz.pincode_lock],
-        meta: {pinCodeCount: 1000},
-        meta: {battery: {dontDividePercentage: true}},
+        meta: {pinCodeCount: 1000, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
