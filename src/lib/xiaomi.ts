@@ -1463,7 +1463,7 @@ export const xiaomiModernExtend = {
         // https://github.com/Koenkk/zigbee2mqtt/issues/10660
         const result = modernExtend.quirkAddEndpointCluster({
             endpointID: 1,
-            inputClusters: ['genOta'],
+            outputClusters: ['genOta'],
         });
         result.ota = ota.zigbeeOTA;
         return result;
