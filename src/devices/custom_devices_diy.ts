@@ -1312,7 +1312,7 @@ const definitions: Definition[] = [
                 lookup: {'celsius': 0, 'fahrenheit': 1},
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: 'tempDisplayMode',
-                description: 'The units of the temperatur displayed on the device screen.',
+                description: 'The units of the temperature displayed on the device screen.',
             }),
             binary({
                 name: 'show_smile',
@@ -1325,7 +1325,7 @@ const definitions: Definition[] = [
             // Setting offsets for temperature and humidity.
             // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/30
             numeric({
-                name: 'temperature_offset',
+                name: 'temperature_calibration',
                 unit: 'C',
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: {ID: 0x0100, type: 40},
@@ -1333,10 +1333,10 @@ const definitions: Definition[] = [
                 valueMax: 12.7,
                 valueStep: 0.1,
                 scale: 10,
-                description: 'Temperature offset, in 0.1° steps. Requires v0.1.1.6 or newer.',
+                description: 'The temperature calibration, in 0.1° steps. Requires v0.1.1.6 or newer.',
             }),
             numeric({
-                name: 'humidity_offset',
+                name: 'humidity_calibration',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
                 attribute: {ID: 0x0101, type: 40},
@@ -1382,7 +1382,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x0105, type: 32},
                 valueMin: 0,
                 valueMax: 100,
-                description: 'Comfort parameters/Humidity maximum, in 1% steps, range 0..100. Requires v0.1.1.7 or newer.',
+                description: 'Comfort parameters/Humidity maximum, in 1% steps. Requires v0.1.1.7 or newer.',
             }),
         ],
         ota: ota.zigbeeOTA,
