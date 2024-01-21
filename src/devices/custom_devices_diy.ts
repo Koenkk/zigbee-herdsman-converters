@@ -20,7 +20,7 @@ import {
     enumLookup,
     binary,
     numeric,
-    quirkAddEndpointCluster
+    quirkAddEndpointCluster,
 } from '../lib/modernExtend';
 
 const switchTypesList = {
