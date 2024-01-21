@@ -10,7 +10,7 @@ import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
 import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib/utils';
-import {light, onOff, batteryPercentage, temperature, humidity, enumLookup, binary, numeric, quirkAddEndpointCluster} from '../lib/modernExtend';
+import {light, onOff, batteryPercentage, batteryVoltage, temperature, humidity, enumLookup, binary, numeric, quirkAddEndpointCluster} from '../lib/modernExtend';
 
 const switchTypesList = {
     'switch': 0x00,
