@@ -1,5 +1,22 @@
 # Changelog
 
+## [18.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.17.0...v18.18.0) (2024-01-21)
+
+
+### Features
+
+* Expose `mode` for TuYa TRV602 @BAUBLITZ https://github.com/Koenkk/zigbee-herdsman-converters/pull/6766 ([f7cb1f1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f7cb1f160f07fcca7a354429cad9d63c7272ea85))
+* Improve Aqara SRTS-A01 integration ([#6922](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6922)) ([f9a17e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f9a17e4e512bbed069994d5ef80aa6829ee35c1b))
+
+
+### Bug Fixes
+
+* Fix `Failed to find endpoint which support OTA cluster` error for Xiaomi devices https://github.com/Koenkk/zigbee2mqtt/issues/10660 ([aaa5018](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aaa501810357c58a1c82b27c7a9fb8b7c09ff735))
+* Fix Onesti easyCodeTouch_v1 battery percentage divided by 2 ([#6940](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6940)) ([ec956f7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ec956f7a1aeb8162f5188d995ff763260fef1c35))
+* **ignore:** update dependencies ([#6938](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6938)) ([d6bbb85](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d6bbb8590f2d39655bfb48ab68766c12af597d7c))
+* Update Aqara WP-P01D description ([#6937](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6937)) ([e3e82ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e3e82ffeb03a4002025828f20ef6d8e99fa4f892))
+* Update TuYa TS0210 sensivity description https://github.com/Koenkk/zigbee2mqtt/issues/18929 ([16fddf9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/16fddf99b54a0db551df5885901c5a42c41b374d))
+
 ## [18.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.16.0...v18.17.0) (2024-01-20)
 
 
