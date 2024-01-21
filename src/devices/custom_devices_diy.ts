@@ -10,7 +10,18 @@ import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
 import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib/utils';
-import {light, onOff, batteryPercentage, batteryVoltage, temperature, humidity, enumLookup, binary, numeric, quirkAddEndpointCluster} from '../lib/modernExtend';
+import {
+    light,
+    onOff,
+    batteryPercentage,
+    batteryVoltage,
+    temperature,
+    humidity,
+    enumLookup,
+    binary,
+    numeric,
+    quirkAddEndpointCluster
+} from '../lib/modernExtend';
 
 const switchTypesList = {
     'switch': 0x00,
@@ -1288,13 +1299,13 @@ const definitions: Definition[] = [
                     'msRelativeHumidity',
                     'hvacUserInterfaceCfg',
                 ],
-    
+
             }),
-            batteryPercentage(), 
+            batteryPercentage(),
             batteryVoltage(),
-            temperature({reporting: {min: 10, max: 300, change: 10}}), 
+            temperature({reporting: {min: 10, max: 300, change: 10}}),
             humidity({reporting: {min: 10, max: 300, change: 50}}),
-            // Temperature display and show smile. 
+            // Temperature display and show smile.
             // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issue-2033984519
             enumLookup({
                 name: 'temperature_display_mode',
@@ -1311,7 +1322,7 @@ const definitions: Definition[] = [
                 attribute: 'programmingVisibility',
                 description: 'Whether to show a smile on the device screen.',
             }),
-            // Setting offsets for temperature and humidity. 
+            // Setting offsets for temperature and humidity.
             // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/30
             numeric({
                 name: 'temperature_offset',
@@ -1322,7 +1333,7 @@ const definitions: Definition[] = [
                 valueMax: 12.7,
                 valueStep: 0.1,
                 scale: 10,
-                description: 'Temperature offset, in 0.1° steps. The minimum value is -127 (-12.7°). The maximum value is 127 (+12.7°). Requires v0.1.1.6 or newer.',
+                description: 'Temperature offset, in 0.1° steps. Requires v0.1.1.6 or newer.',
             }),
             numeric({
                 name: 'humidity_offset',
@@ -1333,9 +1344,9 @@ const definitions: Definition[] = [
                 valueMax: 12.7,
                 valueStep: 0.1,
                 scale: 10,
-                description: 'The humidity offset is set in 0.1 % steps. The minimum value is -127 (-12.7 %). The maximum value is 127 (+12.7 %). Requires v0.1.1.6 or newer.',
+                description: 'The humidity offset is set in 0.1 % steps. Requires v0.1.1.6 or newer.',
             }),
-            // Comfort parameters. 
+            // Comfort parameters.
             // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issuecomment-1855763432
             numeric({
                 name: 'comfort_temperature_min',
@@ -1344,7 +1355,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x0102, type: 40},
                 valueMin: -127,
                 valueMax: 127,
-                description: 'Comfort parameters/Temperature minimum, in 1° steps, range -127..+127. Requires v0.1.1.7 or newer.',
+                description: 'Comfort parameters/Temperature minimum, in 1° steps. Requires v0.1.1.7 or newer.',
             }),
             numeric({
                 name: 'comfort_temperature_max',
@@ -1353,7 +1364,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x0103, type: 40},
                 valueMin: -127,
                 valueMax: 127,
-                description: 'Comfort parameters/Temperature maximum, in 1° steps, range -127..+127. Requires v0.1.1.7 or newer.',
+                description: 'Comfort parameters/Temperature maximum, in 1° steps. Requires v0.1.1.7 or newer.',
             }),
             numeric({
                 name: 'comfort_humidity_min',
@@ -1362,7 +1373,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x0104, type: 32},
                 valueMin: 0,
                 valueMax: 100,
-                description: 'Comfort parameters/Humidity minimum, in 1% steps, range 0..100. Requires v0.1.1.7 or newer.',
+                description: 'Comfort parameters/Humidity minimum, in 1% steps. Requires v0.1.1.7 or newer.',
             }),
             numeric({
                 name: 'comfort_humidity_max',
