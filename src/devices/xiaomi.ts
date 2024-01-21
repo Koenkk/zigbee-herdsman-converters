@@ -3428,7 +3428,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['lumi.plug.aeu001'],
         model: 'WP-P01D',
         vendor: 'Aqara',
-        description: 'Aqara wall outlet H2',
+        description: 'Aqara wall outlet H2 EU',
         extend: [
             xiaomiZigbeeOTA(),
             onOff({powerOnBehavior: false}),
