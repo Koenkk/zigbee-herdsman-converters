@@ -685,19 +685,6 @@ export function batteryPercentage(args?: Partial<NumericArgs>) {
     });
 }
 
-export function batteryVoltage(args?: Partial<NumericArgs>) {
-    return numeric({
-        name: 'battery_voltage',
-        cluster: 'genPowerCfg',
-        attribute: 'batteryVoltage',
-        reporting: {min: '1_HOUR', max: 'MAX', change: 10},
-        description: 'Voltage of the battery in millivolts',
-        unit: 'mV',
-        access: 'STATE_GET',
-        ...args,
-    });
-}
-
 export function pressure(args?: Partial<NumericArgs>): ModernExtend {
     return numeric({
         name: 'pressure',

@@ -14,7 +14,6 @@ import {
     light,
     onOff,
     batteryPercentage,
-    batteryVoltage,
     temperature,
     humidity,
     enumLookup,
@@ -1302,7 +1301,6 @@ const definitions: Definition[] = [
 
             }),
             batteryPercentage(),
-            batteryVoltage(),
             temperature({reporting: {min: 10, max: 300, change: 10}}),
             humidity({reporting: {min: 10, max: 300, change: 50}}),
             // Temperature display and show smile.
