@@ -1298,7 +1298,6 @@ const definitions: Definition[] = [
                     'msRelativeHumidity',
                     'hvacUserInterfaceCfg',
                 ],
-
             }),
             batteryPercentage(),
             temperature({reporting: {min: 10, max: 300, change: 10}}),
