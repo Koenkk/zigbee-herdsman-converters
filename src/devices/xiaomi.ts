@@ -1,3 +1,4 @@
+import {Buffer} from 'node:buffer';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
@@ -8,7 +9,7 @@ import extend from '../lib/extend';
 import {
     light, numeric, binary, enumLookup, forceDeviceType,
     temperature, humidity, forcePowerSource, quirkAddEndpointCluster,
-    quirkCheckinInterval,
+    quirkCheckinInterval, onOff, customTimeResponse,
 } from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -17,7 +18,8 @@ import * as xiaomi from '../lib/xiaomi';
 const {
     xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior, xiaomiZigbeeOTA,
     xiaomiSwitchType, aqaraAirQuality, aqaraVoc, aqaraDisplayUnit, xiaomiLight,
-    xiaomiOutageCountRestoreBindReporting,
+    xiaomiOutageCountRestoreBindReporting, xiaomiElectricityMeter, xiaomiPower,
+    xiaomiOverloadProtection, xiaomiLedIndicator, xiaomiButtonLock,
 } = xiaomi.modernExtend;
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz} from '../lib/types';
@@ -75,13 +77,13 @@ const fzLocal = {
                     Object.assign(result, trv.decodePreset(value));
                     break;
                 case 0x0273:
-                    result['window_detection'] = utils.getFromLookup(value, {1: 'ON', 0: 'OFF'});
+                    result['window_detection'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x0274:
-                    result['valve_detection'] = utils.getFromLookup(value, {1: 'ON', 0: 'OFF'});
+                    result['valve_detection'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x0277:
-                    result['child_lock'] = utils.getFromLookup(value, {1: 'LOCK', 0: 'UNLOCK'});
+                    result['child_lock'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x0279:
                     utils.assertNumber(value);
@@ -123,7 +125,7 @@ const fzLocal = {
                     break;
                 }
                 case 0x027d:
-                    result['schedule'] = utils.getFromLookup(value, {1: 'ON', 0: 'OFF'});
+                    result['schedule'] = utils.getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x0276: {
                     // @ts-expect-error
@@ -261,7 +263,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
     aqara_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
-            'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_settings'],
+            'calibrate', 'sensor', 'external_temperature_input', 'identify', 'schedule', 'schedule_settings'],
         convertSet: async (entity, key, value, meta) => {
             const aqaraHeader = (counter: number, params: number[], action: number) => {
                 const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
@@ -280,15 +282,15 @@ const tzLocal = {
                     {manufacturerCode: 0x115f});
                 break;
             case 'window_detection':
-                await entity.write('aqaraOpple', {0x0273: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: 0x20}},
+                await entity.write('aqaraOpple', {0x0273: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'valve_detection':
-                await entity.write('aqaraOpple', {0x0274: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: 0x20}},
+                await entity.write('aqaraOpple', {0x0274: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'child_lock':
-                await entity.write('aqaraOpple', {0x0277: {value: utils.getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), type: 0x20}},
+                await entity.write('aqaraOpple', {0x0277: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'away_preset_temperature':
@@ -354,7 +356,7 @@ const tzLocal = {
                 }
                 break;
             }
-            case 'sensor_temp':
+            case 'external_temperature_input':
                 if (meta.state['sensor'] === 'external') {
                     const temperatureBuf = Buffer.alloc(4);
                     const number = utils.toNumber(value);
@@ -373,7 +375,7 @@ const tzLocal = {
                 await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
                 break;
             case 'schedule':
-                await entity.write('aqaraOpple', {0x027d: {value: utils.getFromLookup(value, {'OFF': 0, 'ON': 1}), type: 0x20}},
+                await entity.write('aqaraOpple', {0x027d: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'schedule_settings': {
@@ -1089,9 +1091,9 @@ const definitions: Definition[] = [
             tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night, tz.aqara_switch_mode_switch],
         exposes: [e.switch(), e.action(['single', 'double']), e.power_outage_memory(), e.flip_indicator_light(),
             e.led_disabled_night(), e.power_outage_count(), e.device_temperature().withAccess(ea.STATE),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
-            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
-                .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
+            e.operation_mode_select(['control_relay', 'decoupled']).withDescription('Switches between direct relay control and action sending only'),
+            e.mode_switch_select(['anti_flicker_mode', 'quick_mode'])
+                .withDescription('Features. Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1748,12 +1750,9 @@ const definitions: Definition[] = [
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity, tz.RTCGQ14LM_trigger_indicator],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
-            e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high'])
-                .withDescription('. Press pairing button right before changing this otherwise it will fail.'),
-            e.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions. ' +
-                    'Press pairing button right before changing this otherwise it will fail.'),
-            e.binary('trigger_indicator', ea.ALL, true, false).withDescription('When this option is enabled then ' +
+            e.motion_sensitivity_select(['low', 'medium', 'high'])
+                .withDescription('Select motion sensitivity to use. Press pairing button right before changing this otherwise it will fail.'),
+            e.trigger_indicator().withDescription('When this option is enabled then ' +
                 'blue LED will blink once when motion is detected. ' +
                 'Press pairing button right before changing this otherwise it will fail.'),
             e.device_temperature(), e.battery(), e.battery_voltage()],
@@ -2041,19 +2040,7 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature(), e.voltage(),
             e.power_outage_memory(), e.led_disabled_night(),
             e.auto_off(30)],
-        onEvent: async (type, data, device) => {
-            device.skipTimeResponse = true;
-            // According to the Zigbee the genTime.time should be the seconds since 1 January 2020 UTC
-            // However the device expects this to be the seconds since 1 January in the local time zone.
-            // Disable the responses of zigbee-herdsman and respond here instead.
-            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2843#issuecomment-888532667
-            if (type === 'message' && data.type === 'read' && data.cluster === 'genTime') {
-                const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
-                const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
-                const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
-                device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal});
-            }
-        },
+        extend: [customTimeResponse('2000_LOCAL')],
     },
     {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
@@ -3136,37 +3123,26 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.aqara_trv, fz.thermostat, fz.battery],
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
         exposes: [
-            e.binary('setup', ea.STATE, true, false)
-                .withDescription('Indicates if the device is in setup mode (E11)'),
+            e.setup().withDescription('Indicates if the device is in setup mode (E11)'),
             e.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature(ea.STATE, 'Current temperature measured by the internal or external sensor')
                 .withSystemMode(['off', 'heat'], ea.ALL)
-                .withPreset(['manual', 'away', 'auto']).setAccess('preset', ea.ALL),
+                .withPreset(['manual', 'away', 'auto'])
+                .setAccess('preset', ea.ALL),
             e.temperature_sensor_select(['internal', 'external']).withAccess(ea.ALL),
-            e.numeric('sensor_temp', ea.ALL).withUnit('°C').withValueMin(0).withValueMax(55)
-                .withDescription('Input for remote temperature sensor (when sensor is set to external)'),
-            e.binary('calibrated', ea.STATE, true, false)
-                .withDescription('Indicates if this valve is calibrated, use the calibrate option to calibrate'),
-            e.enum('calibrate', ea.ALL, ['calibrate']).withDescription('Calibrates the valve'),
-            e.child_lock().setAccess('state', ea.ALL),
-            e.window_detection().setAccess('state', ea.ALL),
-            e.binary('window_open', ea.STATE, true, false),
-            e.valve_detection().setAccess('state', ea.ALL)
-                .withDescription('Determines if temperature control abnormalities should be detected'),
-            e.binary('valve_alarm', ea.STATE, true, false)
-                .withDescription('Notifies of a temperature control abnormality if valve detection is enabled ' +
+            e.external_temperature_input().withDescription('Input for remote temperature sensor (when sensor is set to external)'),
+            e.calibrated().withDescription('Indicates if this valve is calibrated, use the calibrate option to calibrate'),
+            e.enum('calibrate', ea.ALL, ['calibrate'])
+                .withDescription('Calibrates the valve')
+                .withCategory('config'),
+            e.child_lock_bool(), e.window_detection_bool(), e.window_open(), e.valve_detection_bool(),
+            e.valve_alarm().withDescription('Notifies of a temperature control abnormality if valve detection is enabled ' +
                     '(e.g., thermostat not installed correctly, valve failure or incorrect calibration, ' +
                     'incorrect link to external temperature sensor)'),
-            e.away_preset_temperature().withAccess(ea.ALL),
-            e.battery_voltage(),
-            e.battery(),
-            e.power_outage_count(),
-            e.device_temperature(),
-            e.switch_().withState('schedule', true,
-                'When being ON, the thermostat will change its state based on your settings',
-                ea.ALL, 'ON', 'OFF'),
-            e.text('schedule_settings', ea.ALL)
+            e.away_preset_temperature().withAccess(ea.ALL), e.battery_voltage(), e.battery(),
+            e.power_outage_count(), e.device_temperature(), e.schedule(),
+            e.schedule_settings()
                 .withDescription('Smart schedule configuration (default: mon,tue,wed,thu,fri|8:00,24.0|18:00,17.0|23:00,22.0|8:00,22.0)'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -3434,6 +3410,44 @@ const definitions: Definition[] = [
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [xiaomiZigbeeOTA()],
+    },
+    {
+        zigbeeModel: ['lumi.plug.aeu001'],
+        model: 'WP-P01D',
+        vendor: 'Aqara',
+        description: 'Aqara wall outlet H2 EU',
+        extend: [
+            xiaomiZigbeeOTA(),
+            onOff({powerOnBehavior: false}),
+            xiaomiPowerOnBehavior(),
+            xiaomiPower(),
+            xiaomiElectricityMeter(),
+            xiaomiOverloadProtection(),
+            xiaomiLedIndicator(),
+            xiaomiButtonLock(),
+            binary({
+                name: 'charging_protection',
+                cluster: 'aqaraOpple',
+                attribute: {ID: 0x0202, type: 0x10},
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Turn off the outlet if the power is below the set limit for half an hour',
+                access: 'ALL',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            numeric({
+                name: 'charging_limit',
+                cluster: 'aqaraOpple',
+                attribute: {ID: 0x0206, type: 0x39},
+                valueMin: 0.1,
+                valueMax: 2,
+                valueStep: 0.1,
+                unit: 'W',
+                description: 'Charging protection power limit',
+                access: 'ALL',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+        ],
     },
 ];
 

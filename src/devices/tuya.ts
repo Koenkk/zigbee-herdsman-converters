@@ -3311,6 +3311,8 @@ const definitions: Definition[] = [
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
             e.enum('display_brightness', ea.STATE_SET, ['high', 'medium', 'low']).withDescription('Display brightness'),
             e.enum('screen_orientation', ea.STATE_SET, ['up', 'right', 'down', 'left']).withDescription('Screen orientation'),
+            e.enum('mode', ea.STATE_SET, ['comfort', 'eco']).withDescription('Hysteresis - comfort > switches off/on exactly at reached ' +
+                'temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -3340,6 +3342,7 @@ const definitions: Definition[] = [
                 [113, 'screen_orientation', tuya.valueConverterBasic.lookup({
                     'up': tuya.enum(0), 'right': tuya.enum(1), 'down': tuya.enum(2), 'left': tuya.enum(3),
                 })],
+                [114, 'mode', tuya.valueConverterBasic.lookup({'comfort': tuya.enum(0), 'eco': tuya.enum(1)})],
             ],
         },
     },
@@ -4473,7 +4476,9 @@ const definitions: Definition[] = [
         ],
         fromZigbee: [fz.battery, fz.ias_vibration_alarm_1_with_timeout],
         toZigbee: [tz.TS0210_sensitivity],
-        exposes: [e.battery(), e.battery_voltage(), e.vibration(), e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(50)],
+        exposes: [e.battery(), e.battery_voltage(), e.vibration(),
+            e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(50)
+                .withDescription('Sensitivty of the sensor, press button on the device right before changing this')],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8bxrzyxz'},
