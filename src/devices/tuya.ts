@@ -664,8 +664,8 @@ const definitions: Definition[] = [
             ],
         },
         whiteLabel: [
-            tuya.whitelabel('Linkoze', 'LKWSZ211', 'Wireless Switch (2-Key)', ['_TZ3210_3ulg9kpo']),
-            tuya.whitelabel('Adaprox', 'LKWSZ211', 'Remote Wireless Switch (2-Key)', ['_TZ3210_3ulg9kpo']),
+            tuya.whitelabel('Linkoze', 'LKWSZ211', 'Wireless switch (2-key)', ['_TZ3210_3ulg9kpo']),
+            tuya.whitelabel('Adaprox', 'LKWSZ211', 'Remote wireless switch (2-key)', ['_TZ3210_3ulg9kpo']),
         ],
     },
     {
