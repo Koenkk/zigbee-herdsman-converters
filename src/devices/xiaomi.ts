@@ -3354,7 +3354,7 @@ const definitions: Definition[] = [
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [xiaomiZigbeeOTA()],
-    },    
+    },
     {
         zigbeeModel: ['lumi.remote.cagl02'],
         model: 'CTP-R01',
