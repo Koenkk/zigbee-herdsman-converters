@@ -3278,7 +3278,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        // extend: [xiaomiZigbeeOTA()],
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn049'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
@@ -3303,7 +3303,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        // extend: [xiaomiZigbeeOTA()],
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn054'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
@@ -3328,7 +3328,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        // extend: [xiaomiZigbeeOTA()],
+        extend: [xiaomiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn055'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
@@ -3353,7 +3353,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        // extend: [xiaomiZigbeeOTA()],
+        extend: [xiaomiZigbeeOTA()],
     },    
     {
         zigbeeModel: ['lumi.remote.cagl02'],
