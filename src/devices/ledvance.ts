@@ -183,16 +183,14 @@ const definitions: Definition[] = [
         model: '4058075729162',
         vendor: 'LEDVANCE',
         description: 'SMART+ PAR16 GU10 Tunable white',
-        extend: ledvance.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
-        ota: ota.ledvance,
+        extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['B40 TW T'],
         model: '4058075729087',
         vendor: 'LEDVANCE',
         description: 'SMART+ CL B40 E14 Tunable white',
-        extend: ledvance.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
-        ota: ota.ledvance,
+        extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['CLA60 RGBW JP'],
@@ -227,8 +225,7 @@ const definitions: Definition[] = [
         model: '4058075729346',
         vendor: 'LEDVANCE',
         description: 'SMART+ Gardenpole 5P Multicolor',
-        extend: ledvance.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
-        ota: ota.ledvance,
+        extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
         zigbeeModel: ['A60 RGBW B22D T'],
