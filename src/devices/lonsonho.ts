@@ -116,20 +116,16 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-D02-TRIAC-LN',
         vendor: 'Lonsonho',
         description: '1 gang smart dimmer switch module with neutral',
-        extend: tuya.extend.light_onoff_brightness({disableMoveStep: true, disableTransition: true, minBrightness: true}),
+        extend: [tuya.modernExtend.tuyaLight({minBrightness: true})],
     },
     {
         fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}],
         model: 'QS-Zigbee-D02-TRIAC-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module with neutral',
-        extend: tuya.extend.light_onoff_brightness({minBrightness: true, endpoints: ['l1', 'l2'], noConfigure: true}),
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
+        extend: [tuya.modernExtend.tuyaLight({minBrightness: true, endpoints: {l1: 1, l2: 2}})],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             // Don't do: await reporting.onOff(endpoint); https://github.com/Koenkk/zigbee2mqtt/issues/6041
@@ -157,7 +153,7 @@ const definitions: Definition[] = [
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
-        extend: [light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehaviour: false})],
+        extend: [light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false})],
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}, {modelID: 'TS0003', manufacturerName: '_TYZB01_uqkphoed'}],
@@ -181,7 +177,7 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-S05-LN',
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
-        extend: [onOff({powerOnBehavior: false})],
+        extend: [onOff({powerOnBehavior: false, configureReporting: false})],
         toZigbee: [tz.TYZB01_on_off],
     },
     {

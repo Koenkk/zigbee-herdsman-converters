@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {onOff, light} from '../lib/modernExtend';
+import {onOff, light, electricityMeter, identify} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -40,6 +40,14 @@ const tzLocal = {
             utils.assertEndpoint(entity);
             const endpoint = entity.getDevice().getEndpoint(21);
             await endpoint.read(0xFF17, [0x0000], {manufacturerCode: 0x105e});
+        },
+    } satisfies Tz.Converter,
+    fan_mode: {
+        ...tz.fan_mode,
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
+            if (value.toLowerCase() === 'on') value = 'low';
+            return tz.fan_mode.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
 };
@@ -252,8 +260,10 @@ const definitions: Definition[] = [
             legacy.fz.wiser_thermostat, legacy.fz.wiser_itrv_battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
-        exposes: [e.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature(ea.STATE)
-            .withRunningState(['idle', 'heat'], ea.STATE).withPiHeatingDemand(), e.battery(), e.battery_voltage()],
+        exposes: [
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature(ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE).withPiHeatingDemand(), e.battery(), e.battery_voltage(),
+            e.keypad_lockout().withAccess(ea.ALL)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'haDiagnostic'];
@@ -304,6 +314,14 @@ const definitions: Definition[] = [
         description: 'Micro module switch',
         extend: [onOff({powerOnBehavior: false})],
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
+    },
+    {
+        zigbeeModel: ['CCTFR6730'],
+        model: 'CCTFR6730',
+        vendor: 'Schneider Electric',
+        description: 'Wiser power micromodule',
+        whiteLabel: [{vendor: 'Elko', model: 'EKO20004'}],
+        extend: [onOff({powerOnBehavior: true}), electricityMeter({'cluster': 'metering'}), identify()],
     },
     {
         zigbeeModel: ['NHROTARY/DIMMER/1'],
@@ -455,6 +473,20 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['CHFAN/SWITCH/1'],
+        model: '41ECSFWMZ-VW',
+        vendor: 'Schneider Electric',
+        description: 'Wiser 40/300-Series Module AC Fan Controller',
+        fromZigbee: [fz.fan],
+        toZigbee: [tzLocal.fan_mode],
+        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(7);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
+            await reporting.fanMode(endpoint);
         },
     },
     {

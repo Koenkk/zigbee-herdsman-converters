@@ -99,19 +99,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
-    ctm_temperature_offset: {
-        cluster: 'msTemperatureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const data = msg.data;
-            if (data.hasOwnProperty(0x0400)) {
-                result.temperature_offset = data[0x0400];
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter,
     ctm_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -393,17 +380,6 @@ const tzLocal = {
             await entity.read('genOnOff', [0x5001], {manufacturerCode: 0x1337});
         },
     } satisfies Tz.Converter,
-    ctm_temperature_offset: {
-        key: ['temperature_offset'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('msTemperatureMeasurement',
-                {0x0400: {value: value, type: dataType.int8}}, {manufacturerCode: 0x1337, sendWhen: 'active'});
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('msTemperatureMeasurement', [0x0400], {manufacturerCode: 0x1337, sendWhen: 'active'});
-            await entity.read('msTemperatureMeasurement', ['measuredValue'], {sendWhen: 'active'});
-        },
-    } satisfies Tz.Converter,
     ctm_thermostat: {
         key: ['load', 'display_text', 'sensor', 'regulator_mode', 'power_status', 'system_mode', 'night_switching', 'frost_guard',
             'max_floor_temp', 'regulator_setpoint', 'regulation_mode', 'max_floor_guard', 'weekly_timer', 'exteral_sensor_source',
@@ -569,7 +545,7 @@ const tzLocal = {
     ctm_group_config: {
         key: ['group_id'],
         convertGet: async (entity, key, meta) => {
-            await entity.read(0xFEA7, [0x0000], {manufacturerCode: 0x1337, sendWhen: 'active'});
+            await entity.read(0xFEA7, [0x0000], {manufacturerCode: 0x1337});
         },
     } satisfies Tz.Converter,
     ctm_sove_guard: {

@@ -12,6 +12,7 @@ import * as globalStore from '../lib/store';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {postfixWithEndpointName, precisionRound, isObject, replaceInArray} from '../lib/utils';
 import {onOff, LightArgs, light as lightDontUse} from '../lib/modernExtend';
+import * as semver from 'semver';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -204,13 +205,13 @@ const fzLocal = {
                 // IKEA corrected this on newer remote fw version, but many people are still
                 // 2.2.010 which is the last version supporting group bindings. We try to be
                 // smart and pick the correct one for IKEA remotes.
-                let dontDividePercentage = false;
-                let percentage = msg.data['batteryPercentageRemaining'];
-                const fwVer = meta.device.softwareBuildID.split('.').map((e) => Number(e));
-                if ((fwVer[0] < 2) || (fwVer[0] == 2 && fwVer[1] <= 3)) {
-                    dontDividePercentage = true;
+                let dividePercentage = true;
+                // If softwareBuildID is below 2.4.0 it should not be divided
+                if (semver.lt(meta.device.softwareBuildID, '2.4.0', true)) {
+                    dividePercentage = false;
                 }
-                percentage = dontDividePercentage ? percentage : percentage / 2;
+                let percentage = msg.data['batteryPercentageRemaining'];
+                percentage = dividePercentage ? percentage / 2 : percentage;
                 payload.battery = precisionRound(percentage, 2);
             }
 
@@ -462,7 +463,7 @@ const definitions: Definition[] = [
         extend: [tradfriLight()],
     },
     {
-        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm8', 'TRADFRI bulb GU10 WW 345lm'],
+        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm8', 'TRADFRI bulb GU10 WW 345lm', '\\u001TRADFRI bulb GU10 WW 345lm'],
         model: 'LED2104R3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 WW 345 lumen, dimmable',
@@ -477,7 +478,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['TRADFRIbulbE27WSglobeopal1055lm', 'TRADFRIbulbE26WSglobeopal1100lm', 'TRADFRIbulbE26WSglobeopal1160lm',
-            'TRADFRIbulbE26WSglobeopal1055lm'],
+            'TRADFRIbulbE26WSglobeopal1055lm', 'TRADFRI bulb E26 WS globe 1160lm'],
         model: 'LED2003G10',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/27 1100/1055/1160 lumen, dimmable, white spectrum, opal white',
@@ -632,7 +633,8 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true})],
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WSglobeopal470lm', 'TRADFRIbulbE12WSglobeopal470lm'],
+        zigbeeModel: ['TRADFRIbulbE14WSglobeopal470lm', 'TRADFRIbulbE12WSglobeopal470lm', 'TRADFRI bulb E17 WS globe 440lm',
+            'TRADFRIbulbE17WSglobeopal470lm'],
         model: 'LED2002G5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E12 470 lumen, dimmable, white spectrum, clear',
@@ -777,7 +779,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI ON/OFF switch',
         fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff, fz.command_move,
-            fz.battery, legacy.fz.E1743_brightness_up, legacy.fz.E1743_brightness_down, fz.command_stop,
+            fzLocal.battery, legacy.fz.E1743_brightness_up, legacy.fz.E1743_brightness_down, fz.command_stop,
             legacy.fz.E1743_brightness_stop],
         exposes: [
             e.battery().withAccess(ea.STATE_GET),
@@ -975,7 +977,7 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true})],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E12 WS opal 600lm'],
+        zigbeeModel: ['TRADFRI bulb E12 WS opal 600lm', 'TRADFRI bulb E17 WS opal 600lm'],
         model: 'LED1738G7',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E12 600 lumen, dimmable, white spectrum, opal white',
@@ -1003,7 +1005,7 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true, color: true, turnsOffAtBrightness1: true})],
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WWclear250lm', 'TRADFRIbulbE12WWclear250lm'],
+        zigbeeModel: ['TRADFRIbulbE14WWclear250lm', 'TRADFRIbulbE12WWclear250lm', 'TRADFRIbulbE17WWclear250lm'],
         model: 'LED1935C3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E12/E14 WW clear 250 lumen, dimmable',
@@ -1018,7 +1020,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['TRADFRIbulbGU10WS345lm', 'TRADFRI bulb GU10 WS 345lm', 'TRADFRIbulbGU10WS380lm'],
-        model: 'LED2005R5',
+        model: 'LED2005R5/LED2106R3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345/380 lumen, dimmable, white spectrum',
         extend: [tradfriLight({colorTemp: true})],
@@ -1128,6 +1130,13 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true})],
     },
     {
+        zigbeeModel: ['JETSTROM 6060'],
+        model: 'L2207',
+        vendor: 'IKEA',
+        description: 'JETSTRÖM LED ceiling light panel, smart dimmable/white spectrum, 60x60 cm',
+        extend: [tradfriLight({colorTemp: true})],
+    },
+    {
         zigbeeModel: ['TRADFRIbulbPAR38WS900lm'],
         model: 'LED2006R9',
         vendor: 'IKEA',
@@ -1225,17 +1234,19 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'VALLHORN wireless motion sensor',
         fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
-        toZigbee: [],
+        toZigbee: [tz.identify],
         exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux()],
-        configure: async (device, cordinatorEndpoint, logger) => {
+        ota: ota.tradfri,
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint1, cordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint1);
-            await reporting.bind(endpoint2, cordinatorEndpoint, ['msOccupancySensing']);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msOccupancySensing']);
             await reporting.occupancy(endpoint2);
-            await reporting.bind(endpoint3, cordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint3);
         },
     },
@@ -1247,17 +1258,18 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fzLocal.ikea_dots_click_v2_somrig],
         toZigbee: [tz.battery_percentage_remaining],
         exposes: [
-            e.battery().withAccess(ea.STATE_GET), e.action(['dots_1_initial_press',
-                'dots_2_initial_press', 'dots_1_long_press', 'dots_2_long_press',
-                'dots_1_short_release', 'dots_2_short_release', 'dots_1_long_release']),
+            e.battery().withAccess(ea.STATE_GET), e.action(['1_initial_press', '2_initial_press',
+                '1_long_press', '2_long_press', '1_short_release', '2_short_release',
+                '1_long_release', '2_long_release', '1_double_press', '2_double_press']),
         ],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['tradfriButton', 'genPollCtrl']);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
-            await reporting.batteryVoltage(endpoint1);
         },
     },
     {
@@ -1265,9 +1277,18 @@ const definitions: Definition[] = [
         model: 'E2013',
         vendor: 'IKEA',
         description: 'PARASOLL door/window Sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.battery_low(), e.tamper(), e.contact()],
+        fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
+        toZigbee: [tz.identify],
+        ota: ota.tradfri,
+        exposes: [e.battery(), e.contact()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPollCtrl']);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genBasic', 'ssIasZone']);
+        },
     },
 ];
 

@@ -86,7 +86,7 @@ const definitions: Definition[] = [
         model: 'RL804QZB',
         vendor: 'ORVIBO',
         description: 'Multi-functional 3 gang relay',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3}})],
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3}, configureReporting: false})],
     },
     {
         zigbeeModel: ['396483ce8b3f4e0d8e9d79079a35a420'],

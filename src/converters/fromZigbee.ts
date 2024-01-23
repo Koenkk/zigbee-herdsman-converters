@@ -1351,7 +1351,7 @@ const converters1 = {
         type: ['commandMoveColorTemp'],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            const direction = utils.getFromLookup(msg.data.movemode, {0: 'stop', 1: 'up', 3: 'down'});
             const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model, meta);
             const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
             addActionGroup(payload, msg, model);
@@ -2205,16 +2205,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model, msg.data[1])) return;
             const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
-            let buttonMapping: KeyValueNumberString = null;
-            if (meta.device.modelID === 'TS0042') {
-                buttonMapping = {1: '1', 2: '2'};
-            } else if (meta.device.modelID === 'TS0043') {
-                buttonMapping = {1: '1', 2: '2', 3: '3'};
-            } else if (['TS0044', 'TS004F'].includes(meta.device.modelID)) {
-                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
-            } else if (['TS0046'].includes(meta.device.modelID)) {
-                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'};
-            }
+            const buttonMapping: KeyValueNumberString = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'};
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
             // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
             // Send the defaultResponse here, otherwise the second button click delays.
@@ -3754,7 +3745,7 @@ const converters1 = {
                 buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             }
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
-            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG28LM', 'QBKG31LM'].includes(model.model)) {
+            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG28LM', 'QBKG31LM', 'ZNQBKG25LM'].includes(model.model)) {
                 buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
             }
             if (['QBKG25LM', 'QBKG26LM', 'QBKG29LM', 'QBKG32LM', 'QBKG34LM', 'ZNQBKG31LM', 'ZNQBKG26LM'].includes(model.model)) {

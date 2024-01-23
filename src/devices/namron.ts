@@ -9,6 +9,7 @@ import * as globalStore from '../lib/store';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
 import {forcePowerSource, light, onOff} from '../lib/modernExtend';
+import * as tuya from '../lib/tuya';
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -819,6 +820,21 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['4512762'],
+        model: '4512762',
+        vendor: 'Namron',
+        description: 'Zigbee Door Sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ias_contact_alarm_1_report],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['4512763'],
         model: '4512763',
         vendor: 'Namron',
@@ -961,6 +977,94 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint3, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.bind(endpoint4, coordinatorEndpoint, ['msRelativeHumidity']);
             await reporting.bind(endpoint5, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_p3lqqy2r']),
+        model: '4512752/4512753',
+        vendor: 'Namron',
+        description: 'Touch thermostat 16A 2.0',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        options: [],
+        exposes: [
+            e.enum('mode', ea.STATE_SET, ['regulator', 'thermostat'])
+                .withDescription(
+                    'Controls how the operating mode of the device. Possible values:' +
+                    ' regulator (open-loop controller), thermostat (control with target temperature)',
+                ),
+            e.enum('regulator_period', ea.STATE_SET, ['15min', '30min', '45min', '60min', '90min'])
+                .withLabel('Regulator cycle duration')
+                .withDescription('Regulator cycle duration. Not applicable when in thermostat mode.'),
+            e.numeric('regulator_set_point', ea.STATE_SET)
+                .withUnit('%')
+                .withDescription('Desired heating set point (%) when in regulator mode.')
+                .withValueMin(0)
+                .withValueMax(95),
+            e.climate()
+                .withSystemMode(['off', 'heat'], ea.STATE_SET, 'Whether the thermostat is turned on or off')
+                .withPreset(['manual', 'home', 'away'])
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET),
+            e.current(),
+            e.power(),
+            e.energy(),
+            e.voltage(),
+            e.temperature_sensor_select(['air_sensor', 'floor_sensor', 'both']),
+            e.numeric('local_temperature', ea.STATE)
+                .withUnit('°C')
+                .withDescription('Current temperature measured with internal sensor')
+                .withValueStep(1),
+            e.numeric('local_temperature_floor', ea.STATE)
+                .withUnit('°C')
+                .withDescription('Current temperature measured on the external sensor (floor)')
+                .withValueStep(1),
+            e.child_lock(),
+            e.window_detection()
+                .withLabel('Open window detection'),
+            e.numeric('hysteresis', ea.STATE_SET)
+                .withUnit('°C')
+                .withDescription('The offset from the target temperature in which the temperature has to ' +
+                    'change for the heating state to change. This is to prevent erratically turning on/off ' +
+                    'when the temperature is close to the target.')
+                .withValueMin(1)
+                .withValueMax(9)
+                .withValueStep(1),
+            e.numeric('max_temperature_protection', ea.STATE_SET)
+                .withUnit('°C')
+                .withDescription('Max guarding temperature')
+                .withValueMin(20)
+                .withValueMax(95)
+                .withValueStep(1),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({off: false, heat: true})],
+                [2, 'preset', tuya.valueConverterBasic.lookup({manual: tuya.enum(0), home: tuya.enum(1), away: tuya.enum(2)})],
+                [16, 'current_heating_setpoint', tuya.valueConverter.raw],
+                [24, 'local_temperature', tuya.valueConverter.raw],
+                [28, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration2],
+                [30, 'child_lock', tuya.valueConverter.lockUnlock],
+                [101, 'local_temperature_floor', tuya.valueConverter.raw],
+                [102, 'sensor', tuya.valueConverterBasic.lookup(
+                    {air_sensor: tuya.enum(0), floor_sensor: tuya.enum(1), both: tuya.enum(2)})],
+                [103, 'hysteresis', tuya.valueConverter.raw],
+                [104, 'running_state', tuya.valueConverterBasic.lookup({idle: false, heat: true})],
+                [106, 'window_detection', tuya.valueConverter.onOff],
+                [107, 'max_temperature_protection', tuya.valueConverter.raw],
+                [108, 'mode', tuya.valueConverterBasic.lookup({'regulator': tuya.enum(0), 'thermostat': tuya.enum(1)})],
+                [109, 'regulator_period', tuya.valueConverterBasic.lookup({
+                    '15min': tuya.enum(0), '30min': tuya.enum(1), '45min': tuya.enum(2), '60min': tuya.enum(3), '90min': tuya.enum(4)})],
+                [110, 'regulator_set_point', tuya.valueConverter.raw],
+                [120, 'current', tuya.valueConverter.divideBy10],
+                [121, 'voltage', tuya.valueConverter.raw],
+                [122, 'power', tuya.valueConverter.raw],
+                [123, 'energy', tuya.valueConverter.divideBy100],
+            ],
         },
     },
 ];

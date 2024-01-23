@@ -253,7 +253,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['WBMSW3'],
         model: 'WB-MSW-ZIGBEE v.3',
-        vendor: 'Sprut.device',
+        vendor: 'Wirenboard',
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout, fzLocal.co2_mh_z19b_config,
@@ -320,7 +320,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['WBMSW4'],
         model: 'WB-MSW-ZIGBEE v.4',
-        vendor: 'Sprut.device',
+        vendor: 'Wirenboard',
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout,

@@ -141,7 +141,7 @@ export namespace Fz {
         groupID: number, type: string,
         cluster: string | number, linkquality: number
     }
-    export interface Meta {state: KeyValue, logger: Logger, device: Zh.Device}
+    export interface Meta {state: KeyValue, logger: Logger, device: Zh.Device, deviceExposesChanged: () => void}
     export interface Converter {
         cluster: string | number,
         type: string[] | string,

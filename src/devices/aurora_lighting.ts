@@ -6,6 +6,7 @@ import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 import * as utils from '../lib/utils';
 import {light} from '../lib/modernExtend';
+import * as ota from '../lib/ota';
 
 const ea = exposes.access;
 
@@ -108,7 +109,7 @@ const definitions: Definition[] = [
         model: 'AU-A1ZBMPRO1ZX',
         vendor: 'Aurora Lighting',
         description: 'AOne MPROZX fixed IP65 fire rated smart tuneable LED downlight',
-        extend: [light({colorTemp: {range: [200, 455]}, powerOnBehaviour: false})],
+        extend: [light({colorTemp: {range: [200, 455]}, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FWG125Bulb50AU'],
@@ -223,6 +224,7 @@ const definitions: Definition[] = [
                 .withDescription('Brightness of this backlight LED')],
         toZigbee: [tzLocal.backlight_brightness, tz.on_off],
         meta: {multiEndpoint: true},
+        ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },

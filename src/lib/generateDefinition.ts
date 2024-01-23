@@ -72,6 +72,7 @@ const inputExtenders: Extender[] = [
     [['msTemperatureMeasurement'], async (endpoint) => [{extend: m.temperature(), source: 'temperature()'}]],
     [['msPressureMeasurement'], async (endpoint) => [{extend: m.pressure(), source: 'pressure()'}]],
     [['msRelativeHumidity'], async (endpoint) => [{extend: m.humidity(), source: 'humidity()'}]],
+    [['msCO2'], async (endpoint) => [{extend: m.co2(), source: 'co2()'}]],
     [['genPowerCfg'], async (endpoint) => [{extend: m.batteryPercentage(), source: 'batteryPercentage()'}]],
     [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],
@@ -83,13 +84,14 @@ const outputExtenders: Extender[] = [
 ];
 
 async function extenderLock(endpoint: Zh.Endpoint): Promise<GeneratedExtend[]> {
-    const pinCodeCount = await getClusterAttributeValue<number>(endpoint, 'closuresDoorLock', 'numOfPinUsersSupported');
+    const pinCodeCount = await getClusterAttributeValue<number>(endpoint, 'closuresDoorLock', 'numOfPinUsersSupported', 50);
     return [{extend: m.lock({pinCodeCount}), source: `lock({pinCodeCount: ${pinCodeCount}})`}];
 }
 
 async function extenderOnOffLight(endpoint: Zh.Endpoint): Promise<GeneratedExtend[]> {
     if (endpoint.supportsInputCluster('lightingColorCtrl')) {
-        const colorCapabilities = await getClusterAttributeValue<number>(endpoint, 'lightingColorCtrl', 'colorCapabilities');
+        // In case read fails, support all features with 31
+        const colorCapabilities = await getClusterAttributeValue<number>(endpoint, 'lightingColorCtrl', 'colorCapabilities', 31);
         const supportsHueSaturation = (colorCapabilities & 1<<0) > 0;
         const supportsEnhancedHueSaturation = (colorCapabilities & 1<<1) > 0;
         const supportsColorXY = (colorCapabilities & 1<<3) > 0;
@@ -97,8 +99,8 @@ async function extenderOnOffLight(endpoint: Zh.Endpoint): Promise<GeneratedExten
         const args: m.LightArgs = {};
 
         if (supportsColorTemperature) {
-            const minColorTemp = await getClusterAttributeValue<number>(endpoint, 'lightingColorCtrl', 'colorTempPhysicalMin');
-            const maxColorTemp = await getClusterAttributeValue<number>(endpoint, 'lightingColorCtrl', 'colorTempPhysicalMax');
+            const minColorTemp = await getClusterAttributeValue<number>(endpoint, 'lightingColorCtrl', 'colorTempPhysicalMin', 150);
+            const maxColorTemp = await getClusterAttributeValue<number>(endpoint, 'lightingColorCtrl', 'colorTempPhysicalMax', 500);
             args.colorTemp = {range: [minColorTemp, maxColorTemp]};
         }
 

@@ -5,10 +5,13 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import extend from './extend';
+import * as modernExtend from './modernExtend';
 import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString} from './types';
 // import {Color} from './color';
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface KeyValueStringEnum {[s: string]: Enum}
 
 export const dataTypes = {
     raw: 0, // [ bytes ]
@@ -262,7 +265,7 @@ function dpValueFromBitmap(dp: number, bitmapBuffer: number) {
     return {dp, datatype: dataTypes.bitmap, data: [bitmapBuffer]};
 }
 
-async function sendDataPointValue(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
+export async function sendDataPointValue(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromNumberValue(dp, value)], cmd, seq);
 }
 
@@ -274,15 +277,15 @@ export async function sendDataPointEnum(entity: Zh.Group | Zh.Endpoint, dp: numb
     return await sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
 }
 
-async function sendDataPointRaw(entity: Zh.Group | Zh.Endpoint, dp: number, value: number[], cmd?: string, seq?: number) {
+export async function sendDataPointRaw(entity: Zh.Group | Zh.Endpoint, dp: number, value: number[], cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
 }
 
-async function sendDataPointBitmap(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
+export async function sendDataPointBitmap(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromBitmap(dp, value)], cmd, seq);
 }
 
-async function sendDataPointStringBuffer(entity: Zh.Group | Zh.Endpoint, dp: number, value: string, cmd?: string, seq?: number) {
+export async function sendDataPointStringBuffer(entity: Zh.Group | Zh.Endpoint, dp: number, value: string, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromString(dp, value)], cmd, seq);
 }
 
@@ -847,13 +850,39 @@ export const valueConverter = {
             },
         };
     },
-    thermostatSystemModeAndPreset: {
-        from: (v: string) => {
-            utils.assertNumber(v, 'system_mode');
-            const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
-            const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
-            return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
-        },
+    tv02Preset: () => {
+        return {
+            from: (v: number) => {
+                if (v === 0) return 'auto';
+                else if (v === 1) return 'manual';
+                else return 'holiday'; // 2 and 3 are holiday
+            },
+            to: (v: string, meta: Tz.Meta) => {
+                if (v === 'auto') return new Enum(0);
+                else if (v === 'manual') return new Enum(1);
+                else if (v === 'holiday') {
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/20486
+                    if (meta.device.manufacturerName === '_TZE200_mudxchsu') return new Enum(2);
+                    else return new Enum(3);
+                } else throw new Error(`Unsupported preset '${v}'`);
+            },
+        };
+    },
+    thermostatSystemModeAndPreset: (toKey: string) => {
+        return {
+            from: (v: string) => {
+                utils.assertNumber(v, 'system_mode');
+                const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
+                const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
+                return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
+            },
+            to: (v: string) => {
+                const presetLookup: KeyValueStringEnum = {'auto': new Enum(0), 'manual': new Enum(1), 'off': new Enum(2), 'on': new Enum(3)};
+                const systemModeLookup: KeyValueStringEnum = {'auto': new Enum(1), 'off': new Enum(2), 'heat': new Enum(3)};
+                const lookup: KeyValueStringEnum = toKey === 'preset' ? presetLookup : systemModeLookup;
+                return utils.getFromLookup(v, lookup);
+            },
+        };
     },
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
@@ -1092,7 +1121,7 @@ const tuyaTz = {
             'ph_max', 'ph_min', 'ec_max', 'ec_min', 'orp_max', 'orp_min', 'free_chlorine_max', 'free_chlorine_min', 'target_distance',
             'illuminance_treshold_max', 'illuminance_treshold_min', 'presence_illuminance_switch', 'light_switch', 'light_linkage',
             'indicator_light', 'find_switch', 'detection_method', 'sensor', 'hysteresis', 'max_temperature_protection', 'display_brightness',
-            'screen_orientation',
+            'screen_orientation', 'regulator_period', 'regulator_set_point', 'upper_stroke_limit', 'middle_stroke_limit', 'lower_stroke_limit',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
@@ -1383,27 +1412,6 @@ const tuyaExtend = {
         const meta = {applyRedFix: true, supportsEnhancedHue: false};
         return {...extend.light_onoff_brightness_color(options), meta};
     },
-    light_onoff_brightness: (options:{
-        endpoints?: string[], disablePowerOnBehavior?: boolean, minBrightness?: boolean,
-        toZigbee?:Tz.Converter[], exposes?: Expose[], noConfigure?: boolean, disableMoveStep?: boolean,
-        disableTransition?: boolean,
-    }={}) => {
-        options = {
-            disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb], exposes: [tuyaExposes.doNotDisturb()],
-            minBrightness: false, ...options,
-        };
-        const result = extend.light_onoff_brightness(options);
-        const exposes_ = options.endpoints ? options.endpoints.map((ee) => e.light_brightness()) : [e.light_brightness()];
-        if (options.minBrightness) {
-            result.fromZigbee.push(tuyaFz.min_brightness);
-            result.toZigbee.push(tuyaTz.min_brightness);
-            result.exposes = exposes_.map((e) => e.withMinBrightness());
-        }
-        if (options.endpoints) {
-            result.exposes = result.exposes.map((e, i) => e.withEndpoint(options.endpoints[i]));
-        }
-        return result;
-    },
 };
 export {tuyaExtend as extend};
 
@@ -1662,6 +1670,21 @@ const tuyaModernExtend = {
         lookup = lookup || {'off': 0, 'on': 1, 'previous': 2};
         return tuyaModernExtend.dpEnumLookup({name: 'power_on_behavior', lookup: lookup, type: dataTypes.enum,
             expose: e.power_on_behavior(Object.keys(lookup)).withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
+    },
+    tuyaLight: (args?: modernExtend.LightArgs & {minBrightness?: boolean}) => {
+        args = {minBrightness: false, powerOnBehavior: false, ...args};
+        const result = modernExtend.light(args);
+
+        result.toZigbee.push(tuyaTz.do_not_disturb);
+        result.exposes.push(tuyaExposes.doNotDisturb());
+
+        if (args.minBrightness) {
+            result.fromZigbee.push(tuyaFz.min_brightness);
+            result.toZigbee.push(tuyaTz.min_brightness);
+            result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness() : e);
+        }
+
+        return result;
     },
 };
 export {tuyaModernExtend as modernExtend};

@@ -310,7 +310,7 @@ const silvercrestEffects: KeyValueAny = {
     rainbow: '02',
     snake: '03',
     twinkle: '04',
-    firework: '08',
+    firework: '05',
     horizontal_flag: '06',
     waves: '07',
     updown: '08',
@@ -3999,7 +3999,7 @@ const fromZigbee1 = {
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.tuyaSabTemp:
-                return {temperature: value / 10};
+                return {temperature: (value > 0x2000 ? value - 0xFFFF : value) / 10};
             case dataPoints.tuyaSabHumidity:
                 return {humidity: value / 10};
                 // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2

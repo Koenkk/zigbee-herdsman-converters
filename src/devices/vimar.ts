@@ -29,7 +29,7 @@ const definitions: Definition[] = [
         model: '14592.0',
         vendor: 'Vimar',
         description: '2-way switch IoT connected mechanism',
-        extend: [onOff()],
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['Window_Cov_v1.0'],

@@ -1,7 +1,7 @@
 import * as globalStore from './store';
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
-import {Feature, Numeric} from './exposes';
+import {Definition, Expose, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
+import {Feature, Light, Numeric} from './exposes';
 
 export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
@@ -94,7 +94,7 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
-        calibrationOffset = Math.round(number * calibrationOffset / 100);
+        calibrationOffset = number * calibrationOffset / 100;
     }
     number = number + calibrationOffset;
 
@@ -449,12 +449,16 @@ export function validateValue(value: unknown, allowed: unknown[]) {
     }
 }
 
-export async function getClusterAttributeValue<T>(endpoint: Zh.Endpoint, cluster: string, attribute: string): Promise<T> {
-    if (endpoint.getClusterAttributeValue(cluster, attribute) == null) {
-        await endpoint.read(cluster, [attribute]);
+export async function getClusterAttributeValue<T>(endpoint: Zh.Endpoint, cluster: string, attribute: string, fallback: T = undefined): Promise<T> {
+    try {
+        if (endpoint.getClusterAttributeValue(cluster, attribute) == null) {
+            await endpoint.read(cluster, [attribute]);
+        }
+        return endpoint.getClusterAttributeValue(cluster, attribute) as T;
+    } catch (error) {
+        if (fallback !== undefined) return fallback;
+        throw error;
     }
-
-    return endpoint.getClusterAttributeValue(cluster, attribute) as T;
 }
 
 export function normalizeCelsiusVersionOfFahrenheit(value: number) {
@@ -569,15 +573,27 @@ export function toNumber(value: unknown, property?: string): number {
     return result;
 }
 
-export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V=undefined): V {
+export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V=undefined, keyIsBool: boolean=false): V {
     let result = undefined;
-    if (typeof value === 'string') {
-        result = lookup[value] ?? lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
-    } else if (typeof value === 'number') {
-        result = lookup[value];
+    if (!keyIsBool) {
+        if (typeof value === 'string') {
+            result = lookup[value] ?? lookup[value.toLowerCase()] ?? lookup[value.toUpperCase()];
+        } else if (typeof value === 'number') {
+            result = lookup[value];
+        } else {
+            throw new Error(`Expected string or number, got: ${typeof value}`);
+        }
+    } else {
+        // Silly hack, but boolean is not supported as index
+        if (typeof value === 'boolean') {
+            const stringValue = value.toString();
+            result = (lookup[stringValue] ?? lookup[stringValue.toLowerCase()] ?? lookup[stringValue.toUpperCase()]);
+        } else {
+            throw new Error(`Expected boolean, got: ${typeof value}`);
+        }
     }
     if (result === undefined && defaultValue === undefined) {
-        throw new Error(`Expected one of: ${Object.keys(lookup).join(', ')}, got: '${value}'`);
+        throw new Error(`Value: '${value}' not found in: [${Object.keys(lookup).join(', ')}]`);
     }
     return result ?? defaultValue;
 }
@@ -616,6 +632,10 @@ export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Grou
 
 export function isNumericExposeFeature(feature: Feature): feature is Numeric {
     return feature?.type === 'numeric';
+}
+
+export function isLightExpose(expose: Expose): expose is Light {
+    return expose?.type === 'light';
 }
 
 exports.noOccupancySince = noOccupancySince;

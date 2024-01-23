@@ -77,7 +77,7 @@ const definitions: Definition[] = [
         vendor: 'TERNCY',
         description: 'Beevon ceiling light',
         ota: ota.zigbeeOTA,
-        extend: [light({colorTemp: {range: [50, 500]}, powerOnBehaviour: false, effect: false})],
+        extend: [light({colorTemp: {range: [50, 500]}, powerOnBehavior: false, effect: false})],
     },
 ];
 

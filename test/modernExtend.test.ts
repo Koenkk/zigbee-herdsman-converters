@@ -176,16 +176,16 @@ describe('ModernExtend', () => {
                 {ID: 2, inputClusters: ['genOnOff']},
             ]}),
             meta: {multiEndpoint: true},
-            fromZigbee: [fz.on_off, fz.power_on_behavior],
-            toZigbee: ['state', 'on_time', 'off_wait_time', 'power_on_behavior'],
-            exposes: ['linkquality', 'power_on_behavior', 'switch_bottom(state)', 'switch_top(state)'],
+            fromZigbee: [fz.on_off],
+            toZigbee: ['state', 'on_time', 'off_wait_time'],
+            exposes: ['linkquality', 'switch_bottom(state)', 'switch_top(state)'],
             bind: {
                 1: ['genOnOff'],
                 2: ['genOnOff'],
             },
             read: {
-                1: [['genOnOff', ['onOff']], ['genOnOff', ['startUpOnOff']]],
-                2: [['genOnOff', ['onOff']], ['genOnOff', ['startUpOnOff']]],
+                1: [['genOnOff', ['onOff']]],
+                2: [['genOnOff', ['onOff']]],
             },
             configureReporting: {
                 1: [
@@ -212,6 +212,7 @@ describe('ModernExtend', () => {
                 expect.objectContaining({cluster: 'genAnalogInput'}),
                 expect.objectContaining({cluster: 'msTemperatureMeasurement'}),
                 expect.objectContaining({cluster: 'msRelativeHumidity'}),
+                expect.objectContaining({cluster: 'aqaraOpple'}),
                 expect.objectContaining({cluster: 'aqaraOpple'}),
             ],
             toZigbee: ['air_quality', 'voc', 'temperature', 'humidity', 'display_unit'],
