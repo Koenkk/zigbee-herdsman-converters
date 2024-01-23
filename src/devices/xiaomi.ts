@@ -3258,8 +3258,8 @@ const definitions: Definition[] = [
         extend: [xiaomiZigbeeOTA()],
     },
     {
-        zigbeeModel: ['lumi.switch.acn048'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
-        model: 'ZNQBKG38LM', // Vendor model number, look on the device for a model number
+        zigbeeModel: ['lumi.switch.acn048'],
+        model: 'ZNQBKG38LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch Z1 (single rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
@@ -3281,8 +3281,8 @@ const definitions: Definition[] = [
         extend: [xiaomiZigbeeOTA()],
     },
     {
-        zigbeeModel: ['lumi.switch.acn049'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
-        model: 'ZNQBKG39LM', // Vendor model number, look on the device for a model number
+        zigbeeModel: ['lumi.switch.acn049'],
+        model: 'ZNQBKG39LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch Z1 (double rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
@@ -3306,8 +3306,8 @@ const definitions: Definition[] = [
         extend: [xiaomiZigbeeOTA()],
     },
     {
-        zigbeeModel: ['lumi.switch.acn054'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
-        model: 'ZNQBKG40LM', // Vendor model number, look on the device for a model number
+        zigbeeModel: ['lumi.switch.acn054'],
+        model: 'ZNQBKG40LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch Z1 (triple rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
@@ -3331,8 +3331,8 @@ const definitions: Definition[] = [
         extend: [xiaomiZigbeeOTA()],
     },
     {
-        zigbeeModel: ['lumi.switch.acn055'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
-        model: 'ZNQBKG41LM', // Vendor model number, look on the device for a model number
+        zigbeeModel: ['lumi.switch.acn055'],
+        model: 'ZNQBKG41LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch Z1 (quadruple rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
