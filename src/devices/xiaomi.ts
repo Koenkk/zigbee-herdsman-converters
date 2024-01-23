@@ -3258,6 +3258,104 @@ const definitions: Definition[] = [
         extend: [xiaomiZigbeeOTA()],
     },
     {
+        zigbeeModel: ['lumi.switch.acn048'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: 'ZNQBKG38LM', // Vendor model number, look on the device for a model number
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch Z1 (single rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'button': 1};
+        },
+        exposes: [e.switch().withEndpoint('button'), e.device_temperature(),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for button').withEndpoint('button'),
+            e.action(['single_button', 'double_button'),
+            e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+        // extend: [xiaomiZigbeeOTA()],
+    },
+    {
+        zigbeeModel: ['lumi.switch.acn049'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: 'ZNQBKG39LM', // Vendor model number, look on the device for a model number
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch Z1 (double rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'top': 1, 'bottom': 2};
+        },
+        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('bottom'), e.device_temperature(),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for top button').withEndpoint('top'),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
+            e.action(['single_top', 'double_top', 'single_bottom', 'double_bottom', 'single_both', 'double_both']),
+            e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+        // extend: [xiaomiZigbeeOTA()],
+    },
+    {
+        zigbeeModel: ['lumi.switch.acn054'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: 'ZNQBKG40LM', // Vendor model number, look on the device for a model number
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch Z1 (triple rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'top': 1, 'middle': 2, 'bottom': 3};
+        },
+        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('bottom'), e.device_temperature(),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for top button').withEndpoint('top'),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
+            e.action(['single_top', 'double_top', 'single_bottom', 'double_bottom', 'single_both', 'double_both']),
+            e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+        // extend: [xiaomiZigbeeOTA()],
+    },
+    {
+        zigbeeModel: ['lumi.switch.acn055'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: 'ZNQBKG41LM', // Vendor model number, look on the device for a model number
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch Z1 (quadruple rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'top': 1, 'bottom': 2};
+        },
+        exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('bottom'), e.device_temperature(),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for top button').withEndpoint('top'),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
+            e.action(['single_top', 'double_top', 'single_bottom', 'double_bottom', 'single_both', 'double_both']),
+            e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+        // extend: [xiaomiZigbeeOTA()],
+    },    
+    {
         zigbeeModel: ['lumi.remote.cagl02'],
         model: 'CTP-R01',
         vendor: 'Xiaomi',
