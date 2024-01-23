@@ -3272,7 +3272,7 @@ const definitions: Definition[] = [
         exposes: [e.switch().withEndpoint('button'), e.device_temperature(),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for button').withEndpoint('button'),
-            e.action(['single_button', 'double_button'),
+            e.action(['single_button', 'double_button']),
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
