@@ -112,10 +112,10 @@ const tzLocal = {
 };
 
 function gledoptoLight(args?: LightArgs) {
-    args = {powerOnBehaviour: false, ...args};
+    args = {powerOnBehavior: false, ...args};
     if (args.color) args.color = {modes: ['xy', 'hs'], ...(utils.isObject(args.color) ? args.color : {})};
     const result = light(args);
-    utils.replaceInArray(result.toZigbee,
+    result.toZigbee = utils.replaceInArray(result.toZigbee,
         [tz.light_onoff_brightness, tz.light_colortemp, tz.light_color, tz.light_color_colortemp],
         [tzLocal.gledopto_light_onoff_brightness, tzLocal.gledopto_light_colortemp, tzLocal.gledopto_light_color,
             tzLocal.gledopto_light_color_colortemp],
@@ -354,7 +354,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB (pro)',
-        extend: [gledoptoLight({color: true, powerOnBehaviour: true}), gledoptoConfigureReadModelID()],
+        extend: [gledoptoLight({color: true, powerOnBehavior: true}), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-C-008P'],
@@ -385,7 +385,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller W (pro)',
-        extend: [gledoptoLight({powerOnBehaviour: true}), gledoptoConfigureReadModelID()],
+        extend: [gledoptoLight({powerOnBehavior: true}), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ['GL-C-009S'],
@@ -406,7 +406,7 @@ const definitions: Definition[] = [
         model: 'GL-LB-001P',
         vendor: 'Gledopto',
         description: 'Zigbee USB LED bar RGB+CCT (pro)',
-        extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true, powerOnBehaviour: true})],
+        extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true, powerOnBehavior: true})],
     },
     {
         zigbeeModel: ['GL-B-002P'],
@@ -565,7 +565,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee 6W E26/E27 Bulb RGB+CCT (pro)',
-        extend: [gledoptoLight({colorTemp: {range: undefined}, color: true, powerOnBehaviour: true})],
+        extend: [gledoptoLight({colorTemp: {range: undefined}, color: true, powerOnBehavior: true})],
     },
     {
         zigbeeModel: ['GL-B-008Z'],

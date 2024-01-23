@@ -85,7 +85,7 @@ const definitions: Definition[] = [
         model: 'LXZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
-        extend: [light({powerOnBehaviour: false})],
+        extend: [light({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FNB56-ZSW03LX2.0', 'LXN-3S27LX1.0'],
@@ -189,7 +189,7 @@ const definitions: Definition[] = [
         model: 'HGZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
-        extend: [light({powerOnBehaviour: false})],
+        extend: [light({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FNB56-ZSW01LX2.0'],

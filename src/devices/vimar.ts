@@ -19,7 +19,7 @@ const definitions: Definition[] = [
         model: '14595.0',
         vendor: 'Vimar',
         description: 'IoT connected dimmer mechanism 220-240V',
-        extend: [light({configureReporting: true, powerOnBehaviour: false})],
+        extend: [light({configureReporting: true, powerOnBehavior: false})],
         endpoint: (device) => {
             return {default: 11};
         },

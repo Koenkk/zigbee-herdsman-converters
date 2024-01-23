@@ -32,7 +32,7 @@ const definitions: Definition[] = [
         // https://github.com/Koenkk/zigbee2mqtt/issues/13123#issuecomment-1198793749
         meta: {disableDefaultResponse: true},
         toZigbee: [tzLocal.DD10Z_brightness],
-        extend: [light({powerOnBehaviour: false, colorTemp: {range: [153, 370], startup: false}})],
+        extend: [light({powerOnBehavior: false, colorTemp: {range: [153, 370], startup: false}})],
     },
     {
         zigbeeModel: ['4a33f5ea766a4c96a962b371ffde9943'],
