@@ -76,6 +76,12 @@ export class Base {
         }
     }
 
+    addFeature(feature: Feature) {
+        assert(this.features, 'Does not have any features');
+        if (this.endpoint) feature.withEndpoint(this.endpoint);
+        this.features.push(feature);
+    }
+
     removeFeature(feature: string) {
         assert(this.features, 'Does not have any features');
         const f = this.features.find((f) => f.name === feature);
@@ -102,13 +108,12 @@ export class Switch extends Base {
     }
 
     withState(property: string, toggle: string | boolean, description: string, access=a.ALL, value_on='ON', value_off='OFF') {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const feature = new Binary('state', access, value_on, value_off).withProperty(property).withDescription(description);
         if (toggle) {
             feature.withValueToggle('TOGGLE');
         }
 
-        this.features.push(feature);
+        this.addFeature(feature);
         return this;
     }
 }
@@ -121,14 +126,12 @@ export class Lock extends Base {
     }
 
     withState(property: string, valueOn: string, valueOff: string, description: string, access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Binary('state', access, valueOn, valueOff).withProperty(property).withDescription(description));
+        this.addFeature(new Binary('state', access, valueOn, valueOff).withProperty(property).withDescription(description));
         return this;
     }
 
     withLockState(property: string, description: string) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Enum('lock_state', access.STATE, ['not_fully_locked', 'locked', 'unlocked']).withProperty(property).withDescription(description));
+        this.addFeature(new Enum('lock_state', access.STATE, ['not_fully_locked', 'locked', 'unlocked']).withProperty(property).withDescription(description));
         return this;
     }
 }
@@ -262,8 +265,7 @@ export class Composite extends Base {
     }
 
     withFeature(feature: Feature) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(feature);
+        this.addFeature(feature);
         return this;
     }
 }
@@ -273,29 +275,25 @@ export class Light extends Base {
         super();
         this.type = 'light';
         this.features = [];
-        this.features.push(new Binary('state', access.ALL, 'ON', 'OFF').withValueToggle('TOGGLE').withDescription('On/off state of this light'));
+        this.addFeature(new Binary('state', access.ALL, 'ON', 'OFF').withValueToggle('TOGGLE').withDescription('On/off state of this light'));
     }
 
     withBrightness() {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('brightness', access.ALL).withValueMin(0).withValueMax(254).withDescription('Brightness of this light'));
+        this.addFeature(new Numeric('brightness', access.ALL).withValueMin(0).withValueMax(254).withDescription('Brightness of this light'));
         return this;
     }
 
     withMinBrightness() {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('min_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Minimum light brightness'));
+        this.addFeature(new Numeric('min_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Minimum light brightness'));
         return this;
     }
 
     withMaxBrightness() {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('max_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Maximum light brightness'));
+        this.addFeature(new Numeric('max_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Maximum light brightness'));
         return this;
     }
 
     withLevelConfig(disableFeatures: string[] = []) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         let levelConfig = new Composite('level_config', 'level_config', access.ALL);
         if (!disableFeatures.includes('on_off_transition_time')) {
             levelConfig = levelConfig.withFeature(new Numeric('on_off_transition_time', access.ALL)
@@ -332,12 +330,11 @@ export class Light extends Base {
                 .withDescription('Defines the desired startup level for a device when it is supplied with power'));
         }
         levelConfig = levelConfig.withDescription('Configure genLevelCtrl');
-        this.features.push(levelConfig);
+        this.addFeature(levelConfig);
         return this;
     }
 
     withColorTemp(range: Range) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const rangeProvided = range !== undefined;
         if (range === undefined) {
             range = [150, 500];
@@ -359,12 +356,11 @@ export class Light extends Base {
             {name: 'warmest', value: range[1], description: 'Warmest temperature supported'},
         ].filter((p) => p.value >= range[0] && p.value <= range[1]).forEach((p) => feature.withPreset(p.name, p.value, p.description));
 
-        this.features.push(feature);
+        this.addFeature(feature);
         return this;
     }
 
     withColorTempStartup(range: Range) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         if (range === undefined) {
             range = [150, 500];
         }
@@ -381,12 +377,11 @@ export class Light extends Base {
         ].filter((p) => p.value >= range[0] && p.value <= range[1]).forEach((p) => feature.withPreset(p.name, p.value, p.description));
         feature.withPreset('previous', 65535, 'Restore previous color_temp on cold power on');
 
-        this.features.push(feature);
+        this.addFeature(feature);
         return this;
     }
 
     withColor(types: ('xy' | 'hs')[]) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         for (const type of types) {
             if (type === 'xy') {
                 const colorXY = new Composite('color_xy', 'color', access.ALL)
@@ -394,14 +389,14 @@ export class Light extends Base {
                     .withFeature(new Numeric('x', access.ALL))
                     .withFeature(new Numeric('y', access.ALL))
                     .withDescription('Color of this light in the CIE 1931 color space (x/y)');
-                this.features.push(colorXY);
+                this.addFeature(colorXY);
             } else if (type === 'hs') {
                 const colorHS = new Composite('color_hs', 'color', access.ALL)
                     .withLabel('Color (HS)')
                     .withFeature(new Numeric('hue', access.ALL))
                     .withFeature(new Numeric('saturation', access.ALL))
                     .withDescription('Color of this light expressed as hue/saturation');
-                this.features.push(colorHS);
+                this.addFeature(colorHS);
             } else {
                 assert(false, `Unsupported color type ${type}`);
             }
@@ -416,18 +411,16 @@ export class Cover extends Base {
         super();
         this.type = 'cover';
         this.features = [];
-        this.features.push(new Enum('state', a.STATE_SET, ['OPEN', 'CLOSE', 'STOP']));
+        this.addFeature(new Enum('state', a.STATE_SET, ['OPEN', 'CLOSE', 'STOP']));
     }
 
     withPosition() {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('position', access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of this cover').withUnit('%'));
+        this.addFeature(new Numeric('position', access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of this cover').withUnit('%'));
         return this;
     }
 
     withTilt() {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('tilt', access.ALL).withValueMin(0).withValueMax(100).withDescription('Tilt of this cover').withUnit('%'));
+        this.addFeature(new Numeric('tilt', access.ALL).withValueMin(0).withValueMax(100).withDescription('Tilt of this cover').withUnit('%'));
         return this;
     }
 }
@@ -437,12 +430,11 @@ export class Fan extends Base {
         super();
         this.type = 'fan';
         this.features = [];
-        this.features.push(new Binary('state', access.ALL, 'ON', 'OFF').withDescription('On/off state of this fan').withProperty('fan_state'));
+        this.addFeature(new Binary('state', access.ALL, 'ON', 'OFF').withDescription('On/off state of this fan').withProperty('fan_state'));
     }
 
     withModes(modes: string[], access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Enum('mode', access, modes).withProperty('fan_mode').withDescription('Mode of this fan'));
+        this.addFeature(new Enum('mode', access, modes).withProperty('fan_mode').withDescription('Mode of this fan'));
         return this;
     }
 }
@@ -455,95 +447,82 @@ export class Climate extends Base {
     }
 
     withSetpoint(property: string, min: number, max: number, step: number, access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         assert(['occupied_heating_setpoint', 'current_heating_setpoint', 'occupied_cooling_setpoint', 'unoccupied_heating_setpoint', 'unoccupied_cooling_setpoint'].includes(property));
-        this.features.push(new Numeric(property, access)
+        this.addFeature(new Numeric(property, access)
             .withValueMin(min).withValueMax(max).withValueStep(step).withUnit('°C').withDescription('Temperature setpoint'));
         return this;
     }
 
     withLocalTemperature(access=a.STATE_GET, description='Current temperature measured on the device') {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('local_temperature', access).withUnit('°C').withDescription(description));
+        this.addFeature(new Numeric('local_temperature', access).withUnit('°C').withDescription(description));
         return this;
     }
 
     withLocalTemperatureCalibration(min=-12.8, max=12.7, step=0.1, access=a.ALL) {
         // For devices following the ZCL local_temperature_calibration is an int8, so min = -12.8 and max 12.7
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('local_temperature_calibration', access)
+        this.addFeature(new Numeric('local_temperature_calibration', access)
             .withValueMin(min).withValueMax(max).withValueStep(step).withUnit('°C').withDescription('Offset to add/subtract to the local temperature'));
         return this;
     }
 
     withSystemMode(modes: string[], access=a.ALL, description='Mode of this device') {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['off', 'heat', 'cool', 'auto', 'dry', 'fan_only', 'sleep', 'emergency_heating'];
         modes.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('system_mode', access, modes).withDescription(description));
+        this.addFeature(new Enum('system_mode', access, modes).withDescription(description));
         return this;
     }
 
     withRunningState(modes: string[], access=a.STATE_GET) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['idle', 'heat', 'cool', 'fan_only'];
         modes.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('running_state', access, modes).withDescription('The current running state'));
+        this.addFeature(new Enum('running_state', access, modes).withDescription('The current running state'));
         return this;
     }
 
     withRunningMode(modes: string[], access=a.STATE_GET) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['off', 'cool', 'heat'];
         modes.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('running_mode', access, modes).withDescription('The current running mode'));
+        this.addFeature(new Enum('running_mode', access, modes).withDescription('The current running mode'));
         return this;
     }
 
     withFanMode(modes: string[], access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['off', 'low', 'medium', 'high', 'on', 'auto', 'smart'];
         modes.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('fan_mode', access, modes).withDescription('Mode of the fan'));
+        this.addFeature(new Enum('fan_mode', access, modes).withDescription('Mode of the fan'));
         return this;
     }
 
     withSwingMode(modes: string[], access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Enum('swing_mode', access, modes).withDescription('Swing mode'));
+        this.addFeature(new Enum('swing_mode', access, modes).withDescription('Swing mode'));
         return this;
     }
 
     withPreset(modes: string[], description='Mode of this device (similar to system_mode)') {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Enum('preset', access.STATE_SET, modes).withDescription(description));
+        this.addFeature(new Enum('preset', access.STATE_SET, modes).withDescription(description));
         return this;
     }
 
     withPiHeatingDemand(access=a.STATE) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('pi_heating_demand', access).withLabel('PI heating demand').withValueMin(0).withValueMax(100).withUnit('%').withDescription('Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open'));
+        this.addFeature(new Numeric('pi_heating_demand', access).withLabel('PI heating demand').withValueMin(0).withValueMax(100).withUnit('%').withDescription('Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open'));
         return this;
     }
 
     withControlSequenceOfOperation(modes: string[], access=a.STATE) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['cooling_only', 'cooling_with_reheat', 'heating_only', 'heating_with_reheat', 'cooling_and_heating_4-pipes', 'cooling_and_heating_4-pipes_with_reheat'];
         modes.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('control_sequence_of_operation', access, modes).withDescription('Operating environment of the thermostat'));
+        this.addFeature(new Enum('control_sequence_of_operation', access, modes).withDescription('Operating environment of the thermostat'));
         return this;
     }
 
     withAcLouverPosition(positions: string[], access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['fully_open', 'fully_closed', 'half_open', 'quarter_open', 'three_quarters_open'];
         positions.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('ac_louver_position', access, positions).withLabel('AC louver position').withDescription('AC louver position of this device'));
+        this.addFeature(new Enum('ac_louver_position', access, positions).withLabel('AC louver position').withDescription('AC louver position of this device'));
         return this;
     }
 
     withWeeklySchedule(modes: string[], access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['heat', 'cool'];
         modes.forEach((m) => assert(allowed.includes(m)));
 
@@ -572,7 +551,7 @@ export class Climate extends Base {
             .withFeature(featureDayOfWeek)
             .withFeature(featureTransitions);
 
-        this.features.push(schedule);
+        this.addFeature(schedule);
         return this;
     }
 }
