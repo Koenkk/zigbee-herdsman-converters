@@ -183,6 +183,13 @@ const definitions: Definition[] = [
         description: 'LIGHTIFY LED soft white BR30',
         extend: [ledvanceLight({})],
     },
+    {
+        zigbeeModel: ['A19 W non CEC'],
+        model: '70552',
+        vendor: 'Sylvania',
+        description: 'Smart+ LED A19 dimmable soft white',
+        extend: [ledvanceLight({})],
+    },
 ];
 
 export default definitions;

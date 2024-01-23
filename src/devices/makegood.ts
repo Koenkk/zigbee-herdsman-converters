@@ -8,7 +8,7 @@ const definitions: Definition[] = [
         model: 'MG-AUZG01',
         vendor: 'MakeGood',
         description: 'Double Zigbee power point',
-        extend: tuya.extend.switch({powerOutageMemory: true, indicatorMode: true, endpoints: ['l1', 'l2']}),
+        extend: tuya.extend.switch({powerOutageMemory: true, indicatorMode: true, endpoints: ['l1', 'l2'], electricalMeasurements: true}),
         meta: {multiEndpointSkip: ['power', 'current', 'voltage', 'energy']},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};

@@ -6,9 +6,8 @@ import * as ota from '../lib/ota';
 import * as constants from '../lib/constants';
 import {Definition, Fz, KeyValueAny, Tz} from '../lib/types';
 const e = exposes.presets;
-const eo = exposes.options;
 const ea = exposes.access;
-import {assertString, calibrateAndPrecisionRoundOptions, getFromLookup, getOptions, toNumber} from '../lib/utils';
+import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
 
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -22,10 +21,9 @@ const fzLocal = {
     temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [eo.precision('temperature'), eo.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-            return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+            return {temperature};
         },
     } satisfies Fz.Converter,
     occupancy_level: {
@@ -255,7 +253,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['WBMSW3'],
         model: 'WB-MSW-ZIGBEE v.3',
-        vendor: 'Sprut.device',
+        vendor: 'Wirenboard',
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout, fzLocal.co2_mh_z19b_config,
@@ -322,7 +320,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['WBMSW4'],
         model: 'WB-MSW-ZIGBEE v.4',
-        vendor: 'Sprut.device',
+        vendor: 'Wirenboard',
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout,

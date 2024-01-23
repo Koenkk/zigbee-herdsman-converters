@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: '1444420',
         vendor: 'Heatit',
         description: 'Zig Dim 250W',
-        extend: extend.light_onoff_brightness({disablePowerOnBehavior: true}),
+        extend: [light({configureReporting: true, powerOnBehavior: false})],
     },
 ];
 

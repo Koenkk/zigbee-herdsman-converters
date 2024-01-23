@@ -67,7 +67,7 @@ project.getSourceFiles().forEach((sourceFile) => {
                             // @ts-expect-error
                             newOpts.colorTemp = {...newOpts.colorTemp, startup: !value};
                         } else if (key === 'disablePowerOnBehavior') {
-                            newOpts.powerOnBehaviour = !value;
+                            newOpts.powerOnBehavior = !value;
                         } else if (key === 'disableEffect') {
                             newOpts.effect = !value;
                         } else if (key === 'disableHueEffects') {

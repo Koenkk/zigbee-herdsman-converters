@@ -4,6 +4,13 @@ import {Zh, Ota, Logger, KeyValueAny, KeyValue, KeyValueNumberString} from '../t
 import assert from 'assert';
 import crc32 from 'buffer-crc32';
 import axios from 'axios';
+import * as URI from 'uri-js';
+import fs from 'fs';
+import path from 'path';
+import {Zcl} from 'zigbee-herdsman';
+import https from 'https';
+import tls from 'tls';
+let dataDir: string = null;
 const maxTimeout = 2147483647; // +- 24 days
 const imageBlockResponseDelay = 250;
 const endRequestCodeLookup: KeyValueNumberString = {
@@ -37,6 +44,101 @@ const eblImageSignature = 0xe350;
 
 const gblTagHeader = 0xeb17a603;
 const gblTagEnd = 0xfc0404fc;
+
+
+/**
+ * Helper functions
+ */
+
+
+export const setDataDir = (dir: string) => {
+    dataDir = dir;
+};
+
+export function isValidUrl(url: string) {
+    let parsed;
+    try {
+        parsed = URI.parse(url);
+    } catch (_) {
+        return false;
+    }
+    return parsed.scheme === 'http' || parsed.scheme === 'https';
+}
+
+export function readLocalFile(fileName: string, logger: Logger) {
+    // If the file name is not a full path, then treat it as a relative to the data directory
+    if (!path.isAbsolute(fileName) && dataDir) {
+        fileName = path.join(dataDir, fileName);
+    }
+
+    logger.debug(`OTA: Getting local firmware file '${fileName}'`);
+    return fs.readFileSync(fileName);
+}
+
+export async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
+    const urlOrName = image.url;
+
+    // First try to download firmware file with the URL provided
+    if (isValidUrl(urlOrName)) {
+        logger.debug(`OTA: Downloading firmware image from '${urlOrName}'`);
+        return await getAxios().get(urlOrName, {responseType: 'arraybuffer'});
+    }
+
+    logger.debug(`OTA: Try to read firmware image from local file '${urlOrName}'`);
+    return {data: readLocalFile(urlOrName, logger)};
+}
+
+export async function processCustomCaBundle(uri: string) {
+    let rawCaBundle = '';
+    if (isValidUrl(uri)) {
+        rawCaBundle = (await axios.get(uri)).data;
+    } else {
+        if (!path.isAbsolute(uri) && dataDir) {
+            uri = path.join(dataDir, uri);
+        }
+        rawCaBundle = fs.readFileSync(uri, {encoding: 'utf-8'});
+    }
+
+    // Parse the raw CA bundle into clean, separate CA certs
+    const lines = rawCaBundle.split('\n');
+    const caBundle = [];
+    let inCert = false;
+    let currentCert = '';
+    for (const line of lines) {
+        if (line === '-----BEGIN CERTIFICATE-----') {
+            inCert = true;
+        }
+        if (inCert) {
+            currentCert = currentCert + line + '\n';
+        }
+        if (line === '-----END CERTIFICATE-----') {
+            inCert = false;
+            caBundle.push(currentCert);
+            currentCert = '';
+        }
+    }
+
+    return caBundle;
+}
+
+export async function getOverrideIndexFile(urlOrName: string) {
+    if (isValidUrl(urlOrName)) {
+        const {data: index} = await getAxios().get(urlOrName);
+
+        if (!index) {
+            throw new Error(`OTA: Error getting override index file from '${urlOrName}'`);
+        }
+
+        return index;
+    }
+
+    return JSON.parse(fs.readFileSync(urlOrName, 'utf-8'));
+}
+
+
+/**
+ * OTA functions
+ */
 
 function getOTAEndpoint(device: Zh.Device) {
     return device.endpoints.find((e) => e.supportsOutputCluster('genOta'));
@@ -80,7 +182,7 @@ export function parseImage(buffer: Buffer): Ota.Image {
 
     const raw = buffer.slice(0, header.totalImageSize);
 
-    assert(Buffer.compare(header.otaUpgradeFileIdentifier, upgradeFileIdentifier) === 0, 'Not an OTA file');
+    assert(Buffer.compare(header.otaUpgradeFileIdentifier, upgradeFileIdentifier) === 0, `Not an OTA file`);
 
     let position = header.otaHeaderLength;
     const elements = [];
@@ -90,7 +192,7 @@ export function parseImage(buffer: Buffer): Ota.Image {
         position += element.data.length + 6;
     }
 
-    assert(position === header.totalImageSize, 'Size mismatch');
+    assert(position === header.totalImageSize, `Size mismatch`);
     return {header, elements, raw};
 }
 
@@ -136,7 +238,7 @@ function validateSilabsEbl(data: Buffer) {
         return;
     }
 
-    throw new Error(`Image is truncated: not long enough to contain a valid tag`);
+    throw new Error(`OTA: Image is truncated, not long enough to contain a valid tag`);
 }
 
 function validateSilabsGbl(data: Buffer) {
@@ -161,7 +263,7 @@ function validateSilabsGbl(data: Buffer) {
         return;
     }
 
-    throw new Error(`Image is truncated: not long enough to contain a valid tag`);
+    throw new Error(`OTA: Image is truncated, not long enough to contain a valid tag`);
 }
 
 function cancelWaiters(waiters: Waiters) {
@@ -182,12 +284,12 @@ function sendQueryNextImageResponse(endpoint: Zh.Endpoint, image: Ota.Image, req
     };
 
     endpoint.commandResponse('genOta', 'queryNextImageResponse', payload, null, requestTransactionSequenceNumber).catch((e) => {
-        logger.debug(`Failed to send queryNextImageResponse (${e.message})`);
+        logger.debug(`OTA: Failed to send queryNextImageResponse (${e.message})`);
     });
 }
 
 function imageNotify(endpoint: Zh.Endpoint) {
-    return endpoint.commandResponse('genOta', 'imageNotify', {payloadType: 0, queryJitter: 100}, {sendWhen: 'immediate'});
+    return endpoint.commandResponse('genOta', 'imageNotify', {payloadType: 0, queryJitter: 100}, {sendPolicy: 'immediate'});
 }
 
 async function requestOTA(endpoint: Zh.Endpoint): Promise<{payload: Ota.ImageInfo}> {
@@ -199,7 +301,7 @@ async function requestOTA(endpoint: Zh.Endpoint): Promise<{payload: Ota.ImageInf
         return await queryNextImageRequest.promise;
     } catch (e) {
         queryNextImageRequest.cancel();
-        throw new Error(`Device didn't respond to OTA request`);
+        throw new Error(`OTA: Device didn't respond to OTA request`);
     }
 }
 
@@ -218,7 +320,7 @@ function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: KeyVa
     if (imageBlockRequest.payload.manufacturerCode === 4129 &&
         imageBlockRequest.payload.fileOffset === 50 &&
         imageBlockRequest.payload.maximumDataSize === 12) {
-        logger.info(`Detected Legrand firmware issue, attempting to reset the OTA stack`);
+        logger.info(`OTA: Detected Legrand firmware issue, attempting to reset the OTA stack`);
         // The following vector seems to buffer overflow the device to reset the OTA stack!
         start = 78;
         dataSize = 64;
@@ -232,11 +334,11 @@ function getImageBlockResponsePayload(image: Ota.Image, imageBlockRequest: KeyVa
         end = image.raw.length;
     }
 
-    logger.debug(`Request offsets:` +
+    logger.debug(`OTA: Request offsets:` +
                 ` fileOffset=${imageBlockRequest.payload.fileOffset}` +
                 ` pageOffset=${pageOffset}` +
                 ` dataSize=${imageBlockRequest.payload.maximumDataSize}`);
-    logger.debug(`Payload offsets: start=${start} end=${end} dataSize=${dataSize}`);
+    logger.debug(`OTA: Payload offsets: start=${start} end=${end} dataSize=${dataSize}`);
 
     return {
         status: 0,
@@ -260,7 +362,7 @@ function callOnProgress(startTime: number, lastUpdate: number, imageBlockRequest
         const remaining = (image.header.totalImageSize - imageBlockRequest.payload.fileOffset) / bytesPerSecond;
         let percentage = imageBlockRequest.payload.fileOffset / image.header.totalImageSize;
         percentage = Math.round(percentage * 10000) / 100;
-        logger.debug(`OTA update at ${percentage}%, remaining ${remaining} seconds`);
+        logger.debug(`OTA: Update at ${percentage}%, remaining ${remaining} seconds`);
         onProgress(percentage, remaining === Infinity ? null : remaining);
         return now;
     } else {
@@ -268,32 +370,46 @@ function callOnProgress(startTime: number, lastUpdate: number, imageBlockRequest
     }
 }
 
-export async function isUpdateAvailable(device: Zh.Device, logger: Logger, isNewImageAvailable: IsNewImageAvailable, requestPayload: Ota.ImageInfo,
-    getImageMeta: Ota.GetImageMeta = null) {
-    logger.debug(`Check if update available for '${device.ieeeAddr}' (${device.modelID})`);
+export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload: Ota.ImageInfo,
+    isNewImageAvailable: IsNewImageAvailable = null, getImageMeta: Ota.GetImageMeta = null) {
+    logger.debug(`OTA: Checking if an update is available for '${device.ieeeAddr}' (${device.modelID})`);
 
     if (requestPayload === null) {
         const endpoint = getOTAEndpoint(device);
-        assert(endpoint != null, `Failed to find endpoint which support OTA cluster`);
-        logger.debug(`Using endpoint '${endpoint.ID}'`);
+        assert(endpoint != null, `Failed to find an endpoint which supports the OTA cluster`);
+        logger.debug(`OTA: Using endpoint '${endpoint.ID}'`);
 
         const request = await requestOTA(endpoint);
-        logger.debug(`Got OTA request '${JSON.stringify(request.payload)}'`);
+        logger.debug(`OTA: Got request '${JSON.stringify(request.payload)}'`);
         requestPayload = request.payload;
     }
 
     const availableResult = await isNewImageAvailable(requestPayload, logger, device, getImageMeta);
-    logger.debug(`Update available for '${device.ieeeAddr}': ${availableResult.available < 0 ? 'YES' : 'NO'}`);
+    logger.debug(`OTA: Update available for '${device.ieeeAddr}' (${device.modelID}): ${availableResult.available < 0 ? 'YES' : 'NO'}`);
     if (availableResult.available > 0) {
-        logger.warn(`Firmware on '${device.ieeeAddr}' is newer than latest firmware online.`);
+        logger.warn(`OTA: Firmware on '${device.ieeeAddr}' (${device.modelID}) is newer than latest firmware online.`);
     }
     return {...availableResult, available: availableResult.available < 0};
 }
 
 export async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta) {
+    const currentS = JSON.stringify(current);
+    logger.debug(`OTA: Is new image available for '${device.ieeeAddr}' (${device.modelID}), current '${currentS}'`);
     const meta = await getImageMeta(current, logger, device);
-    const [currentS, metaS] = [JSON.stringify(current), JSON.stringify(meta)];
-    logger.debug(`Is new image available for '${device.ieeeAddr}', current '${currentS}', latest meta '${metaS}'`);
+
+    // Soft-fail because no images in repo/URL for specified device
+    if (!meta) {
+        const metaS = `device '${device.modelID}', hardwareVersion '${device.hardwareVersion}', manufacturerName ${device.manufacturerName}`;
+        logger.warn(`OTA: Images currently unavailable for ${metaS}, ${currentS}'`);
+
+        return {
+            available: 0,
+            currentFileVersion: current.fileVersion,
+            otaFileVersion: current.fileVersion,
+        };
+    }
+
+    logger.debug(`OTA: Is new image available for '${device.ieeeAddr}' (${device.modelID}), latest meta '${JSON.stringify(meta)}'`);
 
     // Negative number means the new firmware is 'newer' than current one
     return {
@@ -305,17 +421,14 @@ export async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger
 
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress, getNewImage: GetNewImage,
     getImageMeta: Ota.GetImageMeta = null, downloadImage: DownloadImage = null): Promise<number> {
-    logger.debug(`Updating to latest '${device.ieeeAddr}' (${device.modelID})`);
-
+    logger.debug(`OTA: Updating to latest '${device.ieeeAddr}' (${device.modelID})`);
     const endpoint = getOTAEndpoint(device);
-    assert(endpoint != null, `Failed to find endpoint which support OTA cluster`);
-    logger.debug(`Using endpoint '${endpoint.ID}'`);
-
+    assert(endpoint != null, `Failed to find an endpoint which supports the OTA cluster`);
+    logger.debug(`OTA: Using endpoint '${endpoint.ID}'`);
     const request = await requestOTA(endpoint);
-    logger.debug(`Got OTA request '${JSON.stringify(request.payload)}'`);
-
+    logger.debug(`OTA: Got request '${JSON.stringify(request.payload)}'`);
     const image = await getNewImage(request.payload, logger, device, getImageMeta, downloadImage);
-    logger.debug(`Got new image for '${device.ieeeAddr}'`);
+    logger.debug(`OTA: Got new image for '${device.ieeeAddr}' (${device.modelID})`);
 
     const waiters: Waiters = {};
     let lastUpdate: number = null;
@@ -329,6 +442,13 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
             // (https://github.com/Koenkk/zigbee-herdsman-converters/issues/6657)
             if ( request.payload.manufacturerCode == 4742 && request.payload.imageType == 8199 ) {
                 imageBlockOrPageRequestTimeoutMs = 3600000;
+            }
+
+            // Bosch transmits the firmware updates in the background in their native implementation.
+            // According to the app, this can take up to 2 days. Therefore, we assume to get at least
+            // one package request per hour from the device here.
+            if (request.payload.manufacturerCode == Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH) {
+                imageBlockOrPageRequestTimeoutMs = 60 * 60 * 1000;
             }
 
             const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, imageBlockOrPageRequestTimeoutMs);
@@ -366,7 +486,7 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
                                     // Shit happens, device will probably do a new imageBlockRequest so don't care.
                                     lastImageBlockResponse = Date.now();
                                     thenCallback();
-                                    logger.debug(`Image block response failed (${e.message})`);
+                                    logger.debug(`OTA: Image block response failed (${e.message})`);
                                 },
                             );
                         }, cooldownTime);
@@ -395,7 +515,7 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
                 },
                 () => {
                     cancelWaiters(waiters);
-                    reject(new Error('Timeout: device did not request any image blocks'));
+                    reject(new Error(`OTA: Timeout, device did not request any image blocks`));
                 },
             );
         };
@@ -411,24 +531,23 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
         // No need to timeout here, will already be done in answerNextImageBlockRequest
         waiters.upgradeEndRequest = endpoint.waitForCommand('genOta', 'upgradeEndRequest', null, maxTimeout);
         waiters.upgradeEndRequest.promise.then((data) => {
-            logger.debug(`Got upgrade end request for '${device.ieeeAddr}': ${JSON.stringify(data.payload)}`);
+            logger.debug(`OTA: Got upgrade end request for '${device.ieeeAddr}' (${device.modelID}): ${JSON.stringify(data.payload)}`);
             cancelWaiters(waiters);
 
             if (data.payload.status === 0) {
                 const payload = {
                     manufacturerCode: image.header.manufacturerCode, imageType: image.header.imageType,
-                    fileVersion: image.header.fileVersion, imageSize: image.header.totalImageSize,
-                    currentTime: 0, upgradeTime: 1,
+                    fileVersion: image.header.fileVersion, currentTime: 0, upgradeTime: 1,
                 };
 
                 endpoint.commandResponse('genOta', 'upgradeEndResponse', payload, null, data.header.transactionSequenceNumber).then(
                     () => {
-                        logger.debug(`Update succeeded, waiting for device announce`);
+                        logger.debug(`OTA: Update succeeded, waiting for device announce`);
                         onProgress(100, null);
 
                         let timer: ReturnType<typeof setTimeout> = null;
                         const cb = () => {
-                            logger.debug(`Got device announce or timed out, call resolve`);
+                            logger.debug(`OTA: Got device announce or timed out, call resolve`);
                             clearInterval(timer);
                             device.removeListener('deviceAnnounce', cb);
                             resolve(image.header.fileVersion);
@@ -437,33 +556,34 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
                         device.once('deviceAnnounce', cb);
                     },
                     (e) => {
-                        const message = `Upgrade end response failed (${e.message})`;
+                        const message = `OTA: Upgrade end response failed (${e.message})`;
                         logger.debug(message);
                         reject(new Error(message));
                     },
                 );
             } else {
                 // @ts-expect-error
-                const error = `Update failed with reason: '${endRequestCodeLookup[data.payload.status]}'`;
+                const error = `OTA: Update failed with reason: '${endRequestCodeLookup[data.payload.status]}'`;
                 logger.debug(error);
                 reject(new Error(error));
             }
         });
 
-        logger.debug('Starting upgrade');
+        logger.debug(`OTA: Starting upgrade`);
         answerNextImageBlockOrPageRequest();
         answerNextImageRequest();
 
         // Notify client once more about new image, client should start sending queryNextImageRequest now
-        imageNotify(endpoint).catch((e) => logger.debug(`Image notify failed (${e})`));
+        imageNotify(endpoint).catch((e) => logger.debug(`OTA: Image notify failed (${e})`));
     });
 }
 
 export async function getNewImage(current: Ota.ImageInfo, logger: Logger, device: Zh.Device,
     getImageMeta: Ota.GetImageMeta, downloadImage: DownloadImage): Promise<Ota.Image> {
     const meta = await getImageMeta(current, logger, device);
-    logger.debug(`getNewImage for '${device.ieeeAddr}', meta ${JSON.stringify(meta)}`);
-    assert(meta.fileVersion > current.fileVersion || meta.force, 'No new image available');
+    assert(meta, `Images for '${device.ieeeAddr}' (${device.modelID}) currently unavailable`);
+    logger.debug(`OTA: Getting new image for '${device.ieeeAddr}' (${device.modelID}), latest meta ${JSON.stringify(meta)}`);
+    assert(meta.fileVersion > current.fileVersion || meta.force, `No new image available`);
 
     const download = downloadImage ? await downloadImage(meta, logger) :
         await getAxios().get(meta.url, {responseType: 'arraybuffer'});
@@ -472,39 +592,72 @@ export async function getNewImage(current: Ota.ImageInfo, logger: Logger, device
     if (checksum) {
         const hash = crypto.createHash(meta.sha512 ? 'sha512' : 'sha256');
         hash.update(download.data);
-        assert(hash.digest('hex') === checksum, 'File checksum validation failed');
-        logger.debug(`OTA update checksum validation succeeded for '${device.ieeeAddr}'`);
+        assert(hash.digest('hex') === checksum, `File checksum validation failed`);
+        logger.debug(`OTA: Update checksum validation succeeded for '${device.ieeeAddr}' (${device.modelID})`);
     }
 
     const start = download.data.indexOf(upgradeFileIdentifier);
     const image = parseImage(download.data.slice(start));
-    logger.debug(`getNewImage for '${device.ieeeAddr}', image header ${JSON.stringify(image.header)}`);
-    assert(image.header.fileVersion === meta.fileVersion, 'File version mismatch');
-    assert(!meta.fileSize || image.header.totalImageSize === meta.fileSize, 'Image size mismatch');
-    assert(image.header.manufacturerCode === current.manufacturerCode, 'Manufacturer code mismatch');
-    assert(image.header.imageType === current.imageType, 'Image type mismatch');
+    logger.debug(`OTA: Get new image for '${device.ieeeAddr}' (${device.modelID}), image header ${JSON.stringify(image.header)}`);
+    assert(image.header.fileVersion === meta.fileVersion, `File version mismatch`);
+    assert(!meta.fileSize || image.header.totalImageSize === meta.fileSize, `Image size mismatch`);
+    assert(image.header.manufacturerCode === current.manufacturerCode, `Manufacturer code mismatch`);
+    assert(image.header.imageType === current.imageType, `Image type mismatch`);
     if ('minimumHardwareVersion' in image.header && 'maximumHardwareVersion' in image.header) {
         assert(image.header.minimumHardwareVersion <= device.hardwareVersion &&
-            device.hardwareVersion <= image.header.maximumHardwareVersion, 'Hardware version mismatch');
+            device.hardwareVersion <= image.header.maximumHardwareVersion, `Hardware version mismatch`);
     }
     validateImageData(image);
     return image;
 }
 
-export function getAxios() {
+export function getAxios(caBundle: string[] = null) {
     let config = {};
+    const httpsAgentOptions: https.AgentOptions = {};
+    if (caBundle !== null) {
+        // We also include all system default CAs, as setting custom CAs fully replaces the default list
+        httpsAgentOptions.ca = [...tls.rootCertificates, ...caBundle];
+    }
+
     const proxy = process.env.HTTPS_PROXY;
     if (proxy) {
         config = {
             proxy: false,
-            httpsAgent: new HttpsProxyAgent(proxy),
+            httpsAgent: new HttpsProxyAgent(proxy, httpsAgentOptions),
             headers: {
                 'Accept-Encoding': '*',
             },
         };
+    } else {
+        config = {
+            httpsAgent: new https.Agent(httpsAgentOptions),
+        };
     }
 
-    return axios.create(config);
+    const axiosInstance = axios.create(config);
+    axiosInstance.defaults.maxRedirects = 0; // Set to 0 to prevent automatic redirects
+    // Add work with 302 redirects without hostname in Location header
+    axiosInstance.interceptors.response.use(
+        (response) => response,
+        (error) => {
+            // get domain from basic url
+            if (error.response && [301, 302].includes(error.response.status)) {
+                let redirectUrl = error.response.headers.location;
+                try {
+                    const parsedUrl = new URL(redirectUrl);
+                    if (!parsedUrl.protocol || !parsedUrl.host) {
+                        throw new Error(`OTA: Get Axios, no scheme or domain`);
+                    }
+                } catch {
+                    // Prepend scheme and domain from the original request's base URL
+                    const baseURL = new URL(error.config.url);
+                    redirectUrl = `${baseURL.origin}${redirectUrl}`;
+                }
+                return axiosInstance.get(redirectUrl, {responseType: error.config.responseType || 'arraybuffer'});
+            }
+        },
+    );
+    return axiosInstance;
 }
 
 exports.upgradeFileIdentifier = upgradeFileIdentifier;
@@ -515,3 +668,8 @@ exports.isNewImageAvailable = isNewImageAvailable;
 exports.updateToLatest = updateToLatest;
 exports.getNewImage = getNewImage;
 exports.getAxios = getAxios;
+exports.isValidUrl = isValidUrl;
+exports.setDataDir = setDataDir;
+exports.getFirmwareFile = getFirmwareFile;
+exports.readLocalFile = readLocalFile;
+exports.getOverrideIndexFile = getOverrideIndexFile;

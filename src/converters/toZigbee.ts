@@ -1319,14 +1319,15 @@ const converters2 = {
                     // accept 24h time notation (e.g. 19:30)
                     if (typeof elem['transitionTime'] === 'string') {
                         const time = elem['transitionTime'].split(':');
-                        utils.assertNumber(time[0], 'transitionTime hour');
-                        utils.assertNumber(time[1], 'transitionTime minute');
-                        if ((time.length != 2) || isNaN(time[0]) || isNaN(time[1])) {
+                        const timeHour = (parseInt(time[0]) * 60);
+                        const timeMinute = parseInt(time[1]);
+
+                        if ((time.length != 2) || isNaN(timeHour) || isNaN(timeMinute)) {
                             meta.logger.warn(
                                 `weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem['transitionTime']}'!`,
                             );
                         } else {
-                            elem['transitionTime'] = ((parseInt(time[0]) * 60) + parseInt(time[1]));
+                            elem['transitionTime'] = (timeHour + timeMinute);
                         }
                     } else if (typeof elem['transitionTime'] === 'object') {
                         if (!elem['transitionTime'].hasOwnProperty('hour') || !elem['transitionTime'].hasOwnProperty('minute')) {
@@ -1805,7 +1806,7 @@ const converters2 = {
     elko_display_text: {
         key: ['display_text'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertArray(value);
+            utils.assertString(value);
             if (value.length <= 14) {
                 await entity.write('hvacThermostat', {'elkoDisplayText': value});
                 return {state: {display_text: value}};
@@ -2210,7 +2211,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'siren_led': 3, 'siren': 2, 'led': 1, 'nothing': 0};
             await entity.write('genBasic', {0x400a: {value: utils.getFromLookup(value, lookup), type: 32}},
-                {manufacturerCode: 0x1168, disableDefaultResponse: true, sendWhen: 'active'});
+                {manufacturerCode: 0x1168, disableDefaultResponse: true});
             return {state: {alert_behaviour: value}};
         },
     } satisfies Tz.Converter,
@@ -4045,7 +4046,6 @@ const converters2 = {
     heiman_ir_remote: {
         key: ['send_key', 'create', 'learn', 'delete', 'get_list'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertObject(value);
             const options = {
                 // Don't send a manufacturerCode (otherwise set in herdsman):
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2827
@@ -4055,17 +4055,21 @@ const converters2 = {
             };
             switch (key) {
             case 'send_key':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'sendKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'create':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'createId', {modelType: value['model_type']}, options);
                 break;
             case 'learn':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'studyKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'delete':
+                utils.assertObject(value);
                 await entity.command('heimanSpecificInfraRedRemote', 'deleteKey',
                     {id: value['id'], keyCode: value['key_code']}, options);
                 break;
@@ -4492,12 +4496,11 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'sensitivity':
-                await entity.write('ssIasZone', {currentZoneSensitivityLevel: utils.getFromLookup(value, {'low': 0, 'medium': 1, 'high': 2})},
-                    {sendWhen: 'active'});
+                await entity.write('ssIasZone', {currentZoneSensitivityLevel: utils.getFromLookup(value, {'low': 0, 'medium': 1, 'high': 2})});
                 break;
             case 'keep_time':
                 await entity.write('ssIasZone',
-                    {61441: {value: utils.getFromLookup(value, {30: 0, 60: 1, 120: 2}), type: 0x20}}, {sendWhen: 'active'});
+                    {61441: {value: utils.getFromLookup(value, {30: 0, 60: 1, 120: 2}), type: 0x20}});
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key ${key}`);
@@ -4506,7 +4509,7 @@ const converters2 = {
         convertGet: async (entity, key, meta) => {
             // Apparently, reading values may interfere with a commandStatusChangeNotification for changed occupancy.
             // Therefore, read "zoneStatus" as well.
-            await entity.read('ssIasZone', ['currentZoneSensitivityLevel', 61441, 'zoneStatus'], {sendWhen: 'active'});
+            await entity.read('ssIasZone', ['currentZoneSensitivityLevel', 61441, 'zoneStatus']);
         },
     } satisfies Tz.Converter,
     TS0210_sensitivity: {
@@ -4700,7 +4703,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
             const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
-            entity.write('hvacUserInterfaceCfg', {keypadLockout}, {sendWhen: 'active'});
+            entity.write('hvacUserInterfaceCfg', {keypadLockout});
             entity.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout});
             return {state: {keypad_lockout: value}};
         },
@@ -4938,7 +4941,7 @@ const converters2 = {
         key: ['calibrate_valve'],
         convertSet: async (entity, key, value, meta) => {
             await entity.command('hvacThermostat', 'wiserSmartCalibrateValve', {},
-                {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
+                {srcEndpoint: 11, disableDefaultResponse: true});
             return {state: {'calibrate_valve': value}};
         },
     } satisfies Tz.Converter,
@@ -4963,7 +4966,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
             entity.write('hvacThermostat', {localTemperatureCalibration: Math.round(value * 10)},
-                {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
+                {srcEndpoint: 11, disableDefaultResponse: true});
             return {state: {local_temperature_calibration: value}};
         },
     } satisfies Tz.Converter,
@@ -4972,7 +4975,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
             await entity.write('hvacUserInterfaceCfg', {keypadLockout},
-                {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
+                {srcEndpoint: 11, disableDefaultResponse: true});
             return {state: {keypad_lockout: value}};
         },
     } satisfies Tz.Converter,

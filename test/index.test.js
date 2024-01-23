@@ -27,7 +27,7 @@ describe('index.js', () => {
         expect(() => utils.toNumber('')).toThrowError('Value is not a number, got string ()');
     });
 
-    it('Find by device where modelID is null', () => {
+    it('Find by device where modelID is null', async () => {
         const endpoints = [
             {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
             {ID: 232, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
@@ -40,11 +40,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe('XBee');
     });
 
-    it('Find by device shouldn\'t match when modelID is null and there is no fingerprint match', () => {
+    it('Find by device shouldn\'t match when modelID is null and there is no fingerprint match', async () => {
         const endpoints = [
             {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},
         ];
@@ -56,11 +56,42 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition).toBeNull();
     });
 
-    it('Find by device when device has modelID should match', () => {
+    it('Find by device should generate for unknown', async () => {
+        const endpoints = [
+            {
+                ID: 1, profileID: undefined, deviceID: undefined,
+                getInputClusters() {
+                    return [];
+                },
+                getOutputClusters() {
+                    return [{name: 'genIdentify'}]
+                },
+            },
+        ];
+        const device = {
+            type: 'EndDevice',
+            manufacturerID: undefined,
+            modelID: 'test_generate',
+            endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = await index.findByDevice(device, true);
+        expect(definition.model).toBe('test_generate');
+        expect(definition.vendor).toBe('');
+        expect(definition.description).toBe('Automatically generated definition');
+        expect(definition.extend).toBeUndefined();
+        expect(definition.fromZigbee).toHaveLength(0);
+        expect(definition.toZigbee).toHaveLength(11);
+        expect(definition.exposes).toHaveLength(1);
+        expect(definition.options).toHaveLength(0);
+    });
+
+    it('Find by device when device has modelID should match', async () => {
         const endpoints = [
             {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},
         ];
@@ -72,11 +103,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe("RTCGQ01LM");
     });
 
-    it('Find by fingerprint with priority', () => {
+    it('Find by fingerprint with priority', async () => {
         const HG06338 = {
             type: 'Router',
             manufacturerName: '_TZ3000_vzopcetz',
@@ -95,12 +126,12 @@ describe('index.js', () => {
             modelID: 'TS011F',
             applicationVersion: 1,
         };
-        expect(index.findByDevice(HG06338).model).toBe('HG06338');
-        expect(index.findByDevice(TS011F_plug_3).model).toBe('TS011F_plug_3');
-        expect(index.findByDevice(TS011F_plug_1).model).toBe('TS011F_plug_1');
+        expect((await index.findByDevice(HG06338)).model).toBe('HG06338');
+        expect((await index.findByDevice(TS011F_plug_3)).model).toBe('TS011F_plug_3');
+        expect((await index.findByDevice(TS011F_plug_1)).model).toBe('TS011F_plug_1');
     });
 
-    it('Find by device should prefer fingerprint match over zigbeeModel', () => {
+    it('Find by device should prefer fingerprint match over zigbeeModel', async () => {
         const mullerEndpoints = [
             {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
             {ID: 242, profileID: 41440, deviceID: 102, inputClusters: [33], outputClusters: [33]},
@@ -126,11 +157,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => null,
         };
 
-        expect(index.findByDevice(sunricher).model).toBe('ZG192910-4');
-        expect(index.findByDevice(muller).model).toBe('404031');
+        expect((await index.findByDevice(sunricher)).model).toBe('ZG192910-4');
+        expect((await index.findByDevice(muller)).model).toBe('404031');
     });
 
-    it('Find by device when fingerprint has zigbeeModel of other definition', () => {
+    it('Find by device when fingerprint has zigbeeModel of other definition', async () => {
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
         const endpoints = [
             {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0,3,1280,1], outputClusters: [3]},
@@ -145,11 +176,11 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe("SNZB-04");
     });
 
-    it('Find by device when fingerprint has zigbeeModel of other definition shouldn\'t match when fingerprint doesn\t match', () => {
+    it('Find by device when fingerprint has zigbeeModel of other definition shouldn\'t match when fingerprint doesn\t match', async () => {
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
         const endpoints = [
             {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0,3,1026,1029,1], outputClusters: [3]},
@@ -164,7 +195,7 @@ describe('index.js', () => {
             getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
         };
 
-        const definition = index.findByDevice(device);
+        const definition = await index.findByDevice(device);
         expect(definition.model).toBe("SNZB-02");
     });
 
@@ -316,9 +347,9 @@ describe('index.js', () => {
         expect(device.model).toBe(mockDevice.model);
     });
 
-    it('Verify addDefinition overwrite existing', () => {
+    it('Verify addDefinition overwrite existing', async () => {
         const device = {type: 'Router', modelID: 'lumi.light.aqcn02'};
-        expect(index.findByDevice(device).vendor).toBe('Xiaomi');
+        expect((await index.findByDevice(device)).vendor).toBe('Xiaomi');
 
         const overwriteDefinition = {
             model: 'mock-model',
@@ -330,7 +361,7 @@ describe('index.js', () => {
             exposes: []
         };
         index.addDefinition(overwriteDefinition);
-        expect(index.findByDevice(device).vendor).toBe('other-vendor');
+        expect((await index.findByDevice(device)).vendor).toBe('other-vendor');
     });
 
     it('Exposes light with endpoint', () => {
@@ -401,10 +432,10 @@ describe('index.js', () => {
                 const toCheck = [];
                 const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
                 for (const expose of expss) {
-                    if (expose.hasOwnProperty('access')) {
+                    if (expose.access !== undefined) {
                         toCheck.push(expose)
                     } else if (expose.features) {
-                        toCheck.push(...expose.features.filter(e => e.hasOwnProperty('access')));
+                        toCheck.push(...expose.features.filter(e => e.access !== undefined));
                     }
                 }
 
@@ -428,7 +459,7 @@ describe('index.js', () => {
         });
     });
 
-    it('Find by fingerprint - whitelabel', () => {
+    it('Find by fingerprint - whitelabel', async () => {
         const HG06492B = {
             type: 'Router',
             manufacturerName: '_TZ3000_oborybow',
@@ -442,12 +473,12 @@ describe('index.js', () => {
             endpoints: [],
         };
 
-        const HG06492B_match = index.findByDevice(HG06492B)
+        const HG06492B_match = await index.findByDevice(HG06492B)
         expect(HG06492B_match.model).toBe('HG06492B');
         expect(HG06492B_match.description).toBe('Livarno Lux E14 candle CCT');
         expect(HG06492B_match.vendor).toBe('Lidl');
 
-        const TS0502A_match = index.findByDevice(TS0502A)
+        const TS0502A_match = await index.findByDevice(TS0502A)
         expect(TS0502A_match.model).toBe('TS0502A');
         expect(TS0502A_match.description).toBe('Light controller');
         expect(TS0502A_match.vendor).toBe('TuYa');
@@ -537,10 +568,32 @@ describe('index.js', () => {
         }
     });
 
-    it('Check TuYa tuya.fz.datapoints calibration/precision options', () => {
+    it('Calibration/precision', () => {
         const TS0601_soil = index.definitions.find((d) => d.model == 'TS0601_soil');
-        expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(
-            ['temperature_precision', 'temperature_calibration']);
+        expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(['temperature_calibration','temperature_precision', 'soil_moisture_calibration', 'soil_moisture_precision']);
+        let payload = {temperature: 1.193};
+        let options = {temperature_calibration: 2.5, temperature_precision: 1};
+        index.postProcessConvertedFromZigbeeMessage(TS0601_soil, payload, options);
+        expect(payload).toStrictEqual({temperature: 3.7});
+
+        // For multi endpoint property
+        const SPP04G = index.findByModel('SPP04G');
+        expect(SPP04G.options.map((t) => t.name)).toStrictEqual(['power_calibration', 'power_precision','current_calibration', 'current_precision',
+        'voltage_calibration', 'voltage_precision', 'energy_calibration', 'energy_precision', 'state_action']);
+        payload = {power_left: 5.31};
+        options = {power_calibration: 100, power_precision: 0}; // calibration for power is percentual
+        index.postProcessConvertedFromZigbeeMessage(SPP04G, payload, options);
+        expect(payload).toStrictEqual({power_left: 11});
+
+        const TS011F_plug_1 = index.definitions.find((d) => d.model == 'TS011F_plug_1');
+        expect(TS011F_plug_1.options.map((t) => t.name)).toStrictEqual([
+            'power_calibration','power_precision', 'current_calibration', 'current_precision', 'voltage_calibration',
+            'voltage_precision', 'energy_calibration', 'energy_precision', 'state_action'
+        ]);
+        payload = {current: 0.0585};
+        options = {current_calibration: -50};
+        index.postProcessConvertedFromZigbeeMessage(TS011F_plug_1, payload, options);
+        expect(payload).toStrictEqual({current: 0.03});
     });
 
     it('Check getFromLookup', () => {

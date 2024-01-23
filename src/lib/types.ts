@@ -123,6 +123,7 @@ export type Definition = {
     meta?: DefinitionMeta,
     onEvent?: OnEvent,
     ota?: DefinitionOta,
+    generated?: boolean,
 } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
     & ({ extend: Extend | ModernExtend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
         exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[])) } |
@@ -140,7 +141,7 @@ export namespace Fz {
         groupID: number, type: string,
         cluster: string | number, linkquality: number
     }
-    export interface Meta {state: KeyValue, logger: Logger, device: Zh.Device}
+    export interface Meta {state: KeyValue, logger: Logger, device: Zh.Device, deviceExposesChanged: () => void}
     export interface Converter {
         cluster: string | number,
         type: string[] | string,
@@ -164,6 +165,7 @@ export namespace Tz {
     export interface Converter {
         key: string[],
         options?: Option[] | ((definition: Definition) => Option[]);
+        endpoint?: string,
         convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult>,
         convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>,
     }

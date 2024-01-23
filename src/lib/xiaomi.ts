@@ -1,18 +1,22 @@
 import {
     batteryVoltageToPercentage,
-    calibrateAndPrecisionRoundOptions,
-    calibrateAndPrecisionRoundOptionsIsPercentual,
     postfixWithEndpointName,
     precisionRound,
-    getKey,
     assertNumber,
     getFromLookup,
+    getKey,
 } from './utils';
 
-import * as exposes from './exposes';
+import * as ota from '../lib/ota';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
 import * as globalStore from './store';
-import {Fz, Definition, KeyValue, KeyValueAny} from './types';
+import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range} from './types';
 import * as modernExtend from './modernExtend';
+import * as exposes from '../lib/exposes';
+
+const e = exposes.presets;
+const ea = exposes.access;
 
 declare type Day = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -187,7 +191,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 // https://github.com/Koenkk/zigbee2mqtt/issues/13253
             } else {
                 assertNumber(value);
-                payload.device_temperature = calibrateAndPrecisionRoundOptions(value, options, 'device_temperature'); // 0x03
+                payload.device_temperature = value; // 0x03
             }
             break;
         case '4':
@@ -219,9 +223,9 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '11':
             if (['RTCGQ11LM'].includes(model.model)) {
                 assertNumber(value);
-                payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
+                payload.illuminance = value;
                 // DEPRECATED: remove illuminance_lux here.
-                payload.illuminance_lux = calibrateAndPrecisionRoundOptions(value, options, 'illuminance_lux');
+                payload.illuminance_lux = value;
             }
             break;
         case '12':
@@ -269,7 +273,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 // @ts-expect-error
                 const temperature = parseFloat(value) / 100.0;
                 if (temperature > -65 && temperature < 65) {
-                    payload.temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
+                    payload.temperature = temperature;
                 }
             } else if (['RTCGQ11LM'].includes(model.model)) {
                 // It contains the occupancy, but in z2m we use a custom timer to do it, so we ignore it
@@ -286,7 +290,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             } else if (['GZCGQ01LM'].includes(model.model)) {
                 // DEPRECATED: change illuminance_lux -> illuminance
                 assertNumber(value);
-                payload.illuminance_lux = calibrateAndPrecisionRoundOptions(value, options, 'illuminance_lux');
+                payload.illuminance_lux = value;
             } else {
                 payload.state = value === 1 ? 'ON' : 'OFF';
             }
@@ -315,14 +319,14 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 // https://github.com/Koenkk/zigbee2mqtt/issues/12596
                 assertNumber(value);
                 const illuminance = value > 65000 ? 0 : value;
-                payload.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
+                payload.illuminance = illuminance;
             } else if (['WSDCGQ01LM', 'WSDCGQ11LM', 'WSDCGQ12LM', 'VOCKQJK11LM'].includes(model.model)) {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/798
                 // Sometimes the sensor publishes non-realistic vales, filter these
                 // @ts-expect-error
                 const humidity = parseFloat(value) / 100.0;
                 if (humidity >= 0 && humidity <= 100) {
-                    payload.humidity = calibrateAndPrecisionRoundOptions(humidity, options, 'humidity');
+                    payload.humidity = humidity;
                 }
             } else if (['ZNJLBL01LM', 'ZNCLDJ12LM'].includes(model.model)) {
                 payload.battery = value;
@@ -341,7 +345,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 payload.state_right = value === 1 ? 'ON' : 'OFF';
             } else if (['WSDCGQ01LM', 'WSDCGQ11LM'].includes(model.model)) {
                 assertNumber(value);
-                payload.pressure = calibrateAndPrecisionRoundOptions(value/100.0, options, 'pressure');
+                payload.pressure = value/100.0;
             } else if (['WSDCGQ12LM'].includes(model.model)) {
                 // This pressure value is ignored because it is less accurate than reported in the 'scaledValue' attribute
                 // of the 'msPressureMeasurement' cluster
@@ -390,23 +394,23 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '149':
             assertNumber(value);
-            payload.energy = calibrateAndPrecisionRoundOptions(value, options, 'energy'); // 0x95
+            payload.energy = value, options; // 0x95
             // Consumption is deprecated
             payload.consumption = payload.energy;
             break;
         case '150':
             if (!['JTYJ-GD-01LM/BW'].includes(model.model)) {
                 assertNumber(value);
-                payload.voltage = calibrateAndPrecisionRoundOptions(value * 0.1, options, 'voltage'); // 0x96
+                payload.voltage = value * 0.1; // 0x96
             }
             break;
         case '151':
             if (['LLKZMK11LM'].includes(model.model)) {
                 assertNumber(value);
-                payload.current = calibrateAndPrecisionRoundOptions(value, options, 'current');
+                payload.current = value;
             } else {
                 assertNumber(value);
-                payload.current = calibrateAndPrecisionRoundOptions(value * 0.001, options, 'current');
+                payload.current = value * 0.001;
             }
             break;
         case '152':
@@ -414,7 +418,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 // We don't know what implies for this device, it contains values like 30, 50,... that don't seem to change
             } else {
                 assertNumber(value);
-                payload.power = calibrateAndPrecisionRoundOptions(value, options, 'power'); // 0x98
+                payload.power = value; // 0x98
             }
             break;
         case '154':
@@ -512,11 +516,6 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 payload.motion_sensitivity = getFromLookup(value, {1: 'low', 2: 'medium', 3: 'high'});
             } else if (['JT-BZ-01AQ/A'].includes(model.model)) {
                 payload.gas_sensitivity = getFromLookup(value, {1: '15%LEL', 2: '10%LEL'});
-            }
-            break;
-        case '276':
-            if (['VOCKQJK11LM'].includes(model.model)) {
-                payload.display_unit = getKey(VOCKQJK11LMDisplayUnit, value);
             }
             break;
         case '293':
@@ -766,6 +765,12 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case 'illuminance':
             // It contains the illuminance and occupancy, but in z2m we use a custom timer to do it, so we ignore it
             break;
+        case 'displayUnit':
+            // Use aqaraDisplayUnit modernExtend, but we add it here to not shown an unknown key in the log
+            break;
+        case 'airQuality':
+            // Use aqaraAirQuality modernExtend, but we add it here to not shown an unknown key in the log
+            break;
         default:
             if (meta.logger) meta.logger.debug(`${model.model}: unknown key ${key} with value ${value}`);
         }
@@ -774,34 +779,6 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
     if (meta.logger) meta.logger.debug(`${model.model}: Processed data into payload ${JSON.stringify(payload)}`);
 
     return payload;
-};
-
-export const VOCKQJK11LMDisplayUnit = {
-    'mgm3_celsius': 0x00, // mg/m³, °C (default)
-    'ppb_celsius': 0x01, // ppb, °C
-    'mgm3_fahrenheit': 0x10, // mg/m³, °F
-    'ppb_fahrenheit': 0x11, // ppb, °F
-};
-
-export const numericAttributes2Options = (definition: Definition) => {
-    const supported = ['temperature', 'device_temperature', 'illuminance', 'illuminance_lux',
-        'pressure', 'power', 'current', 'voltage', 'energy', 'power'];
-    const precisionSupported = ['temperature', 'humidity', 'pressure', 'power', 'current', 'voltage', 'energy', 'power'];
-    const result = [];
-    // @ts-expect-error
-    for (const expose of definition.exposes) {
-        // only eletrical measurement voltage is supported, not battery
-        const isBatteryVoltage = expose.name === 'voltage' && definition.meta && definition.meta.battery;
-        if (supported.includes(expose.name) && !isBatteryVoltage) {
-            const type = calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? 'percentual' : 'absolute';
-            result.push(exposes.options.calibration(expose.name, type));
-            if (precisionSupported.includes(expose.name)) {
-                result.push(exposes.options.precision(expose.name));
-            }
-        }
-    }
-
-    return result;
 };
 
 // For RTCZCGQ11LM
@@ -1348,11 +1325,31 @@ export const trv = {
 export const manufacturerCode = 0x115f;
 
 export const xiaomiModernExtend = {
+    xiaomiLight: (args?: Omit<modernExtend.LightArgs, 'colorTemp'> & {colorTemp?: true, powerOutageMemory?: 'switch' | 'light'}) => {
+        args = {powerOutageMemory: 'switch', ...args};
+        const colorTemp: {range: Range, startup: boolean} = args.colorTemp ? {startup: false, range: [153, 370]} : undefined;
+        const result = modernExtend.light({effect: false, powerOnBehavior: false, ...args, colorTemp});
+        result.fromZigbee.push(
+            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report, fromZigbee.aqara_opple,
+        );
+        result.exposes.push(e.device_temperature(), e.power_outage_count());
+
+        if (args.powerOutageMemory === 'switch') {
+            result.toZigbee.push(tz.xiaomi_switch_power_outage_memory);
+            result.exposes.push(e.power_outage_memory());
+        } else if (args.powerOutageMemory === 'light') {
+            result.toZigbee.push(tz.xiaomi_light_power_outage_memory);
+            result.exposes.push(e.power_outage_memory().withAccess(ea.STATE_SET));
+        }
+
+        return result;
+    },
     xiaomiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
         cluster: 'aqaraOpple',
-        attribute: {id: 0x000a, type: 0x20},
+        attribute: {ID: 0x000a, type: 0x20},
         description: 'External switch type',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
@@ -1361,7 +1358,7 @@ export const xiaomiModernExtend = {
         name: 'power_on_behavior',
         lookup: {'on': 0, 'previous': 1, 'off': 2},
         cluster: 'aqaraOpple',
-        attribute: {id: 0x0517, type: 0x20},
+        attribute: {ID: 0x0517, type: 0x20},
         description: 'Controls the behavior when the device is powered on after power loss',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
@@ -1370,7 +1367,7 @@ export const xiaomiModernExtend = {
         name: 'operation_mode',
         lookup: {'decoupled': 0, 'control_relay': 1},
         cluster: 'aqaraOpple',
-        attribute: {id: 0x0200, type: 0x20},
+        attribute: {ID: 0x0200, type: 0x20},
         description: 'Decoupled mode for relay',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
@@ -1381,15 +1378,272 @@ export const xiaomiModernExtend = {
         attribute: 'presentValue',
         ...args,
     }),
+    aqaraVoc: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'voc',
+        cluster: 'genAnalogInput',
+        attribute: 'presentValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5},
+        description: 'Measured VOC value',
+        unit: 'ppb',
+        access: 'STATE_GET',
+        ...args,
+    }),
+    aqaraAirQuality: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'air_quality',
+        lookup: {'excellent': 1, 'good': 2, 'moderate': 3, 'poor': 4, 'unhealthy': 5, 'unknown': 0},
+        cluster: 'aqaraOpple',
+        attribute: 'airQuality',
+        zigbeeCommandOptions: {disableDefaultResponse: true},
+        description: 'Measured air quality',
+        access: 'STATE_GET',
+        ...args,
+    }),
+    aqaraDisplayUnit: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'display_unit',
+        lookup: {
+            'mgm3_celsius': 0x00, // mg/m³, °C (default)
+            'ppb_celsius': 0x01, // ppb, °C
+            'mgm3_fahrenheit': 0x10, // mg/m³, °F
+            'ppb_fahrenheit': 0x11, // ppb, °F
+        },
+        cluster: 'aqaraOpple',
+        attribute: 'displayUnit',
+        zigbeeCommandOptions: {disableDefaultResponse: true},
+        description: 'Units to show on the display',
+        ...args,
+    }),
+    xiaomiOutageCountRestoreBindReporting: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'aqaraOpple',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                // At least the Aqara TVOC sensor does not send a deviceAnnounce after comming back online.
+                // The reconfigureReportingsOnDeviceAnnounce modernExtend is not usable because of this,
+                //  there is however an outage counter published in the 'special' buffer  data reported
+                //  under the aqaraOpple cluster as attribute 247, we simple decode and grab value with ID 5.
+                // Normal attribute publishing and decoding will be left to the classic fromZigbee or modernExtends.
+                if (msg.data.hasOwnProperty('247')) {
+                    const dataDecoded = buffer2DataObject(meta, model, msg.data['247']);
+                    if (dataDecoded.hasOwnProperty('5')) {
+                        assertNumber(dataDecoded['5']);
+
+                        const currentOutageCount = dataDecoded['5'] - 1;
+                        const previousOutageCount = meta.device?.meta?.outageCount ? meta.device.meta.outageCount : 0;
+
+                        if (currentOutageCount > previousOutageCount) {
+                            meta.logger.debug('Restoring binding and reporting, device came back after losing power.');
+                            for (const endpoint of meta.device.endpoints) {
+                                // restore bindings
+                                for (const b of endpoint.binds) {
+                                    endpoint.bind(b.cluster.name, b.target);
+                                }
+
+                                // restore reporting
+                                for (const c of endpoint.configuredReportings) {
+                                    endpoint.configureReporting(c.cluster.name, [{
+                                        attribute: c.attribute.name, minimumReportInterval: c.minimumReportInterval,
+                                        maximumReportInterval: c.maximumReportInterval, reportableChange: c.reportableChange,
+                                    }]);
+                                }
+                            }
+
+                            // update outageCount in database
+                            meta.device.meta.outageCount = currentOutageCount;
+                            meta.device.save();
+                        }
+                    }
+                }
+            },
+        }];
+
+        return {fromZigbee, isModernExtend: true};
+    },
+    xiaomiZigbeeOTA: (): ModernExtend => {
+        // Many Xiaomi devices miss OTA on endpoint 1 even while supporting it.
+        // https://github.com/Koenkk/zigbee2mqtt/issues/10660
+        const result = modernExtend.quirkAddEndpointCluster({
+            endpointID: 1,
+            outputClusters: ['genOta'],
+        });
+        result.ota = ota.zigbeeOTA;
+        return result;
+    },
+    xiaomiPower: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'power',
+        cluster: 'genAnalogInput',
+        attribute: 'presentValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5},
+        description: 'Instantaneous measured power',
+        unit: 'W',
+        access: 'STATE',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    xiaomiElectricityMeter: (): ModernExtend => {
+        const exposes = [
+            e.energy(),
+            e.voltage(),
+            e.current(),
+            e.device_temperature(),
+        ];
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'aqaraOpple',
+            type: ['attributeReport', 'readResponse'],
+            convert: async (model, msg, publish, options, meta) => {
+                return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+            },
+        }];
+
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
+    xiaomiOverloadProtection: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'overload_protection',
+        cluster: 'aqaraOpple',
+        attribute: {ID: 0x020b, type: 0x39},
+        description: 'Maximum allowed load, turns off if exceeded',
+        valueMin: 100,
+        valueMax: 3840,
+        unit: 'W',
+        access: 'ALL',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    xiaomiLedIndicator: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'led_indicator',
+        cluster: 'aqaraOpple',
+        attribute: {ID: 0x0203, type: 0x10},
+        valueOn: ['ON', 1],
+        valueOff: ['OFF', 0],
+        description: 'LED indicator',
+        access: 'ALL',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    xiaomiButtonLock: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'button_lock',
+        cluster: 'aqaraOpple',
+        attribute: {ID: 0x0200, type: 0x20},
+        valueOn: ['ON', 0],
+        valueOff: ['OFF', 1],
+        description: 'Disables the physical switch button',
+        access: 'ALL',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
 };
 
 export {xiaomiModernExtend as modernExtend};
 
+const feederDaysLookup = {
+    0x7f: 'everyday',
+    0x1f: 'workdays',
+    0x60: 'weekend',
+    0x01: 'mon',
+    0x02: 'tue',
+    0x04: 'wed',
+    0x08: 'thu',
+    0x10: 'fri',
+    0x20: 'sat',
+    0x40: 'sun',
+    0x55: 'mon-wed-fri-sun',
+    0x2a: 'tue-thu-sat',
+};
+
 export const fromZigbee = {
+    aqara_feeder: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            Object.entries(msg.data).forEach(([key, value]) => {
+                switch (parseInt(key)) {
+                case 0xfff1: {
+                    // @ts-expect-error
+                    if (value.length < 8) {
+                        meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: cannot handle ${value}, frame too small`);
+                        return;
+                    }
+                    // @ts-expect-error
+                    const attr = value.slice(3, 7);
+                    // @ts-expect-error
+                    const len = value.slice(7, 8).readUInt8();
+                    // @ts-expect-error
+                    const val = value.slice(8, 8 + len);
+                    switch (attr.readInt32BE()) {
+                    case 0x04150055: // feeding
+                        result['feed'] = '';
+                        break;
+                    case 0x041502bc: { // feeding report
+                        const report = val.toString();
+                        result['feeding_source'] = {0: 'schedule', 1: 'manual', 2: 'remote'}[parseInt(report.slice(0, 2))];
+                        result['feeding_size'] = parseInt(report.slice(3, 4));
+                        break;
+                    }
+                    case 0x0d680055: // portions per day
+                        result['portions_per_day'] = val.readUInt16BE();
+                        break;
+                    case 0x0d690055: // weight per day
+                        result['weight_per_day'] = val.readUInt32BE();
+                        break;
+                    case 0x0d0b0055: // error ?
+                        result['error'] = getFromLookup(val.readUInt8(), {1: true, 0: false});
+                        break;
+                    case 0x080008c8: { // schedule string
+                        const schlist = val.toString().split(',');
+                        const schedule: unknown[] = [];
+                        schlist.forEach((str: string) => { // 7f13000100
+                            if (str !== '//') {
+                                const feedtime = Buffer.from(str, 'hex');
+                                schedule.push({
+                                    'days': getFromLookup(feedtime[0], feederDaysLookup),
+                                    'hour': feedtime[1],
+                                    'minute': feedtime[2],
+                                    'size': feedtime[3],
+                                });
+                            }
+                        });
+                        result['schedule'] = schedule;
+                        break;
+                    }
+                    case 0x04170055: // indicator
+                        result['led_indicator'] = getFromLookup(val.readUInt8(), {1: 'ON', 0: 'OFF'});
+                        break;
+                    case 0x04160055: // child lock
+                        result['child_lock'] = getFromLookup(val.readUInt8(), {1: 'LOCK', 0: 'UNLOCK'});
+                        break;
+                    case 0x04180055: // mode
+                        result['mode'] = getFromLookup(val.readUInt8(), {1: 'schedule', 0: 'manual'});
+                        break;
+                    case 0x0e5c0055: // serving size
+                        result['serving_size'] = val.readUInt8();
+                        break;
+                    case 0x0e5f0055: // portion weight
+                        result['portion_weight'] = val.readUInt8();
+                        break;
+                    case 0x080007d1: // ? 64
+                    case 0x0d090055: // ? 00
+                        meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unhandled attribute ${attr} = ${val}`);
+                        break;
+                    default:
+                        meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unknown attribute ${attr} = ${val}`);
+                    }
+                    break;
+                }
+                case 0x00ff: // 80:13:58:91:24:33:20:24:58:53:44:07:05:97:75:17
+                case 0x0007: // 00:00:00:00:1d:b5:a6:ed
+                case 0x00f7: // 05:21:14:00:0d:23:21:25:00:00:09:21:00:01
+                    meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key} = ${value}`);
+                    break;
+                default:
+                    meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unknown key ${key} = ${value}`);
+                }
+            });
+            return result;
+        },
+    } satisfies Fz.Converter,
     xiaomi_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
-        options: numericAttributes2Options,
         convert: async (model, msg, publish, options, meta) => {
             return await numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
@@ -1397,7 +1651,6 @@ export const fromZigbee = {
     xiaomi_basic_raw: {
         cluster: 'genBasic',
         type: ['raw'],
-        options: numericAttributes2Options,
         convert: async (model, msg, publish, options, meta) => {
             let payload = {};
             if (Buffer.isBuffer(msg.data)) {
@@ -1410,17 +1663,92 @@ export const fromZigbee = {
     aqara_opple: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
-        options: numericAttributes2Options,
         convert: async (model, msg, publish, options, meta) => {
             return await numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     } satisfies Fz.Converter,
 };
 
+export const toZigbee = {
+    aqara_feeder: {
+        key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
+        convertSet: async (entity, key, value, meta) => {
+            const sendAttr = async (attrCode: number, value: number, length: number) => {
+                // @ts-expect-error
+                entity.sendSeq = ((entity.sendSeq || 0)+1) % 256;
+                // @ts-expect-error
+                const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
+                // @ts-expect-error
+                entity.sendSeq += 1;
+                val.writeInt32BE(attrCode, 3);
+                val.writeUInt8(length, 7);
+                let v = Buffer.alloc(length);
+                switch (length) {
+                case 1:
+                    v.writeUInt8(value);
+                    break;
+                case 2:
+                    v.writeUInt16BE(value);
+                    break;
+                case 4:
+                    v.writeUInt32BE(value);
+                    break;
+                default:
+                    // @ts-expect-error
+                    v = value;
+                }
+                await entity.write('aqaraOpple', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
+                    {manufacturerCode: 0x115f});
+            };
+            switch (key) {
+            case 'feed':
+                sendAttr(0x04150055, 1, 1);
+                break;
+            case 'schedule': {
+                const schedule: string[] = [];
+                // @ts-expect-error
+                value.forEach((item) => {
+                    const schedItem = Buffer.from([
+                        getKey(feederDaysLookup, item.days, 0x7f),
+                        item.hour,
+                        item.minute,
+                        item.size,
+                        0,
+                    ]);
+                    schedule.push(schedItem.toString('hex'));
+                });
+                const val = Buffer.concat([Buffer.from(schedule.join(',')), Buffer.from([0])]);
+                // @ts-expect-error
+                sendAttr(0x080008c8, val, val.length);
+                break;
+            }
+            case 'led_indicator':
+                sendAttr(0x04170055, getFromLookup(value, {'OFF': 0, 'ON': 1}), 1);
+                break;
+            case 'child_lock':
+                sendAttr(0x04160055, getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), 1);
+                break;
+            case 'mode':
+                sendAttr(0x04180055, getFromLookup(value, {'manual': 0, 'schedule': 1}), 1);
+                break;
+            case 'serving_size':
+                // @ts-expect-error
+                sendAttr(0x0e5c0055, value, 4);
+                break;
+            case 'portion_weight':
+                // @ts-expect-error
+                sendAttr(0x0e5f0055, value, 4);
+                break;
+            default: // Unknown key
+                meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key}`);
+            }
+            return {state: {[key]: value}};
+        },
+    } satisfies Tz.Converter,
+};
+
 exports.buffer2DataObject = buffer2DataObject;
 exports.numericAttributes2Payload = numericAttributes2Payload;
-exports.numericAttributes2Options = numericAttributes2Options;
-exports.VOCKQJK11LMDisplayUnit = VOCKQJK11LMDisplayUnit;
 exports.fp1 = fp1;
 exports.trv = trv;
 exports.manufacturerCode = manufacturerCode;

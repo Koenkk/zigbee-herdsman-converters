@@ -10,13 +10,18 @@ let useTestURL = false;
  */
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
+    logger.debug(`TradfriOTA: call getImageMeta for ${device.modelID}`);
     const url = useTestURL ? testURL : productionURL;
-    const imageType = current.imageType;
-    const images = (await axios.get(url)).data;
-    const image = images.find((i: KeyValue) => i.fw_image_type === imageType);
+    const {data: images} = await axios.get(url);
+
+    if (!images?.length) {
+        throw new Error(`TradfriOTA: Error getting firmware page at ${url}`);
+    }
+
+    const image = images.find((i: KeyValue) => i.fw_image_type === current.imageType);
 
     if (!image) {
-        throw new Error(`No image available for imageType '${imageType}'`);
+        return null;
     }
 
     return {
@@ -30,7 +35,7 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
  */
 
 export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
-    return common.isUpdateAvailable(device, logger, common.isNewImageAvailable, requestPayload, getImageMeta);
+    return common.isUpdateAvailable(device, logger, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {

@@ -1,3 +1,4 @@
+import {onOff, quirkCheckinInterval} from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -11,8 +12,7 @@ import {Tz, Fz, Definition, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-// Radiator Thermostat II
-const boschManufacturer = {manufacturerCode: 0x1209};
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH};
 
 const sirenVolume = {
     'low': 0x01,
@@ -38,24 +38,26 @@ const sirenPowerSupply = {
 };
 
 // BMCT
-const stateDeviceType = {
+const stateDeviceMode: KeyValue = {
     'light': 0x04,
     'shutter': 0x01,
+    'disabled': 0x00,
 };
+
 // BMCT
-const stateMotor = {
+const stateMotor: KeyValue = {
     'idle': 0x00,
-    'opening': 0x02,
-    'closing': 0x01,
+    'opening': 0x01,
+    'closing': 0x02,
 };
+
 // BMCT
-const stateSwitchType = {
+const stateSwitchType: KeyValue = {
     'button': 0x01,
     'button_key_change': 0x02,
     'rocker_switch': 0x03,
-    'rocker_rwitch_key_change': 0x04,
+    'rocker_switch_key_change': 0x04,
 };
-
 
 // Twinguard
 const smokeSensitivity = {
@@ -97,6 +99,30 @@ const displayedTemperature = {
     'measured': 1,
 };
 
+// Smoke detector II bsd-2
+const smokeDetectorAlarmState = {
+    smoke_on: 46080,
+    smoke_off: 0,
+    intruder_on: 46081,
+    intruder_off: 1,
+};
+
+// Radiator Thermostat II
+const setpointSource = {
+    'manual': 0,
+    'schedule': 1,
+    'external': 2,
+};
+
+// Radiator Thermostat II
+const adaptationStatus = {
+    'none': 0,
+    'ready_to_calibrate': 1,
+    'calibration_in_progress': 2,
+    'error': 3,
+    'success': 4,
+};
+
 // Universal Switch II
 const buttonMap: {[key: string]: number} = {
     config_led_top_left_press: 0x10,
@@ -135,52 +161,107 @@ Example: 30ff00000102010001`;
 
 
 const tzLocal = {
+    alarm_state: {
+        key: ['intruder_alarm_state', 'smoke_alarm_state'],
+        convertSet: async (entity, key, value: string, meta) => {
+            const dataToSend = {cluster: 'ssIasZone', command: 128, payload: {data: ''}};
+            if (key === 'smoke_alarm_state' || key==='intruder_alarm_state') {
+                let convertedValue='';
+                if (key === 'smoke_alarm_state') {
+                    if (value==='ON') {
+                        convertedValue=smokeDetectorAlarmState.smoke_on.toString();
+                    }
+                    if (value==='OFF') {
+                        convertedValue=smokeDetectorAlarmState.smoke_off.toString();
+                    }
+                }
+                if (key === 'intruder_alarm_state') {
+                    if (value==='ON') {
+                        convertedValue=smokeDetectorAlarmState.intruder_on.toString();
+                    }
+                    if (value==='OFF') {
+                        convertedValue=smokeDetectorAlarmState.intruder_off.toString();
+                    }
+                }
+                dataToSend.payload.data = convertedValue;
+            }
+
+            //
+            // the data of the payload can either be decimal:
+            // 1: this disables the intruder alarm state
+            // 46081: this enables the intruder alert siren
+            // 256: this enables the smoke test alarm siren
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.command(
+                dataToSend.cluster,
+                dataToSend.command,
+                dataToSend.payload,
+                {
+                    ...manufacturerOptions,
+                    ...utils.getOptions(meta.mapped, entity),
+                },
+            );
+            return {state: {alarm_state: dataToSend.payload.data}};
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'smoke_alarm_state':
+                await entity.read('ssIasZone', [0xf0], manufacturerOptions);
+                break;
+            case 'intruder_alarm_state':
+                await entity.read('ssIasZone', [0xf0], manufacturerOptions);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
+            }
+        },
+    } satisfies Tz.Converter,
     rbshoszbeu: {
         key: ['light_delay', 'siren_delay', 'light_duration', 'siren_duration', 'siren_volume', 'alarm_state', 'power_source', 'siren_and_light'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'light_delay') {
                 const index = value;
-                await entity.write(0x0502, {0xa004: {value: index, type: 0x21}}, boschManufacturer);
+                await entity.write(0x0502, {0xa004: {value: index, type: 0x21}}, manufacturerOptions);
                 return {state: {light_delay: value}};
             }
             if (key === 'siren_delay') {
                 const index = value;
-                await entity.write(0x0502, {0xa003: {value: index, type: 0x21}}, boschManufacturer);
+                await entity.write(0x0502, {0xa003: {value: index, type: 0x21}}, manufacturerOptions);
                 return {state: {siren_delay: value}};
             }
             if (key === 'light_duration') {
                 const index = value;
-                await entity.write(0x0502, {0xa005: {value: index, type: 0x20}}, boschManufacturer);
+                await entity.write(0x0502, {0xa005: {value: index, type: 0x20}}, manufacturerOptions);
                 return {state: {light_duration: value}};
             }
             if (key === 'siren_duration') {
                 const index = value;
-                await entity.write(0x0502, {0xa000: {value: index, type: 0x20}}, boschManufacturer);
+                await entity.write(0x0502, {0xa000: {value: index, type: 0x20}}, manufacturerOptions);
                 return {state: {siren_duration: value}};
             }
             if (key === 'siren_and_light') {
                 const index = utils.getFromLookup(value, sirenLight);
-                await entity.write(0x0502, {0xa001: {value: index, type: 0x20}}, boschManufacturer);
+                await entity.write(0x0502, {0xa001: {value: index, type: 0x20}}, manufacturerOptions);
                 return {state: {siren_and_light: value}};
             }
             if (key === 'siren_volume') {
                 const index = utils.getFromLookup(value, sirenVolume);
-                await entity.write(0x0502, {0xa002: {value: index, type: 0x20}}, boschManufacturer);
+                await entity.write(0x0502, {0xa002: {value: index, type: 0x20}}, manufacturerOptions);
                 return {state: {siren_volume: value}};
             }
             if (key === 'power_source') {
                 const index = utils.getFromLookup(value, sirenPowerSupply);
-                await entity.write(0x0001, {0xa002: {value: index, type: 0x20}}, boschManufacturer);
+                await entity.write(0x0001, {0xa002: {value: index, type: 0x20}}, manufacturerOptions);
                 return {state: {power_source: value}};
             }
             if (key === 'alarm_state') {
                 const endpoint = meta.device.getEndpoint(1);
                 const index = utils.getFromLookup(value, outdoorSirenState);
                 if (index == 0) {
-                    await endpoint.command(0x0502, 0xf0, {data: 0}, boschManufacturer);
+                    await endpoint.command(0x0502, 0xf0, {data: 0}, manufacturerOptions);
                     return {state: {alarm_state: value}};
                 } else {
-                    await endpoint.command(0x0502, 0xf0, {data: 7}, boschManufacturer);
+                    await endpoint.command(0x0502, 0xf0, {data: 7}, manufacturerOptions);
                     return {state: {alarm_state: value}};
                 }
             }
@@ -188,25 +269,25 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'light_delay':
-                await entity.read(0x0502, [0xa004], boschManufacturer);
+                await entity.read(0x0502, [0xa004], manufacturerOptions);
                 break;
             case 'siren_delay':
-                await entity.read(0x0502, [0xa003], boschManufacturer);
+                await entity.read(0x0502, [0xa003], manufacturerOptions);
                 break;
             case 'light_duration':
-                await entity.read(0x0502, [0xa005], boschManufacturer);
+                await entity.read(0x0502, [0xa005], manufacturerOptions);
                 break;
             case 'siren_duration':
-                await entity.read(0x0502, [0xa000], boschManufacturer);
+                await entity.read(0x0502, [0xa000], manufacturerOptions);
                 break;
             case 'siren_and_light':
-                await entity.read(0x0502, [0xa001], boschManufacturer);
+                await entity.read(0x0502, [0xa001], manufacturerOptions);
                 break;
             case 'siren_volume':
-                await entity.read(0x0502, [0xa002], boschManufacturer);
+                await entity.read(0x0502, [0xa002], manufacturerOptions);
                 break;
             case 'alarm_state':
-                await entity.read(0x0502, [0xf0], boschManufacturer);
+                await entity.read(0x0502, [0xf0], manufacturerOptions);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
@@ -215,56 +296,47 @@ const tzLocal = {
     } satisfies Tz.Converter,
     bmct: {
         key: [
-            'device_type',
+            'device_mode',
             'switch_type',
-            'child_lock', 'child_lock_left', 'child_lock_right',
-            'calibration_closing_time', 'calibration_opening_time',
+            'child_lock',
+            'calibration', 'calibration_closing_time', 'calibration_opening_time',
             'state',
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state') {
-                utils.assertString(value, 'state');
-                const state = value.toLowerCase();
-                utils.validateValue(state, ['toggle', 'off', 'on', 'open', 'close', 'stop']);
-                if ( state === 'on' || state === 'off' || state === 'toggle') {
-                    await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
-                    if (state === 'toggle') {
-                        const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
-                        return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
-                    } else {
-                        return {state: {state: state.toUpperCase()}};
-                    }
-                } else if ( state === 'open' || state === 'close' || state === 'stop') {
-                    const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
-                    await entity.command('closuresWindowCovering', utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
+                if ('ID' in entity && entity.ID === 1) {
+                    await tz.cover_state.convertSet(entity, key, value, meta);
+                } else {
+                    await tz.on_off.convertSet(entity, key, value, meta);
                 }
             }
-            if (key === 'device_type') {
-                const index = utils.getFromLookup(value, stateDeviceType);
-                await entity.write(0xFCA0, {0x0000: {value: index, type: 0x30}}, boschManufacturer);
-                return {state: {device_type: value}};
+            if (key === 'device_mode') {
+                const index = utils.getFromLookup(value, stateDeviceMode);
+                await entity.write('manuSpecificBosch10', {deviceMode: index});
+                await entity.read('manuSpecificBosch10', ['deviceMode']);
+                return {state: {device_mode: value}};
             }
             if (key === 'switch_type') {
                 const index = utils.getFromLookup(value, stateSwitchType);
-                await entity.write(0xFCA0, {0x0001: {value: index, type: 0x30}}, boschManufacturer);
+                await entity.write('manuSpecificBosch10', {switchType: index});
                 return {state: {switch_type: value}};
             }
             if (key === 'child_lock') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write(0xFCA0, {0x0008: {value: index, type: 0x10}}, boschManufacturer);
+                await entity.write('manuSpecificBosch10', {childLock: index});
                 return {state: {child_lock: value}};
-            }
-            if (key === 'calibration_closing_time') {
-                const number = utils.toNumber(value, 'calibration_closing_time');
-                const index = number *10;
-                await entity.write(0xFCA0, {0x0002: {value: index, type: 0x23}}, boschManufacturer);
-                return {state: {calibration_closing_time: number}};
             }
             if (key === 'calibration_opening_time') {
                 const number = utils.toNumber(value, 'calibration_opening_time');
-                const index = number *10;
-                await entity.write(0xFCA0, {0x0003: {value: index, type: 0x23}}, boschManufacturer);
+                const index = number * 10;
+                await entity.write('manuSpecificBosch10', {calibrationOpeningTime: index});
                 return {state: {calibration_opening_time: number}};
+            }
+            if (key === 'calibration_closing_time') {
+                const number = utils.toNumber(value, 'calibration_closing_time');
+                const index = number * 10;
+                await entity.write('manuSpecificBosch10', {calibrationClosingTime: index});
+                return {state: {calibration_closing_time: number}};
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -272,20 +344,20 @@ const tzLocal = {
             case 'state':
                 await entity.read('genOnOff', ['onOff']);
                 break;
-            case 'device_type':
-                await entity.read(0xFCA0, [0x0000], boschManufacturer);
+            case 'device_mode':
+                await entity.read('manuSpecificBosch10', ['deviceMode']);
                 break;
             case 'switch_type':
-                await entity.read(0xFCA0, [0x0001], boschManufacturer);
+                await entity.read('manuSpecificBosch10', ['switchType']);
                 break;
             case 'child_lock':
-                await entity.read(0xFCA0, [0x0008], boschManufacturer);
-                break;
-            case 'calibration_closing_time':
-                await entity.read(0xFCA0, [0x0002], boschManufacturer);
+                await entity.read('manuSpecificBosch10', ['childLock']);
                 break;
             case 'calibration_opening_time':
-                await entity.read(0xFCA0, [0x0003], boschManufacturer);
+                await entity.read('manuSpecificBosch10', ['calibrationOpeningTime']);
+                break;
+            case 'calibration_closing_time':
+                await entity.read('manuSpecificBosch10', ['calibrationClosingTime']);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bcmt.convertGet ${key}`);
@@ -297,14 +369,14 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'alarm_on_motion') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write(0xFCAC, {0x0003: {value: index, type: 0x10}}, boschManufacturer);
+                await entity.write(0xFCAC, {0x0003: {value: index, type: 0x10}}, manufacturerOptions);
                 return {state: {alarm_on_motion: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'alarm_on_motion':
-                await entity.read(0xFCAC, [0x0003], boschManufacturer);
+                await entity.read(0xFCAC, [0x0003], manufacturerOptions);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
@@ -312,21 +384,21 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     bosch_thermostat: {
-        key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature'],
+        key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature', 'valve_adapt_process'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'window_open') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('hvacThermostat', {0x4042: {value: index, type: Zcl.DataType.enum8}}, boschManufacturer);
+                await entity.write('hvacThermostat', {0x4042: {value: index, type: Zcl.DataType.enum8}}, manufacturerOptions);
                 return {state: {window_open: value}};
             }
             if (key === 'boost') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('hvacThermostat', {0x4043: {value: index, type: Zcl.DataType.enum8}}, boschManufacturer);
+                await entity.write('hvacThermostat', {0x4043: {value: index, type: Zcl.DataType.enum8}}, manufacturerOptions);
                 return {state: {boost: value}};
             }
             if (key === 'system_mode') {
                 // Map system_mode (Off/Auto/Heat) to Bosch operating mode
-                utils.assertString(value, 'system_mode');
+                utils.assertString(value, key);
                 value = value.toLowerCase();
 
                 let opMode = operatingModes.manual; // OperatingMode 1 = Manual (Default)
@@ -336,39 +408,63 @@ const tzLocal = {
                 } else if (value == 'auto') {
                     opMode = operatingModes.automatic; // OperatingMode 0 = Automatic
                 }
-                await entity.write('hvacThermostat', {0x4007: {value: opMode, type: Zcl.DataType.enum8}}, boschManufacturer);
+                await entity.write('hvacThermostat', {0x4007: {value: opMode, type: Zcl.DataType.enum8}}, manufacturerOptions);
                 return {state: {system_mode: value}};
             }
             if (key === 'pi_heating_demand') {
+                let demand = utils.toNumber(value, key);
+                demand = utils.numberWithinRange(demand, 0, 100);
                 await entity.write('hvacThermostat',
-                    {0x4020: {value: value, type: Zcl.DataType.enum8}},
-                    boschManufacturer);
-                return {state: {pi_heating_demand: value}};
+                    {0x4020: {value: demand, type: Zcl.DataType.enum8}},
+                    manufacturerOptions);
+                return {state: {pi_heating_demand: demand}};
             }
             if (key === 'remote_temperature') {
-                const number = utils.toNumber(value, 'remote_temperature');
-                const remoteTemperature = Number((Math.round(Number((number * 2).toFixed(1))) / 2).toFixed(1)) * 100;
+                let temperature = utils.toNumber(value, key);
+                temperature = utils.precisionRound(temperature, 1);
+                const convertedTemperature = utils.precisionRound(temperature * 100, 0);
                 await entity.write('hvacThermostat',
-                    {0x4040: {value: remoteTemperature, type: Zcl.DataType.int16}}, boschManufacturer);
-                return {state: {remote_temperature: number}};
+                    {0x4040: {value: convertedTemperature, type: Zcl.DataType.int16}}, manufacturerOptions);
+                return {state: {remote_temperature: temperature}};
+            }
+
+            if (key === 'valve_adapt_process') {
+                if (value == true) {
+                    const adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, adaptationStatus);
+
+                    switch (adaptStatus) {
+                    case adaptationStatus.ready_to_calibrate:
+                    case adaptationStatus.error:
+                        await entity.command('hvacThermostat', 'boschCalibrateValve', {}, manufacturerOptions);
+                        break;
+                    default:
+                        throw new Error('Valve adaptation process not possible right now.');
+                    }
+                }
+
+                return {state: {valve_adapt_process: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'window_open':
-                await entity.read('hvacThermostat', [0x4042], boschManufacturer);
+                await entity.read('hvacThermostat', [0x4042], manufacturerOptions);
                 break;
             case 'boost':
-                await entity.read('hvacThermostat', [0x4043], boschManufacturer);
+                await entity.read('hvacThermostat', [0x4043], manufacturerOptions);
                 break;
             case 'system_mode':
-                await entity.read('hvacThermostat', [0x4007], boschManufacturer);
+                await entity.read('hvacThermostat', [0x4007], manufacturerOptions);
                 break;
             case 'pi_heating_demand':
-                await entity.read('hvacThermostat', [0x4020], boschManufacturer);
+                await entity.read('hvacThermostat', [0x4020], manufacturerOptions);
                 break;
             case 'remote_temperature':
-                await entity.read('hvacThermostat', [0x4040], boschManufacturer);
+                await entity.read('hvacThermostat', [0x4040], manufacturerOptions);
+                break;
+            case 'valve_adapt_process':
+                // Reads the current valve adaptation status as it depends solely on it
+                await entity.read('hvacThermostat', [0x4022], manufacturerOptions);
                 break;
 
             default: // Unknown key
@@ -381,16 +477,20 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'display_orientation') {
                 const index = utils.getFromLookup(value, displayOrientation);
-                await entity.write('hvacUserInterfaceCfg', {0x400b: {value: index, type: Zcl.DataType.uint8}}, boschManufacturer);
+                await entity.write('hvacUserInterfaceCfg', {0x400b: {value: index, type: Zcl.DataType.uint8}}, manufacturerOptions);
                 return {state: {display_orientation: value}};
             }
             if (key === 'display_ontime') {
-                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: value, type: Zcl.DataType.enum8}}, boschManufacturer);
-                return {state: {display_onTime: value}};
+                let onTime = utils.toNumber(value, key);
+                onTime = utils.numberWithinRange(onTime, 5, 30);
+                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: onTime, type: Zcl.DataType.enum8}}, manufacturerOptions);
+                return {state: {display_onTime: onTime}};
             }
             if (key === 'display_brightness') {
-                await entity.write('hvacUserInterfaceCfg', {0x403b: {value: value, type: Zcl.DataType.enum8}}, boschManufacturer);
-                return {state: {display_brightness: value}};
+                let brightness = utils.toNumber(value, key);
+                brightness = utils.numberWithinRange(brightness, 0, 10);
+                await entity.write('hvacUserInterfaceCfg', {0x403b: {value: brightness, type: Zcl.DataType.enum8}}, manufacturerOptions);
+                return {state: {display_brightness: brightness}};
             }
             if (key === 'child_lock') {
                 const keypadLockout = Number(value === 'LOCK');
@@ -399,26 +499,26 @@ const tzLocal = {
             }
             if (key === 'displayed_temperature') {
                 const index = utils.getFromLookup(value, displayedTemperature);
-                await entity.write('hvacUserInterfaceCfg', {0x4039: {value: index, type: Zcl.DataType.enum8}}, boschManufacturer);
+                await entity.write('hvacUserInterfaceCfg', {0x4039: {value: index, type: Zcl.DataType.enum8}}, manufacturerOptions);
                 return {state: {displayed_temperature: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'display_orientation':
-                await entity.read('hvacUserInterfaceCfg', [0x400b], boschManufacturer);
+                await entity.read('hvacUserInterfaceCfg', [0x400b], manufacturerOptions);
                 break;
             case 'display_ontime':
-                await entity.read('hvacUserInterfaceCfg', [0x403a], boschManufacturer);
+                await entity.read('hvacUserInterfaceCfg', [0x403a], manufacturerOptions);
                 break;
             case 'display_brightness':
-                await entity.read('hvacUserInterfaceCfg', [0x403b], boschManufacturer);
+                await entity.read('hvacUserInterfaceCfg', [0x403b], manufacturerOptions);
                 break;
             case 'child_lock':
                 await entity.read('hvacUserInterfaceCfg', ['keypadLockout']);
                 break;
             case 'displayed_temperature':
-                await entity.read('hvacUserInterfaceCfg', [0x4039], boschManufacturer);
+                await entity.read('hvacUserInterfaceCfg', [0x4039], manufacturerOptions);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bosch_userInterface.convertGet ${key}`);
@@ -430,23 +530,23 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'sensitivity') {
                 const index = utils.getFromLookup(value, smokeSensitivity);
-                await entity.write('manuSpecificBosch', {0x4003: {value: index, type: 0x21}}, boschManufacturer);
+                await entity.write('manuSpecificBosch', {0x4003: {value: index, type: 0x21}}, manufacturerOptions);
                 return {state: {sensitivity: value}};
             }
             if (key === 'pre_alarm') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('manuSpecificBosch5', {0x4001: {value: index, type: 0x18}}, boschManufacturer);
+                await entity.write('manuSpecificBosch5', {0x4001: {value: index, type: 0x18}}, manufacturerOptions);
                 return {state: {pre_alarm: value}};
             }
             if (key === 'heartbeat') {
                 const endpoint = meta.device.getEndpoint(12);
                 const index = utils.getFromLookup(value, stateOffOn);
-                await endpoint.write('manuSpecificBosch7', {0x5005: {value: index, type: 0x18}}, boschManufacturer);
+                await endpoint.write('manuSpecificBosch7', {0x5005: {value: index, type: 0x18}}, manufacturerOptions);
                 return {state: {heartbeat: value}};
             }
             if (key === 'self_test') {
                 if (value) {
-                    await entity.command('manuSpecificBosch', 'initiateTestMode', boschManufacturer);
+                    await entity.command('manuSpecificBosch', 'initiateTestMode', manufacturerOptions);
                 }
             }
             if (key === 'alarm') {
@@ -456,7 +556,7 @@ const tzLocal = {
                 if (index == 0) {
                     await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x16, clusterid: 0xe000}, {direction: 1});
                     await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x14, clusterid: 0xe000}, {direction: 1});
-                    await endpoint.command('manuSpecificBosch8', 'burglarAlarm', {data: 0}, boschManufacturer);
+                    await endpoint.command('manuSpecificBosch8', 'burglarAlarm', {data: 0}, manufacturerOptions);
                 } else if (index == 1) {
                     await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x11, clusterid: 0xe000}, {direction: 1});
                     return {state: {siren_state: 'pre-alarm'}};
@@ -464,20 +564,20 @@ const tzLocal = {
                     await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x10, clusterid: 0xe000}, {direction: 1});
                     return {state: {siren_state: 'fire'}};
                 } else if (index == 3) {
-                    await endpoint.command('manuSpecificBosch8', 'burglarAlarm', {data: 1}, boschManufacturer);
+                    await endpoint.command('manuSpecificBosch8', 'burglarAlarm', {data: 1}, manufacturerOptions);
                 }
             }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'sensitivity':
-                await entity.read('manuSpecificBosch', [0x4003], boschManufacturer);
+                await entity.read('manuSpecificBosch', [0x4003], manufacturerOptions);
                 break;
             case 'pre_alarm':
-                await entity.read('manuSpecificBosch5', [0x4001], boschManufacturer);
+                await entity.read('manuSpecificBosch5', [0x4001], manufacturerOptions);
                 break;
             case 'heartbeat':
-                await meta.device.getEndpoint(12).read('manuSpecificBosch7', [0x5005], boschManufacturer);
+                await meta.device.getEndpoint(12).read('manuSpecificBosch7', [0x5005], manufacturerOptions);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
@@ -490,7 +590,7 @@ const tzLocal = {
             if (!buttonMap.hasOwnProperty(key)) {
                 throw new Error(`Unknown key ${key}`);
             }
-            await entity.read('manuSpecificBosch9', [buttonMap[key as keyof typeof buttonMap]], boschManufacturer);
+            await entity.read('manuSpecificBosch9', [buttonMap[key as keyof typeof buttonMap]], manufacturerOptions);
         },
         convertSet: async (entity, key, value, meta) => {
             if (!buttonMap.hasOwnProperty(key) ) {
@@ -502,7 +602,7 @@ const tzLocal = {
 
             const payload: {[key: number | string]: KeyValue} = {};
             payload[buttonMap[key as keyof typeof buttonMap]] = {value: buffer, type: 65};
-            await entity.write('manuSpecificBosch9', payload, boschManufacturer);
+            await entity.write('manuSpecificBosch9', payload, manufacturerOptions);
 
             const result:{[key: number | string]: string} = {};
             result[key] = value as string;
@@ -514,21 +614,34 @@ const tzLocal = {
 
 const fzLocal = {
     bmct: {
-        cluster: '64672',
+        cluster: 'manuSpecificBosch10',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x0000)) {
-                result.device_type = (Object.keys(stateDeviceType)[msg.data[0x0000]]);
-            } else if (data.hasOwnProperty(0x0001)) {
-                result.switch_type = (Object.keys(stateSwitchType)[msg.data[0x0001]]);
-            } else if (data.hasOwnProperty(0x0002)) {
-                result.calibration_closing_time = msg.data[0x0002];
-            } else if (data.hasOwnProperty(0x0003)) {
-                result.calibration_opening_time = msg.data[0x0003];
-            } else if (data.hasOwnProperty(0x0013)) {
-                result.motor_state = (Object.keys(stateMotor)[msg.data[0x0013]]);
+            if (data.hasOwnProperty('deviceMode')) {
+                result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data['deviceMode']);
+                const deviceMode = msg.data['deviceMode'];
+                if (deviceMode !== meta.device.meta.deviceMode) {
+                    meta.device.meta.deviceMode = deviceMode;
+                    meta.deviceExposesChanged();
+                }
+            }
+            if (data.hasOwnProperty('switchType')) {
+                result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data['switchType']);
+            }
+            if (data.hasOwnProperty('calibrationOpeningTime')) {
+                result.calibration_opening_time = msg.data['calibrationOpeningTime']/10;
+            }
+            if (data.hasOwnProperty('calibrationClosingTime')) {
+                result.calibration_closing_time = msg.data['calibrationClosingTime']/10;
+            }
+            if (data.hasOwnProperty('childLock')) {
+                const property = utils.postfixWithEndpointName('child_lock', msg, model, meta);
+                result[property] = msg.data['childLock'] === 1 ? 'ON' : 'OFF';
+            }
+            if (data.hasOwnProperty('motorState')) {
+                result.motor_state = Object.keys(stateMotor).find((key) => stateMotor[key] === msg.data['motorState']);
             }
             return result;
         },
@@ -583,7 +696,7 @@ const fzLocal = {
             const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x4040)) {
-                result.remote_temperature = utils.precisionRound(data[0x4040], 2) / 100;
+                result.remote_temperature = utils.precisionRound(data[0x4040] / 100, 1);
             }
             if (data.hasOwnProperty(0x4042)) {
                 result.window_open = (Object.keys(stateOffOn)[data[0x4042]]);
@@ -598,7 +711,17 @@ const fzLocal = {
             if (data.hasOwnProperty(0x4020)) {
                 const demand = data[0x4020] as number;
                 result.pi_heating_demand = demand;
-                result.running_state = demand >= 10 ? 'heat' : 'idle';
+                result.running_state = demand > 0 ? 'heat' : 'idle';
+            }
+
+            if (data.hasOwnProperty(0x4022)) {
+                result.valve_adapt_status = utils.getFromLookupByValue(data[0x4022], adaptationStatus);
+
+                if (data[0x4022] === adaptationStatus.calibration_in_progress) {
+                    result.valve_adapt_process = true;
+                } else {
+                    result.valve_adapt_process = false;
+                }
             }
 
             return result;
@@ -643,23 +766,19 @@ const fzLocal = {
     bosch_twinguard_measurements: {
         cluster: 'manuSpecificBosch3',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
-            exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty('humidity')) {
-                result.humidity = utils.calibrateAndPrecisionRoundOptions(msg.data['humidity'] / 100.0, options, 'humidity');
+                result.humidity = msg.data['humidity'] / 100.0;
             }
             if (msg.data.hasOwnProperty('airpurity')) {
                 result.co2 = msg.data['airpurity'] * 10.0 + 500.0;
             }
             if (msg.data.hasOwnProperty('temperature')) {
-                result.temperature = utils.calibrateAndPrecisionRoundOptions(msg.data['temperature'] / 100.0, options, 'temperature');
+                result.temperature = msg.data['temperature'] / 100.0;
             }
             if (msg.data.hasOwnProperty('illuminance_lux')) {
-                result.illuminance_lux = utils.calibrateAndPrecisionRoundOptions(
-                    msg.data['illuminance_lux'] / 2.0, options, 'illuminance_lux');
+                result.illuminance_lux = msg.data['illuminance_lux'] / 2.0;
             }
             if (msg.data.hasOwnProperty('battery')) {
                 result.battery = msg.data['battery'] / 2.0;
@@ -799,9 +918,7 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read(0x0502, [0xa000, 0xa001, 0xa002, 0xa003, 0xa004, 0xa005], boschManufacturer);
-            device.defaultSendRequestWhen = 'immediate';
-            device.save();
+            await endpoint.read(0x0502, [0xa000, 0xa001, 0xa002, 0xa003, 0xa004, 0xa005], manufacturerOptions);
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
         exposes: [
@@ -826,6 +943,9 @@ const definitions: Definition[] = [
             e.test(), e.tamper(), e.battery(), e.battery_voltage(), e.battery_low(),
             e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in'),
         ],
+        extend: [
+            quirkCheckinInterval(0),
+        ],
     },
     {
         zigbeeModel: ['RBSH-WS-ZB-EU'],
@@ -845,7 +965,7 @@ const definitions: Definition[] = [
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
-            }], boschManufacturer);
+            }], manufacturerOptions);
         },
         exposes: [
             e.water_leak(), e.battery(), e.tamper(),
@@ -858,14 +978,18 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Smoke alarm detector',
         fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
-        toZigbee: [],
-        meta: {},
+        toZigbee: [tzLocal.alarm_state],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 64684]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 64684]);
             await reporting.batteryPercentageRemaining(endpoint);
+            device.save();
+            await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
-        exposes: [e.smoke(), e.battery(), e.battery_low(), e.test()],
+        exposes: [e.smoke(), e.battery(), e.battery_low(), e.test(),
+            e.binary('intruder_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
+            e.binary('smoke_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
+        ],
     },
     {
         zigbeeModel: ['RFDL-ZB', 'RFDL-ZB-EU', 'RFDL-ZB-H', 'RFDL-ZB-K', 'RFDL-ZB-CHI', 'RFDL-ZB-MS', 'RFDL-ZB-ES', 'RFPR-ZB',
@@ -923,80 +1047,110 @@ const definitions: Definition[] = [
         ],
         exposes: [
             e.climate()
-                .withLocalTemperature(ea.STATE)
+                .withLocalTemperature(ea.STATE, 'Temperature used by the heating algorithm. ' +
+                    'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 minutes).')
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSystemMode(['off', 'heat', 'auto'])
+                .withSystemMode(['off', 'heat'])
                 .withPiHeatingDemand(ea.ALL)
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.binary('boost', ea.ALL, 'ON', 'OFF')
-                .withDescription('Activate Boost heating'),
+                .withDescription('Activate boost heating'),
             e.binary('window_open', ea.ALL, 'ON', 'OFF')
                 .withDescription('Window open'),
             e.enum('display_orientation', ea.ALL, Object.keys(displayOrientation))
-                .withDescription('Display orientation'),
+                .withDescription('Display orientation')
+                .withCategory('config'),
             e.numeric('remote_temperature', ea.ALL)
                 .withValueMin(0)
-                .withValueMax(30)
-                .withValueStep(0.1)
+                .withValueMax(35)
+                .withValueStep(0.01)
                 .withUnit('°C')
                 .withDescription('Input for remote temperature sensor. ' +
-                    'Setting this will disable the internal temperature sensor until batteries are removed!'),
+                    'This must be set at least every 30 minutes to prevent fallback to internal temperature reading!'),
             e.numeric('display_ontime', ea.ALL)
                 .withValueMin(5)
                 .withValueMax(30)
-                .withDescription('Specifies the display On-time'),
+                .withDescription('Specifies the display on-time')
+                .withCategory('config'),
             e.numeric('display_brightness', ea.ALL)
                 .withValueMin(0)
                 .withValueMax(10)
-                .withDescription('Specifies the brightness value of the display'),
+                .withDescription('Specifies the brightness level of the display')
+                .withCategory('config'),
             e.enum('displayed_temperature', ea.ALL, Object.keys(displayedTemperature))
-                .withDescription('Temperature displayed on the thermostat'),
+                .withDescription('Temperature displayed on the thermostat')
+                .withCategory('config'),
             e.child_lock().setAccess('state', ea.ALL),
             e.battery(),
+            e.enum('setpoint_change_source', ea.STATE, Object.keys(setpointSource))
+                .withDescription('States where the current setpoint originated'),
+            e.enum('valve_adapt_status', ea.STATE, Object.keys(adaptationStatus))
+                .withLabel('Adaptation status')
+                .withDescription('Specifies the current status of the valve adaptation')
+                .withCategory('diagnostic'),
+            e.binary('valve_adapt_process', ea.ALL, true, false)
+                .withLabel('Trigger adaptation process')
+                .withDescription('Trigger the valve adaptation process. Only possible when adaptation status ' +
+                    'is "ready_to_calibrate" or "error".')
+                .withCategory('config'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg']);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatKeypadLockMode(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR * 12, change: 1});
+            await reporting.thermostatTemperature(endpoint, {min: 30, max: 900, change: 20});
+            await reporting.thermostatKeypadLockMode(endpoint, {min: 0, max: constants.repInterval.HOUR * 12, change: null});
             await reporting.batteryPercentageRemaining(endpoint);
 
+            // Report setpoint_change_source
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'setpointChangeSource',
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: null,
+            }]);
             // report operating_mode (system_mode)
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4007, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], boschManufacturer);
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: null,
+            }], manufacturerOptions);
             // report pi_heating_demand (valve opening)
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4020, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], boschManufacturer);
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: null,
+            }], manufacturerOptions);
+            // Report valve_adapt_status (adaptation status)
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4022, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: null,
+            }], manufacturerOptions);
             // report window_open
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], boschManufacturer);
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: null,
+            }], manufacturerOptions);
             // report boost as it's disabled by thermostat after 5 minutes
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], boschManufacturer);
+                maximumReportInterval: constants.repInterval.HOUR * 12,
+                reportableChange: null,
+            }], manufacturerOptions);
 
-            await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4040, 0x4042, 0x4043], boschManufacturer);
+            await endpoint.read('hvacThermostat', ['localTemperatureCalibration', 'setpointChangeSource']);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4022, 0x4040, 0x4042, 0x4043], manufacturerOptions);
 
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
-            await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x4039, 0x403a, 0x403b], boschManufacturer);
+            await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x4039, 0x403a, 0x403b], manufacturerOptions);
         },
     },
     {
@@ -1034,12 +1188,12 @@ const definitions: Definition[] = [
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
-            }], boschManufacturer);
+            }], manufacturerOptions);
 
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], boschManufacturer);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
-            await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], boschManufacturer);
+            await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], manufacturerOptions);
         },
     },
     {
@@ -1079,32 +1233,32 @@ const definitions: Definition[] = [
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
-            }], boschManufacturer);
+            }], manufacturerOptions);
             // report pi_heating_demand (valve opening)
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4020, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
-            }], boschManufacturer);
+            }], manufacturerOptions);
             // report window_open
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
-            }], boschManufacturer);
+            }], manufacturerOptions);
             // report boost as it's disabled by thermostat after 5 minutes
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
-            }], boschManufacturer);
+            }], manufacturerOptions);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4042, 0x4043], boschManufacturer);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4042, 0x4043], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
-            await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], boschManufacturer);
+            await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], manufacturerOptions);
         },
     },
     {
@@ -1126,17 +1280,17 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, [0xe004]);
             await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, [0xe006]);
             await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, [0xe007]);
-            await device.getEndpoint(1).read('manuSpecificBosch5', ['unknown_attribute'], boschManufacturer); // Needed for pairing
-            await device.getEndpoint(12).command('manuSpecificBosch7', 'pairingCompleted', boschManufacturer); // Needed for pairing
+            await device.getEndpoint(1).read('manuSpecificBosch5', ['unknown_attribute'], manufacturerOptions); // Needed for pairing
+            await device.getEndpoint(12).command('manuSpecificBosch7', 'pairingCompleted', manufacturerOptions); // Needed for pairing
             await device.getEndpoint(1).write('manuSpecificBosch',
-                {0x4003: {value: 0x0002, type: 0x21}}, boschManufacturer); // Setting defaults
+                {0x4003: {value: 0x0002, type: 0x21}}, manufacturerOptions); // Setting defaults
             await device.getEndpoint(1).write('manuSpecificBosch5',
-                {0x4001: {value: 0x01, type: 0x18}}, boschManufacturer); // Setting defaults
+                {0x4001: {value: 0x01, type: 0x18}}, manufacturerOptions); // Setting defaults
             await device.getEndpoint(12).write('manuSpecificBosch7',
-                {0x5005: {value: 0x01, type: 0x18}}, boschManufacturer); // Setting defaults
-            await device.getEndpoint(1).read('manuSpecificBosch', ['sensitivity'], boschManufacturer);
-            await device.getEndpoint(1).read('manuSpecificBosch5', ['pre_alarm'], boschManufacturer);
-            await device.getEndpoint(12).read('manuSpecificBosch7', ['heartbeat'], boschManufacturer);
+                {0x5005: {value: 0x01, type: 0x18}}, manufacturerOptions); // Setting defaults
+            await device.getEndpoint(1).read('manuSpecificBosch', ['sensitivity'], manufacturerOptions);
+            await device.getEndpoint(1).read('manuSpecificBosch5', ['pre_alarm'], manufacturerOptions);
+            await device.getEndpoint(12).read('manuSpecificBosch7', ['heartbeat'], manufacturerOptions);
         },
         exposes: [
             e.smoke(), e.temperature(), e.humidity(), e.co2(), e.illuminance_lux(), e.battery(),
@@ -1208,6 +1362,13 @@ const definitions: Definition[] = [
         exposes: [e.battery_low(), e.contact(), e.vibration(), e.action(['single', 'long'])],
     },
     {
+        zigbeeModel: ['RBSH-MMR-ZB-EU'],
+        model: 'BMCT-RZ',
+        vendor: 'Bosch',
+        description: 'Relay, potential free',
+        extend: [onOff({powerOnBehavior: false})],
+    },
+    {
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
@@ -1220,42 +1381,56 @@ const definitions: Definition[] = [
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'closuresWindowCovering', 64672]);
-            await endpoint1.unbind('genOnOff', coordinatorEndpoint);
-            await endpoint1.read(64672, [0x0000, 0x0001, 0x0002, 0x0003, 0x0008, 0x0013], boschManufacturer);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'closuresWindowCovering', 'manuSpecificBosch10']);
+            await reporting.currentPositionLiftPercentage(endpoint1);
+            await endpoint1.read('manuSpecificBosch10', ['deviceMode', 'switchType',
+                'calibrationOpeningTime', 'calibrationClosingTime', 'childLock', 'motorState']).catch((e) => {});
             const endpoint2 = device.getEndpoint(2);
-            await endpoint2.read(64672, [0x0008], boschManufacturer);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
+            await endpoint2.read('manuSpecificBosch10', ['childLock']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff']).catch((e) => {});
             await reporting.onOff(endpoint2);
             const endpoint3 = device.getEndpoint(3);
-            await endpoint3.read(64672, [0x0008], boschManufacturer);
+            await endpoint3.read('manuSpecificBosch10', ['childLock']).catch((e) => {});
             await reporting.bind(endpoint3, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
             await reporting.onOff(endpoint3);
         },
-        exposes: [
-            // light
-            e.enum('device_type', ea.ALL, Object.keys(stateDeviceType))
-                .withDescription('Device type: '),
-            e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
-                .withDescription('Module controlled by a rocker switch or a button'),
-            e.switch().withEndpoint('left'),
-            e.switch().withEndpoint('right'),
-            e.power_on_behavior().withEndpoint('right'),
-            e.power_on_behavior().withEndpoint('left'),
-            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left')
-                .withDescription('Enable/Disable child lock'),
-            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
-                .withDescription('Enable/Disable child lock'),
-            // cover
-            e.cover_position().setAccess('state', ea.ALL),
-            e.enum('motor_state', ea.STATE, Object.keys(stateMotor))
-                .withDescription('Shutter motor actual state '),
-            e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
-            e.numeric('calibration_closing_time', ea.ALL).withUnit('s')
-                .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
-            e.numeric('calibration_opening_time', ea.ALL).withUnit('s')
-                .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
-        ],
+        exposes: (device, options) => {
+            const lightExposes = [
+                e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
+                    .withDescription('Module controlled by a rocker switch or a button'),
+                e.switch().withEndpoint('left'),
+                e.switch().withEndpoint('right'),
+                e.power_on_behavior().withEndpoint('right'),
+                e.power_on_behavior().withEndpoint('left'),
+                e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left')
+                    .withDescription('Enable/Disable child lock'),
+                e.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
+                    .withDescription('Enable/Disable child lock'),
+            ];
+            const coverExposes = [
+                e.cover_position(),
+                e.enum('motor_state', ea.STATE, Object.keys(stateMotor))
+                    .withDescription('Shutter motor actual state '),
+                e.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
+                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('closing_time')
+                    .withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
+                e.numeric('calibration', ea.ALL).withUnit('s').withEndpoint('opening_time')
+                    .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
+            ];
+
+            if (device) {
+                const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue('manuSpecificBosch10', 'deviceMode');
+                const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
+
+                if (deviceMode === 'light') {
+                    return [...lightExposes, e.linkquality()];
+                } else if (deviceMode === 'shutter') {
+                    return [...coverExposes, e.linkquality()];
+                }
+            }
+            return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'),
+                e.linkquality()];
+        },
     },
     {
         zigbeeModel: ['RBSH-US4BTN-ZB-EU'],
@@ -1269,33 +1444,41 @@ const definitions: Definition[] = [
             e.battery_low(),
             e.battery_voltage(),
             e.text('config_led_top_left_press', ea.ALL).withLabel('LED config (top left short press)')
-                .withDescription(labelShortPress),
+                .withDescription(labelShortPress)
+                .withCategory('config'),
             e.text('config_led_top_right_press', ea.ALL).withLabel('LED config (top right short press)')
-                .withDescription(labelShortPress),
+                .withDescription(labelShortPress)
+                .withCategory('config'),
             e.text('config_led_bottom_left_press', ea.ALL).withLabel('LED config (bottom left short press)')
-                .withDescription(labelShortPress),
+                .withDescription(labelShortPress)
+                .withCategory('config'),
             e.text('config_led_bottom_right_press', ea.ALL).withLabel('LED config (bottom right short press)')
-                .withDescription(labelShortPress),
+                .withDescription(labelShortPress)
+                .withCategory('config'),
             e.text('config_led_top_left_longpress', ea.ALL).withLabel('LED config (top left long press)')
-                .withDescription(labelLongPress),
+                .withDescription(labelLongPress)
+                .withCategory('config'),
             e.text('config_led_top_right_longpress', ea.ALL).withLabel('LED config (top right long press)')
-                .withDescription(labelLongPress),
+                .withDescription(labelLongPress)
+                .withCategory('config'),
             e.text('config_led_bottom_left_longpress', ea.ALL).withLabel('LED config (bottom left long press)')
-                .withDescription(labelLongPress),
+                .withDescription(labelLongPress)
+                .withCategory('config'),
             e.text('config_led_bottom_right_longpress', ea.ALL).withLabel('LED config (bottom right long press)')
-                .withDescription(labelLongPress),
+                .withDescription(labelLongPress)
+                .withCategory('config'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
 
             // Read default LED configuration
-            await endpoint.read('manuSpecificBosch9', [0x0010, 0x0011, 0x0012, 0x0013], {...boschManufacturer, sendPolicy: 'immediate'})
+            await endpoint.read('manuSpecificBosch9', [0x0010, 0x0011, 0x0012, 0x0013], {...manufacturerOptions, sendPolicy: 'immediate'})
                 .catch((error) => {});
-            await endpoint.read('manuSpecificBosch9', [0x0020, 0x0021, 0x0022, 0x0023], {...boschManufacturer, sendPolicy: 'immediate'})
+            await endpoint.read('manuSpecificBosch9', [0x0020, 0x0021, 0x0022, 0x0023], {...manufacturerOptions, sendPolicy: 'immediate'})
                 .catch((error) => {});
 
             // We also have to read this one. Value reads 0x0f, looks like a bitmap
-            await endpoint.read('manuSpecificBosch9', [0x0024], {...boschManufacturer, sendPolicy: 'immediate'});
+            await endpoint.read('manuSpecificBosch9', [0x0024], {...manufacturerOptions, sendPolicy: 'immediate'});
 
             await endpoint.command('manuSpecificBosch9', 'pairingCompleted', {data: Buffer.from([0x00])}, {sendPolicy: 'immediate'});
 

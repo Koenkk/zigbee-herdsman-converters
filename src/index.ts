@@ -6,7 +6,9 @@ import fromZigbee from './converters/fromZigbee';
 import assert from 'assert';
 import * as ota from './lib/ota';
 import allDefinitions from './devices';
-import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult } from './lib/types';
+import * as utils from './lib/utils';
+import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, Logger } from './lib/types';
+import {generateDefinition} from './lib/generateDefinition';
 
 export {
     Definition as Definition,
@@ -88,7 +90,7 @@ function validateDefinition(definition: Definition) {
     assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
-export function addDefinition(definition: Definition) {
+function processExtensions(definition: Definition): Definition {
     if ('extend' in definition) {
         if (Array.isArray(definition.extend)) {
             // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
@@ -172,6 +174,12 @@ export function addDefinition(definition: Definition) {
         }
     }
 
+    return definition
+}
+
+function prepareDefinition(definition: Definition): Definition {
+    definition = processExtensions(definition);
+
     definition.toZigbee.push(
         toZigbee.scene_store, toZigbee.scene_recall, toZigbee.scene_add, toZigbee.scene_remove, toZigbee.scene_remove_all, 
         toZigbee.scene_rename, toZigbee.read, toZigbee.write,
@@ -182,10 +190,25 @@ export function addDefinition(definition: Definition) {
     }
 
     validateDefinition(definition);
-    definitions.splice(0, 0, definition);
 
+    // Add all the options
     if (!definition.options) definition.options = [];
     const optionKeys = definition.options.map((o) => o.name);
+
+    // Add calibration/precision options based on expose
+    for (const expose of Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null)) {
+        if (!optionKeys.includes(expose.name) && utils.isNumericExposeFeature(expose) && expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
+            // Battery voltage is not calibratable
+            if (expose.name === 'voltage' && expose.unit === 'mV') continue;
+            const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? 'percentual' : 'absolute';
+            definition.options.push(exposes.options.calibration(expose.name, type));
+            if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
+                definition.options.push(exposes.options.precision(expose.name));
+            }
+            optionKeys.push(expose.name);
+        }
+    }
+
     for (const converter of [...definition.toZigbee, ...definition.fromZigbee]) {
         if (converter.options) {
             const options = typeof converter.options === 'function' ? converter.options(definition) : converter.options;
@@ -197,6 +220,29 @@ export function addDefinition(definition: Definition) {
             }
         }
     }
+
+    return definition
+}
+
+export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue, logger: Logger) {
+    // Apply calibration/precision options
+    for (const [key, value] of Object.entries(payload)) {
+        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null);
+        const expose = definitionExposes.find((e) => e.property === key);
+        if (expose?.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision && utils.isNumber(value)) {
+            try {
+                payload[key] = utils.calibrateAndPrecisionRoundOptions(value, options, expose.name);
+            } catch (error) {
+                logger.error(`Failed to apply calibration to '${expose.name}': ${error.message}`);
+            }
+        }
+    }
+}
+
+export function addDefinition(definition: Definition) {
+    definition = prepareDefinition(definition)
+
+    definitions.splice(0, 0, definition);
 
     if ('fingerprint' in definition) {
         for (const fingerprint of definition.fingerprint) {
@@ -215,8 +261,8 @@ for (const definition of allDefinitions) {
     addDefinition(definition);
 }
 
-export function findByDevice(device: Zh.Device) {
-    let definition = findDefinition(device);
+export async function findByDevice(device: Zh.Device, generateForUnknown: boolean = false) {
+    let definition = await findDefinition(device, generateForUnknown);
     if (definition && definition.whiteLabel) {
         const match = definition.whiteLabel.find((w) => 'fingerprint' in w && w.fingerprint.find((f) => isFingerprintMatch(f, device)));
         if (match) {
@@ -231,14 +277,20 @@ export function findByDevice(device: Zh.Device) {
     return definition;
 }
 
-export function findDefinition(device: Zh.Device): Definition {
+export async function findDefinition(device: Zh.Device, generateForUnknown: boolean = false): Promise<Definition> {
     if (!device) {
         return null;
     }
 
     const candidates = getFromLookup(device.modelID);
     if (!candidates) {
-        return null;
+        if (!generateForUnknown || device.type === 'Coordinator') {
+            return null;
+        }
+
+        // Do not add this definition to cache,
+        // as device configuration might change.
+        return prepareDefinition((await generateDefinition(device)).definition);
     } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
         return candidates[0];
     } else {
@@ -269,6 +321,10 @@ export function findDefinition(device: Zh.Device): Definition {
     }
 
     return null;
+}
+
+export async function generateExternalDefinitionSource(device: Zh.Device): Promise<string> {
+    return (await generateDefinition(device)).externalDefinitionSource;
 }
 
 function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device) {

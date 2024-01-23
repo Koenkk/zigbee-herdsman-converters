@@ -8,6 +8,7 @@ import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
+import {ubisysModernExtend} from '../lib/ubisys';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -99,15 +100,6 @@ const ubisys = {
                     });
                 }
                 return {configure_device_setup: result};
-            },
-        } satisfies Fz.Converter,
-        thermostat_vacation_mode: {
-            cluster: 'hvacThermostat',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('occupancy')) {
-                    return {vacation_mode: msg.data.occupancy === 0};
-                }
             },
         } satisfies Fz.Converter,
     },
@@ -533,23 +525,6 @@ const ubisys = {
                     manufacturerOptions.ubisysNull);
             },
         } satisfies Tz.Converter,
-        thermostat_vacation_mode: {
-            key: ['vacation_mode'],
-            convertSet: async (entity, key, value, meta) => {
-                /* Both Ubisys H1 and H10 use hvacThermostat cluster with the ubisys manufacturerCode for custom attributes
-                 *  0x0005 is used on both but with different functions and data types which is rather annoying
-                 *  manually massaging of the writeAttribute is needed :(
-                 */
-                if (typeof value === 'boolean') {
-                    await entity.write('hvacThermostat', {0x0005: {value: value, type: Zcl.DataType.boolean}}, manufacturerOptions.ubisys);
-                } else {
-                    meta.logger.error('vacation_mode must be a boolean!');
-                }
-            },
-            convertGet: async (entity, key, meta) => {
-                await entity.read('hvacThermostat', ['occupancy']);
-            },
-        } satisfies Tz.Converter,
     },
 };
 
@@ -816,11 +791,35 @@ const definitions: Definition[] = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.metering_power,
             ubisys.tz.configure_j1, ubisys.tz.configure_device_setup,
             tz.currentsummdelivered],
-        exposes: [
-            e.cover_position_tilt(),
-            e.power().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
-        ],
+        exposes: (device, options) => {
+            const coverExpose = e.cover();
+            const coverType = (device?.getEndpoint(1).getClusterAttributeValue('closuresWindowCovering', 'windowCoveringType') ?? undefined);
+            switch (coverType) { // cf. Ubisys J1 Technical Reference Manual, chapter 7.2.5.1 Calibration
+            case 0: // Roller Shade, Lift only
+            case 1: // Roller Shade two motors, Lift only
+            case 2: // Roller Shade exterior, Lift only
+            case 3: // Roller Shade two motors exterior, Lift only
+            case 4: // Drapery, Lift only
+            case 5: // Awning, Lift only
+            case 9: // Projector Screen, Lift only
+                coverExpose.withPosition();
+                break;
+            case 6: // Shutter, Tilt only
+            case 7: // Tilt Blind, Tilt only
+                coverExpose.withTilt();
+                break;
+            case 8: // Tilt Blind, Lift & Tilt
+            default:
+                coverExpose.withPosition().withTilt();
+                break;
+            }
+            return [
+                coverExpose,
+                e.power().withAccess(ea.STATE_GET),
+                e.energy().withAccess(ea.STATE_GET),
+                e.linkquality(),
+            ];
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -890,13 +889,13 @@ const definitions: Definition[] = [
         vendor: 'Ubisys',
         description: 'Heating regulator',
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule, ubisys.fz.thermostat_vacation_mode],
+        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_local_temperature, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_running_mode, ubisys.tz.thermostat_vacation_mode,
-            tz.thermostat_pi_heating_demand, tz.battery_percentage_remaining,
+            tz.thermostat_running_mode, tz.thermostat_pi_heating_demand,
+            tz.battery_percentage_remaining,
         ],
         exposes: [
             e.battery().withAccess(ea.STATE_GET),
@@ -908,8 +907,13 @@ const definitions: Definition[] = [
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET)
                 .withWeeklySchedule(['heat']),
-            e.binary('vacation_mode', ea.ALL, true, false)
-                .withDescription('When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.'),
+        ],
+        extend: [
+            ubisysModernExtend.vacationMode(),
+            ubisysModernExtend.localTemperatureOffset(),
+            ubisysModernExtend.occupiedHeatingSetpointDefault(),
+            ubisysModernExtend.remoteTemperature(),
+            ubisysModernExtend.remoteTemperatureDuration(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -929,13 +933,12 @@ const definitions: Definition[] = [
                 {min: 0, max: constants.repInterval.HOUR, change: 50});
             await reporting.thermostatPIHeatingDemand(endpoint,
                 {min: 15, max: constants.repInterval.HOUR, change: 1});
-            await reporting.thermostatOccupancy(endpoint);
             await reporting.batteryPercentageRemaining(endpoint,
                 {min: constants.repInterval.HOUR, max: 43200, change: 1});
 
 
             // read attributes
-            // NOTE: configuring reporting on hvacThermostat seems to trigger an imediat
+            // NOTE: configuring reporting on hvacThermostat seems to trigger an immediate
             //       report, so the values are available after configure has run.
             //       this does not seem to be the case for genPowerCfg, so we read
             //       the battery percentage

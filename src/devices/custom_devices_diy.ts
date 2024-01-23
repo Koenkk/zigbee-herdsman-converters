@@ -9,7 +9,7 @@ import extend from '../lib/extend';
 import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
-import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, postfixWithEndpointName} from '../lib/utils';
+import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib/utils';
 import {light, onOff} from '../lib/modernExtend';
 
 const switchTypesList = {
@@ -167,6 +167,19 @@ const tzLocal = {
             return {state: {[`${key}`]: value}};
         },
     } satisfies Tz.Converter,
+    ptvo_on_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            return await tz.on_off.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            const cluster = 'genOnOff';
+            if (isEndpoint(entity) && (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster))) {
+                return await tz.on_off.convertGet(entity, key, meta);
+            }
+            return;
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -196,7 +209,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('measuredValue')) {
                 const co2 = msg.data['measuredValue'];
-                return {co2: calibrateAndPrecisionRoundOptions(co2, options, 'co2')};
+                return {co2};
             }
         },
     } satisfies Fz.Converter,
@@ -308,7 +321,6 @@ const fzLocal = {
     humidity2: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.humidity'
             const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
@@ -319,14 +331,13 @@ const fzLocal = {
             if (humidity >= 0 && humidity <= 100) {
                 const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
                 const property = (multiEndpoint)? postfixWithEndpointName('humidity', msg, model, meta): 'humidity';
-                return {[property]: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+                return {[property]: humidity};
             }
         },
     } satisfies Fz.Converter,
     illuminance2: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.calibration('illuminance', 'percentual'), exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.illuminance'
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
@@ -335,16 +346,12 @@ const fzLocal = {
             const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
             const property1 = (multiEndpoint)? postfixWithEndpointName('illuminance', msg, model, meta): 'illuminance';
             const property2 = (multiEndpoint)? postfixWithEndpointName('illuminance_lux', msg, model, meta): 'illuminance_lux';
-            return {
-                [property1]: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
-                [property2]: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
-            };
+            return {[property1]: illuminance, [property2]: illuminanceLux};
         },
     } satisfies Fz.Converter,
     pressure2: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('pressure'), exposes.options.calibration('pressure')],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.pressure'
             let pressure = 0;
@@ -356,7 +363,7 @@ const fzLocal = {
             }
             const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
             const property = (multiEndpoint)? postfixWithEndpointName('pressure', msg, model, meta): 'pressure';
-            return {[property]: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+            return {[property]: pressure};
         },
     } satisfies Fz.Converter,
     multi_zig_sw_battery: {
@@ -513,7 +520,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report, fz.temperature,
             fzLocal.humidity2, fzLocal.pressure2, fzLocal.illuminance2],
-        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tz.on_off],
+        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tzLocal.ptvo_on_off],
         exposes: (device, options) => {
             const expose: Expose[] = [];
             const exposeDeviceOptions: KeyValue = {};

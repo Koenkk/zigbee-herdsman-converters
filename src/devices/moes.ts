@@ -61,7 +61,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_pmz6mjyu'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_pmz6mjyu', '_TZ3000_iv6ph5tr']),
         model: 'MS-104BZ',
         description: 'Smart light switch module (2 gang)',
         vendor: 'Moes',
@@ -78,6 +78,9 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint2);
         },
+        whiteLabel: [
+            tuya.whitelabel('KnockautX', 'FMS2C017', '2 gang switch', ['_TZ3000_iv6ph5tr']),
+        ],
     },
     {
         zigbeeModel: ['TS0112'],
@@ -118,7 +121,7 @@ const definitions: Definition[] = [
         ],
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === '_TZE204_5toc8efa' ? 0.5 : 1;
-            return [e.linkquality(), e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(), e.min_temperature_limit(),
+            return [e.linkquality(), e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit().withValueMax(45), e.min_temperature_limit(),
                 e.climate().withSetpoint('current_heating_setpoint', 5, 35, heatingStepSize, ea.STATE_SET)
                     .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                     .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
@@ -426,6 +429,43 @@ const definitions: Definition[] = [
                 [15, 'battery', tuya.valueConverter.raw],
                 [16, 'silence', tuya.valueConverter.onOff],
             ],
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_ja5osu5g'},
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'}],
+        model: 'ERS-10TZBVB-AA',
+        vendor: 'Moes',
+        description: 'Smart button',
+        whiteLabel: [
+            tuya.whitelabel('Loginovo', 'ZG-101ZL', 'Smart button', ['_TZ3000_ja5osu5g']),
+        ],
+        fromZigbee: [
+            fz.command_step, fz.command_on, fz.command_off, fz.command_move_to_color_temp, fz.command_move_to_level,
+            fz.tuya_multi_action, fz.tuya_operation_mode, fz.battery,
+        ],
+        toZigbee: [tz.tuya_operation_mode],
+        exposes: [
+            e.action([
+                'single', 'double', 'hold', 'brightness_move_to_level', 'color_temperature_move',
+                'brightness_step_up', 'brightness_step_down', 'on', 'off',
+            ]),
+            e.battery(),
+            e.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
+                'Operation mode: "command" - for group control, "event" - for clicks'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
+            await endpoint.write('genOnOff', {'tuyaOperationMode': 1});
+            await endpoint.read('genOnOff', ['tuyaOperationMode']);
+            try {
+                await endpoint.read(0xE001, [0xD011]);
+            } catch (err) {/* do nothing */}
+            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
 ];

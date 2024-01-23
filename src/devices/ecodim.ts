@@ -132,7 +132,7 @@ const definitions: Definition[] = [
         model: 'ED-10042',
         vendor: 'EcoDim',
         description: 'Zigbee LED filament light dimmable E27, globe G125, flame 2200K',
-        extend: tuya.extend.light_onoff_brightness(),
+        extend: [tuya.modernExtend.tuyaLight()],
     },
     {
         fingerprint: [{modelID: 'CCT Light', manufacturerName: 'ZigBee/CCT', manufacturerID: 4137},

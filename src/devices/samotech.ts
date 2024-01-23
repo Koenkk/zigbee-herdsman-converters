@@ -3,7 +3,7 @@ import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {light, onOff} from '../lib/modernExtend';
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -86,7 +86,7 @@ const definitions: Definition[] = [
         model: 'SM323',
         vendor: 'Samotech',
         description: 'Zigbee retrofit dimmer 250W',
-        extend: [light({configureReporting: true})],
+        extend: [light({configureReporting: true}), electricityMeter()],
     },
     {
         zigbeeModel: ['SM324'],
