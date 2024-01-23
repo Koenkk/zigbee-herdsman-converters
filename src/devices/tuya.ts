@@ -628,6 +628,47 @@ const definitions: Definition[] = [
         ],
     },
     {
+        fingerprint: [
+            {modelID: 'TS0021', manufacturerName: '_TZ3210_3ulg9kpo'},
+            {modelID: 'TS0042', manufacturerName: '_TZ3000_kt7obmnn'},
+        ],
+        model: 'LKWSZ211',
+        vendor: 'TuYa',
+        description: 'Scene remote with 2 keys',
+        fromZigbee: [tuya.fz.datapoints, fz.ignore_basic_report],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.action([
+                'button_1_single', 'button_1_double', 'button_1_hold',
+                'button_2_single', 'button_2_double', 'button_2_hold',
+            ]),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'action',
+                    tuya.valueConverterBasic.lookup({
+                        'button_1_single': tuya.enum(0),
+                        'button_1_double': tuya.enum(1),
+                        'button_1_hold': tuya.enum(2),
+                    }),
+                ],
+                [2, 'action',
+                    tuya.valueConverterBasic.lookup({
+                        'button_2_single': tuya.enum(0),
+                        'button_2_double': tuya.enum(1),
+                        'button_2_hold': tuya.enum(2),
+                    }),
+                ],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Linkoze', 'LKWSZ211', 'Wireless switch (2-key)', ['_TZ3210_3ulg9kpo']),
+            tuya.whitelabel('Adaprox', 'LKWSZ211', 'Remote wireless switch (2-key)', ['_TZ3210_3ulg9kpo']),
+        ],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'},
