@@ -58,7 +58,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
             if (onLevel > 255) onLevel = 254;
             if (onLevel < 1) onLevel = 1;
 
-            device.endpoints[0].write('genLevelCtrl', {onLevel: onLevelRaw});
+            device.endpoints[0].write('genLevelCtrl', {onLevel: onLevel});
         }
     }
 };
