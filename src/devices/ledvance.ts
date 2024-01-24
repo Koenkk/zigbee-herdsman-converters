@@ -43,7 +43,7 @@ const definitions: Definition[] = [
         model: '4058075724587',
         vendor: 'LEDVANCE',
         description: 'Biolux HCL Panel 1200 Zigbee tunable white',
-        extend: [(0, ledvance_1.ledvanceLight)({ colorTemp: { range: [153, 370] } })],
+        extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['A60 RGBW Value II'],
