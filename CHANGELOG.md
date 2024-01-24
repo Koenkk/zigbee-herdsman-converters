@@ -1,5 +1,22 @@
 # Changelog
 
+## [18.19.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.18.0...v18.19.0) (2024-01-23)
+
+
+### Features
+
+* **add:** LKWSZ211 ([#6944](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6944)) ([bb2ffdc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bb2ffdc861ef9146159a56f625c76d0016519488))
+* **add:** TS004F_6_button, ZNQBKG38LM, ZNQBKG39LM, ZNQBKG40LM, ZNQBKG41LM ([#6945](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6945)) ([a7e3b9a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a7e3b9a28a7e017ac99cdb782414c846bb528002))
+* Support more features for LYWSD03MMC ([#6939](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6939)) ([6de8b7c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6de8b7c41efd9defffa4c17f88c69b67195d0d20))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_shkxsgis` as Zemismart TB26-4 [@willrnsantana](https://github.com/willrnsantana) https://github.com/Koenkk/zigbee2mqtt/issues/20944 ([0f01221](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f012215e9ca3944777e19ca1f60b6fde1d14471))
+* **detect:** Detect `929003574301` as Philips `915005996701` [@dimatx](https://github.com/dimatx) https://github.com/Koenkk/zigbee2mqtt/issues/20934 ([88f1469](https://github.com/Koenkk/zigbee-herdsman-converters/commit/88f1469496e39376db1d147c8c9acbee525ae20a))
+* Fix ORVIBO RL804QZB configure failing https://github.com/Koenkk/zigbee2mqtt/issues/20918 ([81d28af](https://github.com/Koenkk/zigbee-herdsman-converters/commit/81d28af9d1cc13ca6aece7c36a313e9a3ca6b921))
+* **ignore:** fix 1b14c25 ([a6e5a4e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a6e5a4e7895a390749a6a665a3f218c83c43d908))
+
 ## [18.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.17.0...v18.18.0) (2024-01-21)
 
 
