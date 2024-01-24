@@ -912,7 +912,6 @@ const definitions: Definition[] = [
             ubisysModernExtend.vacationMode(),
             ubisysModernExtend.localTemperatureOffset(),
             ubisysModernExtend.occupiedHeatingSetpointDefault(),
-            ubisysModernExtend.remoteTemperature(),
             ubisysModernExtend.remoteTemperatureDuration(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
