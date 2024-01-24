@@ -2505,7 +2505,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_4o16jdca', '_TZ3000_odzoiovu', '_TZ3000_hbic3ka3']),
+        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_4o16jdca', '_TZ3000_odzoiovu', '_TZ3000_hbic3ka3', '_TZ3000_lvhy15ix']),
         model: 'TS0003_switch_module_2',
         vendor: 'TuYa',
         description: '3 gang switch module',
@@ -2935,7 +2935,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_zah67ekd']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_zah67ekd', '_TZE200_icka1clh']),
         model: 'TS0601_cover_4',
         vendor: 'TuYa',
         description: 'Cover',
@@ -2951,7 +2951,7 @@ const definitions: Definition[] = [
             e.binary('factory_reset', ea.SET, true, false).withDescription('Factory reset the device'),
         ],
         whiteLabel: [
-            tuya.whitelabel('Moes', 'AM43-0.45/40-ES-EB', 'Roller blind/shades drive motor', ['_TZE200_zah67ekd']),
+            tuya.whitelabel('Moes', 'AM43-0.45/40-ES-EB', 'Roller blind/shades drive motor', ['_TZE200_zah67ekd', '_TZE200_icka1clh']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
