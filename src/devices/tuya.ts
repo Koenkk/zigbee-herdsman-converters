@@ -2962,12 +2962,12 @@ const definitions: Definition[] = [
         },
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverterBasic.lookup({ 'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2) })],
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.raw],
                 [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
                 [7, null, null], // work_state, not useful, ignore
-                [101, 'opening_mode', tuya.valueConverterBasic.lookup({ 'tilt': tuya.enum(0), 'lift': tuya.enum(1) })],
+                [101, 'opening_mode', tuya.valueConverterBasic.lookup({'tilt': tuya.enum(0), 'lift': tuya.enum(1)})],
                 [102, 'factory_reset', tuya.valueConverter.raw],
                 [103, 'set_upper_limit', tuya.valueConverter.setLimit],
                 [104, 'set_bottom_limit', tuya.valueConverter.setLimit],
