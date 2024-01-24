@@ -2934,7 +2934,10 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_zah67ekd']),
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_zah67ekd',
+            '_TZE200_icka1clh'
+        ]),
         model: 'TS0601_cover_4',
         vendor: 'TuYa',
         description: 'Cover',
@@ -2951,6 +2954,7 @@ const definitions: Definition[] = [
         ],
         whiteLabel: [
             tuya.whitelabel('Moes', 'AM43-0.45/40-ES-EB', 'Roller blind/shades drive motor', ['_TZE200_zah67ekd']),
+            tuya.whitelabel('Moes', 'AM43-0.45/40-ES-EB', 'Roller blind/shades drive motor', ['_TZE200_icka1clh']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
@@ -2958,12 +2962,12 @@ const definitions: Definition[] = [
         },
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [1, 'state', tuya.valueConverterBasic.lookup({ 'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2) })],
                 [2, 'position', tuya.valueConverter.coverPosition],
                 [3, 'position', tuya.valueConverter.raw],
                 [5, 'motor_direction', tuya.valueConverter.tubularMotorDirection],
                 [7, null, null], // work_state, not useful, ignore
-                [101, 'opening_mode', tuya.valueConverterBasic.lookup({'tilt': tuya.enum(0), 'lift': tuya.enum(1)})],
+                [101, 'opening_mode', tuya.valueConverterBasic.lookup({ 'tilt': tuya.enum(0), 'lift': tuya.enum(1) })],
                 [102, 'factory_reset', tuya.valueConverter.raw],
                 [103, 'set_upper_limit', tuya.valueConverter.setLimit],
                 [104, 'set_bottom_limit', tuya.valueConverter.setLimit],
