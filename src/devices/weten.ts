@@ -26,7 +26,7 @@ const definitions: Definition[] = [
         exposes: [
             e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('PC Power'),		
             e.binary('buzzer_feedback', ea.STATE_SET, 'ON', 'OFF').withDescription('ON means no buzzer noise'),
-	    e.child_lock('child_lock', 'LOCK', 'UNLOCK'),
+	    e.child_lock(),
 	    e.binary('rf_pairing', ea.STATE_SET, 'ON', 'OFF').withDescription('Enables/disables RF 433 remote pairing mode')
         ],
         meta: {
