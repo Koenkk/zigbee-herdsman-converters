@@ -2934,10 +2934,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', [
-            '_TZE200_zah67ekd',
-            '_TZE200_icka1clh',
-        ]),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_zah67ekd', '_TZE200_icka1clh']),
         model: 'TS0601_cover_4',
         vendor: 'TuYa',
         description: 'Cover',
@@ -2953,8 +2950,7 @@ const definitions: Definition[] = [
             e.binary('factory_reset', ea.SET, true, false).withDescription('Factory reset the device'),
         ],
         whiteLabel: [
-            tuya.whitelabel('Moes', 'AM43-0.45/40-ES-EB', 'Roller blind/shades drive motor', ['_TZE200_zah67ekd']),
-            tuya.whitelabel('Moes', 'AM43-0.45/40-ES-EB', 'Roller blind/shades drive motor', ['_TZE200_icka1clh']),
+            tuya.whitelabel('Moes', 'AM43-0.45/40-ES-EB', 'Roller blind/shades drive motor', ['_TZE200_zah67ekd', '_TZE200_icka1clh']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
