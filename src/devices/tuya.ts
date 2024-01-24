@@ -2936,7 +2936,7 @@ const definitions: Definition[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', [
             '_TZE200_zah67ekd',
-            '_TZE200_icka1clh'
+            '_TZE200_icka1clh',
         ]),
         model: 'TS0601_cover_4',
         vendor: 'TuYa',
