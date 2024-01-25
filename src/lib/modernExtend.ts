@@ -665,7 +665,7 @@ export function co2(args?: Partial<NumericArgs>) {
         reporting: {min: '10_SECONDS', max: '1_HOUR', change: 0.00005}, // 50 ppm change
         description: 'Measured value',
         unit: 'ppm',
-        scale: 0.0001,
+        scale: 0.000001,
         access: 'STATE_GET',
         ...args,
     });
