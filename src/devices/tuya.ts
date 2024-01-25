@@ -754,7 +754,8 @@ const definitions: Definition[] = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8ygsuhe1'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_yvx5lh6k'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ryfmq5rl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_c2fmom5z'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_c2fmom5z'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_mja3fuja'}],
         model: 'TS0601_air_quality_sensor',
         vendor: 'TuYa',
         description: 'Air quality sensor',
@@ -780,7 +781,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dwcarsat', '_TZE200_mja3fuja']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dwcarsat']),
         model: 'TS0601_smart_air_house_keeper',
         vendor: 'TuYa',
         description: 'Smart air house keeper',
