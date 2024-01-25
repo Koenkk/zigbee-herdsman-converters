@@ -1,5 +1,21 @@
 # Changelog
 
+## [18.21.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.20.0...v18.21.0) (2024-01-25)
+
+
+### Features
+
+* **add:** HMSZB-120 ([#6949](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6949)) ([cc6e06a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cc6e06afb524ba9ea20b3a0fe950354b7683530e))
+
+
+### Bug Fixes
+
+* Correct scaling on Ubisys H1 local temperature offset ([#6955](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6955)) ([12c6442](https://github.com/Koenkk/zigbee-herdsman-converters/commit/12c64427f3aa7bb02db107ee7c00283d574d44de))
+* **detect:** Detect `_TZE200_mja3fuja` as TuYa TS0601_air_quality_sensor ([#6953](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6953)) ([af703cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/af703cc8860eaaa658c1cdaf10ed23105213ec37))
+* Fix certain IKEA bulbs switching on to lowest brightness on toggle ([#6954](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6954)) ([a5c24e3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a5c24e3864b63e5b0b6cb0074938b5e5d9b43912))
+* Fix TuYa `TS0601_dimmer_2` and `TS0601_dimmer_3` not controllable from HA https://github.com/Koenkk/zigbee2mqtt/issues/19874 ([8b6891b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8b6891b96b8a58b4fda67666657150ee5222b332))
+* **ignore:** fix co2 scale https://github.com/Koenkk/zigbee-herdsman-converters/pull/6890 ([9af89a1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9af89a10eb4d7dabd68df9dfc3538b8a9f66596c))
+
 ## [18.20.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.19.0...v18.20.0) (2024-01-24)
 
 
