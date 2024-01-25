@@ -374,7 +374,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SKHMP30-I1'],
         model: 'SKHMP30-I1',
         description: 'Smart metering plug',
-        vendor: 'HEIMAN',
+        vendor: 'GS',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         toZigbee: [tz.on_off],
