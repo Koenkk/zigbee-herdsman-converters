@@ -9,10 +9,8 @@ export const ubisysModernExtend = {
         cluster: 'hvacThermostat',
         attribute: 'ubisysTemperatureOffset',
         description: 'Specifies the temperature offset for the locally measured temperature value.',
-        scale: 10,
-        valueStep: 0.5, // H1 interface uses 0.5 step
-        valueMin: -12.5,
-        valueMax: 12.5,
+        valueMin: -10,
+        valueMax: 10,
         unit: 'ºC',
         ...args,
     }),
