@@ -94,8 +94,9 @@ const intToFanMode = (value: number) => {
 
 /**
    * Convert speed string to int needed for breeze mode calculation.
-   * @param {string} speedIn speed string
-   * @return {number} low = 1, medium = 2, high = 3, off = 0
+   *
+   * @param speedIn - speed string
+   * @returns low = 1, medium = 2, high = 3, off = 0
    */
 const speedToInt = (speedIn: string): number => {
     let rtn = 0;

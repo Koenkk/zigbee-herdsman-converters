@@ -155,9 +155,6 @@ const fzLocal = {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            /**
-             * @type {{ action?: string; }}
-             */
             const payload: KeyValue = {};
             const log = utils.createLogger(meta.logger, 'xiaomi', 'aqara_fp1');
 
@@ -175,9 +172,6 @@ const fzLocal = {
                         break;
                     }
 
-                    /**
-                     * @type {[ regionId: number | string, eventTypeCode: number | string ]}
-                     */
                     const [regionIdRaw, eventTypeCodeRaw] = value;
                     // @ts-expect-error
                     const regionId = parseInt(regionIdRaw, 10);
@@ -416,18 +410,17 @@ const tzLocal = {
                 return;
             }
 
-            // @ts-expect-error
-            const command = commandWrapper.payload.command;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const command: any = commandWrapper.payload.command;
 
             log('debug', `trying to create region ${command.region_id}`);
 
-            /** @type {Record<string, Set<number>>} */
             const sortedZonesAccumulator = {};
-            const sortedZones = command.zones
+            const sortedZonesWithSets: {[s: number]: [number]} = command.zones
                 .reduce(
                     (accumulator: {[s: number]: Set<number>}, zone: {x: number, y: number}) => {
                         if (!accumulator[zone.y]) {
-                            accumulator[zone.y] = new Set();
+                            accumulator[zone.y] = new Set<number>();
                         }
 
                         accumulator[zone.y].add(zone.x);
@@ -436,6 +429,11 @@ const tzLocal = {
                     },
                     sortedZonesAccumulator,
                 );
+            const sortedZones = Object.entries(sortedZonesWithSets).reduce((acc, [key, value]) => {
+                const numKey = parseInt(key, 10); // Convert string key back to number
+                acc[numKey] = Array.from(value);
+                return acc;
+            }, {} as {[s: number]: number[]});
 
             const deviceConfig = new Uint8Array(7);
 
@@ -478,7 +476,6 @@ const tzLocal = {
                 );
                 return;
             }
-            // @ts-expect-error
             const command = commandWrapper.payload.command;
 
             log('debug', `trying to delete region ${command.region_id}`);
