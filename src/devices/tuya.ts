@@ -6835,6 +6835,8 @@ const definitions: Definition[] = [
                 [109, 'distance', tuya.valueConverter.divideBy100],
                 [110, 'presence_timeout', tuya.valueConverter.raw],
                 [104, 'illuminance_lux', tuya.valueConverter.raw],
+                [102, 'illuminance_treshold_max', tuya.valueConverter.raw],
+                [103, 'illuminance_treshold_min', tuya.valueConverter.raw],            
                 [105, 'state', tuya.valueConverterBasic.lookup({
                     'none': 0,
                     'presence': 1,
