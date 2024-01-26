@@ -303,7 +303,7 @@ export class ColorXY {
 }
 
 /**
- * Color represented in HSV space
+ * Class representing color in HSV space
  */
 class ColorHSV {
     /** hue component (0..360) */
@@ -622,16 +622,16 @@ export class Color {
     }
 }
 
-/*
+/**
  * Sync all color attributes
  * NOTE: behavior can be disable by setting the 'color_sync' device/group option
- * @param {Object} newState state with only the changed attributes set
- * @param {Object} oldState state from the cache with all the old attributes set
- * @param {Object} endpoint with lightingColorCtrl cluster
- * @param {Object} options meta.options for the device or group
- * @param {Object} logger used for logging
- * @returns {Object} state with color, color_temp, and color_mode set and synchronized from newState's attributes
- *                  (other attributes are not included make sure to merge yourself)
+ * @param newState - state with only the changed attributes set
+ * @param oldState - state from the cache with all the old attributes set
+ * @param endpoint - with lightingColorCtrl cluster
+ * @param options - meta.options for the device or group
+ * @param logger - used for logging
+ * @returns state with color, color_temp, and color_mode set and synchronized from newState's attributes
+ *          (other attributes are not included make sure to merge yourself)
  */
 export function syncColorState(
     newState: KeyValueAny, oldState: KeyValueAny, endpoint: Zh.Endpoint | Zh.Group, options: KeyValue, logger: Logger,

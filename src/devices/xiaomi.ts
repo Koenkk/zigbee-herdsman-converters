@@ -410,8 +410,7 @@ const tzLocal = {
                 return;
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const command: any = commandWrapper.payload.command;
+            const command = commandWrapper.payload.command;
 
             log('debug', `trying to create region ${command.region_id}`);
 
