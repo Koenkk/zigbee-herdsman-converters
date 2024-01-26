@@ -54,6 +54,7 @@ export interface DefinitionMeta {
     coverInverted?: boolean,
     timeout?: number,
     multiEndpointSkip?: string[],
+    // Missing
     tuyaSendCommand?: 'sendData' | 'dataRequest',
     coverStateFromTilt?: boolean,
     thermostat?: {
