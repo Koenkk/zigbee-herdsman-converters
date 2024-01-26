@@ -6842,7 +6842,7 @@ const definitions: Definition[] = [
                     'presence': 1,
                     'move': 2
                 })],
-            ],
+            ],},
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e9ajs4ft']),
