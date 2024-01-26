@@ -6803,25 +6803,25 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            exposes.Enum('state', ea.STATE, ['none', 'presence', 'move'])
+            exposes.enum('state', ea.STATE, ['none', 'presence', 'move'])
             .withDescription(''),
             e.presence().withDescription(''),
-            exposes.Numeric('distance', ea.STATE)
+            exposes.numeric('distance', ea.STATE)
             .withDescription(''),
             e.illuminance_lux(),
-            exposes.Numeric('move_sensitivity', ea.STATE_SET).withValueMin(1)
+            exposes.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1)
             .withValueMax(10)
             .withValueStep(1)
             .withDescription(''),
-            exposes.Numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1)
+            exposes.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1)
             .withValueMax(10)
             .withValueStep(1)
             .withDescription(''),
-            exposes.Numeric('radar_range', ea.STATE_SET).withValueMin(1.5)
+            exposes.numeric('radar_range', ea.STATE_SET).withValueMin(1.5)
             .withValueMax(5.5)
             .withValueStep(1)
             .withUnit('m').withDescription(''),
-            exposes.Numeric('presence_timeout', ea.STATE_SET).withValueMin(1)
+            exposes.numeric('presence_timeout', ea.STATE_SET).withValueMin(1)
             .withValueMax(1500)
             .withValueStep(1)
             .withUnit('s').withDescription(''),	],
