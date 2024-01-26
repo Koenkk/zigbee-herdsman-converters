@@ -3,11 +3,11 @@ import {temperature, humidity, co2, batteryPercentage, identify} from '../lib/mo
 
 const definitions: Definition[] = [
     {
-    zigbeeModel: ['Air Quality Sensor Nexelec'],
-    model: 'Open\'R',
-    vendor: 'Nexelec',
-    description: 'Measure CO2, Temperature and Relative Humidity',
-    extend: [temperature(), humidity(), co2(), batteryPercentage(), identify()],
+        zigbeeModel: ['Air Quality Sensor Nexelec'],
+        model: 'Open\'R',
+        vendor: 'Nexelec',
+        description: 'Measure CO2, Temperature and Relative Humidity',
+        extend: [temperature(), humidity(), co2(), batteryPercentage(), identify()],
     },
 ];
 
