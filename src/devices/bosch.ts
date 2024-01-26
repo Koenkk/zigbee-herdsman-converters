@@ -1,4 +1,4 @@
-import {onOff, quirkPendingRequestTimeout} from '../lib/modernExtend';
+import {onOff, quirkCheckinInterval} from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -99,6 +99,14 @@ const displayedTemperature = {
     'measured': 1,
 };
 
+// Smoke detector II bsd-2
+const smokeDetectorAlarmState = {
+    smoke_on: 46080,
+    smoke_off: 0,
+    intruder_on: 46081,
+    intruder_off: 1,
+};
+
 // Radiator Thermostat II
 const setpointSource = {
     'manual': 0,
@@ -153,6 +161,61 @@ Example: 30ff00000102010001`;
 
 
 const tzLocal = {
+    alarm_state: {
+        key: ['intruder_alarm_state', 'smoke_alarm_state'],
+        convertSet: async (entity, key, value: string, meta) => {
+            const dataToSend = {cluster: 'ssIasZone', command: 128, payload: {data: ''}};
+            if (key === 'smoke_alarm_state' || key==='intruder_alarm_state') {
+                let convertedValue='';
+                if (key === 'smoke_alarm_state') {
+                    if (value==='ON') {
+                        convertedValue=smokeDetectorAlarmState.smoke_on.toString();
+                    }
+                    if (value==='OFF') {
+                        convertedValue=smokeDetectorAlarmState.smoke_off.toString();
+                    }
+                }
+                if (key === 'intruder_alarm_state') {
+                    if (value==='ON') {
+                        convertedValue=smokeDetectorAlarmState.intruder_on.toString();
+                    }
+                    if (value==='OFF') {
+                        convertedValue=smokeDetectorAlarmState.intruder_off.toString();
+                    }
+                }
+                dataToSend.payload.data = convertedValue;
+            }
+
+            //
+            // the data of the payload can either be decimal:
+            // 1: this disables the intruder alarm state
+            // 46081: this enables the intruder alert siren
+            // 256: this enables the smoke test alarm siren
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.command(
+                dataToSend.cluster,
+                dataToSend.command,
+                dataToSend.payload,
+                {
+                    ...manufacturerOptions,
+                    ...utils.getOptions(meta.mapped, entity),
+                },
+            );
+            return {state: {alarm_state: dataToSend.payload.data}};
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'smoke_alarm_state':
+                await entity.read('ssIasZone', [0xf0], manufacturerOptions);
+                break;
+            case 'intruder_alarm_state':
+                await entity.read('ssIasZone', [0xf0], manufacturerOptions);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
+            }
+        },
+    } satisfies Tz.Converter,
     rbshoszbeu: {
         key: ['light_delay', 'siren_delay', 'light_duration', 'siren_duration', 'siren_volume', 'alarm_state', 'power_source', 'siren_and_light'],
         convertSet: async (entity, key, value, meta) => {
@@ -250,6 +313,7 @@ const tzLocal = {
             if (key === 'device_mode') {
                 const index = utils.getFromLookup(value, stateDeviceMode);
                 await entity.write('manuSpecificBosch10', {deviceMode: index});
+                await entity.read('manuSpecificBosch10', ['deviceMode']);
                 return {state: {device_mode: value}};
             }
             if (key === 'switch_type') {
@@ -557,6 +621,11 @@ const fzLocal = {
             const data = msg.data;
             if (data.hasOwnProperty('deviceMode')) {
                 result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data['deviceMode']);
+                const deviceMode = msg.data['deviceMode'];
+                if (deviceMode !== meta.device.meta.deviceMode) {
+                    meta.device.meta.deviceMode = deviceMode;
+                    meta.deviceExposesChanged();
+                }
             }
             if (data.hasOwnProperty('switchType')) {
                 result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data['switchType']);
@@ -875,7 +944,7 @@ const definitions: Definition[] = [
             e.binary('ac_status', ea.STATE, true, false).withDescription('Is the device plugged in'),
         ],
         extend: [
-            quirkPendingRequestTimeout(0),
+            quirkCheckinInterval(0),
         ],
     },
     {
@@ -909,14 +978,18 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Smoke alarm detector',
         fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
-        toZigbee: [],
-        meta: {},
+        toZigbee: [tzLocal.alarm_state],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 64684]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 64684]);
             await reporting.batteryPercentageRemaining(endpoint);
+            device.save();
+            await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
-        exposes: [e.smoke(), e.battery(), e.battery_low(), e.test()],
+        exposes: [e.smoke(), e.battery(), e.battery_low(), e.test(),
+            e.binary('intruder_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
+            e.binary('smoke_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
+        ],
     },
     {
         zigbeeModel: ['RFDL-ZB', 'RFDL-ZB-EU', 'RFDL-ZB-H', 'RFDL-ZB-K', 'RFDL-ZB-CHI', 'RFDL-ZB-MS', 'RFDL-ZB-ES', 'RFPR-ZB',
@@ -1303,15 +1376,6 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.on_off, fz.power_on_behavior],
         toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.on_off, tz.power_on_behavior],
         meta: {multiEndpoint: true},
-        onEvent: async (type, data, device, options) => {
-            if (type === 'start' || type === 'deviceOptionsChanged') {
-                if (options.device_mode) {
-                    const index = utils.getFromLookup(options.device_mode, stateDeviceMode);
-                    await device.getEndpoint(1).write('manuSpecificBosch10', {deviceMode: index}).catch((e) => {});
-                }
-                await device.getEndpoint(1).read('manuSpecificBosch10', ['deviceMode']).catch((e) => {});
-            }
-        },
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
         },
@@ -1330,9 +1394,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint3, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
             await reporting.onOff(endpoint3);
         },
-        options: [
-            e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode).filter((key) => key !== 'disabled'))
-                .withDescription('Device mode')],
         exposes: (device, options) => {
             const lightExposes = [
                 e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
@@ -1357,17 +1418,18 @@ const definitions: Definition[] = [
                     .withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
             ];
 
-            if (options?.device_mode ==='light') {
-                return [...lightExposes, e.linkquality()];
-            } else if (options?.device_mode ==='shutter') {
-                return [...coverExposes, e.linkquality()];
+            if (device) {
+                const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue('manuSpecificBosch10', 'deviceMode');
+                const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
+
+                if (deviceMode === 'light') {
+                    return [...lightExposes, e.linkquality()];
+                } else if (deviceMode === 'shutter') {
+                    return [...coverExposes, e.linkquality()];
+                }
             }
-
-            // Setting ea.ALL is required to pass all tests (because OnOff has convertGet())
-            coverExposes[0].setAccess('state', ea.ALL);
-
             return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'),
-                ...lightExposes, ...coverExposes, e.linkquality()];
+                e.linkquality()];
         },
     },
     {

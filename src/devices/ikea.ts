@@ -58,7 +58,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
             if (onLevel > 255) onLevel = 254;
             if (onLevel < 1) onLevel = 1;
 
-            device.endpoints[0].write('genLevelCtrl', {onLevel: onLevelRaw});
+            device.endpoints[0].write('genLevelCtrl', {onLevel: onLevel});
         }
     }
 };
@@ -1130,6 +1130,13 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true})],
     },
     {
+        zigbeeModel: ['JETSTROM 6060'],
+        model: 'L2207',
+        vendor: 'IKEA',
+        description: 'JETSTRÖM LED ceiling light panel, smart dimmable/white spectrum, 60x60 cm',
+        extend: [tradfriLight({colorTemp: true})],
+    },
+    {
         zigbeeModel: ['TRADFRIbulbPAR38WS900lm'],
         model: 'LED2006R9',
         vendor: 'IKEA',
@@ -1227,18 +1234,19 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'VALLHORN wireless motion sensor',
         fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
-        toZigbee: [],
+        toZigbee: [tz.identify],
         exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux()],
         ota: ota.tradfri,
-        configure: async (device, cordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint1, cordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint1);
-            await reporting.bind(endpoint2, cordinatorEndpoint, ['msOccupancySensing']);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msOccupancySensing']);
             await reporting.occupancy(endpoint2);
-            await reporting.bind(endpoint3, cordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint3);
         },
     },
@@ -1259,8 +1267,9 @@ const definitions: Definition[] = [
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['tradfriButton', 'genPollCtrl']);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
-            await reporting.batteryVoltage(endpoint1);
         },
     },
     {
@@ -1268,10 +1277,18 @@ const definitions: Definition[] = [
         model: 'E2013',
         vendor: 'IKEA',
         description: 'PARASOLL door/window Sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
-        toZigbee: [],
+        fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
+        toZigbee: [tz.identify],
         ota: ota.tradfri,
         exposes: [e.battery(), e.contact()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPollCtrl']);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genBasic', 'ssIasZone']);
+        },
     },
 ];
 

@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {onOff, light} from '../lib/modernExtend';
+import {onOff, light, electricityMeter, identify} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -330,6 +330,14 @@ const definitions: Definition[] = [
         description: 'Micro module switch',
         extend: [onOff({powerOnBehavior: false})],
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
+    },
+    {
+        zigbeeModel: ['CCTFR6730'],
+        model: 'CCTFR6730',
+        vendor: 'Schneider Electric',
+        description: 'Wiser power micromodule',
+        whiteLabel: [{vendor: 'Elko', model: 'EKO20004'}],
+        extend: [onOff({powerOnBehavior: true}), electricityMeter({'cluster': 'metering'}), identify()],
     },
     {
         zigbeeModel: ['NHROTARY/DIMMER/1'],

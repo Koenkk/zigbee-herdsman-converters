@@ -289,7 +289,7 @@ function sendQueryNextImageResponse(endpoint: Zh.Endpoint, image: Ota.Image, req
 }
 
 function imageNotify(endpoint: Zh.Endpoint) {
-    return endpoint.commandResponse('genOta', 'imageNotify', {payloadType: 0, queryJitter: 100}, {sendWhen: 'immediate'});
+    return endpoint.commandResponse('genOta', 'imageNotify', {payloadType: 0, queryJitter: 100}, {sendPolicy: 'immediate'});
 }
 
 async function requestOTA(endpoint: Zh.Endpoint): Promise<{payload: Ota.ImageInfo}> {
