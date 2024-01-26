@@ -7273,7 +7273,7 @@ const definitions: Definition[] = [
                 [101, 'detection_delay', tuya.valueConverter.divideBy10],
             ],
         },
-    }
+    },
 ];
 
 export default definitions;
