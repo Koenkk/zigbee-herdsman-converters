@@ -6799,31 +6799,48 @@ const definitions: Definition[] = [
         model: 'ZY-M100-24G',
         vendor: 'TuYa',
         description: '24G MmWave radar human presence motion sensor',
-        configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
         exposes: [
-            e.illuminance_lux(), e.presence(),
-            e.enum('presence_state', ea.STATE, ['none', 'present', 'moving']).withDescription('Presence state'),
-            e.numeric('target_distance', ea.STATE).withDescription('Min detection distance').withUnit('m'),
-            e.numeric('motion_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion sensitivity'),
-            e.numeric('detection_distance_max', ea.STATE_SET).withValueMin(1.5).withValueMax(5.5).withValueStep(1)
-                .withDescription('Max detection distance').withUnit('m'),
-            e.numeric('fading_time', ea.STATE_SET).withValueMin(1).withValueMax(1500).withValueStep(1).withDescription('Delay time').withUnit('s'),
-            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence sensitivity'),
-        ],
+            exposes.enum('state', ea.STATE, ['none', 'presence', 'move'])
+            .withDescription(''),
+            e.presence().withDescription(''),
+            exposes.numeric('distance', ea.STATE)
+            .withDescription(''),
+            e.illuminance_lux(),
+            exposes.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1)
+            .withValueMax(10)
+            .withValueStep(1)
+            .withDescription(''),
+            exposes.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1)
+            .withValueMax(10)
+            .withValueStep(1)
+            .withDescription(''),
+            exposes.numeric('radar_range', ea.STATE_SET).withValueMin(1.5)
+            .withValueMax(5.5)
+            .withValueStep(1)
+            .withUnit('m').withDescription(''),
+            exposes.numeric('presence_timeout', ea.STATE_SET).withValueMin(1)
+            .withValueMax(1500)
+            .withValueStep(1)
+            .withUnit('s').withDescription(''),	],
         meta: {
+            multiEndpoint: true,
             tuyaDatapoints: [
-                [104, 'illuminance_lux', tuya.valueConverter.raw],
-                [105, 'presence_state', tuya.valueConverterBasic.lookup({'none': tuya.enum(0), 'present': tuya.enum(1), 'moving': tuya.enum(2)})],
-                [106, 'motion_sensitivity', tuya.valueConverter.divideBy10],
-                [107, 'detection_distance_max', tuya.valueConverter.divideBy100],
-                [109, 'target_distance', tuya.valueConverter.divideBy100],
-                [110, 'fading_time', tuya.valueConverter.raw],
-                [111, 'presence_sensitivity', tuya.valueConverter.divideBy10],
                 [112, 'presence', tuya.valueConverter.trueFalse1],
+                [106, 'move_sensitivity', tuya.valueConverter.divideBy10],
+                [111, 'presence_sensitivity', tuya.valueConverter.divideBy10],
+                [107, 'radar_range', tuya.valueConverter.divideBy100],
+                [109, 'distance', tuya.valueConverter.divideBy100],
+                [110, 'presence_timeout', tuya.valueConverter.raw],
+                [104, 'illuminance_lux', tuya.valueConverter.raw],
+                [105, 'state', tuya.valueConverterBasic.lookup({
+                    'none': 0,
+                    'presence': 1,
+                    'move': 2
+                })],
             ],
-        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e9ajs4ft']),
