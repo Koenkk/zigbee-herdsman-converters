@@ -5042,6 +5042,9 @@ const definitions: Definition[] = [
                 [101, 'detection_delay', tuya.valueConverter.divideBy10],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('iHenso', 'TZE204_ztqnh5cg_Human_Presence_Sensor', 'Human Presence Sensor', ['_TZE204_ztqnh5cg']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0225', ['_TZE200_hl0ss9oa']),
@@ -7239,40 +7242,6 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('AVATTO', 'ZWSM16-4-Zigbee', '4 gang switch module', ['_TZ3000_5ajpkyq6']),
         ],
-    },
-    {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ztqnh5cg']),
-        model: 'TZE204_ztqnh5cg_Human_Presence_Sensor ',
-        vendor: 'iHseno',
-        description: 'Human Presence Sensor',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        exposes: [
-            e.illuminance_lux(), e.presence(),
-            e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
-            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
-                .withDescription('sensitivity of the radar'),
-            e.numeric('minimum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
-                .withDescription('Minimum range').withUnit('m'),
-            e.numeric('maximum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
-                .withDescription('Maximum range').withUnit('m'),
-            e.numeric('detection_delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1)
-                .withDescription('Detection delay').withUnit('s'),
-            e.numeric('fading_time', ea.STATE_SET).withValueMin(0.5).withValueMax(1500).withValueStep(1)
-                .withDescription('Fading time').withUnit('s'),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, 'presence', tuya.valueConverter.trueFalse1],
-                [9, 'target_distance', tuya.valueConverter.divideBy100],
-                [104, 'illuminance_lux', tuya.valueConverter.raw],
-                [2, 'radar_sensitivity', tuya.valueConverter.raw],
-                [4, 'maximum_range', tuya.valueConverter.divideBy100],
-                [3, 'minimum_range', tuya.valueConverter.divideBy100],
-                [102, 'fading_time', tuya.valueConverter.divideBy10],
-                [101, 'detection_delay', tuya.valueConverter.divideBy10],
-            ],
-        },
     },
 ];
 
