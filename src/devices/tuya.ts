@@ -7242,7 +7242,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ztqnh5cg']),
-        model: 'TS0601_Human_Presence_Sensor',
+        model: 'TZE204_ztqnh5cg_Human_Presence_Sensor ',
         vendor: 'iHseno',
         description: 'Human Presence Sensor',
         fromZigbee: [tuya.fz.datapoints],
