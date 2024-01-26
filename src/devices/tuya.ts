@@ -1210,7 +1210,8 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_3', 'Zigbee water leak sensor', ['_TYZB01_sqmd19i1']),
             tuya.whitelabel('TuYa', '899WZ', 'Water leak detector with 80DB Alarm', ['_TZ3000_mugyhz0q']),
             tuya.whitelabel('Niceboy', 'ORBIS Water Sensor', 'Water leak sensor', ['_TZ3000_awvmkayh']),
-            tuya.whitelabel('Nous', 'E4', 'Water Leakage Sensor)', ['_TZ3000_0s9gukzt']),
+            tuya.whitelabel('Nous', 'E4', 'Water Leakage Sensor', ['_TZ3000_0s9gukzt']),
+            tuya.whitelabel('Apartme', 'APRM-02-002', 'Water Leak Sensor', ['_TZ3000_kfb49x2h']),
         ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1996,6 +1997,7 @@ const definitions: Definition[] = [
             {vendor: 'BlitzWolf', model: 'BW-IS4'},
             tuya.whitelabel('TuYa', 'TS0201_1', 'Zigbee 3.0 temperature humidity sensor with display', ['_TZ3210_alxkwn0h']),
             tuya.whitelabel('TuYa', 'ZTH01/ZTH02', 'Temperature and humidity sensor', ['_TZ3000_0s1izerx']),
+            tuya.whitelabel('Apartme', 'APRM-02-004', 'Temperature and Humiditiy Sensor', ['_TZ3000_led3tz0u']),
         ],
     },
     {

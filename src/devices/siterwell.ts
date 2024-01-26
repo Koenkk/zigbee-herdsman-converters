@@ -1,5 +1,6 @@
 import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
+import * as tuya from '../lib/tuya';
 import fz from '../converters/fromZigbee';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
@@ -7,16 +8,7 @@ const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000', 'fvq6avy\u0000', 'fvq6avy', 'zk78ptr\u0000', '4yfvweb\u0000'],
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_zivfvd7h'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_kfvq6avy'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_hhrtiq0x'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ps5v5jor'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_jeaxp72v'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_owwdxjbx'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_2cs6g9i7'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_04yfvweb'}],
+        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000', 'fvq6avy\u0000', 'fvq6avy', '4yfvweb\u0000'],
         model: 'GS361A-H04',
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
@@ -28,15 +20,22 @@ const definitions: Definition[] = [
             legacy.tz.tuya_thermostat_calibration, legacy.tz.tuya_thermostat_min_temp, legacy.tz.tuya_thermostat_max_temp,
             legacy.tz.tuya_thermostat_comfort_temp, legacy.tz.tuya_thermostat_eco_temp, legacy.tz.tuya_thermostat_force,
             legacy.tz.tuya_thermostat_preset, legacy.tz.tuya_thermostat_boost_time],
-        whiteLabel: [{vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
-            {vendor: 'TuYa', description: 'Głowica termostatyczna', model: 'GTZ02'},
-            {vendor: 'Revolt', description: 'Thermostatic Radiator Valve Controller', model: 'NX-4911'},
-            {vendor: 'Unitec', description: 'Thermostatic Radiator Valve Controller', model: '30946'},
-            {vendor: 'Tesla Smart', description: 'Thermostatic Radiator Valve Controller', model: 'TSL-TRV-GS361A'},
-            {vendor: 'Nedis', description: 'Thermostatic Radiator Valve Controller', model: 'ZBHTR10WT'},
-            {vendor: 'TCP Smart', description: 'Smart Thermostatic Radiator Valve', model: 'TBUWTRV'},
-            {vendor: 'Brennenstuhl', description: 'Radiator Thermostat', model: 'HT CZ 01'},
-            {vendor: 'Appartme', description: 'Głowica termostatyczna', model: 'APRM-04-001'}],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'GTZ02', 'Głowica termostatyczna', ['_TZE200_zivfvd7h']),
+            tuya.whitelabel('Revolt', 'NX-4911','Thermostatic Radiator Valve Controller', 'NX-4911', ['_TZE200_kfvq6avy']),
+            tuya.whitelabel('Unitec', '30946', 'Thermostatic Radiator Valve Controller', ['_TZE200_ps5v5jor']),
+            tuya.whitelabel('Tesla Smart', 'TSL-TRV-GS361A', 'Thermostatic Radiator Valve Controller', ['_TZE200_owwdxjbx']),
+            tuya.whitelabel('Nedis', 'ZBHTR10WT', 'Thermostatic Radiator Valve Controller', ['_TZE200_hhrtiq0x']),
+            {
+                vendor: 'TCP Smart', 
+                description: 'Smart Thermostatic Radiator Valve', 
+                model: 'TBUWTRV', 
+                fingerprint: [{zigbeeModel: 'zk78ptr\u0000'}]
+            },
+            tuya.whitelabel('Essentials', '120112', 'Smart home heizkörperthermostat premium', ['_TZE200_jeaxp72v']),
+            tuya.whitelabel('Brennenstuhl', 'HT CZ 01', 'Radiator Thermostat', ['_TZE200_2cs6g9i7']),
+            tuya.whitelabel('Appartme', 'APRM-04-001', 'Thermostatic Head', ['_TZE200_04yfvweb']),
+        ],
         exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(),
             e.position().withDescription('TRV valve position in %.'),
             e.climate()
