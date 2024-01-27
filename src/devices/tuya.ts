@@ -6804,27 +6804,26 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.enum('state', ea.STATE, ['none', 'presence', 'move'])
-                .withDescription(''),
-            e.presence().withDescription(''),
-            e.numeric('distance', ea.STATE)
-                .withDescription(''),
-            e.illuminance_lux(),
+                .withDescription('Presence state sensor'),
+            e.presence().withDescription('Ocuppancy'),
+            e.numeric('distance', ea.STATE).withDescription('Target distance'),
+            e.illuminance_lux().withDescription('Illuminance sensor'),
             e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1)
                 .withValueMax(10)
                 .withValueStep(1)
-                .withDescription(''),
+                .withDescription('Motion sensitivity'),
             e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1)
                 .withValueMax(10)
                 .withValueStep(1)
-                .withDescription(''),
+                .withDescription('Presence sensitivity'),
             e.numeric('radar_range', ea.STATE_SET).withValueMin(1.5)
                 .withValueMax(5.5)
                 .withValueStep(1)
-                .withUnit('m').withDescription(''),
+                .withUnit('m').withDescription('Maximum range'),
             e.numeric('presence_timeout', ea.STATE_SET).withValueMin(1)
                 .withValueMax(1500)
                 .withValueStep(1)
-                .withUnit('s').withDescription(''),
+                .withUnit('s').withDescription('Fade time'),
         ],
         meta: {
             multiEndpoint: true,
