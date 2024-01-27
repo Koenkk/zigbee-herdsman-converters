@@ -6838,12 +6838,9 @@ const definitions: Definition[] = [
                 [104, 'illuminance_lux', tuya.valueConverter.raw],
                 [102, 'illuminance_treshold_max', tuya.valueConverter.raw],
                 [103, 'illuminance_treshold_min', tuya.valueConverter.raw],            
-                [105, 'state', tuya.valueConverterBasic.lookup({
-                    'none': 0,
-                    'presence': 1,
-                    'move': 2
-                })],
-            ],},
+                [105, 'state', tuya.valueConverterBasic.lookup({'none': 0, 'presence': 1, 'move': 2})],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_e9ajs4ft']),
