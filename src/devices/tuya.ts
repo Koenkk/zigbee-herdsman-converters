@@ -5042,6 +5042,9 @@ const definitions: Definition[] = [
                 [101, 'detection_delay', tuya.valueConverter.divideBy10],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('iHenso', '_TZE204_ztqnh5cg', 'Human presence sensor', ['_TZE204_ztqnh5cg']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0225', ['_TZE200_hl0ss9oa']),
