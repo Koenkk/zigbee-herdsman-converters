@@ -1748,6 +1748,8 @@ const definitions: Definition[] = [
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             e.motion_sensitivity_select(['low', 'medium', 'high'])
                 .withDescription('Select motion sensitivity to use. Press pairing button right before changing this otherwise it will fail.'),
+            e.detection_interval().withDescription('Time interval between action detection. ' +
+                'Press pairing button right before changing this otherwise it will fail.'),
             e.trigger_indicator().withDescription('When this option is enabled then ' +
                 'blue LED will blink once when motion is detected. ' +
                 'Press pairing button right before changing this otherwise it will fail.'),
