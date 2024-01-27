@@ -442,12 +442,13 @@ export function numeric(args: NumericArgs): ModernExtend {
         return expose;
     }
     // Generate for multiple endpoints only if required
-    if (endpoints && endpoints.length !== 1) {
+    const noEndpoint = !endpoints || (endpoints && endpoints.length === 1 && endpoints[0] === "1")
+    if (noEndpoint) {
+        exposes.push(createExpose(undefined))
+    } else {
         for (const endpoint of endpoints) {
             exposes.push(createExpose(endpoint))
         }
-    } else {
-        exposes.push(createExpose(undefined))
     }
 
     const fromZigbee: Fz.Converter[] = [{
@@ -486,7 +487,7 @@ export function numeric(args: NumericArgs): ModernExtend {
 
     const configure = setupConfigureForReporting(cluster, attribute, reporting, access, endpoints);
 
-    return {exposes: exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface BinaryArgs {
