@@ -1120,7 +1120,7 @@ const tuyaTz = {
             'ph_max', 'ph_min', 'ec_max', 'ec_min', 'orp_max', 'orp_min', 'free_chlorine_max', 'free_chlorine_min', 'target_distance',
             'illuminance_treshold_max', 'illuminance_treshold_min', 'presence_illuminance_switch', 'light_switch', 'light_linkage',
             'indicator_light', 'find_switch', 'detection_method', 'sensor', 'hysteresis', 'max_temperature_protection', 'display_brightness',
-            'screen_orientation', 'regulator_period', 'regulator_set_point', 'minitemp_set', 'maxtemp_set', 'minihum_set', 'maxhum_set', 'temp_unit_convert', 'temp_periodic_report', 'hum_periodic_report'
+            'screen_orientation', 'regulator_period', 'regulator_set_point', 'minitemp_set', 'maxtemp_set', 'minihum_set', 'maxhum_set', 'temp_unit_convert', 'temp_periodic_report', 'hum_periodic_report',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
