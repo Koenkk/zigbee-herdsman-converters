@@ -728,7 +728,10 @@ const definitions: Definition[] = [
         exposes: [e.occupancy(), e.battery_low()],
     },
     {
-        zigbeeModel: ['HMSZB-110'],
+        whiteLabel: [
+            {vendor: 'Frient', model: 'HMSZB-120', description: 'Temperature & humidity sensor', fingerprint: [{modelID: 'HMSZB-120'}]},
+        ],
+        zigbeeModel: ['HMSZB-110', 'HMSZB-120'],
         model: 'HMSZB-110',
         vendor: 'Develco',
         description: 'Temperature & humidity sensor',
