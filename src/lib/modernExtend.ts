@@ -76,8 +76,8 @@ export function setupConfigureForReporting(
             const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
             let entities: (Zh.Device | Zh.Endpoint)[] = [device];
             if (endpoints) {
-                const endpointsMap = new Map<string, boolean>(endpoints.map(e => [e, true]));
-                entities = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()))
+                const endpointsMap = new Map<string, boolean>(endpoints.map((e) => [e, true]));
+                entities = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
             }
 
             for (const entity of entities) {
@@ -419,7 +419,7 @@ export function numeric(args: NumericArgs): ModernExtend {
     const {
         name, cluster, attribute, description, zigbeeCommandOptions, unit, reporting, valueMin, valueMax, valueStep, scale, label,
     } = args;
-    
+
     let endpoints = args.endpoints;
     if (!endpoints && args.endpoint) {
         endpoints = [args.endpoint];
@@ -428,7 +428,7 @@ export function numeric(args: NumericArgs): ModernExtend {
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
-    let exposes: Expose[] = []
+    const exposes: Expose[] = [];
 
     const createExpose = (endpoint?: string): Expose => {
         let expose = e.numeric(name, access).withDescription(description);
@@ -440,14 +440,14 @@ export function numeric(args: NumericArgs): ModernExtend {
         if (label !== undefined) expose = expose.withLabel(label);
 
         return expose;
-    }
+    };
     // Generate for multiple endpoints only if required
-    const noEndpoint = !endpoints || (endpoints && endpoints.length === 1 && endpoints[0] === "1")
+    const noEndpoint = !endpoints || (endpoints && endpoints.length === 1 && endpoints[0] === '1');
     if (noEndpoint) {
-        exposes.push(createExpose(undefined))
+        exposes.push(createExpose(undefined));
     } else {
         for (const endpoint of endpoints) {
-            exposes.push(createExpose(endpoint))
+            exposes.push(createExpose(endpoint));
         }
     }
 
@@ -456,7 +456,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (attributeKey in msg.data) {
-                const endpoint = endpoints.find(e => getEndpointName(msg, model, meta) === e)
+                const endpoint = endpoints.find((e) => getEndpointName(msg, model, meta) === e);
                 if (endpoints && !endpoint) {
                     return;
                 }
@@ -465,7 +465,7 @@ export function numeric(args: NumericArgs): ModernExtend {
                 assertNumber(value);
                 if (scale !== undefined) value = value / scale;
 
-                const expose = exposes.length === 1 ? exposes[0] : exposes.find(e => e.endpoint === endpoint)
+                const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
                 return {[expose.property]: value};
             }
         },
