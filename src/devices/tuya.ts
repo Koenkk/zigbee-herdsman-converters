@@ -6804,27 +6804,27 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.enum('state', ea.STATE, ['none', 'presence', 'move'])
-            .withDescription(''),
+                .withDescription(''),
             e.presence().withDescription(''),
             e.numeric('distance', ea.STATE)
-            .withDescription(''),
+                .withDescription(''),
             e.illuminance_lux(),
             e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1)
-            .withValueMax(10)
-            .withValueStep(1)
-            .withDescription(''),
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription(''),
             e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1)
-            .withValueMax(10)
-            .withValueStep(1)
-            .withDescription(''),
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription(''),
             e.numeric('radar_range', ea.STATE_SET).withValueMin(1.5)
-            .withValueMax(5.5)
-            .withValueStep(1)
-            .withUnit('m').withDescription(''),
+                .withValueMax(5.5)
+                .withValueStep(1)
+                .withUnit('m').withDescription(''),
             e.numeric('presence_timeout', ea.STATE_SET).withValueMin(1)
-            .withValueMax(1500)
-            .withValueStep(1)
-            .withUnit('s').withDescription(''),	],
+                .withValueMax(1500)
+                .withValueStep(1)
+                .withUnit('s').withDescription(''),	],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
