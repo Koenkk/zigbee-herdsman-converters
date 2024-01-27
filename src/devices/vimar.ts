@@ -3,8 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import {onOff} from '../lib/modernExtend';
+import {onOff, light} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -20,16 +19,9 @@ const definitions: Definition[] = [
         model: '14595.0',
         vendor: 'Vimar',
         description: 'IoT connected dimmer mechanism 220-240V',
-        extend: extend.light_onoff_brightness({noConfigure: true, disablePowerOnBehavior: true}),
+        extend: [light({configureReporting: true, powerOnBehavior: false})],
         endpoint: (device) => {
             return {default: 11};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(11);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
         },
     },
     {

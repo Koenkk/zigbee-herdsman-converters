@@ -136,21 +136,7 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-D02-TRIAC-2C-L',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module without neutral',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint2);
-        },
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
+        extend: [light({endpoints: {l1: 1, l2: 2}, configureReporting: true})],
     },
     {
         zigbeeModel: ['Plug_01'],

@@ -272,7 +272,7 @@ export function isInRange(min: number, max: number, value: number) {
     return value >= min && value <= max;
 }
 
-export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[]) {
+export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[], errorIfNotInArray=true) {
     const clone = [...arr];
     for (let i = 0; i < oldElements.length; i++) {
         const index = clone.indexOf(oldElements[i]);
@@ -280,7 +280,9 @@ export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[]) 
         if (index !== -1) {
             clone[index] = newElements[i];
         } else {
-            throw new Error('Element not in array');
+            if (errorIfNotInArray) {
+                throw new Error('Element not in array');
+            }
         }
     }
 
