@@ -5043,7 +5043,7 @@ const definitions: Definition[] = [
             ],
         },
         whiteLabel: [
-            tuya.whitelabel('iHenso', 'TZE204_ztqnh5cg_Human_Presence_Sensor', 'Human Presence Sensor', ['_TZE204_ztqnh5cg']),
+            tuya.whitelabel('iHenso', '_TZE204_ztqnh5cg', 'Human presence sensor', ['_TZE204_ztqnh5cg']),
         ],
     },
     {
