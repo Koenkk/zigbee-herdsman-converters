@@ -6824,7 +6824,8 @@ const definitions: Definition[] = [
             e.numeric('presence_timeout', ea.STATE_SET).withValueMin(1)
                 .withValueMax(1500)
                 .withValueStep(1)
-                .withUnit('s').withDescription(''),	],
+                .withUnit('s').withDescription(''),
+        ],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
