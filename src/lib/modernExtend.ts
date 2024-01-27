@@ -67,15 +67,22 @@ async function setupAttributes(
 
 export function setupConfigureForReporting(
     cluster: string | number, attribute: ReportingConfigAttribute, config: ReportingConfigWithoutAttribute, access: Access,
-    endpointID?: number,
+    endpoints?: string[],
 ) {
     const configureReporting = !!config;
     const read = !!(access & ea.GET);
     if (configureReporting || read) {
         const configure: Configure = async (device, coordinatorEndpoint, logger) => {
             const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
-            const deviceOrEndpoint = endpointID ? device.endpoints.find((e) => e.ID === endpointID) : device;
-            await setupAttributes(deviceOrEndpoint, coordinatorEndpoint, cluster, [reportConfig], logger, configureReporting, read);
+            let entities: (Zh.Device | Zh.Endpoint)[] = [device];
+            if (endpoints) {
+                const endpointsMap = new Map<string, boolean>(endpoints.map(e => [e, true]));
+                entities = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()))
+            }
+
+            for (const entity of entities) {
+                await setupAttributes(entity, coordinatorEndpoint, cluster, [reportConfig], logger, configureReporting, read);
+            }
         };
         return configure;
     } else {
@@ -405,39 +412,59 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
-    endpoint?: string, endpointID?: number, reporting?: ReportingConfigWithoutAttribute,
+    endpoint?: string, endpoints?: string[], reporting?: ReportingConfigWithoutAttribute,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number, label?: string,
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
         name, cluster, attribute, description, zigbeeCommandOptions, unit, reporting, valueMin, valueMax, valueStep, scale, label,
     } = args;
-    let endpoint = args.endpoint;
-    if (args.endpointID) {
-        endpoint = args.endpointID.toString();
+    
+    let endpoints = args.endpoints;
+    if (!endpoints && args.endpoint) {
+        endpoints = [args.endpoint];
     }
-
-    const endpointID = args.endpointID || undefined;
 
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
-    let expose = e.numeric(name, access).withDescription(description);
-    if (endpoint) expose = expose.withEndpoint(endpoint);
-    if (unit) expose = expose.withUnit(unit);
-    if (valueMin !== undefined) expose = expose.withValueMin(valueMin);
-    if (valueMax !== undefined) expose = expose.withValueMax(valueMax);
-    if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
-    if (label !== undefined) expose = expose.withLabel(label);
+    let exposes: Expose[] = []
+
+    const createExpose = (endpoint?: string): Expose => {
+        let expose = e.numeric(name, access).withDescription(description);
+        if (endpoint) expose = expose.withEndpoint(endpoint);
+        if (unit) expose = expose.withUnit(unit);
+        if (valueMin !== undefined) expose = expose.withValueMin(valueMin);
+        if (valueMax !== undefined) expose = expose.withValueMax(valueMax);
+        if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
+        if (label !== undefined) expose = expose.withLabel(label);
+
+        return expose;
+    }
+    // Generate for multiple endpoints only if required
+    if (endpoints && endpoints.length !== 1) {
+        for (const endpoint of endpoints) {
+            exposes.push(createExpose(endpoint))
+        }
+    } else {
+        exposes.push(createExpose(undefined))
+    }
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (attributeKey in msg.data && (!endpoint || getEndpointName(msg, model, meta) === endpoint)) {
+            if (attributeKey in msg.data) {
+                const endpoint = endpoints.find(e => getEndpointName(msg, model, meta) === e)
+                if (endpoints && !endpoint) {
+                    return;
+                }
+
                 let value = msg.data[attributeKey];
                 assertNumber(value);
                 if (scale !== undefined) value = value / scale;
+
+                const expose = exposes.length === 1 ? exposes[0] : exposes.find(e => e.endpoint === endpoint)
                 return {[expose.property]: value};
             }
         },
@@ -457,9 +484,9 @@ export function numeric(args: NumericArgs): ModernExtend {
         } : undefined,
     }];
 
-    const configure = setupConfigureForReporting(cluster, attribute, reporting, access, endpointID);
+    const configure = setupConfigureForReporting(cluster, attribute, reporting, access, endpoints);
 
-    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {exposes: exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface BinaryArgs {

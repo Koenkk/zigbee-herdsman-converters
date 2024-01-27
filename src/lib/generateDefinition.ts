@@ -4,10 +4,10 @@ import {getClusterAttributeValue} from './utils';
 import * as m from './modernExtend';
 import * as zh from 'zigbee-herdsman/dist';
 import {philipsLight} from './philips';
-import {Device} from 'zigbee-herdsman/dist/controller/model';
+import {Device, Endpoint} from 'zigbee-herdsman/dist/controller/model';
 
 interface GeneratedExtend {extend?: ModernExtend, extendFn?: (a: object) => ModernExtend, args?: object, source: string, lib?: string}
-type ExtendGenerator = (endpoint: Zh.Endpoint) => Promise<GeneratedExtend[]>;
+type ExtendGenerator = (endpoints?: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
 type Extender = [string[], ExtendGenerator];
 
 function generateSource(zigbeeModel: string, definition: Definition, generatedExtend: GeneratedExtend[]): string {
@@ -57,33 +57,63 @@ module.exports = definition;`;
 }
 
 export async function generateDefinition(device: Zh.Device): Promise<{externalDefinitionSource: string, definition: Definition}> {
-    const generatedExtend: GeneratedExtend[] = [];
-
-    for (const endpoint of device.endpoints) {
-        const usedExtenders: Extender[] = [];
-        const addExtenders = async (cluster: Cluster, extenders: Extender[]) => {
-            const extender = extenders.find((e) => e[0].includes(cluster.name));
-            if (extender && !usedExtenders.includes(extender)) {
-                usedExtenders.push(extender);
-                generatedExtend.push(...(await extender[1](endpoint)));
+    // Map cluster to all endpoints that have this cluster.
+    const mapClusters = (endpoint: Endpoint, clusters: Cluster[], clusterMap: Map<string, Endpoint[]>) => {
+        for (const cluster of clusters) {
+            if (!clusterMap.has(cluster.name)) {
+                clusterMap.set(cluster.name, []);
             }
-        };
 
-        for (const cluster of endpoint.getInputClusters()) {
-            await addExtenders(cluster, inputExtenders);
-        }
-
-        for (const cluster of endpoint.getOutputClusters()) {
-            await addExtenders(cluster, outputExtenders);
+            const endpointsWithCluster = clusterMap.get(cluster.name);
+            endpointsWithCluster.push(endpoint);
         }
     }
 
+    const knownInputClusters = inputExtenders.map(ext => ext[0]).flat(1)
+    const knownOutputClusters = outputExtenders.map(ext => ext[0]).flat(1)
+
+    const inputClusterMap = new Map<string, Endpoint[]>();
+    const outputClusterMap = new Map<string, Endpoint[]>();
+    
+    for (const endpoint of device.endpoints) {
+        // Filter clusters to leave only the ones that we can generate extenders for.
+        const inputClusters = endpoint.getInputClusters().filter(c => knownInputClusters.find(known => known === c.name))
+        const outputClusters = endpoint.getOutputClusters().filter(c => knownOutputClusters.find(known => known === c.name))
+
+        mapClusters(endpoint, inputClusters, inputClusterMap);
+        mapClusters(endpoint, outputClusters, outputClusterMap);
+    }
+    // Generate extenders
+    const usedExtenders: Extender[] = [];
+    const generatedExtend: GeneratedExtend[] = [];
+    const addGenerators = async (clusterName: string, endpoints: Zh.Endpoint[], extenders: Extender[]) => {
+        const extender = extenders.find((e) => e[0].includes(clusterName));
+        if (!extender || usedExtenders.includes(extender)) {
+            return;
+        }
+        usedExtenders.push(extender);
+        generatedExtend.push(...(await extender[1](endpoints)));
+    }
+
+    for (const [cluster, endpoints] of inputClusterMap) {
+        await addGenerators(cluster, endpoints, inputExtenders)
+    }
+
+    for (const [cluster, endpoints] of outputClusterMap) {
+        await addGenerators(cluster, endpoints, outputExtenders)
+    }
+
+    const extenders = generatedExtend.map((e) => e.extend || e.extendFn(e.args))
+    // Generated definition below will provide this.
+    extenders.forEach(extender => {
+        extender.endpoint = undefined
+    })
     const definition: Definition = {
         zigbeeModel: [device.modelID],
         model: device.modelID ?? '',
         vendor: device.manufacturerName ?? '',
         description: 'Automatically generated definition',
-        extend: generatedExtend.map((e) => e.extend || e.extendFn(e.args)),
+        extend: extenders,
         generated: true,
         endpoint: (d: Device): {[e: string]: number} => {
             return d && d.endpoints ? d.endpoints.reduce<{[s: string]: number}>(
@@ -95,7 +125,8 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         },
     };
 
-    if (device.endpoints.length > 1) {
+    if (Array.from(inputClusterMap.values()).some(e => e.length > 1) ||
+        Array.from(outputClusterMap.values()).some(e => e.length > 1)) {
         definition.meta = {multiEndpoint: true};
     }
 
@@ -104,27 +135,44 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
 }
 
 const inputExtenders: Extender[] = [
-    [['msTemperatureMeasurement'], async (endpoint) => [{extendFn: m.temperature, args: {endpointID: endpoint.ID}, source: 'temperature'}]],
-    [['msPressureMeasurement'], async (endpoint) => [{extendFn: m.pressure, args: {endpointID: endpoint.ID}, source: 'pressure'}]],
-    [['msRelativeHumidity'], async (endpoint) => [{extendFn: m.humidity, args: {endpointID: endpoint.ID}, source: 'humidity'}]],
-    [['msCO2'], async (endpoint) => [{extendFn: m.co2, args: {endpointID: endpoint.ID}, source: 'co2'}]],
-    [['genPowerCfg'], async (endpoint) => [{extendFn: m.batteryPercentage, source: 'batteryPercentage'}]],
+    [['msTemperatureMeasurement'], async (endpoints) => [{extendFn: m.temperature, args: {endpoints: endpoints.map(e => e.ID.toString())}, source: 'temperature'}]],
+    [['msPressureMeasurement'], async (endpoints) => [{extendFn: m.pressure, args: {endpoints: endpoints.map(e => e.ID.toString())}, source: 'pressure'}]],
+    [['msRelativeHumidity'], async (endpoints) => [{extendFn: m.humidity, args: {endpoints: endpoints.map(e => e.ID.toString())}, source: 'humidity'}]],
+    [['msCO2'], async (endpoints) => [{extendFn: m.co2, args: {endpoints: endpoints.map(e => e.ID.toString())}, source: 'co2'}]],
+    [['genPowerCfg'], async () => [{extendFn: m.batteryPercentage, source: 'batteryPercentage'}]],
     [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],
     [['closuresDoorLock'], extenderLock],
 ];
 
 const outputExtenders: Extender[] = [
-    [['genIdentify'], async (endpoint) => [{extend: m.identify(), source: 'identify()'}]],
+    [['genIdentify'], async () => [{extend: m.identify(), source: 'identify()'}]],
 ];
 
-async function extenderLock(endpoint: Zh.Endpoint): Promise<GeneratedExtend[]> {
+async function extenderLock(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    // TODO: Support multiple endpoints
+    const endpoint = endpoints[0];
+
     const pinCodeCount = await getClusterAttributeValue<number>(endpoint, 'closuresDoorLock', 'numOfPinUsersSupported', 50);
     return [{extend: m.lock({pinCodeCount}), source: `lock({pinCodeCount: ${pinCodeCount}})`}];
+
 }
 
-async function extenderOnOffLight(endpoint: Zh.Endpoint): Promise<GeneratedExtend[]> {
-    if (endpoint.supportsInputCluster('lightingColorCtrl')) {
+async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    const generated: GeneratedExtend[] = [];
+
+    const lightEndpoints = endpoints.filter(e => e.supportsInputCluster('lightingColorCtrl'))
+    const onOffEndpoints = endpoints.filter(e => lightEndpoints.findIndex(ep => e.ID === ep.ID) === -1)
+
+    if (onOffEndpoints.length !== 0) {
+        const endpoints = onOffEndpoints.length > 1 ? onOffEndpoints.reduce((prev, curr) => {
+            prev[curr.ID.toString()] = curr.ID;
+            return prev;
+        }, {} as Record<string, number>) : undefined;
+        generated.push({extendFn: m.onOff, args: {powerOnBehavior: false, endpoints}, source: 'onOff'});
+    }
+
+    for (const endpoint of lightEndpoints) {
         // In case read fails, support all features with 31
         const colorCapabilities = await getClusterAttributeValue<number>(endpoint, 'lightingColorCtrl', 'colorCapabilities', 31);
         const supportsHueSaturation = (colorCapabilities & 1<<0) > 0;
@@ -149,16 +197,19 @@ async function extenderOnOffLight(endpoint: Zh.Endpoint): Promise<GeneratedExten
         }
 
         if (endpoint.getDevice().manufacturerID === zh.Zcl.ManufacturerCode.Philips) {
-            return [{extendFn: philipsLight, args, source: `philipsLight`, lib: 'philips'}];
+            generated.push({extendFn: philipsLight, args, source: `philipsLight`, lib: 'philips'});
         } else {
-            return [{extendFn: m.light, args, source: `light`}];
+            generated.push({extendFn: m.light, args, source: `light`});
         }
-    } else {
-        return [{extendFn: m.onOff, args: {powerOnBehavior: false}, source: 'onOff'}];
     }
+
+    return generated;
 }
 
-async function extenderElectricityMeter(endpoint: Zh.Endpoint): Promise<GeneratedExtend[]> {
+async function extenderElectricityMeter(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    // TODO: Support multiple endpoints
+    const endpoint = endpoints[0];
+
     const metering = endpoint.supportsInputCluster('seMetering');
     const electricalMeasurements = endpoint.supportsInputCluster('haElectricalMeasurement');
     const args: m.ElectricityMeterArgs = {};

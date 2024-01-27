@@ -11,7 +11,7 @@ const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalD
     const definition = await getDefinition(args.device)
     expect(definition.model).toEqual(args.device.modelID);
     if (args.externalDefintionSource) {
-        expect(args.externalDefintionSource.trim()).toEqual((await generateExternalDefinitionSource(args.device)).trim());
+        expect((await generateExternalDefinitionSource(args.device)).trim()).toEqual(args.externalDefintionSource.trim());
     }
     return await assertDefintion({findByDeviceFn: getDefinition, ...args})
 }
@@ -107,7 +107,7 @@ const definition = {
     model: 'combo',
     vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [temperature({"endpointID":1}), onOff({"powerOnBehavior":false})],
+    extend: [temperature({"endpoints":["1"]}), onOff({"powerOnBehavior":false})],
     meta: {},
 };
 
@@ -123,8 +123,8 @@ module.exports = definition;
                 {ID: 2, inputClusters: ['msTemperatureMeasurement'], outputClusters: []},
             ]}),
             meta: {multiEndpoint: true},
-            fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off, expect.objectContaining({cluster: 'msTemperatureMeasurement'})],
-            toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time', 'temperature'],
+            fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
+            toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
             exposes: ['linkquality', 'switch(state)', 'temperature', 'temperature'],
             bind: {1: ['msTemperatureMeasurement', 'genOnOff'], 2: ['msTemperatureMeasurement']},
             read: {
@@ -153,7 +153,7 @@ const definition = {
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [temperature({"endpointID":1}), onOff({"powerOnBehavior":false}), temperature({"endpointID":2})],
+    extend: [temperature({"endpoints":["1","2"]}), onOff({"powerOnBehavior":false})],
     meta: {"multiEndpoint":true},
 };
 
