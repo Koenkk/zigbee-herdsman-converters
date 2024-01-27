@@ -1,5 +1,21 @@
 # Changelog
 
+## [18.22.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.21.0...v18.22.0) (2024-01-27)
+
+
+### Features
+
+* **add:** Open\'R ([#6890](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6890)) ([a95f998](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a95f998d1050d70e74cdeb49508e1225abc67bc3))
+* Support electricity metering for SKHMP30-I1 ([#6958](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6958)) ([30fcec8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30fcec89fb6b591a525c933dc3252cc808d6acec))
+
+
+### Bug Fixes
+
+* Add back `detect_interval` to Aqara RTCGQ14LM ([#6964](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6964)) ([0b1176f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0b1176fba5ba3813efc5173bfb5ed27ee818d9d2))
+* **detect:** Detect `_TZ3000_dlhhrhs8` as TuYa QS-zigbee-S08-16A-RF  https://github.com/Koenkk/zigbee2mqtt/issues/20964 ([b8f3c91](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b8f3c913c47feda18c47e3b16f5a22192d10756c))
+* **detect:** Detect `_TZE204_ztqnh5cg` as iHenso _TZE204_ztqnh5cg ([#6960](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6960)) ([0b789e2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0b789e2165b877063d74be8b307d4e4cd95e245a))
+* **ignore:** Refactor more lights to modernExtend ([#6782](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6782)) ([e8affe5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8affe51a841563097c9803fa4e2133be1cc3f6f))
+
 ## [18.21.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.20.0...v18.21.0) (2024-01-25)
 
 
