@@ -34,7 +34,7 @@ describe('lib/lumi', () => {
         });
 
         describe(trv.decodeHeartbeat, () => {
-            // Samples copied from the debug logs, e.g., Received Zigbee message from 'Thermostat1', type 'attributeReport', cluster 'aqaraOpple', data '{"247":{"data":[3,40,28,...
+            // Samples copied from the debug logs, e.g., Received Zigbee message from 'Thermostat1', type 'attributeReport', cluster 'manuSpecificLumi', data '{"247":{"data":[3,40,28,...
             const heartbeatSetup = Buffer.from([3, 40, 28, 5, 33, 3, 0, 10, 33, 18, 126, 13, 35, 25, 9, 0, 0, 17, 35, 1, 0, 0, 0, 101, 32, 3, 102, 41, 156, 9, 103, 41, 96, 9, 104, 35, 0, 0, 0, 0, 105, 32, 100, 106, 32, 0]);
             const heartbeatNormalOperation = Buffer.from([3, 40, 23, 5, 33, 4, 0, 10, 33, 7, 15, 13, 35, 25, 8, 0, 0, 17, 35, 1, 0, 0, 0, 101, 32, 0, 102, 41, 118, 7, 103, 41, 108, 7, 104, 35, 0, 0, 0, 0, 105, 32, 99, 106, 32, 0]);
             const heartbeatValveAlarm = Buffer.from([3, 40, 22, 5, 33, 4, 0, 10, 33, 7, 15, 13, 35, 25, 8, 0, 0, 17, 35, 1, 0, 0, 0, 101, 32, 0, 102, 41, 98, 7, 103, 41, 244, 1, 104, 35, 1, 0, 0, 0, 105, 32, 96, 106, 32, 0]);

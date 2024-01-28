@@ -1273,7 +1273,7 @@ export const lumiModernExtend = {
     lumiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x000a, type: 0x20},
         description: 'External switch type',
         zigbeeCommandOptions: {manufacturerCode},
@@ -1282,7 +1282,7 @@ export const lumiModernExtend = {
     lumiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'power_on_behavior',
         lookup: {'on': 0, 'previous': 1, 'off': 2},
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0517, type: 0x20},
         description: 'Controls the behavior when the device is powered on after power loss',
         zigbeeCommandOptions: {manufacturerCode},
@@ -1291,7 +1291,7 @@ export const lumiModernExtend = {
     lumiOperationMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'operation_mode',
         lookup: {'decoupled': 0, 'control_relay': 1},
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0200, type: 0x20},
         description: 'Decoupled mode for relay',
         zigbeeCommandOptions: {manufacturerCode},
@@ -1316,7 +1316,7 @@ export const lumiModernExtend = {
     aqaraAirQuality: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'air_quality',
         lookup: {'excellent': 1, 'good': 2, 'moderate': 3, 'poor': 4, 'unhealthy': 5, 'unknown': 0},
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: 'airQuality',
         zigbeeCommandOptions: {disableDefaultResponse: true},
         description: 'Measured air quality',
@@ -1331,7 +1331,7 @@ export const lumiModernExtend = {
             'mgm3_fahrenheit': 0x10, // mg/m³, °F
             'ppb_fahrenheit': 0x11, // ppb, °F
         },
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: 'displayUnit',
         zigbeeCommandOptions: {disableDefaultResponse: true},
         description: 'Units to show on the display',
@@ -1339,13 +1339,13 @@ export const lumiModernExtend = {
     }),
     lumiOutageCountRestoreBindReporting: (): ModernExtend => {
         const fromZigbee: Fz.Converter[] = [{
-            cluster: 'aqaraOpple',
+            cluster: 'manuSpecificLumi',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 // At least the Aqara TVOC sensor does not send a deviceAnnounce after comming back online.
                 // The reconfigureReportingsOnDeviceAnnounce modernExtend is not usable because of this,
                 //  there is however an outage counter published in the 'special' buffer  data reported
-                //  under the aqaraOpple cluster as attribute 247, we simple decode and grab value with ID 5.
+                //  under the manuSpecificLumi cluster as attribute 247, we simple decode and grab value with ID 5.
                 // Normal attribute publishing and decoding will be left to the classic fromZigbee or modernExtends.
                 if (msg.data.hasOwnProperty('247')) {
                     const dataDecoded = buffer2DataObject(meta, model, msg.data['247']);
@@ -1412,7 +1412,7 @@ export const lumiModernExtend = {
             e.device_temperature(),
         ];
         const fromZigbee: Fz.Converter[] = [{
-            cluster: 'aqaraOpple',
+            cluster: 'manuSpecificLumi',
             type: ['attributeReport', 'readResponse'],
             convert: async (model, msg, publish, options, meta) => {
                 return await numericAttributes2Payload(msg, meta, model, options, msg.data);
@@ -1423,7 +1423,7 @@ export const lumiModernExtend = {
     },
     lumiOverloadProtection: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
         name: 'overload_protection',
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x020b, type: 0x39},
         description: 'Maximum allowed load, turns off if exceeded',
         valueMin: 100,
@@ -1435,7 +1435,7 @@ export const lumiModernExtend = {
     }),
     lumiLedIndicator: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
         name: 'led_indicator',
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0203, type: 0x10},
         valueOn: ['ON', 1],
         valueOff: ['OFF', 0],
@@ -1446,7 +1446,7 @@ export const lumiModernExtend = {
     }),
     lumiButtonLock: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
         name: 'button_lock',
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0200, type: 0x20},
         valueOn: ['ON', 0],
         valueOff: ['OFF', 1],
@@ -1476,7 +1476,7 @@ const feederDaysLookup = {
 
 export const fromZigbee = {
     aqara_feeder: {
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
@@ -1586,7 +1586,7 @@ export const fromZigbee = {
         },
     } satisfies Fz.Converter,
     aqara_opple: {
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
             return await numericAttributes2Payload(msg, meta, model, options, msg.data);
@@ -1622,7 +1622,7 @@ export const toZigbee = {
                     // @ts-expect-error
                     v = value;
                 }
-                await entity.write('aqaraOpple', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
+                await entity.write('manuSpecificLumi', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
                     {manufacturerCode: 0x115f});
             };
             switch (key) {

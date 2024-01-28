@@ -2154,17 +2154,17 @@ const converters2 = {
             const lookup = {'low': 1, 'medium': 2, 'high': 3};
             utils.assertString(value, key);
             value = value.toLowerCase();
-            await entity.write('aqaraOpple', {0x010c: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x010c: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {motion_sensitivity: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x010c], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x010c], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     RTCZCGQ11LM_presence: {
         key: ['presence'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0142], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0142], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     RTCZCGQ11LM_monitoring_mode: {
@@ -2173,11 +2173,11 @@ const converters2 = {
             utils.assertString(value, key);
             value = value.toLowerCase();
             const lookup = {'undirected': 0, 'left_right': 1};
-            await entity.write('aqaraOpple', {0x0144: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0144: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {monitoring_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0144], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0144], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     RTCZCGQ11LM_approach_distance: {
@@ -2186,17 +2186,17 @@ const converters2 = {
             utils.assertString(value, key);
             value = value.toLowerCase();
             const lookup = {'far': 0, 'medium': 1, 'near': 2};
-            await entity.write('aqaraOpple', {0x0146: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0146: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {approach_distance: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0146], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0146], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     RTCZCGQ11LM_reset_nopresence_status: {
         key: ['reset_nopresence_status'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple', {0x0157: {value: 1, type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0157: {value: 1, type: 0x20}}, manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     ZigUP_lock: {
@@ -2221,11 +2221,11 @@ const converters2 = {
             const lookup = {'toggle': 1, 'momentary': 2};
             utils.assertString(value, key);
             value = value.toLowerCase();
-            await entity.write('aqaraOpple', {0x000A: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x000A: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {switch_type: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x000A], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x000A], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_switch_power_outage_memory: {
@@ -2238,7 +2238,7 @@ const converters2 = {
                 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
                 'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
             ].includes(meta.mapped.model)) {
-                await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'LLKZMK11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
                     [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x07, 0x01, 0x10, 0x01], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x08, 0x01]] :
@@ -2265,9 +2265,9 @@ const converters2 = {
                 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
                 'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
             ].includes(meta.mapped.model)) {
-                await entity.read('aqaraOpple', [0x0201]);
+                await entity.read('manuSpecificLumi', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM', 'ZNCZ12LM'].includes(meta.mapped.model)) {
-                await entity.read('aqaraOpple', [0xFFF0]);
+                await entity.read('manuSpecificLumi', [0xFFF0]);
             } else {
                 throw new Error('Not supported');
             }
@@ -2292,7 +2292,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['ZNCZ04LM', 'ZNCZ12LM', 'SP-EUC01'].includes(meta.mapped.model)) {
-                await entity.write('aqaraOpple', {0x0202: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0202: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
                     [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x00, 0x02, 0x10, 0x01] :
@@ -2307,7 +2307,7 @@ const converters2 = {
         convertGet: async (entity, key, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['ZNCZ04LM', 'ZNCZ12LM', 'SP-EUC01'].includes(meta.mapped.model)) {
-                await entity.read('aqaraOpple', [0x0202], manufacturerOptions.lumi);
+                await entity.read('manuSpecificLumi', [0x0202], manufacturerOptions.lumi);
             } else {
                 throw new Error('Not supported');
             }
@@ -2318,11 +2318,11 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             value *= 1;
-            await entity.write('aqaraOpple', {0x0000: {value: [value], type: 0x21}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0000: {value: [value], type: 0x21}}, manufacturerOptions.lumi);
             return {state: {detection_period: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0000], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0000], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     aqara_detection_interval: {
@@ -2330,11 +2330,11 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             value *= 1;
-            await entity.write('aqaraOpple', {0x0102: {value: [value], type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0102: {value: [value], type: 0x20}}, manufacturerOptions.lumi);
             return {state: {detection_interval: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0102], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0102], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_overload_protection: {
@@ -2342,44 +2342,44 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             value *= 1;
-            await entity.write('aqaraOpple', {0x020b: {value: [value], type: 0x39}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x020b: {value: [value], type: 0x39}}, manufacturerOptions.lumi);
             return {state: {overload_protection: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x020b], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x020b], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     aqara_switch_mode_switch: {
         key: ['mode_switch'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'anti_flicker_mode': 4, 'quick_mode': 1};
-            await entity.write('aqaraOpple', {0x0004: {value: utils.getFromLookup(value, lookup), type: 0x21}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0004: {value: utils.getFromLookup(value, lookup), type: 0x21}}, manufacturerOptions.lumi);
             return {state: {mode_switch: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0004], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0004], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_button_switch_mode: {
         key: ['button_switch_mode'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'relay': 0, 'relay_and_usb': 1};
-            await entity.write('aqaraOpple', {0x0226: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0226: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {button_switch_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0226], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0226], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_socket_button_lock: {
         key: ['button_lock'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'ON': 0, 'OFF': 1};
-            await entity.write('aqaraOpple', {0x0200: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0200: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {button_lock: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0200], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0200], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_led_disabled_night: {
@@ -2389,7 +2389,7 @@ const converters2 = {
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
                 'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
-                await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
                     [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x00, 0x03, 0x10, 0x00] :
@@ -2406,7 +2406,7 @@ const converters2 = {
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
                 'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
-                await entity.read('aqaraOpple', [0x0203], manufacturerOptions.lumi);
+                await entity.read('manuSpecificLumi', [0x0203], manufacturerOptions.lumi);
             } else {
                 throw new Error('Not supported');
             }
@@ -2416,11 +2416,11 @@ const converters2 = {
         key: ['flip_indicator_light'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'OFF': 0, 'ON': 1};
-            await entity.write('aqaraOpple', {0x00F0: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x00F0: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {flip_indicator_light: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x00F0], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x00F0], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_dimmer_mode: {
@@ -2431,17 +2431,17 @@ const converters2 = {
             value = value.toLowerCase();
             // @ts-expect-error
             if (['rgbw'].includes(value)) {
-                await entity.write('aqaraOpple', {0x0509: {value: utils.getFromLookup(value, lookup), type: 0x23}}, manufacturerOptions.lumi);
-                await entity.write('aqaraOpple', {0x050F: {value: 1, type: 0x23}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0509: {value: utils.getFromLookup(value, lookup), type: 0x23}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x050F: {value: 1, type: 0x23}}, manufacturerOptions.lumi);
             } else {
-                await entity.write('aqaraOpple', {0x0509: {value: utils.getFromLookup(value, lookup), type: 0x23}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0509: {value: utils.getFromLookup(value, lookup), type: 0x23}}, manufacturerOptions.lumi);
                 // Turn on dimming channel 1 and channel 2
-                await entity.write('aqaraOpple', {0x050F: {value: 3, type: 0x23}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x050F: {value: 3, type: 0x23}}, manufacturerOptions.lumi);
             }
             return {state: {dimmer_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0509], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0509], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_switch_operation_mode_basic: {
@@ -2500,19 +2500,19 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
             const targetValue = utils.isObject(value) && value.hasOwnProperty('state') ? value.state : value;
-            // Switches using aqaraOpple 0x0200 on the same endpoints as the onOff clusters.
+            // Switches using manuSpecificLumi 0x0200 on the same endpoints as the onOff clusters.
             const lookupState = {control_relay: 0x01, decoupled: 0x00};
-            await entity.write('aqaraOpple', {0x0200:
+            await entity.write('manuSpecificLumi', {0x0200:
                 {value: utils.getFromLookup(targetValue, lookupState), type: 0x20}}, manufacturerOptions.lumi);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0200], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0200], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_switch_do_not_disturb: {
         key: ['do_not_disturb'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
             return {state: {do_not_disturb: value}};
         },
     } satisfies Tz.Converter,
@@ -2634,7 +2634,7 @@ const converters2 = {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             switch (meta.mapped.model) {
             case 'ZNCLBL01LM':
-                await entity.read('aqaraOpple', [0x040B], manufacturerOptions.lumi);
+                await entity.read('manuSpecificLumi', [0x040B], manufacturerOptions.lumi);
                 break;
             default:
                 throw new Error(`lumi_curtain_battery_voltage - unsupported model: ${meta.mapped.model}`);
@@ -2644,13 +2644,13 @@ const converters2 = {
     lumi_curtain_acn002_charging_status: {
         key: ['charging_status'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0409], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0409], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_curtain_acn002_battery: {
         key: ['battery'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x040a], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x040a], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     SPZ01_power_outage_memory: {
@@ -2722,13 +2722,13 @@ const converters2 = {
     aqara_alarm: {
         key: ['gas', 'smoke'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x013a], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x013a], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     aqara_density: {
         key: ['gas_density', 'smoke_density', 'smoke_density_dbm'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x013b], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x013b], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     JTBZ01AQA_gas_sensitivity: {
@@ -2737,17 +2737,17 @@ const converters2 = {
             utils.assertString(value, key);
             value = value.toUpperCase();
             const lookup = {'15%LEL': 1, '10%LEL': 2};
-            await entity.write('aqaraOpple', {0x010c: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x010c: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {gas_sensitivity: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x010c], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x010c], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     aqara_selftest: {
         key: ['selftest'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumiicLumi', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     aqara_buzzer: {
@@ -2757,61 +2757,61 @@ const converters2 = {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             const attribute = ['JY-GZ-01AQ'].includes(meta.mapped.model) ? 0x013e : 0x013f;
             value = (value.toLowerCase() === 'alarm') ? 15361 : 15360;
-            await entity.write('aqaraOpple', {[`${attribute}`]: {value: [`${value}`], type: 0x23}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {[`${attribute}`]: {value: [`${value}`], type: 0x23}}, manufacturerOptions.lumi);
             value = (value === 15361) ? 0 : 1;
-            await entity.write('aqaraOpple', {0x0126: {value: [`${value}`], type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0126: {value: [`${value}`], type: 0x20}}, manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     aqara_buzzer_manual: {
         key: ['buzzer_manual_alarm', 'buzzer_manual_mute'],
         convertGet: async (entity, key, meta) => {
             if (key === 'buzzer_manual_mute') {
-                await entity.read('aqaraOpple', [0x0126], manufacturerOptions.lumi);
+                await entity.read('manuSpecificLumi', [0x0126], manufacturerOptions.lumi);
             } else if (key === 'buzzer_manual_alarm') {
-                await entity.read('aqaraOpple', [0x013d], manufacturerOptions.lumi);
+                await entity.read('manuSpecificLumi', [0x013d], manufacturerOptions.lumi);
             }
         },
     } satisfies Tz.Converter,
     JYGZ01AQ_heartbeat_indicator: {
         key: ['heartbeat_indicator'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple', {0x013c: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x013c: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.lumi);
             return {state: {heartbeat_indicator: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x013c], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x013c], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     aqara_linkage_alarm: {
         key: ['linkage_alarm'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple', {0x014b: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x014b: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.lumi);
             return {state: {linkage_alarm: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x014b], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumiicLumi', [0x014b], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     JTBZ01AQA_state: {
         key: ['state'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0139], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumiicLumi', [0x0139], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     aqara_power_outage_count: {
         key: ['power_outage_count'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0002], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0002], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     RTCGQ14LM_trigger_indicator: {
         key: ['trigger_indicator'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple', {0x0152: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0152: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.lumi);
             return {state: {trigger_indicator: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0152], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0152], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     LLKZMK11LM_interlock: {
@@ -3458,12 +3458,12 @@ const converters2 = {
             // 1 - 'event' mode. keys send events. useful for handling
             const lookup = {command: 0, event: 1};
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {'mode': utils.getFromLookup(value.toLowerCase(), lookup)}, {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {'mode': utils.getFromLookup(value.toLowerCase(), lookup)}, {manufacturerCode: 0x115f});
             return {state: {operation_mode: value.toLowerCase()}};
         },
         convertGet: async (entity, key, meta) => {
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.read('aqaraOpple', ['mode'], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', ['mode'], {manufacturerCode: 0x115f});
         },
     } satisfies Tz.Converter,
     EMIZB_132_mode: {
@@ -4729,49 +4729,49 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'theme') {
                 const lookup = {'classic': 0, 'concise': 1};
-                await entity.write('aqaraOpple', {0x0215: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0215: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {theme: value}};
             } else if (key === 'standby_enabled') {
-                await entity.write('aqaraOpple', {0x0213: {value: value, type: 0x10}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0213: {value: value, type: 0x10}}, manufacturerOptions.lumi);
                 return {state: {standby_enabled: value}};
             } else if (key === 'beep_volume') {
                 const lookup = {'mute': 0, 'low': 1, 'medium': 2, 'high': 3};
-                await entity.write('aqaraOpple', {0x0212: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0212: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {beep_volume: value}};
             } else if (key === 'lcd_brightness') {
-                await entity.write('aqaraOpple', {0x0211: {value: value, type: 0x20}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0211: {value: value, type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {lcd_brightness: value}};
             } else if (key === 'language') {
                 const lookup = {'chinese': 0, 'english': 1};
-                await entity.write('aqaraOpple', {0x0210: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0210: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {language: value}};
             } else if (key === 'screen_saver_style') {
                 const lookup = {'classic': 1, 'analog clock': 2};
-                await entity.write('aqaraOpple', {0x0214: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0214: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {screen_saver_style: value}};
             } else if (key === 'standby_time') {
-                await entity.write('aqaraOpple', {0x0216: {value: value, type: 0x23}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0216: {value: value, type: 0x23}}, manufacturerOptions.lumi);
                 return {state: {standby_time: value}};
             } else if (key === 'font_size') {
                 const lookup = {'small': 3, 'medium': 4, 'large': 5};
-                await entity.write('aqaraOpple', {0x0217: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0217: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {font_size: value}};
             } else if (key === 'lcd_auto_brightness_enabled') {
-                await entity.write('aqaraOpple', {0x0218: {value: value, type: 0x10}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0218: {value: value, type: 0x10}}, manufacturerOptions.lumi);
                 return {state: {lcd_auto_brightness_enabled: value}};
             } else if (key === 'homepage') {
                 const lookup = {'scene': 0, 'feel': 1, 'thermostat': 2, 'switch': 3};
-                await entity.write('aqaraOpple', {0x0219: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0219: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {homepage: value}};
             } else if (key === 'screen_saver_enabled') {
-                await entity.write('aqaraOpple', {0x0221: {value: value, type: 0x10}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0221: {value: value, type: 0x10}}, manufacturerOptions.lumi);
                 return {state: {screen_saver_enabled: value}};
             } else if (key === 'standby_lcd_brightness') {
-                await entity.write('aqaraOpple', {0x0222: {value: value, type: 0x20}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0222: {value: value, type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {standby_lcd_brightness: value}};
             } else if (key === 'available_switches') {
                 const lookup = {'none': 0, '1': 1, '2': 2, '1 and 2': 3, '3': 4, '1 and 3': 5, '2 and 3': 6, 'all': 7};
-                await entity.write('aqaraOpple', {0x022b: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x022b: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
                 return {state: {available_switches: value}};
             } else if (key === 'switch_1_text_icon') {
                 const lookup = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '11': 11};
@@ -4793,7 +4793,7 @@ const converters2 = {
                     payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_1_text = '';
                 }
-                await entity.write('aqaraOpple', {0x0223: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0223: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
                 return {state: statearr};
             } else if (key === 'switch_2_text_icon') {
                 const lookup = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '11': 11};
@@ -4815,7 +4815,7 @@ const converters2 = {
                     payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_2_text = '';
                 }
-                await entity.write('aqaraOpple', {0x0224: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0224: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
                 return {state: statearr};
             } else if (key === 'switch_3_text_icon') {
                 const lookup = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '11': 11};
@@ -4837,7 +4837,7 @@ const converters2 = {
                     payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
                     statearr.switch_3_text = '';
                 }
-                await entity.write('aqaraOpple', {0x0225: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0225: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
                 return {state: statearr};
             } else {
                 throw new Error(`Not supported: '${key}'`);
@@ -4848,23 +4848,23 @@ const converters2 = {
         key: ['hooks_lock'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'UNLOCK': 0, 'LOCK': 1};
-            await entity.write('aqaraOpple', {0x0427: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0427: {value: utils.getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {[key]: value}};
         },
     } satisfies Tz.Converter,
     ZNCLBL01LM_hooks_state: {
         key: ['hooks_state'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0428], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0428], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     ZNCLBL01LM_hand_open: {
         key: ['hand_open'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple', {0x0401: {value: !value, type: 0x10}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0401: {value: !value, type: 0x10}}, manufacturerOptions.lumi);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0401], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0401], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     ZNCLBL01LM_limits_calibration: {
@@ -4872,14 +4872,14 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             switch (value) {
             case 'start':
-                await entity.write('aqaraOpple', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
                 break;
             case 'end':
-                await entity.write('aqaraOpple', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
                 break;
             case 'reset':
-                await entity.write('aqaraOpple', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
-                // also? await entity.write('aqaraOpple', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
+                await entity.write('manuSpecificLumi', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
+                // also? await entity.write('manuSpecificLumi', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
                 break;
             }
         },
@@ -5010,12 +5010,12 @@ const converters2 = {
     lumi_switch_click_mode: {
         key: ['click_mode'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple',
+            await entity.write('manuSpecificLumi',
                 {0x0125: {value: utils.getFromLookup(value, {'fast': 0x1, 'multi': 0x02}), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {click_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x125], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x125], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     led_on_motion: {

@@ -63,7 +63,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     aqara_trv: {
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
@@ -152,7 +152,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     aqara_fp1_region_events: {
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValue = {};
@@ -248,11 +248,11 @@ const tzLocal = {
             utils.assertString(value, 'detection_distance');
             value = value.toLowerCase();
             const lookup = {'10mm': 1, '20mm': 2, '30mm': 3};
-            await entity.write('aqaraOpple', {0x010C: {value: utils.getFromLookup(value, lookup), type: 0x20}}, {manufacturerCode});
+            await entity.write('manuSpecificLumi', {0x010C: {value: utils.getFromLookup(value, lookup), type: 0x20}}, {manufacturerCode});
             return {state: {detection_distance: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x010C], {manufacturerCode});
+            await entity.read('manuSpecificLumi', [0x010C], {manufacturerCode});
         },
     } satisfies Tz.Converter,
     aqara_trv: {
@@ -268,27 +268,27 @@ const tzLocal = {
 
             switch (key) {
             case 'system_mode':
-                await entity.write('aqaraOpple', {0x0271: {value: utils.getFromLookup(value, {'off': 0, 'heat': 1}), type: 0x20}},
+                await entity.write('manuSpecificLumi', {0x0271: {value: utils.getFromLookup(value, {'off': 0, 'heat': 1}), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'preset':
-                await entity.write('aqaraOpple', {0x0272: {value: utils.getFromLookup(value, {'manual': 0, 'auto': 1, 'away': 2}), type: 0x20}},
+                await entity.write('manuSpecificLumi', {0x0272: {value: utils.getFromLookup(value, {'manual': 0, 'auto': 1, 'away': 2}), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'window_detection':
-                await entity.write('aqaraOpple', {0x0273: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
+                await entity.write('manuSpecificLumi', {0x0273: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'valve_detection':
-                await entity.write('aqaraOpple', {0x0274: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
+                await entity.write('manuSpecificLumi', {0x0274: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'child_lock':
-                await entity.write('aqaraOpple', {0x0277: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
+                await entity.write('manuSpecificLumi', {0x0277: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'away_preset_temperature':
-                await entity.write('aqaraOpple', {0x0279: {value: Math.round(utils.toNumber(value, 'away_preset_temperature') * 100), type: 0x23}},
+                await entity.write('manuSpecificLumi', {0x0279: {value: Math.round(utils.toNumber(value, 'away_preset_temperature') * 100), type: 0x23}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'sensor': {
@@ -324,8 +324,8 @@ const tzLocal = {
                     const val1 = [...(aqaraHeader(0x12, params1, 0x02)), ...params1];
                     const val2 = [...(aqaraHeader(0x13, params2, 0x02)), ...params2];
 
-                    await entity.write('aqaraOpple', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: 0x115f});
-                    await entity.write('aqaraOpple', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('manuSpecificLumi', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('manuSpecificLumi', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: 0x115f});
                 } else if (value === 'internal') {
                     const params1 = [
                         ...timestamp,
@@ -343,8 +343,8 @@ const tzLocal = {
                     const val1 = [...(aqaraHeader(0x12, params1, 0x04)), ...params1];
                     const val2 = [...(aqaraHeader(0x13, params2, 0x04)), ...params2];
 
-                    await entity.write('aqaraOpple', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: 0x115f});
-                    await entity.write('aqaraOpple', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('manuSpecificLumi', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('manuSpecificLumi', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: 0x115f});
 
                     await entity.read('hvacThermostat', ['localTemp']);
                 }
@@ -359,17 +359,17 @@ const tzLocal = {
                     const params = [...sensor, 0x00, 0x01, 0x00, 0x55, ...temperatureBuf];
                     const data = [...(aqaraHeader(0x12, params, 0x05)), ...params];
 
-                    await entity.write('aqaraOpple', {0xfff2: {value: data, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('manuSpecificLumi', {0xfff2: {value: data, type: 0x41}}, {manufacturerCode: 0x115f});
                 }
                 break;
             case 'calibrate':
-                await entity.write('aqaraOpple', {0x0270: {value: 1, type: 0x20}}, {manufacturerCode: 0x115F});
+                await entity.write('manuSpecificLumi', {0x0270: {value: 1, type: 0x20}}, {manufacturerCode: 0x115F});
                 break;
             case 'identify':
                 await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
                 break;
             case 'schedule':
-                await entity.write('aqaraOpple', {0x027d: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
+                await entity.write('manuSpecificLumi', {0x027d: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'schedule_settings': {
@@ -377,7 +377,7 @@ const tzLocal = {
                 const schedule = trv.parseSchedule(value);
                 trv.validateSchedule(schedule);
                 const buffer = trv.encodeSchedule(schedule);
-                await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
                 break;
             }
             default: // Unknown key
@@ -390,7 +390,7 @@ const tzLocal = {
                 'schedule': 0x027d, 'schedule_settings': 0x0276};
 
             if (dict.hasOwnProperty(key)) {
-                await entity.read('aqaraOpple', [utils.getFromLookup(key, dict)], {manufacturerCode: 0x115F});
+                await entity.read('manuSpecificLumi', [utils.getFromLookup(key, dict)], {manufacturerCode: 0x115F});
             }
         },
     } satisfies Tz.Converter,
@@ -458,7 +458,7 @@ const tzLocal = {
                 },
             };
 
-            await entity.write('aqaraOpple', payload, {manufacturerCode});
+            await entity.write('manuSpecificLumi', payload, {manufacturerCode});
         },
     } satisfies Tz.Converter,
     aqara_fp1_region_delete: {
@@ -503,7 +503,7 @@ const tzLocal = {
                 },
             };
 
-            await entity.write('aqaraOpple', payload, {manufacturerCode});
+            await entity.write('manuSpecificLumi', payload, {manufacturerCode});
         },
     } satisfies Tz.Converter,
     CTPR01_operation_mode: {
@@ -515,7 +515,7 @@ const tzLocal = {
              */
             const callback = async () => {
                 await entity.write(
-                    'aqaraOpple',
+                    'manuSpecificLumi',
                     {0x0148: {value: utils.getFromLookup(value, lookup), type: 0x20}},
                     {manufacturerCode: 0x115f, disableDefaultResponse: true},
                 );
@@ -768,7 +768,7 @@ const definitions: Definition[] = [
                 valueStep: 0.2,
                 scale: 5,
                 unit: 'm',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x051b, type: 0x20},
                 description: 'LED strip length',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -778,7 +778,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 99,
                 unit: '%',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0515, type: 0x20},
                 description: 'Minimum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -788,7 +788,7 @@ const definitions: Definition[] = [
                 valueMin: 1,
                 valueMax: 100,
                 unit: '%',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0516, type: 0x20},
                 description: 'Maximum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -797,7 +797,7 @@ const definitions: Definition[] = [
                 name: 'audio',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x051c, type: 0x20},
                 description: 'Enabling audio',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -805,7 +805,7 @@ const definitions: Definition[] = [
             enumLookup({
                 name: 'audio_sensitivity',
                 lookup: {'low': 0, 'medium': 1, 'high': 2},
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x051e, type: 0x20},
                 description: 'Audio sensitivity',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -813,7 +813,7 @@ const definitions: Definition[] = [
             enumLookup({
                 name: 'audio_effect',
                 lookup: {'random': 0, 'blink': 1, 'rainbow': 2, 'wave': 3},
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x051d, type: 0x23},
                 description: 'Audio effect',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -822,7 +822,7 @@ const definitions: Definition[] = [
                 name: 'preset',
                 valueMin: 1,
                 valueMax: 32,
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x051f, type: 0x23},
                 description: 'Preset index (0-6 default presets)',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -831,7 +831,7 @@ const definitions: Definition[] = [
                 name: 'speed',
                 valueMin: 1,
                 valueMax: 100,
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0520, type: 0x20},
                 description: 'Effect speed',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -882,7 +882,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -921,7 +921,7 @@ const definitions: Definition[] = [
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write(
-                'aqaraOpple', {mode: 1}, {manufacturerCode: 0x115f, disableResponse: true},
+                'manuSpecificLumi', {mode: 1}, {manufacturerCode: 0x115f, disableResponse: true},
             );
         },
         extend: [lumiZigbeeOTA()],
@@ -943,7 +943,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -980,7 +980,7 @@ const definitions: Definition[] = [
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write(
-                'aqaraOpple', {mode: 1}, {manufacturerCode: 0x115f, disableResponse: true},
+                'manuSpecificLumi', {mode: 1}, {manufacturerCode: 0x115f, disableResponse: true},
             );
         },
         extend: [lumiZigbeeOTA()],
@@ -1006,7 +1006,7 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -1099,7 +1099,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
     {
@@ -1129,7 +1129,7 @@ const definitions: Definition[] = [
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both'])],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
     {
@@ -1167,7 +1167,7 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
     {
@@ -1185,7 +1185,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -1213,7 +1213,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
     {
@@ -1441,7 +1441,7 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -1476,7 +1476,7 @@ const definitions: Definition[] = [
             return {'left': 1, 'center': 2, 'right': 3};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         onEvent: preventReset,
         extend: [lumiZigbeeOTA()],
@@ -1724,7 +1724,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0102], {manufacturerCode: 0x115f});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -1743,8 +1743,8 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0102], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: 0x115f});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -1770,9 +1770,9 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0152], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0102], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0152], {manufacturerCode: 0x115f});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -1792,7 +1792,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0102], {manufacturerCode: 0x115f});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -1858,10 +1858,10 @@ const definitions: Definition[] = [
             device.save();
 
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0142], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0144], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0146], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0142], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0144], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0146], {manufacturerCode: 0x115f});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -2134,15 +2134,15 @@ const definitions: Definition[] = [
             e.power_outage_count().withAccess(ea.STATE_GET)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {0x014b: {value: 1, type: 0x20}}, {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013b], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013d], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0126], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0139], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x014b], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0002], {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {0x014b: {value: 1, type: 0x20}}, {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x013a], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x013b], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x013d], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0126], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0139], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x014b], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0002], {manufacturerCode: 0x115f});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -2178,14 +2178,14 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {0x014b: {value: 1, type: 0x20}}, {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {0x014b: {value: 1, type: 0x20}}, {manufacturerCode: 0x115f});
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013b], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013c], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013d], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0126], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x014b], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x013a], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x013b], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x013c], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x013d], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0126], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x014b], {manufacturerCode: 0x115f});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -2339,7 +2339,7 @@ const definitions: Definition[] = [
             device.powerSource = 'Battery';
             device.save();
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x040a], {manufacturerCode: 0x115f});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -2389,8 +2389,8 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
-            await endpoint.read('aqaraOpple', [0x040B], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0428], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x040B], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0428], {manufacturerCode: 0x115f});
             await endpoint.read('genBasic', ['powerSource']);
             await endpoint.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
         },
@@ -2444,7 +2444,7 @@ const definitions: Definition[] = [
                 name: 'interlock',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x02d0, type: 0x10},
                 description: 'Enabling prevents both relays being on at the same time (Interlock)',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -2452,7 +2452,7 @@ const definitions: Definition[] = [
             enumLookup({
                 name: 'mode',
                 lookup: {'power': 0, 'pulse': 1, 'dry': 3},
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0289, type: 0x20},
                 description: 'Work mode: Power mode, Dry mode with impulse, Dry mode',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -2462,7 +2462,7 @@ const definitions: Definition[] = [
                 valueMin: 200,
                 valueMax: 2000,
                 unit: 'ms',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x00eb, type: 0x21},
                 description: 'Impulse length in Dry mode with impulse',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -2549,7 +2549,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f});
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
         },
     },
@@ -2571,7 +2571,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f});
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg',
             ]);
@@ -2598,7 +2598,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f});
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg',
             ]);
@@ -2690,7 +2690,7 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage(), e.current(), e.power_outage_memory(), e.led_disabled_night(), e.switch_type()],
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
@@ -2818,10 +2818,10 @@ const definitions: Definition[] = [
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(3);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f});
             // turn on the "multiple clicks" mode, otherwise the only "single click" events.
             // if value is 1 - there will be single clicks, 2 - multiple.
-            await endpoint1.write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             // TODO/BUG:
@@ -2846,7 +2846,7 @@ const definitions: Definition[] = [
                     'Quick mode makes the device respond faster.')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -2878,7 +2878,7 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -2899,7 +2899,7 @@ const definitions: Definition[] = [
                     'msTemperatureMeasurement',
                     'msRelativeHumidity',
                     'genAnalogInput',
-                    'aqaraOpple',
+                    'manuSpecificLumi',
                 ],
             }),
             aqaraAirQuality(),
@@ -2942,7 +2942,7 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -2972,7 +2972,7 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -2987,7 +2987,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quintuple', 'hold', 'release', 'many'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -3004,8 +3004,8 @@ const definitions: Definition[] = [
                 .withDescription('Time interval in seconds to report after light changes')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-            await endpoint.read('aqaraOpple', [0x0000], {manufacturerCode: 0x115f});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint.read('manuSpecificLumi', [0x0000], {manufacturerCode: 0x115f});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -3076,7 +3076,7 @@ const definitions: Definition[] = [
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
     {
@@ -3092,7 +3092,7 @@ const definitions: Definition[] = [
                 .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
                     'multi: supports more events like double and hold')],
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+            await device.getEndpoint(1).write('manuSpecificLumi', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
         },
     },
     {
@@ -3112,7 +3112,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set multiclick mode
-            await endpoint1.write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
         },
     },
     {
@@ -3131,8 +3131,8 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-            await endpoint1.read('aqaraOpple', [0x0125], {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.read('manuSpecificLumi', [0x0125], {manufacturerCode: 0x115f});
         },
     },
     {
@@ -3169,7 +3169,7 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
 
             // Initialize battery percentage and voltage
-            await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x040a], {manufacturerCode: 0x115f});
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
         extend: [lumiZigbeeOTA()],
@@ -3209,7 +3209,7 @@ const definitions: Definition[] = [
         extend: [lumiZigbeeOTA()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('aqaraOpple', [0xfff1], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0xfff1], {manufacturerCode: 0x115f});
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
@@ -3249,10 +3249,10 @@ const definitions: Definition[] = [
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(3);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f});
             // turn on the "multiple clicks" mode, otherwise the only "single click" events.
             // if value is 1 - there will be single clicks, 2 - multiple.
-            await endpoint1.write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             // TODO/BUG:
@@ -3297,7 +3297,7 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -3322,7 +3322,7 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -3347,7 +3347,7 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -3372,7 +3372,7 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -3410,8 +3410,8 @@ const definitions: Definition[] = [
             device.save();
 
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {mode: 1}, {manufacturerCode: 0x115f, disableDefaultResponse: true, disableResponse: true});
-            await endpoint.read('aqaraOpple', [0x148], {manufacturerCode: 0x115f, disableDefaultResponse: true, disableResponse: true});
+            await endpoint.write('manuSpecificLumi', {mode: 1}, {manufacturerCode: 0x115f, disableDefaultResponse: true, disableResponse: true});
+            await endpoint.read('manuSpecificLumi', [0x148], {manufacturerCode: 0x115f, disableDefaultResponse: true, disableResponse: true});
         },
     },
     {
@@ -3444,7 +3444,7 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -3493,7 +3493,7 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -3526,7 +3526,7 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -3546,7 +3546,7 @@ const definitions: Definition[] = [
             lumiButtonLock(),
             binary({
                 name: 'charging_protection',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0202, type: 0x10},
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -3556,7 +3556,7 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'charging_limit',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0206, type: 0x39},
                 valueMin: 0.1,
                 valueMax: 2,

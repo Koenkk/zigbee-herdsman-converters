@@ -3774,7 +3774,7 @@ const converters1 = {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
         // Therefore we need to publish the no_motion detected by ourselves.
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true()],
         convert: (model, msg, publish, options, meta) => {
@@ -5405,7 +5405,7 @@ const converters1 = {
         },
     } satisfies Fz.Converter,
     ZNCJMB14LM: {
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
@@ -5502,7 +5502,7 @@ const converters1 = {
         },
     } satisfies Fz.Converter,
     aqara_knob_rotation: {
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(570)) {
