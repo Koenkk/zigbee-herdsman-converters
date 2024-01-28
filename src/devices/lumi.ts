@@ -1916,7 +1916,7 @@ const definitions: Definition[] = [
         description: 'Water leak sensor T1',
         whiteLabel: [{vendor: 'Aqara', model: 'WL-S02D'}],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ias_water_leak_alarm_1],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ias_water_leak_alarm_1, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
         extend: [lumiZigbeeOTA()],
