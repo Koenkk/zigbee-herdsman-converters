@@ -1895,7 +1895,7 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara T1 water leak sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.ias_water_leak_alarm_1],
+        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.ias_water_leak_alarm_1, xiaomi.fromZigbee.aqara_opple],
         toZigbee: [],
         exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
         extend: [xiaomiZigbeeOTA()],
