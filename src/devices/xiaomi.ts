@@ -2400,7 +2400,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['lumi.relay.c2acn01'],
         model: 'LLKZMK11LM',
         vendor: 'Aqara',
-        description: 'Single relay module',
+        description: 'Dual relay module',
         fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_power, fz.ignore_multistate_report, fz.on_off, xiaomi.fromZigbee.xiaomi_basic_raw],
         meta: {multiEndpoint: true},
         toZigbee: [tz.on_off, tz.LLKZMK11LM_interlock, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory],
