@@ -609,7 +609,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['lumi.light.aqcn02'],
         model: 'ZNLDP12LM',
         vendor: 'Aqara',
-        description: 'LED light bulb',
+        description: 'Light bulb',
         extend: [xiaomiLight({colorTemp: true, powerOutageMemory: 'light'}), xiaomiZigbeeOTA()],
     },
     {
@@ -757,7 +757,7 @@ const definitions: Definition[] = [
         model: 'LGYCDD01LM',
         vendor: 'Aqara',
         whiteLabel: [{vendor: 'Aqara', model: 'RLS-K01D'}],
-        description: 'LED strip T1',
+        description: 'Light strip T1',
         extend: [
             light({effect: false, powerOnBehavior: false, colorTemp: {startup: false, range: [153, 370]}, color: true}),
             xiaomiPowerOnBehavior(),
@@ -2400,7 +2400,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['lumi.relay.c2acn01'],
         model: 'LLKZMK11LM',
         vendor: 'Aqara',
-        description: 'Wireless relay',
+        description: 'Single relay module',
         fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_power, fz.ignore_multistate_report, fz.on_off, xiaomi.fromZigbee.xiaomi_basic_raw],
         meta: {multiEndpoint: true},
         toZigbee: [tz.on_off, tz.LLKZMK11LM_interlock, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory],
