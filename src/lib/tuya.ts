@@ -1688,7 +1688,7 @@ const tuyaModernExtend = {
     },
     tuyaLight: (args?: modernExtend.LightArgs & {minBrightness?: boolean, switchType?: boolean}) => {
         args = {minBrightness: false, powerOnBehavior: false, switchType: false, ...args};
-        const result = modernExtend.light(args);
+        const result = modernExtend.light({...args, powerOnBehavior: false});
 
         result.fromZigbee.push(tuyaFz.brightness);
         result.toZigbee.push(tuyaTz.do_not_disturb);
