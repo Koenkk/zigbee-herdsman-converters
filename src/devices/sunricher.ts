@@ -610,6 +610,30 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
     },
+    {
+        zigbeeModel: ['HK-SENSOR-4IN1-A'],
+        model: 'HK-SENSOR-4IN1-A',
+        vendor: 'Sunricher',
+        description: 'Smart Home Sensor',
+        fromZigbee: [fz.occupancy, fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.battery, fz.humidity, fz.temperature, fz.led_on_motion, fz.occupancy_timeout, fz.illuminance],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const firstendpoint = device.getEndpoint(1);
+            const thirdendpoint = device.getEndpoint(3);
+            const fourthendpoint = device.getEndpoint(4);
+            const fifthendpoint = device.getEndpoint(5);
+            await reporting.bind(firstendpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(firstendpoint);
+            await reporting.batteryVoltage(firstendpoint);
+            await reporting.bind(thirdendpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(thirdendpoint);
+            await reporting.bind(fourthendpoint, coordinatorEndpoint, ['msRelativeHumidity']);
+            await reporting.humidity(fourthendpoint);
+            await reporting.bind(fifthendpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.illuminance(fifthendpoint);
+        },
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.linkquality(), e.temperature(), e.humidity(), e.illuminance(), e.illuminance_lux()],
+    },
 ];
 
 export default definitions;
