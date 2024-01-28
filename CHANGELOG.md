@@ -1,5 +1,20 @@
 # Changelog
 
+## [18.23.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.22.0...v18.23.0) (2024-01-28)
+
+
+### Features
+
+* Support more features and fix brightness for TuYa TS0052 https://github.com/Koenkk/zigbee2mqtt/issues/19847 ([efac561](https://github.com/Koenkk/zigbee-herdsman-converters/commit/efac56192c9c923d5b23d3b317f50effa9b7699e))
+
+
+### Bug Fixes
+
+* Add entity_category for more entities ([#6967](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6967)) ([9fab669](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9fab669857a1de2f99f4c64223fbd0d8c05d8325))
+* Fix IKEA E2112 configure failing ([#6971](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6971)) ([e4b88b8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e4b88b8704bc6baa00671a685eec0ce12c6781b0))
+* Fix no `battery` value for Xiaomi SJCGQ12LM https://github.com/Koenkk/zigbee2mqtt/issues/20764 ([484c881](https://github.com/Koenkk/zigbee-herdsman-converters/commit/484c88185ef4b31a50437e2055539f1c9430ddb5))
+* Improve TuYa ZY-M100-24G support ([#6959](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6959)) ([f1ee1b9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f1ee1b92c8436574b0a8cee9cd13d8dbe78aef37))
+
 ## [18.22.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.21.0...v18.22.0) (2024-01-27)
 
 
