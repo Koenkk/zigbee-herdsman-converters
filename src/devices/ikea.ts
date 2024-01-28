@@ -1166,7 +1166,7 @@ const definitions: Definition[] = [
             reporting.temperature(ep, {min: 60, max: 120});
             reporting.humidity(ep, {min: 60, max: 120});
             await ep.configureReporting('pm25Measurement', [{
-                attribute: 'measuredValueIkea',
+                attribute: {ID: 0x0000, type: zigbeeHerdsman.Zcl.DataType.singlePrec},
                 minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 2,
             }]);
             await ep.configureReporting('msIkeaVocIndexMeasurement', [{
