@@ -141,10 +141,10 @@ const fzLocal = {
                 /* 0x0200 */ 'currentPrice',
                 /* 0x0201 */ 'currentIndexTarif',
                 /* 0x0202 */ 'currentDate',
-                /* 0x0203 */ 'activeEnerfyOutD01',
-                /* 0x0204 */ 'activeEnerfyOutD02',
-                /* 0x0205 */ 'activeEnerfyOutD03',
-                /* 0x0206 */ 'activeEnerfyOutD04',
+                /* 0x0203 */ 'activeEnergyOutD01',
+                /* 0x0204 */ 'activeEnergyOutD02',
+                /* 0x0205 */ 'activeEnergyOutD03',
+                /* 0x0206 */ 'activeEnergyOutD04',
                 /* 0x0207 */ 'injectedVA',
                 /* 0x0208 */ 'injectedVAMaxN',
                 /* 0x0209 */ 'injectedVAMaxN1',
@@ -184,10 +184,10 @@ const fzLocal = {
                         val = val.replace(/\s+/g, ' ').trim(); // Remove extra and leading spaces
                     }
                     switch (at) {
-                    case 'activeEnerfyOutD01':
-                    case 'activeEnerfyOutD02':
-                    case 'activeEnerfyOutD03':
-                    case 'activeEnerfyOutD04':
+                    case 'activeEnergyOutD01':
+                    case 'activeEnergyOutD02':
+                    case 'activeEnergyOutD03':
+                    case 'activeEnergyOutD04':
                         // @ts-expect-error
                         val = utils.precisionRound(val / 1000, kWh_p); // from Wh to kWh
                         break;
@@ -208,6 +208,139 @@ const fzLocal = {
                             result[at_snake + (i+1)] = (val & (1<<i)) >>> i;
                         }
                         break;
+                    case 'statusRegister':
+                        // contact sec
+                        result[at_snake + '_contact_sec'] = (val & 0x1) == 1 ? 'ouvert' : 'ferme';
+                        // organe de coupure
+                        switch ((val >>> 1) & 0x7) {
+                        case 0:
+                            result[at_snake + '_organe_coupure'] = 'ferme';
+                            break;
+                        case 1:
+                            result[at_snake + '_organe_coupure'] = 'surpuissance';
+                            break;
+                        case 2:
+                            result[at_snake + '_organe_coupure'] = 'surtension';
+                            break;
+                        case 3:
+                            result[at_snake + '_organe_coupure'] = 'delestage';
+                            break;
+                        case 4:
+                            result[at_snake + '_organe_coupure'] = 'ordre_CPL_Euridis';
+                            break;
+                        case 5:
+                            result[at_snake + '_organe_coupure'] = 'surchauffe_surcourant';
+                            break;
+                        case 6:
+                            result[at_snake + '_organe_coupure'] = 'surchauffe_simple';
+                            break;
+                        }
+                        // etat cache borne distributeur
+                        result[at_snake + '_cache_borne_dist'] = ((val >>> 4) & 0x1) == 0 ? 'ferme' : 'ouvert';
+                        // bit 5 inutilise
+                        // surtension sur une des phases
+                        result[at_snake + '_surtension_phase'] = (val >>> 6) & 0x1;
+                        // depassement puissance de reference
+                        result[at_snake + '_depassement_ref_pow'] = (val >>> 7) & 0x1;
+                        // consommateur ou producteur
+                        result[at_snake + '_producteur'] = (val >>> 8) & 0x1;
+                        // sens de l'energie active
+                        result[at_snake + '_sens_energie_active'] = ((val >>> 9) & 0x1) == 0 ? 'positive' : 'negative';
+                        // tarif en cours sur le contrat fourniture
+                        result[at_snake + '_tarif_four'] = 'index_' + (((val >>> 10) & 0xF) + 1);
+                        // tarif en cours sur le contrat distributeur
+                        result[at_snake + '_tarif_dist'] = 'index_' + (((val >>> 14) & 0x3) + 1);
+                        // mode degrade de l'horloge
+                        result[at_snake + '_horloge'] = ((val >>> 16) & 0x1) == 0 ? 'correcte' : 'degradee';
+                        // TIC historique ou standard
+                        result[at_snake + '_type_tic'] = ((val >>> 17) & 0x1) == 0 ? 'historique' : 'standard';
+                        // bit 18 inutilise
+                        // etat sortie communicateur Euridis
+                        switch ((val >>> 19) & 0x3) {
+                        case 0:
+                            result[at_snake + '_comm_euridis'] = 'desactivee';
+                            break;
+                        case 1:
+                            result[at_snake + '_comm_euridis'] = 'activee sans securite';
+                            break;
+                        case 3:
+                            result[at_snake + '_comm_euridis'] = 'activee avec securite';
+                            break;
+                        }
+                        // etat CPL
+                        switch ((val >>> 21) & 0x3) {
+                        case 0:
+                            result[at_snake + '_etat_cpl'] = 'nouveau_deverrouille';
+                            break;
+                        case 1:
+                            result[at_snake + '_etat_cpl'] = 'nouveau_verrouille';
+                            break;
+                        case 2:
+                            result[at_snake + '_etat_cpl'] = 'enregistre';
+                            break;
+                        }
+                        // synchronisation CPL
+                        result[at_snake + '_sync_cpl'] = ((val >>> 23) & 0x1) == 0 ? 'non_synchronise' : 'synchronise';
+                        // couleur du jour contrat TEMPO historique
+                        switch ((val >>> 24) & 0x3) {
+                        case 0:
+                            result[at_snake + '_tempo_jour'] = 'UNDEF';
+                            break;
+                        case 1:
+                            result[at_snake + '_tempo_jour'] = 'BLEU';
+                            break;
+                        case 2:
+                            result[at_snake + '_tempo_jour'] = 'BLANC';
+                            break;
+                        case 3:
+                            result[at_snake + '_tempo_jour'] = 'ROUGE';
+                            break;
+                        }
+                        // couleur demain contrat TEMPO historique
+                        switch ((val >>> 26) & 0x3) {
+                        case 0:
+                            result[at_snake + '_tempo_demain'] = 'UNDEF';
+                            break;
+                        case 1:
+                            result[at_snake + '_tempo_demain'] = 'BLEU';
+                            break;
+                        case 2:
+                            result[at_snake + '_tempo_demain'] = 'BLANC';
+                            break;
+                        case 3:
+                            result[at_snake + '_tempo_demain'] = 'ROUGE';
+                            break;
+                        }
+                        // preavis pointe mobile
+                        switch ((val >>> 28) & 0x3) {
+                        case 0:
+                            result[at_snake + '_preavis_pointe_mobile'] = 'AUCUN';
+                            break;
+                        case 1:
+                            result[at_snake + '_preavis_pointe_mobile'] = 'PM1';
+                            break;
+                        case 2:
+                            result[at_snake + '_preavis_pointe_mobile'] = 'PM2';
+                            break;
+                        case 3:
+                            result[at_snake + '_preavis_pointe_mobile'] = 'PM3';
+                            break;
+                        }
+                        // pointe mobile
+                        switch ((val >>> 30) & 0x3) {
+                        case 0:
+                            result[at_snake + '_pointe_mobile'] = 'AUCUN';
+                            break;
+                        case 1:
+                            result[at_snake + '_pointe_mobile'] = 'PM1';
+                            break;
+                        case 2:
+                            result[at_snake + '_pointe_mobile'] = 'PM2';
+                            break;
+                        case 3:
+                            result[at_snake + '_pointe_mobile'] = 'PM3';
+                            break;
+                        }
                     }
                     result[at_snake] = val;
                 }
@@ -576,10 +709,10 @@ const allPhaseData = [
     {cluster: clustersDef._0x0B04, att: 'reactivePowerPhC', reportable: true, onlyProducer: true, exposes: e.numeric('ERQ4', ea.STATE).withUnit('VArh').withProperty('reactive_power_ph_c').withDescription('Total reactive power (Q4)')},
     {cluster: clustersDef._0x0B04, att: 'rmsCurrent', reportable: true, onlyProducer: false, exposes: e.numeric('IRMS1', ea.STATE).withUnit('A').withProperty('rms_current').withDescription('RMS current')},
     {cluster: clustersDef._0x0B04, att: 'rmsVoltage', reportable: true, onlyProducer: false, exposes: e.numeric('URMS1', ea.STATE).withUnit('V').withProperty('rms_voltage').withDescription('RMS voltage')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD01', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD01', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d01').withDescription('Active energy withdrawn Distributor (index 01)')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD02', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD02', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d02').withDescription('Active energy withdrawn Distributor (index 02)')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD03', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD03', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d03').withDescription('Active energy withdrawn Distributor (index 03)')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD04', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD04', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d04').withDescription('Active energy withdrawn Distributor (index 04)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnergyOutD01', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD01', ea.STATE).withUnit('kWh').withProperty('active_energy_out_d01').withDescription('Active energy withdrawn Distributor (index 01)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnergyOutD02', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD02', ea.STATE).withUnit('kWh').withProperty('active_energy_out_d02').withDescription('Active energy withdrawn Distributor (index 02)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnergyOutD03', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD03', ea.STATE).withUnit('kWh').withProperty('active_energy_out_d03').withDescription('Active energy withdrawn Distributor (index 03)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnergyOutD04', reportable: true, report: {change: 100}, onlyProducer: false, exposes: e.numeric('EASD04', ea.STATE).withUnit('kWh').withProperty('active_energy_out_d04').withDescription('Active energy withdrawn Distributor (index 04)')},
     {cluster: clustersDef._0xFF66, att: 'currentDate', reportable: false, onlyProducer: false, exposes: e.text('DATE', ea.STATE).withProperty('current_date').withDescription('Current date and time')},
     {cluster: clustersDef._0xFF66, att: 'currentIndexTarif', reportable: false, onlyProducer: false, exposes: e.numeric('NTARF', ea.STATE).withProperty('current_index_tarif').withDescription('Current tariff index number')},
     {cluster: clustersDef._0xFF66, att: 'currentPrice', reportable: false, onlyProducer: false, exposes: e.text('LTARF', ea.STATE).withProperty('current_price').withDescription('Current supplier price label')},

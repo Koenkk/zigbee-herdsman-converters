@@ -915,10 +915,13 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['TH1300ZB'],
+        zigbeeModel: ['TH1300ZB', 'TH1320ZB-04'],
         model: 'TH1300ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart floor heating thermostat',
+        whiteLabel: [
+            {model: 'TH1320ZB-04', vendor: 'Sinopé', description: 'Zigbee smart floor heating thermostat', fingerprint: [{modelID: 'TH1320ZB-04'}]},
+        ],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, legacy.fz.hvac_user_interface,
             fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -1356,6 +1359,23 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['WL4200S'],
         model: 'WL4200S',
+        vendor: 'Sinopé',
+        description: 'Zigbee smart water leak detector with external sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.temperature, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.temperature(), e.battery()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'msTemperatureMeasurement'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.temperature(endpoint, {min: 600, max: constants.repInterval.MAX, change: 100});
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryAlarmState(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['WL4210'],
+        model: 'WL4210',
         vendor: 'Sinopé',
         description: 'Zigbee smart water leak detector with external sensor',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.temperature, fz.battery],
