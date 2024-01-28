@@ -1932,7 +1932,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.plug'],
         model: 'ZNCZ02LM',
-        description: 'Mi power plug ZigBee',
+        description: 'Mi smart plug',
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
@@ -1942,7 +1942,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.plug.mitw01'],
         model: 'ZNCZ03LM',
-        description: 'Mi power plug ZigBee TW',
+        description: 'Mi smart plug TW',
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [tz.on_off, tz.xiaomi_power],
@@ -1952,7 +1952,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.plug.mmeu01'],
         model: 'ZNCZ04LM',
-        description: 'Mi power plug ZigBee EU',
+        description: 'Mi smart plug EU',
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple, fz.ignore_occupancy_report, fz.ignore_illuminance_report,
             fz.ignore_time_read],
@@ -1968,7 +1968,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.plug.maus01'],
         model: 'ZNCZ12LM',
-        description: 'Mi power plug ZigBee US',
+        description: 'Mi smart plug US',
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple, xiaomi.fromZigbee.xiaomi_basic,
             fz.ignore_occupancy_report, fz.ignore_illuminance_report],
