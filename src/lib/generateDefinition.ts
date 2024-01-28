@@ -10,16 +10,18 @@ interface GeneratedExtend {extend?: ModernExtend, extendFn?: (a: object) => Mode
 type ExtendGenerator = (endpoints?: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
 type Extender = [string[], ExtendGenerator];
 
-function generateSource(zigbeeModel: string, definition: Definition, generatedExtend: GeneratedExtend[]): string {
+type DefinitionWithZigbeeModel = Definition & {zigbeeModel: string[]};
+
+function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: GeneratedExtend[]): string {
     const imports: {[s: string]: string[]} = {};
-    const importsDeduplication = new Map<string, boolean>();
+    const importsDeduplication = new Set<string>();
     generatedExtend.forEach((e) => {
         const lib = e.lib ?? 'modernExtend';
         if (!(lib in imports)) imports[lib] = [];
 
         const importName = e.source.split('(')[0];
         if (!importsDeduplication.has(importName)) {
-            importsDeduplication.set(importName, true);
+            importsDeduplication.add(importName);
 
             imports[lib].push(importName);
         }
@@ -45,7 +47,7 @@ function generateSource(zigbeeModel: string, definition: Definition, generatedEx
     return `${importsStr}
 
 const definition = {
-    zigbeeModel: ['${zigbeeModel}'],
+    zigbeeModel: ['${definition.zigbeeModel}'],
     model: '${definition.model}',
     vendor: '${definition.vendor}',
     description: 'Automatically generated definition',
@@ -130,7 +132,7 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         definition.meta = {multiEndpoint: true};
     }
 
-    const externalDefinitionSource = generateSource(definition.zigbeeModel[0], definition, generatedExtend);
+    const externalDefinitionSource = generateSource(definition, generatedExtend);
     return {externalDefinitionSource, definition};
 }
 
@@ -155,6 +157,10 @@ const outputExtenders: Extender[] = [
 
 async function extenderLock(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
+    if (endpoints.length > 1) {
+        throw new Error('extenderLock can accept only one endpoint');
+    }
+
     const endpoint = endpoints[0];
 
     const pinCodeCount = await getClusterAttributeValue<number>(endpoint, 'closuresDoorLock', 'numOfPinUsersSupported', 50);
@@ -211,6 +217,10 @@ async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedEx
 
 async function extenderElectricityMeter(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
+    if (endpoints.length > 1) {
+        throw new Error('extenderElectricityMeter can accept only one endpoint');
+    }
+
     const endpoint = endpoints[0];
 
     const metering = endpoint.supportsInputCluster('seMetering');
