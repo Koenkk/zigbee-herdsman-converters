@@ -282,23 +282,7 @@ const definitions: Definition[] = [
         model: 'U202DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 2 gang 2x300W dimmer module',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint1 = device.getEndpoint(10);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint1);
-            await reporting.brightness(endpoint1);
-            const endpoint2 = device.getEndpoint(11);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint2);
-            await reporting.brightness(endpoint2);
-        },
-        endpoint: (device) => {
-            return {l1: 10, l2: 11};
-        },
+        extend: [light({endpoints: {l1: 10, l2: 11}, configureReporting: true})],
     },
     {
         zigbeeModel: ['PUCK/DIMMER/1'],

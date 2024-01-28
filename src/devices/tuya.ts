@@ -868,6 +868,7 @@ const definitions: Definition[] = [
             {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
             {modelID: 'TS000F', manufacturerName: '_TZ3000_mx3vgyea'},
             {modelID: 'TS000F', manufacturerName: '_TZ3000_skueekg3'},
+            {modelID: 'TS000F', manufacturerName: '_TZ3000_dlhhrhs8'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_skueekg3'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ng23zjs'},
@@ -880,7 +881,10 @@ const definitions: Definition[] = [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_46t1rvdu'}],
         model: 'WHD02',
         vendor: 'TuYa',
-        whiteLabel: [{vendor: 'TuYa', model: 'iHSW02'}, {vendor: 'Aubess', model: 'TMZ02'}],
+        whiteLabel: [
+            {vendor: 'TuYa', model: 'iHSW02'}, {vendor: 'Aubess', model: 'TMZ02'},
+            tuya.whitelabel('TuYa', 'QS-zigbee-S08-16A-RF', 'Wall switch module', ['_TZ3000_dlhhrhs8']),
+        ],
         description: 'Wall switch module',
         extend: tuya.extend.switch({switchType: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -5042,6 +5046,9 @@ const definitions: Definition[] = [
                 [101, 'detection_delay', tuya.valueConverter.divideBy10],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('iHenso', '_TZE204_ztqnh5cg', 'Human presence sensor', ['_TZE204_ztqnh5cg']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0225', ['_TZE200_hl0ss9oa']),
@@ -6799,29 +6806,45 @@ const definitions: Definition[] = [
         model: 'ZY-M100-24G',
         vendor: 'TuYa',
         description: '24G MmWave radar human presence motion sensor',
-        configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
         exposes: [
-            e.illuminance_lux(), e.presence(),
-            e.enum('presence_state', ea.STATE, ['none', 'present', 'moving']).withDescription('Presence state'),
-            e.numeric('target_distance', ea.STATE).withDescription('Min detection distance').withUnit('m'),
-            e.numeric('motion_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Motion sensitivity'),
-            e.numeric('detection_distance_max', ea.STATE_SET).withValueMin(1.5).withValueMax(5.5).withValueStep(1)
-                .withDescription('Max detection distance').withUnit('m'),
-            e.numeric('fading_time', ea.STATE_SET).withValueMin(1).withValueMax(1500).withValueStep(1).withDescription('Delay time').withUnit('s'),
-            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription('Presence sensitivity'),
+            e.enum('state', ea.STATE, ['none', 'presence', 'move'])
+                .withDescription('Presence state sensor'),
+            e.presence().withDescription('Ocuppancy'),
+            e.numeric('distance', ea.STATE).withDescription('Target distance'),
+            e.illuminance_lux().withDescription('Illuminance sensor'),
+            e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Motion sensitivity'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(1)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription('Presence sensitivity'),
+            e.numeric('radar_range', ea.STATE_SET).withValueMin(1.5)
+                .withValueMax(5.5)
+                .withValueStep(1)
+                .withUnit('m').withDescription('Maximum range'),
+            e.numeric('presence_timeout', ea.STATE_SET).withValueMin(1)
+                .withValueMax(1500)
+                .withValueStep(1)
+                .withUnit('s').withDescription('Fade time'),
         ],
         meta: {
+            multiEndpoint: true,
             tuyaDatapoints: [
-                [104, 'illuminance_lux', tuya.valueConverter.raw],
-                [105, 'presence_state', tuya.valueConverterBasic.lookup({'none': tuya.enum(0), 'present': tuya.enum(1), 'moving': tuya.enum(2)})],
-                [106, 'motion_sensitivity', tuya.valueConverter.divideBy10],
-                [107, 'detection_distance_max', tuya.valueConverter.divideBy100],
-                [109, 'target_distance', tuya.valueConverter.divideBy100],
-                [110, 'fading_time', tuya.valueConverter.raw],
-                [111, 'presence_sensitivity', tuya.valueConverter.divideBy10],
                 [112, 'presence', tuya.valueConverter.trueFalse1],
+                [106, 'move_sensitivity', tuya.valueConverter.divideBy10],
+                [111, 'presence_sensitivity', tuya.valueConverter.divideBy10],
+                [107, 'radar_range', tuya.valueConverter.divideBy100],
+                [109, 'distance', tuya.valueConverter.divideBy100],
+                [110, 'presence_timeout', tuya.valueConverter.raw],
+                [104, 'illuminance_lux', tuya.valueConverter.raw],
+                [102, 'illuminance_treshold_max', tuya.valueConverter.raw],
+                [103, 'illuminance_treshold_min', tuya.valueConverter.raw],
+                [105, 'state', tuya.valueConverterBasic.lookup({'none': 0, 'presence': 1, 'move': 2})],
             ],
         },
     },

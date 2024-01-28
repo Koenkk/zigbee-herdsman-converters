@@ -6,7 +6,8 @@
     "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "google"],
     "parser": "@typescript-eslint/parser",
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "eslint-plugin-tsdoc"
     ],
     "root": true,
     "parserOptions": {
@@ -20,7 +21,9 @@
         "max-len": ["error", { "code": 150 }],
         "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/ban-ts-comment": "off",
-        "@typescript-eslint/no-unused-vars": "off"
+        "@typescript-eslint/no-unused-vars": "off",
+        "tsdoc/syntax": "warn",
+        "valid-jsdoc": "off"
     },
     "overrides": [
         {

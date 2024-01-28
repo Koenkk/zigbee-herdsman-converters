@@ -782,12 +782,8 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
 };
 
 // For RTCZCGQ11LM
-/**
- * @typedef {{
-*  x: number,
-*  y: number,
-* }} AqaraFP1RegionZone
-*/
+type AqaraFP1RegionZone = {x: number, y: number}
+
 const fp1Constants = {
     region_event_key: 0x0151,
     region_event_types: {
@@ -838,29 +834,17 @@ const fp1Mappers = {
 export const fp1 = {
     constants: fp1Constants,
     mappers: fp1Mappers,
-    /**
-     * @param {undefined | Set<number>} xCells
-     * @return {number}
-     */
-    encodeXCellsDefinition: (xCells: number[]) => {
+
+    encodeXCellsDefinition: (xCells?: number[]): number => {
         // @ts-expect-error
         if (!xCells || !xCells.size) {
             return 0;
         }
         return [...xCells.values()].reduce((accumulator, marker) => accumulator + fp1.encodeXCellIdx(marker), 0);
     },
-    /**
-     * @param {number} cellXIdx
-     * @return {number}
-     */
-    encodeXCellIdx: (cellXIdx: number) => {
+    encodeXCellIdx: (cellXIdx: number): number => {
         return 2 ** (cellXIdx - 1);
     },
-    // Note: let TypeScript infer the return type to enable union discrimination
-    // eslint-disable-next-line valid-jsdoc
-    /**
-     * @param {unknown} input
-     */
     parseAqaraFp1RegionDeleteInput: (input: KeyValueAny) => {
         if (!input || typeof input !== 'object') {
             return fp1.failure({reason: 'NOT_OBJECT'});
@@ -871,7 +855,6 @@ export const fp1 = {
         }
 
         return {
-            /** @type true */
             isSuccess: true,
             payload: {
                 command: {
@@ -880,11 +863,7 @@ export const fp1 = {
             },
         };
     },
-    // Note: let TypeScript infer the return type to enable union discrimination
-    // eslint-disable-next-line valid-jsdoc
-    /**
-     * @param {unknown} input
-     */
+
     parseAqaraFp1RegionUpsertInput: (input: KeyValueAny) => {
         if (!input || typeof input !== 'object') {
             return fp1.failure({reason: 'NOT_OBJECT'});
@@ -903,7 +882,6 @@ export const fp1 = {
         }
 
         return {
-            /** @type true */
             isSuccess: true,
             payload: {
                 command: {
@@ -913,26 +891,16 @@ export const fp1 = {
             },
         };
     },
-    // Note: this is valid typescript JSDoc
-    // eslint-disable-next-line valid-jsdoc
-    /**
-     * @param {unknown} value
-     * @returns {value is number}
-     */
-    isAqaraFp1RegionId: (value: number) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    isAqaraFp1RegionId: (value: any): value is number => {
         return (
             typeof value === 'number' &&
             value >= fp1.constants.region_config_regionId_min &&
             value <= fp1.constants.region_config_regionId_max
         );
     },
-    // Note: this is valid typescript JSDoc
-    // eslint-disable-next-line valid-jsdoc
-    /**
-     * @param {unknown} value
-     * @returns {value is AqaraFP1RegionZone}
-     */
-    isAqaraFp1RegionZoneDefinition: (value: KeyValueAny) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    isAqaraFp1RegionZoneDefinition: (value: any): value is AqaraFP1RegionZone => {
         return (
             value &&
             typeof value === 'object' &&
@@ -946,12 +914,8 @@ export const fp1 = {
             value.y <= fp1.constants.region_config_zoneY_max
         );
     },
-    /**
-     * @template {Record<string, unknown>} ErrorType
-     * @param {ErrorType} error
-     * @return { { isSuccess: false, error: ErrorType } }
-     */
-    failure: (error: {reason: string}) => {
+
+    failure: (error: {reason: string}): { isSuccess: false, error: {reason: string} } => {
         return {
             isSuccess: false,
             error,
@@ -959,22 +923,11 @@ export const fp1 = {
     },
 };
 
-/**
- * @param {Buffer} buffer
- * @param {number} offset
- * @return {number}
- */
-function readTemperature(buffer: Buffer, offset: number) {
+function readTemperature(buffer: Buffer, offset: number): number {
     return buffer.readUint16BE(offset) / 100;
 }
 
-/**
- * @param {Buffer} buffer
- * @param {number} offset
- * @param {number} temperature
- * @return {void}
- */
-function writeTemperature(buffer: Buffer, offset: number, temperature: number) {
+function writeTemperature(buffer: Buffer, offset: number, temperature: number): void {
     buffer.writeUint16BE(temperature * 100, offset);
 }
 
@@ -1012,21 +965,12 @@ function writeDaySelection(buffer: Buffer, offset: number, selectedDays: Day[]) 
 
 const timeNextDayFlag = 1 << 15;
 
-/**
- * @param {Buffer} buffer
- * @param {number} offset
- * @return {number}
- */
-function readTime(buffer: Buffer, offset: number) {
+function readTime(buffer: Buffer, offset: number): number {
     const minutesWithDayFlag = buffer.readUint16BE(offset);
     return minutesWithDayFlag & ~timeNextDayFlag;
 }
 
-/**
- * @param {number} time
- * @return {void}
- */
-function validateTime(time: number) {
+function validateTime(time: number): void {
     const isPositiveInteger = (value: number) => typeof value === 'number' && Number.isInteger(value) && value >= 0;
 
     if (!isPositiveInteger(time)) {
@@ -1038,14 +982,7 @@ function validateTime(time: number) {
     }
 }
 
-/**
- * @param {Buffer} buffer
- * @param {number} offset
- * @param {number} time
- * @param {boolean} isNextDay
- * @return {void}
- */
-function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: boolean) {
+function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: boolean): void {
     validateTime(time);
 
     let minutesWithDayFlag = time;
@@ -1059,10 +996,8 @@ function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: bool
 
 /**
  * Formats a number of minutes into a user-readable 24-hour time notation in the form hh:mm.
- * @param {number} timeMinutes
- * @return {string}
  */
-function formatTime(timeMinutes: number) {
+function formatTime(timeMinutes: number): string {
     const hours = Math.floor(timeMinutes / 60);
     const minutes = timeMinutes % 60;
     return `${hours}:${String(minutes).padStart(2, '0')}`;
@@ -1070,10 +1005,8 @@ function formatTime(timeMinutes: number) {
 
 /**
  * Parses a 24-hour time notation string in the form hh:mm into a number of minutes.
- * @param {string} timeString
- * @return {number}
  */
-function parseTime(timeString: string) {
+function parseTime(timeString: string): number {
     const parts = timeString.split(':');
 
     if (parts.length !== 2) {
@@ -1170,8 +1103,6 @@ export const trv = {
 
     /**
      * Decode a Zigbee schedule configuration message into a schedule configuration object.
-     * @param {Buffer} buffer
-     * @return {TrvScheduleConfig}
      */
     decodeSchedule(buffer: Buffer): TrvScheduleConfig {
         return {
@@ -1185,11 +1116,7 @@ export const trv = {
         };
     },
 
-    /**
-     * @param {TrvScheduleConfig} schedule
-     * @return {void}
-     */
-    validateSchedule(schedule: TrvScheduleConfig) {
+    validateSchedule(schedule: TrvScheduleConfig): void {
         const eventCount = 4;
 
         if (typeof schedule !== 'object') {
@@ -1261,10 +1188,8 @@ export const trv = {
 
     /**
      * Encodes a schedule object into Zigbee message format.
-     * @param {TrvScheduleConfig} schedule
-     * @return {Buffer}
      */
-    encodeSchedule(schedule: KeyValueAny) {
+    encodeSchedule(schedule: TrvScheduleConfig): Buffer {
         const buffer = Buffer.alloc(26);
         buffer.writeUInt8(0x04);
 

@@ -53,15 +53,15 @@ export function numberWithinRange(number: number, min: number, max: number) {
 /**
  * Maps number from one range to another. In other words it performs a linear interpolation.
  * Note that this function can interpolate values outside source range (linear extrapolation).
- * @param {number} value value to map
- * @param {number} fromLow source range lower value
- * @param {number} fromHigh source range upper value
- * @param {number} toLow target range lower value
- * @param {number} toHigh target range upper value
- * @param {number} [precision=0] number of decimal places to which result should be rounded
- * @return {number} value mapped to new range
+ * @param value - value to map
+ * @param fromLow - source range lower value
+ * @param fromHigh - source range upper value
+ * @param toLow - target range lower value
+ * @param toHigh - target range upper value
+ * @param number - of decimal places to which result should be rounded
+ * @returns value mapped to new range
  */
-export function mapNumberRange(value: number, fromLow: number, fromHigh: number, toLow: number, toHigh: number, precision=0) {
+export function mapNumberRange(value: number, fromLow: number, fromHigh: number, toLow: number, toHigh: number, precision=0): number {
     const mappedValue = toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
     return precisionRound(mappedValue, precision);
 }
@@ -272,7 +272,7 @@ export function isInRange(min: number, max: number, value: number) {
     return value >= min && value <= max;
 }
 
-export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[]) {
+export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[], errorIfNotInArray=true) {
     const clone = [...arr];
     for (let i = 0; i < oldElements.length; i++) {
         const index = clone.indexOf(oldElements[i]);
@@ -280,7 +280,9 @@ export function replaceInArray<T>(arr: T[], oldElements: T[], newElements: T[]) 
         if (index !== -1) {
             clone[index] = newElements[i];
         } else {
-            throw new Error('Element not in array');
+            if (errorIfNotInArray) {
+                throw new Error('Element not in array');
+            }
         }
     }
 
@@ -494,33 +496,17 @@ export function attachOutputCluster(device: Zh.Device, clusterKey: string) {
     }
 }
 
-/**
- * @param {number} value
- * @param {number} hexLength
- * @return {string}
- */
-export function printNumberAsHex(value: number, hexLength: number) {
+export function printNumberAsHex(value: number, hexLength: number): string {
     const hexValue = value.toString(16).padStart(hexLength, '0');
     return `0x${hexValue}`;
 }
 
-/**
- * @param {number[]} numbers
- * @param {number} hexLength
- * @return {string}
- */
-export function printNumbersAsHexSequence(numbers: number[], hexLength: number) {
+export function printNumbersAsHexSequence(numbers: number[], hexLength: number): string {
     return numbers.map((v) => v.toString(16).padStart(hexLength, '0')).join(':');
 }
 
 // Note: this is valid typescript-flavored JSDoc
 // eslint-disable-next-line valid-jsdoc
-/**
- * @param {logger} logger
- * @param {vendor} vendor
- * @param {key} key
- * @returns {(level: string, message: string) => void}
- */
 export const createLogger = (logger: Logger, vendor: string, key: string) => (level: 'debug' | 'info' | 'warn' | 'error', message: string) => {
     logger[level](`zigbee-herdsman-converters:${vendor}:${key}: ${message}`);
 };

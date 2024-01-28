@@ -155,9 +155,6 @@ const fzLocal = {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            /**
-             * @type {{ action?: string; }}
-             */
             const payload: KeyValue = {};
             const log = utils.createLogger(meta.logger, 'xiaomi', 'aqara_fp1');
 
@@ -175,9 +172,6 @@ const fzLocal = {
                         break;
                     }
 
-                    /**
-                     * @type {[ regionId: number | string, eventTypeCode: number | string ]}
-                     */
                     const [regionIdRaw, eventTypeCodeRaw] = value;
                     // @ts-expect-error
                     const regionId = parseInt(regionIdRaw, 10);
@@ -416,18 +410,16 @@ const tzLocal = {
                 return;
             }
 
-            // @ts-expect-error
             const command = commandWrapper.payload.command;
 
             log('debug', `trying to create region ${command.region_id}`);
 
-            /** @type {Record<string, Set<number>>} */
             const sortedZonesAccumulator = {};
-            const sortedZones = command.zones
+            const sortedZonesWithSets: {[s: number]: [number]} = command.zones
                 .reduce(
                     (accumulator: {[s: number]: Set<number>}, zone: {x: number, y: number}) => {
                         if (!accumulator[zone.y]) {
-                            accumulator[zone.y] = new Set();
+                            accumulator[zone.y] = new Set<number>();
                         }
 
                         accumulator[zone.y].add(zone.x);
@@ -436,6 +428,11 @@ const tzLocal = {
                     },
                     sortedZonesAccumulator,
                 );
+            const sortedZones = Object.entries(sortedZonesWithSets).reduce((acc, [key, value]) => {
+                const numKey = parseInt(key, 10); // Convert string key back to number
+                acc[numKey] = Array.from(value);
+                return acc;
+            }, {} as {[s: number]: number[]});
 
             const deviceConfig = new Uint8Array(7);
 
@@ -478,7 +475,6 @@ const tzLocal = {
                 );
                 return;
             }
-            // @ts-expect-error
             const command = commandWrapper.payload.command;
 
             log('debug', `trying to delete region ${command.region_id}`);
@@ -1752,6 +1748,8 @@ const definitions: Definition[] = [
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             e.motion_sensitivity_select(['low', 'medium', 'high'])
                 .withDescription('Select motion sensitivity to use. Press pairing button right before changing this otherwise it will fail.'),
+            e.detection_interval().withDescription('Time interval between action detection. ' +
+                'Press pairing button right before changing this otherwise it will fail.'),
             e.trigger_indicator().withDescription('When this option is enabled then ' +
                 'blue LED will blink once when motion is detected. ' +
                 'Press pairing button right before changing this otherwise it will fail.'),
@@ -1897,7 +1895,7 @@ const definitions: Definition[] = [
         vendor: 'Xiaomi',
         description: 'Aqara T1 water leak sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.ias_water_leak_alarm_1],
+        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.ias_water_leak_alarm_1, xiaomi.fromZigbee.aqara_opple],
         toZigbee: [],
         exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
         extend: [xiaomiZigbeeOTA()],

@@ -1,10 +1,13 @@
+/**
+ * Helper functions
+ *
+ * @packageDocumentation
+ */
+
 const url = 'https://files.inovelli.com/firmware/firmware.json';
 import * as common from './common';
 import {Zh, Logger, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
-/*
- * Helper functions
- */
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
     logger.debug(`InovelliOTA: call getImageMeta for ${device.modelID}`);
