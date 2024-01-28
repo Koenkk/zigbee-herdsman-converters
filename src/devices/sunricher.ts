@@ -615,7 +615,8 @@ const definitions: Definition[] = [
         model: 'HK-SENSOR-4IN1-A',
         vendor: 'Sunricher',
         description: 'Smart Home Sensor',
-        fromZigbee: [fz.occupancy, fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.battery, fz.humidity, fz.temperature, fz.led_on_motion, fz.occupancy_timeout, fz.illuminance],
+        fromZigbee: [fz.occupancy, fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.battery, fz.humidity, fz.temperature,
+            fz.led_on_motion, fz.occupancy_timeout, fz.illuminance],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstendpoint = device.getEndpoint(1);
