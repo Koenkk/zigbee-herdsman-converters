@@ -13,7 +13,7 @@ const definitions: Definition[] = [
         vendor: 'Keen Home',
         description: 'Temperature Sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.battery, fz.xiaomi_temperature, fz.humidity, fz.keen_home_smart_vent_pressure],
+        fromZigbee: [fz.battery, fz.lumi_temperature, fz.humidity, fz.keen_home_smart_vent_pressure],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {

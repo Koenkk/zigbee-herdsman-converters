@@ -1,6 +1,6 @@
-const {trv, fromZigbee} = require('../src/lib/xiaomi');
+const {trv, fromZigbee} = require('../src/lib/lumi');
 
-describe('lib/xiaomi', () => {
+describe('lib/lumi', () => {
     describe('trv', () => {
         const factoryDefaultScheduleData = '043e01e0000009600438000006a405640000089881e000000898';
         const factoryDefaultSchedule = {

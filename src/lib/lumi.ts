@@ -7,13 +7,13 @@ import {
     getKey,
 } from './utils';
 
-import * as ota from '../lib/ota';
+import * as ota from './ota';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as globalStore from './store';
 import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range} from './types';
 import * as modernExtend from './modernExtend';
-import * as exposes from '../lib/exposes';
+import * as exposes from './exposes';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -35,7 +35,7 @@ export const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buff
     const dataObject: KeyValue = {};
 
     if (buffer !== null && Buffer.isBuffer(buffer)) {
-        // Xiaomi struct parsing
+        // Lumi struct parsing
         for (let i = 0; i < buffer.length - 1; i++) {
             const index = buffer[i];
             let value = null;
@@ -1249,28 +1249,28 @@ export const trv = {
 
 export const manufacturerCode = 0x115f;
 
-export const xiaomiModernExtend = {
-    xiaomiLight: (args?: Omit<modernExtend.LightArgs, 'colorTemp'> & {colorTemp?: true, powerOutageMemory?: 'switch' | 'light'}) => {
+export const lumiModernExtend = {
+    lumiLight: (args?: Omit<modernExtend.LightArgs, 'colorTemp'> & {colorTemp?: true, powerOutageMemory?: 'switch' | 'light'}) => {
         args = {powerOutageMemory: 'switch', ...args};
         const colorTemp: {range: Range, startup: boolean} = args.colorTemp ? {startup: false, range: [153, 370]} : undefined;
         const result = modernExtend.light({effect: false, powerOnBehavior: false, ...args, colorTemp});
         result.fromZigbee.push(
-            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.lumi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
             fz.ignore_pressure_report, fz.ignore_temperature_report, fromZigbee.aqara_opple,
         );
         result.exposes.push(e.device_temperature(), e.power_outage_count());
 
         if (args.powerOutageMemory === 'switch') {
-            result.toZigbee.push(tz.xiaomi_switch_power_outage_memory);
+            result.toZigbee.push(tz.lumi_switch_power_outage_memory);
             result.exposes.push(e.power_outage_memory());
         } else if (args.powerOutageMemory === 'light') {
-            result.toZigbee.push(tz.xiaomi_light_power_outage_memory);
+            result.toZigbee.push(tz.lumi_light_power_outage_memory);
             result.exposes.push(e.power_outage_memory().withAccess(ea.STATE_SET));
         }
 
         return result;
     },
-    xiaomiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    lumiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
         cluster: 'aqaraOpple',
@@ -1279,7 +1279,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    lumiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'power_on_behavior',
         lookup: {'on': 0, 'previous': 1, 'off': 2},
         cluster: 'aqaraOpple',
@@ -1288,7 +1288,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiOperationMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    lumiOperationMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'operation_mode',
         lookup: {'decoupled': 0, 'control_relay': 1},
         cluster: 'aqaraOpple',
@@ -1297,7 +1297,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiAction: (args?: Partial<modernExtend.ActionEnumLookupArgs>) => modernExtend.actionEnumLookup({
+    lumiAction: (args?: Partial<modernExtend.ActionEnumLookupArgs>) => modernExtend.actionEnumLookup({
         lookup: {'single': 1},
         cluster: 'genMultistateInput',
         attribute: 'presentValue',
@@ -1337,7 +1337,7 @@ export const xiaomiModernExtend = {
         description: 'Units to show on the display',
         ...args,
     }),
-    xiaomiOutageCountRestoreBindReporting: (): ModernExtend => {
+    lumiOutageCountRestoreBindReporting: (): ModernExtend => {
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'aqaraOpple',
             type: ['attributeReport', 'readResponse'],
@@ -1383,8 +1383,8 @@ export const xiaomiModernExtend = {
 
         return {fromZigbee, isModernExtend: true};
     },
-    xiaomiZigbeeOTA: (): ModernExtend => {
-        // Many Xiaomi devices miss OTA on endpoint 1 even while supporting it.
+    lumiZigbeeOTA: (): ModernExtend => {
+        // Many Lumi devices miss OTA on endpoint 1 even while supporting it.
         // https://github.com/Koenkk/zigbee2mqtt/issues/10660
         const result = modernExtend.quirkAddEndpointCluster({
             endpointID: 1,
@@ -1393,7 +1393,7 @@ export const xiaomiModernExtend = {
         result.ota = ota.zigbeeOTA;
         return result;
     },
-    xiaomiPower: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+    lumiPower: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
         name: 'power',
         cluster: 'genAnalogInput',
         attribute: 'presentValue',
@@ -1404,7 +1404,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiElectricityMeter: (): ModernExtend => {
+    lumiElectricityMeter: (): ModernExtend => {
         const exposes = [
             e.energy(),
             e.voltage(),
@@ -1421,7 +1421,7 @@ export const xiaomiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
-    xiaomiOverloadProtection: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+    lumiOverloadProtection: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
         name: 'overload_protection',
         cluster: 'aqaraOpple',
         attribute: {ID: 0x020b, type: 0x39},
@@ -1433,7 +1433,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiLedIndicator: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+    lumiLedIndicator: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
         name: 'led_indicator',
         cluster: 'aqaraOpple',
         attribute: {ID: 0x0203, type: 0x10},
@@ -1444,7 +1444,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiButtonLock: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+    lumiButtonLock: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
         name: 'button_lock',
         cluster: 'aqaraOpple',
         attribute: {ID: 0x0200, type: 0x20},
@@ -1457,7 +1457,7 @@ export const xiaomiModernExtend = {
     }),
 };
 
-export {xiaomiModernExtend as modernExtend};
+export {lumiModernExtend as modernExtend};
 
 const feederDaysLookup = {
     0x7f: 'everyday',
@@ -1566,14 +1566,14 @@ export const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter,
-    xiaomi_basic: {
+    lumi_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
             return await numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     } satisfies Fz.Converter,
-    xiaomi_basic_raw: {
+    lumi_basic_raw: {
         cluster: 'genBasic',
         type: ['raw'],
         convert: async (model, msg, publish, options, meta) => {

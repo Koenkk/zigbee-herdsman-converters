@@ -1897,7 +1897,7 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_action_click_multistate: {
+    lumi_action_click_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
@@ -2216,7 +2216,7 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_on_off_action: {
+    lumi_on_off_action: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
         options: [exposes.options.legacy()],
@@ -2224,7 +2224,7 @@ const fromZigbee1 = {
             if (utils.isLegacyEnabled(options)) {
                 return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
             } else {
-                return fromZigbeeConverters.xiaomi_on_off_action.convert(model, msg, publish, options, meta);
+                return fromZigbeeConverters.lumi_on_off_action.convert(model, msg, publish, options, meta);
             }
         },
     } satisfies Fz.Converter,
@@ -2464,12 +2464,12 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_multistate_action: {
+    lumi_multistate_action: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            // refactor to xiaomi_multistate_action]
+            // refactor to lumi_multistate_action]
             if (utils.isLegacyEnabled(options)) {
                 const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
                 const value = msg.data['presentValue'];
@@ -2480,7 +2480,7 @@ const fromZigbee1 = {
                     return {action: `${button}${(action ? `_${action}` : '')}`};
                 }
             } else {
-                return fromZigbeeConverters.xiaomi_multistate_action.convert(model, msg, publish, options, meta);
+                return fromZigbeeConverters.lumi_multistate_action.convert(model, msg, publish, options, meta);
             }
         },
     } satisfies Fz.Converter,
@@ -2636,7 +2636,7 @@ const fromZigbee1 = {
                     return {action: `${button}_${times[msg.data.presentValue]}`};
                 }
             } else {
-                return fromZigbeeConverters.xiaomi_multistate_action.convert(model, msg, publish, options, meta);
+                return fromZigbeeConverters.lumi_multistate_action.convert(model, msg, publish, options, meta);
             }
         },
     } satisfies Fz.Converter,

@@ -1,6 +1,6 @@
 import { repInterval } from '../src/lib/constants';
 import {philipsFz} from '../src/lib/philips';
-import {fromZigbee as xiaomiFz} from '../src/lib/xiaomi';
+import {fromZigbee as lumiFz} from '../src/lib/lumi';
 import fz from '../src/converters/fromZigbee'
 import { assertDefintion, mockDevice, reportingItem } from './utils';
 
@@ -207,7 +207,7 @@ describe('ModernExtend', () => {
             meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
             fromZigbee: [
                 fz.battery,
-                xiaomiFz.aqara_opple,
+                lumiFz.aqara_opple,
                 expect.objectContaining({cluster: 'aqaraOpple'}),
                 expect.objectContaining({cluster: 'genAnalogInput'}),
                 expect.objectContaining({cluster: 'msTemperatureMeasurement'}),

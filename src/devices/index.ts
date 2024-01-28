@@ -280,7 +280,7 @@ import wisdom from './wisdom';
 import woolley from './woolley';
 import woox from './woox';
 import wyze from './wyze';
-import xiaomi from './xiaomi';
+import lumi from './lumi';
 import xinghuoyuan from './xinghuoyuan';
 import yale from './yale';
 import ynoa from './ynoa';
@@ -573,7 +573,7 @@ export default [
     ...woolley,
     ...woox,
     ...wyze,
-    ...xiaomi,
+    ...lumi,
     ...xinghuoyuan,
     ...yale,
     ...ynoa,
