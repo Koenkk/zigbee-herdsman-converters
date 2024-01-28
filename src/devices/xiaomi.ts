@@ -1640,7 +1640,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'Xiaomi', model: 'YTC4042GL'},
             {vendor: 'Xiaomi', model: 'YTC4007CN'},
-            {vendor: 'Xiaomi', model: 'YTC4018CN'}
+            {vendor: 'Xiaomi', model: 'YTC4018CN'},
         ],
         description: 'Mi temperature and humidity sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
@@ -1689,7 +1689,7 @@ const definitions: Definition[] = [
             {vendor: 'Xiaomi', model: 'YTC4041GL'},
             {vendor: 'Xiaomi', model: 'YTC4004CN'},
             {vendor: 'Xiaomi', model: 'YTC4016CN'},
-            {vendor: 'Xiaomi', model: 'ZHTZ02LM'}
+            {vendor: 'Xiaomi', model: 'ZHTZ02LM'},
         ],
         description: 'Mi motion sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
@@ -2350,7 +2350,7 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         whiteLabel: [
             {vendor: 'Aqara', model: 'CM-M01'},
-            {vendor: 'Aqara', model: 'CM-M01R'}
+            {vendor: 'Aqara', model: 'CM-M01R'},
         ],
         description: 'Curtain driver E1',
         fromZigbee: [
