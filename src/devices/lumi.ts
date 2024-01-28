@@ -276,20 +276,24 @@ const tzLocal = {
                     {manufacturerCode: 0x115f});
                 break;
             case 'window_detection':
-                await entity.write('manuSpecificLumi', {0x0273: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {
+                    0x0273: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20},
+                }, {manufacturerCode: 0x115f});
                 break;
             case 'valve_detection':
-                await entity.write('manuSpecificLumi', {0x0274: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {
+                    0x0274: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20},
+                }, {manufacturerCode: 0x115f});
                 break;
             case 'child_lock':
-                await entity.write('manuSpecificLumi', {0x0277: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {
+                    0x0277: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20},
+                }, {manufacturerCode: 0x115f});
                 break;
             case 'away_preset_temperature':
-                await entity.write('manuSpecificLumi', {0x0279: {value: Math.round(utils.toNumber(value, 'away_preset_temperature') * 100), type: 0x23}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {
+                    0x0279: {value: Math.round(utils.toNumber(value, 'away_preset_temperature') * 100), type: 0x23},
+                }, {manufacturerCode: 0x115f});
                 break;
             case 'sensor': {
                 utils.assertEndpoint(entity);
@@ -369,8 +373,9 @@ const tzLocal = {
                 await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
                 break;
             case 'schedule':
-                await entity.write('manuSpecificLumi', {0x027d: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {
+                    0x027d: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20},
+                }, {manufacturerCode: 0x115f});
                 break;
             case 'schedule_settings': {
                 // @ts-expect-error
