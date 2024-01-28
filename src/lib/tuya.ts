@@ -1181,6 +1181,16 @@ const tuyaTz = {
 export {tuyaTz as tz};
 
 const tuyaFz = {
+    brightness: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('61440')) {
+                const property = utils.postfixWithEndpointName('brightness', msg, model, meta);
+                return {[property]: msg.data['61440']};
+            }
+        },
+    } satisfies Fz.Converter,
     gateway_connection_status: {
         cluster: 'manuSpecificTuya',
         type: ['commandMcuGatewayConnectionStatus'],
@@ -1676,12 +1686,29 @@ const tuyaModernExtend = {
         return tuyaModernExtend.dpEnumLookup({name: 'power_on_behavior', lookup: lookup, type: dataTypes.enum,
             expose: e.power_on_behavior(Object.keys(lookup)).withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
     },
-    tuyaLight: (args?: modernExtend.LightArgs & {minBrightness?: boolean}) => {
-        args = {minBrightness: false, powerOnBehavior: false, ...args};
+    tuyaLight: (args?: modernExtend.LightArgs & {minBrightness?: boolean, switchType?: boolean}) => {
+        args = {minBrightness: false, powerOnBehavior: false, switchType: false, ...args};
         const result = modernExtend.light(args);
 
+        result.fromZigbee.push(tuyaFz.brightness);
         result.toZigbee.push(tuyaTz.do_not_disturb);
         result.exposes.push(tuyaExposes.doNotDisturb());
+
+        if (args.powerOnBehavior) {
+            result.fromZigbee.push(tuyaFz.power_on_behavior_2);
+            result.toZigbee.push(tuyaTz.power_on_behavior_2);
+            if (args.endpoints) {
+                result.exposes.push(...Object.keys(args.endpoints).map((ee) => e.power_on_behavior().withEndpoint(ee)));
+            } else {
+                result.exposes.push(e.power_on_behavior());
+            }
+        }
+
+        if (args.switchType) {
+            result.fromZigbee.push(tuyaFz.switch_type);
+            result.toZigbee.push(tuyaTz.switch_type);
+            result.exposes.push(tuyaExposes.switchType());
+        }
 
         if (args.minBrightness) {
             result.fromZigbee.push(tuyaFz.min_brightness);
