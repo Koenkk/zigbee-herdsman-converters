@@ -1256,7 +1256,7 @@ export const lumiModernExtend = {
         const result = modernExtend.light({effect: false, powerOnBehavior: false, ...args, colorTemp});
         result.fromZigbee.push(
             fz.lumi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
-            fz.ignore_pressure_report, fz.ignore_temperature_report, fromZigbee.aqara_opple,
+            fz.ignore_pressure_report, fz.ignore_temperature_report, fromZigbee.lumi_specific,
         );
         result.exposes.push(e.device_temperature(), e.power_outage_count());
 
@@ -1585,7 +1585,7 @@ export const fromZigbee = {
             return payload;
         },
     } satisfies Fz.Converter,
-    aqara_opple: {
+    lumi_specific: {
         cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {

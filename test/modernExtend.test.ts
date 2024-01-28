@@ -207,7 +207,7 @@ describe('ModernExtend', () => {
             meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
             fromZigbee: [
                 fz.battery,
-                lumiFz.aqara_opple,
+                lumiFz.lumi_specific,
                 expect.objectContaining({cluster: 'manuSpecificLumi'}),
                 expect.objectContaining({cluster: 'genAnalogInput'}),
                 expect.objectContaining({cluster: 'msTemperatureMeasurement'}),
