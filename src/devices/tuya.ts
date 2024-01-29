@@ -740,8 +740,12 @@ const definitions: Definition[] = [
             e.numeric('min_temperature_alarm', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60).withDescription('Alarm temperature min'),
             e.numeric('max_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Alarm humidity max'),
             e.numeric('min_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Alarm humidity min'),
+            e.enum('temp_alarm', ea.STATE_SET, ['lower alarm', 'upper alarm', 'cancel']).withDescription('Temperature alarm'),
+            e.enum('hum_alarm', ea.STATE_SET, ['lower alarm', 'upper alarm', 'cancel']).withDescription('Humidity alarm'),
             e.numeric('temperature_periodic_report', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Temp periodic report'),
             e.numeric('humidity_periodic_report', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Humidity periodic report'),
+            e.numeric('temp_sensitivity', ea.STATE_SET).withUnit('°C').withValueMin(3).withValueMax(10).withValueStep(1).withDescription('Sensitivity of temperature'),
+            e.numeric('hum_sensitivity', ea.STATE_SET).withUnit('%').withValueMin(3).withValueMax(10).withValueStep(1).withDescription('Sensitivity of humidity'), 
         ],
         meta: {
             tuyaDatapoints: [
