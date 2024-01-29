@@ -4,9 +4,42 @@ import {getClusterAttributeValue} from './utils';
 import * as m from './modernExtend';
 import * as zh from 'zigbee-herdsman/dist';
 import {philipsLight} from './philips';
-import {Device, Endpoint} from 'zigbee-herdsman/dist/controller/model';
+import {Endpoint} from 'zigbee-herdsman/dist/controller/model';
 
-interface GeneratedExtend {extend: (a: object) => ModernExtend, args?: object, source: string, lib?: string}
+interface GeneratedExtend {
+    getExtend(): ModernExtend,
+    getSource(): string,
+    lib?: string
+}
+
+// Generator allows to define instances of GeneratedExtend that have typed arguments to extender.
+class Generator<T> implements GeneratedExtend {
+    extend: (a: T) => ModernExtend;
+    args?: T;
+    source: string;
+    lib?: string;
+
+    constructor(args: {extend: (a: T) => ModernExtend, args?: T, source: string, lib?: string}) {
+        this.extend = args.extend;
+        this.args = args.args;
+        this.source = args.source;
+        this.lib = args.lib;
+    }
+
+    getExtend(): ModernExtend {
+        return this.extend(this.args);
+    }
+
+    getSource(): string {
+        let jsonArgs = JSON.stringify(this.args);
+        if (!this.args || jsonArgs === '{}') {
+            jsonArgs = '';
+        }
+
+        return this.source + '(' + jsonArgs + ')';
+    }
+}
+
 type ExtendGenerator = (endpoints?: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
 type Extender = [string[], ExtendGenerator];
 
@@ -19,7 +52,7 @@ function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: 
         const lib = e.lib ?? 'modernExtend';
         if (!(lib in imports)) imports[lib] = [];
 
-        const importName = e.source.split('(')[0];
+        const importName = e.getSource().split('(')[0];
         if (!importsDeduplication.has(importName)) {
             importsDeduplication.add(importName);
             imports[lib].push(importName);
@@ -29,16 +62,6 @@ function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: 
     const importsStr = Object.entries(imports)
         .map((e) => `const {${e[1].join(', ')}} = require('zigbee-herdsman-converters/lib/${e[0]}');`).join('\n');
 
-
-    const genSource = (g: GeneratedExtend): string => {
-        let jsonArgs = JSON.stringify(g.args);
-        if (!g.args || jsonArgs === '{}') {
-            jsonArgs = '';
-        }
-
-        return g.source + '(' + jsonArgs + ')';
-    };
-
     return `${importsStr}
 
 const definition = {
@@ -46,7 +69,7 @@ const definition = {
     model: '${definition.model}',
     vendor: '${definition.vendor}',
     description: 'Automatically generated definition',
-    extend: [${generatedExtend.map(genSource).join(', ')}],
+    extend: [${generatedExtend.map((e) => e.getSource()).join(', ')}],
     meta: ${JSON.stringify(definition.meta || {})},
 };
 
@@ -82,7 +105,7 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
     }
     // Generate extenders
     const multiEndpoint = Array.from(inputClusterMap.values()).some((e) => e.length > 1) ||
-                            Array.from(outputClusterMap.values()).some((e) => e.length > 1)
+                            Array.from(outputClusterMap.values()).some((e) => e.length > 1);
 
     const usedExtenders: Extender[] = [];
     const generatedExtend: GeneratedExtend[] = [];
@@ -93,7 +116,7 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         for (const endpoint of device.endpoints) {
             endpoints[endpoint.ID.toString()] = endpoint.ID;
         }
-        generatedExtend.push({extend: m.deviceEndpoints, args: {endpoints}, source: 'deviceEndpoints'})
+        generatedExtend.push(new Generator({extend: m.deviceEndpoints, args: {endpoints}, source: 'deviceEndpoints'}));
     }
 
     const addGenerators = async (clusterName: string, endpoints: Zh.Endpoint[], extenders: Extender[]) => {
@@ -113,7 +136,7 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         await addGenerators(cluster, endpoints, outputExtenders);
     }
 
-    const extenders = generatedExtend.map((e) => e.extend(e.args));
+    const extenders = generatedExtend.map((e) => e.getExtend());
     // Generated definition below will provide this.
     extenders.forEach((extender) => {
         extender.endpoint = undefined;
@@ -140,18 +163,20 @@ function stringifyEps(endpoints: Endpoint[]): string[] {
 }
 
 const inputExtenders: Extender[] = [
-    [['msTemperatureMeasurement'], async (eps) => [{extend: m.temperature, args: {endpoints: stringifyEps(eps)}, source: 'temperature'}]],
-    [['msPressureMeasurement'], async (eps) => [{extend: m.pressure, args: {endpoints: stringifyEps(eps)}, source: 'pressure'}]],
-    [['msRelativeHumidity'], async (eps) => [{extend: m.humidity, args: {endpoints: stringifyEps(eps)}, source: 'humidity'}]],
-    [['msCO2'], async (eps) => [{extend: m.co2, args: {endpoints: stringifyEps(eps)}, source: 'co2'}]],
-    [['genPowerCfg'], async () => [{extend: m.batteryPercentage, source: 'batteryPercentage'}]],
+    [['msTemperatureMeasurement'], async (eps) => [
+        new Generator({extend: m.temperature, args: {endpoints: stringifyEps(eps)}, source: 'temperature'}),
+    ]],
+    [['msPressureMeasurement'], async (eps) => [new Generator({extend: m.pressure, args: {endpoints: stringifyEps(eps)}, source: 'pressure'})]],
+    [['msRelativeHumidity'], async (eps) => [new Generator({extend: m.humidity, args: {endpoints: stringifyEps(eps)}, source: 'humidity'})]],
+    [['msCO2'], async (eps) => [new Generator({extend: m.co2, args: {endpoints: stringifyEps(eps)}, source: 'co2'})]],
+    [['genPowerCfg'], async () => [new Generator({extend: m.batteryPercentage, source: 'batteryPercentage'})]],
     [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],
     [['closuresDoorLock'], extenderLock],
 ];
 
 const outputExtenders: Extender[] = [
-    [['genIdentify'], async () => [{extend: m.identify, source: 'identify'}]],
+    [['genIdentify'], async () => [new Generator({extend: m.identify, source: 'identify'})]],
 ];
 
 async function extenderLock(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
@@ -163,7 +188,7 @@ async function extenderLock(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]
     const endpoint = endpoints[0];
 
     const pinCodeCount = await getClusterAttributeValue<number>(endpoint, 'closuresDoorLock', 'numOfPinUsersSupported', 50);
-    return [{extend: m.lock, args: {pinCodeCount}, source: `lock({pinCodeCount: ${pinCodeCount}})`}];
+    return [new Generator({extend: m.lock, args: {pinCodeCount}, source: `lock`})];
 }
 
 async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
@@ -177,7 +202,7 @@ async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedEx
             prev[curr.ID.toString()] = curr.ID;
             return prev;
         }, {} as Record<string, number>) : undefined;
-        generated.push({extend: m.onOff, args: {powerOnBehavior: false, endpoints}, source: 'onOff'});
+        generated.push(new Generator({extend: m.onOff, args: {powerOnBehavior: false, endpoints}, source: 'onOff'}));
     }
 
     for (const endpoint of lightEndpoints) {
@@ -205,9 +230,9 @@ async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedEx
         }
 
         if (endpoint.getDevice().manufacturerID === zh.Zcl.ManufacturerCode.Philips) {
-            generated.push({extend: philipsLight, args, source: `philipsLight`, lib: 'philips'});
+            generated.push(new Generator({extend: philipsLight, args, source: `philipsLight`, lib: 'philips'}));
         } else {
-            generated.push({extend: m.light, args, source: `light`});
+            generated.push(new Generator({extend: m.light, args, source: `light`}));
         }
     }
 
@@ -228,5 +253,5 @@ async function extenderElectricityMeter(endpoints: Zh.Endpoint[]): Promise<Gener
     if (!metering || !electricalMeasurements) {
         args.cluster = metering ? 'metering' : 'electrical';
     }
-    return [{extend: m.electricityMeter, args, source: `electricityMeter`}];
+    return [new Generator({extend: m.electricityMeter, args, source: `electricityMeter`})];
 }

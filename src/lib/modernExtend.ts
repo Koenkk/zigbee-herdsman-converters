@@ -669,14 +669,14 @@ export function deviceEndpoints(args: {endpoints: {[n: string]: number}}): Moder
     return {
         endpoint: (d) => args.endpoints,
         isModernExtend: true,
-    }
+    };
 }
 
 export function ota(args: {definition: DefinitionOta}): ModernExtend {
     return {
         ota: args.definition,
         isModernExtend: true,
-    }
+    };
 }
 
 export function temperature(args?: Partial<NumericArgs>) {
