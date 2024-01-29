@@ -721,6 +721,60 @@ const definitions: Definition[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_vvmbj46n']),
+        model: 'ZTH05Z',
+        vendor: 'TuYa',
+        description: 'Temperature and humidity sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            // Required to get the device to start reporting
+            await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
+        },
+        exposes: [
+            e.temperature(), e.humidity(), e.battery(),
+            e.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Temperature unit'),
+            e.numeric('max_temperature_alarm', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
+                .withDescription('Alarm temperature max'),
+            e.numeric('min_temperature_alarm', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
+                .withDescription('Alarm temperature min'),
+            e.numeric('max_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Alarm humidity max'),
+            e.numeric('min_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Alarm humidity min'),
+            e.enum('temperature_alarm', ea.STATE_SET, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Temperature alarm'),
+            e.enum('humidity_alarm', ea.STATE_SET, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Humidity alarm'),
+            e.numeric('temperature_periodic_report', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
+                .withDescription('Temp periodic report'),
+            e.numeric('humidity_periodic_report', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
+                .withDescription('Humidity periodic report'),
+            e.numeric('temperature_sensitivity', ea.STATE_SET).withUnit('°C').withValueMin(3).withValueMax(10).withValueStep(1)
+                .withDescription('Sensitivity of temperature'),
+            e.numeric('humidity_sensitivity', ea.STATE_SET).withUnit('%').withValueMin(3).withValueMax(10).withValueStep(1)
+                .withDescription('Sensitivity of humidity'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [2, 'humidity', tuya.valueConverter.raw],
+                [4, 'battery', tuya.valueConverter.raw],
+                [9, 'temperature_unit', tuya.valueConverter.temperatureUnitEnum],
+                [10, 'max_temperature_alarm', tuya.valueConverter.divideBy10],
+                [11, 'min_temperature_alarm', tuya.valueConverter.divideBy10],
+                [12, 'max_humidity_alarm', tuya.valueConverter.raw],
+                [13, 'min_humidity_alarm', tuya.valueConverter.raw],
+                [14, 'temperature_alarm', tuya.valueConverterBasic.lookup(
+                    {'lower_alarm': tuya.enum(0), 'upper_alarm': tuya.enum(1), 'cancel': tuya.enum(2)})],
+                [15, 'humidity_alarm', tuya.valueConverterBasic.lookup(
+                    {'lower_alarm': tuya.enum(0), 'upper_alarm': tuya.enum(1), 'cancel': tuya.enum(2)})],
+                [17, 'temperature_periodic_report', tuya.valueConverter.raw],
+                [18, 'humidity_periodic_report', tuya.valueConverter.raw],
+                [19, 'temperature_sensitivity', tuya.valueConverter.raw],
+                [20, 'humidity_sensitivity', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nvups4nh']),
         model: 'TS0601_contact_temperature_humidity_sensor',
         vendor: 'TuYa',
@@ -1902,7 +1956,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0215A', ['_TZ3000_4fsgukof', '_TZ3000_wr2ucaj9', '_TZ3000_zsh6uat3', '_TZ3000_tj4pwzzm',
-            '_TZ3000_2izubafb', '_TZ3000_pkfazisv', '_TZ3000_0dumfk2z', '_TZ3000_ssp0maqm']),
+            '_TZ3000_2izubafb', '_TZ3000_pkfazisv', '_TZ3000_0dumfk2z', '_TZ3000_ssp0maqm', '_TZ3000_p3fph1go']),
         model: 'TS0215A_sos',
         vendor: 'TuYa',
         description: 'SOS button',
@@ -4938,7 +4992,7 @@ const definitions: Definition[] = [
         model: 'TS0052',
         vendor: 'TuYa',
         description: 'Zigbee dimmer module 1 channel',
-        extend: [tuyaLight()],
+        extend: [tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true})],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
@@ -5105,7 +5159,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}, {modelID: 'TS0601', manufacturerName: '_TZE200_vvmbj46n'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}],
         model: 'JM-TRH-ZGB-V1',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with clock',
@@ -5133,9 +5187,6 @@ const definitions: Definition[] = [
                 .withDescription('Alarm humidity max'),
             e.numeric('min_humidity', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Alarm humidity min'),
-        ],
-        whiteLabel: [
-            tuya.whitelabel('TuYa', 'TH05Z', 'Temperature & humidity sensor with clock', ['_TZE200_vvmbj46n']),
         ],
     },
     {

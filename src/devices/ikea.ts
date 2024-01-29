@@ -760,7 +760,7 @@ const definitions: Definition[] = [
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
-        toZigbee: [tz.battery_percentage_remaining],
+        toZigbee: [tz.battery_percentage_remaining, tz.identify],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             // Binding genOnOff is not required to make device send events.
@@ -785,7 +785,7 @@ const definitions: Definition[] = [
             e.battery().withAccess(ea.STATE_GET),
             e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
         ],
-        toZigbee: [tz.battery_percentage_remaining],
+        toZigbee: [tz.battery_percentage_remaining, tz.identify],
         ota: ota.tradfri,
         meta: {disableActionGroup: true},
         configure: configureRemote,

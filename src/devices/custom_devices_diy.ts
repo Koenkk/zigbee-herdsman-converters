@@ -1389,21 +1389,101 @@ const definitions: Definition[] = [
         model: 'MHO-C401N',
         vendor: 'Custom devices (DiY)',
         description: 'Xiaomi temperature & humidity sensor with custom firmware',
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.hvac_user_interface],
-        toZigbee: [tz.thermostat_temperature_display_mode],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
-            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.temperature(endpoint, {min: 10, max: 300, change: 10});
-            await reporting.humidity(endpoint, {min: 10, max: 300, change: 50});
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [
-            e.temperature(), e.humidity(), e.battery(),
-            e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
-                .withDescription('The temperature format displayed on the screen'),
+        extend: [
+            quirkAddEndpointCluster({
+                endpointID: 1,
+                outputClusters: [
+                    'hvacUserInterfaceCfg',
+                ],
+                inputClusters: [
+                    'genPowerCfg',
+                    'msTemperatureMeasurement',
+                    'msRelativeHumidity',
+                    'hvacUserInterfaceCfg',
+                ],
+            }),
+            batteryPercentage(),
+            temperature({reporting: {min: 10, max: 300, change: 10}}),
+            humidity({reporting: {min: 10, max: 300, change: 50}}),
+            // Temperature display and show smile.
+            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issue-2033984519
+            enumLookup({
+                name: 'temperature_display_mode',
+                lookup: {'celsius': 0, 'fahrenheit': 1},
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: 'tempDisplayMode',
+                description: 'The units of the temperature displayed on the device screen.',
+            }),
+            binary({
+                name: 'show_smile',
+                valueOn: ['HIDE', 1],
+                valueOff: ['SHOW', 0],
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: 'programmingVisibility',
+                description: 'Whether to show a smile on the device screen.',
+            }),
+            // Setting offsets for temperature and humidity.
+            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/30
+            numeric({
+                name: 'temperature_calibration',
+                unit: 'C',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: {ID: 0x0100, type: 40},
+                valueMin: -12.7,
+                valueMax: 12.7,
+                valueStep: 0.1,
+                scale: 10,
+                description: 'The temperature calibration, in 0.1° steps. Requires v0.1.1.6 or newer.',
+            }),
+            numeric({
+                name: 'humidity_calibration',
+                unit: '%',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: {ID: 0x0101, type: 40},
+                valueMin: -12.7,
+                valueMax: 12.7,
+                valueStep: 0.1,
+                scale: 10,
+                description: 'The humidity offset is set in 0.1 % steps. Requires v0.1.1.6 or newer.',
+            }),
+            // Comfort parameters.
+            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issuecomment-1855763432
+            numeric({
+                name: 'comfort_temperature_min',
+                unit: 'C',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: {ID: 0x0102, type: 40},
+                valueMin: -127,
+                valueMax: 127,
+                description: 'Comfort parameters/Temperature minimum, in 1° steps. Requires v0.1.1.7 or newer.',
+            }),
+            numeric({
+                name: 'comfort_temperature_max',
+                unit: 'C',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: {ID: 0x0103, type: 40},
+                valueMin: -127,
+                valueMax: 127,
+                description: 'Comfort parameters/Temperature maximum, in 1° steps. Requires v0.1.1.7 or newer.',
+            }),
+            numeric({
+                name: 'comfort_humidity_min',
+                unit: '%',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: {ID: 0x0104, type: 32},
+                valueMin: 0,
+                valueMax: 100,
+                description: 'Comfort parameters/Humidity minimum, in 1% steps. Requires v0.1.1.7 or newer.',
+            }),
+            numeric({
+                name: 'comfort_humidity_max',
+                unit: '%',
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: {ID: 0x0105, type: 32},
+                valueMin: 0,
+                valueMax: 100,
+                description: 'Comfort parameters/Humidity maximum, in 1% steps. Requires v0.1.1.7 or newer.',
+            }),
         ],
         ota: ota.zigbeeOTA,
     },
