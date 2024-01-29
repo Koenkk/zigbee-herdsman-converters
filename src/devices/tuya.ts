@@ -734,18 +734,24 @@ const definitions: Definition[] = [
             await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
         },
         exposes: [
-            e.temperature(), e.humidity(), e.battery(), 
+            e.temperature(), e.humidity(), e.battery(),
             e.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Temperature unit'),
-            e.numeric('max_temperature_alarm', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60).withDescription('Alarm temperature max'),
-            e.numeric('min_temperature_alarm', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60).withDescription('Alarm temperature min'),
+            e.numeric('max_temperature_alarm', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
+                .withDescription('Alarm temperature max'),
+            e.numeric('min_temperature_alarm', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
+                .withDescription('Alarm temperature min'),
             e.numeric('max_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Alarm humidity max'),
             e.numeric('min_humidity_alarm', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Alarm humidity min'),
-            e.enum('temp_alarm', ea.STATE_SET, ['lower alarm', 'upper alarm', 'cancel']).withDescription('Temperature alarm'),
-            e.enum('hum_alarm', ea.STATE_SET, ['lower alarm', 'upper alarm', 'cancel']).withDescription('Humidity alarm'),
-            e.numeric('temperature_periodic_report', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Temp periodic report'),
-            e.numeric('humidity_periodic_report', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Humidity periodic report'),
-            e.numeric('temp_sensitivity', ea.STATE_SET).withUnit('°C').withValueMin(3).withValueMax(10).withValueStep(1).withDescription('Sensitivity of temperature'),
-            e.numeric('hum_sensitivity', ea.STATE_SET).withUnit('%').withValueMin(3).withValueMax(10).withValueStep(1).withDescription('Sensitivity of humidity'), 
+            e.enum('temperature_alarm', ea.STATE_SET, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Temperature alarm'),
+            e.enum('humidity_alarm', ea.STATE_SET, ['lower_alarm', 'upper_alarm', 'cancel']).withDescription('Humidity alarm'),
+            e.numeric('temperature_periodic_report', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
+                .withDescription('Temp periodic report'),
+            e.numeric('humidity_periodic_report', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
+                .withDescription('Humidity periodic report'),
+            e.numeric('temperature_sensitivity', ea.STATE_SET).withUnit('°C').withValueMin(3).withValueMax(10).withValueStep(1)
+                .withDescription('Sensitivity of temperature'),
+            e.numeric('humidity_sensitivity', ea.STATE_SET).withUnit('%').withValueMin(3).withValueMax(10).withValueStep(1)
+                .withDescription('Sensitivity of humidity'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -757,8 +763,10 @@ const definitions: Definition[] = [
                 [11, 'min_temperature_alarm', tuya.valueConverter.divideBy10],
                 [12, 'max_humidity_alarm', tuya.valueConverter.raw],
                 [13, 'min_humidity_alarm', tuya.valueConverter.raw],
-                [14, 'temperature_alarm', tuya.valueConverterBasic.lookup({'lower_alarm' : tuya.enum(0), 'upper_alarm' : tuya.enum(1), 'cancel' : tuya.enum(2)})],
-                [15, 'humidity_alarm', tuya.valueConverterBasic.lookup({'lower_alarm' : tuya.enum(0), 'upper_alarm' : tuya.enum(1), 'cancel' : tuya.enum(2)})],
+                [14, 'temperature_alarm', tuya.valueConverterBasic.lookup(
+                    {'lower_alarm': tuya.enum(0), 'upper_alarm': tuya.enum(1), 'cancel': tuya.enum(2)})],
+                [15, 'humidity_alarm', tuya.valueConverterBasic.lookup(
+                    {'lower_alarm': tuya.enum(0), 'upper_alarm': tuya.enum(1), 'cancel': tuya.enum(2)})],
                 [17, 'temperature_periodic_report', tuya.valueConverter.raw],
                 [18, 'humidity_periodic_report', tuya.valueConverter.raw],
                 [19, 'temperature_sensitivity', tuya.valueConverter.raw],
