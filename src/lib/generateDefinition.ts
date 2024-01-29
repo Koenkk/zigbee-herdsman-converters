@@ -6,7 +6,7 @@ import * as zh from 'zigbee-herdsman/dist';
 import {philipsLight} from './philips';
 import {Device, Endpoint} from 'zigbee-herdsman/dist/controller/model';
 
-interface GeneratedExtend {extend?: ModernExtend, extendFn?: (a: object) => ModernExtend, args?: object, source: string, lib?: string}
+interface GeneratedExtend {extend: (a: object) => ModernExtend, args?: object, source: string, lib?: string}
 type ExtendGenerator = (endpoints?: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
 type Extender = [string[], ExtendGenerator];
 
@@ -22,7 +22,6 @@ function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: 
         const importName = e.source.split('(')[0];
         if (!importsDeduplication.has(importName)) {
             importsDeduplication.add(importName);
-
             imports[lib].push(importName);
         }
     });
@@ -32,10 +31,6 @@ function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: 
 
 
     const genSource = (g: GeneratedExtend): string => {
-        if (!g.extendFn) {
-            return g.source;
-        }
-
         let jsonArgs = JSON.stringify(g.args);
         if (!g.args || jsonArgs === '{}') {
             jsonArgs = '';
@@ -105,7 +100,7 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         await addGenerators(cluster, endpoints, outputExtenders);
     }
 
-    const extenders = generatedExtend.map((e) => e.extend || e.extendFn(e.args));
+    const extenders = generatedExtend.map((e) => e.extend(e.args));
     // Generated definition below will provide this.
     extenders.forEach((extender) => {
         extender.endpoint = undefined;
@@ -141,18 +136,18 @@ function stringifyEps(endpoints: Endpoint[]): string[] {
 }
 
 const inputExtenders: Extender[] = [
-    [['msTemperatureMeasurement'], async (eps) => [{extendFn: m.temperature, args: {endpoints: stringifyEps(eps)}, source: 'temperature'}]],
-    [['msPressureMeasurement'], async (eps) => [{extendFn: m.pressure, args: {endpoints: stringifyEps(eps)}, source: 'pressure'}]],
-    [['msRelativeHumidity'], async (eps) => [{extendFn: m.humidity, args: {endpoints: stringifyEps(eps)}, source: 'humidity'}]],
-    [['msCO2'], async (eps) => [{extendFn: m.co2, args: {endpoints: stringifyEps(eps)}, source: 'co2'}]],
-    [['genPowerCfg'], async () => [{extendFn: m.batteryPercentage, source: 'batteryPercentage'}]],
+    [['msTemperatureMeasurement'], async (eps) => [{extend: m.temperature, args: {endpoints: stringifyEps(eps)}, source: 'temperature'}]],
+    [['msPressureMeasurement'], async (eps) => [{extend: m.pressure, args: {endpoints: stringifyEps(eps)}, source: 'pressure'}]],
+    [['msRelativeHumidity'], async (eps) => [{extend: m.humidity, args: {endpoints: stringifyEps(eps)}, source: 'humidity'}]],
+    [['msCO2'], async (eps) => [{extend: m.co2, args: {endpoints: stringifyEps(eps)}, source: 'co2'}]],
+    [['genPowerCfg'], async () => [{extend: m.batteryPercentage, source: 'batteryPercentage'}]],
     [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],
     [['closuresDoorLock'], extenderLock],
 ];
 
 const outputExtenders: Extender[] = [
-    [['genIdentify'], async () => [{extend: m.identify(), source: 'identify()'}]],
+    [['genIdentify'], async () => [{extend: m.identify, source: 'identify'}]],
 ];
 
 async function extenderLock(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
@@ -164,7 +159,7 @@ async function extenderLock(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]
     const endpoint = endpoints[0];
 
     const pinCodeCount = await getClusterAttributeValue<number>(endpoint, 'closuresDoorLock', 'numOfPinUsersSupported', 50);
-    return [{extend: m.lock({pinCodeCount}), source: `lock({pinCodeCount: ${pinCodeCount}})`}];
+    return [{extend: m.lock, args: {pinCodeCount}, source: `lock({pinCodeCount: ${pinCodeCount}})`}];
 }
 
 async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
@@ -178,7 +173,7 @@ async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedEx
             prev[curr.ID.toString()] = curr.ID;
             return prev;
         }, {} as Record<string, number>) : undefined;
-        generated.push({extendFn: m.onOff, args: {powerOnBehavior: false, endpoints}, source: 'onOff'});
+        generated.push({extend: m.onOff, args: {powerOnBehavior: false, endpoints}, source: 'onOff'});
     }
 
     for (const endpoint of lightEndpoints) {
@@ -206,9 +201,9 @@ async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedEx
         }
 
         if (endpoint.getDevice().manufacturerID === zh.Zcl.ManufacturerCode.Philips) {
-            generated.push({extendFn: philipsLight, args, source: `philipsLight`, lib: 'philips'});
+            generated.push({extend: philipsLight, args, source: `philipsLight`, lib: 'philips'});
         } else {
-            generated.push({extendFn: m.light, args, source: `light`});
+            generated.push({extend: m.light, args, source: `light`});
         }
     }
 
@@ -229,5 +224,5 @@ async function extenderElectricityMeter(endpoints: Zh.Endpoint[]): Promise<Gener
     if (!metering || !electricalMeasurements) {
         args.cluster = metering ? 'metering' : 'electrical';
     }
-    return [{extendFn: m.electricityMeter, args, source: `electricityMeter`}];
+    return [{extend: m.electricityMeter, args, source: `electricityMeter`}];
 }
