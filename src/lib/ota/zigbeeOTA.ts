@@ -80,7 +80,7 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
 async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta) {
     if (device.modelID === 'lumi.airrtc.agl001') {
         // The current.fileVersion which comes from the device is wrong.
-        // Use the `aqaraFileVersion` which comes from the aqaraOpple.attributeReport instead.
+        // Use the `aqaraFileVersion` which comes from the manuSpecificLumi.attributeReport instead.
         // https://github.com/Koenkk/zigbee2mqtt/issues/16345#issuecomment-1454835056
         // https://github.com/Koenkk/zigbee2mqtt/issues/16345 doesn't seem to be needed for all
         if (device.meta.aqaraFileVersion) {

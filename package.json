@@ -19,7 +19,7 @@
     "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
   },
   "keywords": [
-    "xiaomi",
+    "aqara",
     "tradfri",
     "hue",
     "wemo",

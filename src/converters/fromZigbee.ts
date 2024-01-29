@@ -2053,7 +2053,7 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_lock_report: {
+    lumi_lock_report: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -3692,14 +3692,14 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_power: {
+    lumi_power: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {power: msg.data['presentValue']};
         },
     } satisfies Fz.Converter,
-    xiaomi_on_off_action: {
+    lumi_on_off_action: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
         options: [exposes.options.legacy()],
@@ -3730,7 +3730,7 @@ const converters1 = {
             return {action: `${action}${button}`};
         },
     } satisfies Fz.Converter,
-    xiaomi_multistate_action: {
+    lumi_multistate_action: {
         cluster: 'genMultistateInput',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
@@ -3770,11 +3770,11 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    aqara_occupancy_illuminance: {
+    lumi_occupancy_illuminance: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
         // Therefore we need to publish the no_motion detected by ourselves.
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true()],
         convert: (model, msg, publish, options, meta) => {
@@ -3844,7 +3844,7 @@ const converters1 = {
             return payload;
         },
     } satisfies Fz.Converter,
-    xiaomi_WXKG01LM_action: {
+    lumi_WXKG01LM_action: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         options: [
@@ -3893,7 +3893,7 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_contact: {
+    lumi_contact: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -3910,7 +3910,7 @@ const converters1 = {
             };
         },
     } satisfies Fz.Converter,
-    xiaomi_temperature: {
+    lumi_temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -3923,7 +3923,7 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_WXKG11LM_action: {
+    lumi_WXKG11LM_action: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -3967,7 +3967,7 @@ const converters1 = {
             return lookup[value] ? {action: lookup[value]} : null;
         },
     } satisfies Fz.Converter,
-    xiaomi_curtain_position: {
+    lumi_curtain_position: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.invert_cover()],
@@ -3984,7 +3984,7 @@ const converters1 = {
             return {position};
         },
     } satisfies Fz.Converter,
-    xiaomi_curtain_position_tilt: {
+    lumi_curtain_position_tilt: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.invert_cover()],
@@ -4005,7 +4005,7 @@ const converters1 = {
             return result;
         },
     } satisfies Fz.Converter,
-    xiaomi_curtain_hagl04_status: {
+    lumi_curtain_hagl04_status: {
         cluster: 'genMultistateOutput',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
@@ -4028,7 +4028,7 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_curtain_hagl07_status: {
+    lumi_curtain_hagl07_status: {
         cluster: 'genMultistateOutput',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
@@ -4051,7 +4051,7 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_curtain_acn002_status: {
+    lumi_curtain_acn002_status: {
         cluster: 'genMultistateOutput',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
@@ -4075,7 +4075,7 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_operation_mode_basic: {
+    lumi_operation_mode_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -4576,7 +4576,7 @@ const converters1 = {
             };
         },
     } satisfies Fz.Converter,
-    xiaomi_bulb_interval: {
+    lumi_bulb_interval: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -4953,11 +4953,11 @@ const converters1 = {
             return payload;
         },
     } satisfies Fz.Converter,
-    xiaomi_on_off_ignore_endpoint_4_5_6: {
+    lumi_on_off_ignore_endpoint_4_5_6: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            // Xiaomi wall switches use endpoint 4, 5 or 6 to indicate an action on the button so we have to skip that.
+            // Lumi wall switches use endpoint 4, 5 or 6 to indicate an action on the button so we have to skip that.
             if (msg.data.hasOwnProperty('onOff') && ![4, 5, 6].includes(msg.endpoint.ID)) {
                 const property = postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
@@ -5405,7 +5405,7 @@ const converters1 = {
         },
     } satisfies Fz.Converter,
     ZNCJMB14LM: {
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
@@ -5501,8 +5501,8 @@ const converters1 = {
             };
         },
     } satisfies Fz.Converter,
-    aqara_knob_rotation: {
-        cluster: 'aqaraOpple',
+    lumi_knob_rotation: {
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(570)) {
