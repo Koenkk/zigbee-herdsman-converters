@@ -2417,7 +2417,7 @@ const definitions: Definition[] = [
             xiaomiPowerOnBehavior({lookup: {'on': 0, 'previous': 1, 'off': 2, 'toggle': 3}}),
             xiaomiOperationMode({description: 'Decoupled mode for 1st relay', endpoint: 'l1'}),
             xiaomiOperationMode({description: 'Decoupled mode for 2nd relay', endpoint: 'l2'}),
-            xiaomiAction({postfixWithEndpointName: true}),
+            xiaomiAction({endpointNames: ['l1', 'l2']}),
             binary({
                 name: 'interlock',
                 valueOn: ['ON', 1],
