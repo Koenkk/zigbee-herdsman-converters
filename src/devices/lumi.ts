@@ -2444,7 +2444,7 @@ const definitions: Definition[] = [
             lumiPowerOnBehavior({lookup: {'on': 0, 'previous': 1, 'off': 2, 'toggle': 3}}),
             lumiOperationMode({description: 'Decoupled mode for 1st relay', endpoint: 'l1'}),
             lumiOperationMode({description: 'Decoupled mode for 2nd relay', endpoint: 'l2'}),
-            lumiAction({postfixWithEndpointName: true}),
+            lumiAction({endpointNames: ['l1', 'l2']}),
             binary({
                 name: 'interlock',
                 valueOn: ['ON', 1],

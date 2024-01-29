@@ -495,13 +495,14 @@ export function binary(args: BinaryArgs): ModernExtend {
 }
 
 export interface ActionEnumLookupArgs {
-    lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, postfixWithEndpointName?: boolean,
+    lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, endpointNames?: string[],
 }
 export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     const {lookup, attribute, cluster} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
-    const expose = e.enum('action', ea.STATE, Object.keys(lookup)).withDescription('Triggered action (e.g. a button click)');
+    const actions = Object.keys(lookup).map((a) => args.endpointNames ? args.endpointNames.map((e) => `${a}_${e}`) : [a]).flat();
+    const expose = e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)');
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
@@ -509,7 +510,7 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
         convert: (model, msg, publish, options, meta) => {
             if (attributeKey in msg.data) {
                 let value = getFromLookupByValue(msg.data[attributeKey], lookup);
-                if (args.postfixWithEndpointName) value = postfixWithEndpointName(value, msg, model, meta);
+                if (args.endpointNames) value = postfixWithEndpointName(value, msg, model, meta);
                 return {[expose.property]: value};
             }
         },
