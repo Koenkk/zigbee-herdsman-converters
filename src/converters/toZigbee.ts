@@ -2148,7 +2148,7 @@ const converters2 = {
             }
         },
     } satisfies Tz.Converter,
-    aqara_motion_sensitivity: {
+    lumi_motion_sensitivity: {
         key: ['motion_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'low': 1, 'medium': 2, 'high': 3};
@@ -2161,13 +2161,13 @@ const converters2 = {
             await entity.read('manuSpecificLumi', [0x010c], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    RTCZCGQ11LM_presence: {
+    lumi_presence: {
         key: ['presence'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x0142], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    RTCZCGQ11LM_monitoring_mode: {
+    lumi_monitoring_mode: {
         key: ['monitoring_mode'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
@@ -2180,7 +2180,7 @@ const converters2 = {
             await entity.read('manuSpecificLumi', [0x0144], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    RTCZCGQ11LM_approach_distance: {
+    lumi_approach_distance: {
         key: ['approach_distance'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
@@ -2193,7 +2193,7 @@ const converters2 = {
             await entity.read('manuSpecificLumi', [0x0146], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    RTCZCGQ11LM_reset_nopresence_status: {
+    lumi_reset_nopresence_status: {
         key: ['reset_nopresence_status'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('manuSpecificLumi', {0x0157: {value: 1, type: 0x20}}, manufacturerOptions.lumi);
@@ -2325,7 +2325,7 @@ const converters2 = {
             await entity.read('manuSpecificLumi', [0x0000], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    aqara_detection_interval: {
+    lumi_detection_interval: {
         key: ['detection_interval'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
@@ -2349,7 +2349,7 @@ const converters2 = {
             await entity.read('manuSpecificLumi', [0x020b], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    aqara_switch_mode_switch: {
+    lumi_switch_mode_switch: {
         key: ['mode_switch'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'anti_flicker_mode': 4, 'quick_mode': 1};
@@ -2719,13 +2719,13 @@ const converters2 = {
             await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, options);
         },
     } satisfies Tz.Converter,
-    aqara_alarm: {
+    lumi_alarm: {
         key: ['gas', 'smoke'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x013a], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    aqara_density: {
+    lumi_density: {
         key: ['gas_density', 'smoke_density', 'smoke_density_dbm'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x013b], manufacturerOptions.lumi);
@@ -2744,13 +2744,13 @@ const converters2 = {
             await entity.read('manuSpecificLumi', [0x010c], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    aqara_selftest: {
+    lumi_selftest: {
         key: ['selftest'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('manuSpecificLumiicLumi', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    aqara_buzzer: {
+    lumi_buzzer: {
         key: ['buzzer'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
@@ -2762,7 +2762,7 @@ const converters2 = {
             await entity.write('manuSpecificLumi', {0x0126: {value: [`${value}`], type: 0x20}}, manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    aqara_buzzer_manual: {
+    lumi_buzzer_manual: {
         key: ['buzzer_manual_alarm', 'buzzer_manual_mute'],
         convertGet: async (entity, key, meta) => {
             if (key === 'buzzer_manual_mute') {
@@ -2782,7 +2782,7 @@ const converters2 = {
             await entity.read('manuSpecificLumi', [0x013c], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    aqara_linkage_alarm: {
+    lumi_linkage_alarm: {
         key: ['linkage_alarm'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('manuSpecificLumi', {0x014b: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.lumi);
@@ -2798,7 +2798,7 @@ const converters2 = {
             await entity.read('manuSpecificLumiicLumi', [0x0139], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    aqara_power_outage_count: {
+    lumi_power_outage_count: {
         key: ['power_outage_count'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x0002], manufacturerOptions.lumi);
@@ -3458,12 +3458,13 @@ const converters2 = {
             // 1 - 'event' mode. keys send events. useful for handling
             const lookup = {command: 0, event: 1};
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.write('manuSpecificLumi', {'mode': utils.getFromLookup(value.toLowerCase(), lookup)}, {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {'mode': utils.getFromLookup(value.toLowerCase(), lookup)},
+                {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
             return {state: {operation_mode: value.toLowerCase()}};
         },
         convertGet: async (entity, key, meta) => {
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.read('manuSpecificLumi', ['mode'], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', ['mode'], {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
         },
     } satisfies Tz.Converter,
     EMIZB_132_mode: {

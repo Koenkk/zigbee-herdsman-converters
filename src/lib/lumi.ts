@@ -766,10 +766,10 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             // It contains the illuminance and occupancy, but in z2m we use a custom timer to do it, so we ignore it
             break;
         case 'displayUnit':
-            // Use aqaraDisplayUnit modernExtend, but we add it here to not shown an unknown key in the log
+            // Use lumiDisplayUnit modernExtend, but we add it here to not shown an unknown key in the log
             break;
         case 'airQuality':
-            // Use aqaraAirQuality modernExtend, but we add it here to not shown an unknown key in the log
+            // Use lumiAirQuality modernExtend, but we add it here to not shown an unknown key in the log
             break;
         default:
             if (meta.logger) meta.logger.debug(`${model.model}: unknown key ${key} with value ${value}`);
@@ -782,9 +782,9 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
 };
 
 // For RTCZCGQ11LM
-type AqaraFP1RegionZone = {x: number, y: number}
+type LumiPresenceRegionZone = {x: number, y: number}
 
-const fp1Constants = {
+const lumiPresenceConstants = {
     region_event_key: 0x0151,
     region_event_types: {
         Enter: 1,
@@ -821,37 +821,37 @@ const fp1Constants = {
     region_config_cmd_suffix_upsert: 0xff,
     region_config_cmd_suffix_delete: 0x00,
 };
-const fp1Mappers = {
-    aqara_fp1: {
+const lumiPresenceMappers = {
+    lumi_presence: {
         region_event_type_names: {
-            [fp1Constants.region_event_types.Enter]: 'enter',
-            [fp1Constants.region_event_types.Leave]: 'leave',
-            [fp1Constants.region_event_types.Occupied]: 'occupied',
-            [fp1Constants.region_event_types.Unoccupied]: 'unoccupied',
+            [lumiPresenceConstants.region_event_types.Enter]: 'enter',
+            [lumiPresenceConstants.region_event_types.Leave]: 'leave',
+            [lumiPresenceConstants.region_event_types.Occupied]: 'occupied',
+            [lumiPresenceConstants.region_event_types.Unoccupied]: 'unoccupied',
         },
     },
 };
-export const fp1 = {
-    constants: fp1Constants,
-    mappers: fp1Mappers,
+export const presence = {
+    constants: lumiPresenceConstants,
+    mappers: lumiPresenceMappers,
 
     encodeXCellsDefinition: (xCells?: number[]): number => {
         // @ts-expect-error
         if (!xCells || !xCells.size) {
             return 0;
         }
-        return [...xCells.values()].reduce((accumulator, marker) => accumulator + fp1.encodeXCellIdx(marker), 0);
+        return [...xCells.values()].reduce((accumulator, marker) => accumulator + presence.encodeXCellIdx(marker), 0);
     },
     encodeXCellIdx: (cellXIdx: number): number => {
         return 2 ** (cellXIdx - 1);
     },
     parseAqaraFp1RegionDeleteInput: (input: KeyValueAny) => {
         if (!input || typeof input !== 'object') {
-            return fp1.failure({reason: 'NOT_OBJECT'});
+            return presence.failure({reason: 'NOT_OBJECT'});
         }
 
-        if (!('region_id' in input) || !fp1.isAqaraFp1RegionId(input.region_id)) {
-            return fp1.failure({reason: 'INVALID_REGION_ID'});
+        if (!('region_id' in input) || !presence.isAqaraFp1RegionId(input.region_id)) {
+            return presence.failure({reason: 'INVALID_REGION_ID'});
         }
 
         return {
@@ -866,19 +866,19 @@ export const fp1 = {
 
     parseAqaraFp1RegionUpsertInput: (input: KeyValueAny) => {
         if (!input || typeof input !== 'object') {
-            return fp1.failure({reason: 'NOT_OBJECT'});
+            return presence.failure({reason: 'NOT_OBJECT'});
         }
 
-        if (!('region_id' in input) || !fp1.isAqaraFp1RegionId(input.region_id)) {
-            return fp1.failure({reason: 'INVALID_REGION_ID'});
+        if (!('region_id' in input) || !presence.isAqaraFp1RegionId(input.region_id)) {
+            return presence.failure({reason: 'INVALID_REGION_ID'});
         }
 
         if (!('zones' in input) || !Array.isArray(input.zones) || !input.zones.length) {
-            return fp1.failure({reason: 'ZONES_LIST_EMPTY'});
+            return presence.failure({reason: 'ZONES_LIST_EMPTY'});
         }
 
-        if (!input.zones.every(fp1.isAqaraFp1RegionZoneDefinition)) {
-            return fp1.failure({reason: 'INVALID_ZONES'});
+        if (!input.zones.every(presence.isAqaraFp1RegionZoneDefinition)) {
+            return presence.failure({reason: 'INVALID_ZONES'});
         }
 
         return {
@@ -895,12 +895,12 @@ export const fp1 = {
     isAqaraFp1RegionId: (value: any): value is number => {
         return (
             typeof value === 'number' &&
-            value >= fp1.constants.region_config_regionId_min &&
-            value <= fp1.constants.region_config_regionId_max
+            value >= presence.constants.region_config_regionId_min &&
+            value <= presence.constants.region_config_regionId_max
         );
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    isAqaraFp1RegionZoneDefinition: (value: any): value is AqaraFP1RegionZone => {
+    isAqaraFp1RegionZoneDefinition: (value: any): value is LumiPresenceRegionZone => {
         return (
             value &&
             typeof value === 'object' &&
@@ -908,10 +908,10 @@ export const fp1 = {
             'y' in value &&
             typeof value.x === 'number' &&
             typeof value.y === 'number' &&
-            value.x >= fp1.constants.region_config_zoneX_min &&
-            value.x <= fp1.constants.region_config_zoneX_max &&
-            value.y >= fp1.constants.region_config_zoneY_min &&
-            value.y <= fp1.constants.region_config_zoneY_max
+            value.x >= presence.constants.region_config_zoneX_min &&
+            value.x <= presence.constants.region_config_zoneX_max &&
+            value.y >= presence.constants.region_config_zoneY_min &&
+            value.y <= presence.constants.region_config_zoneY_max
         );
     },
 
@@ -1303,7 +1303,7 @@ export const lumiModernExtend = {
         attribute: 'presentValue',
         ...args,
     }),
-    aqaraVoc: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+    lumiVoc: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
         name: 'voc',
         cluster: 'genAnalogInput',
         attribute: 'presentValue',
@@ -1313,7 +1313,7 @@ export const lumiModernExtend = {
         access: 'STATE_GET',
         ...args,
     }),
-    aqaraAirQuality: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    lumiAirQuality: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'air_quality',
         lookup: {'excellent': 1, 'good': 2, 'moderate': 3, 'poor': 4, 'unhealthy': 5, 'unknown': 0},
         cluster: 'manuSpecificLumi',
@@ -1323,7 +1323,7 @@ export const lumiModernExtend = {
         access: 'STATE_GET',
         ...args,
     }),
-    aqaraDisplayUnit: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    lumiDisplayUnit: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'display_unit',
         lookup: {
             'mgm3_celsius': 0x00, // mg/m³, °C (default)
@@ -1623,7 +1623,7 @@ export const toZigbee = {
                     v = value;
                 }
                 await entity.write('manuSpecificLumi', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
-                    {manufacturerCode: 0x115f});
+                    {manufacturerCode: manufacturerCode});
             };
             switch (key) {
             case 'feed':
@@ -1674,6 +1674,6 @@ export const toZigbee = {
 
 exports.buffer2DataObject = buffer2DataObject;
 exports.numericAttributes2Payload = numericAttributes2Payload;
-exports.fp1 = fp1;
+exports.fp1 = presence;
 exports.trv = trv;
 exports.manufacturerCode = manufacturerCode;

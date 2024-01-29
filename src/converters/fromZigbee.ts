@@ -3770,7 +3770,7 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    aqara_occupancy_illuminance: {
+    lumi_occupancy_illuminance: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
         // Therefore we need to publish the no_motion detected by ourselves.
@@ -5501,7 +5501,7 @@ const converters1 = {
             };
         },
     } satisfies Fz.Converter,
-    aqara_knob_rotation: {
+    lumi_knob_rotation: {
         cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
