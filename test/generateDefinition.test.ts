@@ -146,14 +146,14 @@ module.exports = definition;
                 ],
             },
             externalDefintionSource: `
-const {temperature, onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
+const {deviceEndpoints, temperature, onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [temperature({"endpoints":["1","2"]}), onOff({"powerOnBehavior":false})],
+    extend: [deviceEndpoints({"endpoints":{"1":1,"2":2}}), temperature({"endpoints":["1","2"]}), onOff({"powerOnBehavior":false})],
     meta: {"multiEndpoint":true},
 };
 

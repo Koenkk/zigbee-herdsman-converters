@@ -81,8 +81,21 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         mapClusters(endpoint, outputClusters, outputClusterMap);
     }
     // Generate extenders
+    const multiEndpoint = Array.from(inputClusterMap.values()).some((e) => e.length > 1) ||
+                            Array.from(outputClusterMap.values()).some((e) => e.length > 1)
+
     const usedExtenders: Extender[] = [];
     const generatedExtend: GeneratedExtend[] = [];
+    // First of all add endpoint definitions if device is multiEndpoint.
+    if (multiEndpoint) {
+        const endpoints: {[n: string]: number} = {};
+        // Add all endpoints, just to be safe.
+        for (const endpoint of device.endpoints) {
+            endpoints[endpoint.ID.toString()] = endpoint.ID;
+        }
+        generatedExtend.push({extend: m.deviceEndpoints, args: {endpoints}, source: 'deviceEndpoints'})
+    }
+
     const addGenerators = async (clusterName: string, endpoints: Zh.Endpoint[], extenders: Extender[]) => {
         const extender = extenders.find((e) => e[0].includes(clusterName));
         if (!extender || usedExtenders.includes(extender)) {
@@ -112,19 +125,10 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         description: 'Automatically generated definition',
         extend: extenders,
         generated: true,
-        endpoint: (d: Device): {[e: string]: number} => {
-            return d && d.endpoints ? d.endpoints.reduce<{[s: string]: number}>(
-                (prev, curr) => {
-                    prev[curr.ID.toString()] = curr.ID;
-                    return prev;
-                },
-                {}) : undefined;
-        },
     };
 
-    if (Array.from(inputClusterMap.values()).some((e) => e.length > 1) ||
-        Array.from(outputClusterMap.values()).some((e) => e.length > 1)) {
-        definition.meta = {multiEndpoint: true};
+    if (multiEndpoint) {
+        definition.meta = {multiEndpoint};
     }
 
     const externalDefinitionSource = generateSource(definition, generatedExtend);
