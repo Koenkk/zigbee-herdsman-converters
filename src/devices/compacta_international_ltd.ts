@@ -7,24 +7,7 @@ const definition = {
     description:
         'Wireless irrigation controller that manages up to 16 sprinkler zones',
     extend: [
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        onOff({powerOnBehavior: false}),
-        batteryPercentage(),
-        batteryPercentage(),
+        onOff({powerOnBehavior: false, endpoints: {l1: 1, l2: 2, l3: 3}}), // <-- add till 16 here
     ],
 };
 
