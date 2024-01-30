@@ -2131,7 +2131,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
         whiteLabel: [
-            tuya.whitelabel('TuYa', 'RSH-HS06', 'Temperature & humidity sensor', ['_TZ3000_zl1kmjqx']),
+            tuya.whitelabel('TuYa', 'RSH-HS06_1', 'Temperature & humidity sensor', ['_TZ3000_zl1kmjqx']),
         ],
     },
     {
@@ -5285,6 +5285,27 @@ const definitions: Definition[] = [
                 [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
                 [23, 'temperature_calibration', tuya.valueConverter.divideBy10],
                 [24, 'humidity_calibration', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ysm4dsb1']),
+        model: 'RSH-HS06',
+        vendor: 'TuYa',
+        description: 'Temperature and humidity sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [2, 'humidity', tuya.valueConverter.raw],
+                [4, 'battery', tuya.valueConverter.raw],
             ],
         },
     },
