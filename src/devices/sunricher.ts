@@ -8,7 +8,7 @@ import * as constants from '../lib/constants';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import {Definition, Fz, Zh} from '../lib/types';
-import {light, onOff} from '../lib/modernExtend';
+import {light, onOff, temperature, humidity} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -615,25 +615,17 @@ const definitions: Definition[] = [
         model: 'HK-SENSOR-4IN1-A',
         vendor: 'Sunricher',
         description: 'Smart Home Sensor',
-        fromZigbee: [fz.occupancy, fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.battery, fz.humidity, fz.temperature,
-            fz.led_on_motion, fz.occupancy_timeout, fz.illuminance],
-        toZigbee: [],
+        extend: [temperature(), humidity()],
+        fromZigbee: [fz.occupancy, fz.battery, fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.illuminance],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstendpoint = device.getEndpoint(1);
-            const thirdendpoint = device.getEndpoint(3);
-            const fourthendpoint = device.getEndpoint(4);
-            const fifthendpoint = device.getEndpoint(5);
             await reporting.bind(firstendpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(firstendpoint);
-            await reporting.batteryVoltage(firstendpoint);
-            await reporting.bind(thirdendpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(thirdendpoint);
-            await reporting.bind(fourthendpoint, coordinatorEndpoint, ['msRelativeHumidity']);
-            await reporting.humidity(fourthendpoint);
+            const fifthendpoint = device.getEndpoint(5);
             await reporting.bind(fifthendpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(fifthendpoint);
         },
-        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.linkquality(), e.temperature(), e.humidity(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.occupancy(), e.battery(), e.linkquality(), e.illuminance(), e.illuminance_lux()],
     },
 ];
 
