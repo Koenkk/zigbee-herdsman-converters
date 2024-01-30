@@ -1,5 +1,14 @@
 # Changelog
 
+## [18.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.24.0...v18.25.0) (2024-01-30)
+
+
+### Features
+
+* **add:** RSH-HS06 https://github.com/Koenkk/zigbee2mqtt/issues/20815 ([f1cdde8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f1cdde884a835071b775cfc78c0b01f848a88aa7))
+* Support multi endpoint for generate definition ([#6930](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6930)) ([a1b6c28](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a1b6c282e6f98447028bcd912b7a9ac6953e05b2))
+* Update all Lumi (Aqara and Xiaomi) terminology, device `vendor` and `description` ([#6969](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6969)) ([a1ddacd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a1ddacd2d934af9239edd84960ddefc88bc9eeb4))
+
 ## [18.24.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.23.1...v18.24.0) (2024-01-29)
 
 
