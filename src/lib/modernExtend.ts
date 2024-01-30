@@ -67,13 +67,22 @@ async function setupAttributes(
 
 export function setupConfigureForReporting(
     cluster: string | number, attribute: ReportingConfigAttribute, config: ReportingConfigWithoutAttribute, access: Access,
+    endpoints?: string[],
 ) {
     const configureReporting = !!config;
     const read = !!(access & ea.GET);
     if (configureReporting || read) {
         const configure: Configure = async (device, coordinatorEndpoint, logger) => {
             const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
-            await setupAttributes(device, coordinatorEndpoint, cluster, [reportConfig], logger, configureReporting, read);
+            let entities: (Zh.Device | Zh.Endpoint)[] = [device];
+            if (endpoints) {
+                const endpointsMap = new Map<string, boolean>(endpoints.map((e) => [e, true]));
+                entities = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
+            }
+
+            for (const entity of entities) {
+                await setupAttributes(entity, coordinatorEndpoint, cluster, [reportConfig], logger, configureReporting, read);
+            }
         };
         return configure;
     } else {
@@ -403,32 +412,60 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
-    endpoint?: string, reporting?: ReportingConfigWithoutAttribute,
+    endpoint?: string, endpoints?: string[], reporting?: ReportingConfigWithoutAttribute,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number, label?: string,
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
-        name, cluster, attribute, description, zigbeeCommandOptions, unit, endpoint, reporting, valueMin, valueMax, valueStep, scale, label,
+        name, cluster, attribute, description, zigbeeCommandOptions, unit, reporting, valueMin, valueMax, valueStep, scale, label,
     } = args;
+
+    let endpoints = args.endpoints;
+    if (!endpoints && args.endpoint) {
+        endpoints = [args.endpoint];
+    }
+
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
-    let expose = e.numeric(name, access).withDescription(description);
-    if (endpoint) expose = expose.withEndpoint(endpoint);
-    if (unit) expose = expose.withUnit(unit);
-    if (valueMin !== undefined) expose = expose.withValueMin(valueMin);
-    if (valueMax !== undefined) expose = expose.withValueMax(valueMax);
-    if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
-    if (label !== undefined) expose = expose.withLabel(label);
+    const exposes: Expose[] = [];
+
+    const createExpose = (endpoint?: string): Expose => {
+        let expose = e.numeric(name, access).withDescription(description);
+        if (endpoint) expose = expose.withEndpoint(endpoint);
+        if (unit) expose = expose.withUnit(unit);
+        if (valueMin !== undefined) expose = expose.withValueMin(valueMin);
+        if (valueMax !== undefined) expose = expose.withValueMax(valueMax);
+        if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
+        if (label !== undefined) expose = expose.withLabel(label);
+
+        return expose;
+    };
+    // Generate for multiple endpoints only if required
+    const noEndpoint = !endpoints || (endpoints && endpoints.length === 1 && endpoints[0] === '1');
+    if (noEndpoint) {
+        exposes.push(createExpose(undefined));
+    } else {
+        for (const endpoint of endpoints) {
+            exposes.push(createExpose(endpoint));
+        }
+    }
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (attributeKey in msg.data && (!endpoint || getEndpointName(msg, model, meta) === endpoint)) {
+            if (attributeKey in msg.data) {
+                const endpoint = endpoints.find((e) => getEndpointName(msg, model, meta) === e);
+                if (endpoints && !endpoint) {
+                    return;
+                }
+
                 let value = msg.data[attributeKey];
                 assertNumber(value);
                 if (scale !== undefined) value = value / scale;
+
+                const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
                 return {[expose.property]: value};
             }
         },
@@ -448,9 +485,9 @@ export function numeric(args: NumericArgs): ModernExtend {
         } : undefined,
     }];
 
-    const configure = setupConfigureForReporting(cluster, attribute, reporting, access);
+    const configure = setupConfigureForReporting(cluster, attribute, reporting, access, endpoints);
 
-    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface BinaryArgs {
@@ -629,6 +666,20 @@ export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExt
     return {configure, isModernExtend: true};
 }
 
+export function deviceEndpoints(args: {endpoints: {[n: string]: number}}): ModernExtend {
+    return {
+        endpoint: (d) => args.endpoints,
+        isModernExtend: true,
+    };
+}
+
+export function ota(args: {definition: DefinitionOta}): ModernExtend {
+    return {
+        ota: args.definition,
+        isModernExtend: true,
+    };
+}
+
 export function temperature(args?: Partial<NumericArgs>) {
     return numeric({
         name: 'temperature',
@@ -691,10 +742,10 @@ export function pressure(args?: Partial<NumericArgs>): ModernExtend {
         name: 'pressure',
         cluster: 'msPressureMeasurement',
         attribute: 'measuredValue',
-        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 100},
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 50}, // 5 kPa
         description: 'The measured atmospheric pressure',
-        unit: 'hPa',
-        scale: 100,
+        unit: 'kPa',
+        scale: 10,
         access: 'STATE_GET',
         ...args,
     });
