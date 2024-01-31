@@ -468,6 +468,30 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_srmahpwl'}],
+        model: 'ZS-SR-EUC',
+        vendor: 'Moes',
+        description: 'Star Ring - Smart Curtain Switch',
+        options: [exposes.options.invert_cover()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            e.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+            //e.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on']).withDescription('Relay LED indicator mode')
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'CLOSE': tuya.enum(2), 'STOP': tuya.enum(1), 'OPEN': tuya.enum(0)})], //Curtain Switch 1
+                [2, 'position', tuya.valueConverter.coverPosition], // Percentage 1
+                [3, 'calibration', tuya.valueConverterBasic.lookup({'START': tuya.enum(0), 'END': tuya.enum(1)})], // Accurate Calibration
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})], // Motor steering
+                //[14, 'indicator_mode', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on_off': tuya.enum(1), 'off_on': tuya.enum(2)})], // Indicator mode
+            ],
+        },
+    }
 ];
 
 export default definitions;
