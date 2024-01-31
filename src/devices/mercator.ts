@@ -170,6 +170,43 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE200_wnp4d4va',}],
+        model: 'SSW06G',
+        vendor: 'Mercator Ikuü',
+        description: '6 Gang switch',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l5').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l6').setAccess('state', ea.STATE_SET)
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                    [1, 'state_l1', tuya.valueConverter.onOff],
+                    [2, 'state_l2', tuya.valueConverter.onOff],
+                    [3, 'state_l3', tuya.valueConverter.onOff],
+                    [6, 'state_l4', tuya.valueConverter.onOff],
+                    [5, 'state_l5', tuya.valueConverter.onOff],
+                    [4, 'state_l6', tuya.valueConverter.onOff]
+            ],
+        }
+    },
+    {
         fingerprint: [{modelID: 'TS0501', manufacturerName: '_TZ3210_lzqq3u4r'},
             {modelID: 'TS0501', manufacturerName: '_TZ3210_4whigl8i'}],
         model: 'SSWF01G',
