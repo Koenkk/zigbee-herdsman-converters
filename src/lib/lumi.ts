@@ -237,8 +237,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '13':
             if (['ZNXDD01LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
-            }
-            else if (['ZNCLBL01LM'].includes(model.model)) {
+            } else if (['ZNCLBL01LM'].includes(model.model)) {
                 // Overwrite version advertised by `genBasic` and `genOta` with correct version:
                 // https://github.com/Koenkk/zigbee2mqtt/issues/15745
                 assertNumber(value);
@@ -488,8 +487,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '238':
             if (['ZNXDD01LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
-            }
-            else if (['ZNCLBL01LM'].includes(model.model)) {
+            } else if (['ZNCLBL01LM'].includes(model.model)) {
                 // Overwrite version advertised by `genBasic` and `genOta` with correct version:
                 // https://github.com/Koenkk/zigbee2mqtt/issues/15745
                 assertNumber(value);
