@@ -3,6 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
+import * as lumi from '../lib/lumi';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -13,7 +14,8 @@ const definitions: Definition[] = [
         vendor: 'Keen Home',
         description: 'Temperature Sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.battery, fz.lumi_temperature, fz.humidity, fz.keen_home_smart_vent_pressure],
+        // lumi.fromZigbee.lumi_temperature looks like a mistake, probably just fz.temperature
+        fromZigbee: [fz.battery, lumi.fromZigbee.lumi_temperature, fz.humidity, fz.keen_home_smart_vent_pressure],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
