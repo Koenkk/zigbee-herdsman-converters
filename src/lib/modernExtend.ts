@@ -456,7 +456,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (attributeKey in msg.data) {
-                const endpoint = endpoints.find((e) => getEndpointName(msg, model, meta) === e);
+                const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
                 if (endpoints && !endpoint) {
                     return;
                 }
