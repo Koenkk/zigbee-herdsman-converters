@@ -5,6 +5,7 @@ import {
     assertNumber,
     getFromLookup,
     getKey,
+    toNumber,
 } from './utils';
 
 import * as ota from './ota';
@@ -236,6 +237,13 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '13':
             if (['ZNXDD01LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
+            } else if (['ZNCLBL01LM'].includes(model.model)) {
+                // Overwrite version advertised by `genBasic` and `genOta` with correct version:
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15745
+                assertNumber(value);
+                meta.device.meta.lumiFileVersion = value;
+                meta.device.softwareBuildID = trv.decodeFirmwareVersionString(value);
+                meta.device.save();
             }
             break;
         case '17':
@@ -479,6 +487,13 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '238':
             if (['ZNXDD01LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
+            } else if (['ZNCLBL01LM'].includes(model.model)) {
+                // Overwrite version advertised by `genBasic` and `genOta` with correct version:
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15745
+                assertNumber(value);
+                meta.device.meta.lumiFileVersion = value;
+                meta.device.softwareBuildID = trv.decodeFirmwareVersionString(value);
+                meta.device.save();
             }
             break;
         case '240':
@@ -1030,7 +1045,7 @@ export const trv = {
         // Reinterpret from LE integer to byte sequence(e.g., `[25,8,0,0]` corresponds to 0.0.0_0825)
         const buffer = Buffer.alloc(4);
         buffer.writeUInt32LE(value);
-        const firmwareVersionNumber = buffer.reverse().subarray(1).join('');
+        const firmwareVersionNumber = toNumber(buffer.reverse().subarray(1).join(''), 'firmwareVersionNumber').toString().padStart(4, '0');
 
         return firmwareVersionPrefix + firmwareVersionNumber;
     },

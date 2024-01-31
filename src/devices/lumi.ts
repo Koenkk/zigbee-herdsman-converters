@@ -134,7 +134,7 @@ const fzLocal = {
                     break;
                 }
                 case 0x00EE: {
-                    meta.device.meta.aqaraFileVersion = value;
+                    meta.device.meta.lumiFileVersion = value;
                     meta.device.save();
                     break;
                 }
@@ -2393,6 +2393,9 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            // Read correct version to replace version advertised by `genBasic` and `genOta`:
+            // https://github.com/Koenkk/zigbee2mqtt/issues/15745
+            await endpoint.read('manuSpecificLumi', [0x00EE], {manufacturerCode: manufacturerCode});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('manuSpecificLumi', [0x040B], {manufacturerCode: manufacturerCode});
             await endpoint.read('manuSpecificLumi', [0x0428], {manufacturerCode: manufacturerCode});
