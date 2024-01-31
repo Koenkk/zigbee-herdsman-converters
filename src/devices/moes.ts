@@ -489,7 +489,7 @@ const definitions: Definition[] = [
                 [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})],
             ],
         },
-    }
+    },
 ];
 
 export default definitions;
