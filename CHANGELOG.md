@@ -1,5 +1,15 @@
 # Changelog
 
+## [18.25.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.25.0...v18.25.1) (2024-01-31)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_imaccztn` as MHCOZY TYWB 4ch-RF ([#6981](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6981)) ([c46539c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c46539c152cdd334f7ae6bb6ba201f30eeb3e22b))
+* Fix `Cannot read properties of undefined (reading 'find')` https://github.com/Koenkk/zigbee2mqtt/issues/21123 ([f171433](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f1714330daf860167f0e9c6bc04f2b1336fbfa8d))
+* Fix display of incorrect firmware version for Aqara `ZNCLBL01LM` ([#6983](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6983)) ([2e693cb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2e693cb16420a5baed051e51862267e457f56ba8))
+* **ignore:** fix c46539c152cdd334f7ae6bb6ba201f30eeb3e22b ([f15f085](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f15f0854f879b98525f779bced24ef4eceb45e0a))
+
 ## [18.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.24.0...v18.25.0) (2024-01-30)
 
 
