@@ -2415,7 +2415,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature(), e.voltage(), e.current(),
+        exposes: [e.power().withAccess(ea.STATE_GET), e.energy().withUnit('Wh'), e.device_temperature(), e.voltage(), e.current(),
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power_outage_count(false),
             e.power_outage_memory(),
             e.binary('interlock', ea.STATE_SET, true, false)
