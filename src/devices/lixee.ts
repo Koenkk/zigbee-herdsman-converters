@@ -211,7 +211,7 @@ const fzLocal = {
                     case 'statusRegister':
                         // val is a String representing hex.
                         // Must convert
-                        let valhex = Number("0x" + val);
+                        const valhex = Number('0x' + val);
                         // contact sec
                         result[at_snake + '_contact_sec'] = (valhex & 0x1) == 1 ? 'ouvert' : 'ferme';
                         // organe de coupure
