@@ -1916,6 +1916,9 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            // Read correct version to replace version advertised by `genBasic` and `genOta`:
+            // https://github.com/Koenkk/zigbee2mqtt/issues/15745
+            await endpoint.read('manuSpecificLumi', [0x00EE], {manufacturerCode: manufacturerCode});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             await endpoint.read('manuSpecificLumi', [0x040B], {manufacturerCode: manufacturerCode});
             await endpoint.read('manuSpecificLumi', [0x0428], {manufacturerCode: manufacturerCode});
@@ -2597,6 +2600,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.battery_voltage(),
             e.action(['single', 'double', 'hold', 'release', 'start_rotating', 'rotation', 'stop_rotating']),
             e.enum('operation_mode', ea.ALL, ['event', 'command']).withDescription('Button mode'),
+            e.enum('action_rotation_button_state', ea.STATE, ['released', 'pressed']).withDescription('Button state during rotation'),
             e.numeric('action_rotation_angle', ea.STATE).withUnit('*').withDescription('Rotation angle'),
             e.numeric('action_rotation_angle_speed', ea.STATE).withUnit('*').withDescription('Rotation angle speed'),
             e.numeric('action_rotation_percent', ea.STATE).withUnit('%').withDescription('Rotation percent'),

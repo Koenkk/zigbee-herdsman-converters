@@ -248,6 +248,13 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '13':
             if (['ZNXDD01LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
+            } else if (['ZNCLBL01LM'].includes(model.model)) {
+                // Overwrite version advertised by `genBasic` and `genOta` with correct version:
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15745
+                assertNumber(value);
+                meta.device.meta.lumiFileVersion = value;
+                meta.device.softwareBuildID = trv.decodeFirmwareVersionString(value);
+                meta.device.save();
             }
             break;
         case '17':
@@ -491,6 +498,13 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '238':
             if (['ZNXDD01LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
+            } else if (['ZNCLBL01LM'].includes(model.model)) {
+                // Overwrite version advertised by `genBasic` and `genOta` with correct version:
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15745
+                assertNumber(value);
+                meta.device.meta.lumiFileVersion = value;
+                meta.device.softwareBuildID = trv.decodeFirmwareVersionString(value);
+                meta.device.save();
             }
             break;
         case '240':
@@ -1041,7 +1055,7 @@ export const trv = {
         // Reinterpret from LE integer to byte sequence(e.g., `[25,8,0,0]` corresponds to 0.0.0_0825)
         const buffer = Buffer.alloc(4);
         buffer.writeUInt32LE(value);
-        const firmwareVersionNumber = buffer.reverse().subarray(1).join('');
+        const firmwareVersionNumber = toNumber(buffer.reverse().subarray(1).join(''), 'firmwareVersionNumber').toString().padStart(4, '0');
 
         return firmwareVersionPrefix + firmwareVersionNumber;
     },
@@ -1694,7 +1708,7 @@ export const fromZigbee = {
                     break;
                 }
                 case 0x00EE: {
-                    meta.device.meta.aqaraFileVersion = value;
+                    meta.device.meta.lumiFileVersion = value;
                     meta.device.save();
                     break;
                 }
@@ -2062,8 +2076,10 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(570)) {
                 const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
+                const state: KeyValueNumberString = {0: 'released', 128: 'pressed'};
                 return {
-                    action: act[msg.data[570]],
+                    action: act[msg.data[570] & ~128],
+                    action_rotation_button_state: state[msg.data[570] & 128],
                     action_rotation_angle: msg.data[558],
                     action_rotation_angle_speed: msg.data[560],
                     action_rotation_percent: msg.data[563],
@@ -3020,7 +3036,7 @@ export const toZigbee = {
                 }
                 break;
             case 'calibrate':
-                await entity.write('manuSpecificLumi', {0x0270: {value: 1, type: 0x20}}, {manufacturerCode: 0x115F});
+                await entity.write('manuSpecificLumi', {0x0270: {value: 1, type: 0x20}}, {manufacturerCode: manufacturerCode});
                 break;
             case 'identify':
                 await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
@@ -3048,7 +3064,7 @@ export const toZigbee = {
                 'schedule': 0x027d, 'schedule_settings': 0x0276};
 
             if (dict.hasOwnProperty(key)) {
-                await entity.read('manuSpecificLumi', [getFromLookup(key, dict)], {manufacturerCode: 0x115F});
+                await entity.read('manuSpecificLumi', [getFromLookup(key, dict)], {manufacturerCode: manufacturerCode});
             }
         },
     } satisfies Tz.Converter,
@@ -3715,7 +3731,7 @@ export const toZigbee = {
     lumi_selftest: {
         key: ['selftest'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumiicLumi', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_buzzer: {
@@ -3757,13 +3773,13 @@ export const toZigbee = {
             return {state: {linkage_alarm: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumiicLumi', [0x014b], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x014b], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     JTBZ01AQA_state: {
         key: ['state'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumiicLumi', [0x0139], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0139], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_power_outage_count: {
