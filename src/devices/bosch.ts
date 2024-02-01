@@ -1167,7 +1167,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'auto']),
+                .withSystemMode(['off', 'heat', 'auto'])
                 .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.humidity(),
             e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
