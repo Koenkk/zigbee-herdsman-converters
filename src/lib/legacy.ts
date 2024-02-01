@@ -310,7 +310,7 @@ const silvercrestEffects: KeyValueAny = {
     rainbow: '02',
     snake: '03',
     twinkle: '04',
-    firework: '08',
+    firework: '05',
     horizontal_flag: '06',
     waves: '07',
     updown: '08',
@@ -1897,7 +1897,7 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_action_click_multistate: {
+    lumi_action_click_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
@@ -2216,7 +2216,7 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_on_off_action: {
+    lumi_on_off_action: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
         options: [exposes.options.legacy()],
@@ -2224,7 +2224,7 @@ const fromZigbee1 = {
             if (utils.isLegacyEnabled(options)) {
                 return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
             } else {
-                return fromZigbeeConverters.xiaomi_on_off_action.convert(model, msg, publish, options, meta);
+                return fromZigbeeConverters.lumi_on_off_action.convert(model, msg, publish, options, meta);
             }
         },
     } satisfies Fz.Converter,
@@ -2464,12 +2464,12 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_multistate_action: {
+    lumi_multistate_action: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            // refactor to xiaomi_multistate_action]
+            // refactor to lumi_multistate_action]
             if (utils.isLegacyEnabled(options)) {
                 const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
                 const value = msg.data['presentValue'];
@@ -2480,7 +2480,7 @@ const fromZigbee1 = {
                     return {action: `${button}${(action ? `_${action}` : '')}`};
                 }
             } else {
-                return fromZigbeeConverters.xiaomi_multistate_action.convert(model, msg, publish, options, meta);
+                return fromZigbeeConverters.lumi_multistate_action.convert(model, msg, publish, options, meta);
             }
         },
     } satisfies Fz.Converter,
@@ -2636,7 +2636,7 @@ const fromZigbee1 = {
                     return {action: `${button}_${times[msg.data.presentValue]}`};
                 }
             } else {
-                return fromZigbeeConverters.xiaomi_multistate_action.convert(model, msg, publish, options, meta);
+                return fromZigbeeConverters.lumi_multistate_action.convert(model, msg, publish, options, meta);
             }
         },
     } satisfies Fz.Converter,
@@ -3999,7 +3999,7 @@ const fromZigbee1 = {
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.tuyaSabTemp:
-                return {temperature: value / 10};
+                return {temperature: (value > 0x2000 ? value - 0xFFFF : value) / 10};
             case dataPoints.tuyaSabHumidity:
                 return {humidity: value / 10};
                 // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
@@ -4011,12 +4011,14 @@ const fromZigbee1 = {
                 }
                 // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
             case dataPoints.tuyaSabCO2:
-                if (['_TZE200_mja3fuja', '_TZE200_dwcarsat'].includes(meta.device.manufacturerName)) {
+                if (['_TZE200_dwcarsat'].includes(meta.device.manufacturerName)) {
                     // Ignore: https://github.com/Koenkk/zigbee2mqtt/issues/11033#issuecomment-1109808552
                     if (value === 0xaaac || value === 0xaaab) return;
                     return {pm25: value};
                 } else if (meta.device.manufacturerName === '_TZE200_ryfmq5rl') {
                     return {formaldehyd: value / 100};
+                } else if (meta.device.manufacturerName === '_TZE200_mja3fuja') {
+                    return {formaldehyd: value};
                 } else {
                     return {co2: value};
                 }

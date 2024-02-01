@@ -8,7 +8,7 @@ export async function isUpdateAvailable(device: Zh.Device, logger: Logger, reque
         const scenesEndpoint = device.endpoints.find((e) => e.supportsOutputCluster('genScenes'));
         await scenesEndpoint.write('genScenes', {currentGroup: 49502});
     }
-    return common.isUpdateAvailable(device, logger, common.isNewImageAvailable, requestPayload, zigbeeOTA.getImageMeta);
+    return common.isUpdateAvailable(device, logger, requestPayload, common.isNewImageAvailable, zigbeeOTA.getImageMeta);
 }
 
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {

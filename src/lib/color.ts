@@ -3,65 +3,46 @@ import {precisionRound} from './utils';
 import {findColorTempRange, clampColorTemp} from './light';
 import {KeyValueAny, Tz, Zh, KeyValue, Logger} from './types';
 
-/**
- * Color represented in HSV space
- * @typedef {Object} ColorHSVT
- * @property {number} hue hue component (0..360)
- * @property {number} saturation saturation component (0..100)
- * @property {?number} value value component (0..100)
- */
-
-/**
- * Color represented in HSL space
- * @typedef {Object} ColorHSLT
- * @property {number} hue hue component (0..360)
- * @property {number} saturation saturation component (0..100)
- * @property {number} lightness lightness component (0..100)
- */
-
-/**
- * Color represented in CIE space
- * @typedef {Object} ColorXYT
- * @property {number} x X component (0..1)
- * @property {number} y Y component (0..1)
- */
-
-/**
- * Color represented with red, green and blue components
- * @typedef {Object} ColorRGBT
- * @property {number} red red component (0..1)
- * @property {number} green green component (0..1)
- * @property {number} blue blue component (0..1)
- */
 
 /**
  * Converts color temp mireds to Kelvins
- * @param {number} mireds color temp in mireds
- * @return {number} color temp in Kelvins
+ *
+ * @param mireds - color temp in mireds
+ * @returns color temp in Kelvins
  */
-function miredsToKelvin(mireds: number) {
+function miredsToKelvin(mireds: number): number {
     return 1000000 / mireds;
 }
 
 /**
  * Converts color temp in Kelvins to mireds
- * @param {number} kelvin color temp in Kelvins
- * @return {number} color temp in mireds
+ *
+ * @param kelvin -color temp in Kelvins
+ * @returns color temp in mireds
  */
-function kelvinToMireds(kelvin: number) {
+function kelvinToMireds(kelvin: number): number {
     return 1000000 / kelvin;
 }
 
+/**
+ * Class representing color in RGB space
+ */
 export class ColorRGB {
+    /**
+     * red component (0..1)
+     */
     red: number;
+    /**
+     * green component (0..1)
+     */
     green: number;
+    /**
+     * blue component (0..1)
+     */
     blue: number;
 
     /**
      * Create RGB color
-     * @param {number} red
-     * @param {number} green
-     * @param {number} blue
      */
     constructor(red: number, green: number, blue: number) {
         /** red component (0..1) */
@@ -74,8 +55,8 @@ export class ColorRGB {
 
     /**
      * Create RGB color from object
-     * @param {ColorRGBT} rgb object with properties red, green and blue
-     * @return {ColorRGB} new ColoRGB object
+     * @param rgb - object with properties red, green and blue
+     * @returns new ColoRGB object
      */
     static fromObject(rgb: {red: number, green: number, blue: number}) {
         if (!rgb.hasOwnProperty('red') || !rgb.hasOwnProperty('green') || !rgb.hasOwnProperty('blue')) {
@@ -86,10 +67,10 @@ export class ColorRGB {
 
     /**
      * Create RGB color from hex string
-     * @param {string} hex hex encoded RGB color
-     * @return {ColorRGB} new ColoRGB object
+     * @param hex -hex encoded RGB color
+     * @returns new ColoRGB object
      */
-    static fromHex(hex: string) {
+    static fromHex(hex: string): ColorRGB {
         hex = hex.replace('#', '');
         const bigint = parseInt(hex, 16);
         return new ColorRGB(((bigint >> 16) & 255) / 255, ((bigint >> 8) & 255) / 255, (bigint & 255) / 255);
@@ -97,10 +78,9 @@ export class ColorRGB {
 
     /**
      * Return this color with values rounded to given precision
-     * @param {number} precision decimal places to round to
-     * @return {ColorRGB}
+     * @param precision - decimal places to round to
      */
-    rounded(precision: number) {
+    rounded(precision: number): ColorRGB {
         return new ColorRGB(
             precisionRound(this.red, precision),
             precisionRound(this.green, precision),
@@ -110,9 +90,9 @@ export class ColorRGB {
 
     /**
      * Convert to Object
-     * @return {ColorRGBT} object with properties red, green and blue
+     * @returns object with properties red, green and blue
      */
-    toObject() {
+    toObject(): {red: number, green: number, blue: number} {
         return {
             red: this.red,
             green: this.green,
@@ -122,9 +102,10 @@ export class ColorRGB {
 
     /**
      * Convert to HSV
-     * @return {ColorHSV} color in HSV space
+     *
+     * @returns color in HSV space
      */
-    toHSV() {
+    toHSV(): ColorHSV {
         const r = this.red;
         const g = this.green;
         const b = this.blue;
@@ -147,9 +128,9 @@ export class ColorRGB {
 
     /**
      * Convert to CIE
-     * @return {ColorXY} color in CIE space
+     * @returns color in CIE space
      */
-    toXY() {
+    toXY(): ColorXY {
         // From: https://github.com/usolved/cie-rgb-converter/blob/master/cie_rgb_converter.js
 
         // RGB values to XYZ using the Wide RGB D65 conversion formula
@@ -166,9 +147,9 @@ export class ColorRGB {
 
     /**
      * Returns color after sRGB gamma correction
-     * @return {ColorRGB} corrected RGB
+     * @returns corrected RGB
      */
-    gammaCorrected() {
+    gammaCorrected(): ColorRGB {
         function transform(v: number) {
             return (v > 0.04045) ? Math.pow((v + 0.055) / (1.0 + 0.055), 2.4) : (v / 12.92);
         }
@@ -177,9 +158,9 @@ export class ColorRGB {
 
     /**
      * Returns color after reverse sRGB gamma correction
-     * @return {ColorRGB} raw RGB
+     * @returns raw RGB
      */
-    gammaUncorrected() {
+    gammaUncorrected(): ColorRGB {
         function transform(v: number) {
             return v <= 0.0031308 ? 12.92 * v : (1.0 + 0.055) * Math.pow(v, (1.0 / 2.4)) - 0.055;
         }
@@ -188,9 +169,9 @@ export class ColorRGB {
 
     /**
      * Create hex string from RGB color
-     * @return {ColorRGB} hex hex encoded RGB color
+     * @returns hex hex encoded RGB color
      */
-    toHEX() {
+    toHEX(): string {
         return '#' +
             parseInt((this.red * 255).toFixed(0)).toString(16).padStart(2, '0')+
             parseInt((this.green * 255).toFixed(0)).toString(16).padStart(2, '0')+
@@ -202,13 +183,13 @@ export class ColorRGB {
  *  Class representing color in CIE space
  */
 export class ColorXY {
+    /** X component (0..1) */
     x: number;
+    /** Y component (0..1) */
     y: number;
 
     /**
      * Create CIE color
-     * @param {number} x
-     * @param {number} y
      */
     constructor(x: number, y: number) {
         /** x component (0..1) */
@@ -219,10 +200,10 @@ export class ColorXY {
 
     /**
      * Create CIE color from object
-     * @param {ColorXYT} xy object with properties x and y
-     * @return {ColorXY} new ColorXY object
+     * @param xy - object with properties x and y
+     * @returns new ColorXY object
      */
-    static fromObject(xy: {x: number, y: number}) {
+    static fromObject(xy: {x: number, y: number}): ColorXY {
         if (!xy.hasOwnProperty('x') || !xy.hasOwnProperty('y')) {
             throw new Error('One or more required properties missing. Required properties: "x", "y"');
         }
@@ -231,19 +212,19 @@ export class ColorXY {
 
     /**
      * Create XY object from color temp in mireds
-     * @param {number} mireds color temp in mireds
-     * @return {ColorXY} color in XY space
+     * @param mireds - color temp in mireds
+     * @returns color in XY space
      */
-    static fromMireds(mireds: number) {
+    static fromMireds(mireds: number): ColorXY {
         const kelvin = miredsToKelvin(mireds);
         return ColorXY.fromObject(kelvinToXyLookup[Math.round(kelvin)]);
     }
 
     /**
      * Converts color in XY space to temperature in mireds
-     * @return {number} color temp in mireds
+     * @returns color temp in mireds
      */
-    toMireds() {
+    toMireds(): number {
         const n = (this.x - 0.3320) / (0.1858 - this.y);
         const kelvin = Math.abs(437 * Math.pow(n, 3) + 3601 * Math.pow(n, 2) + 6861 * n + 5517);
         return kelvinToMireds(kelvin);
@@ -252,9 +233,8 @@ export class ColorXY {
     /**
      * Converts CIE color space to RGB color space
      * From: https://github.com/usolved/cie-rgb-converter/blob/master/cie_rgb_converter.js
-     * @return {ColorRGB}
      */
-    toRGB() {
+    toRGB(): ColorRGB {
         // use maximum brightness
         const brightness = 254;
 
@@ -293,18 +273,17 @@ export class ColorXY {
 
     /**
      * Convert to HSV
-     * @return {ColorHSV} color in HSV space
+     * @returns color in HSV space
      */
-    toHSV() {
+    toHSV(): ColorHSV {
         return this.toRGB().toHSV();
     }
 
     /**
      * Return this color with value rounded to given precision
-     * @param {number} precision decimal places to round to
-     * @return {ColorXY}
+     * @param precision - decimal places to round to
      */
-    rounded(precision: number) {
+    rounded(precision: number): ColorXY {
         return new ColorXY(
             precisionRound(this.x, precision),
             precisionRound(this.y, precision),
@@ -313,9 +292,9 @@ export class ColorXY {
 
     /**
      * Convert to object
-     * @return {ColorXYT} object with properties x and y
+     * @returns object with properties x and y
      */
-    toObject() {
+    toObject(): {x: number, y: number} {
         return {
             x: this.x,
             y: this.y,
@@ -327,16 +306,15 @@ export class ColorXY {
  * Class representing color in HSV space
  */
 class ColorHSV {
+    /** hue component (0..360) */
     hue: number;
+    /** saturation component (0..100) */
     saturation: number;
+    /** value component (0..100) */
     value: number;
-    brightness: number;
 
     /**
      * Create color in HSV space
-     * @param {?number} hue
-     * @param {?number} [saturation=null]
-     * @param {?number} [value=null]
      */
     constructor(hue: number, saturation: number=null, value: number=null) {
         /** hue component (0..360) */
@@ -349,13 +327,8 @@ class ColorHSV {
 
     /**
      * Create HSV color from object
-     * @param {object} hsv
-     * @param {number} [hsv.hue]
-     * @param {number} [hsv.saturation]
-     * @param {number} [hsv.value]
-     * @return {ColorHSV}
      */
-    static fromObject(hsv: {hue?: number, saturation?: number, value: number}) {
+    static fromObject(hsv: {hue?: number, saturation?: number, value: number}): ColorHSV {
         if (!hsv.hasOwnProperty('hue') && !hsv.hasOwnProperty('saturation')) {
             throw new Error('HSV color must specify at least hue or saturation.');
         }
@@ -364,10 +337,10 @@ class ColorHSV {
 
     /**
      * Create HSV color from HSL
-     * @param {ColorHSL} hsl color in HSL space
-     * @return {ColorHSV} color in HSV space
+     * @param hsl - color in HSL space
+     * @returns color in HSV space
      */
-    static fromHSL(hsl: {hue: number, saturation: number, lightness: number}) {
+    static fromHSL(hsl: {hue: number, saturation: number, lightness: number}): ColorHSV {
         if (!hsl.hasOwnProperty('hue') || !hsl.hasOwnProperty('saturation') || !hsl.hasOwnProperty('lightness')) {
             throw new Error('One or more required properties missing. Required properties: "hue", "saturation", "lightness"');
         }
@@ -379,10 +352,9 @@ class ColorHSV {
 
     /**
      * Return this color with value rounded to given precision
-     * @param {number} precision decimal places to round to
-     * @return {ColorHSV}
+     * @param precision - decimal places to round to
      */
-    rounded(precision: number) {
+    rounded(precision: number): ColorHSV {
         return new ColorHSV(
             this.hue === null ? null : precisionRound(this.hue, precision),
             this.saturation === null ? null : precisionRound(this.saturation, precision),
@@ -392,11 +364,12 @@ class ColorHSV {
 
     /**
      * Convert to object
-     * @param {boolean} short return h, s, v instead of hue, saturation, value
-     * @param {boolean} includeValue omit v(alue) from return
-     * @return {ColorHSVT}
+     * @param short - return h, s, v instead of hue, saturation, value
+     * @param includeValue - omit v(alue) from return
      */
-    toObject(short=false, includeValue=true) {
+    toObject(
+        short: boolean=false, includeValue: boolean=true,
+    ): {h?: number, hue?: number, s?: number, saturation?: number, v?:number, value?: number} {
         const ret: {h?: number, hue?: number, s?: number, saturation?: number, v?:number, value?: number} = {};
         if (this.hue !== null) {
             if (short) {
@@ -424,9 +397,9 @@ class ColorHSV {
 
     /**
      * Convert RGB color
-     * @return {ColorRGB}
+     * @returns
      */
-    toRGB() {
+    toRGB(): ColorRGB {
         const hsvComplete = this.complete();
         const h = hsvComplete.hue / 360;
         const s = hsvComplete.saturation / 100;
@@ -451,25 +424,24 @@ class ColorHSV {
 
     /**
      * Create CIE color from HSV
-     * @return {ColorXY}
      */
-    toXY() {
+    toXY(): ColorXY {
         return this.toRGB().toXY();
     }
 
     /**
      * Create Mireds from HSV
-     * @return {number} color temp in mireds
+     * @returns color temp in mireds
      */
-    toMireds() {
+    toMireds(): number {
         return this.toRGB().toXY().toMireds();
     }
 
     /**
      * Returns color with missing properties set to defaults
-     * @return {ColorHSV} HSV color
+     * @returns HSV color
      */
-    complete() {
+    complete(): ColorHSV {
         const hue = this.hue !== null ? this.hue : 0;
         const saturation = this.saturation !== null ? this.saturation : 100;
         const value = this.value !== null ? this.value : 100;
@@ -478,11 +450,11 @@ class ColorHSV {
 
     /**
      * Interpolates hue value based on correction map through ranged linear interpolation
-     * @param {Nnmber} hue hue to be corrected
-     * @param {Array} correctionMap array of hueIn -> hueOut mappings; example: [ {"in": 20, "out": 25}, {"in": 109, "out": 104}]
-     * @return {number} corrected hue value
+     * @param hue - hue to be corrected
+     * @param correctionMap -  array of hueIn -\> hueOut mappings; example: `[ {"in": 20, "out": 25}, {"in": 109, "out": 104}]`
+     * @returns corrected hue value
      */
-    static interpolateHue(hue: number, correctionMap: KeyValueAny[]) {
+    static interpolateHue(hue: number, correctionMap: KeyValueAny[]): number {
         if (correctionMap.length < 2) return hue;
 
         // retain immutablity
@@ -502,13 +474,10 @@ class ColorHSV {
 
     /**
      * Applies hue interpolation if entity has hue correction data
-     * @param {number} hue hue component of HSV color
-     * @param {Object} meta entity meta object
-     * @param {Object} meta.options meta object's options property
-     * @param {Object} [meta.options.hue_correction] hue correction data
-     * @return {number} corrected hue component of HSV color
+     * @param hue - hue component of HSV color
+     * @returns corrected hue component of HSV color
      */
-    static correctHue(hue: number, meta: Tz.Meta) {
+    static correctHue(hue: number, meta: Tz.Meta): number {
         const {options} = meta;
         if (options.hasOwnProperty('hue_correction')) {
             // @ts-expect-error
@@ -520,19 +489,19 @@ class ColorHSV {
 
     /**
      * Returns HSV color after hue correction
-     * @param {Object} meta entity meta object
-     * @return {ColorHSV} hue corrected color
+     * @param meta - entity meta object
+     * @returns hue corrected color
      */
-    hueCorrected(meta: Tz.Meta) {
-        return new ColorHSV(ColorHSV.correctHue(this.hue, meta), this.saturation, this.brightness);
+    hueCorrected(meta: Tz.Meta): ColorHSV {
+        return new ColorHSV(ColorHSV.correctHue(this.hue, meta), this.saturation, this.value);
     }
 
     /**
      * Returns HSV color after gamma and hue corrections
-     * @param {Object} meta entity meta object
-     * @return {ColorHSV} corrected color in HSV space
+     * @param meta - entity meta object
+     * @returns corrected color in HSV space
      */
-    colorCorrected(meta: Tz.Meta) {
+    colorCorrected(meta: Tz.Meta): ColorHSV {
         return this.hueCorrected(meta);
     }
 }
@@ -544,9 +513,9 @@ export class Color {
 
     /**
      * Create Color object
-     * @param {?ColorHSV} hsv ColorHSV instance
-     * @param {?ColorRGB} rgb ColorRGB instance
-     * @param {?ColorXY} xy ColorXY instance
+     * @param hsv - ColorHSV instance
+     * @param rgb - ColorRGB instance
+     * @param xy - ColorXY instance
      */
     constructor(hsv: ColorHSV, rgb: ColorRGB, xy: ColorXY) {
         // @ts-expect-error
@@ -572,11 +541,11 @@ export class Color {
 
     /**
      * Create Color object from converter's value argument
-     * @param {Object} value converter value argument
-     * @return {Color} Color object
+     * @param value - converter value argument
+     * @returns Color object
      */
     // eslint-disable-next-line
-    static fromConverterArg(value: any) {
+    static fromConverterArg(value: any): Color {
         if (value.hasOwnProperty('x') && value.hasOwnProperty('y')) {
             const xy = ColorXY.fromObject(value);
             return new Color(null, null, xy);
@@ -633,41 +602,40 @@ export class Color {
 
     /**
      * Returns true if color is HSV
-     * @return {boolean} is HSV color
      */
-    isHSV() {
+    isHSV(): boolean {
         return this.hsv !== null;
     }
 
     /**
      * Returns true if color is RGB
-     * @return {boolean} is RGB color
      */
-    isRGB() {
+    isRGB(): boolean {
         return this.rgb !== null;
     }
 
     /**
      * Returns true if color is XY
-     * @return {boolean} is XY color
      */
-    isXY() {
+    isXY(): boolean {
         return this.xy !== null;
     }
 }
 
-/*
+/**
  * Sync all color attributes
  * NOTE: behavior can be disable by setting the 'color_sync' device/group option
- * @param {Object} newState state with only the changed attributes set
- * @param {Object} oldState state from the cache with all the old attributes set
- * @param {Object} endpoint with lightingColorCtrl cluster
- * @param {Object} options meta.options for the device or group
- * @param {Object} logger used for logging
- * @return {Object} state with color, color_temp, and color_mode set and synchronized from newState's attributes
- *                  (other attributes are not included make sure to merge yourself)
+ * @param newState - state with only the changed attributes set
+ * @param oldState - state from the cache with all the old attributes set
+ * @param endpoint - with lightingColorCtrl cluster
+ * @param options - meta.options for the device or group
+ * @param logger - used for logging
+ * @returns state with color, color_temp, and color_mode set and synchronized from newState's attributes
+ *          (other attributes are not included make sure to merge yourself)
  */
-export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, endpoint: Zh.Endpoint | Zh.Group, options: KeyValue, logger: Logger) {
+export function syncColorState(
+    newState: KeyValueAny, oldState: KeyValueAny, endpoint: Zh.Endpoint | Zh.Group, options: KeyValue, logger: Logger,
+): KeyValueAny {
     const colorTargets = [];
     const colorSync = (options && options.hasOwnProperty('color_sync')) ? options.color_sync : true;
     const result: KeyValueAny = {};

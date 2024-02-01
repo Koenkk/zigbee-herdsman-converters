@@ -3,6 +3,7 @@ import * as utils from '../src/lib/utils';
 import {Zh, Logger, DefinitionMeta, Fz, Definition} from '../src/lib/types';
 import tz from '../src/converters/toZigbee';
 import { Device } from 'zigbee-herdsman/dist/controller/model';
+import {Cluster} from 'zigbee-herdsman/dist/zcl'
 
 interface MockEndpointArgs {ID?: number, inputClusters?: string[], outputClusters?: string[], attributes?: {[s: string]: {[s: string]: unknown}}}
 
@@ -10,12 +11,13 @@ export function reportingItem(attribute: string, min: number, max: number, chang
     return {attribute: attribute, minimumReportInterval: min, maximumReportInterval: max, reportableChange: change};
 }
 
-export function mockDevice(args: {modelID: string, manufacturerID?: number, endpoints: MockEndpointArgs[]}): Zh.Device {
+export function mockDevice(args: {modelID: string, manufacturerID?: number, manufacturerName?: string, endpoints: MockEndpointArgs[]}): Zh.Device {
     const ieeeAddr = '0x12345678';
     const device: Zh.Device = {
         // @ts-expect-error
         constructor: {name: 'Device'},
         ieeeAddr,
+        save: jest.fn(),
         ...args,
     };
 
@@ -30,8 +32,16 @@ export function mockDevice(args: {modelID: string, manufacturerID?: number, endp
     return device;
 }
 
+function getCluster(ID: string | number) {
+    const cluster = Object.entries(Cluster).find((c) => typeof ID === 'number' ? c[1].ID === ID : c[0] === ID);
+    if (!cluster) throw new Error(`Cluster '${ID}' does not exist`);
+    return {name: cluster[0], ID: cluster[1].ID};
+}
+
 function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh.Endpoint {
     const attributes = args.attributes ?? {};
+    const inputClusters = (args.inputClusters ?? []).map((c) => getCluster(c).ID);
+    const outputClusters = (args.outputClusters ?? []).map((c) => getCluster(c).ID);
     return {
         ID: args?.ID ?? 1,
         // @ts-expect-error
@@ -40,9 +50,13 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         configureReporting: jest.fn(),
         read: jest.fn(),
         getDevice: () => device,
-        getInputClusters: jest.fn().mockReturnValue(args?.inputClusters?.map((name) => ({name}))),
-        getOutputClusters: jest.fn().mockReturnValue(args?.outputClusters?.map((name) => ({name}))),
-        supportsInputCluster: jest.fn().mockImplementation((cluster) => args?.inputClusters?.includes(cluster)),
+        inputClusters,
+        outputClusters,
+        // @ts-expect-error
+        getInputClusters: () => inputClusters.map((c) => getCluster(c)),
+        // @ts-expect-error
+        getOutputClusters: () => outputClusters.map((c) => getCluster(c)),
+        supportsInputCluster: (key) => !!inputClusters.find((ID) => ID === getCluster(key).ID),
         saveClusterAttributeKeyValue: jest.fn().mockImplementation((cluster, values) => attributes[cluster] = {...attributes[cluster], ...values}),
         save: jest.fn(),
         getClusterAttributeValue: jest.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),

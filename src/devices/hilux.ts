@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: 'DZ8',
         vendor: 'Hilux',
         description: 'Spot 7W',
-        extend: [light({colorTemp: {range: [153, 370]}, powerOnBehaviour: false})],
+        extend: [light({colorTemp: {range: [153, 370]}, powerOnBehavior: false})],
     },
 ];
 

@@ -60,6 +60,7 @@ const definitions: Definition[] = [
         vendor: 'HEIMAN',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
+        whiteLabel: [{vendor: 'Schneider Electric', model: 'CCTFR6500'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -368,28 +369,6 @@ const definitions: Definition[] = [
             await reporting.humidity(endpoint2);
         },
         exposes: [e.temperature(), e.humidity(), e.battery()],
-    },
-    {
-        zigbeeModel: ['SKHMP30-I1'],
-        model: 'SKHMP30-I1',
-        description: 'Smart metering plug',
-        vendor: 'HEIMAN',
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
-        toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
-            await reporting.onOff(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.activePower(endpoint);
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acVoltageMultiplier: 1, acVoltageDivisor: 100,
-                acCurrentMultiplier: 1, acCurrentDivisor: 100,
-                acPowerMultiplier: 1, acPowerDivisor: 10,
-            });
-        },
     },
     {
         zigbeeModel: ['E_Socket'],

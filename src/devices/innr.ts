@@ -50,7 +50,7 @@ const definitions: Definition[] = [
         model: 'FL 142 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip 4m 2000lm',
-        extend: [light({colorTemp: {range: [150, 500], startup: false}, color: {modes: ['xy', 'hs']}, powerOnBehaviour: false})],
+        extend: [light({colorTemp: {range: [150, 500], startup: false}, color: {modes: ['xy', 'hs']}, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FL 140 C'],
@@ -65,7 +65,7 @@ const definitions: Definition[] = [
         vendor: 'Innr',
         description: 'Color Flex LED strip',
         extend: [light({
-            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, powerOnBehaviour: false, turnsOffAtBrightness1: true,
+            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, powerOnBehavior: false, turnsOffAtBrightness1: true,
         })],
     },
     {
@@ -74,7 +74,7 @@ const definitions: Definition[] = [
         vendor: 'Innr',
         description: 'Color Flex LED strip',
         extend: [light({
-            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, powerOnBehaviour: false, turnsOffAtBrightness1: true,
+            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, powerOnBehavior: false, turnsOffAtBrightness1: true,
         })],
     },
     {
@@ -184,7 +184,7 @@ const definitions: Definition[] = [
         model: 'RB 278 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RB 279 T'],

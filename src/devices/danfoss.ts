@@ -34,93 +34,98 @@ const definitions: Definition[] = [
             tz.danfoss_window_open_feature, tz.danfoss_preheat_status, tz.danfoss_adaptation_status, tz.danfoss_adaptation_settings,
             tz.danfoss_adaptation_control, tz.danfoss_regulation_setpoint_offset,
             tz.danfoss_thermostat_occupied_heating_setpoint_scheduled],
-        exposes: [e.battery(), e.keypad_lockout(), e.programming_operation_mode(),
-            e.binary('mounted_mode_active', ea.STATE_GET, true, false)
-                .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
-                    'the radiator) or `true` for not mounted (after factory reset)'),
-            e.binary('mounted_mode_control', ea.ALL, true, false)
-                .withDescription('Set the unit mounting mode. `false` Go to Mounted Mode or `true` Go to Mounting Mode'),
-            e.binary('thermostat_vertical_orientation', ea.ALL, true, false)
-                .withDescription('Thermostat Orientation. This is important for the PID in how it assesses temperature. ' +
-                    '`false` Horizontal or `true` Vertical'),
-            e.binary('viewing_direction', ea.ALL, true, false)
-                .withDescription('Viewing/display direction, `false` normal or `true` upside-down'),
-            e.binary('heat_available', ea.ALL, true, false)
-                .withDescription('Not clear how this affects operation. However, it would appear that the device does not execute any ' +
-                    'motor functions if this is set to false. This may be a means to conserve battery during periods that the heating ' +
-                    'system is not energized (e.g. during summer). `false` No Heat Available or `true` Heat Available'),
-            e.binary('heat_required', ea.STATE_GET, true, false)
-                .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
-            e.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
-                .withDescription('Values observed are `0` (manual), `1` (schedule) or `2` (externally)'),
-            e.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5).withLocalTemperature().withPiHeatingDemand()
-                .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
-            e.numeric('occupied_heating_setpoint_scheduled', ea.ALL)
-                .withValueMin(5).withValueMax(32).withValueStep(0.5).withUnit('°C')
-                .withDescription('Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite ' +
-                  'to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. ' +
-                  '(more suitable for scheduled changes)'),
-            e.numeric('external_measured_room_sensor', ea.ALL)
-                .withDescription('The temperature sensor of the TRV is — due to its design — relatively close to the heat source ' +
-                    '(i.e. the hot water in the radiator). Thus there are situations where the `local_temperature` measured by the ' +
-                    'TRV is not accurate enough: If the radiator is covered behind curtains or furniture, if the room is rather big, or ' +
-                    'if the radiator itself is big and the flow temperature is high, then the temperature in the room may easily diverge ' +
-                    'from the `local_temperature` measured by the TRV by 5°C to 8°C. In this case you might choose to use an external ' +
-                    'room sensor and send the measured value of the external room sensor to the `External_measured_room_sensor` property.' +
-                    'The way the TRV operates on the `External_measured_room_sensor` depends on the setting of the `Radiator_covered` ' +
-                    'property: If `Radiator_covered` is `false` (Auto Offset Mode): You *must* set the `External_measured_room_sensor` ' +
-                    'property *at least* every 3 hours. After 3 hours the TRV disables this function and resets the value of the ' +
-                    '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
-                    'property *at most* every 30 minutes or every 0.1K change in measured room temperature.' +
-                    'If `Radiator_covered` is `true` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property *at ' +
-                    'least* every 30 minutes. After 35 minutes the TRV disables this function and resets the value of the ' +
-                    '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
-                    'property *at most* every 5 minutes or every 0.1K change in measured room temperature.')
-                .withValueMin(-8000).withValueMax(3500),
-            e.binary('radiator_covered', ea.ALL, true, false)
-                .withDescription('Controls whether the TRV should solely rely on an external room sensor or operate in offset mode. ' +
-                '`false` = Auto Offset Mode (use this e.g. for exposed radiators) or `true` = Room Sensor Mode (use this e.g. for ' +
-                'covered radiators). Please note that this flag only controls how the TRV operates on the value of ' +
-                '`External_measured_room_sensor`; only setting this flag without setting the `External_measured_room_sensor` ' +
-                'has no (noticeable?) effect.'),
-            e.binary('window_open_feature', ea.ALL, true, false)
-                .withDescription('Whether or not the window open feature is enabled'),
-            e.enum('window_open_internal', ea.STATE_GET,
-                ['quarantine', 'closed', 'hold', 'open', 'external_open'])
-                .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
-                    '3=Open window detected, 4=In window open state from external but detected closed locally'),
-            e.binary('window_open_external', ea.ALL, true, false)
-                .withDescription('Set if the window is open or close. This setting will trigger a change in the internal ' +
-                    'window and heating demand. `false` (windows are closed) or `true` (windows are open)'),
-            e.enum('day_of_week', ea.ALL,
-                ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'away_or_vacation'])
-                .withDescription('Exercise day of week: 0=Sun...6=Sat, 7=undefined'),
-            e.numeric('trigger_time', ea.ALL).withValueMin(0).withValueMax(65535)
-                .withDescription('Exercise trigger time. Minutes since midnight (65535=undefined). Range 0 to 1439'),
-            e.numeric('algorithm_scale_factor', ea.ALL).withValueMin(1).withValueMax(10)
-                .withDescription('Scale factor of setpoint filter timeconstant ("aggressiveness" of control algorithm) '+
-                    '1= Quick ...  5=Moderate ... 10=Slow'),
-            e.binary('load_balancing_enable', ea.ALL, true, false)
-                .withDescription('Whether or not the thermostat acts as standalone thermostat or shares load with other ' +
-                    'thermostats in the room. The gateway must update load_room_mean if enabled.'),
-            e.numeric('load_room_mean', ea.ALL)
-                .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
-                .withValueMin(-8000).withValueMax(3600),
-            e.numeric('load_estimate', ea.STATE_GET)
-                .withDescription('Load estimate on this radiator')
-                .withValueMin(-8000).withValueMax(3600),
-            e.binary('preheat_status', ea.STATE_GET, true, false)
-                .withDescription('Specific for pre-heat running in Zigbee Weekly Schedule mode'),
-            e.enum('adaptation_run_status', ea.STATE_GET, ['none', 'in_progress', 'found', 'lost'])
-                .withDescription('Status of adaptation run: None (before first run), In Progress, Valve Characteristic Found, ' +
-                    'Valve Characteristic Lost'),
-            e.binary('adaptation_run_settings', ea.ALL, true, false)
-                .withDescription('Automatic adaptation run enabled (the one during the night)'),
-            e.enum('adaptation_run_control', ea.ALL, ['none', 'initiate_adaptation', 'cancel_adaptation'])
-                .withDescription('Adaptation run control: Initiate Adaptation Run or Cancel Adaptation Run'),
-            e.numeric('regulation_setpoint_offset', ea.ALL)
-                .withDescription('Regulation SetPoint Offset in range -2.5°C to 2.5°C in steps of 0.1°C. Value 2.5°C = 25.')
-                .withValueMin(-25).withValueMax(25)],
+        exposes: (device, options) => {
+            const maxSetpoint = ['TRV001', 'TRV003'].includes(device?.modelID) ? 32 : 35;
+            return [
+                e.linkquality(),
+                e.battery(), e.keypad_lockout(), e.programming_operation_mode(),
+                e.binary('mounted_mode_active', ea.STATE_GET, true, false)
+                    .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
+                        'the radiator) or `true` for not mounted (after factory reset)'),
+                e.binary('mounted_mode_control', ea.ALL, true, false)
+                    .withDescription('Set the unit mounting mode. `false` Go to Mounted Mode or `true` Go to Mounting Mode'),
+                e.binary('thermostat_vertical_orientation', ea.ALL, true, false)
+                    .withDescription('Thermostat Orientation. This is important for the PID in how it assesses temperature. ' +
+                        '`false` Horizontal or `true` Vertical'),
+                e.binary('viewing_direction', ea.ALL, true, false)
+                    .withDescription('Viewing/display direction, `false` normal or `true` upside-down'),
+                e.binary('heat_available', ea.ALL, true, false)
+                    .withDescription('Not clear how this affects operation. However, it would appear that the device does not execute any ' +
+                        'motor functions if this is set to false. This may be a means to conserve battery during periods that the heating ' +
+                        'system is not energized (e.g. during summer). `false` No Heat Available or `true` Heat Available'),
+                e.binary('heat_required', ea.STATE_GET, true, false)
+                    .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
+                e.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
+                    .withDescription('Values observed are `0` (manual), `1` (schedule) or `2` (externally)'),
+                e.climate().withSetpoint('occupied_heating_setpoint', 5, maxSetpoint, 0.5).withLocalTemperature().withPiHeatingDemand()
+                    .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
+                e.numeric('occupied_heating_setpoint_scheduled', ea.ALL)
+                    .withValueMin(5).withValueMax(maxSetpoint).withValueStep(0.5).withUnit('°C')
+                    .withDescription('Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite ' +
+                      'to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. ' +
+                      '(more suitable for scheduled changes)'),
+                e.numeric('external_measured_room_sensor', ea.ALL)
+                    .withDescription('The temperature sensor of the TRV is — due to its design — relatively close to the heat source ' +
+                        '(i.e. the hot water in the radiator). Thus there are situations where the `local_temperature` measured by the ' +
+                        'TRV is not accurate enough: If the radiator is covered behind curtains or furniture, if the room is rather big, or ' +
+                        'if the radiator itself is big and the flow temperature is high, then the temperature in the room may easily diverge ' +
+                        'from the `local_temperature` measured by the TRV by 5°C to 8°C. In this case you might choose to use an external ' +
+                        'room sensor and send the measured value of the external room sensor to the `External_measured_room_sensor` property.' +
+                        'The way the TRV operates on the `External_measured_room_sensor` depends on the setting of the `Radiator_covered` ' +
+                        'property: If `Radiator_covered` is `false` (Auto Offset Mode): You *must* set the `External_measured_room_sensor` ' +
+                        'property *at least* every 3 hours. After 3 hours the TRV disables this function and resets the value of the ' +
+                        '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
+                        'property *at most* every 30 minutes or every 0.1K change in measured room temperature.' +
+                        'If `Radiator_covered` is `true` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property *at ' +
+                        'least* every 30 minutes. After 35 minutes the TRV disables this function and resets the value of the ' +
+                        '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
+                        'property *at most* every 5 minutes or every 0.1K change in measured room temperature.')
+                    .withValueMin(-8000).withValueMax(3500),
+                e.binary('radiator_covered', ea.ALL, true, false)
+                    .withDescription('Controls whether the TRV should solely rely on an external room sensor or operate in offset mode. ' +
+                    '`false` = Auto Offset Mode (use this e.g. for exposed radiators) or `true` = Room Sensor Mode (use this e.g. for ' +
+                    'covered radiators). Please note that this flag only controls how the TRV operates on the value of ' +
+                    '`External_measured_room_sensor`; only setting this flag without setting the `External_measured_room_sensor` ' +
+                    'has no (noticeable?) effect.'),
+                e.binary('window_open_feature', ea.ALL, true, false)
+                    .withDescription('Whether or not the window open feature is enabled'),
+                e.enum('window_open_internal', ea.STATE_GET,
+                    ['quarantine', 'closed', 'hold', 'open', 'external_open'])
+                    .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
+                        '3=Open window detected, 4=In window open state from external but detected closed locally'),
+                e.binary('window_open_external', ea.ALL, true, false)
+                    .withDescription('Set if the window is open or close. This setting will trigger a change in the internal ' +
+                        'window and heating demand. `false` (windows are closed) or `true` (windows are open)'),
+                e.enum('day_of_week', ea.ALL,
+                    ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'away_or_vacation'])
+                    .withDescription('Exercise day of week: 0=Sun...6=Sat, 7=undefined'),
+                e.numeric('trigger_time', ea.ALL).withValueMin(0).withValueMax(65535)
+                    .withDescription('Exercise trigger time. Minutes since midnight (65535=undefined). Range 0 to 1439'),
+                e.numeric('algorithm_scale_factor', ea.ALL).withValueMin(1).withValueMax(10)
+                    .withDescription('Scale factor of setpoint filter timeconstant ("aggressiveness" of control algorithm) '+
+                        '1= Quick ...  5=Moderate ... 10=Slow'),
+                e.binary('load_balancing_enable', ea.ALL, true, false)
+                    .withDescription('Whether or not the thermostat acts as standalone thermostat or shares load with other ' +
+                        'thermostats in the room. The gateway must update load_room_mean if enabled.'),
+                e.numeric('load_room_mean', ea.ALL)
+                    .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
+                    .withValueMin(-8000).withValueMax(3600),
+                e.numeric('load_estimate', ea.STATE_GET)
+                    .withDescription('Load estimate on this radiator')
+                    .withValueMin(-8000).withValueMax(3600),
+                e.binary('preheat_status', ea.STATE_GET, true, false)
+                    .withDescription('Specific for pre-heat running in Zigbee Weekly Schedule mode'),
+                e.enum('adaptation_run_status', ea.STATE_GET, ['none', 'in_progress', 'found', 'lost'])
+                    .withDescription('Status of adaptation run: None (before first run), In Progress, Valve Characteristic Found, ' +
+                        'Valve Characteristic Lost'),
+                e.binary('adaptation_run_settings', ea.ALL, true, false)
+                    .withDescription('Automatic adaptation run enabled (the one during the night)'),
+                e.enum('adaptation_run_control', ea.ALL, ['none', 'initiate_adaptation', 'cancel_adaptation'])
+                    .withDescription('Adaptation run control: Initiate Adaptation Run or Cancel Adaptation Run'),
+                e.numeric('regulation_setpoint_offset', ea.ALL)
+                    .withDescription('Regulation SetPoint Offset in range -2.5°C to 2.5°C in steps of 0.1°C. Value 2.5°C = 25.')
+                    .withValueMin(-25).withValueMax(25)];
+        },
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
