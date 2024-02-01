@@ -208,141 +208,142 @@ const fzLocal = {
                             result[at_snake + (i+1)] = (val & (1<<i)) >>> i;
                         }
                         break;
-                    case 'statusRegister':
-                        // val is a String representing hex.
-                        // Must convert
-                        const valhex = Number('0x' + val);
-                        // contact sec
-                        result[at_snake + '_contact_sec'] = (valhex & 0x1) == 1 ? 'ouvert' : 'ferme';
-                        // organe de coupure
-                        switch ((valhex >>> 1) & 0x7) {
-                        case 0:
-                            result[at_snake + '_organe_coupure'] = 'ferme';
-                            break;
-                        case 1:
-                            result[at_snake + '_organe_coupure'] = 'surpuissance';
-                            break;
-                        case 2:
-                            result[at_snake + '_organe_coupure'] = 'surtension';
-                            break;
-                        case 3:
-                            result[at_snake + '_organe_coupure'] = 'delestage';
-                            break;
-                        case 4:
-                            result[at_snake + '_organe_coupure'] = 'ordre_CPL_Euridis';
-                            break;
-                        case 5:
-                            result[at_snake + '_organe_coupure'] = 'surchauffe_surcourant';
-                            break;
-                        case 6:
-                            result[at_snake + '_organe_coupure'] = 'surchauffe_simple';
-                            break;
-                        }
-                        // etat cache borne distributeur
-                        result[at_snake + '_cache_borne_dist'] = ((valhex >>> 4) & 0x1) == 0 ? 'ferme' : 'ouvert';
-                        // bit 5 inutilise
-                        // surtension sur une des phases
-                        result[at_snake + '_surtension_phase'] = (valhex >>> 6) & 0x1;
-                        // depassement puissance de reference
-                        result[at_snake + '_depassement_ref_pow'] = (valhex >>> 7) & 0x1;
-                        // consommateur ou producteur
-                        result[at_snake + '_producteur'] = (valhex >>> 8) & 0x1;
-                        // sens de l'energie active
-                        result[at_snake + '_sens_energie_active'] = ((valhex >>> 9) & 0x1) == 0 ? 'positive' : 'negative';
-                        // tarif en cours sur le contrat fourniture
-                        result[at_snake + '_tarif_four'] = 'index_' + (((valhex >>> 10) & 0xF) + 1);
-                        // tarif en cours sur le contrat distributeur
-                        result[at_snake + '_tarif_dist'] = 'index_' + (((valhex >>> 14) & 0x3) + 1);
-                        // mode degrade de l'horloge
-                        result[at_snake + '_horloge'] = ((valhex >>> 16) & 0x1) == 0 ? 'correcte' : 'degradee';
-                        // TIC historique ou standard
-                        result[at_snake + '_type_tic'] = ((valhex >>> 17) & 0x1) == 0 ? 'historique' : 'standard';
-                        // bit 18 inutilise
-                        // etat sortie communicateur Euridis
-                        switch ((valhex >>> 19) & 0x3) {
-                        case 0:
-                            result[at_snake + '_comm_euridis'] = 'desactivee';
-                            break;
-                        case 1:
-                            result[at_snake + '_comm_euridis'] = 'activee sans securite';
-                            break;
-                        case 3:
-                            result[at_snake + '_comm_euridis'] = 'activee avec securite';
-                            break;
-                        }
-                        // etat CPL
-                        switch ((valhex >>> 21) & 0x3) {
-                        case 0:
-                            result[at_snake + '_etat_cpl'] = 'nouveau_deverrouille';
-                            break;
-                        case 1:
-                            result[at_snake + '_etat_cpl'] = 'nouveau_verrouille';
-                            break;
-                        case 2:
-                            result[at_snake + '_etat_cpl'] = 'enregistre';
-                            break;
-                        }
-                        // synchronisation CPL
-                        result[at_snake + '_sync_cpl'] = ((valhex >>> 23) & 0x1) == 0 ? 'non_synchronise' : 'synchronise';
-                        // couleur du jour contrat TEMPO historique
-                        switch ((valhex >>> 24) & 0x3) {
-                        case 0:
-                            result[at_snake + '_tempo_jour'] = 'UNDEF';
-                            break;
-                        case 1:
-                            result[at_snake + '_tempo_jour'] = 'BLEU';
-                            break;
-                        case 2:
-                            result[at_snake + '_tempo_jour'] = 'BLANC';
-                            break;
-                        case 3:
-                            result[at_snake + '_tempo_jour'] = 'ROUGE';
-                            break;
-                        }
-                        // couleur demain contrat TEMPO historique
-                        switch ((valhex >>> 26) & 0x3) {
-                        case 0:
-                            result[at_snake + '_tempo_demain'] = 'UNDEF';
-                            break;
-                        case 1:
-                            result[at_snake + '_tempo_demain'] = 'BLEU';
-                            break;
-                        case 2:
-                            result[at_snake + '_tempo_demain'] = 'BLANC';
-                            break;
-                        case 3:
-                            result[at_snake + '_tempo_demain'] = 'ROUGE';
-                            break;
-                        }
-                        // preavis pointe mobile
-                        switch ((valhex >>> 28) & 0x3) {
-                        case 0:
-                            result[at_snake + '_preavis_pointe_mobile'] = 'AUCUN';
-                            break;
-                        case 1:
-                            result[at_snake + '_preavis_pointe_mobile'] = 'PM1';
-                            break;
-                        case 2:
-                            result[at_snake + '_preavis_pointe_mobile'] = 'PM2';
-                            break;
-                        case 3:
-                            result[at_snake + '_preavis_pointe_mobile'] = 'PM3';
-                            break;
-                        }
-                        // pointe mobile
-                        switch ((valhex >>> 30) & 0x3) {
-                        case 0:
-                            result[at_snake + '_pointe_mobile'] = 'AUCUN';
-                            break;
-                        case 1:
-                            result[at_snake + '_pointe_mobile'] = 'PM1';
-                            break;
-                        case 2:
-                            result[at_snake + '_pointe_mobile'] = 'PM2';
-                            break;
-                        case 3:
-                            result[at_snake + '_pointe_mobile'] = 'PM3';
-                            break;
+                    case 'statusRegister': {
+                            // val is a String representing hex.
+                            // Must convert
+                            const valhex = Number('0x' + val);
+                            // contact sec
+                            result[at_snake + '_contact_sec'] = (valhex & 0x1) == 1 ? 'ouvert' : 'ferme';
+                            // organe de coupure
+                            switch ((valhex >>> 1) & 0x7) {
+                            case 0:
+                                result[at_snake + '_organe_coupure'] = 'ferme';
+                                break;
+                            case 1:
+                                result[at_snake + '_organe_coupure'] = 'surpuissance';
+                                break;
+                            case 2:
+                                result[at_snake + '_organe_coupure'] = 'surtension';
+                                break;
+                            case 3:
+                                result[at_snake + '_organe_coupure'] = 'delestage';
+                                break;
+                            case 4:
+                                result[at_snake + '_organe_coupure'] = 'ordre_CPL_Euridis';
+                                break;
+                            case 5:
+                                result[at_snake + '_organe_coupure'] = 'surchauffe_surcourant';
+                                break;
+                            case 6:
+                                result[at_snake + '_organe_coupure'] = 'surchauffe_simple';
+                                break;
+                            }
+                            // etat cache borne distributeur
+                            result[at_snake + '_cache_borne_dist'] = ((valhex >>> 4) & 0x1) == 0 ? 'ferme' : 'ouvert';
+                            // bit 5 inutilise
+                            // surtension sur une des phases
+                            result[at_snake + '_surtension_phase'] = (valhex >>> 6) & 0x1;
+                            // depassement puissance de reference
+                            result[at_snake + '_depassement_ref_pow'] = (valhex >>> 7) & 0x1;
+                            // consommateur ou producteur
+                            result[at_snake + '_producteur'] = (valhex >>> 8) & 0x1;
+                            // sens de l'energie active
+                            result[at_snake + '_sens_energie_active'] = ((valhex >>> 9) & 0x1) == 0 ? 'positive' : 'negative';
+                            // tarif en cours sur le contrat fourniture
+                            result[at_snake + '_tarif_four'] = 'index_' + (((valhex >>> 10) & 0xF) + 1);
+                            // tarif en cours sur le contrat distributeur
+                            result[at_snake + '_tarif_dist'] = 'index_' + (((valhex >>> 14) & 0x3) + 1);
+                            // mode degrade de l'horloge
+                            result[at_snake + '_horloge'] = ((valhex >>> 16) & 0x1) == 0 ? 'correcte' : 'degradee';
+                            // TIC historique ou standard
+                            result[at_snake + '_type_tic'] = ((valhex >>> 17) & 0x1) == 0 ? 'historique' : 'standard';
+                            // bit 18 inutilise
+                            // etat sortie communicateur Euridis
+                            switch ((valhex >>> 19) & 0x3) {
+                            case 0:
+                                result[at_snake + '_comm_euridis'] = 'desactivee';
+                                break;
+                            case 1:
+                                result[at_snake + '_comm_euridis'] = 'activee sans securite';
+                                break;
+                            case 3:
+                                result[at_snake + '_comm_euridis'] = 'activee avec securite';
+                                break;
+                            }
+                            // etat CPL
+                            switch ((valhex >>> 21) & 0x3) {
+                            case 0:
+                                result[at_snake + '_etat_cpl'] = 'nouveau_deverrouille';
+                                break;
+                            case 1:
+                                result[at_snake + '_etat_cpl'] = 'nouveau_verrouille';
+                                break;
+                            case 2:
+                                result[at_snake + '_etat_cpl'] = 'enregistre';
+                                break;
+                            }
+                            // synchronisation CPL
+                            result[at_snake + '_sync_cpl'] = ((valhex >>> 23) & 0x1) == 0 ? 'non_synchronise' : 'synchronise';
+                            // couleur du jour contrat TEMPO historique
+                            switch ((valhex >>> 24) & 0x3) {
+                            case 0:
+                                result[at_snake + '_tempo_jour'] = 'UNDEF';
+                                break;
+                            case 1:
+                                result[at_snake + '_tempo_jour'] = 'BLEU';
+                                break;
+                            case 2:
+                                result[at_snake + '_tempo_jour'] = 'BLANC';
+                                break;
+                            case 3:
+                                result[at_snake + '_tempo_jour'] = 'ROUGE';
+                                break;
+                            }
+                            // couleur demain contrat TEMPO historique
+                            switch ((valhex >>> 26) & 0x3) {
+                            case 0:
+                                result[at_snake + '_tempo_demain'] = 'UNDEF';
+                                break;
+                            case 1:
+                                result[at_snake + '_tempo_demain'] = 'BLEU';
+                                break;
+                            case 2:
+                                result[at_snake + '_tempo_demain'] = 'BLANC';
+                                break;
+                            case 3:
+                                result[at_snake + '_tempo_demain'] = 'ROUGE';
+                                break;
+                            }
+                            // preavis pointe mobile
+                            switch ((valhex >>> 28) & 0x3) {
+                            case 0:
+                                result[at_snake + '_preavis_pointe_mobile'] = 'AUCUN';
+                                break;
+                            case 1:
+                                result[at_snake + '_preavis_pointe_mobile'] = 'PM1';
+                                break;
+                            case 2:
+                                result[at_snake + '_preavis_pointe_mobile'] = 'PM2';
+                                break;
+                            case 3:
+                                result[at_snake + '_preavis_pointe_mobile'] = 'PM3';
+                                break;
+                            }
+                            // pointe mobile
+                            switch ((valhex >>> 30) & 0x3) {
+                            case 0:
+                                result[at_snake + '_pointe_mobile'] = 'AUCUN';
+                                break;
+                            case 1:
+                                result[at_snake + '_pointe_mobile'] = 'PM1';
+                                break;
+                            case 2:
+                                result[at_snake + '_pointe_mobile'] = 'PM2';
+                                break;
+                            case 3:
+                                result[at_snake + '_pointe_mobile'] = 'PM3';
+                                break;
+                            }
                         }
                     }
                     result[at_snake] = val;
