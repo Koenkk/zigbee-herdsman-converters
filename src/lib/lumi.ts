@@ -1503,6 +1503,335 @@ const feederDaysLookup = {
 };
 
 export const fromZigbee = {
+    // lumi generic
+    lumi_basic: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: async (model, msg, publish, options, meta) => {
+            return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+        },
+    } satisfies Fz.Converter,
+    lumi_basic_raw: {
+        cluster: 'genBasic',
+        type: ['raw'],
+        convert: async (model, msg, publish, options, meta) => {
+            let payload = {};
+            if (Buffer.isBuffer(msg.data)) {
+                const dataObject = buffer2DataObject(meta, model, msg.data);
+                payload = await numericAttributes2Payload(msg, meta, model, options, dataObject);
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter,
+    lumi_specific: {
+        cluster: 'manuSpecificLumi',
+        type: ['attributeReport', 'readResponse'],
+        convert: async (model, msg, publish, options, meta) => {
+            return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+        },
+    } satisfies Fz.Converter,
+    lumi_co2: {
+        cluster: 'msCO2',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {co2: Math.floor(msg.data.measuredValue)};
+        },
+    } satisfies Fz.Converter,
+    lumi_pm25: {
+        cluster: 'pm25Measurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['measuredValue']) {
+                return {pm25: msg.data['measuredValue'] / 1000};
+            }
+        },
+    } satisfies Fz.Converter,
+    lumi_contact: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {contact: msg.data['onOff'] === 0};
+        },
+    } satisfies Fz.Converter,
+    lumi_power: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {power: msg.data['presentValue']};
+        },
+    } satisfies Fz.Converter,
+    lumi_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport'],
+        options: [exposes.options.legacy()],
+        convert: (model, msg, publish, options, meta) => {
+            if (isLegacyEnabled(options) && model.model === 'QBKG03LM') {
+                const mapping: KeyValueAny = {4: 'left', 5: 'right'};
+                const button = mapping[msg.endpoint.ID];
+                if (button) {
+                    const payload: KeyValueAny = {};
+                    payload[`button_${button}`] = msg.data['onOff'] === 1 ? 'release' : 'hold';
+                    return payload;
+                }
+            }
+
+            if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM', 'QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model) && msg.data['61440']) {
+                return;
+            }
+
+            if (isLegacyEnabled(options)) {
+                if (model.model === 'WXKG01LM') {
+                    const fromZigbeeStore: KeyValueAny = {};
+                    const deviceID = msg.device.ieeeAddr;
+                    const state = msg.data['onOff'];
+                    const key = `${deviceID}_legacy`;
+                    if (!fromZigbeeStore[key]) {
+                        fromZigbeeStore[key] = {};
+                    }
+                    const current = msg.meta.zclTransactionSequenceNumber;
+                    if (fromZigbeeStore[key].transaction === current) return;
+                    fromZigbeeStore[key].transaction = current;
+
+                    // 0 = click down, 1 = click up, else = multiple clicks
+                    if (state === 0) {
+                        fromZigbeeStore[key].timer = setTimeout(() => {
+                            publish({click: 'long'});
+                            fromZigbeeStore[key].timer = null;
+                            fromZigbeeStore[key].long = Date.now();
+                            fromZigbeeStore[key].long_timer = setTimeout(() => {
+                                fromZigbeeStore[key].long = false;
+                            }, 4000); // After 4000 milliseconds of not receiving long_release we assume it will not happen.
+                            // @ts-expect-error
+                        }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
+                    } else if (state === 1) {
+                        if (fromZigbeeStore[key].long) {
+                            const duration = Date.now() - fromZigbeeStore[key].long;
+                            publish({click: 'long_release', duration: duration});
+                            fromZigbeeStore[key].long = false;
+                        }
+
+                        if (fromZigbeeStore[key].timer) {
+                            clearTimeout(fromZigbeeStore[key].timer);
+                            fromZigbeeStore[key].timer = null;
+                            publish({click: 'single'});
+                        }
+                    } else {
+                        const clicks = msg.data['32768'];
+                        const actionLookup: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
+                        const payload = actionLookup[clicks] ? actionLookup[clicks] : 'many';
+                        publish({click: payload});
+                    }
+                }
+                if (['QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model)) {
+                    if (!msg.data['61440']) {
+                        const mapping: KeyValueAny = {4: 'left', 5: 'right', 6: 'both'};
+                        const button = mapping[msg.endpoint.ID];
+                        return {click: button};
+                    }
+                }
+                if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM'].includes(model.model)) {
+                    if (!msg.data['61440']) {
+                        return {click: 'single'};
+                    }
+                }
+                if (['WXKG03LM_rev1', 'WXKG03LM_rev2'].includes(model.model)) {
+                    return {click: 'single'};
+                }
+                if (['WXKG02LM_rev1', 'WXKG02LM_rev2'].includes(model.model)) {
+                    const lookup: KeyValueAny = {1: 'left', 2: 'right', 3: 'both'};
+                    return {click: lookup[msg.endpoint.ID]};
+                }
+                if (model.model === 'WXKG07LM') {
+                    return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
+                }
+            }
+
+            if (model.model === 'WXKG11LM') {
+                let clicks;
+                if (msg.data.onOff) {
+                    clicks = 1;
+                } else if (msg.data['32768']) {
+                    clicks = msg.data['32768'];
+                }
+
+                const actionLookup: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
+                if (actionLookup[clicks]) {
+                    if (isLegacyEnabled(options)) {
+                        return {click: actionLookup[clicks]};
+                    } else {
+                        return {action: actionLookup[clicks]};
+                    }
+                }
+                return;
+            }
+
+            if (['QBKG21LM', 'QBKG04LM'].includes(model.model) && msg.endpoint.ID !== 4) return;
+
+            let mapping: KeyValueNumberString = null;
+            if (['QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model)) mapping = {4: 'left', 5: 'right', 6: 'both'};
+            if (['WXKG02LM_rev1', 'WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) mapping = {1: 'left', 2: 'right', 3: 'both'};
+
+            // Maybe other QKBG also support release/hold?
+            const actionLookup: KeyValueAny = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM', 'QBKG21LM'].includes(model.model) ?
+                {0: 'hold', 1: 'release', 2: 'double'} : {0: 'single', 1: 'single'};
+
+            const action = actionLookup[msg.data['onOff']];
+            const button = mapping && mapping[msg.endpoint.ID] ? `_${mapping[msg.endpoint.ID]}` : '';
+
+            if (action === 'release') {
+                const anotherAction = globalStore.getValue(msg.endpoint, 'hold', false) ? 'hold_release' : 'single';
+                publish({action: `${anotherAction}${button}`});
+            }
+            globalStore.putValue(msg.endpoint, 'hold', action === 'hold');
+
+            return {action: `${action}${button}`};
+        },
+    } satisfies Fz.Converter,
+    lumi_action_multistate: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+
+            if (isLegacyEnabled(options)) {
+                if (['WXKG11LM', 'WXKG12LM', 'WXKG03LM_rev2', 'QBKG11LM'].includes(model.model)) {
+                    if ([1, 2].includes(msg.data.presentValue)) {
+                        const times: KeyValueAny = {1: 'single', 2: 'double'};
+                        return {click: times[msg.data.presentValue]};
+                    }
+                }
+                if (model.model === 'QBKG12LM') {
+                    if ([1, 2].includes(msg.data.presentValue)) {
+                        const mapping: KeyValueAny = {5: 'left', 6: 'right', 7: 'both'};
+                        const times: KeyValueAny = {1: 'single', 2: 'double'};
+                        const button = mapping[msg.endpoint.ID];
+                        return {click: `${button}_${times[msg.data.presentValue]}`};
+                    }
+                }
+                if (model.model === 'WXKG02LM_rev2') {
+                    const fromZigbeeStore: KeyValueAny = {};
+                    // Somestime WXKG02LM sends multiple messages on a single click, this prevents handling
+                    // of a message with the same transaction sequence number twice.
+                    const current = msg.meta.zclTransactionSequenceNumber;
+                    if (fromZigbeeStore[msg.device.ieeeAddr + 'legacy'] === current) return;
+                    fromZigbeeStore[msg.device.ieeeAddr + 'legacy'] = current;
+
+                    const buttonLookup: KeyValueAny = {1: 'left', 2: 'right', 3: 'both'};
+                    const button = buttonLookup[msg.endpoint.ID];
+                    const value = msg.data['presentValue'];
+
+                    const actionLookup: KeyValueAny = {
+                        0: 'long',
+                        1: null,
+                        2: 'double',
+                    };
+
+                    const action = actionLookup[value];
+
+                    if (button) {
+                        return {click: button + (action ? `_${action}` : '')};
+                    }
+                }
+                if (model.model === 'QBKG25LM') {
+                    if ([1, 2, 3, 0, 255].includes(msg.data.presentValue)) {
+                        const mapping: KeyValueAny = {41: 'left', 42: 'center', 43: 'right'};
+                        const times: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 0: 'hold', 255: 'release'};
+                        const button = mapping[msg.endpoint.ID];
+                        // It should be click?
+                        return {action: `${button}_${times[msg.data.presentValue]}`};
+                    }
+                }
+                if (model.model === 'WXKG07LM') {
+                    const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+                    const value = msg.data['presentValue'];
+                    const actionLookup: KeyValueAny = {0: 'long', 1: null, 2: 'double'};
+                    const action = actionLookup[value];
+
+                    if (button) {
+                        return {action: `${button}${(action ? `_${action}` : '')}`};
+                    }
+                }
+            }
+
+            let actionLookup: KeyValueAny = {0: 'hold', 1: 'single', 2: 'double', 3: 'triple', 255: 'release'};
+            if (model.model === 'WXKG12LM') {
+                actionLookup = {...actionLookup, 16: 'hold', 17: 'release', 18: 'shake'};
+            }
+
+            let buttonLookup: KeyValueNumberString = null;
+            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM', 'WXKG22LM'].includes(model.model)) {
+                buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
+            }
+            if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
+            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG28LM', 'QBKG31LM', 'ZNQBKG25LM'].includes(model.model)) {
+                buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
+            }
+            if (['QBKG25LM', 'QBKG26LM', 'QBKG29LM', 'QBKG32LM', 'QBKG34LM', 'ZNQBKG31LM', 'ZNQBKG26LM'].includes(model.model)) {
+                buttonLookup = {
+                    41: 'left', 42: 'center', 43: 'right',
+                    51: 'left_center', 52: 'left_right', 53: 'center_right',
+                    61: 'all',
+                };
+            }
+            if (['WS-USC02', 'WS-USC04'].includes(model.model)) {
+                buttonLookup = {41: 'top', 42: 'bottom', 51: 'both'};
+            }
+
+            const action = actionLookup[msg.data['presentValue']];
+            if (buttonLookup) {
+                const button = buttonLookup[msg.endpoint.ID];
+                if (button) {
+                    return {action: `${action}_${button}`};
+                }
+            } else {
+                return {action};
+            }
+        },
+    } satisfies Fz.Converter,
+    lumi_action_analog: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.legacy()],
+        convert: (model, msg, publish, options, meta) => {
+            if (model.model === 'MFKZQ01LM') {
+                /*
+                Source: https://github.com/kirovilya/ioBroker.zigbee
+                presentValue = rotation angle left < 0, right > 0
+                */
+                const value = msg.data['presentValue'];
+                const result: KeyValueAny = {
+                    action: value < 0 ? 'rotate_left' : 'rotate_right',
+                    angle: Math.floor(value * 100) / 100,
+                    action_angle: Math.floor(value * 100) / 100,
+                };
+
+                if (!isLegacyEnabled(options)) delete result.angle;
+                return result;
+            }
+            if (model.model === 'CTP-R01') {
+                const value = msg.data['presentValue'];
+                return {
+                    action: value < 0 ? 'rotate_left' : 'rotate_right',
+                    action_angle: Math.floor(value * 100) / 100,
+                };
+            }
+        },
+    } satisfies Fz.Converter,
+    lumi_temperature: {
+        cluster: 'msTemperatureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+
+            // https://github.com/Koenkk/zigbee2mqtt/issues/798
+            // Sometimes the sensor publishes non-realistic vales.
+            if (temperature > -65 && temperature < 65) {
+                return {temperature};
+            }
+        },
+    } satisfies Fz.Converter,
+
+    // lumi class specific
     lumi_feeder: {
         cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
@@ -1592,48 +1921,6 @@ export const fromZigbee = {
                 }
             });
             return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_basic: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: async (model, msg, publish, options, meta) => {
-            return await numericAttributes2Payload(msg, meta, model, options, msg.data);
-        },
-    } satisfies Fz.Converter,
-    lumi_basic_raw: {
-        cluster: 'genBasic',
-        type: ['raw'],
-        convert: async (model, msg, publish, options, meta) => {
-            let payload = {};
-            if (Buffer.isBuffer(msg.data)) {
-                const dataObject = buffer2DataObject(meta, model, msg.data);
-                payload = await numericAttributes2Payload(msg, meta, model, options, dataObject);
-            }
-            return payload;
-        },
-    } satisfies Fz.Converter,
-    lumi_specific: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: async (model, msg, publish, options, meta) => {
-            return await numericAttributes2Payload(msg, meta, model, options, msg.data);
-        },
-    } satisfies Fz.Converter,
-    lumi_co2: {
-        cluster: 'msCO2',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {co2: Math.floor(msg.data.measuredValue)};
-        },
-    } satisfies Fz.Converter,
-    lumi_pm25: {
-        cluster: 'pm25Measurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['measuredValue']) {
-                return {pm25: msg.data['measuredValue'] / 1000};
-            }
         },
     } satisfies Fz.Converter,
     lumi_trv: {
@@ -1772,101 +2059,6 @@ export const fromZigbee = {
             return payload;
         },
     } satisfies Fz.Converter,
-    lumi_cube_t1_action_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const value = msg.data['presentValue'];
-            let payload;
-
-            if (value === 0) payload = {action: 'shake'};
-            else if (value === 1) payload = {action: 'throw'};
-            else if (value === 2) payload = {action: '1_min_inactivity'};
-            else if (value === 4) payload = {action: 'hold'};
-            else if (value >= 1024) payload = {action: 'flip_to_side', side: value - 1023};
-            else if (value >= 512) payload = {action: 'tap', side: value - 511};
-            else if (value >= 256) payload = {action: 'slide', side: value - 255};
-            else if (value >= 128) {
-                payload = {
-                    action: 'flip180', side: value - 127,
-                    action_from_side: 7 - value + 127,
-                };
-            } else if (value >= 64) {
-                payload = {
-                    action: 'flip90', side: value % 8 + 1,
-                    action_from_side: Math.floor((value - 64) / 8) + 1,
-                };
-            } else {
-                meta.logger.debug(`${model.model}: unknown action with value ${value}`);
-            }
-            return payload;
-        },
-    } satisfies Fz.Converter,
-    lumi_cube_t1_action_analog: {
-        cluster: 'genAnalogInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const value = msg.data['presentValue'];
-            return {
-                action: value < 0 ? 'rotate_left' : 'rotate_right',
-                action_angle: Math.floor(value * 100) / 100,
-            };
-        },
-    } satisfies Fz.Converter,
-    lumi_contact: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {contact: msg.data['onOff'] === 0};
-        },
-    } satisfies Fz.Converter,
-    lumi_power: {
-        cluster: 'genAnalogInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {power: msg.data['presentValue']};
-        },
-    } satisfies Fz.Converter,
-    lumi_action_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            let actionLookup: KeyValueAny = {0: 'hold', 1: 'single', 2: 'double', 3: 'triple', 255: 'release'};
-            if (model.model === 'WXKG12LM') {
-                actionLookup = {...actionLookup, 16: 'hold', 17: 'release', 18: 'shake'};
-            }
-
-            let buttonLookup: KeyValueNumberString = null;
-            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM', 'WXKG22LM'].includes(model.model)) {
-                buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
-            }
-            if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
-            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG28LM', 'QBKG31LM', 'ZNQBKG25LM'].includes(model.model)) {
-                buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
-            }
-            if (['QBKG25LM', 'QBKG26LM', 'QBKG29LM', 'QBKG32LM', 'QBKG34LM', 'ZNQBKG31LM', 'ZNQBKG26LM'].includes(model.model)) {
-                buttonLookup = {
-                    41: 'left', 42: 'center', 43: 'right',
-                    51: 'left_center', 52: 'left_right', 53: 'center_right',
-                    61: 'all',
-                };
-            }
-            if (['WS-USC02', 'WS-USC04'].includes(model.model)) {
-                buttonLookup = {41: 'top', 42: 'bottom', 51: 'both'};
-            }
-
-            const action = actionLookup[msg.data['presentValue']];
-            if (buttonLookup) {
-                const button = buttonLookup[msg.endpoint.ID];
-                if (button) {
-                    return {action: `${action}_${button}`};
-                }
-            } else {
-                return {action};
-            }
-        },
-    } satisfies Fz.Converter,
     lumi_lock_report: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -1899,37 +2091,6 @@ export const fromZigbee = {
                     }
                 }
             }
-        },
-    } satisfies Fz.Converter,
-    lumi_action: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM', 'QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model) && msg.data['61440']) {
-                return;
-            }
-
-            if (['QBKG21LM', 'QBKG04LM'].includes(model.model) && msg.endpoint.ID !== 4) return;
-
-            let mapping: KeyValueNumberString = null;
-            if (['QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model)) mapping = {4: 'left', 5: 'right', 6: 'both'};
-            if (['WXKG02LM_rev1', 'WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) mapping = {1: 'left', 2: 'right', 3: 'both'};
-
-            // Maybe other QKBG also support release/hold?
-            const actionLookup: KeyValueAny = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM', 'QBKG21LM'].includes(model.model) ?
-                {0: 'hold', 1: 'release', 2: 'double'} : {0: 'single', 1: 'single'};
-
-            const action = actionLookup[msg.data['onOff']];
-            const button = mapping && mapping[msg.endpoint.ID] ? `_${mapping[msg.endpoint.ID]}` : '';
-
-            if (action === 'release') {
-                const anotherAction = globalStore.getValue(msg.endpoint, 'hold', false) ? 'hold_release' : 'single';
-                publish({action: `${anotherAction}${button}`});
-            }
-            globalStore.putValue(msg.endpoint, 'hold', action === 'hold');
-
-            return {action: `${action}${button}`};
         },
     } satisfies Fz.Converter,
     lumi_occupancy_illuminance: {
@@ -1966,19 +2127,6 @@ export const fromZigbee = {
                 const payload = {occupancy: true, illuminance};
                 noOccupancySince(msg.endpoint, options, publish, 'start');
                 return payload;
-            }
-        },
-    } satisfies Fz.Converter,
-    lumi_temperature: {
-        cluster: 'msTemperatureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-
-            // https://github.com/Koenkk/zigbee2mqtt/issues/798
-            // Sometimes the sensor publishes non-realistic vales.
-            if (temperature > -65 && temperature < 65) {
-                return {temperature};
             }
         },
     } satisfies Fz.Converter,
@@ -2059,7 +2207,7 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
-    lumi_on_off_ignore_endpoint_4_5_6: {
+    lumi_on_off: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -2114,6 +2262,38 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
+
+    // lumi device specific
+    lumi_cube_t1_action_multistate: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data['presentValue'];
+            let payload;
+
+            if (value === 0) payload = {action: 'shake'};
+            else if (value === 1) payload = {action: 'throw'};
+            else if (value === 2) payload = {action: '1_min_inactivity'};
+            else if (value === 4) payload = {action: 'hold'};
+            else if (value >= 1024) payload = {action: 'flip_to_side', side: value - 1023};
+            else if (value >= 512) payload = {action: 'tap', side: value - 511};
+            else if (value >= 256) payload = {action: 'slide', side: value - 255};
+            else if (value >= 128) {
+                payload = {
+                    action: 'flip180', side: value - 127,
+                    action_from_side: 7 - value + 127,
+                };
+            } else if (value >= 64) {
+                payload = {
+                    action: 'flip90', side: value % 8 + 1,
+                    action_from_side: Math.floor((value - 64) / 8) + 1,
+                };
+            } else {
+                meta.logger.debug(`${model.model}: unknown action with value ${value}`);
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter,
     lumi_WXKG01LM_action: {
         // Unique converter
         cluster: 'genOnOff',
@@ -2161,23 +2341,6 @@ export const fromZigbee = {
                 const actionLookup: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
                 const payload = actionLookup[clicks] ? actionLookup[clicks] : 'many';
                 publish({action: payload});
-            }
-        },
-    } satisfies Fz.Converter,
-    lumi_WXKG11LM_action: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            let clicks;
-            if (msg.data.onOff) {
-                clicks = 1;
-            } else if (msg.data['32768']) {
-                clicks = msg.data['32768'];
-            }
-
-            const actionLookup: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
-            if (actionLookup[clicks]) {
-                return {action: actionLookup[clicks]};
             }
         },
     } satisfies Fz.Converter,
@@ -2794,26 +2957,6 @@ export const fromZigbee = {
             }
 
             return result ? result : null;
-        },
-    } satisfies Fz.Converter,
-    lumi_cube_action_analog: {
-        cluster: 'genAnalogInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            /*
-            Source: https://github.com/kirovilya/ioBroker.zigbee
-            presentValue = rotation angle left < 0, right > 0
-            */
-            const value = msg.data['presentValue'];
-            const result: KeyValueAny = {
-                action: value < 0 ? 'rotate_left' : 'rotate_right',
-                angle: Math.floor(value * 100) / 100,
-                action_angle: Math.floor(value * 100) / 100,
-            };
-
-            if (!isLegacyEnabled(options)) delete result.angle;
-            return result;
         },
     } satisfies Fz.Converter,
     RTCGQ11LM_illuminance: {
@@ -4025,7 +4168,7 @@ export const toZigbee = {
 };
 
 export const legacyFromZigbee = {
-    lumi_click: {
+    lumi_click: { // gone
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
@@ -4110,7 +4253,7 @@ export const legacyFromZigbee = {
             }
         },
     } satisfies Fz.Converter,
-    lumi_click_multistate: {
+    lumi_click_multistate: { // gone
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
@@ -4171,7 +4314,7 @@ export const legacyFromZigbee = {
                     return fromZigbee.lumi_action_multistate.convert(model, msg, publish, options, meta);
                 }
             }
-            if (['WXKG11LM', 'WXKG12LM', 'WXKG03LM_rev2'].includes(model.model)) {
+            if (['WXKG11LM', 'WXKG12LM', 'WXKG03LM_rev2'].includes(model.model)) { // deprecated
                 if (isLegacyEnabled(options)) {
                     const value = msg.data['presentValue'];
                     const lookup: KeyValueAny = {
@@ -4183,7 +4326,7 @@ export const legacyFromZigbee = {
             }
         },
     } satisfies Fz.Converter,
-    lumi_buttons: {
+    lumi_buttons: { // gone
         cluster: 'genOnOff',
         type: ['attributeReport'],
         options: [exposes.options.legacy()],
@@ -4199,7 +4342,7 @@ export const legacyFromZigbee = {
             }
         },
     } satisfies Fz.Converter,
-    lumi_action: {
+    lumi_action: { // gone
         cluster: 'genOnOff',
         type: ['attributeReport'],
         options: [exposes.options.legacy()],
@@ -4211,7 +4354,7 @@ export const legacyFromZigbee = {
             }
         },
     } satisfies Fz.Converter,
-    lumi_action_multistate: {
+    lumi_action_multistate: { // gone
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
@@ -4233,12 +4376,6 @@ export const legacyFromZigbee = {
     } satisfies Fz.Converter,
 };
 
-export const legacyToZigbee = {
-
-};
-
 exports.buffer2DataObject = buffer2DataObject;
 exports.numericAttributes2Payload = numericAttributes2Payload;
-exports.fp1 = presence;
-exports.trv = trv;
 exports.manufacturerCode = manufacturerCode;
