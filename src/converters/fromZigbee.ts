@@ -5507,8 +5507,10 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(570)) {
                 const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
+                const state: KeyValueNumberString = {0: 'released', 128: 'pressed'};
                 return {
-                    action: act[msg.data[570]],
+                    action: act[msg.data[570] & ~128],
+                    action_rotation_button_state: state[msg.data[570] & 128],
                     action_rotation_angle: msg.data[558],
                     action_rotation_angle_speed: msg.data[560],
                     action_rotation_percent: msg.data[563],
