@@ -2747,7 +2747,7 @@ const converters2 = {
     lumi_selftest: {
         key: ['selftest'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumiicLumi', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_buzzer: {
@@ -2789,13 +2789,13 @@ const converters2 = {
             return {state: {linkage_alarm: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumiicLumi', [0x014b], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x014b], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     JTBZ01AQA_state: {
         key: ['state'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumiicLumi', [0x0139], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0139], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_power_outage_count: {
