@@ -2,7 +2,7 @@
 /* eslint camelcase: 0 */
 
 import assert from 'assert';
-import {Range} from './types';
+import {Access, Range} from './types';
 import {getLabelFromName} from './utils';
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
@@ -76,6 +76,12 @@ export class Base {
         }
     }
 
+    addFeature(feature: Feature) {
+        assert(this.features, 'Does not have any features');
+        if (this.endpoint) feature.withEndpoint(this.endpoint);
+        this.features.push(feature);
+    }
+
     removeFeature(feature: string) {
         assert(this.features, 'Does not have any features');
         const f = this.features.find((f) => f.name === feature);
@@ -102,13 +108,12 @@ export class Switch extends Base {
     }
 
     withState(property: string, toggle: string | boolean, description: string, access=a.ALL, value_on='ON', value_off='OFF') {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const feature = new Binary('state', access, value_on, value_off).withProperty(property).withDescription(description);
         if (toggle) {
             feature.withValueToggle('TOGGLE');
         }
 
-        this.features.push(feature);
+        this.addFeature(feature);
         return this;
     }
 }
@@ -121,14 +126,12 @@ export class Lock extends Base {
     }
 
     withState(property: string, valueOn: string, valueOff: string, description: string, access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Binary('state', access, valueOn, valueOff).withProperty(property).withDescription(description));
+        this.addFeature(new Binary('state', access, valueOn, valueOff).withProperty(property).withDescription(description));
         return this;
     }
 
     withLockState(property: string, description: string) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Enum('lock_state', access.STATE, ['not_fully_locked', 'locked', 'unlocked']).withProperty(property).withDescription(description));
+        this.addFeature(new Enum('lock_state', access.STATE, ['not_fully_locked', 'locked', 'unlocked']).withProperty(property).withDescription(description));
         return this;
     }
 }
@@ -262,8 +265,7 @@ export class Composite extends Base {
     }
 
     withFeature(feature: Feature) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(feature);
+        this.addFeature(feature);
         return this;
     }
 }
@@ -273,29 +275,25 @@ export class Light extends Base {
         super();
         this.type = 'light';
         this.features = [];
-        this.features.push(new Binary('state', access.ALL, 'ON', 'OFF').withValueToggle('TOGGLE').withDescription('On/off state of this light'));
+        this.addFeature(new Binary('state', access.ALL, 'ON', 'OFF').withValueToggle('TOGGLE').withDescription('On/off state of this light'));
     }
 
     withBrightness() {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('brightness', access.ALL).withValueMin(0).withValueMax(254).withDescription('Brightness of this light'));
+        this.addFeature(new Numeric('brightness', access.ALL).withValueMin(0).withValueMax(254).withDescription('Brightness of this light'));
         return this;
     }
 
     withMinBrightness() {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('min_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Minimum light brightness'));
+        this.addFeature(new Numeric('min_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Minimum light brightness'));
         return this;
     }
 
     withMaxBrightness() {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('max_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Maximum light brightness'));
+        this.addFeature(new Numeric('max_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Maximum light brightness'));
         return this;
     }
 
     withLevelConfig(disableFeatures: string[] = []) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         let levelConfig = new Composite('level_config', 'level_config', access.ALL);
         if (!disableFeatures.includes('on_off_transition_time')) {
             levelConfig = levelConfig.withFeature(new Numeric('on_off_transition_time', access.ALL)
@@ -332,12 +330,11 @@ export class Light extends Base {
                 .withDescription('Defines the desired startup level for a device when it is supplied with power'));
         }
         levelConfig = levelConfig.withDescription('Configure genLevelCtrl');
-        this.features.push(levelConfig);
+        this.addFeature(levelConfig);
         return this;
     }
 
     withColorTemp(range: Range) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const rangeProvided = range !== undefined;
         if (range === undefined) {
             range = [150, 500];
@@ -359,12 +356,11 @@ export class Light extends Base {
             {name: 'warmest', value: range[1], description: 'Warmest temperature supported'},
         ].filter((p) => p.value >= range[0] && p.value <= range[1]).forEach((p) => feature.withPreset(p.name, p.value, p.description));
 
-        this.features.push(feature);
+        this.addFeature(feature);
         return this;
     }
 
     withColorTempStartup(range: Range) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         if (range === undefined) {
             range = [150, 500];
         }
@@ -381,12 +377,11 @@ export class Light extends Base {
         ].filter((p) => p.value >= range[0] && p.value <= range[1]).forEach((p) => feature.withPreset(p.name, p.value, p.description));
         feature.withPreset('previous', 65535, 'Restore previous color_temp on cold power on');
 
-        this.features.push(feature);
+        this.addFeature(feature);
         return this;
     }
 
     withColor(types: ('xy' | 'hs')[]) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         for (const type of types) {
             if (type === 'xy') {
                 const colorXY = new Composite('color_xy', 'color', access.ALL)
@@ -394,14 +389,14 @@ export class Light extends Base {
                     .withFeature(new Numeric('x', access.ALL))
                     .withFeature(new Numeric('y', access.ALL))
                     .withDescription('Color of this light in the CIE 1931 color space (x/y)');
-                this.features.push(colorXY);
+                this.addFeature(colorXY);
             } else if (type === 'hs') {
                 const colorHS = new Composite('color_hs', 'color', access.ALL)
                     .withLabel('Color (HS)')
                     .withFeature(new Numeric('hue', access.ALL))
                     .withFeature(new Numeric('saturation', access.ALL))
                     .withDescription('Color of this light expressed as hue/saturation');
-                this.features.push(colorHS);
+                this.addFeature(colorHS);
             } else {
                 assert(false, `Unsupported color type ${type}`);
             }
@@ -416,18 +411,16 @@ export class Cover extends Base {
         super();
         this.type = 'cover';
         this.features = [];
-        this.features.push(new Enum('state', a.STATE_SET, ['OPEN', 'CLOSE', 'STOP']));
+        this.addFeature(new Enum('state', a.STATE_SET, ['OPEN', 'CLOSE', 'STOP']));
     }
 
     withPosition() {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('position', access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of this cover').withUnit('%'));
+        this.addFeature(new Numeric('position', access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of this cover').withUnit('%'));
         return this;
     }
 
     withTilt() {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('tilt', access.ALL).withValueMin(0).withValueMax(100).withDescription('Tilt of this cover').withUnit('%'));
+        this.addFeature(new Numeric('tilt', access.ALL).withValueMin(0).withValueMax(100).withDescription('Tilt of this cover').withUnit('%'));
         return this;
     }
 }
@@ -437,12 +430,11 @@ export class Fan extends Base {
         super();
         this.type = 'fan';
         this.features = [];
-        this.features.push(new Binary('state', access.ALL, 'ON', 'OFF').withDescription('On/off state of this fan').withProperty('fan_state'));
+        this.addFeature(new Binary('state', access.ALL, 'ON', 'OFF').withDescription('On/off state of this fan').withProperty('fan_state'));
     }
 
     withModes(modes: string[], access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Enum('mode', access, modes).withProperty('fan_mode').withDescription('Mode of this fan'));
+        this.addFeature(new Enum('mode', access, modes).withProperty('fan_mode').withDescription('Mode of this fan'));
         return this;
     }
 }
@@ -455,95 +447,82 @@ export class Climate extends Base {
     }
 
     withSetpoint(property: string, min: number, max: number, step: number, access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         assert(['occupied_heating_setpoint', 'current_heating_setpoint', 'occupied_cooling_setpoint', 'unoccupied_heating_setpoint', 'unoccupied_cooling_setpoint'].includes(property));
-        this.features.push(new Numeric(property, access)
+        this.addFeature(new Numeric(property, access)
             .withValueMin(min).withValueMax(max).withValueStep(step).withUnit('°C').withDescription('Temperature setpoint'));
         return this;
     }
 
     withLocalTemperature(access=a.STATE_GET, description='Current temperature measured on the device') {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('local_temperature', access).withUnit('°C').withDescription(description));
+        this.addFeature(new Numeric('local_temperature', access).withUnit('°C').withDescription(description));
         return this;
     }
 
     withLocalTemperatureCalibration(min=-12.8, max=12.7, step=0.1, access=a.ALL) {
         // For devices following the ZCL local_temperature_calibration is an int8, so min = -12.8 and max 12.7
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('local_temperature_calibration', access)
+        this.addFeature(new Numeric('local_temperature_calibration', access)
             .withValueMin(min).withValueMax(max).withValueStep(step).withUnit('°C').withDescription('Offset to add/subtract to the local temperature'));
         return this;
     }
 
     withSystemMode(modes: string[], access=a.ALL, description='Mode of this device') {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['off', 'heat', 'cool', 'auto', 'dry', 'fan_only', 'sleep', 'emergency_heating'];
         modes.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('system_mode', access, modes).withDescription(description));
+        this.addFeature(new Enum('system_mode', access, modes).withDescription(description));
         return this;
     }
 
     withRunningState(modes: string[], access=a.STATE_GET) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['idle', 'heat', 'cool', 'fan_only'];
         modes.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('running_state', access, modes).withDescription('The current running state'));
+        this.addFeature(new Enum('running_state', access, modes).withDescription('The current running state'));
         return this;
     }
 
     withRunningMode(modes: string[], access=a.STATE_GET) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['off', 'cool', 'heat'];
         modes.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('running_mode', access, modes).withDescription('The current running mode'));
+        this.addFeature(new Enum('running_mode', access, modes).withDescription('The current running mode'));
         return this;
     }
 
     withFanMode(modes: string[], access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['off', 'low', 'medium', 'high', 'on', 'auto', 'smart'];
         modes.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('fan_mode', access, modes).withDescription('Mode of the fan'));
+        this.addFeature(new Enum('fan_mode', access, modes).withDescription('Mode of the fan'));
         return this;
     }
 
     withSwingMode(modes: string[], access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Enum('swing_mode', access, modes).withDescription('Swing mode'));
+        this.addFeature(new Enum('swing_mode', access, modes).withDescription('Swing mode'));
         return this;
     }
 
     withPreset(modes: string[], description='Mode of this device (similar to system_mode)') {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Enum('preset', access.STATE_SET, modes).withDescription(description));
+        this.addFeature(new Enum('preset', access.STATE_SET, modes).withDescription(description));
         return this;
     }
 
     withPiHeatingDemand(access=a.STATE) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('pi_heating_demand', access).withLabel('PI heating demand').withValueMin(0).withValueMax(100).withUnit('%').withDescription('Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open'));
+        this.addFeature(new Numeric('pi_heating_demand', access).withLabel('PI heating demand').withValueMin(0).withValueMax(100).withUnit('%').withDescription('Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open'));
         return this;
     }
 
     withControlSequenceOfOperation(modes: string[], access=a.STATE) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['cooling_only', 'cooling_with_reheat', 'heating_only', 'heating_with_reheat', 'cooling_and_heating_4-pipes', 'cooling_and_heating_4-pipes_with_reheat'];
         modes.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('control_sequence_of_operation', access, modes).withDescription('Operating environment of the thermostat'));
+        this.addFeature(new Enum('control_sequence_of_operation', access, modes).withDescription('Operating environment of the thermostat'));
         return this;
     }
 
     withAcLouverPosition(positions: string[], access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['fully_open', 'fully_closed', 'half_open', 'quarter_open', 'three_quarters_open'];
         positions.forEach((m) => assert(allowed.includes(m)));
-        this.features.push(new Enum('ac_louver_position', access, positions).withLabel('AC louver position').withDescription('AC louver position of this device'));
+        this.addFeature(new Enum('ac_louver_position', access, positions).withLabel('AC louver position').withDescription('AC louver position of this device'));
         return this;
     }
 
     withWeeklySchedule(modes: string[], access=a.ALL) {
-        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['heat', 'cool'];
         modes.forEach((m) => assert(allowed.includes(m)));
 
@@ -572,14 +551,21 @@ export class Climate extends Base {
             .withFeature(featureDayOfWeek)
             .withFeature(featureTransitions);
 
-        this.features.push(schedule);
+        this.addFeature(schedule);
         return this;
     }
 }
 /**
  * The access property is a 3-bit bitmask.
  */
-export const access = {
+export const access: {
+    STATE: Access,
+    SET: Access,
+    GET: Access,
+    STATE_SET: Access,
+    STATE_GET: Access,
+    ALL: Access,
+} = {
     /**
      * Bit 0: The property can be found in the published state of this device
      */
@@ -648,38 +634,42 @@ export const presets = {
     // Specific
     ac_frequency: () => new Numeric('ac_frequency', access.STATE).withLabel('AC frequency').withUnit('Hz').withDescription('Measured electrical AC frequency'),
     action: (values: string[]) => new Enum('action', access.STATE, values).withDescription('Triggered action (e.g. a button click)'),
+    action_duration: () => new Numeric('action_duration', access.STATE).withUnit('s').withDescription('Triggered action duration in seconds').withCategory('diagnostic'),
     action_group: () => new Numeric('action_group', access.STATE).withDescription('Group where the action was triggered on'),
     angle: (name: string) => new Numeric(name, access.STATE).withValueMin(-360).withValueMax(360).withUnit('°'),
     angle_axis: (name: string) => new Numeric(name, access.STATE).withValueMin(-90).withValueMax(90).withUnit('°'),
     aqi: () => new Numeric('aqi', access.STATE).withDescription('Air quality index'),
     auto_lock: () => new Switch().withLabel('Auto lock').withState('auto_lock', false, 'Enable/disable auto lock', access.STATE_SET, 'AUTO', 'MANUAL'),
-    auto_off: (offTime: number) => new Binary('auto_off', access.ALL, true, false).withLabel('Auto OFF').withDescription(`Turn the device automatically off when attached device consumes less than 2W for ${offTime} minutes`),
+    auto_off: (offTime: number) => new Binary('auto_off', access.ALL, true, false).withLabel('Auto OFF').withDescription(`Turn the device automatically off when attached device consumes less than 2W for ${offTime} minutes`).withCategory('config'),
     auto_relock_time: () => new Numeric('auto_relock_time', access.ALL).withValueMin(0).withUnit('s').withDescription('The number of seconds to wait after unlocking a lock before it automatically locks again. 0=disabled'),
     away_mode: () => new Switch().withLabel('Away mode').withState('away_mode', false, 'Enable/disable away mode', access.STATE_SET),
     away_preset_days: () => new Numeric('away_preset_days', access.STATE_SET).withDescription('Away preset days').withValueMin(0).withValueMax(100),
-    away_preset_temperature: () => new Numeric('away_preset_temperature', access.STATE_SET).withUnit('°C').withDescription('Away preset temperature').withValueMin(-10).withValueMax(35),
-    battery: () => new Numeric('battery', access.STATE).withUnit('%').withDescription('Remaining battery in %, can take up to 24 hours before reported').withValueMin(0).withValueMax(100),
-    battery_low: () => new Binary('battery_low', access.STATE, true, false).withDescription('Indicates if the battery of this device is almost empty'),
-    battery_voltage: () => new Numeric('voltage', access.STATE).withUnit('mV').withDescription('Voltage of the battery in millivolts'),
+    away_preset_temperature: () => new Numeric('away_preset_temperature', access.STATE_SET).withUnit('°C').withDescription('Away preset temperature').withValueMin(-10).withValueMax(35).withCategory('config'),
+    battery: () => new Numeric('battery', access.STATE).withUnit('%').withDescription('Remaining battery in %, can take up to 24 hours before reported').withValueMin(0).withValueMax(100).withCategory('diagnostic'),
+    battery_low: () => new Binary('battery_low', access.STATE, true, false).withDescription('Indicates if the battery of this device is almost empty').withCategory('diagnostic'),
+    battery_voltage: () => new Numeric('voltage', access.STATE).withUnit('mV').withDescription('Voltage of the battery in millivolts').withCategory('diagnostic'),
     boost_time: () => new Numeric('boost_time', access.STATE_SET).withUnit('s').withDescription('Boost time').withValueMin(0).withValueMax(900),
-    button_lock: () => new Binary('button_lock', access.ALL, 'ON', 'OFF').withDescription('Disables the physical switch button'),
+    button_lock: () => new Binary('button_lock', access.ALL, 'ON', 'OFF').withDescription('Disables the physical switch button').withCategory('config'),
+    calibrated: () => new Binary('calibrated', access.STATE, true, false).withDescription('Indicates if this device is calibrated').withCategory('diagnostic'),
     carbon_monoxide: () => new Binary('carbon_monoxide', access.STATE, true, false).withDescription('Indicates if CO (carbon monoxide) is detected'),
     child_lock: () => new Lock().withLabel('Child lock').withState('child_lock', 'LOCK', 'UNLOCK', 'Enables/disables physical input on the device', access.STATE_SET),
+    child_lock_bool: () => new Binary('child_lock', access.ALL, true, false).withDescription('Unlocks/locks physical input on the device').withCategory('config'),
     co2: () => new Numeric('co2', access.STATE).withLabel('CO2').withUnit('ppm').withDescription('The measured CO2 (carbon dioxide) value'),
     co: () => new Numeric('co', access.STATE).withLabel('CO').withUnit('ppm').withDescription('The measured CO (carbon monoxide) value'),
     comfort_temperature: () => new Numeric('comfort_temperature', access.STATE_SET).withUnit('°C').withDescription('Comfort temperature').withValueMin(0).withValueMax(30),
-    consumer_connected: () => new Binary('consumer_connected', access.STATE, true, false).withDescription('Indicates whether a plug is physically attached. Device does not have to pull power or even be connected electrically (state of this binary switch can be ON even if main power switch is OFF)'),
+    consumer_connected: () => new Binary('consumer_connected', access.STATE, true, false).withDescription('Indicates whether a plug is physically attached. Device does not have to pull power or even be connected electrically (state of this binary switch can be ON even if main power switch is OFF)').withCategory('diagnostic'),
     contact: () => new Binary('contact', access.STATE, false, true).withDescription('Indicates if the contact is closed (= true) or open (= false)'),
     cover_position: () => new Cover().withPosition(),
     cover_position_tilt: () => new Cover().withPosition().withTilt(),
     cover_tilt: () => new Cover().withTilt(),
     cpu_temperature: () => new Numeric('cpu_temperature', access.STATE).withLabel('CPU temperature').withUnit('°C').withDescription('Temperature of the CPU'),
     cube_side: (name: string) => new Numeric(name, access.STATE).withDescription('Side of the cube').withValueMin(0).withValueMax(6).withValueStep(1),
-    current: () => new Numeric('current', access.STATE).withUnit('A').withDescription('Instantaneous measured electrical current'),
+    current: () => new Numeric('current', access.STATE).withUnit('A').withDescription('Instantaneous measured electrical current').withCategory('diagnostic'),
     current_phase_b: () => new Numeric('current_phase_b', access.STATE).withLabel('Current phase B').withUnit('A').withDescription('Instantaneous measured electrical current on phase B'),
     current_phase_c: () => new Numeric('current_phase_c', access.STATE).withLabel('Current phase C').withUnit('A').withDescription('Instantaneous measured electrical current on phase C'),
     deadzone_temperature: () => new Numeric('deadzone_temperature', access.STATE_SET).withUnit('°C').withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat').withValueMin(0).withValueMax(5).withValueStep(1),
-    device_temperature: () => new Numeric('device_temperature', access.STATE).withUnit('°C').withDescription('Temperature of the device'),
+    detection_interval: () => new Numeric('detection_interval', access.ALL).withValueMin(2).withValueMax(65535).withUnit('s').withDescription('Time interval between action detection.').withCategory('config'),
+    device_temperature: () => new Numeric('device_temperature', access.STATE).withUnit('°C').withDescription('Temperature of the device').withCategory('diagnostic'),
     eco2: () => new Numeric('eco2', access.STATE).withLabel('eCO2').withLabel('PPM').withUnit('ppm').withDescription('Measured eCO2 value'),
     eco_mode: () => new Binary('eco_mode', access.STATE_SET, 'ON', 'OFF').withDescription('ECO mode (energy saving mode)'),
     eco_temperature: () => new Numeric('eco_temperature', access.STATE_SET).withUnit('°C').withDescription('Eco temperature').withValueMin(0).withValueMax(35),
@@ -687,7 +677,7 @@ export const presets = {
     energy: () => new Numeric('energy', access.STATE).withUnit('kWh').withDescription('Sum of consumed energy'),
     produced_energy: () => new Numeric('produced_energy', access.STATE).withUnit('kWh').withDescription('Sum of produced energy'),
     fan: () => new Fan(),
-    flip_indicator_light: () => new Binary('flip_indicator_light', access.ALL, 'ON', 'OFF').withDescription('After turn on, the indicator light turns on while switch is off, and vice versa'),
+    flip_indicator_light: () => new Binary('flip_indicator_light', access.ALL, 'ON', 'OFF').withDescription('After turn on, the indicator light turns on while switch is off, and vice versa').withCategory('config'),
     force: () => new Enum('force', access.STATE_SET, ['normal', 'open', 'close']).withDescription('Force the valve position'),
     formaldehyd: () => new Numeric('formaldehyd', access.STATE).withDescription('The measured formaldehyd value').withUnit('mg/m³'),
     gas: () => new Binary('gas', access.STATE, true, false).withDescription('Indicates whether the device detected gas'),
@@ -698,7 +688,7 @@ export const presets = {
     illuminance_lux: () => new Numeric('illuminance_lux', access.STATE).withLabel('Illuminance (lux)').withUnit('lx').withDescription('Measured illuminance in lux'),
     brightness_state: () => new Enum('brightness_state', access.STATE, ['low', 'middle', 'high', 'strong']).withDescription('Brightness state'),
     keypad_lockout: () => new Enum('keypad_lockout', access.ALL, ['unlock', 'lock1', 'lock2']).withDescription('Enables/disables physical input on the device'),
-    led_disabled_night: () => new Binary('led_disabled_night', access.ALL, true, false).withLabel('LED disabled night').withDescription('Enable/disable the LED at night'),
+    led_disabled_night: () => new Binary('led_disabled_night', access.ALL, true, false).withLabel('LED disabled night').withDescription('Enable/disable the LED at night').withCategory('config'),
     light_brightness: () => new Light().withBrightness(),
     light_brightness_color: (preferHueAndSaturation: boolean) => new Light().withBrightness().withColor((preferHueAndSaturation ? ['hs', 'xy'] : ['xy', 'hs'])),
     light_brightness_colorhs: () => new Light().withBrightness().withColor(['hs']),
@@ -709,8 +699,9 @@ export const presets = {
     light_brightness_colorxy: () => new Light().withBrightness().withColor((['xy'])),
     light_colorhs: () => new Light().withColor(['hs']),
     light_color_options: () => new Composite('color_options', 'color_options', access.ALL).withDescription('Advanced color behavior')
-        .withFeature(new Binary('execute_if_off', access.SET, true, false).withDescription('Controls whether color and color temperature can be set while light is off')),
-    linkquality: () => new Numeric('linkquality', access.STATE).withUnit('lqi').withDescription('Link quality (signal strength)').withValueMin(0).withValueMax(255),
+        .withFeature(new Binary('execute_if_off', access.SET, true, false).withDescription('Controls whether color and color temperature can be set while light is off'))
+        .withCategory('config'),
+    linkquality: () => new Numeric('linkquality', access.STATE).withUnit('lqi').withDescription('Link quality (signal strength)').withValueMin(0).withValueMax(255).withCategory('diagnostic'),
     local_temperature: () => new Numeric('local_temperature', access.STATE_GET).withUnit('°C').withDescription('Current temperature measured on the device'),
     lock: () => new Lock().withState('state', 'LOCK', 'UNLOCK', 'State of the lock').withLockState('lock_state', 'Actual state of the lock'),
     lock_action: () => new Enum('action', access.STATE, ['unknown', 'lock', 'unlock', 'lock_failure_invalid_pin_or_id', 'lock_failure_invalid_schedule', 'unlock_failure_invalid_pin_or_id', 'unlock_failure_invalid_schedule', 'one_touch_lock', 'key_lock', 'key_unlock', 'auto_lock', 'schedule_lock', 'schedule_unlock', 'manual_lock', 'manual_unlock', 'non_access_user_operational_event']).withDescription('Triggered action on the lock'),
@@ -724,26 +715,38 @@ export const presets = {
     max_temperature_limit: () => new Numeric('max_temperature_limit', access.STATE_SET).withUnit('°C').withDescription('Maximum temperature limit. Cuts the thermostat out regardless of air temperature if the external floor sensor exceeds this temperature. Only used by the thermostat when in AL sensor mode.').withValueMin(0).withValueMax(35),
     min_temperature_limit: () => new Numeric('min_temperature_limit', access.STATE_SET).withUnit('°C').withDescription('Minimum temperature limit for frost protection. Turns the thermostat on regardless of setpoint if the temperature drops below this.').withValueMin(1).withValueMax(5),
     min_temperature: () => new Numeric('min_temperature', access.STATE_SET).withUnit('°C').withDescription('Minimum temperature').withValueMin(1).withValueMax(15),
+    mode_switch_select: (mode_switch_names: string[]) => new Enum('mode_switch', access.ALL, mode_switch_names).withDescription('Select mode switch to use').withCategory('config'),
+    motion_sensitivity_select: (motion_sensitivity_names: string[]) => new Enum('motion_sensitivity', access.ALL, motion_sensitivity_names).withDescription('Select motion sensitivity to use').withCategory('config'),
     noise: () => new Numeric('noise', access.STATE).withUnit('dBA').withDescription('The measured noise value'),
     noise_detected: () => new Binary('noise_detected', access.STATE, true, false).withDescription('Indicates whether the device detected noise'),
     occupancy: () => new Binary('occupancy', access.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
     occupancy_level: () => new Numeric('occupancy_level', access.STATE).withDescription('The measured occupancy value'),
     open_window: () => new Binary('open_window', access.STATE_SET, 'ON', 'OFF').withDescription('Enables/disables the status on the device'),
     open_window_temperature: () => new Numeric('open_window_temperature', access.STATE_SET).withUnit('°C').withDescription('Open window temperature').withValueMin(0).withValueMax(35),
-    overload_protection: (min: number, max: number) => new Numeric('overload_protection', access.ALL).withUnit('W').withValueMin(min).withValueMax(max).withDescription('Maximum allowed load, turns off if exceeded'),
+    operation_mode_select: (operation_mode_names: string[]) => new Enum('operation_mode', access.ALL, operation_mode_names).withDescription('Select operation mode to use').withCategory('config'),
+    overload_protection: (min: number, max: number) => new Numeric('overload_protection', access.ALL).withUnit('W').withValueMin(min).withValueMax(max).withDescription('Maximum allowed load, turns off if exceeded').withCategory('config'),
     pm10: () => new Numeric('pm10', access.STATE).withLabel('PM10').withUnit('µg/m³').withDescription('Measured PM10 (particulate matter) concentration'),
     pm25: () => new Numeric('pm25', access.STATE).withLabel('PM25').withUnit('µg/m³').withDescription('Measured PM2.5 (particulate matter) concentration'),
     position: () => new Numeric('position', access.STATE).withUnit('%').withDescription('Position'),
-    power: () => new Numeric('power', access.STATE).withUnit('W').withDescription('Instantaneous measured power'),
+    power: () => new Numeric('power', access.STATE).withUnit('W').withDescription('Instantaneous measured power').withCategory('diagnostic'),
     power_factor: () => new Numeric('power_factor', access.STATE).withDescription('Instantaneous measured power factor'),
     power_apparent: () => new Numeric('power_apparent', access.STATE).withUnit('VA').withDescription('Instantaneous measured apparent power'),
-    power_on_behavior: (values=['off', 'previous', 'on']) => new Enum('power_on_behavior', access.ALL, values).withLabel('Power-on behavior').withDescription('Controls the behavior when the device is powered on after power loss. If you get an `UNSUPPORTED_ATTRIBUTE` error, the device does not support it.'),
+    power_on_behavior: (values=['off', 'previous', 'on']) => new Enum('power_on_behavior', access.ALL, values).withLabel('Power-on behavior').withDescription('Controls the behavior when the device is powered on after power loss. If you get an `UNSUPPORTED_ATTRIBUTE` error, the device does not support it.').withCategory('config'),
     power_outage_count: (resetsWhenPairing = true) => new Numeric('power_outage_count', access.STATE).withDescription('Number of power outages' + (resetsWhenPairing ? ' (since last pairing)' : '')).withCategory('diagnostic'),
-    power_outage_memory: () => new Binary('power_outage_memory', access.ALL, true, false).withDescription('Enable/disable the power outage memory, this recovers the on/off mode after power failure'),
+    power_outage_memory: () => new Binary('power_outage_memory', access.ALL, true, false).withDescription('Enable/disable the power outage memory, this recovers the on/off mode after power failure').withCategory('config'),
     power_reactive: () => new Numeric('power_reactive', access.STATE).withUnit('VAR').withDescription('Instantaneous measured reactive power'),
     presence: () => new Binary('presence', access.STATE, true, false).withDescription('Indicates whether the device detected presence'),
     pressure: () => new Numeric('pressure', access.STATE).withUnit('hPa').withDescription('The measured atmospheric pressure'),
     programming_operation_mode: (values=['setpoint', 'schedule', 'schedule_with_preheat', 'eco']) => new Enum('programming_operation_mode', access.ALL, ['setpoint', 'schedule', 'schedule_with_preheat', 'eco']).withDescription('Controls how programming affects the thermostat. Possible values: setpoint (only use specified setpoint), schedule (follow programmed setpoint schedule), schedule_with_preheat (follow programmed setpoint schedule with pre-heating). Changing this value does not clear programmed schedules.'),
+    setup: () => new Binary('setup', access.STATE, true, false).withDescription('Indicates if the device is in setup mode').withCategory('diagnostic'),
+    schedule: () => new Binary('schedule', access.ALL, true, false).withDescription('When enabled, the device will change its state based on your schedule settings').withCategory('config'),
+    schedule_settings: () => new Text('schedule_settings', access.ALL).withDescription('Allows schedule configuration').withCategory('config'),
+    external_temperature_input: () => new Numeric('external_temperature_input', access.ALL)
+        .withUnit('°C')
+        .withValueMin(0)
+        .withValueMax(55)
+        .withDescription('Input for remote temperature sensor')
+        .withCategory('config'),
     smoke: () => new Binary('smoke', access.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
     soil_moisture: () => new Numeric('soil_moisture', access.STATE).withUnit('%').withDescription('Measured soil moisture value'),
     sos: () => new Binary('sos', access.STATE, true, false).withLabel('SOS').withDescription('SOS alarm'),
@@ -753,16 +756,19 @@ export const presets = {
     door_state: () => new Enum('door_state', access.STATE, ['open', 'closed', 'error_jammed', 'error_forced_open', 'error_unspecified', 'undefined']).withDescription('State of the door'),
     tamper: () => new Binary('tamper', access.STATE, true, false).withDescription('Indicates whether the device is tampered'),
     temperature: () => new Numeric('temperature', access.STATE).withUnit('°C').withDescription('Measured temperature value'),
-    temperature_sensor_select: (sensor_names: string[]) => new Enum('sensor', access.STATE_SET, sensor_names).withDescription('Select temperature sensor to use'),
+    temperature_sensor_select: (sensor_names: string[]) => new Enum('sensor', access.STATE_SET, sensor_names).withDescription('Select temperature sensor to use').withCategory('config'),
     test: () => new Binary('test', access.STATE, true, false).withDescription('Indicates whether the device is being tested'),
+    trigger_indicator: () => new Binary('trigger_indicator', access.ALL, true, false).withDescription('Enables trigger indication').withCategory('config'),
+    valve_alarm: () => new Binary('valve_alarm', access.STATE, true, false).withCategory('diagnostic'),
     valve_position: () => new Numeric('position', access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of the valve'),
     valve_switch: () => new Binary('state', access.ALL, 'OPEN', 'CLOSE').withDescription('Valve state if open or closed'),
     valve_state: () => new Binary('valve_state', access.STATE, 'OPEN', 'CLOSED').withDescription('Valve state if open or closed'),
-    valve_detection: () => new Switch().withLabel('Valve detection').withState('valve_detection', true, 'Valve detection').setAccess('state', access.STATE_SET),
+    valve_detection: () => new Switch().withLabel('Valve detection').withState('valve_detection', true, 'Valve detection').setAccess('state', access.STATE_SET), // left for compatability, do not use
+    valve_detection_bool: () => new Binary('valve_detection', access.ALL, true, false).withDescription('Determines if temperature control abnormalities should be detected').withCategory('config'),
     vibration: () => new Binary('vibration', access.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
     voc: () => new Numeric('voc', access.STATE).withLabel('VOC').withUnit('µg/m³').withDescription('Measured VOC value'),
     voc_index: () => new Numeric('voc_index', access.STATE).withLabel('VOC index').withDescription('VOC index'),
-    voltage: () => new Numeric('voltage', access.STATE).withUnit('V').withDescription('Measured electrical potential value'),
+    voltage: () => new Numeric('voltage', access.STATE).withUnit('V').withDescription('Measured electrical potential value').withCategory('diagnostic'),
     voltage_phase_b: () => new Numeric('voltage_phase_b', access.STATE).withLabel('Voltage phase B').withUnit('V').withDescription('Measured electrical potential value on phase B'),
     voltage_phase_c: () => new Numeric('voltage_phase_c', access.STATE).withLabel('Voltage phase C').withUnit('V').withDescription('Measured electrical potential value on phase C'),
     water_leak: () => new Binary('water_leak', access.STATE, true, false).withDescription('Indicates whether the device detected a water leak'),
@@ -776,7 +782,9 @@ export const presets = {
         .withFeature(new Numeric('strobe_duty_cycle', access.SET).withValueMax(10).withValueMin(0).withDescription('Length of the flash cycle'))
         .withFeature(new Numeric('duration', access.SET).withUnit('s').withDescription('Duration in seconds of the alarm')),
     week: () => new Enum('week', access.STATE_SET, ['5+2', '6+1', '7']).withDescription('Week format user for schedule'),
-    window_detection: () => new Switch().withLabel('Window detection').withState('window_detection', true, 'Enables/disables window detection on the device', access.STATE_SET),
+    window_detection: () => new Switch().withLabel('Window detection').withState('window_detection', true, 'Enables/disables window detection on the device', access.STATE_SET), // left for compatability, do not use
+    window_detection_bool: () => new Binary('window_detection', access.ALL, true, false).withDescription('Enables/disables window detection on the device').withCategory('config'),
+    window_open: () => new Binary('window_open', access.STATE, true, false).withDescription('Indicates if window is open').withCategory('diagnostic'),
     moving: () => new Binary('moving', access.STATE, true, false).withDescription('Indicates if the device is moving'),
     x_axis: () => new Numeric('x_axis', access.STATE).withDescription('Accelerometer X value'),
     y_axis: () => new Numeric('y_axis', access.STATE).withDescription('Accelerometer Y value'),

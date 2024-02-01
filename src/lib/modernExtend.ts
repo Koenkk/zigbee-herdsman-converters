@@ -1,7 +1,7 @@
 import {Zcl} from 'zigbee-herdsman';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
-import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent} from './types';
+import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent, Access} from './types';
 import {presets as e, access as ea} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
 import {configure as lightConfigure} from './light';
@@ -22,8 +22,8 @@ function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | numbe
 }
 
 const timeLookup = {
-    '1_HOUR': 3600,
     'MAX': 65000,
+    '1_HOUR': 3600,
     '30_MINUTES': 1800,
     '10_SECONDS': 10,
 };
@@ -44,14 +44,13 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
 
 async function setupAttributes(
     entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string | number, config: ReportingConfig[], logger: Logger,
-    readOnly=false,
+    configureReporting: boolean=true, read: boolean=true,
 ) {
     const endpoints = isEndpoint(entity) ? [entity] : getEndpointsWithInputCluster(entity, cluster);
     const ieeeAddr = isEndpoint(entity) ? entity.deviceIeeeAddress : entity.ieeeAddr;
     for (const endpoint of endpoints) {
-        const msg = readOnly ? `Reading` : `Reading and setup reporting`;
-        logger.debug(`${msg} for ${ieeeAddr}/${endpoint.ID} ${cluster} ${JSON.stringify(config)}`);
-        if (!readOnly) {
+        logger.debug(`Configure reporting: ${configureReporting}, read: ${read} for ${ieeeAddr}/${endpoint.ID} ${cluster} ${JSON.stringify(config)}`);
+        if (configureReporting) {
             await endpoint.bind(cluster, coordinatorEndpoint);
             await endpoint.configureReporting(cluster, config.map((a) => ({
                 minimumReportInterval: convertReportingConfigTime(a.min),
@@ -60,20 +59,35 @@ async function setupAttributes(
                 attribute: a.attribute,
             })));
         }
-        await endpoint.read(cluster, config.map((a) => isString(a) ? a : (isObject(a.attribute) ? a.attribute.ID : a.attribute)));
+        if (read) {
+            await endpoint.read(cluster, config.map((a) => isString(a) ? a : (isObject(a.attribute) ? a.attribute.ID : a.attribute)));
+        }
     }
 }
 
 export function setupConfigureForReporting(
-    cluster: string | number, attribute: ReportingConfigAttribute, endpointID?: number, config?: ReportingConfigWithoutAttribute,
+    cluster: string | number, attribute: ReportingConfigAttribute, config: ReportingConfigWithoutAttribute, access: Access,
+    endpoints?: string[],
 ) {
-    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        const entity = isNumber(endpointID) ? device.getEndpoint(endpointID) : device;
-        const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
-        await setupAttributes(entity, coordinatorEndpoint, cluster, [reportConfig], logger, !config);
-    };
+    const configureReporting = !!config;
+    const read = !!(access & ea.GET);
+    if (configureReporting || read) {
+        const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+            const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
+            let entities: (Zh.Device | Zh.Endpoint)[] = [device];
+            if (endpoints) {
+                const endpointsMap = new Map<string, boolean>(endpoints.map((e) => [e, true]));
+                entities = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
+            }
 
-    return configure;
+            for (const entity of entities) {
+                await setupAttributes(entity, coordinatorEndpoint, cluster, [reportConfig], logger, configureReporting, read);
+            }
+        };
+        return configure;
+    } else {
+        return undefined;
+    }
 }
 
 export function identify(): ModernExtend {
@@ -114,7 +128,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
                 try {
                     // Don't fail configure if reading this attribute fails, some devices don't support it.
                     await setupAttributes(device, coordinatorEndpoint, 'genOnOff',
-                        [{attribute: 'startUpOnOff', min: 0, max: 'MAX', change: 1}], logger, true);
+                        [{attribute: 'startUpOnOff', min: 0, max: 'MAX', change: 1}], logger, false);
                 } catch (e) {
                     if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
                         logger.debug('Reading startUpOnOff failed, this features is unsupported');
@@ -356,18 +370,15 @@ export function lock(args?: LockArgs): ModernExtend {
 
 export interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
-    zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, endpoint?: string,
-    endpointID?: number, reporting?: ReportingConfigWithoutAttribute,
+    zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', endpoint?: string,
+    reporting?: ReportingConfigWithoutAttribute,
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
-    const {
-        name, lookup, cluster, attribute, description,
-        zigbeeCommandOptions, readOnly, endpoint,
-        endpointID, reporting,
-    } = args;
+    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpoint, reporting} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
+    const access = ea[args.access ?? 'ALL'];
 
-    let expose = e.enum(name, readOnly ? ea.STATE_GET : ea.ALL, Object.keys(lookup)).withDescription(description);
+    let expose = e.enum(name, access, Object.keys(lookup)).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
 
     const fromZigbee: Fz.Converter[] = [{
@@ -382,52 +393,79 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 
     const toZigbee: Tz.Converter[] = [{
         key: [name],
-        convertSet: readOnly ? undefined : async (entity, key, value, meta) => {
+        convertSet: access & ea.SET ? async (entity, key, value, meta) => {
             const payloadValue = getFromLookup(value, lookup);
             const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
-        },
-        convertGet: async (entity, key, meta) => {
+        } : undefined,
+        convertGet: access & ea.GET ? async (entity, key, meta) => {
             await entity.read(cluster, [attributeKey], zigbeeCommandOptions);
-        },
+        } : undefined,
     }];
 
-    const configure = setupConfigureForReporting(cluster, attribute, endpointID, reporting);
+    const configure = setupConfigureForReporting(cluster, attribute, reporting, access);
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
-    zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, readOnly?: boolean, unit?: string,
-    endpoint?: string, endpointID?: number, reporting?: ReportingConfigWithoutAttribute,
-    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number,
+    zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
+    endpoint?: string, endpoints?: string[], reporting?: ReportingConfigWithoutAttribute,
+    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number, label?: string,
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
-        name, cluster, attribute, description,
-        zigbeeCommandOptions, readOnly, unit, endpoint,
-        endpointID, reporting,
-        valueMin, valueMax, valueStep, scale,
+        name, cluster, attribute, description, zigbeeCommandOptions, unit, reporting, valueMin, valueMax, valueStep, scale, label,
     } = args;
-    const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
-    let expose = e.numeric(name, readOnly ? ea.STATE_GET : ea.ALL).withDescription(description);
-    if (endpoint) expose = expose.withEndpoint(endpoint);
-    if (unit) expose = expose.withUnit(unit);
-    if (valueMin !== undefined) expose = expose.withValueMin(valueMin);
-    if (valueMax !== undefined) expose = expose.withValueMax(valueMax);
-    if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
+    let endpoints = args.endpoints;
+    if (!endpoints && args.endpoint) {
+        endpoints = [args.endpoint];
+    }
+
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
+    const access = ea[args.access ?? 'ALL'];
+
+    const exposes: Expose[] = [];
+
+    const createExpose = (endpoint?: string): Expose => {
+        let expose = e.numeric(name, access).withDescription(description);
+        if (endpoint) expose = expose.withEndpoint(endpoint);
+        if (unit) expose = expose.withUnit(unit);
+        if (valueMin !== undefined) expose = expose.withValueMin(valueMin);
+        if (valueMax !== undefined) expose = expose.withValueMax(valueMax);
+        if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
+        if (label !== undefined) expose = expose.withLabel(label);
+
+        return expose;
+    };
+    // Generate for multiple endpoints only if required
+    const noEndpoint = !endpoints || (endpoints && endpoints.length === 1 && endpoints[0] === '1');
+    if (noEndpoint) {
+        exposes.push(createExpose(undefined));
+    } else {
+        for (const endpoint of endpoints) {
+            exposes.push(createExpose(endpoint));
+        }
+    }
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (attributeKey in msg.data && (!endpoint || getEndpointName(msg, model, meta) === endpoint)) {
+            if (attributeKey in msg.data) {
+                const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
+                if (endpoints && !endpoint) {
+                    return;
+                }
+
                 let value = msg.data[attributeKey];
                 assertNumber(value);
                 if (scale !== undefined) value = value / scale;
+
+                const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
                 return {[expose.property]: value};
             }
         },
@@ -435,36 +473,34 @@ export function numeric(args: NumericArgs): ModernExtend {
 
     const toZigbee: Tz.Converter[] = [{
         key: [name],
-        convertSet: readOnly ? undefined : async (entity, key, value, meta) => {
+        convertSet: access & ea.SET ? async (entity, key, value, meta) => {
             assertNumber(value, key);
             const payloadValue = scale === undefined ? value : value * scale;
             const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
-        },
-        convertGet: async (entity, key, meta) => {
+        } : undefined,
+        convertGet: access & ea.GET ? async (entity, key, meta) => {
             await entity.read(cluster, [attributeKey], zigbeeCommandOptions);
-        },
+        } : undefined,
     }];
 
-    const configure = setupConfigureForReporting(cluster, attribute, endpointID, reporting);
+    const configure = setupConfigureForReporting(cluster, attribute, reporting, access, endpoints);
 
-    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface BinaryArgs {
     name: string, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], cluster: string | number,
     attribute: string | {ID: number, type: number}, description: string, zigbeeCommandOptions?: {manufacturerCode: number},
-    endpoint?: string, endpointID?: number, reporting?: ReportingConfig, readOnly?: boolean,
+    endpoint?: string, reporting?: ReportingConfig, access?: 'STATE' | 'STATE_GET' | 'ALL',
 }
 export function binary(args: BinaryArgs): ModernExtend {
-    const {
-        name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions,
-        endpoint, endpointID, reporting, readOnly,
-    } = args;
+    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpoint, reporting} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
+    const access = ea[args.access ?? 'ALL'];
 
-    let expose = e.binary(name, readOnly ? ea.STATE_GET : ea.ALL, valueOn[0], valueOff[0]).withDescription(description);
+    let expose = e.binary(name, access, valueOn[0], valueOff[0]).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
 
     const fromZigbee: Fz.Converter[] = [{
@@ -479,30 +515,31 @@ export function binary(args: BinaryArgs): ModernExtend {
 
     const toZigbee: Tz.Converter[] = [{
         key: [name],
-        convertSet: readOnly ? undefined : async (entity, key, value, meta) => {
+        convertSet: access & ea.SET ? async (entity, key, value, meta) => {
             const payloadValue = value === valueOn[0] ? valueOn[1] : valueOff[1];
             const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
-        },
-        convertGet: async (entity, key, meta) => {
+        } : undefined,
+        convertGet: access & ea.GET ? async (entity, key, meta) => {
             await entity.read(cluster, [attributeKey], zigbeeCommandOptions);
-        },
+        } : undefined,
     }];
 
-    const configure = setupConfigureForReporting(cluster, attribute, endpointID, reporting);
+    const configure = setupConfigureForReporting(cluster, attribute, reporting, access);
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface ActionEnumLookupArgs {
-    lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, postfixWithEndpointName?: boolean,
+    lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, endpointNames?: string[],
 }
 export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     const {lookup, attribute, cluster} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
-    const expose = e.enum('action', ea.STATE, Object.keys(lookup)).withDescription('Triggered action (e.g. a button click)');
+    const actions = Object.keys(lookup).map((a) => args.endpointNames ? args.endpointNames.map((e) => `${a}_${e}`) : [a]).flat();
+    const expose = e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)');
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
@@ -510,7 +547,7 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
         convert: (model, msg, publish, options, meta) => {
             if (attributeKey in msg.data) {
                 let value = getFromLookupByValue(msg.data[attributeKey], lookup);
-                if (args.postfixWithEndpointName) value = postfixWithEndpointName(value, msg, model, meta);
+                if (args.endpointNames) value = postfixWithEndpointName(value, msg, model, meta);
                 return {[expose.property]: value};
             }
         },
@@ -569,10 +606,9 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
     return {configure, isModernExtend: true};
 }
 
-export function quirkPendingRequestTimeout(timeout: keyof typeof timeLookup): ModernExtend {
-    const timeoutMs = timeLookup[timeout] * 1000;
+export function quirkCheckinInterval(timeout: number | keyof typeof timeLookup): ModernExtend {
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        device.pendingRequestTimeout = timeoutMs;
+        device.checkinInterval = (typeof timeout == 'number') ? timeout : timeLookup[timeout];
         device.save();
     };
 
@@ -596,12 +632,52 @@ export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
     return {onEvent, isModernExtend: true};
 }
 
+export function customTimeResponse(start: '1970_UTC' | '2000_LOCAL'): ModernExtend {
+    const onEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
+        device.skipTimeResponse = true;
+        // The Zigbee Cluster Library specification states that the genTime.time response should be the
+        // number of seconds since 1st Jan 2000 00:00:00 UTC. This extend modifies that:
+        // 1970_UTC: number of seconds since the Unix Epoch (1st Jan 1970 00:00:00 UTC)
+        // 2000_LOCAL: seconds since 1 January in the local time zone.
+        // Disable the responses of zigbee-herdsman and respond here instead.
+        if (type === 'message' && data.type === 'read' && data.cluster === 'genTime') {
+            const payload: KeyValue = {};
+            if (start === '1970_UTC') {
+                const time = Math.round(((new Date()).getTime()) / 1000);
+                payload.time = time;
+                payload.localTime = time - (new Date()).getTimezoneOffset() * 60;
+            } else if (start === '2000_LOCAL') {
+                const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+                const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
+                payload.time = secondsUTC - (new Date()).getTimezoneOffset() * 60;
+            }
+            data.endpoint.readResponse('genTime', data.meta.zclTransactionSequenceNumber, payload);
+        }
+    };
+
+    return {onEvent, isModernExtend: true};
+}
+
 export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExtend {
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
         device.type = args.type;
         device.save();
     };
     return {configure, isModernExtend: true};
+}
+
+export function deviceEndpoints(args: {endpoints: {[n: string]: number}}): ModernExtend {
+    return {
+        endpoint: (d) => args.endpoints,
+        isModernExtend: true,
+    };
+}
+
+export function ota(args: {definition: DefinitionOta}): ModernExtend {
+    return {
+        ota: args.definition,
+        isModernExtend: true,
+    };
 }
 
 export function temperature(args?: Partial<NumericArgs>) {
@@ -613,7 +689,7 @@ export function temperature(args?: Partial<NumericArgs>) {
         description: 'Measured temperature value',
         unit: '°C',
         scale: 100,
-        readOnly: true,
+        access: 'STATE_GET',
         ...args,
     });
 }
@@ -627,7 +703,22 @@ export function humidity(args?: Partial<NumericArgs>) {
         description: 'Measured relative humidity',
         unit: '%',
         scale: 100,
-        readOnly: true,
+        access: 'STATE_GET',
+        ...args,
+    });
+}
+
+export function co2(args?: Partial<NumericArgs>) {
+    return numeric({
+        name: 'co2',
+        cluster: 'msCO2',
+        label: 'CO2',
+        attribute: 'measuredValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 0.00005}, // 50 ppm change
+        description: 'Measured value',
+        unit: 'ppm',
+        scale: 0.000001,
+        access: 'STATE_GET',
         ...args,
     });
 }
@@ -641,7 +732,7 @@ export function batteryPercentage(args?: Partial<NumericArgs>) {
         description: 'Remaining battery in %',
         unit: '%',
         scale: 2,
-        readOnly: true,
+        access: 'STATE_GET',
         ...args,
     });
 }
@@ -651,11 +742,11 @@ export function pressure(args?: Partial<NumericArgs>): ModernExtend {
         name: 'pressure',
         cluster: 'msPressureMeasurement',
         attribute: 'measuredValue',
-        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 100},
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 50}, // 5 kPa
         description: 'The measured atmospheric pressure',
-        unit: 'hPa',
-        scale: 100,
-        readOnly: true,
+        unit: 'kPa',
+        scale: 10,
+        access: 'STATE_GET',
         ...args,
     });
 }

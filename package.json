@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "18.10.1",
+  "version": "18.26.0",
   "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "types": "index.d.ts",
@@ -19,7 +19,7 @@
     "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
   },
   "keywords": [
-    "xiaomi",
+    "aqara",
     "tradfri",
     "hue",
     "wemo",
@@ -45,20 +45,22 @@
     "axios": "^1.6.5",
     "buffer-crc32": "^0.2.13",
     "https-proxy-agent": "^7.0.2",
+    "iconv-lite": "^0.6.3",
     "semver": "^7.5.4",
-    "tar-stream": "^3.1.6",
-    "zigbee-herdsman": "^0.30.0"
+    "tar-stream": "^3.1.7",
+    "zigbee-herdsman": "^0.33.5"
   },
   "devDependencies": {
     "@types/buffer-crc32": "^0.2.4",
     "@types/jest": "^29.5.11",
-    "@types/node": "^20.10.6",
+    "@types/node": "^20.11.5",
     "@types/tar-stream": "^3.1.3",
-    "@typescript-eslint/eslint-plugin": "^6.18.0",
-    "@typescript-eslint/parser": "^6.18.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
     "eslint": "^8.56.0",
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-jest": "^27.6.1",
+    "eslint-plugin-jest": "^27.6.3",
+    "eslint-plugin-tsdoc": "^0.2.17",
     "fast-deep-equal": "*",
     "jest": "^29.7.0",
     "rimraf": "^5.0.5",

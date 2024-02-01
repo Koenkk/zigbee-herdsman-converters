@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {onOff, light} from '../lib/modernExtend';
+import {onOff, light, electricityMeter, identify} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -40,6 +40,14 @@ const tzLocal = {
             utils.assertEndpoint(entity);
             const endpoint = entity.getDevice().getEndpoint(21);
             await endpoint.read(0xFF17, [0x0000], {manufacturerCode: 0x105e});
+        },
+    } satisfies Tz.Converter,
+    fan_mode: {
+        ...tz.fan_mode,
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
+            if (value.toLowerCase() === 'on') value = 'low';
+            return tz.fan_mode.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
 };
@@ -274,23 +282,7 @@ const definitions: Definition[] = [
         model: 'U202DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 2 gang 2x300W dimmer module',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint1 = device.getEndpoint(10);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint1);
-            await reporting.brightness(endpoint1);
-            const endpoint2 = device.getEndpoint(11);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint2);
-            await reporting.brightness(endpoint2);
-        },
-        endpoint: (device) => {
-            return {l1: 10, l2: 11};
-        },
+        extend: [light({endpoints: {l1: 10, l2: 11}, configureReporting: true})],
     },
     {
         zigbeeModel: ['PUCK/DIMMER/1'],
@@ -322,6 +314,14 @@ const definitions: Definition[] = [
         description: 'Micro module switch',
         extend: [onOff({powerOnBehavior: false})],
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
+    },
+    {
+        zigbeeModel: ['CCTFR6730'],
+        model: 'CCTFR6730',
+        vendor: 'Schneider Electric',
+        description: 'Wiser power micromodule',
+        whiteLabel: [{vendor: 'Elko', model: 'EKO20004'}],
+        extend: [onOff({powerOnBehavior: true}), electricityMeter({'cluster': 'metering'}), identify()],
     },
     {
         zigbeeModel: ['NHROTARY/DIMMER/1'],
@@ -473,6 +473,20 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['CHFAN/SWITCH/1'],
+        model: '41ECSFWMZ-VW',
+        vendor: 'Schneider Electric',
+        description: 'Wiser 40/300-Series Module AC Fan Controller',
+        fromZigbee: [fz.fan],
+        toZigbee: [tzLocal.fan_mode],
+        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(7);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
+            await reporting.fanMode(endpoint);
         },
     },
     {

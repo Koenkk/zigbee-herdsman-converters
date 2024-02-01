@@ -45,32 +45,115 @@ export interface OtaUpdateAvailableResult {available: boolean, currentFileVersio
 
 export interface DefinitionMeta {
     separateWhite?: boolean,
+    /**
+     * Enables the multi endpoint functionality in e.g. `fromZigbee.on_off`, example: normally this converter would return `{"state": "OFF"}`, when
+     * multiEndpoint is enabled the `endpoint` method of the device definition will be called to determine the endpoint name which is then used as ke
+     * y e.g. `{"state_left": "OFF"}`. Only needed when device sends the same attribute from multiple endpoints.
+     *
+     * @defaultValue false
+     */
     multiEndpoint?: boolean,
+    /**
+     * enforce a certain endpoint for an attribute, e.g. `{"power": 4}` see `utils.enforceEndpoint()`
+     */
     multiEndpointEnforce?: {[s: string]: number},
+    /**
+     * Attributes to not suffix with the endpoint name
+     */
+    multiEndpointSkip?: string[],
     publishDuplicateTransaction?: boolean,
     tuyaDatapoints?: Tuya.MetaTuyaDataPoints,
+    /**
+     * used by toZigbee converters to disable the default response of some devices as they don't provide one.
+     *
+     * @defaultValue false
+     */
     disableDefaultResponse?: boolean | ((entity: Zh.Endpoint) => boolean),
+    /**
+     *  Amount of pincodes the lock can handle
+     */
     pinCodeCount?: number,
+    /**
+     * Set to true for cover controls that report position=100 as open.
+     *
+     * @defaultValue false
+     */
     coverInverted?: boolean,
+    /**
+     * timeout for commands to this device used in toZigbee.
+     *
+     * @defaultValue 10000
+     */
     timeout?: number,
-    multiEndpointSkip?: string[],
     tuyaSendCommand?: 'sendData' | 'dataRequest',
+    /**
+     * Set cover state based on tilt
+     */
     coverStateFromTilt?: boolean,
+    /**
+     * see e.g. HT-08 definition
+     */
     thermostat?: {
         weeklyScheduleMaxTransitions?: number,
         weeklyScheduleSupportedModes?: number[],
         weeklyScheduleFirstDayDpId?: number,
         weeklyScheduleConversion?: string,
+        /**
+         * Do not map `pIHeatingDemand`/`pICoolingDemand` from 0-255 -\> 0-100, see `fromZigbee.thermostat`
+         *
+         * @defaultValue false
+         */
         dontMapPIHeatingDemand?: boolean
     },
-    battery?: {voltageToPercentage?: string | {min: number, max: number}, dontDividePercentage?: boolean},
+    battery?: {
+        /**
+         * convert voltage to percentage using specified option. See `utils.batteryVoltageToPercentage()`
+         *
+         * @example '3V_2100'
+         * @defaultValue null
+         */
+        voltageToPercentage?: string | {min: number, max: number},
+        /**
+         * Prevents batteryPercentageRemaining from being divided (ZCL 200=100%, but some report 100=100%)
+         *
+         * @defaultValue false
+         */
+        dontDividePercentage?: boolean
+    },
+    /**
+     * see `toZigbee.light_color`
+     *
+     * @defaultValue false
+     */
     applyRedFix?: boolean,
+    /**
+     * Indicates light turns off when brightness 1 is set
+     *
+     * @defaultValue false
+     */
     turnsOffAtBrightness1?: boolean;
     tuyaThermostatPreset?: {[s: number]: string},
+    /** TuYa specific thermostat options */
     tuyaThermostatSystemMode?: {[s: number]: string},
+    /** TuYa specific thermostat options */
     tuyaThermostatPresetToSystemMode?: {[s: number]: string},
+    /**
+     * see `toZigbee.light_color`
+     *
+     * @defaultValue true
+     */
     supportsEnhancedHue?: boolean | ((entity: Zh.Endpoint) => boolean),
+    /**
+     * Prevents some converters adding the `action_group` to the payload.
+     *
+     * @defaultValue false
+     */
     disableActionGroup?: boolean,
+    /**
+     * see `toZigbee.light_color`, usually set by `light_*` extends via options.
+     *
+     * @defaultValue true
+     */
     supportsHueAndSaturation?: boolean,
 }
 
@@ -141,7 +224,7 @@ export namespace Fz {
         groupID: number, type: string,
         cluster: string | number, linkquality: number
     }
-    export interface Meta {state: KeyValue, logger: Logger, device: Zh.Device}
+    export interface Meta {state: KeyValue, logger: Logger, device: Zh.Device, deviceExposesChanged: () => void}
     export interface Converter {
         cluster: string | number,
         type: string[] | string,

@@ -13,7 +13,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_air9m6af'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_9djocypn'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_bppxj3sf'}],
-        zigbeeModel: ['JZ-ZB-005', 'E220-KR5N0Z0-HA'],
+        zigbeeModel: ['JZ-ZB-005', 'E220-KR5N0Z0-HA', 'E220-KR5N0Z0-HA'],
         model: 'WP33-EU/WP34-EU',
         vendor: 'LELLKI',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
