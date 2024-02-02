@@ -1238,11 +1238,11 @@ const definitions: Definition[] = [
         toZigbee: [tz.identify],
         exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux(),
             e.numeric('identify', ea.SET)
-            .withValueMin(0)
-            .withValueMax(30)
-            .withUnit('seconds')
-            .withDescription('Duration of flashing')
-            .withCategory('config'),
+                .withValueMin(0)
+                .withValueMax(30)
+                .withUnit('seconds')
+                .withDescription('Duration of flashing')
+                .withCategory('config'),
         ],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
