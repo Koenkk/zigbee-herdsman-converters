@@ -241,9 +241,10 @@ async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedEx
 
 async function extenderElectricityMeter(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
-    if (endpoints.length > 1) {
-        throw new Error('extenderElectricityMeter can accept only one endpoint');
-    }
+    console.assert(
+        endpoints.length <= 1,
+        'extenderElectricityMeter can accept only one endpoint'
+    );
 
     const endpoint = endpoints[0];
 
