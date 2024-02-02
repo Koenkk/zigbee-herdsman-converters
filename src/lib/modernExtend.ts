@@ -404,12 +404,11 @@ export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
     endpoint?: string, reporting?: ReportingConfigWithoutAttribute,
-    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number, label?: string, luminanceLux?: boolean,
+    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number, label?: string,
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
         name, cluster, attribute, description, zigbeeCommandOptions, unit, endpoint, reporting, valueMin, valueMax, valueStep, scale, label,
-        luminanceLux,
     } = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
@@ -430,7 +429,6 @@ export function numeric(args: NumericArgs): ModernExtend {
                 let value = msg.data[attributeKey];
                 assertNumber(value);
                 if (scale !== undefined) value = value / scale;
-                if (luminanceLux) value = Math.pow(10, value / 10000);
                 return {[expose.property]: value};
             }
         },
@@ -665,9 +663,7 @@ export function luminance(args?: Partial<NumericArgs>) {
         attribute: 'measuredValue',
         reporting: {min: '10_SECONDS', max: '1_HOUR', change: 1},
         description: 'Luminance level',
-        unit: 'lux',
         access: 'STATE_GET',
-        luminanceLux: true,
         ...args,
     });
 }
