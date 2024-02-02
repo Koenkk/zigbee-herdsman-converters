@@ -404,11 +404,12 @@ export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
     endpoint?: string, reporting?: ReportingConfigWithoutAttribute,
-    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number, label?: string,
+    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number, label?: string, luminanceLux?: boolean,
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
         name, cluster, attribute, description, zigbeeCommandOptions, unit, endpoint, reporting, valueMin, valueMax, valueStep, scale, label,
+        luminanceLux,
     } = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
@@ -429,6 +430,7 @@ export function numeric(args: NumericArgs): ModernExtend {
                 let value = msg.data[attributeKey];
                 assertNumber(value);
                 if (scale !== undefined) value = value / scale;
+                if (luminanceLux) value = Math.pow(10, value / 10000);
                 return {[expose.property]: value};
             }
         },
@@ -651,6 +653,34 @@ export function humidity(args?: Partial<NumericArgs>) {
         description: 'Measured relative humidity',
         unit: '%',
         scale: 100,
+        access: 'STATE_GET',
+        ...args,
+    });
+}
+
+export function luminance(args?: Partial<NumericArgs>) {
+    return numeric({
+        name: 'luminance',
+        cluster: 'msIlluminanceMeasurement',
+        attribute: 'measuredValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 1},
+        description: 'Luminance level',
+        unit: 'lux',
+        access: 'STATE_GET',
+        luminanceLux: true,
+        ...args,
+    });
+}
+
+export function occupancy(args?: Partial<BinaryArgs>) {
+    return binary({
+        name: 'occupancy',
+        valueOn: ['1', undefined],
+        valueOff: ['0', undefined],
+        cluster: 'ssIasZone',
+        attribute: 'zonestatus',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 1, attribute: 'zonestatus'},
+        description: 'Occupancy state',
         access: 'STATE_GET',
         ...args,
     });
