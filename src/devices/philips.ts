@@ -3537,7 +3537,7 @@ const definitions: Definition[] = [
         model: '8719514338487',
         vendor: 'Philips',
         description: 'Hue white ambiance Pillar spotlight with Bluetooth (white) + dimmer switch',
-        extend: [philipsLight({"colorTemp":{"range":[153,454]}})],
+        extend: [philipsLight({colorTemp: {range: [153,454]}})],
     },
 ];
 
