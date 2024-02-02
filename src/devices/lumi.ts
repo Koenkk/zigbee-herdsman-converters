@@ -1433,7 +1433,7 @@ const definitions: Definition[] = [
         description: 'Cube',
         whiteLabel: [{vendor: 'Xiaomi', model: 'MFKZQ01LM'}],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_cube_action_multistate, lumi.fromZigbee.lumi_action_analog],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_action_analog],
         exposes: [e.battery(), e.battery_voltage(), e.angle('action_angle'), e.device_temperature(), e.power_outage_count(false),
             e.cube_side('action_from_side'), e.cube_side('action_side'), e.cube_side('action_to_side'), e.cube_side('side'),
             e.action(['shake', 'throw', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
@@ -2912,7 +2912,7 @@ const definitions: Definition[] = [
         description: 'Cube T1 Pro',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         extend: [lumiZigbeeOTA()],
-        fromZigbee: [lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_cube_t1_action_multistate,
+        fromZigbee: [lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_action_multistate,
             lumi.fromZigbee.lumi_action_analog, fz.ignore_onoff_report],
         toZigbee: [lumi.toZigbee.lumi_cube_t1_operation_mode],
         exposes: [

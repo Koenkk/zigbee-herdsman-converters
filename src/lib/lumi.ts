@@ -1693,6 +1693,7 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
 
+            // legacy converters
             if (isLegacyEnabled(options)) {
                 if (['WXKG11LM', 'WXKG12LM', 'WXKG03LM_rev2', 'QBKG11LM'].includes(model.model)) {
                     if ([1, 2].includes(msg.data.presentValue)) {
@@ -1753,11 +1754,86 @@ export const fromZigbee = {
                 }
             }
 
+            // cubes
+            if (model.model === 'MFKZQ01LM') {
+                /*
+                Source: https://github.com/kirovilya/ioBroker.zigbee
+                    +---+
+                    | 2 |
+                +---+---+---+
+                | 4 | 0 | 1 |
+                +---+---+---+
+                    |M5I|
+                    +---+
+                    | 3 |
+                    +---+
+                Side 5 is with the MI logo, side 3 contains the battery door.
+                presentValue = 0 = shake
+                presentValue = 2 = wakeup
+                presentValue = 3 = fly/fall
+                presentValue = y + x * 8 + 64 = 90º Flip from side x on top to side y on top
+                presentValue = x + 128 = 180º flip to side x on top
+                presentValue = x + 256 = push/slide cube while side x is on top
+                presentValue = x + 512 = double tap while side x is on top
+                */
+                const value = msg.data['presentValue'];
+                let result = null;
+
+                if (value === 0) result = {action: 'shake'};
+                else if (value === 1) result = {action: 'throw'};
+                else if (value === 2) result = {action: 'wakeup'};
+                else if (value === 3) result = {action: 'fall'};
+                else if (value >= 512) result = {action: 'tap', side: value-512};
+                else if (value >= 256) result = {action: 'slide', side: value-256};
+                else if (value >= 128) result = {action: 'flip180', side: value-128};
+                else if (value >= 64) {
+                    result = {
+                        action: 'flip90', action_from_side: Math.floor((value-64) / 8), action_to_side: value % 8, action_side: value % 8,
+                        from_side: Math.floor((value-64) / 8), to_side: value % 8, side: value % 8,
+                    };
+                }
+
+                if (result && !isLegacyEnabled(options)) {
+                    delete result.to_side;
+                    delete result.from_side;
+                }
+
+                return result ? result : null;
+            }
+            if (model.model === 'CTP-R01') {
+                const value = msg.data['presentValue'];
+                let payload;
+                if (value === 0) payload = {action: 'shake'};
+                else if (value === 1) payload = {action: 'throw'};
+                else if (value === 2) payload = {action: '1_min_inactivity'};
+                else if (value === 4) payload = {action: 'hold'};
+                else if (value >= 1024) payload = {action: 'flip_to_side', side: value - 1023};
+                else if (value >= 512) payload = {action: 'tap', side: value - 511};
+                else if (value >= 256) payload = {action: 'slide', side: value - 255};
+                else if (value >= 128) {
+                    payload = {
+                        action: 'flip180', side: value - 127,
+                        action_from_side: 7 - value + 127,
+                    };
+                } else if (value >= 64) {
+                    payload = {
+                        action: 'flip90', side: value % 8 + 1,
+                        action_from_side: Math.floor((value - 64) / 8) + 1,
+                    };
+                } else {
+                    meta.logger.debug(`${model.model}: unknown action with value ${value}`);
+                }
+                return payload;
+            }
+
+
+            // actions and mini switches
             let actionLookup: KeyValueAny = {0: 'hold', 1: 'single', 2: 'double', 3: 'triple', 255: 'release'};
             if (model.model === 'WXKG12LM') {
                 actionLookup = {...actionLookup, 16: 'hold', 17: 'release', 18: 'shake'};
             }
 
+            // wall switches
             let buttonLookup: KeyValueNumberString = null;
             if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM', 'WXKG22LM'].includes(model.model)) {
                 buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
@@ -2264,36 +2340,6 @@ export const fromZigbee = {
     } satisfies Fz.Converter,
 
     // lumi device specific
-    lumi_cube_t1_action_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const value = msg.data['presentValue'];
-            let payload;
-
-            if (value === 0) payload = {action: 'shake'};
-            else if (value === 1) payload = {action: 'throw'};
-            else if (value === 2) payload = {action: '1_min_inactivity'};
-            else if (value === 4) payload = {action: 'hold'};
-            else if (value >= 1024) payload = {action: 'flip_to_side', side: value - 1023};
-            else if (value >= 512) payload = {action: 'tap', side: value - 511};
-            else if (value >= 256) payload = {action: 'slide', side: value - 255};
-            else if (value >= 128) {
-                payload = {
-                    action: 'flip180', side: value - 127,
-                    action_from_side: 7 - value + 127,
-                };
-            } else if (value >= 64) {
-                payload = {
-                    action: 'flip90', side: value % 8 + 1,
-                    action_from_side: Math.floor((value - 64) / 8) + 1,
-                };
-            } else {
-                meta.logger.debug(`${model.model}: unknown action with value ${value}`);
-            }
-            return payload;
-        },
-    } satisfies Fz.Converter,
     lumi_WXKG01LM_action: {
         // Unique converter
         cluster: 'genOnOff',
@@ -2907,56 +2953,6 @@ export const fromZigbee = {
                 result.switch_3_text = String.fromCharCode(...textarr);
             }
             return result;
-        },
-    } satisfies Fz.Converter,
-    lumi_cube_action_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            /*
-            Source: https://github.com/kirovilya/ioBroker.zigbee
-                +---+
-                | 2 |
-            +---+---+---+
-            | 4 | 0 | 1 |
-            +---+---+---+
-                |M5I|
-                +---+
-                | 3 |
-                +---+
-            Side 5 is with the MI logo, side 3 contains the battery door.
-            presentValue = 0 = shake
-            presentValue = 2 = wakeup
-            presentValue = 3 = fly/fall
-            presentValue = y + x * 8 + 64 = 90º Flip from side x on top to side y on top
-            presentValue = x + 128 = 180º flip to side x on top
-            presentValue = x + 256 = push/slide cube while side x is on top
-            presentValue = x + 512 = double tap while side x is on top
-            */
-            const value = msg.data['presentValue'];
-            let result = null;
-
-            if (value === 0) result = {action: 'shake'};
-            else if (value === 1) result = {action: 'throw'};
-            else if (value === 2) result = {action: 'wakeup'};
-            else if (value === 3) result = {action: 'fall'};
-            else if (value >= 512) result = {action: 'tap', side: value-512};
-            else if (value >= 256) result = {action: 'slide', side: value-256};
-            else if (value >= 128) result = {action: 'flip180', side: value-128};
-            else if (value >= 64) {
-                result = {
-                    action: 'flip90', action_from_side: Math.floor((value-64) / 8), action_to_side: value % 8, action_side: value % 8,
-                    from_side: Math.floor((value-64) / 8), to_side: value % 8, side: value % 8,
-                };
-            }
-
-            if (result && !isLegacyEnabled(options)) {
-                delete result.to_side;
-                delete result.from_side;
-            }
-
-            return result ? result : null;
         },
     } satisfies Fz.Converter,
     RTCGQ11LM_illuminance: {
