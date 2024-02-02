@@ -1236,7 +1236,14 @@ const definitions: Definition[] = [
         description: 'VALLHORN wireless motion sensor',
         fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
         toZigbee: [tz.identify],
-        exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux(),
+            e.numeric('identify', ea.SET)
+            .withValueMin(0)
+            .withValueMax(30)
+            .withUnit('seconds')
+            .withDescription('Duration of flashing')
+            .withCategory('config'),
+        ],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -1281,7 +1288,15 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
         toZigbee: [tz.identify],
         ota: ota.tradfri,
-        exposes: [e.battery(), e.contact()],
+        exposes: [
+            e.battery(), e.contact(),
+            e.numeric('identify', ea.SET)
+                .withValueMin(0)
+                .withValueMax(30)
+                .withUnit('seconds')
+                .withDescription('Duration of flashing')
+                .withCategory('config'),
+            ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
