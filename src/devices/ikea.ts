@@ -1296,7 +1296,7 @@ const definitions: Definition[] = [
                 .withUnit('seconds')
                 .withDescription('Duration of flashing')
                 .withCategory('config'),
-            ],
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
