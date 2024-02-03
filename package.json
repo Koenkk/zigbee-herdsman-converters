@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "18.19.0",
+  "version": "18.26.0",
   "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "types": "index.d.ts",
@@ -19,7 +19,7 @@
     "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
   },
   "keywords": [
-    "xiaomi",
+    "aqara",
     "tradfri",
     "hue",
     "wemo",
@@ -48,7 +48,7 @@
     "iconv-lite": "^0.6.3",
     "semver": "^7.5.4",
     "tar-stream": "^3.1.7",
-    "zigbee-herdsman": "^0.32.7"
+    "zigbee-herdsman": "^0.33.5"
   },
   "devDependencies": {
     "@types/buffer-crc32": "^0.2.4",
@@ -60,6 +60,7 @@
     "eslint": "^8.56.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-jest": "^27.6.3",
+    "eslint-plugin-tsdoc": "^0.2.17",
     "fast-deep-equal": "*",
     "jest": "^29.7.0",
     "rimraf": "^5.0.5",

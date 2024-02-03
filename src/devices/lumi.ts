@@ -14,17 +14,17 @@ import {
 const e = exposes.presets;
 const ea = exposes.access;
 import * as globalStore from '../lib/store';
-import * as xiaomi from '../lib/xiaomi';
+import * as lumi from '../lib/lumi';
 const {
-    xiaomiAction, xiaomiOperationMode, xiaomiPowerOnBehavior, xiaomiZigbeeOTA,
-    xiaomiSwitchType, aqaraAirQuality, aqaraVoc, aqaraDisplayUnit, xiaomiLight,
-    xiaomiOutageCountRestoreBindReporting, xiaomiElectricityMeter, xiaomiPower,
-    xiaomiOverloadProtection, xiaomiLedIndicator, xiaomiButtonLock,
-} = xiaomi.modernExtend;
+    lumiAction, lumiOperationMode, lumiPowerOnBehavior, lumiZigbeeOTA,
+    lumiSwitchType, lumiAirQuality, lumiVoc, lumiDisplayUnit, lumiLight,
+    lumiOutageCountRestoreBindReporting, lumiElectricityMeter, lumiPower,
+    lumiOverloadProtection, lumiLedIndicator, lumiButtonLock,
+} = lumi.modernExtend;
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz} from '../lib/types';
 const {printNumbersAsHexSequence} = utils;
-const {fp1, manufacturerCode, trv} = xiaomi;
+const {presence, manufacturerCode, trv} = lumi;
 
 const preventReset: OnEvent = async (type, data, device) => {
     if (
@@ -62,8 +62,8 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
-    aqara_trv: {
-        cluster: 'aqaraOpple',
+    lumi_trv: {
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
@@ -134,7 +134,7 @@ const fzLocal = {
                     break;
                 }
                 case 0x00EE: {
-                    meta.device.meta.aqaraFileVersion = value;
+                    meta.device.meta.lumiFileVersion = value;
                     meta.device.save();
                     break;
                 }
@@ -142,30 +142,27 @@ const fzLocal = {
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
                 case 0x027c: // 0x00
                 case 0x0280: // 0x00/0x01
-                    meta.logger.debug(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key} = ${value}`);
+                    meta.logger.debug(`zigbee-herdsman-converters:lumi_trv: Unhandled key ${key} = ${value}`);
                     break;
                 default:
-                    meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unknown key ${key} = ${value}`);
+                    meta.logger.warn(`zigbee-herdsman-converters:lumi_trv: Unknown key ${key} = ${value}`);
                 }
             });
             return result;
         },
     } satisfies Fz.Converter,
-    aqara_fp1_region_events: {
-        cluster: 'aqaraOpple',
+    lumi_presence_region_events: {
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            /**
-             * @type {{ action?: string; }}
-             */
             const payload: KeyValue = {};
-            const log = utils.createLogger(meta.logger, 'xiaomi', 'aqara_fp1');
+            const log = utils.createLogger(meta.logger, 'lumi', 'lumi_presence');
 
             Object.entries(msg.data).forEach(([key, value]) => {
                 const eventKey = parseInt(key);
 
                 switch (eventKey) {
-                case fp1.constants.region_event_key: {
+                case presence.constants.region_event_key: {
                     if (
                         !Buffer.isBuffer(value) ||
                         !(typeof value[0] === 'string' || typeof value[0] === 'number') ||
@@ -175,9 +172,6 @@ const fzLocal = {
                         break;
                     }
 
-                    /**
-                     * @type {[ regionId: number | string, eventTypeCode: number | string ]}
-                     */
                     const [regionIdRaw, eventTypeCodeRaw] = value;
                     // @ts-expect-error
                     const regionId = parseInt(regionIdRaw, 10);
@@ -188,12 +182,12 @@ const fzLocal = {
                         log('warn', `action: Invalid regionId "${regionIdRaw}"`);
                         break;
                     }
-                    if (!Object.values(fp1.constants.region_event_types).includes(eventTypeCode)) {
+                    if (!Object.values(presence.constants.region_event_types).includes(eventTypeCode)) {
                         log('warn', `action: Unknown region event type "${eventTypeCode}"`);
                         break;
                     }
 
-                    const eventTypeName = fp1.mappers.aqara_fp1.region_event_type_names[eventTypeCode];
+                    const eventTypeName = presence.mappers.lumi_presence.region_event_type_names[eventTypeCode];
                     log('debug', `action: Triggered event (region "${regionId}", type "${eventTypeName}")`);
                     payload.action = `region_${regionId}_${eventTypeName}`;
                     break;
@@ -248,24 +242,24 @@ const fzLocal = {
 };
 
 const tzLocal = {
-    aqara_detection_distance: {
+    lumi_detection_distance: {
         key: ['detection_distance'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, 'detection_distance');
             value = value.toLowerCase();
             const lookup = {'10mm': 1, '20mm': 2, '30mm': 3};
-            await entity.write('aqaraOpple', {0x010C: {value: utils.getFromLookup(value, lookup), type: 0x20}}, {manufacturerCode});
+            await entity.write('manuSpecificLumi', {0x010C: {value: utils.getFromLookup(value, lookup), type: 0x20}}, {manufacturerCode});
             return {state: {detection_distance: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x010C], {manufacturerCode});
+            await entity.read('manuSpecificLumi', [0x010C], {manufacturerCode});
         },
     } satisfies Tz.Converter,
-    aqara_trv: {
+    lumi_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
             'calibrate', 'sensor', 'external_temperature_input', 'identify', 'schedule', 'schedule_settings'],
         convertSet: async (entity, key, value, meta) => {
-            const aqaraHeader = (counter: number, params: number[], action: number) => {
+            const lumiHeader = (counter: number, params: number[], action: number) => {
                 const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
                 const integrity = 512 - header.reduce((sum, elem) => sum + elem, 0);
                 return [...header, integrity, action, 0x41, params.length];
@@ -274,28 +268,32 @@ const tzLocal = {
 
             switch (key) {
             case 'system_mode':
-                await entity.write('aqaraOpple', {0x0271: {value: utils.getFromLookup(value, {'off': 0, 'heat': 1}), type: 0x20}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {0x0271: {value: utils.getFromLookup(value, {'off': 0, 'heat': 1}), type: 0x20}},
+                    {manufacturerCode: manufacturerCode});
                 break;
             case 'preset':
-                await entity.write('aqaraOpple', {0x0272: {value: utils.getFromLookup(value, {'manual': 0, 'auto': 1, 'away': 2}), type: 0x20}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {0x0272: {value: utils.getFromLookup(value, {'manual': 0, 'auto': 1, 'away': 2}), type: 0x20}},
+                    {manufacturerCode: manufacturerCode});
                 break;
             case 'window_detection':
-                await entity.write('aqaraOpple', {0x0273: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {
+                    0x0273: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20},
+                }, {manufacturerCode: manufacturerCode});
                 break;
             case 'valve_detection':
-                await entity.write('aqaraOpple', {0x0274: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {
+                    0x0274: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20},
+                }, {manufacturerCode: manufacturerCode});
                 break;
             case 'child_lock':
-                await entity.write('aqaraOpple', {0x0277: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {
+                    0x0277: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20},
+                }, {manufacturerCode: manufacturerCode});
                 break;
             case 'away_preset_temperature':
-                await entity.write('aqaraOpple', {0x0279: {value: Math.round(utils.toNumber(value, 'away_preset_temperature') * 100), type: 0x23}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {
+                    0x0279: {value: Math.round(utils.toNumber(value, 'away_preset_temperature') * 100), type: 0x23},
+                }, {manufacturerCode: manufacturerCode});
                 break;
             case 'sensor': {
                 utils.assertEndpoint(entity);
@@ -327,11 +325,11 @@ const tzLocal = {
                         0x65,
                     ];
 
-                    const val1 = [...(aqaraHeader(0x12, params1, 0x02)), ...params1];
-                    const val2 = [...(aqaraHeader(0x13, params2, 0x02)), ...params2];
+                    const val1 = [...(lumiHeader(0x12, params1, 0x02)), ...params1];
+                    const val2 = [...(lumiHeader(0x13, params2, 0x02)), ...params2];
 
-                    await entity.write('aqaraOpple', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: 0x115f});
-                    await entity.write('aqaraOpple', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('manuSpecificLumi', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                    await entity.write('manuSpecificLumi', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: manufacturerCode});
                 } else if (value === 'internal') {
                     const params1 = [
                         ...timestamp,
@@ -346,11 +344,11 @@ const tzLocal = {
                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                     ];
 
-                    const val1 = [...(aqaraHeader(0x12, params1, 0x04)), ...params1];
-                    const val2 = [...(aqaraHeader(0x13, params2, 0x04)), ...params2];
+                    const val1 = [...(lumiHeader(0x12, params1, 0x04)), ...params1];
+                    const val2 = [...(lumiHeader(0x13, params2, 0x04)), ...params2];
 
-                    await entity.write('aqaraOpple', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: 0x115f});
-                    await entity.write('aqaraOpple', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('manuSpecificLumi', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                    await entity.write('manuSpecificLumi', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: manufacturerCode});
 
                     await entity.read('hvacThermostat', ['localTemp']);
                 }
@@ -363,31 +361,32 @@ const tzLocal = {
                     temperatureBuf.writeFloatBE(Math.round(number * 100));
 
                     const params = [...sensor, 0x00, 0x01, 0x00, 0x55, ...temperatureBuf];
-                    const data = [...(aqaraHeader(0x12, params, 0x05)), ...params];
+                    const data = [...(lumiHeader(0x12, params, 0x05)), ...params];
 
-                    await entity.write('aqaraOpple', {0xfff2: {value: data, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('manuSpecificLumi', {0xfff2: {value: data, type: 0x41}}, {manufacturerCode: manufacturerCode});
                 }
                 break;
             case 'calibrate':
-                await entity.write('aqaraOpple', {0x0270: {value: 1, type: 0x20}}, {manufacturerCode: 0x115F});
+                await entity.write('manuSpecificLumi', {0x0270: {value: 1, type: 0x20}}, {manufacturerCode: 0x115F});
                 break;
             case 'identify':
                 await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
                 break;
             case 'schedule':
-                await entity.write('aqaraOpple', {0x027d: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {
+                    0x027d: {value: utils.getFromLookup(value, {'false': 0, 'true': 1}, undefined, true), type: 0x20},
+                }, {manufacturerCode: manufacturerCode});
                 break;
             case 'schedule_settings': {
                 // @ts-expect-error
                 const schedule = trv.parseSchedule(value);
                 trv.validateSchedule(schedule);
                 const buffer = trv.encodeSchedule(schedule);
-                await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: manufacturerCode});
                 break;
             }
             default: // Unknown key
-                meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key}`);
+                meta.logger.warn(`zigbee-herdsman-converters:lumi_trv: Unhandled key ${key}`);
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -396,15 +395,15 @@ const tzLocal = {
                 'schedule': 0x027d, 'schedule_settings': 0x0276};
 
             if (dict.hasOwnProperty(key)) {
-                await entity.read('aqaraOpple', [utils.getFromLookup(key, dict)], {manufacturerCode: 0x115F});
+                await entity.read('manuSpecificLumi', [utils.getFromLookup(key, dict)], {manufacturerCode: 0x115F});
             }
         },
     } satisfies Tz.Converter,
-    aqara_fp1_region_upsert: {
+    lumi_presence_region_upsert: {
         key: ['region_upsert'],
         convertSet: async (entity, key, value, meta) => {
-            const log = utils.createLogger(meta.logger, 'xiaomi', 'aqara_fp1:region_upsert');
-            const commandWrapper = fp1.parseAqaraFp1RegionUpsertInput(value);
+            const log = utils.createLogger(meta.logger, 'lumi', 'lumi_presence:region_upsert');
+            const commandWrapper = presence.parseAqaraFp1RegionUpsertInput(value);
 
             if (!commandWrapper.isSuccess) {
                 log('warn',
@@ -416,18 +415,16 @@ const tzLocal = {
                 return;
             }
 
-            // @ts-expect-error
             const command = commandWrapper.payload.command;
 
             log('debug', `trying to create region ${command.region_id}`);
 
-            /** @type {Record<string, Set<number>>} */
             const sortedZonesAccumulator = {};
-            const sortedZones = command.zones
+            const sortedZonesWithSets: {[s: number]: [number]} = command.zones
                 .reduce(
                     (accumulator: {[s: number]: Set<number>}, zone: {x: number, y: number}) => {
                         if (!accumulator[zone.y]) {
-                            accumulator[zone.y] = new Set();
+                            accumulator[zone.y] = new Set<number>();
                         }
 
                         accumulator[zone.y].add(zone.x);
@@ -436,39 +433,44 @@ const tzLocal = {
                     },
                     sortedZonesAccumulator,
                 );
+            const sortedZones = Object.entries(sortedZonesWithSets).reduce((acc, [key, value]) => {
+                const numKey = parseInt(key, 10); // Convert string key back to number
+                acc[numKey] = Array.from(value);
+                return acc;
+            }, {} as {[s: number]: number[]});
 
             const deviceConfig = new Uint8Array(7);
 
             // Command parameters
-            deviceConfig[0] = fp1.constants.region_config_cmds.create;
+            deviceConfig[0] = presence.constants.region_config_cmds.create;
             deviceConfig[1] = command.region_id;
-            deviceConfig[6] = fp1.constants.region_config_cmd_suffix_upsert;
+            deviceConfig[6] = presence.constants.region_config_cmd_suffix_upsert;
             // Zones definition
-            deviceConfig[2] |= fp1.encodeXCellsDefinition(sortedZones['1']);
-            deviceConfig[2] |= fp1.encodeXCellsDefinition(sortedZones['2']) << 4;
-            deviceConfig[3] |= fp1.encodeXCellsDefinition(sortedZones['3']);
-            deviceConfig[3] |= fp1.encodeXCellsDefinition(sortedZones['4']) << 4;
-            deviceConfig[4] |= fp1.encodeXCellsDefinition(sortedZones['5']);
-            deviceConfig[4] |= fp1.encodeXCellsDefinition(sortedZones['6']) << 4;
-            deviceConfig[5] |= fp1.encodeXCellsDefinition(sortedZones['7']);
+            deviceConfig[2] |= presence.encodeXCellsDefinition(sortedZones['1']);
+            deviceConfig[2] |= presence.encodeXCellsDefinition(sortedZones['2']) << 4;
+            deviceConfig[3] |= presence.encodeXCellsDefinition(sortedZones['3']);
+            deviceConfig[3] |= presence.encodeXCellsDefinition(sortedZones['4']) << 4;
+            deviceConfig[4] |= presence.encodeXCellsDefinition(sortedZones['5']);
+            deviceConfig[4] |= presence.encodeXCellsDefinition(sortedZones['6']) << 4;
+            deviceConfig[5] |= presence.encodeXCellsDefinition(sortedZones['7']);
 
             log('info', `create region ${command.region_id} ${printNumbersAsHexSequence([...deviceConfig], 2)}`);
 
             const payload = {
-                [fp1.constants.region_config_write_attribute]: {
+                [presence.constants.region_config_write_attribute]: {
                     value: deviceConfig,
-                    type: fp1.constants.region_config_write_attribute_type,
+                    type: presence.constants.region_config_write_attribute_type,
                 },
             };
 
-            await entity.write('aqaraOpple', payload, {manufacturerCode});
+            await entity.write('manuSpecificLumi', payload, {manufacturerCode});
         },
     } satisfies Tz.Converter,
-    aqara_fp1_region_delete: {
+    lumi_presence_region_delete: {
         key: ['region_delete'],
         convertSet: async (entity, key, value, meta) => {
-            const log = utils.createLogger(meta.logger, 'xiaomi', 'aqara_fp1:region_delete');
-            const commandWrapper = fp1.parseAqaraFp1RegionDeleteInput(value);
+            const log = utils.createLogger(meta.logger, 'lumi', 'lumi_presence:region_delete');
+            const commandWrapper = presence.parseAqaraFp1RegionDeleteInput(value);
 
             if (!commandWrapper.isSuccess) {
                 log('warn',
@@ -478,7 +480,6 @@ const tzLocal = {
                 );
                 return;
             }
-            // @ts-expect-error
             const command = commandWrapper.payload.command;
 
             log('debug', `trying to delete region ${command.region_id}`);
@@ -486,9 +487,9 @@ const tzLocal = {
             const deviceConfig = new Uint8Array(7);
 
             // Command parameters
-            deviceConfig[0] = fp1.constants.region_config_cmds.delete;
+            deviceConfig[0] = presence.constants.region_config_cmds.delete;
             deviceConfig[1] = command.region_id;
-            deviceConfig[6] = fp1.constants.region_config_cmd_suffix_delete;
+            deviceConfig[6] = presence.constants.region_config_cmd_suffix_delete;
             // Zones definition
             deviceConfig[2] = 0;
             deviceConfig[3] = 0;
@@ -501,13 +502,13 @@ const tzLocal = {
             );
 
             const payload = {
-                [fp1.constants.region_config_write_attribute]: {
+                [presence.constants.region_config_write_attribute]: {
                     value: deviceConfig,
-                    type: fp1.constants.region_config_write_attribute_type,
+                    type: presence.constants.region_config_write_attribute_type,
                 },
             };
 
-            await entity.write('aqaraOpple', payload, {manufacturerCode});
+            await entity.write('manuSpecificLumi', payload, {manufacturerCode});
         },
     } satisfies Tz.Converter,
     CTPR01_operation_mode: {
@@ -519,9 +520,9 @@ const tzLocal = {
              */
             const callback = async () => {
                 await entity.write(
-                    'aqaraOpple',
+                    'manuSpecificLumi',
                     {0x0148: {value: utils.getFromLookup(value, lookup), type: 0x20}},
-                    {manufacturerCode: 0x115f, disableDefaultResponse: true},
+                    {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
                 );
                 meta.logger.info('operation_mode switch success!');
             };
@@ -535,9 +536,9 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.flood.acn001'],
         model: 'SJCGQ13LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara E1 water leak sensor',
-        fromZigbee: [fz.ias_water_leak_alarm_1, xiaomi.fromZigbee.aqara_opple, fz.battery],
+        vendor: 'Aqara',
+        description: 'Water leak sensor E1',
+        fromZigbee: [fz.ias_water_leak_alarm_1, lumi.fromZigbee.lumi_specific, fz.battery],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery(), e.battery_low(), e.battery_voltage(), e.device_temperature(), e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
@@ -545,24 +546,24 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.airm.fhac01'],
         model: 'KQJCMB11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara air monitoring panel S1',
+        vendor: 'Aqara',
+        description: 'Air monitoring panel S1',
         fromZigbee: [fz.temperature, fz.humidity, fzLocal.aqara_s1_pm25, fzLocal.aqara_s1_co2],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.pm25(), e.co2()],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.magnet.acn001'],
         model: 'MCCGQ14LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara E1 door & window contact sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, xiaomi.fromZigbee.aqara_opple, fz.battery],
+        vendor: 'Aqara',
+        description: 'Door and window sensor E1',
+        fromZigbee: [fz.ias_contact_alarm_1, lumi.fromZigbee.lumi_specific, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.contact(), e.battery(), e.battery_low(), e.battery_voltage()],
@@ -571,15 +572,15 @@ const definitions: Definition[] = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
         // OTA request: "fieldControl":0, "manufacturerCode":4447, "imageType":10635
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.magnet.ac01'],
         model: 'MCCGQ13LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara P1 door & window contact sensor',
-        fromZigbee: [fz.xiaomi_contact, fz.ias_contact_alarm_1, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tzLocal.aqara_detection_distance],
+        vendor: 'Aqara',
+        description: 'Door and window sensor P1',
+        fromZigbee: [fz.lumi_contact, fz.ias_contact_alarm_1, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tzLocal.lumi_detection_distance],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage(),
             e.tamper(),
@@ -590,12 +591,12 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.dimmer.rcbac1'],
         model: 'ZNDDMK11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart lightstrip driver',
+        vendor: 'Aqara',
+        description: 'Smart lightstrip driver',
         fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
-            fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple]),
+            fz.lumi_power, lumi.fromZigbee.lumi_specific]),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
-            tz.xiaomi_dimmer_mode, tz.xiaomi_switch_power_outage_memory]),
+            tz.lumi_dimmer_mode, tz.lumi_switch_power_outage_memory]),
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -607,30 +608,31 @@ const definitions: Definition[] = [
             e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('l2'),
             e.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct'])
                 .withDescription('Switch between rgbw mode or dual color temperature mode')],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.aqcn02'],
         model: 'ZNLDP12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart LED bulb',
-        extend: [xiaomiLight({colorTemp: true, powerOutageMemory: 'light'}), xiaomiZigbeeOTA()],
+        vendor: 'Aqara',
+        description: 'Light bulb',
+        extend: [lumiLight({colorTemp: true, powerOutageMemory: 'light'}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.acn003'],
         model: 'ZNXDD01LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara ceiling light L1-350',
-        extend: [xiaomiLight({colorTemp: true}), xiaomiZigbeeOTA()],
+        vendor: 'Aqara',
+        description: 'Ceiling light L1-350',
+        extend: [lumiLight({colorTemp: true}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.cwac02', 'lumi.light.acn014'],
         model: 'ZNLDP13LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 smart LED bulb',
+        vendor: 'Aqara',
+        description: 'Light bulb T1',
+        whiteLabel: [{vendor: 'Aqara', model: 'LEDLBT1-L01'}],
         extend: [
-            xiaomiZigbeeOTA(),
-            xiaomiLight({colorTemp: true}),
+            lumiZigbeeOTA(),
+            lumiLight({colorTemp: true}),
             forceDeviceType({type: 'Router'}),
             forcePowerSource({powerSource: 'Mains (single phase)'}),
         ],
@@ -638,50 +640,53 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.light.cwopcn01'],
         model: 'XDD11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara Opple MX960',
+        vendor: 'Aqara',
+        description: 'Opple MX960',
         meta: {turnsOffAtBrightness1: true},
-        extend: [xiaomiLight({colorTemp: true}), xiaomiZigbeeOTA()],
+        extend: [lumiLight({colorTemp: true}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.cwopcn02'],
         model: 'XDD12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara Opple MX650',
+        vendor: 'Aqara',
+        description: 'Opple MX650',
         meta: {turnsOffAtBrightness1: true},
-        extend: [xiaomiZigbeeOTA(), xiaomiLight({colorTemp: true})],
+        extend: [lumiZigbeeOTA(), lumiLight({colorTemp: true})],
     },
     {
         zigbeeModel: ['lumi.light.cwopcn03'],
         model: 'XDD13LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara Opple MX480',
+        vendor: 'Aqara',
+        description: 'Opple MX480',
         meta: {turnsOffAtBrightness1: true},
-        extend: [xiaomiLight({colorTemp: true}), xiaomiZigbeeOTA()],
+        extend: [lumiLight({colorTemp: true}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn01'],
         model: 'JWSP001A',
-        vendor: 'Xiaomi',
+        vendor: 'Aqara',
         description: 'Jiawen LED Driver & Dimmer',
-        extend: [xiaomiLight({colorTemp: true})],
+        extend: [lumiLight({colorTemp: true})],
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn02'],
         model: 'JWDL001A',
-        vendor: 'Xiaomi',
-        description: 'Aqara embedded spot led light',
-        extend: [xiaomiLight({colorTemp: true})],
+        vendor: 'Aqara',
+        description: 'Embedded spot led light',
+        extend: [lumiLight({colorTemp: true})],
     },
     {
         zigbeeModel: ['lumi.sensor_switch'],
         model: 'WXKG01LM',
         vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4040GL'}, {vendor: 'Xiaomi', model: 'YTC4006CN'},
-            {vendor: 'Xiaomi', model: 'YTC4017CN'}, {vendor: 'Xiaomi', model: 'ZHTZ02LM'}],
-        description: 'MiJia wireless switch',
+        whiteLabel: [
+            {vendor: 'Xiaomi', model: 'YTC4040GL'},
+            {vendor: 'Xiaomi', model: 'YTC4006CN'},
+            {vendor: 'Xiaomi', model: 'YTC4017CN'},
+            {vendor: 'Xiaomi', model: 'ZHTZ02LM'}],
+        description: 'Mi wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_WXKG01LM_action, legacy.fz.WXKG01LM_click],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_WXKG01LM_action, legacy.fz.WXKG01LM_click],
         exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release', 'many']), e.battery_voltage(),
             e.power_outage_count(false)],
         toZigbee: [],
@@ -689,54 +694,54 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.sensor_switch.aq2', 'lumi.remote.b1acn01'],
         model: 'WXKG11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara wireless switch',
+        vendor: 'Aqara',
+        description: 'Wireless mini switch',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release']),
             e.device_temperature(), e.power_outage_count()],
-        fromZigbee: [fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, xiaomi.fromZigbee.xiaomi_basic,
-            legacy.fz.WXKG11LM_click, legacy.fz.xiaomi_action_click_multistate],
+        fromZigbee: [fz.lumi_multistate_action, fz.lumi_WXKG11LM_action, lumi.fromZigbee.lumi_basic,
+            legacy.fz.WXKG11LM_click, legacy.fz.lumi_action_click_multistate],
         toZigbee: [],
     },
     {
         zigbeeModel: ['lumi.sensor_switch.aq3', 'lumi.sensor_swit'],
         model: 'WXKG12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara wireless switch (with gyroscope)',
+        vendor: 'Aqara',
+        description: 'Wireless mini switch (with gyroscope)',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.action(['single', 'double', 'hold', 'release', 'shake']), e.battery_voltage()],
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_multistate_action, legacy.fz.WXKG12LM_action_click_multistate],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_multistate_action, legacy.fz.WXKG12LM_action_click_multistate],
         toZigbee: [],
     },
     {
         zigbeeModel: ['lumi.sensor_86sw1'],
         model: 'WXKG03LM_rev1',
-        vendor: 'Xiaomi',
-        description: 'Aqara single key wireless wall switch (2016 model)',
+        vendor: 'Aqara',
+        description: 'Wireless remote switch (single rocker), 2016 model',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.action(['single']), e.battery_voltage()],
-        fromZigbee: [fz.xiaomi_on_off_action, xiaomi.fromZigbee.xiaomi_basic, legacy.fz.WXKG03LM_click],
+        fromZigbee: [fz.lumi_on_off_action, lumi.fromZigbee.lumi_basic, legacy.fz.WXKG03LM_click],
         toZigbee: [],
         onEvent: preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b186acn01'],
         model: 'WXKG03LM_rev2',
-        vendor: 'Xiaomi',
-        description: 'Aqara single key wireless wall switch (2018 model)',
+        vendor: 'Aqara',
+        description: 'Wireless remote switch (single rocker), 2018 model',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.action(['single', 'double', 'hold']), e.battery_voltage()],
-        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, xiaomi.fromZigbee.xiaomi_basic,
-            legacy.fz.WXKG03LM_click, legacy.fz.xiaomi_action_click_multistate],
+        fromZigbee: [fz.lumi_on_off_action, fz.lumi_multistate_action, lumi.fromZigbee.lumi_basic,
+            legacy.fz.WXKG03LM_click, legacy.fz.lumi_action_click_multistate],
         toZigbee: [],
         onEvent: preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b186acn02'],
         model: 'WXKG06LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara D1 single key wireless wall switch',
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_on_off_action, fz.xiaomi_multistate_action],
+        vendor: 'Aqara',
+        description: 'Wireless remote switch D1 (single rocker)',
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_on_off_action, fz.lumi_multistate_action],
         toZigbee: [],
         exposes: [e.battery(),
             e.action(['single', 'double', 'hold']),
@@ -755,12 +760,12 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.light.acn132'],
         model: 'LGYCDD01LM',
-        vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'RLS-K01D'}],
-        description: 'Aqara Zigbee 3.0 LED strip T1',
+        vendor: 'Aqara',
+        whiteLabel: [{vendor: 'Aqara', model: 'RLS-K01D'}],
+        description: 'Light strip T1',
         extend: [
             light({effect: false, powerOnBehavior: false, colorTemp: {startup: false, range: [153, 370]}, color: true}),
-            xiaomiPowerOnBehavior(),
+            lumiPowerOnBehavior(),
             numeric({
                 name: 'length',
                 valueMin: 1,
@@ -768,7 +773,7 @@ const definitions: Definition[] = [
                 valueStep: 0.2,
                 scale: 5,
                 unit: 'm',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x051b, type: 0x20},
                 description: 'LED strip length',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -778,7 +783,7 @@ const definitions: Definition[] = [
                 valueMin: 0,
                 valueMax: 99,
                 unit: '%',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0515, type: 0x20},
                 description: 'Minimum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -788,7 +793,7 @@ const definitions: Definition[] = [
                 valueMin: 1,
                 valueMax: 100,
                 unit: '%',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0516, type: 0x20},
                 description: 'Maximum brightness level',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -797,7 +802,7 @@ const definitions: Definition[] = [
                 name: 'audio',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x051c, type: 0x20},
                 description: 'Enabling audio',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -805,7 +810,7 @@ const definitions: Definition[] = [
             enumLookup({
                 name: 'audio_sensitivity',
                 lookup: {'low': 0, 'medium': 1, 'high': 2},
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x051e, type: 0x20},
                 description: 'Audio sensitivity',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -813,7 +818,7 @@ const definitions: Definition[] = [
             enumLookup({
                 name: 'audio_effect',
                 lookup: {'random': 0, 'blink': 1, 'rainbow': 2, 'wave': 3},
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x051d, type: 0x23},
                 description: 'Audio effect',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -822,7 +827,7 @@ const definitions: Definition[] = [
                 name: 'preset',
                 valueMin: 1,
                 valueMax: 32,
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x051f, type: 0x23},
                 description: 'Preset index (0-6 default presets)',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -831,34 +836,34 @@ const definitions: Definition[] = [
                 name: 'speed',
                 valueMin: 1,
                 valueMax: 100,
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0520, type: 0x20},
                 description: 'Effect speed',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            xiaomiZigbeeOTA(),
+            lumiZigbeeOTA(),
         ],
     },
     {
         zigbeeModel: ['lumi.sensor_86sw2', 'lumi.sensor_86sw2.es1'],
         model: 'WXKG02LM_rev1',
-        vendor: 'Xiaomi',
-        description: 'Aqara double key wireless wall switch (2016 model)',
+        vendor: 'Aqara',
+        description: 'Wireless remote switch (double rocker), 2016 model',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both']), e.battery_voltage(), e.power_outage_count(false)],
-        fromZigbee: [fz.xiaomi_on_off_action, xiaomi.fromZigbee.xiaomi_basic, legacy.fz.WXKG02LM_click],
+        fromZigbee: [fz.lumi_on_off_action, lumi.fromZigbee.lumi_basic, legacy.fz.WXKG02LM_click],
         toZigbee: [],
         onEvent: preventReset,
     },
     {
         zigbeeModel: ['lumi.remote.b286acn01'],
         model: 'WXKG02LM_rev2',
-        vendor: 'Xiaomi',
-        description: 'Aqara double key wireless wall switch (2018 model)',
+        vendor: 'Aqara',
+        description: 'Wireless remote switch (double rocker), 2018 model',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
             'hold_left', 'hold_right', 'hold_both']), e.battery_voltage()],
-        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, xiaomi.fromZigbee.xiaomi_basic,
+        fromZigbee: [fz.lumi_on_off_action, fz.lumi_multistate_action, lumi.fromZigbee.lumi_basic,
             legacy.fz.WXKG02LM_click, legacy.fz.WXKG02LM_click_multistate],
         toZigbee: [],
         onEvent: preventReset,
@@ -866,11 +871,11 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.switch.b1laus01'],
         model: 'WS-USC01',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch (no neutral, single rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple,
-            tz.xiaomi_flip_indicator_light, tz.aqara_switch_mode_switch, tz.xiaomi_switch_power_outage_memory],
+        vendor: 'Aqara',
+        description: 'Smart wall switch (no neutral, single rocker), US',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple,
+            tz.lumi_flip_indicator_light, tz.lumi_switch_mode_switch, tz.lumi_switch_power_outage_memory],
         exposes: [e.switch(), e.action(['single', 'double']),
             e.flip_indicator_light(), e.power_outage_memory(),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
@@ -882,19 +887,19 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2laus01'],
         model: 'WS-USC02',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch (no neutral, double rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
+        vendor: 'Aqara',
+        description: 'Smart wall switch (no neutral, double rocker), US',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
         toZigbee: [
-            tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_flip_indicator_light,
-            tz.xiaomi_switch_power_outage_memory, tz.aqara_switch_mode_switch],
+            tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_flip_indicator_light,
+            tz.lumi_switch_power_outage_memory, tz.lumi_switch_mode_switch],
         exposes: [
             e.switch().withEndpoint('top'),
             e.switch().withEndpoint('bottom'),
@@ -921,19 +926,19 @@ const definitions: Definition[] = [
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write(
-                'aqaraOpple', {mode: 1}, {manufacturerCode: 0x115f, disableResponse: true},
+                'manuSpecificLumi', {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true},
             );
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b1naus01'],
         model: 'WS-USC03',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch (neutral, single rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch (with neutral, single rocker), US',
+        fromZigbee: [fz.on_off, fz.lumi_power, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_power, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light],
         exposes: [e.switch(), e.action(['single', 'double']), e.flip_indicator_light(), e.power_outage_count(),
             e.device_temperature().withAccess(ea.STATE),
             e.power().withAccess(ea.STATE_GET), e.energy(), e.voltage(), e.power_outage_memory(),
@@ -943,19 +948,19 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2naus01'],
         model: 'WS-USC04',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch (neutral, double rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
+        vendor: 'Aqara',
+        description: 'Smart wall switch (with neutral, double rocker), US',
+        fromZigbee: [fz.on_off, fz.lumi_power, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
         toZigbee: [
-            tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light],
+            tz.on_off, tz.lumi_power, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light],
         exposes: [
             e.switch().withEndpoint('top'),
             e.switch().withEndpoint('bottom'),
@@ -980,19 +985,19 @@ const definitions: Definition[] = [
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write(
-                'aqaraOpple', {mode: 1}, {manufacturerCode: 0x115f, disableResponse: true},
+                'manuSpecificLumi', {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true},
             );
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.l2acn1'],
         model: 'QBKG28LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1 Pro (no neutral, double rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1 Pro (no neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light, tz.lumi_led_disabled_night],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -1006,18 +1011,18 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n1acn1'],
         model: 'QBKG30LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1 Pro (with neutral, single rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple, fz.xiaomi_multistate_action],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1 Pro (with neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_specific, fz.lumi_multistate_action],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_flip_indicator_light],
         exposes: [e.switch(), e.power(), e.energy(), e.voltage(),
             e.device_temperature(), e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
             e.action(['single', 'double']),
@@ -1025,20 +1030,20 @@ const definitions: Definition[] = [
                 .withDescription('Decoupled mode'),
             e.power_outage_count()],
         onEvent: preventReset,
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n2acn1'],
         model: 'QBKG31LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1 Pro (with neutral, double rocker)',
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1 Pro (with neutral, double rocker)',
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple, fz.xiaomi_multistate_action],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_specific, fz.lumi_multistate_action],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_flip_indicator_light],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power(), e.energy(), e.voltage(),
             e.device_temperature(), e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
             e.action([
@@ -1050,20 +1055,20 @@ const definitions: Definition[] = [
                 .withDescription('Decoupled mode for right button').withEndpoint('right'),
             e.power_outage_count()],
         onEvent: preventReset,
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n3acn1'],
         model: 'QBKG32LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1 Pro (with neutral, triple rocker)',
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1 Pro (with neutral, triple rocker)',
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple, fz.xiaomi_multistate_action],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_specific, fz.lumi_multistate_action],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_flip_indicator_light],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.switch().withEndpoint('center'),
             e.power(), e.energy(), e.voltage(), e.device_temperature(), e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
             e.action([
@@ -1079,16 +1084,16 @@ const definitions: Definition[] = [
                 .withDescription('Decoupled mode for center button').withEndpoint('center'),
             e.power_outage_count()],
         onEvent: preventReset,
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.l1aeu1'],
         model: 'WS-EUK01',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1 EU (no neutral, single rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night, tz.aqara_switch_mode_switch],
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1 EU (no neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light, tz.lumi_led_disabled_night, tz.lumi_switch_mode_switch],
         exposes: [e.switch(), e.action(['single', 'double']), e.power_outage_memory(), e.flip_indicator_light(),
             e.led_disabled_night(), e.power_outage_count(), e.device_temperature().withAccess(ea.STATE),
             e.operation_mode_select(['control_relay', 'decoupled']).withDescription('Switches between direct relay control and action sending only'),
@@ -1099,17 +1104,17 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
     },
     {
         zigbeeModel: ['lumi.switch.l2aeu1'],
         model: 'WS-EUK02',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1 EU (no neutral, double rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night, tz.aqara_switch_mode_switch],
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1 EU (no neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light, tz.lumi_led_disabled_night, tz.lumi_switch_mode_switch],
         meta: {multiEndpoint: true},
         endpoint: (_device) => {
             return {'left': 1, 'right': 2};
@@ -1129,17 +1134,17 @@ const definitions: Definition[] = [
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both'])],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
     },
     {
         zigbeeModel: ['lumi.switch.l3acn1'],
         model: 'QBKG29LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1 EU (no neutral, triple rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night, tz.aqara_switch_mode_switch],
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1 (no neutral, triple rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light, tz.lumi_led_disabled_night, tz.lumi_switch_mode_switch],
         meta: {multiEndpoint: true},
         endpoint: (device) => ({left: 1, center: 2, right: 3}),
         exposes: [
@@ -1167,17 +1172,17 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
     },
     {
         zigbeeModel: ['lumi.switch.n1aeu1'],
         model: 'WS-EUK03',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1 EU (with neutral, single rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1 EU (with neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_power, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_power, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light, tz.lumi_led_disabled_night],
         exposes: [e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE_GET), e.energy(), e.flip_indicator_light(),
             e.power_outage_memory(), e.device_temperature().withAccess(ea.STATE), e.led_disabled_night(), e.power_outage_count(),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
@@ -1185,18 +1190,18 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n2aeu1'],
         model: 'WS-EUK04',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1 EU (with neutral, double rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1 EU (with neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_power, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_power, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light, tz.lumi_led_disabled_night],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -1213,22 +1218,22 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral1'],
         model: 'QBKG04LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
-        fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, legacy.fz.QBKG04LM_QBKG11LM_click,
-            fz.xiaomi_operation_mode_basic],
+        vendor: 'Aqara',
+        description: 'Smart wall switch (no neutral, single rocker)',
+        fromZigbee: [fz.lumi_on_off_ignore_endpoint_4_5_6, fz.lumi_on_off_action, legacy.fz.QBKG04LM_QBKG11LM_click,
+            fz.lumi_operation_mode_basic],
         exposes: [
             e.switch(), e.action(['release', 'hold', 'double', 'single', 'hold_release']),
             e.enum('operation_mode', ea.STATE_SET, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
         ],
-        toZigbee: [tz.on_off, {...tz.xiaomi_switch_operation_mode_basic, convertGet: null}],
+        toZigbee: [tz.on_off, {...tz.lumi_switch_operation_mode_basic, convertGet: null}],
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
@@ -1238,28 +1243,28 @@ const definitions: Definition[] = [
             device.type = 'EndDevice';
             device.save();
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.ctrl_ln1.aq1', 'lumi.ctrl_ln1'],
         model: 'QBKG11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara single key wired wall switch',
-        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_on_off_ignore_endpoint_4_5_6,
-            legacy.fz.QBKG04LM_QBKG11LM_click, xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_operation_mode_basic,
-            legacy.fz.QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power],
+        vendor: 'Aqara',
+        description: 'Smart wall switch (with neutral, single rocker)',
+        fromZigbee: [fz.lumi_on_off_action, fz.lumi_multistate_action, fz.lumi_on_off_ignore_endpoint_4_5_6,
+            legacy.fz.QBKG04LM_QBKG11LM_click, lumi.fromZigbee.lumi_basic, fz.lumi_operation_mode_basic,
+            legacy.fz.QBKG11LM_click, fz.ignore_multistate_report, fz.lumi_power],
         exposes: [
             e.switch(), e.power().withAccess(ea.STATE_GET), e.device_temperature(), e.energy(),
             e.action(['single', 'double', 'release', 'hold']),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
         ],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_basic, tz.lumi_power],
         endpoint: (device) => {
             return {'system': 1};
         },
         onEvent: preventReset,
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -1268,10 +1273,10 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
         model: 'QBKG03LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
-        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_on_off_ignore_endpoint_4_5_6, legacy.fz.QBKG03LM_QBKG12LM_click,
-            legacy.fz.QBKG03LM_buttons, fz.xiaomi_operation_mode_basic, xiaomi.fromZigbee.xiaomi_basic],
+        vendor: 'Aqara',
+        description: 'Smart wall switch (no neutral, double rocker)',
+        fromZigbee: [fz.lumi_on_off_action, fz.lumi_on_off_ignore_endpoint_4_5_6, legacy.fz.QBKG03LM_QBKG12LM_click,
+            legacy.fz.QBKG03LM_buttons, fz.lumi_operation_mode_basic, lumi.fromZigbee.lumi_basic],
         exposes: [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
@@ -1287,7 +1292,7 @@ const definitions: Definition[] = [
                 .withEndpoint('right')
                 .withCategory('config'),
         ],
-        toZigbee: [tz.on_off, {...tz.xiaomi_switch_operation_mode_basic, convertGet: null}, tz.xiaomi_power],
+        toZigbee: [tz.on_off, {...tz.lumi_switch_operation_mode_basic, convertGet: null}, tz.lumi_power],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
@@ -1298,16 +1303,16 @@ const definitions: Definition[] = [
             device.type = 'EndDevice';
             device.save();
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.ctrl_ln2.aq1', 'lumi.ctrl_ln2'],
         model: 'QBKG12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara double key wired wall switch',
-        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_on_off_ignore_endpoint_4_5_6,
-            legacy.fz.QBKG03LM_QBKG12LM_click, xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_operation_mode_basic, legacy.fz.QBKG12LM_click,
-            fz.xiaomi_power],
+        vendor: 'Aqara',
+        description: 'Smart wall switch (with neutral, double rocker)',
+        fromZigbee: [fz.lumi_on_off_action, fz.lumi_multistate_action, fz.lumi_on_off_ignore_endpoint_4_5_6,
+            legacy.fz.QBKG03LM_QBKG12LM_click, lumi.fromZigbee.lumi_basic, fz.lumi_operation_mode_basic, legacy.fz.QBKG12LM_click,
+            fz.lumi_power],
         exposes: [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
@@ -1323,12 +1328,12 @@ const definitions: Definition[] = [
                 .withEndpoint('right'),
         ],
         meta: {multiEndpoint: true},
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_basic, tz.lumi_power],
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
         },
         onEvent: preventReset,
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -1337,10 +1342,10 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.remote.b286acn02'],
         model: 'WXKG07LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara D1 double key wireless wall switch',
+        vendor: 'Aqara',
+        description: 'Wireless remote switch D1 (double rocker)',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, legacy.fz.xiaomi_on_off_action, legacy.fz.xiaomi_multistate_action],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, legacy.fz.lumi_on_off_action, legacy.fz.lumi_multistate_action],
         toZigbee: [],
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
@@ -1354,16 +1359,16 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.switch.b1lacn02'],
         model: 'QBKG21LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara D1 single gang smart wall switch (no neutral wire)',
-        fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, legacy.fz.QBKG04LM_QBKG11LM_click,
-            fz.xiaomi_operation_mode_basic],
+        vendor: 'Aqara',
+        description: 'Smart wall switch D1 (no neutral, single rocker)',
+        fromZigbee: [fz.lumi_on_off_ignore_endpoint_4_5_6, fz.lumi_on_off_action, legacy.fz.QBKG04LM_QBKG11LM_click,
+            fz.lumi_operation_mode_basic],
         exposes: [
             e.switch(), e.action(['release', 'hold', 'double', 'single', 'hold_release']),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
         ],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_basic],
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
@@ -1378,10 +1383,10 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.switch.b2lacn02'],
         model: 'QBKG22LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara D1 2 gang smart wall switch (no neutral wire)',
-        fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, legacy.fz.QBKG03LM_QBKG12LM_click,
-            legacy.fz.QBKG03LM_buttons, fz.xiaomi_operation_mode_basic],
+        vendor: 'Aqara',
+        description: 'Smart wall switch D1 (no neutral, double rocker)',
+        fromZigbee: [fz.lumi_on_off_ignore_endpoint_4_5_6, fz.lumi_on_off_action, legacy.fz.QBKG03LM_QBKG12LM_click,
+            legacy.fz.QBKG03LM_buttons, fz.lumi_operation_mode_basic],
         exposes: [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
@@ -1394,7 +1399,7 @@ const definitions: Definition[] = [
                 .withDescription('Operation mode for right button')
                 .withEndpoint('right'),
         ],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_basic],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
@@ -1409,11 +1414,11 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.switch.l3acn3'],
         model: 'QBKG25LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
-            tz.aqara_switch_mode_switch, tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch D1 (no neutral, triple rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory, tz.lumi_led_disabled_night,
+            tz.lumi_switch_mode_switch, tz.lumi_flip_indicator_light],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -1441,15 +1446,15 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n3acn3'],
         model: 'QBKG26LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara D1 3 gang smart wall switch (with neutral wire)',
+        vendor: 'Aqara',
+        description: 'Smart wall switch D1 (with neutral, triple rocker)',
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
@@ -1468,26 +1473,26 @@ const definitions: Definition[] = [
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
                 'single_center_right', 'double_center_right', 'single_all', 'double_all']),
         ],
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple, fz.xiaomi_multistate_action],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_specific, fz.lumi_multistate_action],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_flip_indicator_light],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
         onEvent: preventReset,
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b1nacn02'],
         model: 'QBKG23LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara D1 1 gang smart wall switch (with neutral wire)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_multistate_action],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_basic],
+        vendor: 'Aqara',
+        description: 'Smart wall switch D1 (with neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_basic, fz.lumi_multistate_action],
+        toZigbee: [tz.on_off, tz.lumi_power, tz.lumi_switch_operation_mode_basic],
         endpoint: (device) => {
             return {'system': 1};
         },
@@ -1504,15 +1509,15 @@ const definitions: Definition[] = [
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn02'],
         model: 'QBKG24LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara D1 2 gang smart wall switch (with neutral wire)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.xiaomi_operation_mode_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_basic],
+        vendor: 'Aqara',
+        description: 'Smart wall switch D1 (with neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_power, fz.lumi_multistate_action, fz.lumi_operation_mode_basic],
+        toZigbee: [tz.on_off, tz.lumi_power, tz.lumi_switch_operation_mode_basic],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
@@ -1533,16 +1538,16 @@ const definitions: Definition[] = [
                 .withEndpoint('right'),
         ],
         onEvent: preventReset,
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2lacn01'],
         model: 'QBKG18LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 double rocker without neutral',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch T1 (no neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_power, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_flip_indicator_light],
         exposes: [
             e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE), e.energy(),
             e.voltage(), e.device_temperature().withAccess(ea.STATE),
@@ -1551,16 +1556,16 @@ const definitions: Definition[] = [
                 .withDescription('Decoupled mode for left button'),
         ],
         onEvent: preventReset,
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b1nacn01'],
         model: 'QBKG19LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch T1 (with neutral, single rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch T1 (with neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_power, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_flip_indicator_light],
         exposes: [
             e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE), e.energy(),
             e.voltage(), e.device_temperature().withAccess(ea.STATE),
@@ -1569,18 +1574,18 @@ const definitions: Definition[] = [
                 .withDescription('Decoupled mode for left button'),
         ],
         onEvent: preventReset,
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn01'],
         model: 'QBKG20LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch T1 (with neutral, double rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch T1 (with neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_power, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_flip_indicator_light],
         meta: {multiEndpoint: true},
-        extend: [forceDeviceType({type: 'Router'}), forcePowerSource({powerSource: 'Mains (single phase)'}), xiaomiZigbeeOTA()],
+        extend: [forceDeviceType({type: 'Router'}), forcePowerSource({powerSource: 'Mains (single phase)'}), lumiZigbeeOTA()],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -1602,11 +1607,11 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.switch.b3n01'],
         model: 'QBKG34LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch T1 (with neutral, three rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch T1 (with neutral, three rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_power, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_flip_indicator_light],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -1631,27 +1636,30 @@ const definitions: Definition[] = [
                 .withEndpoint('right'),
         ],
         onEvent: preventReset,
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
         model: 'WSDCGQ01LM',
         vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4042GL'}, {vendor: 'Xiaomi', model: 'YTC4007CN'},
-            {vendor: 'Xiaomi', model: 'YTC4018CN'}],
-        description: 'MiJia temperature & humidity sensor',
+        whiteLabel: [
+            {vendor: 'Xiaomi', model: 'YTC4042GL'},
+            {vendor: 'Xiaomi', model: 'YTC4007CN'},
+            {vendor: 'Xiaomi', model: 'YTC4018CN'},
+        ],
+        description: 'Mi temperature and humidity sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_temperature, fz.humidity],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.weather'],
         model: 'WSDCGQ11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara temperature, humidity and pressure sensor',
+        vendor: 'Aqara',
+        description: 'Temperature and humidity sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_temperature, fz.humidity, fz.pressure],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_temperature, fz.humidity, fz.pressure],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1662,9 +1670,10 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.sensor_ht.agl02'],
         model: 'WSDCGQ12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 temperature, humidity and pressure sensor',
-        fromZigbee: [xiaomi.fromZigbee.aqara_opple, fz.temperature, fz.humidity, fz.pressure, fz.battery],
+        vendor: 'Aqara',
+        description: 'Temperature and humidity sensor T1',
+        whiteLabel: [{vendor: 'Aqara', model: 'TH-S02D'}],
+        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.temperature, fz.humidity, fz.pressure, fz.battery],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.pressure(), e.device_temperature(), e.battery(), e.battery_voltage(),
             e.power_outage_count(false)],
@@ -1675,27 +1684,31 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_motion'],
         model: 'RTCGQ01LM',
         vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4041GL'}, {vendor: 'Xiaomi', model: 'YTC4004CN'},
-            {vendor: 'Xiaomi', model: 'YTC4016CN'}, {vendor: 'Xiaomi', model: 'ZHTZ02LM'}],
-        description: 'MiJia human body movement sensor',
+        whiteLabel: [
+            {vendor: 'Xiaomi', model: 'YTC4041GL'},
+            {vendor: 'Xiaomi', model: 'YTC4004CN'},
+            {vendor: 'Xiaomi', model: 'YTC4016CN'},
+            {vendor: 'Xiaomi', model: 'ZHTZ02LM'},
+        ],
+        description: 'Mi motion sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.occupancy_with_timeout],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.occupancy_with_timeout],
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(), e.battery_voltage(), e.power_outage_count(false)],
     },
     {
         zigbeeModel: ['lumi.sensor_motion.aq2'],
         model: 'RTCGQ11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara human body movement and illuminance sensor',
+        vendor: 'Aqara',
+        description: 'Motion sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance],
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(), e.device_temperature(), e.battery_voltage(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'), e.power_outage_count(false)],
@@ -1703,10 +1716,10 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.motion.agl02'],
         model: 'RTCGQ12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 human body movement and illuminance sensor',
-        fromZigbee: [fz.aqara_occupancy_illuminance, xiaomi.fromZigbee.aqara_opple, fz.battery],
-        toZigbee: [tz.aqara_detection_interval],
+        vendor: 'Aqara',
+        description: 'Motion sensor T1',
+        fromZigbee: [fz.lumi_occupancy_illuminance, lumi.fromZigbee.lumi_specific, fz.battery],
+        toZigbee: [tz.lumi_detection_interval],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             e.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
@@ -1716,17 +1729,17 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0102], {manufacturerCode: manufacturerCode});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.agl04'],
         model: 'RTCGQ13LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara high precision motion sensor',
-        fromZigbee: [fz.RTCGQ13LM_occupancy, xiaomi.fromZigbee.aqara_opple, fz.battery],
-        toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
+        vendor: 'Aqara',
+        description: 'High precision motion sensor',
+        fromZigbee: [fz.RTCGQ13LM_occupancy, lumi.fromZigbee.lumi_specific, fz.battery],
+        toZigbee: [tz.lumi_detection_interval, tz.lumi_motion_sensitivity],
         exposes: [e.occupancy(), e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             e.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
                 .withDescription('Time interval for detecting actions'),
@@ -1735,23 +1748,25 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0102], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: manufacturerCode});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.ac02'],
         model: 'RTCGQ14LM',
-        vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'MS-S02'}],
-        description: 'Aqara P1 human body movement and illuminance sensor',
-        fromZigbee: [fz.aqara_occupancy_illuminance, xiaomi.fromZigbee.aqara_opple, fz.battery],
-        toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity, tz.RTCGQ14LM_trigger_indicator],
+        vendor: 'Aqara',
+        whiteLabel: [{vendor: 'Aqara', model: 'MS-S02'}],
+        description: 'Motion sensor P1',
+        fromZigbee: [fz.lumi_occupancy_illuminance, lumi.fromZigbee.lumi_specific, fz.battery],
+        toZigbee: [tz.lumi_detection_interval, tz.lumi_motion_sensitivity, tz.RTCGQ14LM_trigger_indicator],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             e.motion_sensitivity_select(['low', 'medium', 'high'])
                 .withDescription('Select motion sensitivity to use. Press pairing button right before changing this otherwise it will fail.'),
+            e.detection_interval().withDescription('Time interval between action detection. ' +
+                'Press pairing button right before changing this otherwise it will fail.'),
             e.trigger_indicator().withDescription('When this option is enabled then ' +
                 'blue LED will blink once when motion is detected. ' +
                 'Press pairing button right before changing this otherwise it will fail.'),
@@ -1760,19 +1775,19 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0152], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0102], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x0152], {manufacturerCode: manufacturerCode});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.acn001'],
         model: 'RTCGQ15LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara E1 human body movement and illuminance sensor',
-        fromZigbee: [fz.aqara_occupancy_illuminance, xiaomi.fromZigbee.aqara_opple, fz.battery],
-        toZigbee: [tz.aqara_detection_interval],
+        vendor: 'Aqara',
+        description: 'Motion sensor E1',
+        fromZigbee: [fz.lumi_occupancy_illuminance, lumi.fromZigbee.lumi_specific, fz.battery],
+        toZigbee: [tz.lumi_detection_interval],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             e.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
@@ -1782,19 +1797,19 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x0102], {manufacturerCode: manufacturerCode});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.motion.ac01'],
         model: 'RTCZCGQ11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara presence detector FP1',
-        fromZigbee: [xiaomi.fromZigbee.aqara_opple, fzLocal.aqara_fp1_region_events],
+        vendor: 'Aqara',
+        description: 'Presence sensor FP1',
+        fromZigbee: [lumi.fromZigbee.lumi_specific, fzLocal.lumi_presence_region_events],
         toZigbee: [
-            tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance, tz.aqara_motion_sensitivity,
-            tz.RTCZCGQ11LM_reset_nopresence_status, tzLocal.aqara_fp1_region_upsert, tzLocal.aqara_fp1_region_delete,
+            tz.lumi_presence, tz.lumi_monitoring_mode, tz.lumi_approach_distance, tz.lumi_motion_sensitivity,
+            tz.lumi_reset_nopresence_status, tzLocal.lumi_presence_region_upsert, tzLocal.lumi_presence_region_delete,
         ],
         exposes: [
             e.presence().withAccess(ea.STATE_GET), e.device_temperature(), e.power_outage_count(),
@@ -1822,25 +1837,25 @@ const definitions: Definition[] = [
                 )
                 .withFeature(
                     e.numeric('region_id', ea.SET)
-                        .withValueMin(fp1.constants.region_config_regionId_min)
-                        .withValueMax(fp1.constants.region_config_regionId_max),
+                        .withValueMin(presence.constants.region_config_regionId_min)
+                        .withValueMax(presence.constants.region_config_regionId_max),
                 )
                 .withFeature(
                     e.list('zones', ea.SET,
                         e.composite('Zone position', 'zone_position', ea.SET)
                             .withFeature(e.numeric('x', ea.SET)
-                                .withValueMin(fp1.constants.region_config_zoneX_min)
-                                .withValueMax(fp1.constants.region_config_zoneX_max))
+                                .withValueMin(presence.constants.region_config_zoneX_min)
+                                .withValueMax(presence.constants.region_config_zoneX_max))
                             .withFeature(e.numeric('y', ea.SET)
-                                .withValueMin(fp1.constants.region_config_zoneY_min)
-                                .withValueMax(fp1.constants.region_config_zoneY_max)),
+                                .withValueMin(presence.constants.region_config_zoneY_min)
+                                .withValueMax(presence.constants.region_config_zoneY_max)),
                     ).withDescription('list of dictionaries in the format {"x": 1, "y": 1}, {"x": 2, "y": 1}'),
                 ),
             e.composite('region_delete', 'region_delete', ea.SET)
                 .withDescription('Region definition to be deleted from the device.')
                 .withFeature(e.numeric('region_id', ea.SET)
-                    .withValueMin(fp1.constants.region_config_regionId_min)
-                    .withValueMax(fp1.constants.region_config_regionId_max),
+                    .withValueMin(presence.constants.region_config_regionId_min)
+                    .withValueMax(presence.constants.region_config_regionId_max),
                 ),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1848,32 +1863,35 @@ const definitions: Definition[] = [
             device.save();
 
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0142], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0144], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0146], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x0142], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x0144], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x0146], {manufacturerCode: manufacturerCode});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet'],
         model: 'MCCGQ01LM',
         vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4039GL'}, {vendor: 'Xiaomi', model: 'YTC4005CN'},
-            {vendor: 'Xiaomi', model: 'YTC4015CN'}, {vendor: 'Xiaomi', model: 'ZHTZ02LM'}],
-        description: 'MiJia door & window contact sensor',
+        whiteLabel: [
+            {vendor: 'Xiaomi', model: 'YTC4039GL'},
+            {vendor: 'Xiaomi', model: 'YTC4005CN'},
+            {vendor: 'Xiaomi', model: 'YTC4015CN'},
+            {vendor: 'Xiaomi', model: 'ZHTZ02LM'}],
+        description: 'Mi door and window sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_contact],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_contact],
         toZigbee: [],
         exposes: [e.battery(), e.contact(), e.battery_voltage(), e.power_outage_count(false)],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet.aq2'],
         model: 'MCCGQ11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara door & window contact sensor',
+        vendor: 'Aqara',
+        description: 'Door and window sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_contact],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_contact],
         toZigbee: [],
         exposes: [e.battery(), e.contact(), e.device_temperature(), e.battery_voltage(), e.power_outage_count(false)],
         configure: async (device) => {
@@ -1884,31 +1902,33 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.sensor_wleak.aq1'],
         model: 'SJCGQ11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara water leak sensor',
+        vendor: 'Aqara',
+        description: 'Water leak sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.ias_water_leak_alarm_1],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ias_water_leak_alarm_1],
         toZigbee: [],
         exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.device_temperature(), e.power_outage_count(false)],
     },
     {
         zigbeeModel: ['lumi.flood.agl02'],
         model: 'SJCGQ12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 water leak sensor',
+        vendor: 'Aqara',
+        description: 'Water leak sensor T1',
+        whiteLabel: [{vendor: 'Aqara', model: 'WL-S02D'}],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.ias_water_leak_alarm_1],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ias_water_leak_alarm_1, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_cube', 'lumi.sensor_cube.aqgl01'],
         model: 'MFKZQ01LM',
-        vendor: 'Xiaomi',
-        description: 'Mi/Aqara smart home cube',
+        vendor: 'Aqara',
+        description: 'Cube',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'MFKZQ01LM'}],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
         exposes: [e.battery(), e.battery_voltage(), e.angle('action_angle'), e.device_temperature(), e.power_outage_count(false),
             e.cube_side('action_from_side'), e.cube_side('action_side'), e.cube_side('action_to_side'), e.cube_side('side'),
             e.action(['shake', 'throw', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
@@ -1917,65 +1937,65 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.plug'],
         model: 'ZNCZ02LM',
-        description: 'Mi power plug ZigBee',
+        description: 'Mi smart plug',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
+        toZigbee: [tz.on_off, tz.lumi_switch_power_outage_memory, tz.lumi_power],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature(), e.power_outage_memory()],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.mitw01'],
         model: 'ZNCZ03LM',
-        description: 'Mi power plug ZigBee TW',
+        description: 'Mi smart plug TW',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
-        toZigbee: [tz.on_off, tz.xiaomi_power],
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
+        toZigbee: [tz.on_off, tz.lumi_power],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage()],
     },
     {
         zigbeeModel: ['lumi.plug.mmeu01'],
         model: 'ZNCZ04LM',
-        description: 'Mi power plug ZigBee EU',
+        description: 'Mi smart plug EU',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple, fz.ignore_occupancy_report, fz.ignore_illuminance_report,
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_specific, fz.ignore_occupancy_report, fz.ignore_illuminance_report,
             fz.ignore_time_read],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off, tz.xiaomi_led_disabled_night,
-            tz.xiaomi_overload_protection],
+        toZigbee: [tz.on_off, tz.lumi_power, tz.lumi_switch_power_outage_memory, tz.lumi_auto_off, tz.lumi_led_disabled_night,
+            tz.lumi_overload_protection],
         exposes: [
             e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage(), e.current(), e.consumer_connected(), e.led_disabled_night(),
             e.power_outage_memory(), e.auto_off(20),
             e.overload_protection(100, 2300)],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.maus01'],
         model: 'ZNCZ12LM',
-        description: 'Mi power plug ZigBee US',
+        description: 'Mi smart plug US',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple, xiaomi.fromZigbee.xiaomi_basic,
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_basic,
             fz.ignore_occupancy_report, fz.ignore_illuminance_report],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off, tz.xiaomi_led_disabled_night,
-            tz.xiaomi_overload_protection],
+        toZigbee: [tz.on_off, tz.lumi_power, tz.lumi_switch_power_outage_memory, tz.lumi_auto_off, tz.lumi_led_disabled_night,
+            tz.lumi_overload_protection],
         exposes: [
             e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage(), e.current(), e.consumer_connected(), e.led_disabled_night(),
             e.power_outage_memory(), e.auto_off(20),
             e.overload_protection(100, 2300)],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.maeu01'],
         model: 'SP-EUC01',
-        description: 'Aqara EU smart plug',
-        vendor: 'Xiaomi',
-        extend: [forceDeviceType({type: 'Router'}), xiaomiZigbeeOTA()],
-        fromZigbee: [fz.on_off, xiaomi.fromZigbee.xiaomi_basic, fz.electrical_measurement, fz.metering,
-            xiaomi.fromZigbee.aqara_opple, fz.xiaomi_power, fz.device_temperature],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
-            tz.xiaomi_overload_protection, tz.xiaomi_auto_off, tz.xiaomi_socket_button_lock],
+        description: 'Smart plug EU',
+        vendor: 'Aqara',
+        extend: [forceDeviceType({type: 'Router'}), lumiZigbeeOTA()],
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_basic, fz.electrical_measurement, fz.metering,
+            lumi.fromZigbee.lumi_specific, fz.lumi_power, fz.device_temperature],
+        toZigbee: [tz.on_off, tz.lumi_switch_power_outage_memory, tz.lumi_led_disabled_night,
+            tz.lumi_overload_protection, tz.lumi_auto_off, tz.lumi_socket_button_lock],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2032,11 +2052,11 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.plug.aq1'],
         model: 'ZNCZ11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara power plug ZigBee',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.ignore_occupancy_report, xiaomi.fromZigbee.xiaomi_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_led_disabled_night,
-            tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off],
+        vendor: 'Aqara',
+        description: 'Smart plug',
+        fromZigbee: [fz.on_off, fz.lumi_power, fz.ignore_occupancy_report, lumi.fromZigbee.lumi_basic],
+        toZigbee: [tz.on_off, tz.lumi_power, tz.lumi_led_disabled_night,
+            tz.lumi_switch_power_outage_memory, tz.lumi_auto_off],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature(), e.voltage(),
             e.power_outage_memory(), e.led_disabled_night(),
             e.auto_off(30)],
@@ -2045,22 +2065,22 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
         model: 'QBCZ11LM',
-        description: 'Aqara socket Zigbee',
-        vendor: 'Xiaomi',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.xiaomi_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
+        description: 'Smart wall outlet',
+        vendor: 'Aqara',
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_basic],
+        toZigbee: [tz.on_off, tz.lumi_switch_power_outage_memory, tz.lumi_power],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage(), e.power_outage_memory()],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_smoke'],
         model: 'JTYJ-GD-01LM/BW',
-        description: 'MiJia Honeywell smoke detector',
+        description: 'Mijia Honeywell smoke detector',
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4020RT'}],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.JTYJGD01LMBW_smoke],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.JTYJGD01LMBW_smoke],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
         exposes: [
             e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
@@ -2074,7 +2094,7 @@ const definitions: Definition[] = [
         model: 'JTQJ-BF-01LM/BW',
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4019RT'}],
-        description: 'MiJia gas leak detector ',
+        description: 'Mijia Honeywell gas leak detector',
         fromZigbee: [fz.ias_gas_alarm_1, fz.JTQJBF01LMBW_sensitivity, fz.JTQJBF01LMBW_gas_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
         exposes: [
@@ -2090,11 +2110,12 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.sensor_gas.acn02'],
         model: 'JT-BZ-01AQ/A',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart natural gas detector',
-        fromZigbee: [xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.aqara_alarm, tz.aqara_density, tz.JTBZ01AQA_gas_sensitivity, tz.aqara_selftest, tz.aqara_buzzer,
-            tz.aqara_buzzer_manual, tz.aqara_linkage_alarm, tz.JTBZ01AQA_state, tz.aqara_power_outage_count],
+        vendor: 'Aqara',
+        description: 'Smart natural gas detector',
+        whiteLabel: [{vendor: 'Aqara', model: 'JT-BZ-03AQ/A'}],
+        fromZigbee: [lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.lumi_alarm, tz.lumi_density, tz.JTBZ01AQA_gas_sensitivity, tz.lumi_selftest, tz.lumi_buzzer,
+            tz.lumi_buzzer_manual, tz.lumi_linkage_alarm, tz.JTBZ01AQA_state, tz.lumi_power_outage_count],
         exposes: [e.gas().withAccess(ea.STATE_GET),
             e.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
             e.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
@@ -2118,26 +2139,27 @@ const definitions: Definition[] = [
             e.power_outage_count().withAccess(ea.STATE_GET)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {0x014b: {value: 1, type: 0x20}}, {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013b], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013d], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0126], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0139], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x014b], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0002], {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {0x014b: {value: 1, type: 0x20}}, {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x013a], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x013b], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x013d], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x0126], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x0139], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x010c], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x014b], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x0002], {manufacturerCode: manufacturerCode});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sensor_smoke.acn03'],
         model: 'JY-GZ-01AQ',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart smoke detector',
-        fromZigbee: [xiaomi.fromZigbee.aqara_opple, fz.battery],
-        toZigbee: [tz.aqara_alarm, tz.aqara_density, tz.aqara_selftest, tz.aqara_buzzer, tz.aqara_buzzer_manual,
-            tz.JYGZ01AQ_heartbeat_indicator, tz.aqara_linkage_alarm],
+        vendor: 'Aqara',
+        description: 'Smart smoke detector',
+        whiteLabel: [{vendor: 'Aqara', model: 'JY-GZ-03AQ'}],
+        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.battery],
+        toZigbee: [tz.lumi_alarm, tz.lumi_density, tz.lumi_selftest, tz.lumi_buzzer, tz.lumi_buzzer_manual,
+            tz.JYGZ01AQ_heartbeat_indicator, tz.lumi_linkage_alarm],
         exposes: [e.smoke().withAccess(ea.STATE_GET),
             e.numeric('smoke_density', ea.STATE_GET).withDescription('Value of smoke concentration'),
             e.numeric('smoke_density_dbm', ea.STATE_GET).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
@@ -2161,33 +2183,33 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {0x014b: {value: 1, type: 0x20}}, {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {0x014b: {value: 1, type: 0x20}}, {manufacturerCode: manufacturerCode});
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013b], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013c], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x013d], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0126], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x014b], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x013a], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x013b], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x013c], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x013d], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x0126], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x014b], {manufacturerCode: manufacturerCode});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.lock.v1'],
         model: 'A6121',
         vendor: 'Xiaomi',
         description: 'Vima Smart Lock',
-        fromZigbee: [fz.xiaomi_lock_report],
+        fromZigbee: [fz.lumi_lock_report],
         exposes: [e.text('inserted', ea.STATE)],
         toZigbee: [],
     },
     {
         zigbeeModel: ['lumi.vibration.aq1'],
         model: 'DJT11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara vibration sensor',
+        vendor: 'Aqara',
+        description: 'Vibration sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.DJT11LM_vibration],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.DJT11LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [
             e.battery(), e.device_temperature(), e.vibration(), e.action(['vibration', 'tilt', 'drop']),
@@ -2199,20 +2221,20 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.vibration.agl01'],
         model: 'DJT12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 vibration sensor',
+        vendor: 'Aqara',
+        description: 'Vibration sensor T1',
         fromZigbee: [fz.DJT12LM_vibration],
         exposes: [e.action(['vibration'])],
         toZigbee: [],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain'],
         model: 'ZNCLDJ11LM',
-        description: 'Aqara curtain motor',
-        vendor: 'Xiaomi',
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
-        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        description: 'Curtain controller',
+        vendor: 'Aqara',
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_curtain_position, fz.lumi_curtain_position_tilt],
+        toZigbee: [tz.lumi_curtain_position_state, tz.lumi_curtain_options],
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'genBasic' &&
                 data.data.hasOwnProperty('1028') && data.data['1028'] == 0) {
@@ -2226,40 +2248,40 @@ const definitions: Definition[] = [
                 .withDescription('Whether the motor is moving or not'),
             e.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
                 .withDescription('Motor state')],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain.aq2'],
         model: 'ZNGZDJ11LM',
-        description: 'Aqara roller shade motor',
-        vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'SRSC-M01'}],
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
-        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        description: 'Roller shade controller',
+        vendor: 'Aqara',
+        whiteLabel: [{vendor: 'Aqara', model: 'SRSC-M01'}],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_curtain_position, fz.lumi_curtain_position_tilt],
+        toZigbee: [tz.lumi_curtain_position_state, tz.lumi_curtain_options],
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not')],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain.vagl02'],
         model: 'ZNGZDJ16LM',
-        description: 'Aqara roller shade motor T1C',
-        vendor: 'Xiaomi',
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
-        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        description: 'Roller shade controller T1C',
+        vendor: 'Aqara',
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_curtain_position, fz.lumi_curtain_position_tilt],
+        toZigbee: [tz.lumi_curtain_position_state, tz.lumi_curtain_options],
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not')],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain.hagl04'],
         model: 'ZNCLDJ12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara B1 curtain motor',
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt, fz.xiaomi_curtain_hagl04_status],
-        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        vendor: 'Aqara',
+        description: 'Curtain controller B1',
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_curtain_position, fz.lumi_curtain_position_tilt, fz.lumi_curtain_hagl04_status],
+        toZigbee: [tz.lumi_curtain_position_state, tz.lumi_curtain_options],
         onEvent: async (type, data, device) => {
             // The position (genAnalogOutput.presentValue) reported via an attribute contains an invalid value
             // however when reading it will provide the correct value.
@@ -2272,15 +2294,15 @@ const definitions: Definition[] = [
                 .withDescription('Whether the motor is moving or not'),
             e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
                 .withDescription('The current state of the motor.'), e.power_outage_count()],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain.hagl07'],
         model: 'ZNCLDJ14LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara C2 curtain motor',
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt, fz.xiaomi_curtain_hagl07_status],
-        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        vendor: 'Aqara',
+        description: 'Curtain controller C2',
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_curtain_position, fz.lumi_curtain_position_tilt, fz.lumi_curtain_hagl07_status],
+        toZigbee: [tz.lumi_curtain_position_state, tz.lumi_curtain_options],
         onEvent: async (type, data, device) => {
             // The position (genAnalogOutput.presentValue) reported via an attribute contains an invalid value
             // however when reading it will provide the correct value.
@@ -2293,16 +2315,16 @@ const definitions: Definition[] = [
                 .withDescription('Whether the motor is moving or not'),
             e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
                 .withDescription('The current state of the motor.'), e.power_outage_count()],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.curtain.acn002'],
         model: 'ZNJLBL01LM',
-        description: 'Aqara roller shade companion E1',
-        vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'RSD-M01'}],
-        fromZigbee: [fz.xiaomi_curtain_position, fz.xiaomi_curtain_acn002_status, fz.ignore_basic_report, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_acn002_battery, tz.xiaomi_curtain_acn002_charging_status],
+        description: 'Roller shade driver E1',
+        vendor: 'Aqara',
+        whiteLabel: [{vendor: 'Aqara', model: 'RSD-M01'}],
+        fromZigbee: [fz.lumi_curtain_position, fz.lumi_curtain_acn002_status, fz.ignore_basic_report, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.lumi_curtain_position_state, tz.lumi_curtain_acn002_battery, tz.lumi_curtain_acn002_charging_status],
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'genMultistateOutput' &&
                 data.data.hasOwnProperty('presentValue') && data.data['presentValue'] > 1) {
@@ -2322,26 +2344,29 @@ const definitions: Definition[] = [
             device.powerSource = 'Battery';
             device.save();
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x040a], {manufacturerCode: manufacturerCode});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         // 'lumi.curtain.acn003' - CN version (ZNCLBL01LM), 'lumi.curtain.agl001' - global version (CM-M01)
         zigbeeModel: ['lumi.curtain.acn003', 'lumi.curtain.agl001'],
         model: 'ZNCLBL01LM',
-        vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'CM-M01'}],
-        description: 'Aqara curtain driver E1',
+        vendor: 'Aqara',
+        whiteLabel: [
+            {vendor: 'Aqara', model: 'CM-M01'},
+            {vendor: 'Aqara', model: 'CM-M01R'},
+        ],
+        description: 'Curtain driver E1',
         fromZigbee: [
             fz.battery,
-            fz.xiaomi_curtain_position_tilt,
-            xiaomi.fromZigbee.aqara_opple,
+            fz.lumi_curtain_position_tilt,
+            lumi.fromZigbee.lumi_specific,
             fz.power_source,
         ],
         toZigbee: [
-            tz.xiaomi_curtain_position_state,
-            tz.xiaomi_curtain_battery_voltage,
+            tz.lumi_curtain_position_state,
+            tz.lumi_curtain_battery_voltage,
             tz.ZNCLBL01LM_hooks_lock,
             tz.ZNCLBL01LM_hooks_state,
             tz.ZNCLBL01LM_hand_open,
@@ -2368,22 +2393,25 @@ const definitions: Definition[] = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            // Read correct version to replace version advertised by `genBasic` and `genOta`:
+            // https://github.com/Koenkk/zigbee2mqtt/issues/15745
+            await endpoint.read('manuSpecificLumi', [0x00EE], {manufacturerCode: manufacturerCode});
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
-            await endpoint.read('aqaraOpple', [0x040B], {manufacturerCode: 0x115f});
-            await endpoint.read('aqaraOpple', [0x0428], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x040B], {manufacturerCode: manufacturerCode});
+            await endpoint.read('manuSpecificLumi', [0x0428], {manufacturerCode: manufacturerCode});
             await endpoint.read('genBasic', ['powerSource']);
             await endpoint.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.relay.c2acn01'],
         model: 'LLKZMK11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara wireless relay controller',
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.xiaomi_power, fz.ignore_multistate_report, fz.on_off, xiaomi.fromZigbee.xiaomi_basic_raw],
+        vendor: 'Aqara',
+        description: 'Dual relay module',
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.lumi_power, fz.ignore_multistate_report, fz.on_off, lumi.fromZigbee.lumi_basic_raw],
         meta: {multiEndpoint: true},
-        toZigbee: [tz.on_off, tz.LLKZMK11LM_interlock, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.LLKZMK11LM_interlock, tz.lumi_power, tz.lumi_switch_power_outage_memory],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -2393,7 +2421,7 @@ const definitions: Definition[] = [
             e.binary('interlock', ea.STATE_SET, true, false)
                 .withDescription('Enabling prevents both relais being on at the same time'),
         ],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -2402,10 +2430,10 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.switch.acn047'],
         model: 'LLKZMK12LM',
-        vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'DCM-K01'}],
-        description: 'Aqara dual relay module T2',
-        fromZigbee: [fz.on_off, xiaomi.fromZigbee.aqara_opple, fz.xiaomi_power],
+        vendor: 'Aqara',
+        whiteLabel: [{vendor: 'Aqara', model: 'DCM-K01'}],
+        description: 'Dual relay module T2',
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_specific, fz.lumi_power],
         toZigbee: [tz.on_off],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -2415,16 +2443,16 @@ const definitions: Definition[] = [
             e.power(), e.current(), e.energy(), e.voltage(), e.device_temperature(),
         ],
         extend: [
-            xiaomiSwitchType(),
-            xiaomiPowerOnBehavior({lookup: {'on': 0, 'previous': 1, 'off': 2, 'toggle': 3}}),
-            xiaomiOperationMode({description: 'Decoupled mode for 1st relay', endpoint: 'l1'}),
-            xiaomiOperationMode({description: 'Decoupled mode for 2nd relay', endpoint: 'l2'}),
-            xiaomiAction({postfixWithEndpointName: true}),
+            lumiSwitchType(),
+            lumiPowerOnBehavior({lookup: {'on': 0, 'previous': 1, 'off': 2, 'toggle': 3}}),
+            lumiOperationMode({description: 'Decoupled mode for 1st relay', endpoint: 'l1'}),
+            lumiOperationMode({description: 'Decoupled mode for 2nd relay', endpoint: 'l2'}),
+            lumiAction({endpointNames: ['l1', 'l2']}),
             binary({
                 name: 'interlock',
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x02d0, type: 0x10},
                 description: 'Enabling prevents both relays being on at the same time (Interlock)',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -2432,7 +2460,7 @@ const definitions: Definition[] = [
             enumLookup({
                 name: 'mode',
                 lookup: {'power': 0, 'pulse': 1, 'dry': 3},
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0289, type: 0x20},
                 description: 'Work mode: Power mode, Dry mode with impulse, Dry mode',
                 zigbeeCommandOptions: {manufacturerCode},
@@ -2442,20 +2470,20 @@ const definitions: Definition[] = [
                 valueMin: 200,
                 valueMax: 2000,
                 unit: 'ms',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x00eb, type: 0x21},
                 description: 'Impulse length in Dry mode with impulse',
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            xiaomiZigbeeOTA(),
+            lumiZigbeeOTA(),
         ],
     },
     {
         zigbeeModel: ['lumi.lock.acn02'],
         model: 'ZNMS12LM',
-        description: 'Aqara S2 lock',
-        vendor: 'Xiaomi',
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ZNMS12LM_low_battery],
+        description: 'Smart door lock S2',
+        vendor: 'Aqara',
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ZNMS12LM_low_battery],
         toZigbee: [],
         exposes: [
             e.battery(), e.battery_voltage(), e.battery_low(), e.binary('state', ea.STATE, 'UNLOCK', 'LOCK'),
@@ -2472,13 +2500,13 @@ const definitions: Definition[] = [
             device.type = 'EndDevice';
             device.save();
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.lock.acn03'],
         model: 'ZNMS13LM',
-        description: 'Aqara S2 lock pro',
-        vendor: 'Xiaomi',
+        description: 'Smart door lock S2 Pro',
+        vendor: 'Aqara',
         fromZigbee: [fz.ZNMS12LM_ZNMS13LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [
@@ -2499,8 +2527,8 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.lock.aq1'],
         model: 'ZNMS11LM',
-        description: 'Xiaomi Aqara smart lock',
-        vendor: 'Xiaomi',
+        description: 'Smart door lock',
+        vendor: 'Aqara',
         fromZigbee: [fz.ZNMS11LM_closuresDoorLock_report, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [
@@ -2512,14 +2540,14 @@ const definitions: Definition[] = [
                 'ring_bell', 'change_language_to', 'finger_open', 'password_open', 'door_closed',
             ]),
         ],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.remote.b286opcn01'],
         model: 'WXCJKG11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara Opple switch 1 band',
-        fromZigbee: [fz.aqara_opple_on, fz.aqara_opple_off, fz.battery, fz.aqara_opple_multistate, xiaomi.fromZigbee.aqara_opple],
+        vendor: 'Aqara',
+        description: 'Opple wireless switch (single band)',
+        fromZigbee: [fz.aqara_opple_on, fz.aqara_opple_off, fz.battery, fz.aqara_opple_multistate, lumi.fromZigbee.lumi_specific],
         exposes: [e.battery(), e.battery_voltage(), e.action([
             'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
@@ -2529,17 +2557,17 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode});
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
         },
     },
     {
         zigbeeModel: ['lumi.remote.b486opcn01'],
         model: 'WXCJKG12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara Opple switch 2 bands',
+        vendor: 'Aqara',
+        description: 'Opple wireless switch (double band)',
         fromZigbee: [fz.aqara_opple_on, fz.aqara_opple_off, fz.aqara_opple_step, fz.aqara_opple_step_color_temp, fz.battery,
-            fz.aqara_opple_multistate, xiaomi.fromZigbee.aqara_opple],
+            fz.aqara_opple_multistate, lumi.fromZigbee.lumi_specific],
         exposes: [e.battery(), e.battery_voltage(), e.action([
             'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
@@ -2551,7 +2579,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode});
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg',
             ]);
@@ -2560,10 +2588,10 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.remote.b686opcn01'],
         model: 'WXCJKG13LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara Opple switch 3 bands',
+        vendor: 'Aqara',
+        description: 'Opple wireless switch (triple band)',
         fromZigbee: [fz.aqara_opple_on, fz.aqara_opple_off, fz.aqara_opple_step, fz.aqara_opple_move, fz.aqara_opple_stop,
-            fz.aqara_opple_step_color_temp, fz.aqara_opple_move_color_temp, fz.battery, fz.aqara_opple_multistate, xiaomi.fromZigbee.aqara_opple],
+            fz.aqara_opple_step_color_temp, fz.aqara_opple_move_color_temp, fz.battery, fz.aqara_opple_multistate, lumi.fromZigbee.lumi_specific],
         exposes: [e.battery(), e.battery_voltage(), e.action([
             'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
@@ -2578,7 +2606,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await endpoint.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode});
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg',
             ]);
@@ -2589,8 +2617,8 @@ const definitions: Definition[] = [
         model: 'GZCGQ01LM',
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4043GL'}],
-        description: 'MiJia light intensity sensor',
-        fromZigbee: [fz.battery, fz.illuminance, xiaomi.fromZigbee.aqara_opple],
+        description: 'Mi light sensor',
+        fromZigbee: [fz.battery, fz.illuminance, lumi.fromZigbee.lumi_specific],
         toZigbee: [tz.illuminance],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2605,50 +2633,50 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.light.acn128'],
         model: 'TDL01LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara spotlight T3',
-        extend: [light({colorTemp: {range: undefined}, color: true}), xiaomiZigbeeOTA()],
+        vendor: 'Aqara',
+        description: 'Spotlight T3',
+        extend: [light({colorTemp: {range: undefined}, color: true}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.rgbac1'],
         model: 'ZNTGMK11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart RGBW light controller',
-        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}}), xiaomiZigbeeOTA()],
+        vendor: 'Aqara',
+        description: 'Smart RGBW light controller',
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.cbacn1'],
         model: 'HLQDQ01LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara zigbee LED-controller ',
-        extend: [light(), xiaomiZigbeeOTA()],
+        vendor: 'Aqara',
+        description: 'Smart LED controller',
+        extend: [light(), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.acn004'],
         model: 'SSWQD02LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart dimmer controller t1 pro',
-        extend: [xiaomiZigbeeOTA(), xiaomiLight({colorTemp: true})],
+        vendor: 'Aqara',
+        description: 'Smart dimmer controller T1 Pro',
+        extend: [lumiZigbeeOTA(), lumiLight({colorTemp: true})],
     },
     {
         zigbeeModel: ['lumi.light.acn026'],
         model: 'SSWQD03LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara spotlight T2',
-        extend: [xiaomiZigbeeOTA(), xiaomiLight({colorTemp: true})],
+        vendor: 'Aqara',
+        description: 'Spotlight T2',
+        extend: [lumiZigbeeOTA(), lumiLight({colorTemp: true})],
     },
     {
         zigbeeModel: ['lumi.switch.n0agl1'],
         model: 'SSM-U01',
-        vendor: 'Xiaomi',
-        description: 'Aqara single switch module T1 (with neutral)',
+        vendor: 'Aqara',
+        description: 'Single switch module T1 (with neutral)',
         // Ignore energy metering reports, rely on aqara_opple: https://github.com/Koenkk/zigbee2mqtt/issues/10709
-        fromZigbee: [fz.on_off, fz.device_temperature, xiaomi.fromZigbee.aqara_opple, fz.ignore_metering, fz.ignore_electrical_measurement,
-            fz.xiaomi_power],
+        fromZigbee: [fz.on_off, fz.device_temperature, lumi.fromZigbee.lumi_specific, fz.ignore_metering, fz.ignore_electrical_measurement,
+            fz.lumi_power],
         exposes: [e.switch(), e.energy(), e.power(), e.device_temperature(), e.power_outage_memory(), e.power_outage_count(),
             e.switch_type(), e.voltage(), e.current(),
         ],
-        toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
+        toZigbee: [tz.lumi_switch_type, tz.on_off, tz.lumi_switch_power_outage_memory, tz.lumi_led_disabled_night],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
@@ -2658,32 +2686,32 @@ const definitions: Definition[] = [
             device.type = 'Router';
             device.save();
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.n0acn2'],
         model: 'DLKZMK11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara single switch module T1 (with neutral)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_type, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
+        vendor: 'Aqara',
+        description: 'Single switch module T1 (with neutral), CN',
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_power, tz.lumi_switch_type, tz.lumi_switch_power_outage_memory, tz.lumi_led_disabled_night],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage(), e.current(), e.power_outage_memory(), e.led_disabled_night(), e.switch_type()],
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.l0agl1'],
         model: 'SSM-U02',
-        vendor: 'Xiaomi',
-        description: 'Aqara single switch module T1 (without neutral). Doesn\'t work as a router and doesn\'t support power meter',
-        fromZigbee: [fz.on_off, xiaomi.fromZigbee.aqara_opple],
+        vendor: 'Aqara',
+        description: 'Single switch module T1 (no neutral)',
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_specific],
         exposes: [e.switch(), e.power_outage_memory(), e.switch_type(), e.power_outage_count(), e.device_temperature()],
-        toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory],
+        toZigbee: [tz.lumi_switch_type, tz.on_off, tz.lumi_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2695,11 +2723,11 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.switch.l0acn1'],
         model: 'DLKZMK12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara single switch module T1 (without neutral). Doesn\'t work as a router and doesn\'t support power meter',
-        fromZigbee: [fz.on_off, xiaomi.fromZigbee.aqara_opple],
+        vendor: 'Aqara',
+        description: 'Single switch module T1 (no neutral), CN',
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_specific],
         exposes: [e.switch(), e.power_outage_memory(), e.switch_type()],
-        toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory],
+        toZigbee: [tz.lumi_switch_type, tz.on_off, tz.lumi_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2711,8 +2739,8 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.switch.n4acn4'],
         model: 'ZNCJMB14LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara S1 smart touch panel',
+        vendor: 'Aqara',
+        description: 'Smart touch panel S1',
         fromZigbee: [fz.on_off, fz.ZNCJMB14LM],
         toZigbee: [tz.on_off, tz.ZNCJMB14LM],
         meta: {multiEndpoint: true},
@@ -2761,26 +2789,26 @@ const definitions: Definition[] = [
             // await reporting.onOff(device.getEndpoint(2)); ToDo: Currently fails
             // await reporting.onOff(device.getEndpoint(3)); ToDo: Currently fails
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.remote.b186acn03'],
         model: 'WXKG05LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 wireless switch',
+        vendor: 'Aqara',
+        description: 'Wireless remote switch T1 (single rocker)',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.battery, xiaomi.fromZigbee.aqara_opple],
+        fromZigbee: [fz.lumi_on_off_action, fz.lumi_multistate_action, fz.battery, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         exposes: [e.action(['single', 'double', 'hold']), e.battery()],
     },
     {
         zigbeeModel: ['lumi.remote.b28ac1'],
         model: 'WXKG15LM',
-        vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'WRS-R02'}],
-        description: 'Aqara wireless remote switch H1 (double rocker)',
-        fromZigbee: [fz.battery, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple, fz.command_toggle],
-        toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
+        vendor: 'Aqara',
+        whiteLabel: [{vendor: 'Aqara', model: 'WRS-R02'}],
+        description: 'Wireless remote switch H1 (double rocker)',
+        fromZigbee: [fz.battery, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific, fz.command_toggle],
+        toZigbee: [tz.lumi_switch_click_mode, tz.aqara_opple_operation_mode],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}, multiEndpoint: true},
         exposes: [
             e.battery(), e.battery_voltage(), e.action([
@@ -2798,10 +2826,10 @@ const definitions: Definition[] = [
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(3);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode});
             // turn on the "multiple clicks" mode, otherwise the only "single click" events.
             // if value is 1 - there will be single clicks, 2 - multiple.
-            await endpoint1.write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: manufacturerCode});
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             // TODO/BUG:
@@ -2812,11 +2840,11 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.switch.b1lc04'],
         model: 'QBKG38LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara E1 1 gang switch (without neutral)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.aqara_switch_mode_switch, tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch E1 (no neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_switch_mode_switch, tz.lumi_flip_indicator_light],
         exposes: [e.switch(), e.power_outage_memory(), e.action(['single', 'double']),
             e.device_temperature(), e.flip_indicator_light(),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
@@ -2826,18 +2854,18 @@ const definitions: Definition[] = [
                     'Quick mode makes the device respond faster.')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b2lc04'],
         model: 'QBKG39LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara E1 2 gang switch (without neutral)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.aqara_switch_mode_switch, tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch E1 (no neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_switch_mode_switch, tz.lumi_flip_indicator_light],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -2858,17 +2886,17 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.airmonitor.acn01'],
         model: 'VOCKQJK11LM',
-        vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
-        description: 'Aqara TVOC air quality monitor',
-        fromZigbee: [fz.battery, xiaomi.fromZigbee.aqara_opple],
+        vendor: 'Aqara',
+        whiteLabel: [{vendor: 'Aqara', model: 'AAQS-S01'}],
+        description: 'TVOC air quality monitor',
+        fromZigbee: [fz.battery, lumi.fromZigbee.lumi_specific],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.device_temperature(), e.battery(), e.battery_voltage()],
         extend: [
@@ -2879,16 +2907,16 @@ const definitions: Definition[] = [
                     'msTemperatureMeasurement',
                     'msRelativeHumidity',
                     'genAnalogInput',
-                    'aqaraOpple',
+                    'manuSpecificLumi',
                 ],
             }),
-            aqaraAirQuality(),
-            aqaraVoc(),
+            lumiAirQuality(),
+            lumiVoc(),
             temperature(),
             humidity(),
-            aqaraDisplayUnit(),
-            xiaomiOutageCountRestoreBindReporting(),
-            xiaomiZigbeeOTA(),
+            lumiDisplayUnit(),
+            lumiOutageCountRestoreBindReporting(),
+            lumiZigbeeOTA(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -2900,11 +2928,11 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.switch.b2nc01'],
         model: 'QBKG41LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara E1 2 gang switch (with neutral)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch E1 (with neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -2922,61 +2950,61 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.macn01'],
         model: 'ZNCZ15LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart plug T1 (china standard)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
-            tz.xiaomi_overload_protection, tz.xiaomi_socket_button_lock],
+        vendor: 'Aqara',
+        description: 'Smart plug T1, CN',
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_power_outage_memory, tz.lumi_led_disabled_night,
+            tz.lumi_overload_protection, tz.lumi_socket_button_lock],
         exposes: [e.switch(), e.power().withAccess(ea.STATE), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage(), e.current(), e.consumer_connected().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             e.overload_protection(100, 2500)],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.b1nc01'],
         model: 'QBKG40LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara E1 1 gang switch (with neutral)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch E1 (with neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light],
         exposes: [e.switch(), e.action(['single', 'double']), e.power_outage_memory(), e.device_temperature(), e.flip_indicator_light(),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.remote.b1acn02'],
         model: 'WXKG13LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 wireless mini switch',
+        vendor: 'Aqara',
+        description: 'Wireless mini switch T1',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [fz.battery, fz.aqara_opple_multistate, xiaomi.fromZigbee.aqara_opple],
+        fromZigbee: [fz.battery, fz.aqara_opple_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quintuple', 'hold', 'release', 'many'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.sen_ill.agl01'],
         model: 'GZCGQ11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 light intensity sensor',
-        fromZigbee: [fz.battery, fz.illuminance, xiaomi.fromZigbee.aqara_opple],
+        vendor: 'Aqara',
+        description: 'Light sensor T1',
+        fromZigbee: [fz.battery, fz.illuminance, lumi.fromZigbee.lumi_specific],
         toZigbee: [tz.GZCGQ11LM_detection_period],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux(),
@@ -2984,19 +3012,19 @@ const definitions: Definition[] = [
                 .withDescription('Time interval in seconds to report after light changes')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-            await endpoint.read('aqaraOpple', [0x0000], {manufacturerCode: 0x115f});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
+            await endpoint.read('manuSpecificLumi', [0x0000], {manufacturerCode: manufacturerCode});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.sacn03'],
         model: 'QBCZ15LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall outlet H1 (USB)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
-            tz.xiaomi_button_switch_mode, tz.xiaomi_overload_protection, tz.xiaomi_socket_button_lock],
+        vendor: 'Aqara',
+        description: 'Smart wall outlet H1 (USB)',
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_power_outage_memory, tz.lumi_led_disabled_night,
+            tz.lumi_button_switch_mode, tz.lumi_overload_protection, tz.lumi_socket_button_lock],
         meta: {multiEndpoint: true},
         endpoint: () => {
             return {'relay': 1, 'usb': 2};
@@ -3008,38 +3036,39 @@ const definitions: Definition[] = [
             e.enum('button_switch_mode', exposes.access.ALL, ['relay', 'relay_and_usb'])
                 .withDescription('Control both relay and usb or only the relay with the physical switch button'),
             e.overload_protection(100, 2500)],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.magnet.agl02'],
         model: 'MCCGQ12LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 door & window contact sensor',
-        fromZigbee: [fz.xiaomi_contact, xiaomi.fromZigbee.aqara_opple, fz.ias_contact_alarm_1],
+        vendor: 'Aqara',
+        description: 'Door and window sensor T1',
+        fromZigbee: [fz.lumi_contact, lumi.fromZigbee.lumi_specific, fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.contact(), e.battery()],
-        extend: [xiaomiZigbeeOTA()],
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.sacn02'],
         model: 'QBCZ14LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall outlet T1',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
-            tz.xiaomi_overload_protection, tz.xiaomi_socket_button_lock],
+        vendor: 'Aqara',
+        description: 'Smart wall outlet T1',
+        fromZigbee: [fz.on_off, fz.lumi_power, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_power_outage_memory, tz.lumi_led_disabled_night,
+            tz.lumi_overload_protection, tz.lumi_socket_button_lock],
         exposes: [
             e.switch(), e.power().withAccess(ea.STATE), e.energy(),
             e.device_temperature().withAccess(ea.STATE), e.voltage(),
             e.current(), e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             e.overload_protection(100, 2500)],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.remote.rkba01'],
         model: 'ZNXNKG02LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara knob H1 (wireless)',
+        vendor: 'Aqara',
+        description: 'Smart rotary knob H1 (wireless)',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(),
             e.action(['single', 'double', 'hold', 'release', 'start_rotating', 'rotation', 'stop_rotating']),
@@ -3050,58 +3079,58 @@ const definitions: Definition[] = [
             e.numeric('action_rotation_percent_speed', ea.STATE).withUnit('%').withDescription('Rotation percent speed'),
             e.numeric('action_rotation_time', ea.STATE).withUnit('ms').withDescription('Rotation time'),
         ],
-        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, xiaomi.fromZigbee.xiaomi_basic,
-            xiaomi.fromZigbee.aqara_opple, fz.aqara_knob_rotation],
+        fromZigbee: [fz.lumi_on_off_action, fz.lumi_multistate_action, lumi.fromZigbee.lumi_basic,
+            lumi.fromZigbee.lumi_specific, fz.lumi_knob_rotation],
         toZigbee: [tz.aqara_opple_operation_mode],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
     },
     {
         zigbeeModel: ['lumi.remote.acn003'],
         model: 'WXKG16LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara wireless remote switch E1 (single rocker)',
+        vendor: 'Aqara',
+        description: 'Wireless remote switch E1 (single rocker)',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.xiaomi_switch_click_mode],
+        fromZigbee: [fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.lumi_switch_click_mode],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold']),
             e.enum('click_mode', ea.ALL, ['fast', 'multi'])
                 .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
                     'multi: supports more events like double and hold')],
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+            await device.getEndpoint(1).write('manuSpecificLumi', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: manufacturerCode});
         },
     },
     {
         zigbeeModel: ['lumi.remote.acn004'],
         model: 'WXKG17LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara E1 double key wireless switch',
+        vendor: 'Aqara',
+        description: 'Wireless remote switch E1 (double rocker)',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(),
             e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'hold_left', 'hold_right']),
             // eslint-disable-next-line max-len
             e.enum('click_mode', ea.ALL, ['fast', 'multi']).withDescription('Click mode, fast: only supports single click which will be send immediately after clicking, multi: supports more events like double and hold'),
         ],
-        fromZigbee: [fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.xiaomi_switch_click_mode],
+        fromZigbee: [fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.lumi_switch_click_mode],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set multiclick mode
-            await endpoint1.write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: manufacturerCode});
         },
     },
     {
         zigbeeModel: ['lumi.remote.b18ac1'],
         model: 'WXKG14LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara wireless remote switch H1 (single rocker)',
-        fromZigbee: [fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple, fz.command_toggle],
-        toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
+        vendor: 'Aqara',
+        description: 'AWireless remote switch H1 (single rocker)',
+        fromZigbee: [fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific, fz.command_toggle],
+        toZigbee: [tz.lumi_switch_click_mode, tz.aqara_opple_operation_mode],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'hold']),
             e.enum('click_mode', ea.ALL, ['fast', 'multi'])
                 .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
@@ -3111,17 +3140,17 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-            await endpoint1.read('aqaraOpple', [0x0125], {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
+            await endpoint1.read('manuSpecificLumi', [0x0125], {manufacturerCode: manufacturerCode});
         },
     },
     {
         zigbeeModel: ['lumi.airrtc.agl001'],
         model: 'SRTS-A01',
-        vendor: 'Xiaomi',
-        description: 'Aqara Smart Radiator Thermostat E1',
-        fromZigbee: [fzLocal.aqara_trv, fz.thermostat, fz.battery],
-        toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
+        vendor: 'Aqara',
+        description: 'Smart radiator thermostat E1',
+        fromZigbee: [fzLocal.lumi_trv, fz.thermostat, fz.battery],
+        toZigbee: [tzLocal.lumi_trv, tz.thermostat_occupied_heating_setpoint],
         exposes: [
             e.setup().withDescription('Indicates if the device is in setup mode (E11)'),
             e.climate()
@@ -3149,18 +3178,19 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
 
             // Initialize battery percentage and voltage
-            await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0x040a], {manufacturerCode: manufacturerCode});
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['aqara.feeder.acn001'],
         model: 'ZNCWWSQ01LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara pet feeder C1',
-        fromZigbee: [xiaomi.fromZigbee.aqara_feeder],
-        toZigbee: [xiaomi.toZigbee.aqara_feeder],
+        vendor: 'Aqara',
+        description: 'Smart pet feeder C1',
+        whiteLabel: [{vendor: 'Aqara', model: 'PETC1-M01'}],
+        fromZigbee: [lumi.fromZigbee.aqara_feeder],
+        toZigbee: [lumi.toZigbee.aqara_feeder],
         exposes: [
             e.enum('feed', ea.STATE_SET, ['', 'START']).withDescription('Start feeding'),
             e.enum('feeding_source', ea.STATE, ['schedule', 'manual', 'remote']).withDescription('Feeding source'),
@@ -3185,10 +3215,10 @@ const definitions: Definition[] = [
             e.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight')
                 .withUnit('g'),
         ],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('aqaraOpple', [0xfff1], {manufacturerCode: 0x115f});
+            await endpoint.read('manuSpecificLumi', [0xfff1], {manufacturerCode: manufacturerCode});
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
@@ -3196,9 +3226,9 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.remote.acn007'],
         model: 'WXKG20LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara E1 wireless mini switch',
-        fromZigbee: [fz.battery, fz.aqara_opple_multistate, xiaomi.fromZigbee.aqara_opple],
+        vendor: 'Aqara',
+        description: 'Wireless mini switch E1',
+        fromZigbee: [fz.battery, fz.aqara_opple_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold', 'release']),
@@ -3207,10 +3237,10 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.remote.acn009'],
         model: 'WXKG22LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara wireless remote switch H1M (double rocker)',
-        fromZigbee: [fz.battery, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple, fz.command_toggle],
-        toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
+        vendor: 'Aqara',
+        description: 'Wireless remote switch H1M (double rocker)',
+        fromZigbee: [fz.battery, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific, fz.command_toggle],
+        toZigbee: [tz.lumi_switch_click_mode, tz.aqara_opple_operation_mode],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}, multiEndpoint: true},
         exposes: [
             e.battery(), e.battery_voltage(), e.action([
@@ -3228,10 +3258,10 @@ const definitions: Definition[] = [
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(3);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode});
             // turn on the "multiple clicks" mode, otherwise the only "single click" events.
             // if value is 1 - there will be single clicks, 2 - multiple.
-            await endpoint1.write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+            await endpoint1.write('manuSpecificLumi', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: manufacturerCode});
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             // TODO/BUG:
@@ -3242,10 +3272,10 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['lumi.remote.b286acn03'],
         model: 'WXKG04LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 double rocker wireless remote switch',
+        vendor: 'Aqara',
+        description: 'Wireless remote switch T1 (double rocker)',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        fromZigbee: [xiaomi.fromZigbee.xiaomi_basic, fz.aqara_opple_multistate, xiaomi.fromZigbee.aqara_opple],
+        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.aqara_opple_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         endpoint: (device) => {
             return {left: 1, right: 2, both: 3};
@@ -3255,16 +3285,16 @@ const definitions: Definition[] = [
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
             'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
         ])],
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn048'],
         model: 'ZNQBKG38LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch Z1 (single rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
+        vendor: 'Aqara',
+        description: 'Smart wall switch Z1 (single rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light, tz.lumi_led_disabled_night],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'button': 1};
@@ -3276,18 +3306,18 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn049'],
         model: 'ZNQBKG39LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch Z1 (double rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
+        vendor: 'Aqara',
+        description: 'Smart wall switch Z1 (double rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light, tz.lumi_led_disabled_night],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
@@ -3301,18 +3331,18 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn054'],
         model: 'ZNQBKG40LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch Z1 (triple rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
+        vendor: 'Aqara',
+        description: 'Smart wall switch Z1 (triple rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light, tz.lumi_led_disabled_night],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'top': 1, 'middle': 2, 'bottom': 3};
@@ -3326,18 +3356,18 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn055'],
         model: 'ZNQBKG41LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch Z1 (quadruple rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night],
+        vendor: 'Aqara',
+        description: 'Smart wall switch Z1 (quadruple rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_flip_indicator_light, tz.lumi_led_disabled_night],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
@@ -3351,19 +3381,19 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.remote.cagl02'],
         model: 'CTP-R01',
-        vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'MFCZQ12LM'}],
-        description: 'Aqara magic cube T1 Pro',
+        vendor: 'Aqara',
+        whiteLabel: [{vendor: 'Aqara', model: 'MFCZQ12LM'}],
+        description: 'Cube T1 Pro',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        extend: [xiaomiZigbeeOTA()],
-        fromZigbee: [xiaomi.fromZigbee.aqara_opple, fzLocal.CTPR01_action_multistate, fzLocal.CTPR01_action_analog, fz.ignore_onoff_report],
+        extend: [lumiZigbeeOTA()],
+        fromZigbee: [lumi.fromZigbee.lumi_specific, fzLocal.CTPR01_action_multistate, fzLocal.CTPR01_action_analog, fz.ignore_onoff_report],
         toZigbee: [tzLocal.CTPR01_operation_mode],
         exposes: [
             e.battery(),
@@ -3389,18 +3419,20 @@ const definitions: Definition[] = [
             device.save();
 
             const endpoint = device.getEndpoint(1);
-            await endpoint.write('aqaraOpple', {mode: 1}, {manufacturerCode: 0x115f, disableDefaultResponse: true, disableResponse: true});
-            await endpoint.read('aqaraOpple', [0x148], {manufacturerCode: 0x115f, disableDefaultResponse: true, disableResponse: true});
+            await endpoint.write('manuSpecificLumi', {mode: 1}, {manufacturerCode: manufacturerCode,
+                disableDefaultResponse: true, disableResponse: true});
+            await endpoint.read('manuSpecificLumi', [0x148], {manufacturerCode: manufacturerCode,
+                disableDefaultResponse: true, disableResponse: true});
         },
     },
     {
         zigbeeModel: ['lumi.switch.acn040'],
         model: 'ZNQBKG31LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara E1 3 gang switch (with neutral)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.aqara_switch_mode_switch,
-            tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch E1 (with neutral, triple rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory, tz.lumi_switch_mode_switch,
+            tz.lumi_flip_indicator_light],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -3423,19 +3455,19 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn029'],
         model: 'ZNQBKG24LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1M (with neutral, single rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple],
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1M (with neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_power, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific],
         toZigbee: [
-            tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light,
+            tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_flip_indicator_light,
         ],
         exposes: [
             e.switch(), e.power(), e.energy(), e.voltage(), e.device_temperature(),
@@ -3445,15 +3477,15 @@ const definitions: Definition[] = [
             e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
         ],
         onEvent: preventReset,
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn030'],
         model: 'ZNQBKG25LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1M (with neutral, double rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple, fz.xiaomi_power],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1M (with neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific, fz.lumi_power],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_flip_indicator_light],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -3472,17 +3504,17 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.switch.acn031'],
         model: 'ZNQBKG26LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara smart wall switch H1M (with neutral, triple rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, xiaomi.fromZigbee.aqara_opple, fz.xiaomi_power],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_flip_indicator_light],
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1M (with neutral, triple rocker)',
+        fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific, fz.lumi_power],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_flip_indicator_light],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -3505,27 +3537,27 @@ const definitions: Definition[] = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [xiaomiZigbeeOTA()],
+        extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.plug.aeu001'],
         model: 'WP-P01D',
         vendor: 'Aqara',
-        description: 'Aqara wall outlet H2 EU',
+        description: 'Smart wall outlet H2 EU',
         extend: [
-            xiaomiZigbeeOTA(),
+            lumiZigbeeOTA(),
             onOff({powerOnBehavior: false}),
-            xiaomiPowerOnBehavior(),
-            xiaomiPower(),
-            xiaomiElectricityMeter(),
-            xiaomiOverloadProtection(),
-            xiaomiLedIndicator(),
-            xiaomiButtonLock(),
+            lumiPowerOnBehavior(),
+            lumiPower(),
+            lumiElectricityMeter(),
+            lumiOverloadProtection(),
+            lumiLedIndicator(),
+            lumiButtonLock(),
             binary({
                 name: 'charging_protection',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0202, type: 0x10},
                 valueOn: ['ON', 1],
                 valueOff: ['OFF', 0],
@@ -3535,7 +3567,7 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'charging_limit',
-                cluster: 'aqaraOpple',
+                cluster: 'manuSpecificLumi',
                 attribute: {ID: 0x0206, type: 0x39},
                 valueMin: 0.1,
                 valueMax: 2,

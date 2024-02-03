@@ -11,7 +11,7 @@ export function reportingItem(attribute: string, min: number, max: number, chang
     return {attribute: attribute, minimumReportInterval: min, maximumReportInterval: max, reportableChange: change};
 }
 
-export function mockDevice(args: {modelID: string, manufacturerID?: number, endpoints: MockEndpointArgs[]}): Zh.Device {
+export function mockDevice(args: {modelID: string, manufacturerID?: number, manufacturerName?: string, endpoints: MockEndpointArgs[]}): Zh.Device {
     const ieeeAddr = '0x12345678';
     const device: Zh.Device = {
         // @ts-expect-error

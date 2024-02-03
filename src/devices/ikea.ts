@@ -58,7 +58,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
             if (onLevel > 255) onLevel = 254;
             if (onLevel < 1) onLevel = 1;
 
-            device.endpoints[0].write('genLevelCtrl', {onLevel: onLevelRaw});
+            device.endpoints[0].write('genLevelCtrl', {onLevel: onLevel});
         }
     }
 };
@@ -456,7 +456,8 @@ const definitions: Definition[] = [
         extend: [tradfriLight()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WW G95 CL 470lm', 'TRADFRI bulb E26 WW G95 CL 450lm', 'TRADFRI bulb E26 WW G95 CL 440lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WW G95 CL 470lm', 'TRADFRI bulb E26 WW G95 CL 450lm', 'TRADFRI bulb E26 WW G95 CL 440lm',
+            'TRADFRI bulb E26 WW G95 CL 470lm'],
         model: 'LED2102G3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27 WW 440/450/470 lumen, wireless dimmable warm white/globe clear',
@@ -760,7 +761,7 @@ const definitions: Definition[] = [
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
-        toZigbee: [tz.battery_percentage_remaining],
+        toZigbee: [tz.battery_percentage_remaining, tz.identify],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             // Binding genOnOff is not required to make device send events.
@@ -785,7 +786,7 @@ const definitions: Definition[] = [
             e.battery().withAccess(ea.STATE_GET),
             e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
         ],
-        toZigbee: [tz.battery_percentage_remaining],
+        toZigbee: [tz.battery_percentage_remaining, tz.identify],
         ota: ota.tradfri,
         meta: {disableActionGroup: true},
         configure: configureRemote,
@@ -1166,7 +1167,7 @@ const definitions: Definition[] = [
             reporting.temperature(ep, {min: 60, max: 120});
             reporting.humidity(ep, {min: 60, max: 120});
             await ep.configureReporting('pm25Measurement', [{
-                attribute: 'measuredValueIkea',
+                attribute: {ID: 0x0000, type: zigbeeHerdsman.Zcl.DataType.singlePrec},
                 minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 2,
             }]);
             await ep.configureReporting('msIkeaVocIndexMeasurement', [{

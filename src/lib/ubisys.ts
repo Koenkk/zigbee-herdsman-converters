@@ -9,8 +9,6 @@ export const ubisysModernExtend = {
         cluster: 'hvacThermostat',
         attribute: 'ubisysTemperatureOffset',
         description: 'Specifies the temperature offset for the locally measured temperature value.',
-        scale: 100,
-        valueStep: 0.5, // H1 interface uses 0.5 step
         valueMin: -10,
         valueMax: 10,
         unit: 'ºC',
@@ -27,17 +25,6 @@ export const ubisysModernExtend = {
         valueMin: 7,
         valueMax: 30,
         unit: 'ºC',
-        ...args,
-    }),
-    remoteTemperature: (args?: Partial<NumericArgs>) => numeric({
-        name: 'remote_temperature',
-        cluster: 'hvacThermostat',
-        attribute: 'ubisysRemoteTemperature',
-        description: 'Indicates the remotely measured temperature value, accessible through attribute reports. ' +
-            'For heating regulation, a received remote temperature value, as long as valid, takes precedence over the locally measured one.',
-        scale: 100,
-        unit: 'ºC',
-        access: 'STATE_GET',
         ...args,
     }),
     remoteTemperatureDuration: (args?: Partial<NumericArgs>) => numeric({

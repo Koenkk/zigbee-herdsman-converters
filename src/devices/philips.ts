@@ -1217,7 +1217,7 @@ const definitions: Definition[] = [
         model: '915005988501',
         vendor: 'Philips',
         description: 'Play gradient light tube large',
-        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
         zigbeeModel: ['LTW011', 'LTB002'],

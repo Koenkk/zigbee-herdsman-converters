@@ -5,15 +5,16 @@ import {
     assertNumber,
     getFromLookup,
     getKey,
+    toNumber,
 } from './utils';
 
-import * as ota from '../lib/ota';
+import * as ota from './ota';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as globalStore from './store';
 import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range} from './types';
 import * as modernExtend from './modernExtend';
-import * as exposes from '../lib/exposes';
+import * as exposes from './exposes';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -35,7 +36,7 @@ export const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buff
     const dataObject: KeyValue = {};
 
     if (buffer !== null && Buffer.isBuffer(buffer)) {
-        // Xiaomi struct parsing
+        // Lumi struct parsing
         for (let i = 0; i < buffer.length - 1; i++) {
             const index = buffer[i];
             let value = null;
@@ -236,6 +237,13 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '13':
             if (['ZNXDD01LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
+            } else if (['ZNCLBL01LM'].includes(model.model)) {
+                // Overwrite version advertised by `genBasic` and `genOta` with correct version:
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15745
+                assertNumber(value);
+                meta.device.meta.lumiFileVersion = value;
+                meta.device.softwareBuildID = trv.decodeFirmwareVersionString(value);
+                meta.device.save();
             }
             break;
         case '17':
@@ -479,6 +487,13 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '238':
             if (['ZNXDD01LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
+            } else if (['ZNCLBL01LM'].includes(model.model)) {
+                // Overwrite version advertised by `genBasic` and `genOta` with correct version:
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15745
+                assertNumber(value);
+                meta.device.meta.lumiFileVersion = value;
+                meta.device.softwareBuildID = trv.decodeFirmwareVersionString(value);
+                meta.device.save();
             }
             break;
         case '240':
@@ -766,10 +781,10 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             // It contains the illuminance and occupancy, but in z2m we use a custom timer to do it, so we ignore it
             break;
         case 'displayUnit':
-            // Use aqaraDisplayUnit modernExtend, but we add it here to not shown an unknown key in the log
+            // Use lumiDisplayUnit modernExtend, but we add it here to not shown an unknown key in the log
             break;
         case 'airQuality':
-            // Use aqaraAirQuality modernExtend, but we add it here to not shown an unknown key in the log
+            // Use lumiAirQuality modernExtend, but we add it here to not shown an unknown key in the log
             break;
         default:
             if (meta.logger) meta.logger.debug(`${model.model}: unknown key ${key} with value ${value}`);
@@ -782,13 +797,9 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
 };
 
 // For RTCZCGQ11LM
-/**
- * @typedef {{
-*  x: number,
-*  y: number,
-* }} AqaraFP1RegionZone
-*/
-const fp1Constants = {
+type LumiPresenceRegionZone = {x: number, y: number}
+
+const lumiPresenceConstants = {
     region_event_key: 0x0151,
     region_event_types: {
         Enter: 1,
@@ -825,53 +836,40 @@ const fp1Constants = {
     region_config_cmd_suffix_upsert: 0xff,
     region_config_cmd_suffix_delete: 0x00,
 };
-const fp1Mappers = {
-    aqara_fp1: {
+const lumiPresenceMappers = {
+    lumi_presence: {
         region_event_type_names: {
-            [fp1Constants.region_event_types.Enter]: 'enter',
-            [fp1Constants.region_event_types.Leave]: 'leave',
-            [fp1Constants.region_event_types.Occupied]: 'occupied',
-            [fp1Constants.region_event_types.Unoccupied]: 'unoccupied',
+            [lumiPresenceConstants.region_event_types.Enter]: 'enter',
+            [lumiPresenceConstants.region_event_types.Leave]: 'leave',
+            [lumiPresenceConstants.region_event_types.Occupied]: 'occupied',
+            [lumiPresenceConstants.region_event_types.Unoccupied]: 'unoccupied',
         },
     },
 };
-export const fp1 = {
-    constants: fp1Constants,
-    mappers: fp1Mappers,
-    /**
-     * @param {undefined | Set<number>} xCells
-     * @return {number}
-     */
-    encodeXCellsDefinition: (xCells: number[]) => {
+export const presence = {
+    constants: lumiPresenceConstants,
+    mappers: lumiPresenceMappers,
+
+    encodeXCellsDefinition: (xCells?: number[]): number => {
         // @ts-expect-error
         if (!xCells || !xCells.size) {
             return 0;
         }
-        return [...xCells.values()].reduce((accumulator, marker) => accumulator + fp1.encodeXCellIdx(marker), 0);
+        return [...xCells.values()].reduce((accumulator, marker) => accumulator + presence.encodeXCellIdx(marker), 0);
     },
-    /**
-     * @param {number} cellXIdx
-     * @return {number}
-     */
-    encodeXCellIdx: (cellXIdx: number) => {
+    encodeXCellIdx: (cellXIdx: number): number => {
         return 2 ** (cellXIdx - 1);
     },
-    // Note: let TypeScript infer the return type to enable union discrimination
-    // eslint-disable-next-line valid-jsdoc
-    /**
-     * @param {unknown} input
-     */
     parseAqaraFp1RegionDeleteInput: (input: KeyValueAny) => {
         if (!input || typeof input !== 'object') {
-            return fp1.failure({reason: 'NOT_OBJECT'});
+            return presence.failure({reason: 'NOT_OBJECT'});
         }
 
-        if (!('region_id' in input) || !fp1.isAqaraFp1RegionId(input.region_id)) {
-            return fp1.failure({reason: 'INVALID_REGION_ID'});
+        if (!('region_id' in input) || !presence.isAqaraFp1RegionId(input.region_id)) {
+            return presence.failure({reason: 'INVALID_REGION_ID'});
         }
 
         return {
-            /** @type true */
             isSuccess: true,
             payload: {
                 command: {
@@ -880,30 +878,25 @@ export const fp1 = {
             },
         };
     },
-    // Note: let TypeScript infer the return type to enable union discrimination
-    // eslint-disable-next-line valid-jsdoc
-    /**
-     * @param {unknown} input
-     */
+
     parseAqaraFp1RegionUpsertInput: (input: KeyValueAny) => {
         if (!input || typeof input !== 'object') {
-            return fp1.failure({reason: 'NOT_OBJECT'});
+            return presence.failure({reason: 'NOT_OBJECT'});
         }
 
-        if (!('region_id' in input) || !fp1.isAqaraFp1RegionId(input.region_id)) {
-            return fp1.failure({reason: 'INVALID_REGION_ID'});
+        if (!('region_id' in input) || !presence.isAqaraFp1RegionId(input.region_id)) {
+            return presence.failure({reason: 'INVALID_REGION_ID'});
         }
 
         if (!('zones' in input) || !Array.isArray(input.zones) || !input.zones.length) {
-            return fp1.failure({reason: 'ZONES_LIST_EMPTY'});
+            return presence.failure({reason: 'ZONES_LIST_EMPTY'});
         }
 
-        if (!input.zones.every(fp1.isAqaraFp1RegionZoneDefinition)) {
-            return fp1.failure({reason: 'INVALID_ZONES'});
+        if (!input.zones.every(presence.isAqaraFp1RegionZoneDefinition)) {
+            return presence.failure({reason: 'INVALID_ZONES'});
         }
 
         return {
-            /** @type true */
             isSuccess: true,
             payload: {
                 command: {
@@ -913,26 +906,16 @@ export const fp1 = {
             },
         };
     },
-    // Note: this is valid typescript JSDoc
-    // eslint-disable-next-line valid-jsdoc
-    /**
-     * @param {unknown} value
-     * @returns {value is number}
-     */
-    isAqaraFp1RegionId: (value: number) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    isAqaraFp1RegionId: (value: any): value is number => {
         return (
             typeof value === 'number' &&
-            value >= fp1.constants.region_config_regionId_min &&
-            value <= fp1.constants.region_config_regionId_max
+            value >= presence.constants.region_config_regionId_min &&
+            value <= presence.constants.region_config_regionId_max
         );
     },
-    // Note: this is valid typescript JSDoc
-    // eslint-disable-next-line valid-jsdoc
-    /**
-     * @param {unknown} value
-     * @returns {value is AqaraFP1RegionZone}
-     */
-    isAqaraFp1RegionZoneDefinition: (value: KeyValueAny) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    isAqaraFp1RegionZoneDefinition: (value: any): value is LumiPresenceRegionZone => {
         return (
             value &&
             typeof value === 'object' &&
@@ -940,18 +923,14 @@ export const fp1 = {
             'y' in value &&
             typeof value.x === 'number' &&
             typeof value.y === 'number' &&
-            value.x >= fp1.constants.region_config_zoneX_min &&
-            value.x <= fp1.constants.region_config_zoneX_max &&
-            value.y >= fp1.constants.region_config_zoneY_min &&
-            value.y <= fp1.constants.region_config_zoneY_max
+            value.x >= presence.constants.region_config_zoneX_min &&
+            value.x <= presence.constants.region_config_zoneX_max &&
+            value.y >= presence.constants.region_config_zoneY_min &&
+            value.y <= presence.constants.region_config_zoneY_max
         );
     },
-    /**
-     * @template {Record<string, unknown>} ErrorType
-     * @param {ErrorType} error
-     * @return { { isSuccess: false, error: ErrorType } }
-     */
-    failure: (error: {reason: string}) => {
+
+    failure: (error: {reason: string}): { isSuccess: false, error: {reason: string} } => {
         return {
             isSuccess: false,
             error,
@@ -959,22 +938,11 @@ export const fp1 = {
     },
 };
 
-/**
- * @param {Buffer} buffer
- * @param {number} offset
- * @return {number}
- */
-function readTemperature(buffer: Buffer, offset: number) {
+function readTemperature(buffer: Buffer, offset: number): number {
     return buffer.readUint16BE(offset) / 100;
 }
 
-/**
- * @param {Buffer} buffer
- * @param {number} offset
- * @param {number} temperature
- * @return {void}
- */
-function writeTemperature(buffer: Buffer, offset: number, temperature: number) {
+function writeTemperature(buffer: Buffer, offset: number, temperature: number): void {
     buffer.writeUint16BE(temperature * 100, offset);
 }
 
@@ -1012,21 +980,12 @@ function writeDaySelection(buffer: Buffer, offset: number, selectedDays: Day[]) 
 
 const timeNextDayFlag = 1 << 15;
 
-/**
- * @param {Buffer} buffer
- * @param {number} offset
- * @return {number}
- */
-function readTime(buffer: Buffer, offset: number) {
+function readTime(buffer: Buffer, offset: number): number {
     const minutesWithDayFlag = buffer.readUint16BE(offset);
     return minutesWithDayFlag & ~timeNextDayFlag;
 }
 
-/**
- * @param {number} time
- * @return {void}
- */
-function validateTime(time: number) {
+function validateTime(time: number): void {
     const isPositiveInteger = (value: number) => typeof value === 'number' && Number.isInteger(value) && value >= 0;
 
     if (!isPositiveInteger(time)) {
@@ -1038,14 +997,7 @@ function validateTime(time: number) {
     }
 }
 
-/**
- * @param {Buffer} buffer
- * @param {number} offset
- * @param {number} time
- * @param {boolean} isNextDay
- * @return {void}
- */
-function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: boolean) {
+function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: boolean): void {
     validateTime(time);
 
     let minutesWithDayFlag = time;
@@ -1059,10 +1011,8 @@ function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: bool
 
 /**
  * Formats a number of minutes into a user-readable 24-hour time notation in the form hh:mm.
- * @param {number} timeMinutes
- * @return {string}
  */
-function formatTime(timeMinutes: number) {
+function formatTime(timeMinutes: number): string {
     const hours = Math.floor(timeMinutes / 60);
     const minutes = timeMinutes % 60;
     return `${hours}:${String(minutes).padStart(2, '0')}`;
@@ -1070,10 +1020,8 @@ function formatTime(timeMinutes: number) {
 
 /**
  * Parses a 24-hour time notation string in the form hh:mm into a number of minutes.
- * @param {string} timeString
- * @return {number}
  */
-function parseTime(timeString: string) {
+function parseTime(timeString: string): number {
     const parts = timeString.split(':');
 
     if (parts.length !== 2) {
@@ -1097,7 +1045,7 @@ export const trv = {
         // Reinterpret from LE integer to byte sequence(e.g., `[25,8,0,0]` corresponds to 0.0.0_0825)
         const buffer = Buffer.alloc(4);
         buffer.writeUInt32LE(value);
-        const firmwareVersionNumber = buffer.reverse().subarray(1).join('');
+        const firmwareVersionNumber = toNumber(buffer.reverse().subarray(1).join(''), 'firmwareVersionNumber').toString().padStart(4, '0');
 
         return firmwareVersionPrefix + firmwareVersionNumber;
     },
@@ -1170,8 +1118,6 @@ export const trv = {
 
     /**
      * Decode a Zigbee schedule configuration message into a schedule configuration object.
-     * @param {Buffer} buffer
-     * @return {TrvScheduleConfig}
      */
     decodeSchedule(buffer: Buffer): TrvScheduleConfig {
         return {
@@ -1185,11 +1131,7 @@ export const trv = {
         };
     },
 
-    /**
-     * @param {TrvScheduleConfig} schedule
-     * @return {void}
-     */
-    validateSchedule(schedule: TrvScheduleConfig) {
+    validateSchedule(schedule: TrvScheduleConfig): void {
         const eventCount = 4;
 
         if (typeof schedule !== 'object') {
@@ -1261,10 +1203,8 @@ export const trv = {
 
     /**
      * Encodes a schedule object into Zigbee message format.
-     * @param {TrvScheduleConfig} schedule
-     * @return {Buffer}
      */
-    encodeSchedule(schedule: KeyValueAny) {
+    encodeSchedule(schedule: TrvScheduleConfig): Buffer {
         const buffer = Buffer.alloc(26);
         buffer.writeUInt8(0x04);
 
@@ -1324,61 +1264,61 @@ export const trv = {
 
 export const manufacturerCode = 0x115f;
 
-export const xiaomiModernExtend = {
-    xiaomiLight: (args?: Omit<modernExtend.LightArgs, 'colorTemp'> & {colorTemp?: true, powerOutageMemory?: 'switch' | 'light'}) => {
+export const lumiModernExtend = {
+    lumiLight: (args?: Omit<modernExtend.LightArgs, 'colorTemp'> & {colorTemp?: true, powerOutageMemory?: 'switch' | 'light'}) => {
         args = {powerOutageMemory: 'switch', ...args};
         const colorTemp: {range: Range, startup: boolean} = args.colorTemp ? {startup: false, range: [153, 370]} : undefined;
         const result = modernExtend.light({effect: false, powerOnBehavior: false, ...args, colorTemp});
         result.fromZigbee.push(
-            fz.xiaomi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
-            fz.ignore_pressure_report, fz.ignore_temperature_report, fromZigbee.aqara_opple,
+            fz.lumi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
+            fz.ignore_pressure_report, fz.ignore_temperature_report, fromZigbee.lumi_specific,
         );
         result.exposes.push(e.device_temperature(), e.power_outage_count());
 
         if (args.powerOutageMemory === 'switch') {
-            result.toZigbee.push(tz.xiaomi_switch_power_outage_memory);
+            result.toZigbee.push(tz.lumi_switch_power_outage_memory);
             result.exposes.push(e.power_outage_memory());
         } else if (args.powerOutageMemory === 'light') {
-            result.toZigbee.push(tz.xiaomi_light_power_outage_memory);
+            result.toZigbee.push(tz.lumi_light_power_outage_memory);
             result.exposes.push(e.power_outage_memory().withAccess(ea.STATE_SET));
         }
 
         return result;
     },
-    xiaomiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    lumiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x000a, type: 0x20},
         description: 'External switch type',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    lumiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'power_on_behavior',
         lookup: {'on': 0, 'previous': 1, 'off': 2},
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0517, type: 0x20},
         description: 'Controls the behavior when the device is powered on after power loss',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiOperationMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    lumiOperationMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'operation_mode',
         lookup: {'decoupled': 0, 'control_relay': 1},
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0200, type: 0x20},
         description: 'Decoupled mode for relay',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiAction: (args?: Partial<modernExtend.ActionEnumLookupArgs>) => modernExtend.actionEnumLookup({
+    lumiAction: (args?: Partial<modernExtend.ActionEnumLookupArgs>) => modernExtend.actionEnumLookup({
         lookup: {'single': 1},
         cluster: 'genMultistateInput',
         attribute: 'presentValue',
         ...args,
     }),
-    aqaraVoc: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+    lumiVoc: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
         name: 'voc',
         cluster: 'genAnalogInput',
         attribute: 'presentValue',
@@ -1388,17 +1328,17 @@ export const xiaomiModernExtend = {
         access: 'STATE_GET',
         ...args,
     }),
-    aqaraAirQuality: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    lumiAirQuality: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'air_quality',
         lookup: {'excellent': 1, 'good': 2, 'moderate': 3, 'poor': 4, 'unhealthy': 5, 'unknown': 0},
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: 'airQuality',
         zigbeeCommandOptions: {disableDefaultResponse: true},
         description: 'Measured air quality',
         access: 'STATE_GET',
         ...args,
     }),
-    aqaraDisplayUnit: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+    lumiDisplayUnit: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'display_unit',
         lookup: {
             'mgm3_celsius': 0x00, // mg/m³, °C (default)
@@ -1406,21 +1346,21 @@ export const xiaomiModernExtend = {
             'mgm3_fahrenheit': 0x10, // mg/m³, °F
             'ppb_fahrenheit': 0x11, // ppb, °F
         },
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: 'displayUnit',
         zigbeeCommandOptions: {disableDefaultResponse: true},
         description: 'Units to show on the display',
         ...args,
     }),
-    xiaomiOutageCountRestoreBindReporting: (): ModernExtend => {
+    lumiOutageCountRestoreBindReporting: (): ModernExtend => {
         const fromZigbee: Fz.Converter[] = [{
-            cluster: 'aqaraOpple',
+            cluster: 'manuSpecificLumi',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 // At least the Aqara TVOC sensor does not send a deviceAnnounce after comming back online.
                 // The reconfigureReportingsOnDeviceAnnounce modernExtend is not usable because of this,
                 //  there is however an outage counter published in the 'special' buffer  data reported
-                //  under the aqaraOpple cluster as attribute 247, we simple decode and grab value with ID 5.
+                //  under the manuSpecificLumi cluster as attribute 247, we simple decode and grab value with ID 5.
                 // Normal attribute publishing and decoding will be left to the classic fromZigbee or modernExtends.
                 if (msg.data.hasOwnProperty('247')) {
                     const dataDecoded = buffer2DataObject(meta, model, msg.data['247']);
@@ -1458,8 +1398,8 @@ export const xiaomiModernExtend = {
 
         return {fromZigbee, isModernExtend: true};
     },
-    xiaomiZigbeeOTA: (): ModernExtend => {
-        // Many Xiaomi devices miss OTA on endpoint 1 even while supporting it.
+    lumiZigbeeOTA: (): ModernExtend => {
+        // Many Lumi devices miss OTA on endpoint 1 even while supporting it.
         // https://github.com/Koenkk/zigbee2mqtt/issues/10660
         const result = modernExtend.quirkAddEndpointCluster({
             endpointID: 1,
@@ -1468,7 +1408,7 @@ export const xiaomiModernExtend = {
         result.ota = ota.zigbeeOTA;
         return result;
     },
-    xiaomiPower: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+    lumiPower: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
         name: 'power',
         cluster: 'genAnalogInput',
         attribute: 'presentValue',
@@ -1479,7 +1419,7 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiElectricityMeter: (): ModernExtend => {
+    lumiElectricityMeter: (): ModernExtend => {
         const exposes = [
             e.energy(),
             e.voltage(),
@@ -1487,7 +1427,7 @@ export const xiaomiModernExtend = {
             e.device_temperature(),
         ];
         const fromZigbee: Fz.Converter[] = [{
-            cluster: 'aqaraOpple',
+            cluster: 'manuSpecificLumi',
             type: ['attributeReport', 'readResponse'],
             convert: async (model, msg, publish, options, meta) => {
                 return await numericAttributes2Payload(msg, meta, model, options, msg.data);
@@ -1496,9 +1436,9 @@ export const xiaomiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
-    xiaomiOverloadProtection: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+    lumiOverloadProtection: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
         name: 'overload_protection',
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x020b, type: 0x39},
         description: 'Maximum allowed load, turns off if exceeded',
         valueMin: 100,
@@ -1508,9 +1448,9 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiLedIndicator: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+    lumiLedIndicator: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
         name: 'led_indicator',
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0203, type: 0x10},
         valueOn: ['ON', 1],
         valueOff: ['OFF', 0],
@@ -1519,9 +1459,9 @@ export const xiaomiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    xiaomiButtonLock: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+    lumiButtonLock: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
         name: 'button_lock',
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0200, type: 0x20},
         valueOn: ['ON', 0],
         valueOff: ['OFF', 1],
@@ -1532,7 +1472,7 @@ export const xiaomiModernExtend = {
     }),
 };
 
-export {xiaomiModernExtend as modernExtend};
+export {lumiModernExtend as modernExtend};
 
 const feederDaysLookup = {
     0x7f: 'everyday',
@@ -1551,7 +1491,7 @@ const feederDaysLookup = {
 
 export const fromZigbee = {
     aqara_feeder: {
-        cluster: 'aqaraOpple',
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
@@ -1641,14 +1581,14 @@ export const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter,
-    xiaomi_basic: {
+    lumi_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
             return await numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     } satisfies Fz.Converter,
-    xiaomi_basic_raw: {
+    lumi_basic_raw: {
         cluster: 'genBasic',
         type: ['raw'],
         convert: async (model, msg, publish, options, meta) => {
@@ -1660,8 +1600,8 @@ export const fromZigbee = {
             return payload;
         },
     } satisfies Fz.Converter,
-    aqara_opple: {
-        cluster: 'aqaraOpple',
+    lumi_specific: {
+        cluster: 'manuSpecificLumi',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
             return await numericAttributes2Payload(msg, meta, model, options, msg.data);
@@ -1697,8 +1637,8 @@ export const toZigbee = {
                     // @ts-expect-error
                     v = value;
                 }
-                await entity.write('aqaraOpple', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
-                    {manufacturerCode: 0x115f});
+                await entity.write('manuSpecificLumi', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
+                    {manufacturerCode: manufacturerCode});
             };
             switch (key) {
             case 'feed':
@@ -1749,6 +1689,6 @@ export const toZigbee = {
 
 exports.buffer2DataObject = buffer2DataObject;
 exports.numericAttributes2Payload = numericAttributes2Payload;
-exports.fp1 = fp1;
+exports.fp1 = presence;
 exports.trv = trv;
 exports.manufacturerCode = manufacturerCode;

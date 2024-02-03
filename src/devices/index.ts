@@ -179,6 +179,7 @@ import nanoleaf from './nanoleaf';
 import neo from './neo';
 import net2grid from './net2grid';
 import netvox from './netvox';
+import nexelec from './nexelec';
 import niko from './niko';
 import ninja_blocks from './ninja_blocks';
 import niviss from './niviss';
@@ -279,7 +280,7 @@ import wisdom from './wisdom';
 import woolley from './woolley';
 import woox from './woox';
 import wyze from './wyze';
-import xiaomi from './xiaomi';
+import lumi from './lumi';
 import xinghuoyuan from './xinghuoyuan';
 import yale from './yale';
 import ynoa from './ynoa';
@@ -471,6 +472,7 @@ export default [
     ...neo,
     ...net2grid,
     ...netvox,
+    ...nexelec,
     ...niko,
     ...ninja_blocks,
     ...niviss,
@@ -571,7 +573,7 @@ export default [
     ...woolley,
     ...woox,
     ...wyze,
-    ...xiaomi,
+    ...lumi,
     ...xinghuoyuan,
     ...yale,
     ...ynoa,

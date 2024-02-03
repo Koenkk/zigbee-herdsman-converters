@@ -349,7 +349,7 @@ describe('index.js', () => {
 
     it('Verify addDefinition overwrite existing', async () => {
         const device = {type: 'Router', modelID: 'lumi.light.aqcn02'};
-        expect((await index.findByDevice(device)).vendor).toBe('Xiaomi');
+        expect((await index.findByDevice(device)).vendor).toBe('Aqara');
 
         const overwriteDefinition = {
             model: 'mock-model',
