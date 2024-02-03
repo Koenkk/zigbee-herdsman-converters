@@ -1,5 +1,14 @@
 # Changelog
 
+## [18.27.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.27.0...v18.27.1) (2024-02-03)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_e9ba97vf` and `_TZE200_kds0pmmv` as Moes TV01-ZB https://github.com/Koenkk/zigbee2mqtt/issues/21186 ([891a4fb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/891a4fb98348d76421972e1471d3b4af39511b92))
+* **detect:** Detect `_TZE200_sgpeacqp` as TuYa TS0601_smart_human_presence_sensor_1 ([#7005](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7005)) ([4d9d859](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d9d8593db955fd4aaae7182eb4b24aea890642d))
+* Fix `single_1` instead of `single` action for various TuYa devices https://github.com/Koenkk/zigbee2mqtt/issues/21158 ([c7dc11e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c7dc11ec755d5c37d48d30e745f22a5c7417c80e))
+
 ## [18.27.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.26.0...v18.27.0) (2024-02-03)
 
 
