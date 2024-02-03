@@ -3080,6 +3080,7 @@ const definitions: Definition[] = [
             {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
             {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
             tuya.whitelabel('Moes', 'ZTRV-ZX-TV01-MS', 'Thermostat radiator valve', ['_TZE200_7yoranx2']),
+            tuya.whitelabel('Moes', 'TV01-ZB', 'Thermostat radiator valve', ['_TZE200_e9ba97vf', '_TZE200_kds0pmmv']),
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [tuya.fz.datapoints],
