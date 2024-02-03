@@ -307,21 +307,40 @@ const ubisys = {
             key: ['configure_device_setup'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const devMgmtEp = meta.device.getEndpoint(232);
+                const cluster = Zcl.Utils.getCluster('manuSpecificUbisysDeviceSetup');
+                const attributeInputConfigurations = cluster.getAttribute('inputConfigurations');
+                const attributeInputActions = cluster.getAttribute('inputActions');
 
                 if (value.hasOwnProperty('input_configurations')) {
                     // example: [0, 0, 0, 0]
-                    await devMgmtEp.write(
+                    await devMgmtEp.writeStructured(
                         'manuSpecificUbisysDeviceSetup',
-                        {'inputConfigurations': {elementType: 'data8', elements: value.input_configurations}},
+                        [{
+                            attrId: attributeInputConfigurations.ID,
+                            selector: {},
+                            dataType: Zcl.DataType.array,
+                            elementData: {
+                                elementType: 'data8',
+                                elements: value.input_configurations,
+                            },
+                        }],
                         manufacturerOptions.ubisysNull,
                     );
                 }
 
                 if (value.hasOwnProperty('input_actions')) {
                     // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
-                    await devMgmtEp.write(
+                    await devMgmtEp.writeStructured(
                         'manuSpecificUbisysDeviceSetup',
-                        {'inputActions': {elementType: 'octetStr', elements: value.input_actions}},
+                        [{
+                            attrId: attributeInputActions.ID,
+                            selector: {},
+                            dataType: Zcl.DataType.array,
+                            elementData: {
+                                elementType: 'octetStr',
+                                elements: value.input_actions,
+                            },
+                        }],
                         manufacturerOptions.ubisysNull,
                     );
                 }
@@ -506,9 +525,18 @@ const ubisys = {
 
                     meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendly_name}': ` +
                         JSON.stringify(resultingInputActions));
-                    await devMgmtEp.write(
+
+                    await devMgmtEp.writeStructured(
                         'manuSpecificUbisysDeviceSetup',
-                        {'inputActions': {elementType: 'octetStr', elements: resultingInputActions}},
+                        [{
+                            attrId: attributeInputActions.ID,
+                            selector: {},
+                            dataType: Zcl.DataType.array,
+                            elementData: {
+                                elementType: 'octetStr',
+                                elements: resultingInputActions,
+                            },
+                        }],
                         manufacturerOptions.ubisysNull,
                     );
                 }
