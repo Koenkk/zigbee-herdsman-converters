@@ -798,6 +798,7 @@ export const presets = {
         .withFeature(new Enum('state', access.SET, ['system_is_armed', 'system_is_disarmed']).withDescription('Set Squawk state'))
         .withFeature(new Enum('level', access.SET, ['low', 'medium', 'high', 'very_high']).withDescription('Sound level'))
         .withFeature(new Binary('strobe', access.SET, true, false).withDescription('Turn on/off the strobe (light) for Squawk')),
+    identify_duration: () => new Numeric('identify', access.SET).withValueMin(0).withValueMax(30).withUnit('seconds').withDescription('Duration of flashing').withCategory('config'),
 };
 
 exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
