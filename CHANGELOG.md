@@ -1,5 +1,26 @@
 # Changelog
 
+## [18.27.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.26.0...v18.27.0) (2024-02-03)
+
+
+### Features
+
+* **add:** 8719514338487 ([#6999](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6999)) ([e8146b1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8146b116cd87d9aca87f0db3832eaff2e042404))
+* **add:** BAC-003 [@pippocuce](https://github.com/pippocuce) https://github.com/Koenkk/zigbee2mqtt/issues/17521 ([b170998](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b1709982ddc3569691c54f6688d4a2c0f0d081f7))
+* **add:** ZS-SR-EUC ([#6985](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6985)) ([a16bf09](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a16bf092aed9674d6452c778bdbd9ce802157eb1))
+* Support more features for Bosch BTH-RM ([#6996](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6996)) ([0f61647](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f61647a3cc03ac6f43177301fd84e187f002b58))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3290_gnl5a6a5xvql7c2a` as TuYa iH-F8260 [@kikher](https://github.com/kikher) https://github.com/Koenkk/zigbee2mqtt/issues/21172 ([3818d79](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3818d79f4eedd8f4e788bd6d991dcc289c8d4686))
+* **detect:** Detect `WATER_TPV13` as HEIMAN HS1WL/HS3WL https://github.com/Koenkk/zigbee2mqtt/issues/21174 ([5059488](https://github.com/Koenkk/zigbee-herdsman-converters/commit/50594880d0742ce5da3782c991a16a7c68306fc0))
+* Fix failing commands to Aqara ZNCWWSQ01LM causing a crash https://github.com/Koenkk/zigbee2mqtt/issues/17148 ([710ab22](https://github.com/Koenkk/zigbee-herdsman-converters/commit/710ab2242470bf29397e5a7b504c34eab098b8e0))
+* Fix Light Solution 3137308/3137309 not exposing dimming functionality https://github.com/Koenkk/zigbee2mqtt/issues/21183 ([4d9df26](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d9df263b2abead775b8c69325704aeef691ddb6))
+* **ignore:** fix e122451 ([10cd944](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10cd9445c8a3b5f52ae70d62c33e636a81f98b4c))
+* LiXee: Correct stge parsing by converting String to raw hex number ([#6997](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6997)) ([9ec258c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9ec258c8950932bf36131988aecd57abc5fdb940))
+* Log instead of throwing exception when generateDefinition can handle only 1 endpoint ([#7001](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7001)) ([6c4475c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6c4475c4fd13fd4b6b069c90ecf1cfef071d5f96))
+
 ## [18.26.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.25.1...v18.26.0) (2024-02-01)
 
 
