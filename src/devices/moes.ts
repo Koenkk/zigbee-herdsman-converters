@@ -472,6 +472,28 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_srmahpwl']),
+        model: 'ZS-SR-EUC',
+        vendor: 'Moes',
+        description: 'Star ring - smart curtain switch',
+        options: [exposes.options.invert_cover()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            e.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'calibration', tuya.valueConverterBasic.lookup({'START': tuya.enum(0), 'END': tuya.enum(1)})],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})],
+            ],
+        },
+    },
 ];
 
 export default definitions;
