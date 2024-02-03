@@ -469,10 +469,10 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_srmahpwl'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_srmahpwl']),
         model: 'ZS-SR-EUC',
         vendor: 'Moes',
-        description: 'Star Ring - Smart Curtain Switch',
+        description: 'Star ring - smart curtain switch',
         options: [exposes.options.invert_cover()],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
