@@ -2317,6 +2317,34 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dzuqwsyg']),
+        model: 'BAC-003',
+        vendor: 'TuYa',
+        description: 'Central air conditioner thermostat temperature controller',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
+            e.climate()
+                .withSetpoint('current_heating_setpoint', 16, 30, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(['off', 'cool', 'heat', 'fan_only'], ea.STATE_SET)
+                .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [2, 'system_mode', tuya.valueConverterBasic.lookup({'cool': tuya.enum(0), 'heat': tuya.enum(1), 'fan_only': tuya.enum(2)})],
+                [16, 'current_heating_setpoint', tuya.valueConverterBasic.divideBy(1)],
+                [24, 'local_temperature', tuya.valueConverter.divideBy10],
+                [28, 'fan_mode', tuya.valueConverterBasic.lookup(
+                    {'low': tuya.enum(0), 'medium': tuya.enum(1), 'high': tuya.enum(2), 'auto': tuya.enum(3)})],
+            ],
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_qq9mpfhw'}],
         model: 'TS0601_water_sensor',
         vendor: 'TuYa',
