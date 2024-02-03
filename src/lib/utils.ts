@@ -404,8 +404,7 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
     if (message.hasOwnProperty('transition')) {
         const time = toNumber(message.transition, 'transition');
         return {time: time * 10, specified: true};
-    } else if (options.hasOwnProperty('transition')) {
-        if (options.transition == '') {
+    } else if (options.hasOwnProperty('transition') && options.transition !== '') {
             return {time: 0, specified: false};
         }
         const transition = toNumber(options.transition || 0, 'transition');
