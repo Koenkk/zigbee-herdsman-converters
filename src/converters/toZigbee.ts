@@ -5030,6 +5030,7 @@ const converters2 = {
     lumi_switch_click_mode: {
         key: ['click_mode'],
         convertSet: async (entity, key, value, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
                 await entity.write('manuSpecificLumi',
                     {0x0286: {value: utils.getFromLookup(value, {'fast': 0x1, 'multi': 0x02}), type: 0x20}},
@@ -5043,6 +5044,7 @@ const converters2 = {
             }
         },
         convertGet: async (entity, key, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
                 await entity.read('manuSpecificLumi', [0x0286], manufacturerOptions.lumi);
             } else {
