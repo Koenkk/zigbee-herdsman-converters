@@ -464,7 +464,7 @@ const definitions: Definition[] = [
         extend: [tradfriLight()],
     },
     {
-        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm8', 'TRADFRI bulb GU10 WW 345lm', '\\u001TRADFRI bulb GU10 WW 345lm'],
+        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm', 'TRADFRI bulb GU10 WW 345lm', '\\u001TRADFRI bulb GU10 WW 345lm'],
         model: 'LED2104R3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 WW 345 lumen, dimmable',
