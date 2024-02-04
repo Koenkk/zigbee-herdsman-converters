@@ -3755,6 +3755,16 @@ const converters1 = {
                     61: 'all',
                 };
             }
+            // Z1 switches, ZNQBKG38LM only 1 button, so not add buttonLookup
+            if (['ZNQBKG39LM'].includes(model.model)) {
+                buttonLookup = {1: 'top', 2: 'bottom'};
+            }
+            if (['ZNQBKG40LM'].includes(model.model)) {
+                buttonLookup = {1: 'top', 2: 'middle', 3: 'bottom'};
+            }
+            if (['ZNQBKG41LM'].includes(model.model)) {
+                buttonLookup = {1: 'top', 2: 'middle', 3: 'bottom', 4: 'wireless'};
+            }
             if (['WS-USC02', 'WS-USC04'].includes(model.model)) {
                 buttonLookup = {41: 'top', 42: 'bottom', 51: 'both'};
             }
