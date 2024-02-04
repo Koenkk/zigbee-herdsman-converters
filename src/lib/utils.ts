@@ -405,8 +405,6 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
         const time = toNumber(message.transition, 'transition');
         return {time: time * 10, specified: true};
     } else if (options.hasOwnProperty('transition') && options.transition !== '') {
-            return {time: 0, specified: false};
-        }
         const transition = toNumber(options.transition || 0, 'transition');
         return {time: transition * 10, specified: true};
     } else {
