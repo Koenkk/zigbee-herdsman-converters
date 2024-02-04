@@ -165,7 +165,7 @@ const definitions: Definition[] = [
         model: '1402767',
         vendor: 'Namron',
         description: 'Zigbee LED dimmer',
-        extend: [light({effect: false, configureReporting: true})],
+        extend: [light({effect: false, configureReporting: true}), forcePowerSource({powerSource: 'Mains (single phase)'})],
         meta: {disableDefaultResponse: true},
     },
     {
