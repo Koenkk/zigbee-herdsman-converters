@@ -2252,6 +2252,12 @@ const converters2 = {
                     [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x01, 0x01, 0x10, 0x00];
 
                 await entity.write('genBasic', {0xFFF0: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
+            } else if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
+                // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
+                const targetValue = utils.isObject(value) && value.hasOwnProperty('state') ? value.state : value;
+                const lookupState = {on: 0x01, electric_appliances_on: 0x00, electric_appliances_off: 0x02, inverted: 0x03};
+                await entity.write('manuSpecificLumi',
+                    {0x0517: {value: utils.getFromLookup(targetValue, lookupState), type: 0x20}}, manufacturerOptions.lumi);
             } else {
                 throw new Error('Not supported');
             }
@@ -2268,6 +2274,8 @@ const converters2 = {
                 await entity.read('manuSpecificLumi', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM', 'ZNCZ12LM'].includes(meta.mapped.model)) {
                 await entity.read('manuSpecificLumi', [0xFFF0]);
+            } else if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
+                await entity.read('manuSpecificLumi', [0x0517]);
             } else {
                 throw new Error('Not supported');
             }
@@ -5008,15 +5016,40 @@ const converters2 = {
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
         },
     } satisfies Tz.Converter,
+    lumi_switch_lock_relay_opple: {
+        key: ['lock_relay'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificLumi', {0x0285: {value: utils.getFromLookup(value, {'Off': 0x00, 'On': 0x01}), type: 0x20}},
+                manufacturerOptions.lumi);
+            return {state: {lock_relay: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x0285], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
     lumi_switch_click_mode: {
         key: ['click_mode'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi',
-                {0x0125: {value: utils.getFromLookup(value, {'fast': 0x1, 'multi': 0x02}), type: 0x20}}, manufacturerOptions.lumi);
-            return {state: {click_mode: value}};
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
+                await entity.write('manuSpecificLumi',
+                    {0x0286: {value: utils.getFromLookup(value, {'fast': 0x1, 'multi': 0x02}), type: 0x20}},
+                    manufacturerOptions.lumi);
+                return {state: {click_mode: value}};
+            } else {
+                await entity.write('manuSpecificLumi',
+                    {0x0125: {value: utils.getFromLookup(value, {'fast': 0x1, 'multi': 0x02}), type: 0x20}},
+                    manufacturerOptions.lumi);
+                return {state: {click_mode: value}};
+            }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x125], manufacturerOptions.lumi);
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
+                await entity.read('manuSpecificLumi', [0x0286], manufacturerOptions.lumi);
+            } else {
+                await entity.read('manuSpecificLumi', [0x125], manufacturerOptions.lumi);
+            }
         },
     } satisfies Tz.Converter,
     led_on_motion: {
