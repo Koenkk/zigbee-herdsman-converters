@@ -1,5 +1,15 @@
 # Changelog
 
+## [18.28.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.28.0...v18.28.1) (2024-02-04)
+
+
+### Bug Fixes
+
+* Fix fan control of BAC-002-ALZB ([#7011](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7011)) ([c01ea9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c01ea9e2ef1f45a1b3bca87e6e7d4a1a379bfb8b))
+* Fix no actions for TuYa TS0042 https://github.com/Koenkk/zigbee2mqtt/issues/21196 ([445b1f8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/445b1f88f9f9d279c2c3b904856db6ddfe4a5bcd))
+* Fix power source for Namron 1402767 https://github.com/Koenkk/zigbee2mqtt/issues/21212 ([deb3a86](https://github.com/Koenkk/zigbee-herdsman-converters/commit/deb3a867aafc35c025522c9ba64a3c4c3dad74ec))
+* Improve SONOFF SNZB-02 reporting intervals ([#7013](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7013)) ([c52a1cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c52a1cc14c83cb7b4c136dda319b09bbd8bcbc39))
+
 ## [18.28.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.27.1...v18.28.0) (2024-02-04)
 
 
