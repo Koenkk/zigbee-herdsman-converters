@@ -1,5 +1,21 @@
 # Changelog
 
+## [18.28.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.27.1...v18.28.0) (2024-02-04)
+
+
+### Features
+
+* Add OTA support for the Namron 540139X panel heaters ([#7008](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7008)) ([1b57e29](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1b57e29e08c7d389ca82515a8bc594527fc80ddf))
+* Expose identify for IKEA E2013 and E2134 ([#7000](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7000)) ([52bfef5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/52bfef5e19698ba1f20ee9cfe78b3d4f79aa9e15))
+
+
+### Bug Fixes
+
+* 'transition' is not a number, got string () when `transition: ""`([#7003](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7003)) ([c879def](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c879deff072d8b48f09b7e08e690eb6f843101ff))
+* `\u001aTRADFRI bulb GU10 WW 345lm` not detected as supported https://github.com/Koenkk/zigbee2mqtt/issues/20551 ([5fcd14b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5fcd14ba9d98a979d3a3c7ef7569ca87b448e314))
+* Fix Aqara ZNQBKG38LM, ZNQBKG39LM, ZNQBKG40LM and ZNQBKG41LM bugs ([#7010](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7010)) ([d1b18ad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d1b18ad11c28962e94068cdd2f194637802ae9ab))
+* **ignore:** update dependencies ([#6970](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6970)) ([f167ce8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f167ce8e41336f1be79aacd47fc72432bb268565))
+
 ## [18.27.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.27.0...v18.27.1) (2024-02-03)
 
 
