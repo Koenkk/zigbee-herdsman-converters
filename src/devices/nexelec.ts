@@ -6,7 +6,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['Air Quality Sensor Nexelec'],
         model: 'Open\'R',
         vendor: 'Nexelec',
-        description: 'Nexelec CO2, Temperature and Humidity sensor',
+        description: 'Open\'R CO2, Temperature and Humidity sensor',
         extend: [temperature(), humidity(), co2(), batteryPercentage(), identify()],
     },
 ];
