@@ -3073,6 +3073,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.battery_voltage(),
             e.action(['single', 'double', 'hold', 'release', 'start_rotating', 'rotation', 'stop_rotating']),
             e.enum('operation_mode', ea.ALL, ['event', 'command']).withDescription('Button mode'),
+            e.enum('action_rotation_button_state', ea.STATE, ['released', 'pressed']).withDescription('Button state during rotation'),
             e.numeric('action_rotation_angle', ea.STATE).withUnit('*').withDescription('Rotation angle'),
             e.numeric('action_rotation_angle_speed', ea.STATE).withUnit('*').withDescription('Rotation angle speed'),
             e.numeric('action_rotation_percent', ea.STATE).withUnit('%').withDescription('Rotation percent'),
