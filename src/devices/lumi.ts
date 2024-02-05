@@ -23,7 +23,6 @@ const {
 } = lumi.modernExtend;
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz} from '../lib/types';
-import { access } from 'node:fs';
 const {printNumbersAsHexSequence} = utils;
 const {presence, manufacturerCode, trv} = lumi;
 
