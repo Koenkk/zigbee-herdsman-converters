@@ -3842,7 +3842,10 @@ const fromZigbee1 = {
                     return {system_mode: value ? 'heat' : 'off'};
                 }
             case dataPoints.tvMode:
-                return {system_mode: stateLookup[value]};
+                if (model.model === 'BAC-002-ALZB') {
+                    return {system_mode: stateLookup[value]};
+                }
+                return {preset_mode: value ? 'program' : 'hold', preset: value ? 'program' : 'hold'};
             case dataPoints.moesChildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case dataPoints.moesHeatingSetpoint:
@@ -3895,8 +3898,6 @@ const fromZigbee1 = {
                 // for negative values produce complimentary hex (equivalent to negative values)
                 if (temperature > 4000) temperature = temperature - 4096;
                 return {local_temperature_calibration: temperature};
-            case dataPoints.moesHold: // state is inverted, preset_mode is deprecated
-                return {preset_mode: value ? 'program' : 'hold', preset: value ? 'program' : 'hold'};
             case dataPoints.moesScheduleEnable: // state is inverted, preset_mode is deprecated
                 return {preset_mode: value ? 'hold' : 'program', preset: value ? 'hold' : 'program'};
             case dataPoints.moesValve:

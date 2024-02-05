@@ -9,6 +9,7 @@ import allDefinitions from './devices';
 import * as utils from './lib/utils';
 import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, Logger } from './lib/types';
 import {generateDefinition} from './lib/generateDefinition';
+import * as logger from './lib/logger';
 
 export {
     Definition as Definition,
@@ -398,3 +399,5 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
         await device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal});
     }
 }
+
+export const setLogger = logger.setLogger;
