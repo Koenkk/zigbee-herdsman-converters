@@ -2206,7 +2206,7 @@ const converters1 = {
             if (hasAlreadyProcessedMessage(msg, model, msg.data[1])) return;
             const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
             const buttonMapping: KeyValueNumberString = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'};
-            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
+            const button = msg.device.endpoints.length > 1 ? `${buttonMapping[msg.endpoint.ID]}_` : '';
             // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
             // Send the defaultResponse here, otherwise the second button click delays.
             // https://github.com/Koenkk/zigbee2mqtt/issues/8149
@@ -3754,6 +3754,16 @@ const converters1 = {
                     51: 'left_center', 52: 'left_right', 53: 'center_right',
                     61: 'all',
                 };
+            }
+            // Z1 switches, ZNQBKG38LM only 1 button, so not add buttonLookup
+            if (['ZNQBKG39LM'].includes(model.model)) {
+                buttonLookup = {1: 'top', 2: 'bottom'};
+            }
+            if (['ZNQBKG40LM'].includes(model.model)) {
+                buttonLookup = {1: 'top', 2: 'middle', 3: 'bottom'};
+            }
+            if (['ZNQBKG41LM'].includes(model.model)) {
+                buttonLookup = {1: 'top', 2: 'middle', 3: 'bottom', 4: 'wireless'};
             }
             if (['WS-USC02', 'WS-USC04'].includes(model.model)) {
                 buttonLookup = {41: 'top', 42: 'bottom', 51: 'both'};
@@ -5507,8 +5517,10 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(570)) {
                 const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
+                const state: KeyValueNumberString = {0: 'released', 128: 'pressed'};
                 return {
-                    action: act[msg.data[570]],
+                    action: act[msg.data[570] & ~128],
+                    action_rotation_button_state: state[msg.data[570] & 128],
                     action_rotation_angle: msg.data[558],
                     action_rotation_angle_speed: msg.data[560],
                     action_rotation_percent: msg.data[563],

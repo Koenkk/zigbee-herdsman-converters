@@ -456,14 +456,15 @@ const definitions: Definition[] = [
         extend: [tradfriLight()],
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WW G95 CL 470lm', 'TRADFRI bulb E26 WW G95 CL 450lm', 'TRADFRI bulb E26 WW G95 CL 440lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WW G95 CL 470lm', 'TRADFRI bulb E26 WW G95 CL 450lm', 'TRADFRI bulb E26 WW G95 CL 440lm',
+            'TRADFRI bulb E26 WW G95 CL 470lm'],
         model: 'LED2102G3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27 WW 440/450/470 lumen, wireless dimmable warm white/globe clear',
         extend: [tradfriLight()],
     },
     {
-        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm8', 'TRADFRI bulb GU10 WW 345lm', '\\u001TRADFRI bulb GU10 WW 345lm'],
+        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm', 'TRADFRI bulb GU10 WW 345lm', '\\u001TRADFRI bulb GU10 WW 345lm'],
         model: 'LED2104R3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 WW 345 lumen, dimmable',
@@ -1235,7 +1236,7 @@ const definitions: Definition[] = [
         description: 'VALLHORN wireless motion sensor',
         fromZigbee: [fz.occupancy, fz.battery, fz.illuminance],
         toZigbee: [tz.identify],
-        exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.occupancy(), e.battery(), e.illuminance(), e.illuminance_lux(), e.identify_duration()],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -1280,7 +1281,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
         toZigbee: [tz.identify],
         ota: ota.tradfri,
-        exposes: [e.battery(), e.contact()],
+        exposes: [e.battery(), e.contact(), e.identify_duration()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);

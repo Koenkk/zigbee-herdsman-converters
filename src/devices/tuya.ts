@@ -630,7 +630,6 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'TS0021', manufacturerName: '_TZ3210_3ulg9kpo'},
-            {modelID: 'TS0042', manufacturerName: '_TZ3000_kt7obmnn'},
         ],
         model: 'LKWSZ211',
         vendor: 'TuYa',
@@ -2317,6 +2316,34 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dzuqwsyg']),
+        model: 'BAC-003',
+        vendor: 'TuYa',
+        description: 'Central air conditioner thermostat temperature controller',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
+            e.climate()
+                .withSetpoint('current_heating_setpoint', 16, 30, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(['off', 'cool', 'heat', 'fan_only'], ea.STATE_SET)
+                .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [2, 'system_mode', tuya.valueConverterBasic.lookup({'cool': tuya.enum(0), 'heat': tuya.enum(1), 'fan_only': tuya.enum(2)})],
+                [16, 'current_heating_setpoint', tuya.valueConverterBasic.divideBy(1)],
+                [24, 'local_temperature', tuya.valueConverter.divideBy10],
+                [28, 'fan_mode', tuya.valueConverterBasic.lookup(
+                    {'low': tuya.enum(0), 'medium': tuya.enum(1), 'high': tuya.enum(2), 'auto': tuya.enum(3)})],
+            ],
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_qq9mpfhw'}],
         model: 'TS0601_water_sensor',
         vendor: 'TuYa',
@@ -3052,6 +3079,7 @@ const definitions: Definition[] = [
             {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
             {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
             tuya.whitelabel('Moes', 'ZTRV-ZX-TV01-MS', 'Thermostat radiator valve', ['_TZE200_7yoranx2']),
+            tuya.whitelabel('Moes', 'TV01-ZB', 'Thermostat radiator valve', ['_TZE200_e9ba97vf', '_TZE200_kds0pmmv']),
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [tuya.fz.datapoints],
@@ -4084,7 +4112,8 @@ const definitions: Definition[] = [
         description: 'Smart light switch - 2 gang',
         whiteLabel: [{vendor: 'Vrey', model: 'VR-X712U-0013'}, {vendor: 'TUYATEC', model: 'GDKES-02TZXD'},
             {vendor: 'Earda', model: 'ESW-2ZAA-EU'}, {vendor: 'Moes', model: 'ZS-US2-BK-MS'},
-            tuya.whitelabel('Moes', 'ZS-US2-WH-MS', 'Smart light switch - 2 gang', ['_TZ3000_18ejxno0'])],
+            tuya.whitelabel('Moes', 'ZS-EUB_2gang', 'Smart light switch - 2 gang', ['_TZ3000_18ejxno0']),
+        ],
         extend: tuya.extend.switch({backlightModeOffNormalInverted: true, endpoints: ['left', 'right']}),
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -5003,7 +5032,8 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wukb7rhc'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_xsm7l9xa'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_ztc6ggyl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_sgpeacqp'}],
         model: 'TS0601_smart_human_presence_sensor_1',
         vendor: 'TuYa',
         description: 'Smart Human presence sensor',

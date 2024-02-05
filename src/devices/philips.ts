@@ -3532,6 +3532,13 @@ const definitions: Definition[] = [
         description: 'Hue Being Pendant aluminum',
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
+    {
+        zigbeeModel: ['929003046701'],
+        model: '8719514338487',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Pillar spotlight with Bluetooth (white) + dimmer switch',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
 ];
 
 export default definitions;

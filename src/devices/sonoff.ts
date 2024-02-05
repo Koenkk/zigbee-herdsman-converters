@@ -287,8 +287,8 @@ const definitions: Definition[] = [
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
-                await reporting.humidity(endpoint);
+                await reporting.temperature(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 20});
+                await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 100});
                 await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
                 await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
@@ -308,8 +308,8 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
-            await reporting.humidity(endpoint);
+            await reporting.temperature(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 20});
+            await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 100});
             await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             device.powerSource = 'Battery';
             device.save();
@@ -421,8 +421,8 @@ const definitions: Definition[] = [
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
-                await reporting.humidity(endpoint);
+                await reporting.temperature(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 20});
+                await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 100});
                 await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
                 logger.error(`Configure failed: ${e}`);
