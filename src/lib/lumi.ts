@@ -1646,7 +1646,7 @@ export const toZigbee = {
             };
             switch (key) {
             case 'feed':
-                await sendAttr(0x04150055, 1, 1);
+                sendAttr(0x04150055, 1, 1);
                 break;
             case 'schedule': {
                 const schedule: string[] = [];
@@ -1663,25 +1663,25 @@ export const toZigbee = {
                 });
                 const val = Buffer.concat([Buffer.from(schedule.join(',')), Buffer.from([0])]);
                 // @ts-expect-error
-                await sendAttr(0x080008c8, val, val.length);
+                sendAttr(0x080008c8, val, val.length);
                 break;
             }
             case 'led_indicator':
-                await sendAttr(0x04170055, getFromLookup(value, {'OFF': 0, 'ON': 1}), 1);
+                sendAttr(0x04170055, getFromLookup(value, {'OFF': 0, 'ON': 1}), 1);
                 break;
             case 'child_lock':
-                await sendAttr(0x04160055, getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), 1);
+                sendAttr(0x04160055, getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), 1);
                 break;
             case 'mode':
-                await sendAttr(0x04180055, getFromLookup(value, {'manual': 0, 'schedule': 1}), 1);
+                sendAttr(0x04180055, getFromLookup(value, {'manual': 0, 'schedule': 1}), 1);
                 break;
             case 'serving_size':
                 // @ts-expect-error
-                await sendAttr(0x0e5c0055, value, 4);
+                sendAttr(0x0e5c0055, value, 4);
                 break;
             case 'portion_weight':
                 // @ts-expect-error
-                await sendAttr(0x0e5f0055, value, 4);
+                sendAttr(0x0e5f0055, value, 4);
                 break;
             default: // Unknown key
                 meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key}`);

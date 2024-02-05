@@ -2396,7 +2396,8 @@ const converters2 = {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
                 'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
-                'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
+                'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM',
+                'ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
                 await entity.write('manuSpecificLumi', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
