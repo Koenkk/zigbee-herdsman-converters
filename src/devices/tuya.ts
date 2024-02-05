@@ -1810,12 +1810,12 @@ const definitions: Definition[] = [
             device.save();
         },
         exposes: [
-            tuya.exposes.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
-            tuya.exposes.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
-            tuya.exposes.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
-            tuya.exposes.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET),
-            tuya.exposes.switch().withEndpoint('l5').setAccess('state', ea.STATE_SET),
-            tuya.exposes.switch().withEndpoint('l6').setAccess('state', ea.STATE_SET),
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            tuya.exposes.switch().withEndpoint('l3'),
+            tuya.exposes.switch().withEndpoint('l4'),
+            tuya.exposes.switch().withEndpoint('l5'),
+            tuya.exposes.switch().withEndpoint('l6'),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
