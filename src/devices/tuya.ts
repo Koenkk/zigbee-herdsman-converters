@@ -1796,24 +1796,33 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mwvfvw8g']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mwvfvw8g', '_TZE200_wnp4d4va']),
         model: 'TS0601_switch_6_gang',
         vendor: 'TuYa',
         description: '6 gang switch',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
         exposes: [
-            tuya.exposes.switch().withEndpoint('l1'),
-            tuya.exposes.switch().withEndpoint('l2'),
-            tuya.exposes.switch().withEndpoint('l3'),
-            tuya.exposes.switch().withEndpoint('l4'),
-            tuya.exposes.switch().withEndpoint('l5'),
-            tuya.exposes.switch().withEndpoint('l6'),
+            tuya.exposes.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            tuya.exposes.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            tuya.exposes.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
+            tuya.exposes.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET),
+            tuya.exposes.switch().withEndpoint('l5').setAccess('state', ea.STATE_SET),
+            tuya.exposes.switch().withEndpoint('l6').setAccess('state', ea.STATE_SET),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
         },
+        whiteLabel: [
+            tuya.whitelabel('Mercator Ikuü', 'SSW06G', '6 Gang switch', ['_TZE200_wnp4d4va']),
+        ],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
