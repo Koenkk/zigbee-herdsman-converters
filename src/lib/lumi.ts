@@ -658,6 +658,10 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '550':
             payload.button_switch_mode = value === 1 ? 'relay_and_usb' : 'relay';
             break;
+        case '645':
+            // aqara z1 lock relay
+            payload.lock_relay = value === 1;
+            break;
         case '1025':
             if (['ZNCLBL01LM'].includes(model.model)) {
                 payload.hand_open = !value;

@@ -5019,7 +5019,7 @@ const converters2 = {
     lumi_switch_lock_relay_opple: {
         key: ['lock_relay'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {0x0285: {value: (value ? 0x01 : 0x00), type: 0x20}},
+            await entity.write('manuSpecificLumi', {0x0285: {value: utils.getFromLookup(value, {'OFF': 0x00, 'ON': 0x01}), type: 0x20}},
                 manufacturerOptions.lumi);
             return {state: {lock_relay: value}};
         },
