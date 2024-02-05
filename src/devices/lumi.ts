@@ -571,8 +571,9 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        // OTA request: "fieldControl":0, "manufacturerCode":4447, "imageType":10635
-        extend: [lumiZigbeeOTA()],
+        // OTA request: "fieldControl":0, "manufacturerCode":4447, "imageType":10635, no available for now
+        // https://github.com/Koenkk/zigbee-OTA/pull/138
+        // extend: [lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.magnet.ac01'],
