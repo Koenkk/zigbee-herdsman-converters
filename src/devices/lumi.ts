@@ -23,6 +23,7 @@ const {
 } = lumi.modernExtend;
 import * as utils from '../lib/utils';
 import {Definition, OnEvent, Fz, KeyValue, Tz} from '../lib/types';
+import { access } from 'node:fs';
 const {printNumbersAsHexSequence} = utils;
 const {presence, manufacturerCode, trv} = lumi;
 
@@ -3308,7 +3309,7 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode').withEndpoint('button'),
 
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, 'On', 'Off')
                 .withDescription('Lock relay mode').withEndpoint('button'),
 
             e.action(['single']),
@@ -3342,9 +3343,9 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
 
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, 'On', 'Off')
                 .withDescription('Lock relay mode for top button').withEndpoint('top'),
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, 'On', 'Off')
                 .withDescription('Lock relay mode for bottom button').withEndpoint('bottom'),
 
             e.action(['single_top', 'single_bottom']),
@@ -3379,11 +3380,11 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
 
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, 'On', 'Off')
                 .withDescription('Lock relay mode for top button').withEndpoint('top'),
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, 'On', 'Off')
                 .withDescription('Lock relay mode for middle button').withEndpoint('middle'),
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, 'On', 'Off')
                 .withDescription('Lock relay mode for bottom button').withEndpoint('bottom'),
 
             e.action(['single_top', 'single_middle', 'single_bottom']),
@@ -3419,11 +3420,11 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
 
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, 'On', 'Off')
                 .withDescription('Lock relay mode for top button').withEndpoint('top'),
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, 'On', 'Off')
                 .withDescription('Lock relay mode for middle button').withEndpoint('middle'),
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, 'On', 'Off')
                 .withDescription('Lock relay mode for bottom button').withEndpoint('bottom'),
 
             e.enum('click_mode', ea.ALL, ['fast', 'multi'])
