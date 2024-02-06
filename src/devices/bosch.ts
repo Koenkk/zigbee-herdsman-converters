@@ -1170,6 +1170,7 @@ const definitions: Definition[] = [
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.humidity(),
+            e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
             e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
             e.child_lock().setAccess('state', ea.ALL),
             e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
