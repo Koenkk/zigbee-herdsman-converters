@@ -224,7 +224,10 @@ const definitions: Definition[] = [
             {modelID: '0x8030', manufacturerName: 'Danfoss'}, // RTbattery Display
             {modelID: '0x8031', manufacturerName: 'Danfoss'}, // RTbattery Display Infrared
             {modelID: '0x8034', manufacturerName: 'Danfoss'}, // RTbattery Dial
-            {modelID: '0x8035', manufacturerName: 'Danfoss'}], // RTbattery Dial Infrared
+            {modelID: '0x8035', manufacturerName: 'Danfoss'}, // RTbattery Dial Infrared
+            {modelID: '0x8040', manufacturerName: 'Danfoss'}, // RT Zigbee - Display
+            {modelID: '0x8041', manufacturerName: 'Danfoss'}, // RT Zigbee - Featured
+            {modelID: '0x8042', manufacturerName: 'Danfoss'}], // RT Zigbee - Sensor
         model: 'Icon',
         vendor: 'Danfoss',
         description: 'Icon floor heating (regulator, Zigbee module & thermostats)',
