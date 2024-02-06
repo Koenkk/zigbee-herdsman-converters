@@ -3295,7 +3295,8 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Smart wall switch Z1 (single rocker)',
         fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific, fz.lumi_power],
-        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory, tz.lumi_switch_lock_relay_opple],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_switch_lock_relay_opple],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'button': 1};
@@ -3306,11 +3307,12 @@ const definitions: Definition[] = [
 
             e.enum('power_outage_memory', ea.ALL, ['on', 'electric_appliances_on', 'electric_appliances_off', 'inverted'])
                 .withDescription('Power Outage Memory').withEndpoint('button'),
+            e.led_disabled_night(),
 
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode').withEndpoint('button'),
 
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode').withEndpoint('button'),
 
             e.action(['single']),
@@ -3327,7 +3329,8 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Smart wall switch Z1 (double rocker)',
         fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific, fz.lumi_power],
-        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory, tz.lumi_switch_lock_relay_opple],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_switch_lock_relay_opple],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
@@ -3338,15 +3341,16 @@ const definitions: Definition[] = [
 
             e.enum('power_outage_memory', ea.ALL, ['on', 'electric_appliances_on', 'electric_appliances_off', 'inverted'])
                 .withDescription('Power Outage Memory'),
+            e.led_disabled_night(),
 
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for top button').withEndpoint('top'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
 
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for top button').withEndpoint('top'),
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for bottom button').withEndpoint('bottom'),
 
             e.action(['single_top', 'single_bottom']),
@@ -3363,7 +3367,8 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Smart wall switch Z1 (triple rocker)',
         fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific, fz.lumi_power],
-        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory, tz.lumi_switch_lock_relay_opple],
+        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_switch_lock_relay_opple],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'top': 1, 'middle': 2, 'bottom': 3};
@@ -3373,6 +3378,7 @@ const definitions: Definition[] = [
             e.switch().withEndpoint('top'), e.switch().withEndpoint('middle'), e.switch().withEndpoint('bottom'),
             e.enum('power_outage_memory', ea.ALL, ['on', 'electric_appliances_on', 'electric_appliances_off', 'inverted'])
                 .withDescription('Power Outage Memory'),
+            e.led_disabled_night(),
 
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for top button').withEndpoint('top'),
@@ -3381,11 +3387,11 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
 
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for top button').withEndpoint('top'),
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for middle button').withEndpoint('middle'),
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for bottom button').withEndpoint('bottom'),
 
             e.action(['single_top', 'single_middle', 'single_bottom']),
@@ -3403,7 +3409,7 @@ const definitions: Definition[] = [
         description: 'Smart wall switch Z1 (quadruple rocker)',
         fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific, fz.lumi_power],
         toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
-            tz.lumi_switch_lock_relay_opple, tz.lumi_switch_click_mode],
+            tz.lumi_led_disabled_night, tz.lumi_switch_lock_relay_opple, tz.lumi_switch_click_mode],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'top': 1, 'middle': 2, 'bottom': 3};
@@ -3413,6 +3419,7 @@ const definitions: Definition[] = [
             e.switch().withEndpoint('top'), e.switch().withEndpoint('middle'), e.switch().withEndpoint('bottom'),
             e.enum('power_outage_memory', ea.ALL, ['on', 'electric_appliances_on', 'electric_appliances_off', 'inverted'])
                 .withDescription('Power Outage Memory'),
+            e.led_disabled_night(),
 
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for top button').withEndpoint('top'),
@@ -3421,11 +3428,11 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
 
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for top button').withEndpoint('top'),
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for middle button').withEndpoint('middle'),
-            e.enum('lock_relay', ea.ALL, ['On', 'Off'])
+            e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for bottom button').withEndpoint('bottom'),
 
             e.enum('click_mode', ea.ALL, ['fast', 'multi'])
