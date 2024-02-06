@@ -1,5 +1,17 @@
 # Changelog
 
+## [18.28.3](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.28.2...v18.28.3) (2024-02-06)
+
+
+### Bug Fixes
+
+* Aqara ZNQBKG38LM, ZNQBKG39LM, ZNQBKG40LM and ZNQBKG41LM improvements ([#7018](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7018)) ([3845d7f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3845d7f0dc55ac8a0415a4358cdd7adba15e36c4))
+* **detect:** Detect `\u001aTRADFRI bulb GU10 WW 345lm8` as IKEA LED2104R3 https://github.com/Koenkk/zigbee2mqtt/issues/21240 ([b432617](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b432617f8e40336ef149ab896e2feda0944dcbac))
+* EMIZB-132: Avoid reporting of zero energy (currentSummDelivered) ([#7025](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7025)) ([df73bfc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/df73bfc9d123da470245ce06e5a032ffb643f384))
+* Fix Gledopto GL-SD-001 commands timing out https://github.com/Koenkk/zigbee2mqtt/issues/21259 ([3948f1f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3948f1f8c1f8f61c5a97275400e5c5fb76de3be3))
+* Fix Xiaomi LYWSD03MMC integration ([#7015](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7015)) ([2310100](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2310100e95abae5e6de3c9fc45e78e901bf0d877))
+* **ignore:** update zh to 0.33.8 ([b6b68ac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b6b68acfeb3464e7eb9fe7dd9b7514f9c59afd20))
+
 ## [18.28.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.28.1...v18.28.2) (2024-02-05)
 
 
