@@ -6923,7 +6923,7 @@ const definitions: Definition[] = [
         exposes: [
             e.enum('state', ea.STATE, ['none', 'presence', 'move'])
                 .withDescription('Presence state sensor'),
-            e.presence().withDescription('Ocuppancy'),
+            e.presence().withDescription('Occupancy'),
             e.numeric('distance', ea.STATE).withDescription('Target distance'),
             e.illuminance_lux().withDescription('Illuminance sensor'),
             e.numeric('move_sensitivity', ea.STATE_SET).withValueMin(1)
