@@ -676,6 +676,7 @@ export const presets = {
     effect: () => new Enum('effect', access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']).withDescription('Triggers an effect on the light (e.g. make light blink for a few seconds)'),
     energy: () => new Numeric('energy', access.STATE).withUnit('kWh').withDescription('Sum of consumed energy'),
     produced_energy: () => new Numeric('produced_energy', access.STATE).withUnit('kWh').withDescription('Sum of produced energy'),
+    energy_produced: () => new Numeric('energy_produced', access.STATE).withUnit('kWh').withDescription('Sum of produced energy'),
     fan: () => new Fan(),
     flip_indicator_light: () => new Binary('flip_indicator_light', access.ALL, 'ON', 'OFF').withDescription('After turn on, the indicator light turns on while switch is off, and vice versa').withCategory('config'),
     force: () => new Enum('force', access.STATE_SET, ['normal', 'open', 'close']).withDescription('Force the valve position'),
