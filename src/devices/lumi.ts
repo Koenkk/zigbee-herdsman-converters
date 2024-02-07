@@ -2099,12 +2099,12 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_gas_alarm_1, fz.JTQJBF01LMBW_sensitivity, fz.JTQJBF01LMBW_gas_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
         exposes: [
-            e.gas(), e.battery_low(), e.tamper(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
+            e.gas(), e.tamper(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             e.numeric('gas_density', ea.STATE), e.enum('selftest', ea.SET, ['']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.powerSource = 'Battery';
-            device.type = 'EndDevice';
+            device.powerSource = 'Mains (single phase)';
+            device.type = 'Router';
             device.save();
         },
     },
