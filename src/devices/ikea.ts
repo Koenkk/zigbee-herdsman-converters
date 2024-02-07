@@ -407,6 +407,13 @@ const definitions: Definition[] = [
         extend: [onOff()],
     },
     {
+        zigbeeModel: ['TRETAKT Smart plug'],
+        model: 'E2204',
+        vendor: 'IKEA',
+        description: 'TRETAKT smart plug',
+        extend: [onOff()],
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E26 WS opal 980lm', 'TRADFRI bulb E27 WS\uFFFDopal 980lm'],
         model: 'LED1545G12',
         vendor: 'IKEA',
