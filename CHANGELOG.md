@@ -1,5 +1,22 @@
 # Changelog
 
+## [18.29.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.28.3...v18.29.0) (2024-02-07)
+
+
+### Features
+
+* **add:** E2204 https://github.com/Koenkk/zigbee2mqtt/issues/21115 ([a1d789d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a1d789d0f3d9762f62827cdc8265f4f33e690c2b))
+* **add:** LCM-1C09-ZB ([#7032](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7032)) ([a41d6f8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a41d6f868b8fe269346be41a299ceeadd6bfa15b))
+* **add:** PC311-Z-TY https://github.com/Koenkk/zigbee2mqtt/issues/20095 ([6cc1bd4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6cc1bd439d90bd94d2f8a38d2d93fe9a590083b6))
+
+
+### Bug Fixes
+
+* **detect:** Detect `TRADFRI bulb GU10 WW 380lm` as IKEA LED2104R3 ([#7031](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7031)) ([9d5a9c4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d5a9c414511e893a47e3533f984387d0afcb523))
+* Fix `1_single` instead of `single` action for TuYa TS0041A and TS0041 https://github.com/Koenkk/zigbee2mqtt/issues/21158 ([15c887e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/15c887eebe5b00e0e1591731b6bfa0dff158be9b))
+* Fix spelling error in ZY-M100-24G presence description ([#7030](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7030)) ([cb17428](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb1742820e1e6154be5b38b66a2da4f222fbbb0b))
+* Fixes for Bosch BTH-RM ([#7029](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7029)) ([848148f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/848148fbb890748e0a0470b7134d164afd5ac047))
+
 ## [18.28.3](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.28.2...v18.28.3) (2024-02-06)
 
 
