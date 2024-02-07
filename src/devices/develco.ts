@@ -65,11 +65,11 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('totalActivePower') && msg.data['totalActivePower'] !== 0x80000000) {
+                if (msg.data.hasOwnProperty('totalActivePower') && msg.data['totalActivePower'] !== -0x80000000) {
                     result[utils.postfixWithEndpointName('power', msg, model, meta)] =
                         msg.data['totalActivePower'];
                 }
-                if (msg.data.hasOwnProperty('totalReactivePower') && msg.data['totalReactivePower'] !== 0x80000000) {
+                if (msg.data.hasOwnProperty('totalReactivePower') && msg.data['totalReactivePower'] !== -0x80000000) {
                     result[utils.postfixWithEndpointName('power_reactive', msg, model, meta)] =
                         msg.data['totalReactivePower'];
                 }
