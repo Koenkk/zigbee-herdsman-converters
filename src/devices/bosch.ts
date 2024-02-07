@@ -1170,6 +1170,7 @@ const definitions: Definition[] = [
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.humidity(),
+            e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
             e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
             e.child_lock().setAccess('state', ea.ALL),
             e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
@@ -1191,23 +1192,22 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
-            // report pi_heating_demand (valve opening)
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4020, type: Zcl.DataType.enum8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], manufacturerOptions);
-            // report is window_open
+            // report window_open
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
-
+            // report boost as it's disabled by thermostat after 5 minutes
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], manufacturerOptions);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4042], manufacturerOptions);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], manufacturerOptions);
         },
