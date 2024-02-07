@@ -542,9 +542,17 @@ const definitions: Definition[] = [
         model: 'TS0205',
         vendor: 'TuYa',
         description: 'Smoke sensor',
-        whiteLabel: [{vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'}],
+        whiteLabel: [
+            {vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'},
+            tuya.whitelabel('Dongguan Daying Electornics Technology', 'YG400A', 'Smoke sensor', ['_TZ3210_up3pngle']),
+        ],
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
