@@ -3371,11 +3371,11 @@ const definitions: Definition[] = [
             tz.lumi_led_disabled_night, tz.lumi_switch_lock_relay_opple],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {'top': 1, 'middle': 2, 'bottom': 3};
+            return {'top': 1, 'center': 2, 'bottom': 3};
         },
         exposes: [
             e.power(), e.voltage(), e.device_temperature(),
-            e.switch().withEndpoint('top'), e.switch().withEndpoint('middle'), e.switch().withEndpoint('bottom'),
+            e.switch().withEndpoint('top'), e.switch().withEndpoint('center'), e.switch().withEndpoint('bottom'),
             e.enum('power_outage_memory', ea.ALL, ['on', 'electric_appliances_on', 'electric_appliances_off', 'inverted'])
                 .withDescription('Power Outage Memory'),
             e.led_disabled_night(),
@@ -3383,18 +3383,18 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for top button').withEndpoint('top'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for middle button').withEndpoint('middle'),
+                .withDescription('Decoupled mode for center button').withEndpoint('center'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
 
             e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for top button').withEndpoint('top'),
             e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode for middle button').withEndpoint('middle'),
+                .withDescription('Lock relay mode for center button').withEndpoint('center'),
             e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for bottom button').withEndpoint('bottom'),
 
-            e.action(['single_top', 'single_middle', 'single_bottom']),
+            e.action(['single_top', 'single_center', 'single_bottom']),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -3412,11 +3412,11 @@ const definitions: Definition[] = [
             tz.lumi_led_disabled_night, tz.lumi_switch_lock_relay_opple, tz.lumi_switch_click_mode],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {'top': 1, 'middle': 2, 'bottom': 3};
+            return {'top': 1, 'center': 2, 'bottom': 3, 'wireless': 4};
         },
         exposes: [
             e.power(), e.voltage(), e.device_temperature(),
-            e.switch().withEndpoint('top'), e.switch().withEndpoint('middle'), e.switch().withEndpoint('bottom'),
+            e.switch().withEndpoint('top'), e.switch().withEndpoint('center'), e.switch().withEndpoint('bottom'),
             e.enum('power_outage_memory', ea.ALL, ['on', 'electric_appliances_on', 'electric_appliances_off', 'inverted'])
                 .withDescription('Power Outage Memory'),
             e.led_disabled_night(),
@@ -3424,21 +3424,21 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for top button').withEndpoint('top'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for middle button').withEndpoint('middle'),
+                .withDescription('Decoupled mode for center button').withEndpoint('center'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
 
             e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for top button').withEndpoint('top'),
             e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode for middle button').withEndpoint('middle'),
+                .withDescription('Lock relay mode for center button').withEndpoint('center'),
             e.binary('lock_relay', ea.ALL, true, false)
                 .withDescription('Lock relay mode for bottom button').withEndpoint('bottom'),
 
             e.enum('click_mode', ea.ALL, ['fast', 'multi'])
                 .withDescription('Click mode(Wireless button only), fast: only supports single click which will be send immediately after clicking.' +
                     'multi: supports more events like double and hold'),
-            e.action(['single_top', 'single_middle', 'single_bottom',
+            e.action(['single_top', 'single_center', 'single_bottom',
                 'hold_wireless', 'single_wireless', 'double_wireless', 'release_wireless']),
         ],
         onEvent: preventReset,

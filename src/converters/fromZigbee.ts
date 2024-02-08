@@ -3762,10 +3762,10 @@ const converters1 = {
                 buttonLookup = {1: 'top', 2: 'bottom'};
             }
             if (['ZNQBKG40LM'].includes(model.model)) {
-                buttonLookup = {1: 'top', 2: 'middle', 3: 'bottom'};
+                buttonLookup = {1: 'top', 2: 'center', 3: 'bottom'};
             }
             if (['ZNQBKG41LM'].includes(model.model)) {
-                buttonLookup = {1: 'top', 2: 'middle', 3: 'bottom', 4: 'wireless'};
+                buttonLookup = {1: 'top', 2: 'center', 3: 'bottom', 4: 'wireless'};
             }
             if (['WS-USC02', 'WS-USC04'].includes(model.model)) {
                 buttonLookup = {41: 'top', 42: 'bottom', 51: 'both'};
