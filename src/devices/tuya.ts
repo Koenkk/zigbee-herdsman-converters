@@ -12,7 +12,7 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {onOff, quirkCheckinInterval} from '../lib/modernExtend';
+import {onOff, quirkCheckinInterval, batteryPercentage} from '../lib/modernExtend';
 
 const {tuyaLight} = tuya.modernExtend;
 
@@ -542,10 +542,14 @@ const definitions: Definition[] = [
         model: 'TS0205',
         vendor: 'TuYa',
         description: 'Smoke sensor',
-        whiteLabel: [{vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'}],
+        whiteLabel: [
+            {vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'},
+            {vendor: 'Dongguan Daying Electornics Technology', model: 'YG400A'},
+        ],
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
-        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.tamper()],
+        extend: [batteryPercentage()],
     },
     {
         zigbeeModel: ['TS0111'],
