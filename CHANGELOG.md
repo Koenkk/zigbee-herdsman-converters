@@ -1,5 +1,24 @@
 # Changelog
 
+## [18.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.29.1...v18.30.0) (2024-02-08)
+
+
+### Features
+
+* Support more features for Aqara ZNQBKG26LM and ZNQBKG26LM ([#7044](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7044)) ([22772e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/22772e4f2be6c71e4f032ac8537be6f051430c6a))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_vfwhhldz` as TuYa TS110E_2gang_2 ([#7036](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7036)) ([b9bafcc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b9bafcc84d4c2bdd0d631473a5a13242fcaf0676))
+* **detect:** Detect `_TZE200_qrztc3ev` as Nous SZ-T04 @Matriciel https://github.com/Koenkk/zigbee2mqtt/discussions/21314 ([7b42a1e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b42a1ef18771b9e22bdc1c971460c978a5ff31a))
+* **detect:** Detect `_TZE200_utkemkbs` and `_TZE204_utkemkbs` as TuYa SZTH02 ([#7040](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7040)) ([35ff688](https://github.com/Koenkk/zigbee-herdsman-converters/commit/35ff68829c3e356e85d3addb189f1a73a436ad4e))
+* Fix Aqara Z1 triple and quadruple switch middle button not working ([#7039](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7039)) ([c921d2a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c921d2a8239c0c9b6b710e2812b8a0993a5251c7))
+* Fix negative power values for Develco EMIZB-132 ([#7038](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7038)) ([fcd0fd1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fcd0fd1086d9eb42b45d6adeac5614a9e8a533bb))
+* Fix no battery % reported for TuYa TS0205 ([#6724](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6724)) ([375f2fd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/375f2fd7aa322aac2da1b6b1b236ccd3f2bb32a0))
+* Fix ZNCZ12LM and WXKG14LM description ([#7041](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7041)) ([41c2143](https://github.com/Koenkk/zigbee-herdsman-converters/commit/41c2143627699db8cf35e1524ee120c7c7f1f825))
+* LiXee: slip relais and status register sub-values into their own JSON structure ([#7042](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7042)) ([8cdc101](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8cdc10105cd8ece8c9115f362eb39782a14aee9b))
+
 ## [18.29.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.29.0...v18.29.1) (2024-02-07)
 
 
