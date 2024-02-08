@@ -12,7 +12,7 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueNumberString, KeyValueString} from '../lib/types';
-import {electricityMeter, onOff} from '../lib/modernExtend';
+import {batteryPercentage, electricityMeter, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -529,7 +529,6 @@ const definitions: Definition[] = [
         exposes: [e.gas(), e.tamper()],
     },
     {
-        fingerprint: [{modelID: 'TS0205', manufacturerName: '_TZ3210_up3pngle'}],
         zigbeeModel: ['TS0205'],
         model: 'TS0205',
         vendor: 'TuYa',
@@ -540,12 +539,8 @@ const definitions: Definition[] = [
         ],
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.tamper()],
+        extend: [batteryPercentage()],
     },
     {
         zigbeeModel: ['TS0111'],
