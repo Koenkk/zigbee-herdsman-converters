@@ -207,7 +207,7 @@ const definitions: Definition[] = [
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch',
-        extend: [onOff()],
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['Micro Smart Dimmer', 'SM311', 'HK-SL-RDIM-A', 'HK-SL-DIM-EU-A'],
@@ -602,7 +602,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TERNCY-DC01', manufacturerName: 'Sunricher'}],
+        fingerprint: [{modelID: 'TERNCY-DC01', manufacturerName: 'Sunricher'}, {modelID: 'HK-SENSOR-CT-A', manufacturerName: 'Sunricher'}],
         model: 'SR-ZG9010A',
         vendor: 'Sunricher',
         description: 'Door windows sensor',

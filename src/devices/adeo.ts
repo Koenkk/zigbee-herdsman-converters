@@ -3,7 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
 import tz from '../converters/toZigbee';
-import {electricityMeter, light, onOff} from '../lib/modernExtend';
+import {electricityMeter, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -215,6 +215,13 @@ const definitions: Definition[] = [
         extend: [onOff()],
     },
     {
+        zigbeeModel: ['LDSENK01S'],
+        model: 'LDSENK01S',
+        vendor: 'ADEO',
+        description: '10A EU smart plug',
+        extend: [onOff()],
+    },
+    {
         zigbeeModel: ['LXEK-5', 'ZBEK-26'],
         model: 'HR-C99C-Z-C045',
         vendor: 'ADEO',
@@ -268,9 +275,10 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.ias_siren],
         toZigbee: [tz.warning],
         exposes: [e.warning(), e.battery(), e.battery_low(), e.tamper()],
+        extend: [
+            quirkCheckinInterval(0),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.defaultSendRequestWhen = 'immediate';
-            device.save();
             await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
         },
     },

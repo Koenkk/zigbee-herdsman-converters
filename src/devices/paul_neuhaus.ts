@@ -16,7 +16,7 @@ const definitions: Definition[] = [
             fz.tint_scene, fz.command_recall],
         exposes: [e.action(['on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move',
             'brightness_stop', 'brightness_move_up', 'brightness_move_down', 'color_loop_set', 'enhanced_move_to_hue_and_saturation',
-            'recall_*', 'scene_*'])],
+            'recall_*', 'scene_*']), e.action_group()],
         toZigbee: [],
     },
     {

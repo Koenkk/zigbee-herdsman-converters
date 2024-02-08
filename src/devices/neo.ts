@@ -85,7 +85,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nlrfgpny']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nlrfgpny', '_TZE204_nlrfgpny']),
         model: 'NAS-AB06B2',
         vendor: 'Neo',
         description: 'Outdoor solar alarm',

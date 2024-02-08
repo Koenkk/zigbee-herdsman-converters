@@ -4,9 +4,10 @@ import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {onOff} from '../lib/modernExtend';
+import {onOff, numeric, enumLookup} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -53,6 +54,17 @@ const fzLocal = {
                 const value = msg.data[0x9000];
                 const lookup = {0: 'auto', 1: 'push', 2: 'latch'};
                 return {operation_mode: utils.getFromLookup(value, lookup)};
+            }
+        },
+    } satisfies Fz.Converter,
+    GCM300Z_valve_status: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                const endpoint = meta.device.getEndpoint(1);
+                endpoint.read('genOnOff', [0x9007]); // for update : close_remain_timeout
+                return {gas_valve_state: msg.data['onOff'] === 1 ? 'OPEN' : 'CLOSE'};
             }
         },
     } satisfies Fz.Converter,
@@ -197,6 +209,19 @@ const tzLocal = {
             await entity.write('genOnOff', payload);
         },
     } satisfies Tz.Converter,
+    GCM300Z_valve_status: {
+        key: ['gas_valve_state'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'CLOSE': 'off'}; // open is not supported.
+            const state = utils.getFromLookup(value, lookup);
+            if (state != 'off') value = 'CLOSE';
+            else await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    } satisfies Tz.Converter,
 };
 
 const definitions: Definition[] = [
@@ -284,42 +309,44 @@ const definitions: Definition[] = [
         model: 'SBM300Z1',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 1 gang',
-        extend: [onOff()],
+        extend: [onOff({powerOnBehavior: false, configureReporting: false})],
     },
     {
         zigbeeModel: ['SBM300Z2'],
         model: 'SBM300Z2',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 2 gang',
-        extend: [onOff({endpoints: {top: 1, bottom: 2}})],
+        extend: [onOff({endpoints: {top: 1, bottom: 2}, powerOnBehavior: false, configureReporting: false})],
     },
     {
         zigbeeModel: ['SBM300Z3'],
         model: 'SBM300Z3',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 3 gang',
-        extend: [onOff({endpoints: {top: 1, center: 2, bottom: 3}})],
+        extend: [onOff({endpoints: {top: 1, center: 2, bottom: 3}, powerOnBehavior: false, configureReporting: false})],
     },
     {
         zigbeeModel: ['SBM300Z4'],
         model: 'SBM300Z4',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 4 gang',
-        extend: [onOff({endpoints: {top_left: 1, bottom_left: 2, top_right: 3, bottom_right: 4}})],
+        extend: [onOff({endpoints: {top_left: 1, bottom_left: 2, top_right: 3, bottom_right: 4}, powerOnBehavior: false, configureReporting: false})],
     },
     {
         zigbeeModel: ['SBM300Z5'],
         model: 'SBM300Z5',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 5 gang',
-        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, bottom_right: 5}})],
+        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, bottom_right: 5}, powerOnBehavior: false,
+            configureReporting: false})],
     },
     {
         zigbeeModel: ['SBM300Z6'],
         model: 'SBM300Z6',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 6 gang',
-        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6}})],
+        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6},
+            powerOnBehavior: false, configureReporting: false})],
     },
     {
         zigbeeModel: ['BSM-300Z'],
@@ -692,6 +719,70 @@ const definitions: Definition[] = [
             await reporting.onOff(device.getEndpoint(1));
             await reporting.onOff(device.getEndpoint(2));
             await reporting.onOff(device.getEndpoint(3));
+        },
+    },
+    {
+        zigbeeModel: ['GCM-300Z'],
+        model: 'GCM-300Z',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS gas valve',
+        fromZigbee: [fzLocal.GCM300Z_valve_status, fz.battery],
+        toZigbee: [tzLocal.GCM300Z_valve_status],
+        exposes: [
+            e.binary('gas_valve_state', ea.ALL, 'OPEN', 'CLOSE')
+                .withDescription('Valve state if open or closed'),
+            e.battery(),
+        ],
+        extend: [
+            numeric({
+                name: 'close_timeout',
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9006, type: 0x21},
+                description: 'Set the default closing time when the gas valve is open.',
+                valueMin: 1,
+                valueMax: 540,
+                valueStep: 1,
+                unit: 'min',
+                scale: 60,
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+            }),
+            numeric({
+                name: 'close_remain_timeout',
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9007, type: 0x21},
+                description: 'Set the time or remaining time until the gas valve closes.',
+                valueMin: 0,
+                valueMax: 540,
+                valueStep: 1,
+                unit: 'min',
+                scale: 60,
+                reporting: {min: 0, max: '30_MINUTES', change: 1},
+            }),
+            enumLookup({
+                name: 'volume',
+                lookup: {'voice': 1, 'high': 2, 'low': 2},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9008, type: 0x20},
+                description: 'Values observed are `1` (voice), `2` (high) or `3` (low).',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+            }),
+            enumLookup({
+                name: 'overheat_mode',
+                lookup: {'normal': 0, 'overheat': 1},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9005, type: 0x20},
+                description: 'Temperature overheating condition.',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+                access: 'STATE_GET',
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
+            await reporting.onOff(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+            await utils.sleep(300);
+            await endpoint.read('genOnOff', ['onOff']);
         },
     },
 ];

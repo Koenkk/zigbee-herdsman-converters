@@ -31,9 +31,8 @@ const definitions: Definition[] = [
         description: 'Smart spotlight',
         // https://github.com/Koenkk/zigbee2mqtt/issues/13123#issuecomment-1198793749
         meta: {disableDefaultResponse: true},
-        toZigbee: [tz.on_off, tzLocal.DD10Z_brightness, tz.light_colortemp, tz.effect],
-        extend: extend.light_onoff_brightness_colortemp(
-            {colorTempRange: [153, 370], disableColorTempStartup: true, disablePowerOnBehavior: true}),
+        toZigbee: [tzLocal.DD10Z_brightness],
+        extend: [light({powerOnBehavior: false, colorTemp: {range: [153, 370], startup: false}})],
     },
     {
         zigbeeModel: ['4a33f5ea766a4c96a962b371ffde9943'],
@@ -87,7 +86,7 @@ const definitions: Definition[] = [
         model: 'RL804QZB',
         vendor: 'ORVIBO',
         description: 'Multi-functional 3 gang relay',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3}})],
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3}, configureReporting: false})],
     },
     {
         zigbeeModel: ['396483ce8b3f4e0d8e9d79079a35a420'],

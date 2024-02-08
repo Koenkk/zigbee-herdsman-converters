@@ -6,11 +6,32 @@ import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
 import * as tuya from '../lib/tuya';
-import {light, onOff} from '../lib/modernExtend';
+import {forcePowerSource, light, onOff} from '../lib/modernExtend';
 
 const ea = exposes.access;
 
 const definitions: Definition[] = [
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_1vxgqfba']),
+        model: 'ZM25R1',
+        vendor: 'Zemismart',
+        description: 'Tubular motor',
+        fromZigbee: [legacy.fromZigbee.tuya_cover],
+        toZigbee: [legacy.toZigbee.tuya_cover_control, legacy.toZigbee.tuya_cover_options, tuya.tz.datapoints],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
+            e.enum('upper_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Reset / Set the upper stroke limit'),
+            e.enum('middle_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Reset / Set the middle stroke limit'),
+            e.enum('lower_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Reset / Set the lower stroke limit'),
+        ],
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [103, 'upper_stroke_limit', tuya.valueConverterBasic.lookup({'SET': tuya.enum(1), 'RESET': tuya.enum(0)})],
+                [104, 'middle_stroke_limit', tuya.valueConverterBasic.lookup({'SET': tuya.enum(1), 'RESET': tuya.enum(0)})],
+                [105, 'lower_stroke_limit', tuya.valueConverterBasic.lookup({'SET': tuya.enum(1), 'RESET': tuya.enum(0)})],
+            ],
+        },
+    },
     {
         zigbeeModel: ['NUET56-DL27LX1.1'],
         model: 'LXZB-12A',
@@ -106,7 +127,8 @@ const definitions: Definition[] = [
         model: 'ZM25RX-08/30',
         vendor: 'Zemismart',
         description: 'Tubular motor',
-        onEvent: tuya.onEvent(),
+        // mcuVersionResponse spsams: https://github.com/Koenkk/zigbee2mqtt/issues/19817
+        onEvent: tuya.onEvent({respondToMcuVersionResponse: false}),
         configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -192,9 +214,11 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options, legacy.tz.tuya_data_point_test],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
+        extend: [forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}, {modelID: 'TS0601', manufacturerName: '_TZE200_shkxsgis'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}, {modelID: 'TS0601', manufacturerName: '_TZE200_shkxsgis'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_shkxsgis'}],
         model: 'TB26-4',
         vendor: 'Zemismart',
         description: '4-gang smart wall switch',

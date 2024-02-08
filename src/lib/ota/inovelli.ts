@@ -1,15 +1,24 @@
+/**
+ * Helper functions
+ *
+ * @packageDocumentation
+ */
+
+const url = 'https://files.inovelli.com/firmware/firmware.json';
 import * as common from './common';
 import {Zh, Logger, Ota, KeyValueAny} from '../types';
 const axios = common.getAxios();
-/*
- * Helper functions
- */
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    const images = (await axios.get('https://files.inovelli.com/firmware/firmware.json')).data;
+    logger.debug(`InovelliOTA: call getImageMeta for ${device.modelID}`);
+    const {data: images} = await axios.get(url);
+
+    if (!images) {
+        throw new Error(`InovelliOTA: Error getting firmware page at ${url}`);
+    }
 
     if (Object.keys(images).indexOf(device.modelID) === -1) {
-        throw new Error(`The device '${device.modelID}' is not supported for OTA at this time.`);
+        return null;
     }
 
     // Force for now.  There is only beta firmware at the moment.
@@ -35,9 +44,11 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
         .pop();
 
     if (!image) {
-        throw new Error(`No images found in the ${useBetaChannel ? 'beta' : 'production'} channel for the device '${device.modelID}'`,
-        );
+        logger.warn(`OTA: No image found in the ${useBetaChannel ? 'beta' : 'production'} channel for device '${device.modelID}'`);
+
+        return null;
     }
+
     // version in the firmware removes the zero padding and support hex versioning
     return {
         // @ts-expect-error
@@ -54,8 +65,8 @@ export async function isUpdateAvailable(device: Zh.Device, logger: Logger, reque
     return common.isUpdateAvailable(
         device,
         logger,
-        common.isNewImageAvailable,
         requestPayload,
+        common.isNewImageAvailable,
         getImageMeta,
     );
 }

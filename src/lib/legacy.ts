@@ -310,7 +310,7 @@ const silvercrestEffects: KeyValueAny = {
     rainbow: '02',
     snake: '03',
     twinkle: '04',
-    firework: '08',
+    firework: '05',
     horizontal_flag: '06',
     waves: '07',
     updown: '08',
@@ -360,6 +360,7 @@ const tvThermostatMode: KeyValueAny = {
 const tvThermostatPreset: KeyValueAny = {
     0: 'auto',
     1: 'manual',
+    2: 'holiday',
     3: 'holiday',
 };
 // Zemismart ZM_AM02 Roller Shade Converter
@@ -1896,7 +1897,7 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_action_click_multistate: {
+    lumi_action_click_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
@@ -2215,7 +2216,7 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_on_off_action: {
+    lumi_on_off_action: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
         options: [exposes.options.legacy()],
@@ -2223,7 +2224,7 @@ const fromZigbee1 = {
             if (utils.isLegacyEnabled(options)) {
                 return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
             } else {
-                return fromZigbeeConverters.xiaomi_on_off_action.convert(model, msg, publish, options, meta);
+                return fromZigbeeConverters.lumi_on_off_action.convert(model, msg, publish, options, meta);
             }
         },
     } satisfies Fz.Converter,
@@ -2463,12 +2464,12 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_multistate_action: {
+    lumi_multistate_action: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            // refactor to xiaomi_multistate_action]
+            // refactor to lumi_multistate_action]
             if (utils.isLegacyEnabled(options)) {
                 const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
                 const value = msg.data['presentValue'];
@@ -2479,7 +2480,7 @@ const fromZigbee1 = {
                     return {action: `${button}${(action ? `_${action}` : '')}`};
                 }
             } else {
-                return fromZigbeeConverters.xiaomi_multistate_action.convert(model, msg, publish, options, meta);
+                return fromZigbeeConverters.lumi_multistate_action.convert(model, msg, publish, options, meta);
             }
         },
     } satisfies Fz.Converter,
@@ -2635,7 +2636,7 @@ const fromZigbee1 = {
                     return {action: `${button}_${times[msg.data.presentValue]}`};
                 }
             } else {
-                return fromZigbeeConverters.xiaomi_multistate_action.convert(model, msg, publish, options, meta);
+                return fromZigbeeConverters.lumi_multistate_action.convert(model, msg, publish, options, meta);
             }
         },
     } satisfies Fz.Converter,
@@ -3841,7 +3842,10 @@ const fromZigbee1 = {
                     return {system_mode: value ? 'heat' : 'off'};
                 }
             case dataPoints.tvMode:
-                return {system_mode: stateLookup[value]};
+                if (model.model === 'BAC-002-ALZB') {
+                    return {system_mode: stateLookup[value]};
+                }
+                return {preset_mode: value ? 'program' : 'hold', preset: value ? 'program' : 'hold'};
             case dataPoints.moesChildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case dataPoints.moesHeatingSetpoint:
@@ -3894,8 +3898,6 @@ const fromZigbee1 = {
                 // for negative values produce complimentary hex (equivalent to negative values)
                 if (temperature > 4000) temperature = temperature - 4096;
                 return {local_temperature_calibration: temperature};
-            case dataPoints.moesHold: // state is inverted, preset_mode is deprecated
-                return {preset_mode: value ? 'program' : 'hold', preset: value ? 'program' : 'hold'};
             case dataPoints.moesScheduleEnable: // state is inverted, preset_mode is deprecated
                 return {preset_mode: value ? 'hold' : 'program', preset: value ? 'hold' : 'program'};
             case dataPoints.moesValve:
@@ -3992,54 +3994,43 @@ const fromZigbee1 = {
     tuya_air_quality: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: (definition: any) => {
-            const result = [
-                exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-                exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
-                exposes.options.precision('co2'), exposes.options.calibration('co2'),
-                exposes.options.precision('voc'), exposes.options.calibration('voc'),
-                exposes.options.precision('formaldehyd'), exposes.options.calibration('formaldehyd'),
-            ];
-            if (definition.exposes.find((e: any) => e.name === 'pm25')) {
-                result.push(exposes.options.precision('pm25'), exposes.options.calibration('pm25'));
-            }
-            return result;
-        },
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'tuya_air_quality');
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.tuyaSabTemp:
-                return {temperature: utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+                return {temperature: (value > 0x2000 ? value - 0xFFFF : value) / 10};
             case dataPoints.tuyaSabHumidity:
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity')};
+                return {humidity: value / 10};
                 // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
             case dataPoints.tuyaSabFormaldehyd:
                 if (['_TZE200_dwcarsat', '_TZE200_ryfmq5rl', '_TZE200_mja3fuja'].includes(meta.device.manufacturerName)) {
-                    return {co2: utils.calibrateAndPrecisionRoundOptions(value, options, 'co2')};
+                    return {co2: value};
                 } else {
-                    return {formaldehyd: utils.calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
+                    return {formaldehyd: value};
                 }
                 // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
             case dataPoints.tuyaSabCO2:
-                if (['_TZE200_mja3fuja', '_TZE200_dwcarsat'].includes(meta.device.manufacturerName)) {
+                if (['_TZE200_dwcarsat'].includes(meta.device.manufacturerName)) {
                     // Ignore: https://github.com/Koenkk/zigbee2mqtt/issues/11033#issuecomment-1109808552
                     if (value === 0xaaac || value === 0xaaab) return;
-                    return {pm25: utils.calibrateAndPrecisionRoundOptions(value, options, 'pm25')};
+                    return {pm25: value};
                 } else if (meta.device.manufacturerName === '_TZE200_ryfmq5rl') {
-                    return {formaldehyd: utils.calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd') / 100};
+                    return {formaldehyd: value / 100};
+                } else if (meta.device.manufacturerName === '_TZE200_mja3fuja') {
+                    return {formaldehyd: value};
                 } else {
-                    return {co2: utils.calibrateAndPrecisionRoundOptions(value, options, 'co2')};
+                    return {co2: value};
                 }
             case dataPoints.tuyaSabVOC:
                 if (meta.device.manufacturerName === '_TZE200_ryfmq5rl') {
-                    return {voc: utils.calibrateAndPrecisionRoundOptions(value, options, 'voc') / 10};
+                    return {voc: value / 10};
                 } else {
-                    return {voc: utils.calibrateAndPrecisionRoundOptions(value, options, 'voc')};
+                    return {voc: value};
                 }
             case dataPoints.tuyaSahkFormaldehyd:
-                return {formaldehyd: utils.calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
+                return {formaldehyd: value};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
@@ -4049,14 +4040,13 @@ const fromZigbee1 = {
     tuya_CO: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('co'), exposes.options.calibration('co')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'tuya_CO');
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.tuyaSabCO:
-                return {co: utils.calibrateAndPrecisionRoundOptions(value / 100, options, 'co')};
+                return {co: value / 100};
             case dataPoints.tuyaSabCOalarm:
                 return {carbon_monoxide: value ? 'OFF' : 'ON'};
             default:
@@ -5069,19 +5059,15 @@ const fromZigbee1 = {
     tuya_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'tuya_temperature_humidity_sensor');
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.tthTemperature:
-                return {temperature: utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+                return {temperature: value / 10};
             case dataPoints.tthHumidity:
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(
-                    (value / (['_TZE200_bjawzodf', '_TZE200_zl1kmjqx'].includes(meta.device.manufacturerName) ? 10 : 1)),
-                    options, 'humidity')};
+                return {humidity: (value / (['_TZE200_bjawzodf', '_TZE200_zl1kmjqx'].includes(meta.device.manufacturerName) ? 10 : 1))};
             case dataPoints.tthBatteryLevel:
                 return {
                     // @ts-ignore
@@ -5099,8 +5085,6 @@ const fromZigbee1 = {
     nous_lcd_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -5108,10 +5092,10 @@ const fromZigbee1 = {
                 const value = getDataValue(dpValue);
                 switch (dp) {
                 case dataPoints.nousTemperature:
-                    result.temperature = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    result.temperature = value / 10;
                     break;
                 case dataPoints.nousHumidity:
-                    result.humidity = utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    result.humidity = value;
                     break;
                 case dataPoints.nousBattery:
                     result.battery = value;
@@ -5121,16 +5105,16 @@ const fromZigbee1 = {
                     result.temperature_unit_convert = {0x00: 'celsius', 0x01: 'fahrenheit'}[value];
                     break;
                 case dataPoints.nousMaxTemp:
-                    result.max_temperature = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    result.max_temperature = value / 10;
                     break;
                 case dataPoints.nousMinTemp:
-                    result.min_temperature = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    result.min_temperature = value / 10;
                     break;
                 case dataPoints.nousMaxHumi:
-                    result.max_humidity = utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    result.max_humidity = value;
                     break;
                 case dataPoints.nousMinHumi:
-                    result.min_humidity = utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    result.min_humidity = value;
                     break;
                 case dataPoints.nousTempAlarm:
                     // @ts-ignore
@@ -5141,10 +5125,10 @@ const fromZigbee1 = {
                     result.humidity_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                     break;
                 case dataPoints.nousTempSensitivity:
-                    result.temperature_sensitivity = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    result.temperature_sensitivity = value / 10;
                     break;
                 case dataPoints.nousHumiSensitivity:
-                    result.humidity_sensitivity = utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    result.humidity_sensitivity = value;
                     break;
                 case dataPoints.nousTempReportInterval:
                     result.temperature_report_interval = value;
@@ -5163,17 +5147,15 @@ const fromZigbee1 = {
     tuya_illuminance_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'tuya_illuminance_temperature_humidity_sensor');
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.thitTemperature:
-                return {temperature: utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+                return {temperature: value / 10};
             case dataPoints.thitHumidity:
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+                return {humidity: value};
             case dataPoints.thitBatteryPercentage:
                 return {battery: value};
             case dataPoints.thitIlluminanceLux:
@@ -5187,8 +5169,6 @@ const fromZigbee1 = {
     tuya_illuminance_sensor: {
         cluster: `manuSpecificTuya`,
         type: [`commandDataReport`, `commandDataResponse`],
-        options: [exposes.options.precision('illuminance_lux'),
-            exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (() => {
             const brightnessState: KeyValueAny = {
                 0: 'low',
@@ -5204,7 +5184,7 @@ const fromZigbee1 = {
                 case dataPoints.state:
                     return {brightness_state: brightnessState[value]};
                 case dataPoints.tIlluminanceLux:
-                    return {illuminance_lux: utils.calibrateAndPrecisionRoundOptions(value, options, 'illuminance_lux')};
+                    return {illuminance_lux: value};
                 default:
                     meta.logger.warn(
                         `zigbee-herdsman-converters:tuya_illuminance_sensor: NOT RECOGNIZED ` +
@@ -5303,8 +5283,6 @@ const fromZigbee1 = {
     neo_nas_pd07: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'neo_nas_pd07');
             const dp = dpValue.dp;
@@ -5321,9 +5299,9 @@ const fromZigbee1 = {
             case dataPoints.neoTamper:
                 return {tamper: value > 0 ? true : false};
             case 104:
-                return {temperature: utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+                return {temperature: value / 10};
             case 105:
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+                return {humidity: value};
             case dataPoints.neoMinTemp:
                 return {temperature_min: value};
             case dataPoints.neoMaxTemp:
@@ -5350,8 +5328,6 @@ const fromZigbee1 = {
     neo_t_h_alarm: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'neo_t_h_alarm');
             const dp = dpValue.dp;
@@ -5368,9 +5344,9 @@ const fromZigbee1 = {
             case dataPoints.neoDuration: // 0x0267 [0,0,0,10] duration alarm in second
                 return {duration: value};
             case dataPoints.neoTemp: // 0x0269 [0,0,0,240] temperature
-                return {temperature: utils.calibrateAndPrecisionRoundOptions((value / 10), options, 'temperature')};
+                return {temperature: (value / 10)};
             case dataPoints.neoHumidity: // 0x026A [0,0,0,36] humidity
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+                return {humidity: value};
             case dataPoints.neoMinTemp: // 0x026B [0,0,0,18] min alarm temperature
                 return {temperature_min: value};
             case dataPoints.neoMaxTemp: // 0x026C [0,0,0,27] max alarm temperature
@@ -5812,17 +5788,15 @@ const fromZigbee1 = {
     ZB003X: {
         cluster: 'manuSpecificTuya',
         type: ['commandActiveStatusReport'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'ZB003X');
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.fantemTemp:
-                return {temperature: utils.calibrateAndPrecisionRoundOptions((value / 10), options, 'temperature')};
+                return {temperature: (value / 10)};
             case dataPoints.fantemHumidity:
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+                return {humidity: value};
             case dataPoints.fantemBattery:
                 // second battery level, first battery is reported by fz.battery
                 return {battery2: value};
@@ -7997,12 +7971,10 @@ const toZigbee2 = {
 
                     if (h) {
                         // The device expects 0-359
-                        if (h >= 360) {
-                            h = 359;
-                        }
-                        hsb.h = make4sizedString(h.toString(16));
+                        // The device expects a round number, otherwise everything breaks
+                        hsb.h = make4sizedString(utils.numberWithinRange(utils.precisionRound(h, 0), 0, 359).toString(16));
                     } else if (state.color && state.color.h) {
-                        hsb.h = make4sizedString(state.color.h.toString(16));
+                        hsb.h = make4sizedString(utils.numberWithinRange(utils.precisionRound(state.color.h, 0), 0, 359).toString(16));
                     }
 
                     // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user

@@ -216,7 +216,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['915005996701'],
+        zigbeeModel: ['915005996701', '929003574301'],
         model: '915005996701',
         vendor: 'Philips',
         description: 'Hue white ambiance ceiling black Enrave M with Bluetooth',
@@ -608,6 +608,13 @@ const definitions: Definition[] = [
         extend: [philipsLight()],
     },
     {
+        zigbeeModel: ['LWA031'],
+        model: '8719514343320',
+        vendor: 'Philips',
+        description: 'Hue white A67 bulb E26 with Bluetooth (1600 Lumen)',
+        extend: [philipsLight()],
+    },
+    {
         zigbeeModel: ['LCT026', '7602031P7', '7602031U7', '7602031PU', '7602031J6'],
         model: '7602031P7',
         vendor: 'Philips',
@@ -829,6 +836,13 @@ const definitions: Definition[] = [
         model: '9290035753',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU5.3',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ['LCG005'],
+        model: '929003575501',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance GU5.3/MR16',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
@@ -1203,7 +1217,7 @@ const definitions: Definition[] = [
         model: '915005988501',
         vendor: 'Philips',
         description: 'Play gradient light tube large',
-        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
         zigbeeModel: ['LTW011', 'LTB002'],
@@ -1493,11 +1507,11 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['3261048P6'],
+        zigbeeModel: ['3261048P6', '929003053901'],
         model: '3261048P6',
         vendor: 'Philips',
         description: 'Hue Being aluminium',
-        extend: [philipsLight({colorTemp: {range: undefined}})],
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ['3216431P6'],
@@ -1871,7 +1885,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
-        zigbeeModel: ['929003479701', '915005987701'],
+        zigbeeModel: ['929003479701', '915005987701', '929003479601'],
         model: '915005987701',
         vendor: 'Philips',
         description: 'Hue Gradient Signe floor lamp (wood)',
@@ -2144,7 +2158,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.action(['on_press', 'on_press_release', 'on_hold', 'on_hold_release', 'up_press',
             'up_press_release', 'up_hold', 'up_hold_release', 'down_press', 'down_press_release', 'down_hold',
             'down_hold_release', 'off_press', 'off_press_release', 'off_hold', 'off_hold_release']),
-        e.numeric('action_duration', ea.STATE).withUnit('s')],
+        e.action_duration()],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -2208,7 +2222,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.illuminance,
             fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
         exposes: [e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
-            e.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            e.motion_sensitivity_select(['low', 'medium', 'high']),
             e.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
             e.numeric('occupancy_timeout', ea.ALL).withUnit('s').withValueMin(0).withValueMax(65535)],
         toZigbee: [tz.occupancy_timeout, philipsTz.hue_motion_sensitivity, philipsTz.hue_motion_led_indication],
@@ -2752,6 +2766,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
+        zigbeeModel: ['LCX005'],
+        model: '8719514434479',
+        vendor: 'Philips',
+        description: 'Hue Play gradient lightstrip for PC',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
         zigbeeModel: ['LCX006'],
         model: '8719514434530',
         vendor: 'Philips',
@@ -2847,7 +2868,7 @@ const definitions: Definition[] = [
         model: '8719514440937/8719514440999',
         vendor: 'Philips',
         description: 'Hue Tap dial switch',
-        fromZigbee: [fz.ignore_command_step, philipsFz.hue_tap_dial, fz.battery],
+        fromZigbee: [fz.ignore_command_step, philipsFz.hue_tap_dial, fz.battery, fz.command_step],
         toZigbee: [],
         exposes: [e.battery(),
             e.action(['button_1_press', 'button_1_press_release', 'button_1_hold', 'button_1_hold_release',
@@ -2855,7 +2876,8 @@ const definitions: Definition[] = [
                 'button_3_press', 'button_3_press_release', 'button_3_hold', 'button_3_hold_release',
                 'button_4_press', 'button_4_press_release', 'button_4_hold', 'button_4_hold_release',
                 'dial_rotate_left_step', 'dial_rotate_left_slow', 'dial_rotate_left_fast',
-                'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast']),
+                'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast',
+                'brightness_step_up', 'brightness_step_down']),
             e.enum('action_direction', ea.STATE, ['right', 'left']).withDescription('Direction in which the dial was turned'),
             e.enum('action_type', ea.STATE, ['step', 'rotate'])
                 .withDescription('Type of the rotation, value in the first message is `step` and in the next messages value is `rotate`'),
@@ -3502,6 +3524,20 @@ const definitions: Definition[] = [
         vendor: 'Philips',
         description: 'Hue Festavia gradient light string 250',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ['sparkle']}})],
+    },
+    {
+        zigbeeModel: ['915005914501'],
+        model: '915005914501',
+        vendor: 'Philips',
+        description: 'Hue Being Pendant aluminum',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['929003046701'],
+        model: '8719514338487',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Pillar spotlight with Bluetooth (white) + dimmer switch',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
 ];
 

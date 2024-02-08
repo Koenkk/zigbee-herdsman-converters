@@ -10,11 +10,6 @@ const fzLocal = {
     BSD29: {
         cluster: '64529',
         type: ['attributeReport', 'readResponse'],
-        options: [
-            exposes.options.calibration('power', 'percentual'), exposes.options.precision('power'),
-            exposes.options.calibration('current', 'percentual'), exposes.options.precision('current'),
-            exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
-        ],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const lookup = [
@@ -26,7 +21,7 @@ const fzLocal = {
             for (const entry of lookup) {
                 if (msg.data.hasOwnProperty(entry.key)) {
                     const value = msg.data[entry.key] / 1000;
-                    payload[entry.name] = utils.calibrateAndPrecisionRoundOptions(value, options, entry.name);
+                    payload[entry.name] = value;
                 }
             }
             return payload;
@@ -37,9 +32,9 @@ const fzLocal = {
 const definitions: Definition[] = [
     {
         zigbeeModel: ['CK-BL702-SWP-01(7020)'],
-        model: 'BSD29',
+        model: 'BSD29/BSD59',
         vendor: 'Woolley',
-        description: 'Zigbee 3.0 smart plug 13A (UK version)',
+        description: 'Zigbee 3.0 smart plug',
         fromZigbee: [fz.on_off_skip_duplicate_transaction, fzLocal.BSD29],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
