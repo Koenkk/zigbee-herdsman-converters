@@ -3547,12 +3547,16 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Smart wall switch H1M (with neutral, double rocker)',
         fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific, fz.lumi_power],
-        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_flip_indicator_light],
+        toZigbee: [
+            tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_flip_indicator_light,
+        ],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
         meta: {multiEndpoint: true},
         exposes: [
+            e.power(), e.energy(), e.voltage(),
             e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
@@ -3562,7 +3566,7 @@ const definitions: Definition[] = [
                 .withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right',
                 'single_left_right', 'double_left_right', 'single_all', 'double_all']),
-            e.device_temperature(), e.flip_indicator_light(),
+            e.power_outage_memory(), e.led_disabled_night(), e.device_temperature(), e.flip_indicator_light(),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -3576,12 +3580,16 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Smart wall switch H1M (with neutral, triple rocker)',
         fromZigbee: [fz.on_off, fz.lumi_multistate_action, lumi.fromZigbee.lumi_specific, fz.lumi_power],
-        toZigbee: [tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_flip_indicator_light],
+        toZigbee: [
+            tz.on_off, tz.lumi_switch_operation_mode_opple, tz.lumi_switch_power_outage_memory,
+            tz.lumi_led_disabled_night, tz.lumi_flip_indicator_light,
+        ],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
         meta: {multiEndpoint: true},
         exposes: [
+            e.power(), e.energy(), e.voltage(),
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
@@ -3595,7 +3603,7 @@ const definitions: Definition[] = [
             e.action(['single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
                 'single_center_right', 'double_center_right', 'single_all', 'double_all']),
-            e.device_temperature(), e.flip_indicator_light(),
+            e.power_outage_memory(), e.led_disabled_night(), e.device_temperature(), e.flip_indicator_light(),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
