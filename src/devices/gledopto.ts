@@ -194,6 +194,7 @@ const definitions: Definition[] = [
         vendor: 'Gledopto',
         description: 'Zigbee triac AC dimmer',
         extend: [gledoptoLight({})],
+        meta: {disableDefaultResponse: true},
     },
     {
         zigbeeModel: ['GL-C-006'],
