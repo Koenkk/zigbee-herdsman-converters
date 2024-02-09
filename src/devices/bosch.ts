@@ -1051,7 +1051,7 @@ const definitions: Definition[] = [
                     'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 minutes).')
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSystemMode(['off', 'heat'])
+                .withSystemMode(['off', 'heat', 'auto'])
                 .withPiHeatingDemand(ea.ALL)
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.binary('boost', ea.ALL, 'ON', 'OFF')
