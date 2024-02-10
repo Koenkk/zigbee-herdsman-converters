@@ -83,6 +83,7 @@ async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger, devic
         // Use the `lumiFileVersion` which comes from the manuSpecificLumi.attributeReport instead.
         // https://github.com/Koenkk/zigbee2mqtt/issues/16345#issuecomment-1454835056
         // https://github.com/Koenkk/zigbee2mqtt/issues/16345 doesn't seem to be needed for all
+        // https://github.com/Koenkk/zigbee2mqtt/issues/15745
         if (device.meta.lumiFileVersion) {
             current = {...current, fileVersion: device.meta.lumiFileVersion};
         }

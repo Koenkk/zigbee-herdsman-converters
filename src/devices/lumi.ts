@@ -2564,7 +2564,8 @@ const definitions: Definition[] = [
         description: 'Door and window sensor T1',
         fromZigbee: [lumi.fromZigbee.lumi_contact, lumi.fromZigbee.lumi_specific, fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.contact(), e.battery()],
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         extend: [lumiZigbeeOTA()],
     },
     {
