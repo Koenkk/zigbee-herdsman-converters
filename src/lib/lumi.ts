@@ -2944,6 +2944,57 @@ export const fromZigbee = {
 };
 
 export const toZigbee = {
+    // lumi generic
+    lumi_power: {
+        key: ['power'],
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
+            await endpoint.read('genAnalogInput', ['presentValue']);
+        },
+    } satisfies Tz.Converter,
+    lumi_led_disabled_night: {
+        key: ['led_disabled_night'],
+        convertSet: async (entity, key, value, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
+                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+                'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
+                await entity.write('manuSpecificLumi', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
+            } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
+                const payload = value ?
+                    [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x00, 0x03, 0x10, 0x00] :
+                    [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x01, 0x03, 0x10, 0x01];
+
+                await entity.write('genBasic', {0xFFF0: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
+            } else {
+                throw new Error('Not supported');
+            }
+            return {state: {led_disabled_night: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
+                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+                'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
+                await entity.read('manuSpecificLumi', [0x0203], manufacturerOptions.lumi);
+            } else {
+                throw new Error('Not supported');
+            }
+        },
+    } satisfies Tz.Converter,
+    lumi_flip_indicator_light: {
+        key: ['flip_indicator_light'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'OFF': 0, 'ON': 1};
+            await entity.write('manuSpecificLumi', {0x00F0: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            return {state: {flip_indicator_light: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x00F0], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+
+    // lumi class specific
     lumi_feeder: {
         key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
         convertSet: async (entity, key, value, meta) => {
@@ -3288,6 +3339,10 @@ export const toZigbee = {
             await entity.write('manuSpecificLumi', payload, {manufacturerCode});
         },
     } satisfies Tz.Converter,
+
+    // lumi device specific
+
+
     lumi_cube_t1_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -3362,47 +3417,6 @@ export const toZigbee = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x0200], manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    lumi_led_disabled_night: {
-        key: ['led_disabled_night'],
-        convertSet: async (entity, key, value, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
-                'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
-                await entity.write('manuSpecificLumi', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
-            } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
-                const payload = value ?
-                    [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x00, 0x03, 0x10, 0x00] :
-                    [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x01, 0x03, 0x10, 0x01];
-
-                await entity.write('genBasic', {0xFFF0: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
-            } else {
-                throw new Error('Not supported');
-            }
-            return {state: {led_disabled_night: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
-                'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM'].includes(meta.mapped.model)) {
-                await entity.read('manuSpecificLumi', [0x0203], manufacturerOptions.lumi);
-            } else {
-                throw new Error('Not supported');
-            }
-        },
-    } satisfies Tz.Converter,
-    lumi_flip_indicator_light: {
-        key: ['flip_indicator_light'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {'OFF': 0, 'ON': 1};
-            await entity.write('manuSpecificLumi', {0x00F0: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
-            return {state: {flip_indicator_light: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x00F0], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_dimmer_mode: {
@@ -3561,13 +3575,6 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             await entity.write('genBasic', {0xFF19: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
             return {state: {power_outage_memory: value}};
-        },
-    } satisfies Tz.Converter,
-    lumi_power: {
-        key: ['power'],
-        convertGet: async (entity, key, meta) => {
-            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
-            await endpoint.read('genAnalogInput', ['presentValue']);
         },
     } satisfies Tz.Converter,
     lumi_auto_off: {
