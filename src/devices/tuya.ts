@@ -6952,8 +6952,8 @@ const definitions: Definition[] = [
             multiEndpoint: true,
             tuyaDatapoints: [
                 [112, 'presence', tuya.valueConverter.trueFalse1],
-                [106, 'move_sensitivity', tuya.valueConverter.divideBy10],
-                [111, 'presence_sensitivity', tuya.valueConverter.divideBy10],
+                [106, 'move_sensitivity', tuya.valueConverter.divideBy10FromOnly],
+                [111, 'presence_sensitivity', tuya.valueConverter.divideBy10FromOnly],
                 [107, 'radar_range', tuya.valueConverter.divideBy100],
                 [109, 'distance', tuya.valueConverter.divideBy100],
                 [110, 'presence_timeout', tuya.valueConverter.raw],

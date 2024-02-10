@@ -454,6 +454,9 @@ export const valueConverterBasic = {
     divideBy: (value: number) => {
         return {to: (v: number) => v * value, from: (v: number) => v / value};
     },
+    divideByFromOnly: (value: number) => {
+        return {to: (v: number) => v, from: (v: number) => v / value};
+    },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
     },
@@ -569,6 +572,7 @@ export const valueConverter = {
     batteryState: valueConverterBasic.lookup({'low': 0, 'medium': 1, 'high': 2}),
     divideBy10: valueConverterBasic.divideBy(10),
     divideBy1000: valueConverterBasic.divideBy(1000),
+    divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
     switchMode: valueConverterBasic.lookup({'switch': new Enum(0), 'scene': new Enum(1)}),
     lightMode: valueConverterBasic.lookup({'normal': new Enum(0), 'on': new Enum(1), 'off': new Enum(2), 'flash': new Enum(3)}),
     raw: valueConverterBasic.raw(),
