@@ -2867,6 +2867,12 @@ export const toZigbee = {
             await entity.read('manuSpecificLumi', [0x00F0], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
+    lumi_power_outage_count: {
+        key: ['power_outage_count'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x0002], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
 
     // lumi class specific
     lumi_feeder: {
@@ -3213,11 +3219,7 @@ export const toZigbee = {
             await entity.write('manuSpecificLumi', payload, {manufacturerCode});
         },
     } satisfies Tz.Converter,
-
-    // lumi device specific
-
-
-    lumi_cube_t1_operation_mode: {
+    lumi_cube_operation_mode: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {action_mode: 0, scene_mode: 1};
@@ -3234,6 +3236,71 @@ export const toZigbee = {
             };
             globalStore.putValue(meta.device, 'opModeSwitchTask', {callback, newMode: value});
             meta.logger.info('Now give your cube a forceful throw motion (Careful not to drop it)!');
+        },
+    } satisfies Tz.Converter,
+    lumi_switch_operation_mode_basic: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            assertEndpoint(entity);
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            let targetValue = isObject(value) && value.hasOwnProperty('state') ? value.state : value;
+
+            // 1/2 gang switches using genBasic on endpoint 1.
+            let attrId;
+            let attrValue: number;
+            if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
+                attrId = {left: 0xFF22, right: 0xFF23}[meta.endpoint_name];
+                // Allow usage of control_relay for 2 gang switches by mapping it to the default side.
+                if (targetValue === 'control_relay') {
+                    targetValue = `control_${meta.endpoint_name}_relay`;
+                }
+                attrValue = getFromLookup(targetValue, {control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE});
+
+                if (attrId == null) {
+                    throw new Error(`Unsupported endpoint ${meta.endpoint_name} for changing operation_mode.`);
+                }
+            } else {
+                attrId = 0xFF22;
+                attrValue = getFromLookup(targetValue, {control_relay: 0x12, decoupled: 0xFE});
+            }
+
+            if (attrValue == null) {
+                throw new Error('Invalid operation_mode value');
+            }
+
+            const endpoint = entity.getDevice().getEndpoint(1);
+            const payload: KeyValueAny = {};
+            payload[attrId] = {value: attrValue, type: 0x20};
+            await endpoint.write('genBasic', payload, manufacturerOptions.lumi);
+
+            return {state: {operation_mode: targetValue}};
+        },
+        convertGet: async (entity, key, meta) => {
+            let attrId;
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
+                attrId = {left: 0xFF22, right: 0xFF23}[meta.endpoint_name];
+                if (attrId == null) {
+                    throw new Error(`Unsupported endpoint ${meta.endpoint_name} for getting operation_mode.`);
+                }
+            } else {
+                attrId = 0xFF22;
+            }
+            await entity.read('genBasic', [attrId], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_switch_operation_mode_opple: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
+            const targetValue = isObject(value) && value.hasOwnProperty('state') ? value.state : value;
+            // Switches using manuSpecificLumi 0x0200 on the same endpoints as the onOff clusters.
+            const lookupState = {control_relay: 0x01, decoupled: 0x00};
+            await entity.write('manuSpecificLumi', {0x0200:
+                {value: getFromLookup(targetValue, lookupState), type: 0x20}}, manufacturerOptions.lumi);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x0200], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_detection_interval: {
@@ -3312,71 +3379,6 @@ export const toZigbee = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x0509], manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    lumi_switch_operation_mode_basic: {
-        key: ['operation_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            assertEndpoint(entity);
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            let targetValue = isObject(value) && value.hasOwnProperty('state') ? value.state : value;
-
-            // 1/2 gang switches using genBasic on endpoint 1.
-            let attrId;
-            let attrValue: number;
-            if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
-                attrId = {left: 0xFF22, right: 0xFF23}[meta.endpoint_name];
-                // Allow usage of control_relay for 2 gang switches by mapping it to the default side.
-                if (targetValue === 'control_relay') {
-                    targetValue = `control_${meta.endpoint_name}_relay`;
-                }
-                attrValue = getFromLookup(targetValue, {control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE});
-
-                if (attrId == null) {
-                    throw new Error(`Unsupported endpoint ${meta.endpoint_name} for changing operation_mode.`);
-                }
-            } else {
-                attrId = 0xFF22;
-                attrValue = getFromLookup(targetValue, {control_relay: 0x12, decoupled: 0xFE});
-            }
-
-            if (attrValue == null) {
-                throw new Error('Invalid operation_mode value');
-            }
-
-            const endpoint = entity.getDevice().getEndpoint(1);
-            const payload: KeyValueAny = {};
-            payload[attrId] = {value: attrValue, type: 0x20};
-            await endpoint.write('genBasic', payload, manufacturerOptions.lumi);
-
-            return {state: {operation_mode: targetValue}};
-        },
-        convertGet: async (entity, key, meta) => {
-            let attrId;
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
-                attrId = {left: 0xFF22, right: 0xFF23}[meta.endpoint_name];
-                if (attrId == null) {
-                    throw new Error(`Unsupported endpoint ${meta.endpoint_name} for getting operation_mode.`);
-                }
-            } else {
-                attrId = 0xFF22;
-            }
-            await entity.read('genBasic', [attrId], manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    lumi_switch_operation_mode_opple: {
-        key: ['operation_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-            const targetValue = isObject(value) && value.hasOwnProperty('state') ? value.state : value;
-            // Switches using manuSpecificLumi 0x0200 on the same endpoints as the onOff clusters.
-            const lookupState = {control_relay: 0x01, decoupled: 0x00};
-            await entity.write('manuSpecificLumi', {0x0200:
-                {value: getFromLookup(targetValue, lookupState), type: 0x20}}, manufacturerOptions.lumi);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0200], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_switch_do_not_disturb: {
@@ -3485,7 +3487,7 @@ export const toZigbee = {
             }
         },
     } satisfies Tz.Converter,
-    GZCGQ11LM_detection_period: {
+    lumi_detection_period: {
         key: ['detection_period'],
         convertSet: async (entity, key, value, meta) => {
             assertNumber(value, key);
@@ -3495,6 +3497,130 @@ export const toZigbee = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x0000], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_motion_sensitivity: {
+        key: ['motion_sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'low': 1, 'medium': 2, 'high': 3};
+            assertString(value, key);
+            value = value.toLowerCase();
+            await entity.write('manuSpecificLumi', {0x010c: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            return {state: {motion_sensitivity: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x010c], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_presence: {
+        key: ['presence'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x0142], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_monitoring_mode: {
+        key: ['monitoring_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            assertString(value, key);
+            value = value.toLowerCase();
+            const lookup = {'undirected': 0, 'left_right': 1};
+            await entity.write('manuSpecificLumi', {0x0144: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            return {state: {monitoring_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x0144], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_approach_distance: {
+        key: ['approach_distance'],
+        convertSet: async (entity, key, value, meta) => {
+            assertString(value, key);
+            value = value.toLowerCase();
+            const lookup = {'far': 0, 'medium': 1, 'near': 2};
+            await entity.write('manuSpecificLumi', {0x0146: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            return {state: {approach_distance: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x0146], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_reset_nopresence_status: {
+        key: ['reset_nopresence_status'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificLumi', {0x0157: {value: 1, type: 0x20}}, manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_switch_click_mode: {
+        key: ['click_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
+                await entity.write('manuSpecificLumi',
+                    {0x0286: {value: getFromLookup(value, {'fast': 0x1, 'multi': 0x02}), type: 0x20}},
+                    manufacturerOptions.lumi);
+                return {state: {click_mode: value}};
+            } else {
+                await entity.write('manuSpecificLumi',
+                    {0x0125: {value: getFromLookup(value, {'fast': 0x1, 'multi': 0x02}), type: 0x20}},
+                    manufacturerOptions.lumi);
+                return {state: {click_mode: value}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
+                await entity.read('manuSpecificLumi', [0x0286], manufacturerOptions.lumi);
+            } else {
+                await entity.read('manuSpecificLumi', [0x125], manufacturerOptions.lumi);
+            }
+        },
+    } satisfies Tz.Converter,
+    lumi_switch_lock_relay_opple: {
+        key: ['lock_relay'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificLumi', {0x0285: {value: (value ? 1 : 0), type: 0x20}},
+                manufacturerOptions.lumi);
+            return {state: {lock_relay: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x0285], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_operation_mode_opple: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            assertString(value);
+            // modes:
+            // 0 - 'command' mode. keys send commands. useful for binding
+            // 1 - 'event' mode. keys send events. useful for handling
+            const lookup = {command: 0, event: 1};
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.write('manuSpecificLumi', {'mode': getFromLookup(value.toLowerCase(), lookup)},
+                {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
+            return {state: {operation_mode: value.toLowerCase()}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.read('manuSpecificLumi', ['mode'], {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
+        },
+    } satisfies Tz.Converter,
+    lumi_vibration_sensitivity: {
+        key: ['sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            assertString(value, key);
+            value = value.toLowerCase();
+            const lookup = {'low': 0x15, 'medium': 0x0B, 'high': 0x01};
+
+            const options = {...manufacturerOptions.lumi, timeout: 35000};
+            await entity.write('genBasic', {0xFF0D: {value: getFromLookup(value, lookup), type: 0x20}}, options);
+            return {state: {sensitivity: value}};
+        },
+    } satisfies Tz.Converter,
+    lumi_interlock: {
+        key: ['interlock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genBinaryOutput', {0xff06: {value: value ? 0x01 : 0x00, type: 0x10}}, manufacturerOptions.lumi);
+            return {state: {interlock: value}};
         },
     } satisfies Tz.Converter,
     lumi_curtain_options: {
@@ -3616,119 +3742,66 @@ export const toZigbee = {
             }
         },
     } satisfies Tz.Converter,
-    lumi_curtain_acn002_charging_status: {
+    lumi_curtain_charging_status: {
         key: ['charging_status'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x0409], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    lumi_curtain_acn002_battery: {
+    lumi_curtain_battery: {
         key: ['battery'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x040a], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    lumi_motion_sensitivity: {
-        key: ['motion_sensitivity'],
+    lumi_trigger_indicator: {
+        key: ['trigger_indicator'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'low': 1, 'medium': 2, 'high': 3};
-            assertString(value, key);
-            value = value.toLowerCase();
-            await entity.write('manuSpecificLumi', {0x010c: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
-            return {state: {motion_sensitivity: value}};
+            await entity.write('manuSpecificLumi', {0x0152: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.lumi);
+            return {state: {trigger_indicator: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x010c], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0152], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    lumi_presence: {
-        key: ['presence'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0142], manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    lumi_monitoring_mode: {
-        key: ['monitoring_mode'],
+    lumi_curtain_hooks_lock: {
+        key: ['hooks_lock'],
         convertSet: async (entity, key, value, meta) => {
-            assertString(value, key);
-            value = value.toLowerCase();
-            const lookup = {'undirected': 0, 'left_right': 1};
-            await entity.write('manuSpecificLumi', {0x0144: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
-            return {state: {monitoring_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0144], manufacturerOptions.lumi);
+            const lookup = {'UNLOCK': 0, 'LOCK': 1};
+            await entity.write('manuSpecificLumi', {0x0427: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            return {state: {[key]: value}};
         },
     } satisfies Tz.Converter,
-    lumi_approach_distance: {
-        key: ['approach_distance'],
+    lumi_curtain_hooks_state: {
+        key: ['hooks_state'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x0428], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_curtain_hand_open: {
+        key: ['hand_open'],
         convertSet: async (entity, key, value, meta) => {
-            assertString(value, key);
-            value = value.toLowerCase();
-            const lookup = {'far': 0, 'medium': 1, 'near': 2};
-            await entity.write('manuSpecificLumi', {0x0146: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
-            return {state: {approach_distance: value}};
+            await entity.write('manuSpecificLumi', {0x0401: {value: !value, type: 0x10}}, manufacturerOptions.lumi);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0146], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x0401], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    lumi_reset_nopresence_status: {
-        key: ['reset_nopresence_status'],
+    lumi_curtain_limits_calibration: {
+        key: ['limits_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {0x0157: {value: 1, type: 0x20}}, manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    JTQJBF01LMBW_JTYJGD01LMBW_sensitivity: {
-        key: ['sensitivity'],
-        convertSet: async (entity, key, value, meta) => {
-            assertString(value, key);
-            value = value.toLowerCase();
-            const lookup = {'low': 0x04010000, 'medium': 0x04020000, 'high': 0x04030000};
-
-            // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
-            const options = {...manufacturerOptions.lumi, timeout: 35000};
-            await entity.write('ssIasZone', {0xFFF1: {value: getFromLookup(value, lookup), type: 0x23}}, options);
-            return {state: {sensitivity: value}};
-        },
-    } satisfies Tz.Converter,
-    JTQJBF01LMBW_JTYJGD01LMBW_selfest: {
-        key: ['selftest'],
-        convertSet: async (entity, key, value, meta) => {
-            // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
-            const options = {...manufacturerOptions.lumi, timeout: 35000};
-            await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, options);
-        },
-    } satisfies Tz.Converter,
-    lumi_alarm: {
-        key: ['gas', 'smoke'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x013a], manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    lumi_density: {
-        key: ['gas_density', 'smoke_density', 'smoke_density_dbm'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x013b], manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    JTBZ01AQA_gas_sensitivity: {
-        key: ['gas_sensitivity'],
-        convertSet: async (entity, key, value, meta) => {
-            assertString(value, key);
-            value = value.toUpperCase();
-            const lookup = {'15%LEL': 1, '10%LEL': 2};
-            await entity.write('manuSpecificLumi', {0x010c: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
-            return {state: {gas_sensitivity: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x010c], manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    lumi_selftest: {
-        key: ['selftest'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.lumi);
+            switch (value) {
+            case 'start':
+                await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
+                break;
+            case 'end':
+                await entity.write('manuSpecificLumi', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
+                break;
+            case 'reset':
+                await entity.write('manuSpecificLumi', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
+                // also? await entity.write('manuSpecificLumi', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
+                break;
+            }
         },
     } satisfies Tz.Converter,
     lumi_buzzer: {
@@ -3753,7 +3826,7 @@ export const toZigbee = {
             }
         },
     } satisfies Tz.Converter,
-    JYGZ01AQ_heartbeat_indicator: {
+    lumi_heartbeat_indicator: {
         key: ['heartbeat_indicator'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('manuSpecificLumi', {0x013c: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.lumi);
@@ -3761,6 +3834,19 @@ export const toZigbee = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x013c], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_selftest: {
+        key: ['selftest'],
+        convertSet: async (entity, key, value, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (['JTYJ-GD-01LM/BW', 'JTQJ-BF-01LM/BW'].includes(meta.mapped.model)) {
+                // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
+                const options = {...manufacturerOptions.lumi, timeout: 35000};
+                await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, options);
+            } else {
+                await entity.write('manuSpecificLumi', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.lumi);
+            }
         },
     } satisfies Tz.Converter,
     lumi_linkage_alarm: {
@@ -3773,88 +3859,53 @@ export const toZigbee = {
             await entity.read('manuSpecificLumi', [0x014b], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    JTBZ01AQA_state: {
+    lumi_state: {
         key: ['state'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x0139], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    lumi_power_outage_count: {
-        key: ['power_outage_count'],
+    lumi_alarm: {
+        key: ['gas', 'smoke'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0002], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x013a], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    lumi_trigger_indicator: {
-        key: ['trigger_indicator'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {0x0152: {value: value ? 1 : 0, type: 0x20}}, manufacturerOptions.lumi);
-            return {state: {trigger_indicator: value}};
-        },
+    lumi_density: {
+        key: ['gas_density', 'smoke_density', 'smoke_density_dbm'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0152], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x013b], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    LLKZMK11LM_interlock: {
-        key: ['interlock'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('genBinaryOutput', {0xff06: {value: value ? 0x01 : 0x00, type: 0x10}}, manufacturerOptions.lumi);
-            return {state: {interlock: value}};
-        },
-    } satisfies Tz.Converter,
-    DJT11LM_vibration_sensitivity: {
+    lumi_sensitivity: {
         key: ['sensitivity'],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, key);
             value = value.toLowerCase();
-            const lookup = {'low': 0x15, 'medium': 0x0B, 'high': 0x01};
+            const lookup = {'low': 0x04010000, 'medium': 0x04020000, 'high': 0x04030000};
 
+            // Timeout of 30 seconds + required (https://github.com/Koenkk/zigbee2mqtt/issues/2287)
             const options = {...manufacturerOptions.lumi, timeout: 35000};
-            await entity.write('genBasic', {0xFF0D: {value: getFromLookup(value, lookup), type: 0x20}}, options);
+            await entity.write('ssIasZone', {0xFFF1: {value: getFromLookup(value, lookup), type: 0x23}}, options);
             return {state: {sensitivity: value}};
         },
     } satisfies Tz.Converter,
-    ZNCLBL01LM_hooks_lock: {
-        key: ['hooks_lock'],
+    lumi_gas_sensitivity: {
+        key: ['gas_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'UNLOCK': 0, 'LOCK': 1};
-            await entity.write('manuSpecificLumi', {0x0427: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
-            return {state: {[key]: value}};
-        },
-    } satisfies Tz.Converter,
-    ZNCLBL01LM_hooks_state: {
-        key: ['hooks_state'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0428], manufacturerOptions.lumi);
-        },
-    } satisfies Tz.Converter,
-    ZNCLBL01LM_hand_open: {
-        key: ['hand_open'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {0x0401: {value: !value, type: 0x10}}, manufacturerOptions.lumi);
+            assertString(value, key);
+            value = value.toUpperCase();
+            const lookup = {'15%LEL': 1, '10%LEL': 2};
+            await entity.write('manuSpecificLumi', {0x010c: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
+            return {state: {gas_sensitivity: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0401], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', [0x010c], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
-    ZNCLBL01LM_limits_calibration: {
-        key: ['limits_calibration'],
-        convertSet: async (entity, key, value, meta) => {
-            switch (value) {
-            case 'start':
-                await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
-                break;
-            case 'end':
-                await entity.write('manuSpecificLumi', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
-                break;
-            case 'reset':
-                await entity.write('manuSpecificLumi', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
-                // also? await entity.write('manuSpecificLumi', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
-                break;
-            }
-        },
-    } satisfies Tz.Converter,
-    ZNCJMB14LM: {
+
+    // lumi device specific
+    lumi_smart_panel_ZNCJMB14LM: {
         key: ['theme',
             'standby_enabled',
             'beep_volume',
@@ -3988,60 +4039,6 @@ export const toZigbee = {
             } else {
                 throw new Error(`Not supported: '${key}'`);
             }
-        },
-    } satisfies Tz.Converter,
-    aqara_opple_operation_mode: {
-        key: ['operation_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            assertString(value);
-            // modes:
-            // 0 - 'command' mode. keys send commands. useful for binding
-            // 1 - 'event' mode. keys send events. useful for handling
-            const lookup = {command: 0, event: 1};
-            const endpoint = meta.device.getEndpoint(1);
-            await endpoint.write('manuSpecificLumi', {'mode': getFromLookup(value.toLowerCase(), lookup)},
-                {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
-            return {state: {operation_mode: value.toLowerCase()}};
-        },
-        convertGet: async (entity, key, meta) => {
-            const endpoint = meta.device.getEndpoint(1);
-            await endpoint.read('manuSpecificLumi', ['mode'], {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
-        },
-    } satisfies Tz.Converter,
-    lumi_switch_click_mode: {
-        key: ['click_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
-                await entity.write('manuSpecificLumi',
-                    {0x0286: {value: getFromLookup(value, {'fast': 0x1, 'multi': 0x02}), type: 0x20}},
-                    manufacturerOptions.lumi);
-                return {state: {click_mode: value}};
-            } else {
-                await entity.write('manuSpecificLumi',
-                    {0x0125: {value: getFromLookup(value, {'fast': 0x1, 'multi': 0x02}), type: 0x20}},
-                    manufacturerOptions.lumi);
-                return {state: {click_mode: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            if (['ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
-                await entity.read('manuSpecificLumi', [0x0286], manufacturerOptions.lumi);
-            } else {
-                await entity.read('manuSpecificLumi', [0x125], manufacturerOptions.lumi);
-            }
-        },
-    } satisfies Tz.Converter,
-    lumi_switch_lock_relay_opple: {
-        key: ['lock_relay'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {0x0285: {value: (value ? 1 : 0), type: 0x20}},
-                manufacturerOptions.lumi);
-            return {state: {lock_relay: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0285], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
 };

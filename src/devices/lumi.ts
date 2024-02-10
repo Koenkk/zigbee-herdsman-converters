@@ -1605,7 +1605,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4020RT'}],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_smoke],
-        toZigbee: [lumi.toZigbee.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, lumi.toZigbee.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
+        toZigbee: [lumi.toZigbee.lumi_sensitivity, lumi.toZigbee.lumi_selftest],
         exposes: [
             e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             e.numeric('smoke_density', ea.STATE), e.enum('selftest', ea.SET, ['']), e.battery_voltage(),
@@ -1620,7 +1620,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4019RT'}],
         description: 'Mijia Honeywell gas leak detector',
         fromZigbee: [fz.ias_gas_alarm_1, lumi.fromZigbee.lumi_gas_sensitivity, lumi.fromZigbee.lumi_gas_density],
-        toZigbee: [lumi.toZigbee.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, lumi.toZigbee.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
+        toZigbee: [lumi.toZigbee.lumi_sensitivity, lumi.toZigbee.lumi_selftest],
         exposes: [
             e.gas(), e.battery_low(), e.tamper(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             e.numeric('gas_density', ea.STATE), e.enum('selftest', ea.SET, ['']),
@@ -1638,10 +1638,10 @@ const definitions: Definition[] = [
         description: 'Smart natural gas detector',
         whiteLabel: [{vendor: 'Aqara', model: 'JT-BZ-03AQ/A'}],
         fromZigbee: [lumi.fromZigbee.lumi_specific],
-        toZigbee: [lumi.toZigbee.lumi_alarm, lumi.toZigbee.lumi_density, lumi.toZigbee.JTBZ01AQA_gas_sensitivity,
+        toZigbee: [lumi.toZigbee.lumi_alarm, lumi.toZigbee.lumi_density, lumi.toZigbee.lumi_gas_sensitivity,
             lumi.toZigbee.lumi_selftest, lumi.toZigbee.lumi_buzzer,
             lumi.toZigbee.lumi_buzzer_manual, lumi.toZigbee.lumi_linkage_alarm,
-            lumi.toZigbee.JTBZ01AQA_state, lumi.toZigbee.lumi_power_outage_count],
+            lumi.toZigbee.lumi_state, lumi.toZigbee.lumi_power_outage_count],
         exposes: [e.gas().withAccess(ea.STATE_GET),
             e.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
             e.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
@@ -1686,7 +1686,7 @@ const definitions: Definition[] = [
         fromZigbee: [lumi.fromZigbee.lumi_specific, fz.battery],
         toZigbee: [lumi.toZigbee.lumi_alarm, lumi.toZigbee.lumi_density, lumi.toZigbee.lumi_selftest,
             lumi.toZigbee.lumi_buzzer, lumi.toZigbee.lumi_buzzer_manual,
-            lumi.toZigbee.JYGZ01AQ_heartbeat_indicator, lumi.toZigbee.lumi_linkage_alarm],
+            lumi.toZigbee.lumi_heartbeat_indicator, lumi.toZigbee.lumi_linkage_alarm],
         exposes: [e.smoke().withAccess(ea.STATE_GET),
             e.numeric('smoke_density', ea.STATE_GET).withDescription('Value of smoke concentration'),
             e.numeric('smoke_density_dbm', ea.STATE_GET).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
@@ -1737,7 +1737,7 @@ const definitions: Definition[] = [
         description: 'Vibration sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_vibration_analog],
-        toZigbee: [lumi.toZigbee.DJT11LM_vibration_sensitivity],
+        toZigbee: [lumi.toZigbee.lumi_vibration_sensitivity],
         exposes: [
             e.battery(), e.device_temperature(), e.vibration(), e.action(['vibration', 'tilt', 'drop']),
             e.numeric('strength', ea.STATE), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
@@ -1854,8 +1854,8 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Aqara', model: 'RSD-M01'}],
         fromZigbee: [lumi.fromZigbee.lumi_curtain_position, lumi.fromZigbee.lumi_curtain_status,
             fz.ignore_basic_report, lumi.fromZigbee.lumi_specific],
-        toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_acn002_battery,
-            lumi.toZigbee.lumi_curtain_acn002_charging_status],
+        toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_battery,
+            lumi.toZigbee.lumi_curtain_charging_status],
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'genMultistateOutput' &&
                 data.data.hasOwnProperty('presentValue') && data.data['presentValue'] > 1) {
@@ -1898,10 +1898,10 @@ const definitions: Definition[] = [
         toZigbee: [
             lumi.toZigbee.lumi_curtain_position_state,
             lumi.toZigbee.lumi_curtain_battery_voltage,
-            lumi.toZigbee.ZNCLBL01LM_hooks_lock,
-            lumi.toZigbee.ZNCLBL01LM_hooks_state,
-            lumi.toZigbee.ZNCLBL01LM_hand_open,
-            lumi.toZigbee.ZNCLBL01LM_limits_calibration,
+            lumi.toZigbee.lumi_curtain_hooks_lock,
+            lumi.toZigbee.lumi_curtain_hooks_state,
+            lumi.toZigbee.lumi_curtain_hand_open,
+            lumi.toZigbee.lumi_curtain_limits_calibration,
             tz.power_source,
             tz.battery_percentage_remaining,
         ],
@@ -1942,7 +1942,7 @@ const definitions: Definition[] = [
         description: 'Dual relay module',
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_power, fz.ignore_multistate_report, fz.on_off, lumi.fromZigbee.lumi_basic_raw],
         meta: {multiEndpoint: true},
-        toZigbee: [tz.on_off, lumi.toZigbee.LLKZMK11LM_interlock, lumi.toZigbee.lumi_power, lumi.toZigbee.lumi_switch_power_outage_memory],
+        toZigbee: [tz.on_off, lumi.toZigbee.lumi_interlock, lumi.toZigbee.lumi_power, lumi.toZigbee.lumi_switch_power_outage_memory],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -2085,7 +2085,7 @@ const definitions: Definition[] = [
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
         ]), e.enum('operation_mode', ea.ALL, ['command', 'event'])
             .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)')],
-        toZigbee: [lumi.toZigbee.aqara_opple_operation_mode],
+        toZigbee: [lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -2108,7 +2108,7 @@ const definitions: Definition[] = [
             'button_4_hold', 'button_4_release', 'button_4_single', 'button_4_double', 'button_4_triple',
         ]), e.enum('operation_mode', ea.ALL, ['command', 'event'])
             .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)')],
-        toZigbee: [lumi.toZigbee.aqara_opple_operation_mode],
+        toZigbee: [lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -2137,7 +2137,7 @@ const definitions: Definition[] = [
         ]), e.enum('operation_mode', ea.ALL, ['command', 'event'])
             .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
         e.power_outage_count(false)],
-        toZigbee: [lumi.toZigbee.aqara_opple_operation_mode],
+        toZigbee: [lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -2278,7 +2278,7 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Smart touch panel S1',
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_smart_panel_ZNCJMB14LM],
-        toZigbee: [tz.on_off, lumi.toZigbee.ZNCJMB14LM],
+        toZigbee: [tz.on_off, lumi.toZigbee.lumi_smart_panel_ZNCJMB14LM],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -2344,7 +2344,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Aqara', model: 'WRS-R02'}],
         description: 'Wireless remote switch H1 (double rocker)',
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, fz.command_toggle],
-        toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.aqara_opple_operation_mode],
+        toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}, multiEndpoint: true},
         exposes: [
             e.battery(), e.battery_voltage(), e.action([
@@ -2541,7 +2541,7 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Light sensor T1',
         fromZigbee: [fz.battery, fz.illuminance, lumi.fromZigbee.lumi_specific],
-        toZigbee: [lumi.toZigbee.GZCGQ11LM_detection_period],
+        toZigbee: [lumi.toZigbee.lumi_detection_period],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux(),
             e.numeric('detection_period', exposes.access.ALL).withValueMin(1).withValueMax(59).withUnit('s')
@@ -2618,7 +2618,7 @@ const definitions: Definition[] = [
         ],
         fromZigbee: [lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_basic,
             lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_knob_rotation],
-        toZigbee: [lumi.toZigbee.aqara_opple_operation_mode],
+        toZigbee: [lumi.toZigbee.lumi_operation_mode_opple],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -2667,7 +2667,7 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Wireless remote switch H1 (single rocker)',
         fromZigbee: [lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, fz.command_toggle],
-        toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.aqara_opple_operation_mode],
+        toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.lumi_operation_mode_opple],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'hold']),
             e.enum('click_mode', ea.ALL, ['fast', 'multi'])
                 .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
@@ -2777,7 +2777,7 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Wireless remote switch H1M (double rocker)',
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, fz.command_toggle],
-        toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.aqara_opple_operation_mode],
+        toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}, multiEndpoint: true},
         exposes: [
             e.battery(), e.battery_voltage(), e.action([
@@ -3000,7 +3000,7 @@ const definitions: Definition[] = [
         extend: [lumiZigbeeOTA()],
         fromZigbee: [lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_action_multistate,
             lumi.fromZigbee.lumi_action_analog, fz.ignore_onoff_report],
-        toZigbee: [lumi.toZigbee.lumi_cube_t1_operation_mode],
+        toZigbee: [lumi.toZigbee.lumi_cube_operation_mode],
         exposes: [
             e.battery(),
             e.battery_voltage(),
