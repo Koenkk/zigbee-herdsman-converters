@@ -15,6 +15,9 @@ const ea = exposes.access;
 const exposesLocal = {
     indicator_mode: e.enum('indicator_mode', ea.ALL, ['consistent_with_load', 'reverse_with_load', 'always_off', 'always_on'])
         .withDescription('Led Indicator Mode'),
+    switch_action: e.enum('switch_action', ea.ALL, ['light', 'light_opposite', 'dimmer', 'dimmer_opposite', 'standard_shutter',
+        'standard_shutter_opposite', 'schneider_shutter', 'schneider_shutter_opposite', 'scene', 'toggle_light', 'toggle_dimmer',
+        'alternate_light', 'alternate_dimmer', 'not_used']).withDescription('Switch Action'),
 };
 
 const tzLocal = {
@@ -48,6 +51,25 @@ const tzLocal = {
             utils.assertString(value);
             if (value.toLowerCase() === 'on') value = 'low';
             return tz.fan_mode.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
+    switch_action: {
+        key: ['switch_action'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
+            utils.assertString(value);
+            const endpoint = entity.getDevice().getEndpoint(21);
+            const lookup: KeyValue = {'light': 0, 'light_opposite': 254, 'dimmer': 1, 'dimmer_opposite': 253, 'standard_shutter': 2,
+                'standard_shutter_opposite': 252, 'schneider_shutter': 3, 'schneider_shutter_opposite': 251, 'scene': 4,
+                'toggle_light': 5, 'toggle_dimmer': 6, 'alternate_light': 7, 'alternate_dimmer': 8, 'not_used': 127};
+            utils.validateValue(value, Object.keys(lookup));
+            await endpoint.write(0xFF17, {0x0001: {value: lookup[value], type: 0x30}}, {manufacturerCode: 0x105e});
+            return {state: {switch_action: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            utils.assertEndpoint(entity);
+            const endpoint = entity.getDevice().getEndpoint(21);
+            await endpoint.read(0xFF17, [0x0001], {manufacturerCode: 0x105e});
         },
     } satisfies Tz.Converter,
 };
@@ -212,6 +234,20 @@ const fzLocal = {
             const lookup: KeyValue = {0: 'consistent_with_load', 1: 'always_on', 2: 'reverse_with_load', 3: 'always_off'};
             if ('indicator_mode' in msg.data) {
                 result.indicator_mode = lookup[msg.data['indicator_mode']];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    switch_action: {
+        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            const lookup: KeyValue = {0: 'light', 254: 'light_opposite', 1: 'dimmer', 253: 'dimmer_opposite', 2: 'standard_shutter',
+                252: 'standard_shutter_opposite', 3: 'schneider_shutter', 251: 'schneider_shutter_opposite', 4: 'scene',
+                5: 'toggle_light', 6: 'toggle_dimmer', 7: 'alternate_light', 8: 'alternate_dimmer', 127: 'not_used'};
+            if ('switch_action' in msg.data) {
+                result.switch_action = lookup[msg.data['switch_action']];
             }
             return result;
         },
@@ -582,15 +618,44 @@ const definitions: Definition[] = [
         model: 'MEG5116-0300/MEG5171-0000',
         vendor: 'Schneider Electric',
         description: 'Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (1fold)',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration, fzLocal.indicator_mode,
+            fzLocal.switch_action],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode, tzLocal.indicator_mode,
+            tzLocal.switch_action],
         exposes: [e.light_brightness().withLevelConfig(),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast'),
             e.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
-                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
+                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)'),
+            exposesLocal.indicator_mode,
+            exposesLocal.switch_action],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['2GANG/DIMMER/1'],
+        model: 'MEG5126-0300/MEG5171-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (2fold)',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration, fzLocal.indicator_mode,
+            fzLocal.switch_action],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode, tzLocal.indicator_mode,
+            tzLocal.switch_action],
+        exposes: [e.light_brightness().withLevelConfig(),
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
+            e.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
+                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)'),
+            exposesLocal.indicator_mode,
+            exposesLocal.switch_action],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
