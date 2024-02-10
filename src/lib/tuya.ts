@@ -454,6 +454,9 @@ export const valueConverterBasic = {
     divideBy: (value: number) => {
         return {to: (v: number) => v * value, from: (v: number) => v / value};
     },
+    divideByFromOnly: (value: number) => {
+        return {to: (v: number) => v, from: (v: number) => v / value};
+    },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
     },
@@ -569,6 +572,7 @@ export const valueConverter = {
     batteryState: valueConverterBasic.lookup({'low': 0, 'medium': 1, 'high': 2}),
     divideBy10: valueConverterBasic.divideBy(10),
     divideBy1000: valueConverterBasic.divideBy(1000),
+    divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
     switchMode: valueConverterBasic.lookup({'switch': new Enum(0), 'scene': new Enum(1)}),
     lightMode: valueConverterBasic.lookup({'normal': new Enum(0), 'on': new Enum(1), 'off': new Enum(2), 'flash': new Enum(3)}),
     raw: valueConverterBasic.raw(),
@@ -1128,7 +1132,7 @@ const tuyaTz = {
             'screen_orientation', 'regulator_period', 'regulator_set_point', 'upper_stroke_limit', 'middle_stroke_limit', 'lower_stroke_limit',
             'buzzer_feedback', 'rf_pairing', 'max_temperature_alarm', 'min_temperature_alarm', 'max_humidity_alarm', 'min_humidity_alarm',
             'temperature_periodic_report', 'humidity_periodic_report', 'temperature_sensitivity', 'humidity_sensitivity', 'temperature_alarm',
-            'humidity_alarm',
+            'humidity_alarm', 'move_sensitivity', 'radar_range', 'presence_timeout',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop

@@ -676,6 +676,7 @@ export const presets = {
     effect: () => new Enum('effect', access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']).withDescription('Triggers an effect on the light (e.g. make light blink for a few seconds)'),
     energy: () => new Numeric('energy', access.STATE).withUnit('kWh').withDescription('Sum of consumed energy'),
     produced_energy: () => new Numeric('produced_energy', access.STATE).withUnit('kWh').withDescription('Sum of produced energy'),
+    energy_produced: () => new Numeric('energy_produced', access.STATE).withUnit('kWh').withDescription('Sum of produced energy'),
     fan: () => new Fan(),
     flip_indicator_light: () => new Binary('flip_indicator_light', access.ALL, 'ON', 'OFF').withDescription('After turn on, the indicator light turns on while switch is off, and vice versa').withCategory('config'),
     force: () => new Enum('force', access.STATE_SET, ['normal', 'open', 'close']).withDescription('Force the valve position'),
@@ -798,6 +799,7 @@ export const presets = {
         .withFeature(new Enum('state', access.SET, ['system_is_armed', 'system_is_disarmed']).withDescription('Set Squawk state'))
         .withFeature(new Enum('level', access.SET, ['low', 'medium', 'high', 'very_high']).withDescription('Sound level'))
         .withFeature(new Binary('strobe', access.SET, true, false).withDescription('Turn on/off the strobe (light) for Squawk')),
+    identify_duration: () => new Numeric('identify', access.SET).withValueMin(0).withValueMax(30).withUnit('seconds').withDescription('Duration of flashing').withCategory('config'),
 };
 
 exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);

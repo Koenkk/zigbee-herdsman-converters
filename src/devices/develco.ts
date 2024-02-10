@@ -65,11 +65,11 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.hasOwnProperty('totalActivePower')) {
+                if (msg.data.hasOwnProperty('totalActivePower') && msg.data['totalActivePower'] !== -0x80000000) {
                     result[utils.postfixWithEndpointName('power', msg, model, meta)] =
                         msg.data['totalActivePower'];
                 }
-                if (msg.data.hasOwnProperty('totalReactivePower')) {
+                if (msg.data.hasOwnProperty('totalReactivePower') && msg.data['totalReactivePower'] !== -0x80000000) {
                     result[utils.postfixWithEndpointName('power_reactive', msg, model, meta)] =
                         msg.data['totalReactivePower'];
                 }
@@ -95,7 +95,7 @@ const develco = {
         metering: {
             ...fz.metering,
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.instantaneousDemand !== -0x800000) {
+                if (msg.data.instantaneousDemand !== -0x800000 && msg.data.currentSummDelivered[1] !== 0) {
                     return fz.metering.convert(model, msg, publish, options, meta);
                 }
             },

@@ -1160,14 +1160,17 @@ const definitions: Definition[] = [
         description: 'Room thermostat II (Battery model)',
         fromZigbee: [fz.humidity, fz.thermostat, fz.battery, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tzLocal.bosch_thermostat, tzLocal.bosch_userInterface],
+            tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tz.thermostat_running_state,
+            tzLocal.bosch_thermostat, tzLocal.bosch_userInterface],
         exposes: [
             e.climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'auto']),
+                .withSystemMode(['off', 'heat', 'auto'])
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.humidity(),
+            e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
             e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
             e.child_lock().setAccess('state', ea.ALL),
             e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
@@ -1182,14 +1185,27 @@ const definitions: Definition[] = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.humidity(endpoint);
 
-            // report is window_open
+            // report operating_mode (system_mode)
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4007, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], manufacturerOptions);
+            // report window_open
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
-
+            // report boost as it's disabled by thermostat after 5 minutes
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], manufacturerOptions);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);

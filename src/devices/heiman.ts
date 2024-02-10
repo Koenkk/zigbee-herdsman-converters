@@ -197,7 +197,7 @@ const definitions: Definition[] = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['WaterSensor-N', 'WaterSensor-EM', 'WaterSensor-N-3.0', 'WaterSensor-EF-3.0', 'WaterSensor2-EF-3.0'],
+        zigbeeModel: ['WaterSensor-N', 'WaterSensor-EM', 'WaterSensor-N-3.0', 'WaterSensor-EF-3.0', 'WaterSensor2-EF-3.0', 'WATER_TPV13'],
         model: 'HS1WL/HS3WL',
         vendor: 'HEIMAN',
         description: 'Water leakage sensor',
