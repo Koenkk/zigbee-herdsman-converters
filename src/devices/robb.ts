@@ -88,8 +88,15 @@ const definitions: Definition[] = [
         zigbeeModel: ['ROB_200-003-0'],
         model: 'ROB_200-003-0',
         vendor: 'ROBB',
-        description: 'Zigbee AC in wall switch',
+        description: 'Zigbee AC in wall switch (push switch)',
         extend: [onOff()],
+    },
+    {
+        zigbeeModel: ['ROB_200-003-1'],
+        model: 'ROB_200-003-1',
+        vendor: 'ROBB smarrt',
+        description: 'Zigbee AC in wall switch (normal switch)',
+        extend: [onOff({'powerOnBehavior': false})],
     },
     {
         zigbeeModel: ['ROB_200-030-0'],
