@@ -1,5 +1,26 @@
 # Changelog
 
+## [18.31.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.30.0...v18.31.0) (2024-02-11)
+
+
+### Features
+
+* **add:** ROB_200-003-1 ([#7053](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7053)) ([47eb672](https://github.com/Koenkk/zigbee-herdsman-converters/commit/47eb672fd1654522e18f07449c1ee03268096c44))
+* support _TZE204_ztqnh5cg ([#7056](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7056)) ([b7711cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b7711ccf1bbd6a384522960bacce33bdf88113a6))
+
+
+### Bug Fixes
+
+* Change `window_open` to `window_detection` for Bosch thermostats ([#7047](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7047)) ([a9fb46c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a9fb46c9e800a74864218202ee0bc87bea32d19a))
+* **detect:** Detect `_TZ3000_eo3dttwe` as TuYa TS0215A_remote ([#7048](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7048)) ([aeea2fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aeea2fc1b056c61c22e0bcd876e383825c883ccb))
+* **detect:** Detect `_TZE204_q76rtoa9` as Neo q76rtoa9 ([#7051](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7051)) ([36a31e8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/36a31e8bab8ce6b9cba29698f1ae1df4a5a734b8))
+* **detect:** Detect `755WSA as Schneider Electric W599001 ([#7055](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7055)) ([f1688c9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f1688c97984d4690794220a3e603cc49721e5c35))
+* Fix move and presense sensitivity for TuYa ZY-M100-24G https://github.com/Koenkk/zigbee2mqtt/issues/21282 ([af40f72](https://github.com/Koenkk/zigbee-herdsman-converters/commit/af40f72a94a471a68e36fbfffdbdab88a297e9e1))
+* Fixes for YSRAI YSR-MINI-01_wwcw ([#7054](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7054)) ([a4e4c6c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a4e4c6cf5e22c190a0ee9f10ae3693d6620057fa))
+* **ignore:** update dependencies ([#7028](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7028)) ([816b3b5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/816b3b51abf1e89b331b6f8e930ffdb5705bf9fc))
+* Refactor Lumi specific converters ([#6982](https://github.com/Koenkk/zigbee-herdsman-converters/issues/6982)) ([f666002](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f6660029beab9d7062482aa856c39c20ae55e01a))
+* Update WETEN PCI E `buzzer_feedback` description ([#7058](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7058)) ([7c22972](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7c229729b372755c28755b633d5a965a1364f8b3))
+
 ## [18.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.29.1...v18.30.0) (2024-02-08)
 
 
