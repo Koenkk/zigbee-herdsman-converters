@@ -94,7 +94,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['ROB_200-003-1'],
         model: 'ROB_200-003-1',
-        vendor: 'ROBB smarrt',
+        vendor: 'ROBB',
         description: 'Zigbee AC in wall switch (normal switch)',
         extend: [onOff({'powerOnBehavior': false})],
     },
