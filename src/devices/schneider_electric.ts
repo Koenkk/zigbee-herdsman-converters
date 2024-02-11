@@ -1086,7 +1086,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        zigbeeModel: ['W599001', 'W599501'],
+        zigbeeModel: ['W599001', 'W599501', '755WSA'],
         model: 'W599001',
         vendor: 'Schneider Electric',
         description: 'Wiser smoke alarm',
@@ -1112,6 +1112,7 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             {vendor: 'Schneider Electric', model: 'W599501', description: 'Wiser smoke alarm', fingerprint: [{modelID: 'W599501'}]},
+            {vendor: 'Schneider Electric', model: '755WSA', description: 'Clipsal Wiser smoke alarm', fingerprint: [{modelID: '755WSA'}]},
         ],
     },
     {
