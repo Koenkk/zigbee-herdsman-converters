@@ -25,7 +25,8 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         exposes: [
             e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('PC Power'),
-            e.binary('buzzer_feedback', ea.STATE_SET, 'ON', 'OFF').withDescription('ON means no buzzer noise'),
+            e.binary('buzzer_feedback', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Enable buzzer feedback. It sounds on device actions like power state changes, child lock activation, etc.'),
             e.child_lock(),
             e.binary('rf_pairing', ea.STATE_SET, 'ON', 'OFF').withDescription('Enables/disables RF 433 remote pairing mode'),
         ],
