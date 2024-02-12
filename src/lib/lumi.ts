@@ -263,7 +263,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             }
             break;
         case '100':
-            if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM', 'LLKZMK11LM', 'QBKG12LM', 'QBKG03LM', 'QBKG25LM']
+            if (['QBKG18LM', 'QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM', 'LLKZMK11LM', 'QBKG12LM', 'QBKG03LM', 'QBKG25LM']
                 .includes(model.model)) {
                 let mapping;
                 switch (model.model) {
@@ -315,7 +315,8 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             }
             break;
         case '101':
-            if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM', 'QBKG25LM', 'QBKG34LM', 'LLKZMK11LM', 'QBKG12LM', 'QBKG03LM']
+            if (['QBKG18LM', 'QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM', 'QBKG25LM', 'QBKG33LM', 'QBKG34LM', 'LLKZMK11LM', 'QBKG12LM',
+                'QBKG03LM']
                 .includes(model.model)) {
                 let mapping;
                 switch (model.model) {
@@ -323,6 +324,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                     mapping = 'usb';
                     break;
                 case 'QBKG25LM':
+                case 'QBKG33LM':
                 case 'QBKG34LM':
                     mapping = 'center';
                     break;
@@ -360,7 +362,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             }
             break;
         case '102':
-            if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
+            if (['QBKG25LM', 'QBKG33LM', 'QBKG34LM'].includes(model.model)) {
                 payload.state_right = value === 1 ? 'ON' : 'OFF';
             } else if (['WSDCGQ01LM', 'WSDCGQ11LM'].includes(model.model)) {
                 assertNumber(value);
@@ -1704,10 +1706,11 @@ export const fromZigbee = {
                 buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             }
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
-            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG28LM', 'QBKG31LM', 'ZNQBKG25LM'].includes(model.model)) {
+            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG18LM', 'QBKG20LM', 'QBKG28LM', 'QBKG31LM', 'ZNQBKG25LM']
+                .includes(model.model)) {
                 buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
             }
-            if (['QBKG25LM', 'QBKG26LM', 'QBKG29LM', 'QBKG32LM', 'QBKG34LM', 'ZNQBKG31LM', 'ZNQBKG26LM'].includes(model.model)) {
+            if (['QBKG25LM', 'QBKG26LM', 'QBKG29LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'ZNQBKG31LM', 'ZNQBKG26LM'].includes(model.model)) {
                 buttonLookup = {
                     41: 'left', 42: 'center', 43: 'right',
                     51: 'left_center', 52: 'left_right', 53: 'center_right',
@@ -2828,8 +2831,8 @@ export const toZigbee = {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+            if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG17LM', 'QBKG18LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
+                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM',
                 'ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
                 await entity.write('manuSpecificLumi', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
@@ -2846,8 +2849,8 @@ export const toZigbee = {
         },
         convertGet: async (entity, key, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+            if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG17LM', 'QBKG18LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
+                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM',
                 'ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
                 await entity.read('manuSpecificLumi', [0x0203], manufacturerOptions.lumi);
@@ -3406,9 +3409,9 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
-                'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
-                'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG17LM', 'QBKG18LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM',
+                'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM',
+                'ZNLDP13LM', 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
                 'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
             ].includes(meta.mapped.model)) {
                 await entity.write('manuSpecificLumi', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
@@ -3439,9 +3442,9 @@ export const toZigbee = {
         convertGet: async (entity, key, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG18LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM', 'QBKG29LM',
-                'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
-                'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG17LM', 'QBKG18LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM',
+                'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM',
+                'ZNLDP13LM', 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
                 'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
             ].includes(meta.mapped.model)) {
                 await entity.read('manuSpecificLumi', [0x0201]);
