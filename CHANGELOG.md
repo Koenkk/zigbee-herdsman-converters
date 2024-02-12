@@ -1,5 +1,19 @@
 # Changelog
 
+## [18.32.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.31.0...v18.32.0) (2024-02-12)
+
+
+### Features
+
+* **add:** MEG5126-0300/MEG5171-0000 ([#7050](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7050)) ([8231fad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8231fad9c0c5f58560683bd18c0ff60fc390f8b6))
+* **add:** QBKG33LM, QBKG17LM, QBKG27LM ([#7059](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7059)) ([4bcd149](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4bcd149a98ff2279735c2ebc0b6463989265b5e9))
+
+
+### Bug Fixes
+
+* Fix Aqara JTQJ-BF-01LM/BW device type and power source ([#7037](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7037)) ([96e6e92](https://github.com/Koenkk/zigbee-herdsman-converters/commit/96e6e92e142cf8efefbfab808b165f26df04017e))
+* Fix state not updating for MakeGood MG-AUZG01 https://github.com/Koenkk/zigbee2mqtt/issues/20032 ([07cec96](https://github.com/Koenkk/zigbee-herdsman-converters/commit/07cec96be27cbb945f943485bd236e8449437fd8))
+
 ## [18.31.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.30.0...v18.31.0) (2024-02-11)
 
 
