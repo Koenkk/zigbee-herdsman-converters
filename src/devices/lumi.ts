@@ -508,7 +508,7 @@ const definitions: Definition[] = [
         description: 'Smart wall switch H1 (no neutral, single rocker)',
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_action_multistate],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_flip_indicator_light],
+            lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_flip_indicator_light, lumi.toZigbee.lumi_switch_mode_switch],
         exposes: [e.switch(), e.device_temperature(), e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
             e.action(['single', 'double']),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
@@ -532,7 +532,7 @@ const definitions: Definition[] = [
         description: 'Smart wall switch H1 (no neutral, double rocker)',
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_flip_indicator_light, lumi.toZigbee.lumi_led_disabled_night],
+            lumi.toZigbee.lumi_flip_indicator_light, lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_switch_mode_switch],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
