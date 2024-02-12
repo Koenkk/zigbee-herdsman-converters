@@ -87,7 +87,7 @@ describe('index.js', () => {
         expect(definition.extend).toBeUndefined();
         expect(definition.fromZigbee).toHaveLength(0);
         expect(definition.toZigbee).toHaveLength(11);
-        expect(definition.exposes).toHaveLength(1);
+        expect(definition.exposes).toHaveLength(2);
         expect(definition.options).toHaveLength(1);
     });
 
