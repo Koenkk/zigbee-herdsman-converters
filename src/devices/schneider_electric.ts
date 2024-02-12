@@ -630,7 +630,7 @@ const definitions: Definition[] = [
             await reporting.brightness(endpoint);
         },
         endpoint: (device) => {
-            return {'3': 3, 'right': 21, 'left': 22};
+            return {'right': 21, 'left': 22};
         },
     },
     {
