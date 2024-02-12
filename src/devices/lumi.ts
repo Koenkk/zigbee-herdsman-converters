@@ -1702,12 +1702,12 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_gas_alarm_1, lumi.fromZigbee.lumi_gas_sensitivity, lumi.fromZigbee.lumi_gas_density],
         toZigbee: [lumi.toZigbee.lumi_sensitivity, lumi.toZigbee.lumi_selftest],
         exposes: [
-            e.gas(), e.battery_low(), e.tamper(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
+            e.gas(), e.tamper(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             e.numeric('gas_density', ea.STATE), e.enum('selftest', ea.SET, ['']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.powerSource = 'Battery';
-            device.type = 'EndDevice';
+            device.powerSource = 'Mains (single phase)';
+            device.type = 'Router';
             device.save();
         },
     },
