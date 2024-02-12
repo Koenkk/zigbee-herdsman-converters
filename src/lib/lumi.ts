@@ -207,7 +207,8 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             }
             break;
         case '4':
-            if (['WS-USC01', 'WS-USC02', 'WS-EUK01', 'WS-EUK02', 'QBKG29LM', 'QBKG25LM', 'QBKG38LM', 'QBKG39LM'].includes(model.model)) {
+            if (['WS-USC01', 'WS-USC02', 'WS-EUK01', 'WS-EUK02', 'QBKG27LM', 'QBKG28LM', 'QBKG29LM',
+                'QBKG25LM', 'QBKG38LM', 'QBKG39LM'].includes(model.model)) {
                 payload.mode_switch = getFromLookup(value, {4: 'anti_flicker_mode', 1: 'quick_mode'});
             }
             break;
@@ -2832,8 +2833,8 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG17LM', 'QBKG18LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
-                'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM',
+                'QBKG27LM', 'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01',
+                'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM',
                 'ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
                 await entity.write('manuSpecificLumi', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
@@ -2850,8 +2851,8 @@ export const toZigbee = {
         convertGet: async (entity, key, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG17LM', 'QBKG18LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
-                'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM',
+                'QBKG27LM', 'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01',
+                'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'SP-EUC01', 'ZNQBKG24LM', 'ZNQBKG25LM',
                 'ZNQBKG38LM', 'ZNQBKG39LM', 'ZNQBKG40LM', 'ZNQBKG41LM'].includes(meta.mapped.model)) {
                 await entity.read('manuSpecificLumi', [0x0203], manufacturerOptions.lumi);
             } else {
@@ -3409,10 +3410,10 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG17LM', 'QBKG18LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM',
-                'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM',
-                'ZNLDP13LM', 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
-                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG17LM', 'QBKG18LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG27LM',
+                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM',
+                'ZNDDMK11LM', 'ZNLDP13LM', 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM',
+                'SSWQD03LM', 'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
             ].includes(meta.mapped.model)) {
                 await entity.write('manuSpecificLumi', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.lumi);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'LLKZMK11LM'].includes(meta.mapped.model)) {
@@ -3442,10 +3443,10 @@ export const toZigbee = {
         convertGet: async (entity, key, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG17LM', 'QBKG18LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM',
-                'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM',
-                'ZNLDP13LM', 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM', 'SSWQD03LM',
-                'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG17LM', 'QBKG18LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG27LM',
+                'QBKG28LM', 'QBKG29LM', 'QBKG30LM', 'QBKG31LM', 'QBKG32LM', 'QBKG33LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM',
+                'ZNDDMK11LM', 'ZNLDP13LM', 'ZNQBKG31LM', 'WS-USC02', 'WS-USC03', 'WS-USC04', 'ZNQBKG24LM', 'ZNQBKG25LM', 'JWDL001A', 'SSWQD02LM',
+                'SSWQD03LM', 'XDD11LM', 'XDD12LM', 'XDD13LM', 'ZNLDP12LM', 'ZNLDP13LM', 'ZNXDD01LM', 'WS-USC01',
             ].includes(meta.mapped.model)) {
                 await entity.read('manuSpecificLumi', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM', 'ZNCZ12LM'].includes(meta.mapped.model)) {

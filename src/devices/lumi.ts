@@ -502,10 +502,34 @@ const definitions: Definition[] = [
         extend: [lumiZigbeeOTA()],
     },
     {
+        zigbeeModel: ['lumi.switch.l1acn1'],
+        model: 'QBKG27LM',
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1 (no neutral, single rocker)',
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_action_multistate],
+        toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
+            lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_flip_indicator_light],
+        exposes: [e.switch(), e.device_temperature(), e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
+            e.action(['single', 'double']),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode'),
+            e.power_outage_count(),
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+                .withDescription(
+                    'Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Quick mode makes the device respond faster.'),
+        ],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
+        },
+        extend: [lumiZigbeeOTA()],
+    },
+    {
         zigbeeModel: ['lumi.switch.l2acn1'],
         model: 'QBKG28LM',
         vendor: 'Aqara',
-        description: 'Smart wall switch H1 Pro (no neutral, double rocker)',
+        description: 'Smart wall switch H1 (no neutral, double rocker)',
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
             lumi.toZigbee.lumi_flip_indicator_light, lumi.toZigbee.lumi_led_disabled_night],
@@ -519,12 +543,55 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button').withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
-            e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night()],
+            e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night(),
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+                .withDescription(
+                    'Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Quick mode makes the device respond faster.'),
+        ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
         extend: [lumiZigbeeOTA()],
+    },
+    {
+        zigbeeModel: ['lumi.switch.l3acn1'],
+        model: 'QBKG29LM',
+        vendor: 'Aqara',
+        description: 'Smart wall switch H1 (no neutral, triple rocker)',
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
+        toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
+            lumi.toZigbee.lumi_flip_indicator_light, lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_switch_mode_switch],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => ({left: 1, center: 2, right: 3}),
+        exposes: [
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
+            e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night(), e.power_outage_count(),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for left button')
+                .withEndpoint('left'),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for center button')
+                .withEndpoint('center'),
+            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for right button')
+                .withEndpoint('right'),
+            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+                .withDescription(
+                    'Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Quick mode makes the device respond faster.'),
+            e.device_temperature().withAccess(ea.STATE),
+            e.action([
+                'single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
+                'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
+                'single_center_right', 'double_center_right', 'single_all', 'double_all',
+            ]),
+        ],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
+        },
     },
     {
         zigbeeModel: ['lumi.switch.n1acn1'],
@@ -643,44 +710,6 @@ const definitions: Definition[] = [
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both'])],
-        onEvent: preventReset,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
-        },
-    },
-    {
-        zigbeeModel: ['lumi.switch.l3acn1'],
-        model: 'QBKG29LM',
-        vendor: 'Aqara',
-        description: 'Smart wall switch H1 (no neutral, triple rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
-        toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_flip_indicator_light, lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_switch_mode_switch],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => ({left: 1, center: 2, right: 3}),
-        exposes: [
-            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night(), e.power_outage_count(),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for left button')
-                .withEndpoint('left'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for center button')
-                .withEndpoint('center'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button')
-                .withEndpoint('right'),
-            e.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
-                .withDescription(
-                    'Anti flicker mode can be used to solve blinking issues of some lights.' +
-                    'Quick mode makes the device respond faster.'),
-            e.device_temperature().withAccess(ea.STATE),
-            e.action([
-                'single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
-                'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
-                'single_center_right', 'double_center_right', 'single_all', 'double_all',
-            ]),
-        ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
