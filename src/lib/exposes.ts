@@ -617,6 +617,7 @@ export const options = {
     measurement_poll_interval: (extraNote='') => new Numeric(`measurement_poll_interval`, access.SET).withValueMin(-1).withDescription(`This device does not support reporting electric measurements so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.${extraNote}`),
     illuminance_below_threshold_check: () => new Binary(`illuminance_below_threshold_check`, access.SET, true, false).withDescription(`Set to false to also send messages when illuminance is above threshold in night mode (default true).`),
     state_action: () => new Binary(`state_action`, access.SET, true, false).withDescription(`State actions will also be published as 'action' when true (default false).`),
+    identify_timeout: () => new Numeric('identify_timeout', access.SET).withDescription('Sets duration of identification procedure in seconds (i.e., how long device would flash). Value ranges from 1 to 30 seconds (default 3).').withValueMin(1).withValueMax(30),
 };
 
 export const presets = {
@@ -800,6 +801,7 @@ export const presets = {
         .withFeature(new Enum('level', access.SET, ['low', 'medium', 'high', 'very_high']).withDescription('Sound level'))
         .withFeature(new Binary('strobe', access.SET, true, false).withDescription('Turn on/off the strobe (light) for Squawk')),
     identify_duration: () => new Numeric('identify', access.SET).withValueMin(0).withValueMax(30).withUnit('seconds').withDescription('Duration of flashing').withCategory('config'),
+    identify: () => new Enum('identify', access.SET, ['identify']).withDescription('Ititiate device identification').withCategory('diagnostic'),
 };
 
 exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
