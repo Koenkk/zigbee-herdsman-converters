@@ -231,8 +231,18 @@ const converters2 = {
     } satisfies Tz.Converter,
     identify: {
         key: ['identify'],
+        options: [exposes.options.identify_timeout()],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('genIdentify', 'identify', {identifytime: value}, utils.getOptions(meta.mapped, entity));
+            // External value takes prioroty over options for comapatability
+            let identify_timeout = value;
+            if (typeof identify_timeout !== 'number') {
+                if (typeof meta.options.identify_timeout == 'number') {
+                    identify_timeout = meta.options.identify_timeout
+                } else {
+                    identify_timeout = 3;
+                }
+            }
+            await entity.command('genIdentify', 'identify', {identifytime: identify_timeout}, utils.getOptions(meta.mapped, entity));
         },
     } satisfies Tz.Converter,
     arm_mode: {
