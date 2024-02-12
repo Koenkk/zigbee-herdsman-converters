@@ -8,14 +8,59 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {onOff, light, electricityMeter, identify} from '../lib/modernExtend';
+import {onOff, light, electricityMeter, identify, enumLookup} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const exposesLocal = {
-    indicator_mode: e.enum('indicator_mode', ea.ALL, ['consistent_with_load', 'reverse_with_load', 'always_off', 'always_on'])
-        .withDescription('Led Indicator Mode'),
-};
+function indicatorMode(endpoint?: string) {
+    let description = 'Set Indicator Mode.';
+    if (endpoint) {
+        description = 'Set Indicator Mode for ' + endpoint + ' Button.';
+    }
+    return enumLookup({
+        name: 'indicator_mode',
+        lookup: {
+            'reverse_with_load': 2,
+            'consistent_with_load': 0,
+            'always_off': 3,
+            'always_on': 1,
+        },
+        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
+        attribute: {ID: 0x0000, type: 0x30},
+        description: description,
+        endpoint: endpoint,
+    });
+}
+
+function switchActions(endpoint?: string) {
+    let description = 'Set Switch Action.';
+    if (endpoint) {
+        description = 'Set Switch Action for ' + endpoint + ' Button.';
+    }
+    return enumLookup({
+        name: 'switch_actions',
+        lookup: {
+            'light': 0,
+            'light_opposite': 254,
+            'dimmer': 1,
+            'dimmer_opposite': 253,
+            'standard_shutter': 2,
+            'standard_shutter_opposite': 252,
+            'schneider_shutter': 3,
+            'schneider_shutter_opposite': 251,
+            'scene': 4,
+            'toggle_light': 5,
+            'toggle_dimmer': 6,
+            'alternate_light': 7,
+            'alternate_dimmer': 8,
+            'not_used': 127,
+        },
+        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
+        attribute: 'SwitchActions',
+        description: description,
+        endpoint: endpoint,
+    });
+}
 
 const tzLocal = {
     lift_duration: {
@@ -23,23 +68,6 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             await entity.write(0x0102, {0xe000: {value, type: 0x21}}, {manufacturerCode: 0x105e});
             return {state: {lift_duration: value}};
-        },
-    } satisfies Tz.Converter,
-    indicator_mode: {
-        key: ['indicator_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertEndpoint(entity);
-            utils.assertString(value);
-            const endpoint = entity.getDevice().getEndpoint(21);
-            const lookup: KeyValue = {'reverse_with_load': 2, 'consistent_with_load': 0, 'always_off': 3, 'always_on': 1};
-            utils.validateValue(value, Object.keys(lookup));
-            await endpoint.write(0xFF17, {0x0000: {value: lookup[value], type: 0x30}}, {manufacturerCode: 0x105e});
-            return {state: {indicator_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            utils.assertEndpoint(entity);
-            const endpoint = entity.getDevice().getEndpoint(21);
-            await endpoint.read(0xFF17, [0x0000], {manufacturerCode: 0x105e});
         },
     } satisfies Tz.Converter,
     fan_mode: {
@@ -202,18 +230,6 @@ const fzLocal = {
             }
 
             return ret;
-        },
-    } satisfies Fz.Converter,
-    indicator_mode: {
-        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const lookup: KeyValue = {0: 'consistent_with_load', 1: 'always_on', 2: 'reverse_with_load', 3: 'always_off'};
-            if ('indicator_mode' in msg.data) {
-                result.indicator_mode = lookup[msg.data['indicator_mode']];
-            }
-            return result;
         },
     } satisfies Fz.Converter,
 };
@@ -427,14 +443,14 @@ const definitions: Definition[] = [
         model: '41EPBDWCLMZ/354PBDMBTZ',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series Module Dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration, fzLocal.indicator_mode],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.indicator_mode],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
         exposes: [e.light_brightness(),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the maximum light output of the ballast'),
-            exposesLocal.indicator_mode],
+                .withDescription('Specifies the maximum light output of the ballast')],
+        extend: [indicatorMode()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
@@ -448,11 +464,7 @@ const definitions: Definition[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 2A',
         ota: ota.zigbeeOTA,
-        extend: extend.switch( {
-            exposes: [exposesLocal.indicator_mode],
-            fromZigbee: [fzLocal.indicator_mode],
-            toZigbee: [tzLocal.indicator_mode],
-        }),
+        extend: [indicatorMode()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -464,11 +476,7 @@ const definitions: Definition[] = [
         model: '41E10PBSWMZ-VW',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 10A with ControlLink',
-        extend: extend.switch({
-            exposes: [exposesLocal.indicator_mode],
-            fromZigbee: [fzLocal.indicator_mode],
-            toZigbee: [tzLocal.indicator_mode],
-        }),
+        extend: [indicatorMode()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -591,11 +599,38 @@ const definitions: Definition[] = [
                 .withDescription('Specifies the maximum light output of the ballast'),
             e.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
                 .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
+        extend: [indicatorMode(), switchActions()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['2GANG/DIMMER/1'],
+        model: 'MEG5126-0300/MEG5171-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (2fold)',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        exposes: [e.light_brightness().withLevelConfig(),
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
+            e.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
+                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
+        extend: [indicatorMode('right'), indicatorMode('left'), switchActions('right'), switchActions('left')],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+        endpoint: (device) => {
+            return {'3': 3, 'right': 21, 'left': 22};
         },
     },
     {
