@@ -969,7 +969,7 @@ const VZM36_ATTRIBUTES : {[s: string]: Attribute} = {
             'The state the light should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.',
     },
     // power type is readonly
-    nonNeutralOutput_1: {...COMMON_ATTRIBUTES.nonNeutralOutput},
+    nonNeutralOutput_1: {...COMMON_ATTRIBUTES.powerType},
     // internal temp readonly
     // overheat readonly
     dimmingMode_1: {...COMMON_ATTRIBUTES.dimmingMode},
