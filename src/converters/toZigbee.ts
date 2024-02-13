@@ -233,7 +233,7 @@ const converters2 = {
         key: ['identify'],
         options: [exposes.options.identify_timeout()],
         convertSet: async (entity, key, value, meta) => {
-            // External value takes prioroty over options for comapatability
+            // External value takes priority over options for compatibility
             let identifyTimeout = value;
             if (typeof identifyTimeout !== 'number') {
                 if (typeof meta.options.identify_timeout == 'number') {
