@@ -2142,6 +2142,7 @@ const definitions: Definition[] = [
         fromZigbee: [
             fzLocal.fan_state,
             fzLocal.fan_mode,
+            fzLocal.breeze_mode,
             fzLocal.inovelli(VZM35_ATTRIBUTES),
         ],
         toZigbee: [
@@ -2151,6 +2152,7 @@ const definitions: Definition[] = [
             tzLocal.inovelli_individual_led_effect,
             tzLocal.inovelli_parameters(VZM35_ATTRIBUTES),
             tzLocal.inovelli_parameters_readOnly(VZM35_ATTRIBUTES),
+            tzLocal.breezeMode,
         ],
         exposes: exposesListVZM35,
         ota: ota.inovelli,
