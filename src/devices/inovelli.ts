@@ -888,6 +888,60 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
         values: {'Limitless (like VZM31)': 0, 'Adaptive LED': 10},
         description: 'Level display of the LED Strip',
     },
+    singleTapBehavior: {
+        ID: 120,
+        dataType: UINT8,
+        displayType: 'enum',
+        values: {'Old Behavior': 0, 'New Behavior': 1},
+        description: 'Behavior of single tapping the on or off button. Old behavior turns the switch on or off. ' +
+        'New behavior cycles through the levels set by P131-133.',
+    },
+    fanControlMode: {
+        ID: 130,
+        dataType: UINT8,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Multi Tap': 1, 'Cycle': 2},
+        description: 'Which mode to use when binding EP3 to a fan module.',
+    },
+    lowLevelForFanControlMode: {
+        ID: 131,
+        dataType: UINT8,
+        min: 2,
+        max: 254,
+        description: 'Level to send to device bound to EP3 when set to low.',
+    },
+    mediumLevelForFanControlMode: {
+        ID: 132,
+        dataType: UINT8,
+        min: 2,
+        max: 254,
+        description: 'Level to send to device bound to EP3 when set to medium.',
+    },
+    highLevelForFanControlMode: {
+        ID: 133,
+        dataType: UINT8,
+        min: 2,
+        max: 254,
+        description: 'Level to send to device bound to EP3 when set to high.',
+    },
+    ledColorForFanControlMode: {
+        ID: 134,
+        dataType: UINT8,
+        min: 0,
+        max: 255,
+        values: {
+            Red: 0,
+            Orange: 21,
+            Yellow: 42,
+            Green: 85,
+            Cyan: 127,
+            Blue: 170,
+            Violet: 212,
+            Pink: 234,
+            White: 255,
+        },
+        description: 'LED color used to display fan control mode.',
+    },
 };
 
 const VZM36_ATTRIBUTES : {[s: string]: Attribute} = {
