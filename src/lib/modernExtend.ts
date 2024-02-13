@@ -93,6 +93,7 @@ export function setupConfigureForReporting(
 export function identify(): ModernExtend {
     return {
         toZigbee: [tz.identify],
+        exposes: [e.identify()],
         isModernExtend: true,
     };
 }

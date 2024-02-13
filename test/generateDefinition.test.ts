@@ -36,7 +36,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'})],
             toZigbee: ['temperature', 'identify'],
-            exposes: ['linkquality', 'temperature'],
+            exposes: ['identify','linkquality', 'temperature'],
             bind: {1: ['msTemperatureMeasurement']},
             read: {1: [['msTemperatureMeasurement', ['measuredValue']]]},
             configureReporting: {
