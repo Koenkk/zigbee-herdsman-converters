@@ -302,11 +302,11 @@ const definitions: Definition[] = [
             legacy.tz.moesS_thermostat_system_mode],
         exposes: [
             e.battery(), e.child_lock(), e.eco_mode(),
-            e.eco_temperature().withValueMin(5), e.max_temperature().withValueMax(45), e.min_temperature().withValueMin(5),
+            e.eco_temperature().withValueMin(5), e.max_temperature().withValueMax(45), e.min_temperature().withValueMin(0),
             e.valve_state(), e.position(), e.window_detection(),
             e.binary('window', ea.STATE, 'OPEN', 'CLOSED').withDescription('Window status closed or open '),
             e.climate()
-                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 35, 1, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withSystemMode(['heat'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
@@ -326,8 +326,8 @@ const definitions: Definition[] = [
             e.numeric('boost_heating_countdown', ea.STATE).withUnit('min').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(15),
             e.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('s')
-                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100)
-                .withValueMax(900).withValueStep(100)],
+                .withDescription('Boost Time Setting 0 sec - 900 sec, (default = 300 sec)').withValueMin(0)
+                .withValueMax(900).withValueStep(1)],
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
