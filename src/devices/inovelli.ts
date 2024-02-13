@@ -364,6 +364,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 3,
         description: 'Set the switch configuration.',
     },
+    quickStartFan: {
+        ID: 23,
+        dataType: UINT8,
+        min: 0,
+        max: 60,
+        description:
+        "Duration of full power output while fan tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s",
+    },
     higherOutputInNonNeutral: {
         ID: 25,
         dataType: BOOLEAN,
@@ -390,6 +398,22 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 1,
         readOnly: true,
         description: 'Indicates if the internal chipset is currently in an overheated state.',
+    },
+    quickStartLightTime: {
+        ID: 34,
+        dataType: UINT8,
+        min: 0,
+        max: 60,
+        description:
+        "Duration of full power output while lamp tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s",
+    },
+    quickStartLightLevel: {
+        ID: 35,
+        dataType: UINT8,
+        min: 1,
+        max: 254,
+        description:
+        "Level of power output during Quick Start Light time (P34).",
     },
     buttonDelay: {
         ID: 50,
@@ -968,12 +992,7 @@ const VZM36_ATTRIBUTES : {[s: string]: Attribute} = {
         description:
             'The state the light should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.',
     },
-    // power type is readonly
-    nonNeutralOutput_1: {...COMMON_ATTRIBUTES.powerType},
-    // internal temp readonly
-    // overheat readonly
-    dimmingMode_1: {...COMMON_ATTRIBUTES.dimmingMode},
-    // These likely wont work, not in cluster definition
+    higherOutputInNonNeutral_1: {...COMMON_ATTRIBUTES.higherOutputInNonNeutral},
     quickStartLightTime_1: {...COMMON_ATTRIBUTES.quickStartLightTime},
     quickStartLightLevel_1: {...COMMON_ATTRIBUTES.quickStartLightLevel},
     smartBulbMode_1: {...COMMON_ATTRIBUTES.smartBulbMode},
