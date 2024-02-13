@@ -2246,7 +2246,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['VZM36'],
         model: 'VZM36',
         vendor: 'Inovelli',
-        description: 'Fan Canopy Module',
+        description: 'Fan canopy module',
         fromZigbee: [
             fz.identify,
             fzLocal.brightness,
