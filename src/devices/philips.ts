@@ -895,7 +895,7 @@ const definitions: Definition[] = [
         extend: [philipsLight()],
     },
     {
-        zigbeeModel: ['LWB006', 'LWB014'],
+        zigbeeModel: ['LWB006', 'LWB014', 'LWB019'],
         model: '9290011370',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27/B22',
