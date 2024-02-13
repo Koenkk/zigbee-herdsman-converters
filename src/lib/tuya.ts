@@ -428,11 +428,12 @@ export class Bitmap extends Base {
 
 type LookupMap = {[s: (string)]: number | boolean | Enum | string};
 export const valueConverterBasic = {
-    lookup: (map: LookupMap | ((options: KeyValue) => LookupMap), fallbackValue?: number | boolean | KeyValue | string | null) => {
+    lookup: (map: LookupMap | ((options: KeyValue, device: Zh.Device) => LookupMap),
+        fallbackValue?: number | boolean | KeyValue | string | null) => {
         return {
-            to: (v: string, meta: Tz.Meta) => utils.getFromLookup(v, map instanceof Function ? map(meta.options) : map),
+            to: (v: string, meta: Tz.Meta) => utils.getFromLookup(v, map instanceof Function ? map(meta.options, meta.device) : map),
             from: (v: number, _meta: Fz.Meta, options: KeyValue) => {
-                const m = map instanceof Function ? map(options) : map;
+                const m = map instanceof Function ? map(options, _meta.device) : map;
                 const value = Object.entries(m).find((i) => i[1].valueOf() === v);
                 if (!value) {
                     if (fallbackValue !== undefined) return fallbackValue;

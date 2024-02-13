@@ -4586,7 +4586,14 @@ const definitions: Definition[] = [
                 [1, 'system_mode', tuya.valueConverterBasic.lookup({'heat': true, 'off': false})],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [3, 'local_temperature', tuya.valueConverter.divideBy10],
-                [4, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(1), 'manual': tuya.enum(0), 'temporary_manual': tuya.enum(2)})],
+                [4, 'preset', tuya.valueConverterBasic.lookup((_, device) => {
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/21353#issuecomment-1938328429
+                    if (device.manufacturerName === '_TZE200_viy9ihs7') {
+                        return {'auto': tuya.enum(1), 'manual': tuya.enum(0), 'temporary_manual': tuya.enum(2)};
+                    } else {
+                        return {'manual': tuya.enum(0), 'auto': tuya.enum(1), 'temporary_manual': tuya.enum(2)};
+                    }
+                })],
                 [9, 'child_lock', tuya.valueConverter.lockUnlock],
                 [11, 'faultalarm', tuya.valueConverter.raw],
                 [15, 'max_temperature_limit', tuya.valueConverter.divideBy10],
