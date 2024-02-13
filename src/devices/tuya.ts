@@ -2553,7 +2553,7 @@ const definitions: Definition[] = [
         description: '1 gang switch module',
         whiteLabel: [
             {vendor: 'OXT', model: 'SWTZ21'},
-            {vendor: 'MOES', model: 'ZM-104-M'},
+            {vendor: 'Moes', model: 'ZM-104-M'},
             tuya.whitelabel('AVATTO', 'ZWSM16-1-Zigbee', '1 gang switch module', ['_TZ3000_4rbqgcuv']),
         ],
         extend: tuya.extend.switch({switchType: true}),
@@ -2570,7 +2570,7 @@ const definitions: Definition[] = [
         description: '2 gang switch module',
         whiteLabel: [
             {vendor: 'OXT', model: 'SWTZ22'},
-            {vendor: 'MOES', model: 'ZM-104B-M'},
+            {vendor: 'Moes', model: 'ZM-104B-M'},
             tuya.whitelabel('pcblab.io', 'RR620ZB', '2 gang Zigbee switch module', ['_TZ3000_4xfqlgqo']),
             tuya.whitelabel('Nous', 'L13Z', '2 gang switch', ['_TZ3000_ruxexjfz']),
         ],
