@@ -7398,6 +7398,31 @@ const definitions: Definition[] = [
         },
     },
     {
+    fingerprint: [
+        {   modelID: 'TS0601',
+            manufacturerName: '_TZE204_5cuocqty',
+        },
+    ],
+    model: 'TS0601_new',
+    vendor: 'TuYa',
+    description: 'Zigbee Dimmer 1ch',
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [tuya.tz.datapoints],
+    configure: tuya.configureMagicPacket,
+    exposes: [tuya.exposes.lightBrightnessWithMinMax(), tuya.exposes.lightType(),
+        e.power_on_behavior().withAccess(ea.STATE_SET)],
+    meta: {
+        tuyaDatapoints: [
+            [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+            [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
+            [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
+            [4, 'light_type', tuya.valueConverter.lightType],
+            [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
+            [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
+        ],
+    },
+};
+    {
         fingerprint: tuya.fingerprint('TS0004', ['_TZ3000_5ajpkyq6']),
         model: 'TS0004_switch_module_2',
         vendor: 'TuYa',
@@ -7416,6 +7441,7 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('AVATTO', 'ZWSM16-4-Zigbee', '4 gang switch module', ['_TZ3000_5ajpkyq6']),
+    
         ],
     },
 ];
