@@ -370,7 +370,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 60,
         description:
-        "Duration of full power output while fan tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s",
+        'Duration of full power output while fan tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
     },
     higherOutputInNonNeutral: {
         ID: 25,
@@ -405,7 +405,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 60,
         description:
-        "Duration of full power output while lamp tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s",
+        'Duration of full power output while lamp tranisitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s',
     },
     quickStartLightLevel: {
         ID: 35,
@@ -413,7 +413,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 1,
         max: 254,
         description:
-        "Level of power output during Quick Start Light time (P34).",
+        'Level of power output during Quick Start Light time (P34).',
     },
     buttonDelay: {
         ID: 50,
