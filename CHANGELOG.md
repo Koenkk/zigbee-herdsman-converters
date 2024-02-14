@@ -1,5 +1,14 @@
 # Changelog
 
+## [18.33.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.33.0...v18.33.1) (2024-02-14)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_rgpqqmbj`, `_TZ3000_8nyaanzb`, `_TZ3000_iy2c3n6p` as Rylike RY-WS02Z https://github.com/Koenkk/zigbee2mqtt/issues/20032 ([d8f8bb3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d8f8bb3084f19ef21207d3677bf3f0da5286f4f9))
+* **detect:** Detect `_TZB210_zmppwawa` as MiBoxer FUTC11ZR https://github.com/Koenkk/zigbee2mqtt/issues/21382 ([e743bcc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e743bccd478bc9faf6f2d484f159c4a9b8909ca1))
+* Fix `Cannot read properties of undefined (reading '1')` error for various Develco plugs https://github.com/Koenkk/zigbee2mqtt/issues/21317 ([f8aa2b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f8aa2b75d6add076934750affb34ce93a42aa02c))
+
 ## [18.33.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.32.0...v18.33.0) (2024-02-13)
 
 
