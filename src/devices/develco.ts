@@ -95,7 +95,7 @@ const develco = {
         metering: {
             ...fz.metering,
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.instantaneousDemand !== -0x800000 && msg.data.currentSummDelivered[1] !== 0) {
+                if (msg.data.instantaneousDemand !== -0x800000 && msg.data.currentSummDelivered?.[1] !== 0) {
                     return fz.metering.convert(model, msg, publish, options, meta);
                 }
             },
