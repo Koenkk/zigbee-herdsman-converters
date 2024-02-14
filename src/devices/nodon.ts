@@ -163,7 +163,7 @@ const definitions: Definition[] = [
             await reporting.humidity(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-    }
+    },
 ];
 
 export default definitions;
