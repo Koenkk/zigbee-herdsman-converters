@@ -4,7 +4,7 @@ import * as tuya from '../lib/tuya';
 
 const definitions: Definition[] = [
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_8nyaanzb', '_TZ3000_dd8wwzcy', '_TZ3000_rgpqqmbj', '_TZ3000_iy2c3n6p']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_dd8wwzcy']),
         model: 'MG-AUZG01',
         vendor: 'MakeGood',
         description: 'Double Zigbee power point',
