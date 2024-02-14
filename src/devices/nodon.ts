@@ -147,6 +147,23 @@ const definitions: Definition[] = [
             await reporting.currentSummDelivered(ep);
         },
     },
+    {
+        zigbeeModel: ['STPH-4-1-00'],
+        model: 'STPH-4-1-20',
+        vendor: 'NodOn',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await reporting.humidity(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+    }
 ];
 
 export default definitions;
