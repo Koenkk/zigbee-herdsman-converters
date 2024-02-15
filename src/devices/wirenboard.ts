@@ -8,6 +8,8 @@ import {Definition, Fz, KeyValueAny, Tz} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
+import * as modernExtend from '../lib/modernExtend';
+const {forcePowerSource} = modernExtend;
 
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -267,6 +269,23 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+const sprutModernExtend = {
+    sprutActivityIndicator: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'activity_indicator',
+        cluster: 'genBinaryOutput',
+        endpoint: 'l4',
+        attribute: {ID: 0x0055, type: 0x10},
+        valueOn: ['ON', 1],
+        valueOff: ['OFF', 0],
+        description: 'Controls green activity LED.',
+        access: 'ALL',
+        zigbeeCommandOptions: manufacturerOptions,
+        ...args,
+    }),
+};
+
+const {sprutActivityIndicator} = sprutModernExtend;
+
 const definitions: Definition[] = [
     {
         zigbeeModel: ['WBMSW3'],
@@ -342,10 +361,10 @@ const definitions: Definition[] = [
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout,
-            fzLocal.th_heater, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level, fzLocal.activity_indicator],
+            fzLocal.th_heater, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level],
         toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout,
             tzLocal.th_heater, tzLocal.temperature_offset, tzLocal.occupancy_sensitivity, tzLocal.noise_detect_level,
-            tzLocal.activity_indicator],
+        ],
         exposes: [e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity(), e.occupancy(), e.occupancy_level(), e.co2(),
             e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.switch().withEndpoint('l3'),
@@ -360,8 +379,15 @@ const definitions: Definition[] = [
                     'otherwise increase it (default: 50)'),
             e.numeric('noise_detect_level', ea.ALL).withValueMin(0).withValueMax(150).withUnit('dBA').withCategory('config')
                 .withDescription('The minimum noise level at which the detector will work (default: 50)'),
-            e.binary('activity_indicator', ea.ALL, 'ON', 'OFF').withProperty('activity_indicator').withEndpoint('l4')
-                .withDescription('Controls green activity LED.').withCategory('config'),
+        ],
+        meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
+        endpoint: (device) => {
+            return {'l1': 2, 'l2': 3, 'l3': 4, 'l4': 5};
+        },
+        ota: ota.zigbeeOTA,
+        extend: [
+            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            sprutActivityIndicator(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -401,14 +427,12 @@ const definitions: Definition[] = [
             // disable internal blinking zigbee state green led on start
             // await device.getEndpoint(5).write('genBinaryOutput', {0x0055: {value: 0x00, type: 0x10}});
 
-            device.powerSource = 'Mains (single phase)';
+            // device.powerSource = 'Mains (single phase)';
             device.save();
         },
-        endpoint: (device) => {
-            return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4, 'l4': 5};
-        },
-        meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
-        ota: ota.zigbeeOTA,
+        // endpoint: (device) => {
+        //     return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4, 'l4': 5};
+        // },
     },
 ];
 
