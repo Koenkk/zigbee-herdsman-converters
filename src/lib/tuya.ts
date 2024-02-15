@@ -365,7 +365,11 @@ export const skip = {
     // Prevent state from being published when already ON and brightness is also published.
     // This prevents 100% -> X% brightness jumps when the switch is already on
     // https://github.com/Koenkk/zigbee2mqtt/issues/13800#issuecomment-1263592783
-    stateOnAndBrightnessPresent: (meta: Tz.Meta) => meta.message.hasOwnProperty('brightness') && meta.state.state === 'ON',
+    stateOnAndBrightnessPresent: (meta: Tz.Meta) => {
+        if (Array.isArray(meta.mapped)) throw new Error('Not supported');
+        const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name ? `state_${meta.endpoint_name}` : 'state';
+        return meta.message.hasOwnProperty('brightness') && meta.state[convertedKey] === meta.message.state;
+    },
 };
 
 export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => {
@@ -449,6 +453,9 @@ export const valueConverterBasic = {
     },
     divideBy: (value: number) => {
         return {to: (v: number) => v * value, from: (v: number) => v / value};
+    },
+    divideByFromOnly: (value: number) => {
+        return {to: (v: number) => v, from: (v: number) => v / value};
     },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
@@ -565,6 +572,7 @@ export const valueConverter = {
     batteryState: valueConverterBasic.lookup({'low': 0, 'medium': 1, 'high': 2}),
     divideBy10: valueConverterBasic.divideBy(10),
     divideBy1000: valueConverterBasic.divideBy(1000),
+    divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
     switchMode: valueConverterBasic.lookup({'switch': new Enum(0), 'scene': new Enum(1)}),
     lightMode: valueConverterBasic.lookup({'normal': new Enum(0), 'on': new Enum(1), 'off': new Enum(2), 'flash': new Enum(3)}),
     raw: valueConverterBasic.raw(),
@@ -1122,6 +1130,9 @@ const tuyaTz = {
             'illuminance_treshold_max', 'illuminance_treshold_min', 'presence_illuminance_switch', 'light_switch', 'light_linkage',
             'indicator_light', 'find_switch', 'detection_method', 'sensor', 'hysteresis', 'max_temperature_protection', 'display_brightness',
             'screen_orientation', 'regulator_period', 'regulator_set_point', 'upper_stroke_limit', 'middle_stroke_limit', 'lower_stroke_limit',
+            'buzzer_feedback', 'rf_pairing', 'max_temperature_alarm', 'min_temperature_alarm', 'max_humidity_alarm', 'min_humidity_alarm',
+            'temperature_periodic_report', 'humidity_periodic_report', 'temperature_sensitivity', 'humidity_sensitivity', 'temperature_alarm',
+            'humidity_alarm', 'move_sensitivity', 'radar_range', 'presence_timeout',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
@@ -1176,6 +1187,16 @@ const tuyaTz = {
 export {tuyaTz as tz};
 
 const tuyaFz = {
+    brightness: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('61440')) {
+                const property = utils.postfixWithEndpointName('brightness', msg, model, meta);
+                return {[property]: msg.data['61440']};
+            }
+        },
+    } satisfies Fz.Converter,
     gateway_connection_status: {
         cluster: 'manuSpecificTuya',
         type: ['commandMcuGatewayConnectionStatus'],
@@ -1671,17 +1692,34 @@ const tuyaModernExtend = {
         return tuyaModernExtend.dpEnumLookup({name: 'power_on_behavior', lookup: lookup, type: dataTypes.enum,
             expose: e.power_on_behavior(Object.keys(lookup)).withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
     },
-    tuyaLight: (args?: modernExtend.LightArgs & {minBrightness?: boolean}) => {
-        args = {minBrightness: false, powerOnBehavior: false, ...args};
-        const result = modernExtend.light(args);
+    tuyaLight: (args?: modernExtend.LightArgs & {minBrightness?: boolean, switchType?: boolean}) => {
+        args = {minBrightness: false, powerOnBehavior: false, switchType: false, ...args};
+        const result = modernExtend.light({...args, powerOnBehavior: false});
 
+        result.fromZigbee.push(tuyaFz.brightness);
         result.toZigbee.push(tuyaTz.do_not_disturb);
         result.exposes.push(tuyaExposes.doNotDisturb());
+
+        if (args.powerOnBehavior) {
+            result.fromZigbee.push(tuyaFz.power_on_behavior_2);
+            result.toZigbee.push(tuyaTz.power_on_behavior_2);
+            if (args.endpoints) {
+                result.exposes.push(...Object.keys(args.endpoints).map((ee) => e.power_on_behavior().withEndpoint(ee)));
+            } else {
+                result.exposes.push(e.power_on_behavior());
+            }
+        }
+
+        if (args.switchType) {
+            result.fromZigbee.push(tuyaFz.switch_type);
+            result.toZigbee.push(tuyaTz.switch_type);
+            result.exposes.push(tuyaExposes.switchType());
+        }
 
         if (args.minBrightness) {
             result.fromZigbee.push(tuyaFz.min_brightness);
             result.toZigbee.push(tuyaTz.min_brightness);
-            // result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness() : e);
+            result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness() : e);
         }
 
         return result;

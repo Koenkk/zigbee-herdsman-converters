@@ -15,7 +15,10 @@ const definitions: Definition[] = [
         model: 'YSR-MINI-01_wwcw',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (WW/CW)',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color(),
+        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true, exposes: []}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 0x10});
+        },
     },
     {
         zigbeeModel: ['ZB-DL01'],

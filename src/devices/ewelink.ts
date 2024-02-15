@@ -90,7 +90,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW02',
         vendor: 'eWeLink',
         description: 'Smart light switch/2 gang relay',
-        extend: [onOff({endpoints: {left: 1, right: 2}})],
+        extend: [onOff({endpoints: {left: 1, right: 2}, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -100,7 +100,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW03',
         vendor: 'eWeLink',
         description: 'Smart light switch - 3 gang',
-        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}})],
+        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -110,7 +110,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW04',
         vendor: 'eWeLink',
         description: 'Smart light switch - 4 gang',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}})],
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -120,7 +120,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW05',
         vendor: 'eWeLink',
         description: 'Smart light switch - 5 gang',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}})],
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },

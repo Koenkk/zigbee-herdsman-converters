@@ -1217,7 +1217,7 @@ const definitions: Definition[] = [
         model: '915005988501',
         vendor: 'Philips',
         description: 'Play gradient light tube large',
-        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
         zigbeeModel: ['LTW011', 'LTB002'],
@@ -3530,6 +3530,13 @@ const definitions: Definition[] = [
         model: '915005914501',
         vendor: 'Philips',
         description: 'Hue Being Pendant aluminum',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ['929003046701'],
+        model: '8719514338487',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Pillar spotlight with Bluetooth (white) + dimmer switch',
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
 ];

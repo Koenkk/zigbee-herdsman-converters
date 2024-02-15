@@ -36,8 +36,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t1blo2bj', '_TZE204_t1blo2bj']),
-        zigbeeModel: ['1blo2bj', 'lrfgpny'],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t1blo2bj', '_TZE204_t1blo2bj', '_TZE204_q76rtoa9']),
+        zigbeeModel: ['1blo2bj', 'lrfgpny', 'q76rtoa9'],
         model: 'NAS-AB02B2',
         vendor: 'Neo',
         description: 'Alarm',

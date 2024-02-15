@@ -3,7 +3,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 import * as utils from '../lib/utils';
 import {light} from '../lib/modernExtend';
@@ -138,7 +137,7 @@ const definitions: Definition[] = [
         model: 'AU-A1VGSZ5E/19',
         vendor: 'Aurora Lighting',
         description: 'AOne 4W smart dimmable Vintage GLS lamp 1900K',
-        extend: extend.light_onoff_brightness({disableEffect: true}),
+        extend: [light({effect: false})],
     },
     {
         zigbeeModel: ['RGBGU10Bulb50AU', 'RGBGU10Bulb50AU2'],

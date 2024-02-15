@@ -5,7 +5,6 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
-import extend from '../lib/extend';
 import {forcePowerSource, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
@@ -86,7 +85,7 @@ const definitions: Definition[] = [
         model: 'LXZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
-        extend: extend.light_onoff_brightness({disablePowerOnBehavior: true}),
+        extend: [light({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FNB56-ZSW03LX2.0', 'LXN-3S27LX1.0'],
@@ -121,13 +120,8 @@ const definitions: Definition[] = [
         model: 'HGZB-04D / HGZB-4D-UK',
         vendor: 'Nue / 3A',
         description: 'Smart dimmer wall switch',
-        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
+        extend: [light({effect: false, configureReporting: true})],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.brightness(device.getEndpoint(1));
-        },
     },
     {
         zigbeeModel: ['FB56+ZSW1HKJ1.7', 'FB56+ZSW1HKJ2.5', 'FB56+ZSW1HKJ2.7'],
@@ -195,7 +189,7 @@ const definitions: Definition[] = [
         model: 'HGZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
-        extend: extend.light_onoff_brightness({disablePowerOnBehavior: true}),
+        extend: [light({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FNB56-ZSW01LX2.0'],

@@ -65,7 +65,7 @@ const individualLedEffects: { [key: string]: number } = {
     clear_effect: 255,
 };
 
-const fanModes: { [key: string]: number } = {low: 2, medium: 85, high: 254, on: 255};
+const fanModes: { [key: string]: number } = {low: 2, medium: 85, high: 254, on: 255, smart: 4};
 
 const UINT8 = 32;
 const BOOLEAN = 16;
@@ -90,6 +90,23 @@ const intToFanMode = (value: number) => {
     });
 
     return selectedMode;
+};
+
+/**
+ * Convert speed string to int needed for breeze mode calculation.
+ * @param speedIn - speed string
+ * @returns low = 1, medium = 2, high = 3, off = 0
+ */
+const speedToInt = (speedIn: string): number => {
+    let rtn = 0;
+
+    switch (speedIn) {
+    case 'low': rtn = 1; break;
+    case 'medium': rtn = 2; break;
+    case 'high': rtn = 3; break;
+    }
+
+    return rtn;
 };
 
 // Create Expose list with Inovelli Parameters definitions
@@ -816,51 +833,106 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
     },
 };
 
-const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
-    ...COMMON_ATTRIBUTES,
-    minimumLevel: {
-        ...COMMON_ATTRIBUTES.minimumLevel,
-        description: '1-84: The level corresponding to the fan is Low, Medium, High. ' +
+const
+    VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
+        ...COMMON_ATTRIBUTES,
+        minimumLevel: {
+            ...COMMON_ATTRIBUTES.minimumLevel,
+            description: '1-84: The level corresponding to the fan is Low, Medium, High. ' +
         '85-170: The level corresponding to the fan is Medium, Medium, High. '+
         '170-254: The level corresponding to the fan is High, High, High ',
-    },
-    maximumLevel: {
-        ...COMMON_ATTRIBUTES.maximumLevel,
-        description: '2-84: The level corresponding to the fan is Low, Medium, High.',
-    },
-    switchType: {
-        ...COMMON_ATTRIBUTES.switchType,
-        values: {'Single Pole': 0, 'Aux Switch': 1},
-        max: 1,
-    },
-    smartBulbMode: {
-        ...COMMON_ATTRIBUTES.smartBulbMode,
-        description: 'Use this mode to synchronize and control other fan switches or controllers.',
-        values: {'Disabled': 0, 'Remote Control Mode': 1},
-    },
-    nonNeutralAuxMediumGear: {
-        ID: 30,
-        dataType: UINT8,
-        min: 42,
-        max: 135,
-        description: 'Identification value in Non-nuetral, medium gear, aux switch',
-    },
-    nonNeutralAuxLowGear: {
-        ID: 31,
-        dataType: UINT8,
-        min: 42,
-        max: 135,
-        description: 'Identification value in Non-nuetral, low gear, aux switch',
-    },
-    fanLedLevelType: {
-        ID: 263,
-        dataType: UINT8,
-        min: 0,
-        max: 10,
-        values: {'Limitless (like VZM31)': 0, 'Adaptive LED': 10},
-        description: 'Level display of the LED Strip',
-    },
-};
+        },
+        maximumLevel: {
+            ...COMMON_ATTRIBUTES.maximumLevel,
+            description: '2-84: The level corresponding to the fan is Low, Medium, High.',
+        },
+        switchType: {
+            ...COMMON_ATTRIBUTES.switchType,
+            values: {'Single Pole': 0, 'Aux Switch': 1},
+            max: 1,
+        },
+        smartBulbMode: {
+            ...COMMON_ATTRIBUTES.smartBulbMode,
+            description: 'Use this mode to synchronize and control other fan switches or controllers.',
+            values: {'Disabled': 0, 'Remote Control Mode': 1},
+        },
+        nonNeutralAuxMediumGear: {
+            ID: 30,
+            dataType: UINT8,
+            min: 42,
+            max: 135,
+            description: 'Identification value in Non-nuetral, medium gear, aux switch',
+        },
+        nonNeutralAuxLowGear: {
+            ID: 31,
+            dataType: UINT8,
+            min: 42,
+            max: 135,
+            description: 'Identification value in Non-nuetral, low gear, aux switch',
+        },
+        fanLedLevelType: {
+            ID: 263,
+            dataType: UINT8,
+            min: 0,
+            max: 10,
+            values: {'Limitless (like VZM31)': 0, 'Adaptive LED': 10},
+            description: 'Level display of the LED Strip',
+        },
+        singleTapBehavior: {
+            ID: 120,
+            dataType: UINT8,
+            displayType: 'enum',
+            values: {'Old Behavior': 0, 'New Behavior': 1},
+            description: 'Behavior of single tapping the on or off button. Old behavior turns the switch on or off. ' +
+            'New behavior cycles through the levels set by P131-133.',
+        },
+        fanControlMode: {
+            ID: 130,
+            dataType: UINT8,
+            displayType: 'enum',
+            values: {'Disabled': 0, 'Multi Tap': 1, 'Cycle': 2},
+            description: 'Which mode to use when binding EP3 to a fan module.',
+        },
+        lowLevelForFanControlMode: {
+            ID: 131,
+            dataType: UINT8,
+            min: 2,
+            max: 254,
+            description: 'Level to send to device bound to EP3 when set to low.',
+        },
+        mediumLevelForFanControlMode: {
+            ID: 132,
+            dataType: UINT8,
+            min: 2,
+            max: 254,
+            description: 'Level to send to device bound to EP3 when set to medium.',
+        },
+        highLevelForFanControlMode: {
+            ID: 133,
+            dataType: UINT8,
+            min: 2,
+            max: 254,
+            description: 'Level to send to device bound to EP3 when set to high.',
+        },
+        ledColorForFanControlMode: {
+            ID: 134,
+            dataType: UINT8,
+            min: 0,
+            max: 255,
+            values: {
+                Red: 0,
+                Orange: 21,
+                Yellow: 42,
+                Green: 85,
+                Cyan: 127,
+                Blue: 170,
+                Violet: 212,
+                Pink: 234,
+                White: 255,
+            },
+            description: 'LED color used to display fan control mode.',
+        },
+    };
 
 const tzLocal = {
     inovelli_parameters: (ATTRIBUTES: {[s: string]: Attribute})=>({
@@ -1202,6 +1274,81 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['onOff']);
+        },
+    } satisfies Tz.Converter,
+
+    /**
+     * Encode breeze mode value:
+     *
+     * 0: disable
+     * 1~0xffffffff: custom (using user configuration parameters) 4bytes
+     * Up to 5 different options. First two bits determine the speed. Next four bits is time * 5 seconds.
+     * 1111 11 1111 11 1111 11 1111 11 1111 11
+     * Setting byte: 00-off, 01-low, 10-meduim, 11-high
+     * Each 6 bit word is stored in ascending order, step one word being LSB
+     *
+     * Calculate the value, and store to the breezeMode property
+     */
+    breezeMode: {
+        key: ['breezeMode'],
+        convertSet: async (entity, key, values, meta) => {
+        // Calculate the value..
+            let configValue = 0;
+            let term = false;
+            // @ts-expect-error
+            configValue += speedToInt(values.speed1);
+            // @ts-expect-error
+            configValue += Number(values.time1 ) / 5 * 4;
+
+            // @ts-expect-error
+            let speed = speedToInt(values.speed2);
+
+            if (speed !== 0) {
+                configValue += speed * 64;
+                // @ts-expect-error
+                configValue += values.time2 / 5 * 256;
+            } else {
+                term = true;
+            }
+            // @ts-expect-error
+            speed = speedToInt(values.speed3);
+
+            if (speed !== 0 && ! term) {
+                configValue += speed * 4096;
+                // @ts-expect-error
+                configValue += values.time3 / 5 * 16384;
+            } else {
+                term = true;
+            }
+
+            // @ts-expect-error
+            speed = speedToInt(values.speed4);
+
+            if (speed !== 0 && ! term) {
+                configValue += speed * 262144;
+                // @ts-expect-error
+                configValue += values.time4 / 5 * 1048576;
+            } else {
+                term = true;
+            }
+
+            // @ts-expect-error
+            speed = speedToInt(values.speed5);
+
+            if (speed !== 0 && ! term) {
+                configValue += speed * 16777216;
+                // @ts-expect-error
+                configValue += values.time5 / 5 * 67108864;
+            } else {
+                term = true;
+            }
+
+            const payload = {breezeMode: configValue.toString()};
+            await entity.write('manuSpecificInovelli', payload, {
+                manufacturerCode: INOVELLI,
+            });
+
+            return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
 };
@@ -1560,6 +1707,97 @@ const exposesListVZM35: Expose[] = [
             ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
                 ),
         ),
+    e.composite('breeze mode', 'breezeMode', ea.STATE_SET)
+        .withFeature(
+            e
+                .enum('speed1', ea.STATE_SET, [
+                    'low',
+                    'medium',
+                    'high',
+                ])
+                .withDescription('Step 1 Speed'),
+        )
+        .withFeature(
+            e
+                .numeric('time1', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(80)
+                .withDescription(
+                    'Duration (s) for fan in Step 1  ',
+                ),
+        )
+        .withFeature(
+            e
+                .enum('speed2', ea.STATE_SET, [
+                    'low',
+                    'medium',
+                    'high',
+                ])
+                .withDescription('Step 2 Speed'),
+        )
+        .withFeature(
+            e
+                .numeric('time2', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(80)
+                .withDescription(
+                    'Duration (s) for fan in Step 2  ',
+                ),
+        )
+        .withFeature(
+            e
+                .enum('speed3', ea.STATE_SET, [
+                    'low',
+                    'medium',
+                    'high',
+                ])
+                .withDescription('Step 3 Speed'),
+        )
+        .withFeature(
+            e
+                .numeric('time3', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(80)
+                .withDescription(
+                    'Duration (s) for fan in Step 3  ',
+                ),
+        )
+        .withFeature(
+            e
+                .enum('speed4', ea.STATE_SET, [
+                    'low',
+                    'medium',
+                    'high',
+                ])
+                .withDescription('Step 4 Speed'),
+        )
+        .withFeature(
+            e
+                .numeric('time4', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(80)
+                .withDescription(
+                    'Duration (s) for fan in Step 4  ',
+                ),
+        )
+        .withFeature(
+            e
+                .enum('speed5', ea.STATE_SET, [
+                    'low',
+                    'medium',
+                    'high',
+                ])
+                .withDescription('Step 5 Speed'),
+        )
+        .withFeature(
+            e
+                .numeric('time5', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(80)
+                .withDescription(
+                    'Duration (s) for fan in Step 5  ',
+                ),
+        ),
 ];
 
 const toZigbee = [
@@ -1690,6 +1928,7 @@ const definitions: Definition[] = [
             tzLocal.fan_mode,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
+            tzLocal.breezeMode,
             tzLocal.inovelli_parameters(VZM35_ATTRIBUTES),
             tzLocal.inovelli_parameters_readOnly(VZM35_ATTRIBUTES),
         ],

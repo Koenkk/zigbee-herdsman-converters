@@ -29,7 +29,7 @@ export function getConfigureKey(definition: Definition) {
     const legacyKey = `${definition.model}_${hash}`;
 
     /**
-     * Previously the configureKey was hardcoded, e.g. 'meta: {configureKey: 1},'.
+     * Previously the configureKey was hardcoded, e.g. `meta: {configureKey: 1},`.
      * Now the configureKey is calculated from the configure method body.
      * This saves us from having to bump the configureKey manually.
      * Since this change would change all configure keys, all devices would be reconfigured again.
@@ -727,6 +727,7 @@ const legacyKeys: {[s: string]: number} = {
     'ROB_200-004-0_-1674843135': 2,
     'ROB_200-011-0_-1674843135': 2,
     'ROB_200-003-0_-1755039265': 1,
+    'ROB_200-003-1_-1755039265': 1,
     'ROB_200-014-0_-1674843135': 1,
     'ROB_200-010-0_424359850': 2,
     'SPE600_-1186389220': 4,

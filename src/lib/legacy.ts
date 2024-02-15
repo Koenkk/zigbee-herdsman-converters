@@ -1841,28 +1841,6 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    WXKG11LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const data = msg.data;
-                let clicks;
-
-                if (data.onOff) {
-                    clicks = 1;
-                } else if (data['32768']) {
-                    clicks = data['32768'];
-                }
-
-                const actionLookup: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
-                if (actionLookup[clicks]) {
-                    return {click: actionLookup[clicks]};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
     SmartButton_skip: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
@@ -1891,38 +1869,6 @@ const fromZigbee1 = {
                     128: {click: 'single'}, // single click
                     129: {click: 'double'}, // double and many click
                     130: {click: 'long'}, // hold
-                };
-
-                return lookup[value] ? lookup[value] : null;
-            }
-        },
-    } satisfies Fz.Converter,
-    xiaomi_action_click_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const value = msg.data['presentValue'];
-                const lookup: KeyValueAny = {
-                    1: {click: 'single'}, // single click
-                    2: {click: 'double'}, // double click
-                };
-
-                return lookup[value] ? lookup[value] : null;
-            }
-        },
-    } satisfies Fz.Converter,
-    WXKG12LM_action_click_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const value = msg.data['presentValue'];
-                const lookup: KeyValueAny = {
-                    1: {click: 'single'}, // single click
-                    2: {click: 'double'}, // double click
                 };
 
                 return lookup[value] ? lookup[value] : null;
@@ -2110,60 +2056,6 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    QBKG11LM_click: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if ([1, 2].includes(msg.data.presentValue)) {
-                    const times: KeyValueAny = {1: 'single', 2: 'double'};
-                    return {click: times[msg.data.presentValue]};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    QBKG12LM_click: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if ([1, 2].includes(msg.data.presentValue)) {
-                    const mapping: KeyValueAny = {5: 'left', 6: 'right', 7: 'both'};
-                    const times: KeyValueAny = {1: 'single', 2: 'double'};
-                    const button = mapping[msg.endpoint.ID];
-                    return {click: `${button}_${times[msg.data.presentValue]}`};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    QBKG03LM_QBKG12LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if (!msg.data['61440']) {
-                    const mapping: KeyValueAny = {4: 'left', 5: 'right', 6: 'both'};
-                    const button = mapping[msg.endpoint.ID];
-                    return {click: button};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    QBKG04LM_QBKG11LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if (!msg.data['61440']) {
-                    return {click: 'single'};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
     cover_stop: {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',
@@ -2194,16 +2086,6 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    WXKG03LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: 'single'};
-            }
-        },
-    } satisfies Fz.Converter,
     TS0218_click: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
@@ -2213,109 +2095,6 @@ const fromZigbee1 = {
                 return {action: 'click'};
             } else {
                 return fromZigbeeConverters.command_emergency.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    xiaomi_on_off_action: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
-            } else {
-                return fromZigbeeConverters.xiaomi_on_off_action.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    WXKG02LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const lookup: KeyValueAny = {1: 'left', 2: 'right', 3: 'both'};
-                return {click: lookup[msg.endpoint.ID]};
-            }
-        },
-    } satisfies Fz.Converter,
-    WXKG02LM_click_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            // Somestime WXKG02LM sends multiple messages on a single click, this prevents handling
-            // of a message with the same transaction sequence number twice.
-            const current = msg.meta.zclTransactionSequenceNumber;
-            if (fromZigbeeStore[msg.device.ieeeAddr + 'legacy'] === current) return;
-            fromZigbeeStore[msg.device.ieeeAddr + 'legacy'] = current;
-
-            const buttonLookup: KeyValueAny = {1: 'left', 2: 'right', 3: 'both'};
-            const button = buttonLookup[msg.endpoint.ID];
-            const value = msg.data['presentValue'];
-
-            const actionLookup: KeyValueAny = {
-                0: 'long',
-                1: null,
-                2: 'double',
-            };
-
-            const action = actionLookup[value];
-
-            if (button) {
-                if (utils.isLegacyEnabled(options)) {
-                    return {click: button + (action ? `_${action}` : '')};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    WXKG01LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                const state = msg.data['onOff'];
-                const key = `${deviceID}_legacy`;
-
-                if (!fromZigbeeStore[key]) {
-                    fromZigbeeStore[key] = {};
-                }
-
-                const current = msg.meta.zclTransactionSequenceNumber;
-                if (fromZigbeeStore[key].transaction === current) return;
-                fromZigbeeStore[key].transaction = current;
-
-                // 0 = click down, 1 = click up, else = multiple clicks
-                if (state === 0) {
-                    fromZigbeeStore[key].timer = setTimeout(() => {
-                        publish({click: 'long'});
-                        fromZigbeeStore[key].timer = null;
-                        fromZigbeeStore[key].long = Date.now();
-                        fromZigbeeStore[key].long_timer = setTimeout(() => {
-                            fromZigbeeStore[key].long = false;
-                        }, 4000); // After 4000 milliseconds of not receiving long_release we assume it will not happen.
-                        // @ts-expect-error
-                    }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
-                } else if (state === 1) {
-                    if (fromZigbeeStore[key].long) {
-                        const duration = Date.now() - fromZigbeeStore[key].long;
-                        publish({click: 'long_release', duration: duration});
-                        fromZigbeeStore[key].long = false;
-                    }
-
-                    if (fromZigbeeStore[key].timer) {
-                        clearTimeout(fromZigbeeStore[key].timer);
-                        fromZigbeeStore[key].timer = null;
-                        publish({click: 'single'});
-                    }
-                } else {
-                    const clicks = msg.data['32768'];
-                    const actionLookup: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
-                    const payload = actionLookup[clicks] ? actionLookup[clicks] : 'many';
-                    publish({click: payload});
-                }
             }
         },
     } satisfies Fz.Converter,
@@ -2464,26 +2243,6 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_multistate_action: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            // refactor to xiaomi_multistate_action]
-            if (utils.isLegacyEnabled(options)) {
-                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-                const value = msg.data['presentValue'];
-                const actionLookup: KeyValueAny = {0: 'long', 1: null, 2: 'double'};
-                const action = actionLookup[value];
-
-                if (button) {
-                    return {action: `${button}${(action ? `_${action}` : '')}`};
-                }
-            } else {
-                return fromZigbeeConverters.xiaomi_multistate_action.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
     E1744_play_pause: {
         cluster: 'genOnOff',
         type: 'commandToggle',
@@ -2620,39 +2379,6 @@ const fromZigbee1 = {
                 return {action: modeLookup[action]};
             } else {
                 return fromZigbeeConverters.command_arm.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    QBKG25LM_click: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if ([1, 2, 3, 0, 255].includes(msg.data.presentValue)) {
-                    const mapping: KeyValueAny = {41: 'left', 42: 'center', 43: 'right'};
-                    const times: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 0: 'hold', 255: 'release'};
-                    const button = mapping[msg.endpoint.ID];
-                    return {action: `${button}_${times[msg.data.presentValue]}`};
-                }
-            } else {
-                return fromZigbeeConverters.xiaomi_multistate_action.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    QBKG03LM_buttons: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const mapping: KeyValueAny = {4: 'left', 5: 'right'};
-                const button = mapping[msg.endpoint.ID];
-                if (button) {
-                    const payload: KeyValueAny = {};
-                    payload[`button_${button}`] = msg.data['onOff'] === 1 ? 'release' : 'hold';
-                    return payload;
-                }
             }
         },
     } satisfies Fz.Converter,
@@ -3842,7 +3568,10 @@ const fromZigbee1 = {
                     return {system_mode: value ? 'heat' : 'off'};
                 }
             case dataPoints.tvMode:
-                return {system_mode: stateLookup[value]};
+                if (model.model === 'BAC-002-ALZB') {
+                    return {system_mode: stateLookup[value]};
+                }
+                return {preset_mode: value ? 'program' : 'hold', preset: value ? 'program' : 'hold'};
             case dataPoints.moesChildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case dataPoints.moesHeatingSetpoint:
@@ -3895,8 +3624,6 @@ const fromZigbee1 = {
                 // for negative values produce complimentary hex (equivalent to negative values)
                 if (temperature > 4000) temperature = temperature - 4096;
                 return {local_temperature_calibration: temperature};
-            case dataPoints.moesHold: // state is inverted, preset_mode is deprecated
-                return {preset_mode: value ? 'program' : 'hold', preset: value ? 'program' : 'hold'};
             case dataPoints.moesScheduleEnable: // state is inverted, preset_mode is deprecated
                 return {preset_mode: value ? 'hold' : 'program', preset: value ? 'hold' : 'program'};
             case dataPoints.moesValve:
@@ -4011,12 +3738,14 @@ const fromZigbee1 = {
                 }
                 // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
             case dataPoints.tuyaSabCO2:
-                if (['_TZE200_mja3fuja', '_TZE200_dwcarsat'].includes(meta.device.manufacturerName)) {
+                if (['_TZE200_dwcarsat'].includes(meta.device.manufacturerName)) {
                     // Ignore: https://github.com/Koenkk/zigbee2mqtt/issues/11033#issuecomment-1109808552
                     if (value === 0xaaac || value === 0xaaab) return;
                     return {pm25: value};
                 } else if (meta.device.manufacturerName === '_TZE200_ryfmq5rl') {
                     return {formaldehyd: value / 100};
+                } else if (meta.device.manufacturerName === '_TZE200_mja3fuja') {
+                    return {formaldehyd: value};
                 } else {
                     return {co2: value};
                 }
