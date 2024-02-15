@@ -337,8 +337,7 @@ const definitions: Definition[] = [
         model: 'SBM300Z5',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 5 gang',
-        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, bottom_right: 5}, powerOnBehavior: false,
-            configureReporting: true})],
+        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, bottom_right: 5}, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['SBM300Z6'],
