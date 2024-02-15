@@ -283,6 +283,7 @@ import woox from './woox';
 import wyze from './wyze';
 import lumi from './lumi';
 import xinghuoyuan from './xinghuoyuan';
+import xyzroe from './xyzroe';
 import yale from './yale';
 import ynoa from './ynoa';
 import yookee from './yookee';
@@ -577,6 +578,7 @@ export default [
     ...wyze,
     ...lumi,
     ...xinghuoyuan,
+    ...xyzroe,
     ...yale,
     ...ynoa,
     ...yookee,
