@@ -79,6 +79,13 @@ const definitions: Definition[] = [
         description: 'FLAIR Viyu smart LED bulb CCT E27',
         extend: [light({colorTemp: {range: [220, 500]}})],
     },
+	{
+        zigbeeModel: ['VIYU_GU10_350_CCT_10454470'],
+        model: '10454470',
+        vendor: 'HORNBACH',
+        description: 'FLAIR Viyu smart GU10 CCT lamp',
+        extend: [light({colorTemp: {range: undefined}})],
+    },
 ];
 
 export default definitions;
