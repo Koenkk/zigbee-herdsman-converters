@@ -9,7 +9,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
 import * as modernExtend from '../lib/modernExtend';
-const {forcePowerSource} = modernExtend;
+const {forcePowerSource, temperature, humidity, co2, onOff} = modernExtend;
 
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -359,15 +359,14 @@ const definitions: Definition[] = [
         model: 'WB-MSW-ZIGBEE v.4',
         vendor: 'Wirenboard',
         description: 'Wall-mounted Zigbee sensor',
-        fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
+        fromZigbee: [fz.illuminance, fz.occupancy, fzLocal.occupancy_level, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout,
             fzLocal.th_heater, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level],
         toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout,
             tzLocal.th_heater, tzLocal.temperature_offset, tzLocal.occupancy_sensitivity, tzLocal.noise_detect_level,
         ],
-        exposes: [e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity(), e.occupancy(), e.occupancy_level(), e.co2(),
-            e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'),
+        exposes: [e.illuminance(), e.illuminance_lux(), e.occupancy(), e.occupancy_level(),
+            e.voc(), e.noise(), e.noise_detected(),
             e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withCategory('config')
                 .withDescription('Time in seconds after which noise is cleared after detecting it (default: 60)'),
             e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withCategory('config')
@@ -388,17 +387,22 @@ const definitions: Definition[] = [
         extend: [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             sprutActivityIndicator(),
+            temperature(),
+            humidity(),
+            co2(),
+            onOff({endpoints: {'l1': 2, 'l2': 3, 'l3': 4}}),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            const binds = ['msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity',
-                'msOccupancySensing', 'msCO2', 'sprutVoc', 'sprutNoise', 'sprutIrBlaster', 'genOta'];
+            const binds = ['msIlluminanceMeasurement', 'msOccupancySensing', 'sprutVoc', 'sprutNoise', 'sprutIrBlaster', 'genOta'];
+            // const binds = ['msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity',
+            //     'msOccupancySensing', 'msCO2', 'sprutVoc', 'sprutNoise', 'sprutIrBlaster', 'genOta'];
             await reporting.bind(endpoint1, coordinatorEndpoint, binds);
 
             // report configuration
-            await reporting.temperature(endpoint1);
+            // await reporting.temperature(endpoint1);
             await reporting.illuminance(endpoint1);
-            await reporting.humidity(endpoint1);
+            // await reporting.humidity(endpoint1);
 
             let payload = reporting.payload('occupancy', 10, constants.repInterval.MINUTE, 0);
             await endpoint1.configureReporting('msOccupancySensing', payload);
@@ -409,20 +413,20 @@ const definitions: Definition[] = [
             payload = reporting.payload('noise', 10, constants.repInterval.MINUTE, 5);
             await endpoint1.configureReporting('sprutNoise', payload);
 
-            payload = reporting.payload('measuredValue', 10, constants.repInterval.HOUR, 10);
-            await endpoint1.configureReporting('msCO2', payload);
+            // payload = reporting.payload('measuredValue', 10, constants.repInterval.HOUR, 10);
+            // await endpoint1.configureReporting('msCO2', payload);
 
             payload = reporting.payload('voc', 10, constants.repInterval.HOUR, 10);
             await endpoint1.configureReporting('sprutVoc', payload, manufacturerOptions);
 
             // led_red
-            await device.getEndpoint(2).read('genOnOff', ['onOff']);
+            // await device.getEndpoint(2).read('genOnOff', ['onOff']);
 
             // led_green
-            await device.getEndpoint(3).read('genOnOff', ['onOff']);
+            // await device.getEndpoint(3).read('genOnOff', ['onOff']);
 
             // buzzer
-            await device.getEndpoint(4).read('genOnOff', ['onOff']);
+            // await device.getEndpoint(4).read('genOnOff', ['onOff']);
 
             // disable internal blinking zigbee state green led on start
             // await device.getEndpoint(5).write('genBinaryOutput', {0x0055: {value: 0x00, type: 0x10}});
