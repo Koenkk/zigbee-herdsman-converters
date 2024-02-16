@@ -410,11 +410,14 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
+// reverseToZigbee provides a way to distinguish between fromZigbee (default) and toZigbee value conversions if they are asymmetrical
+export type ScaleFunction = (value: number, reverseToZigbee?: boolean) => number;
+
 export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
     endpoint?: string, endpoints?: string[], reporting?: ReportingConfigWithoutAttribute,
-    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number, label?: string,
+    valueMin?: number, valueMax?: number, valueStep?: number, scale?: number | ScaleFunction, label?: string,
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
@@ -464,7 +467,9 @@ export function numeric(args: NumericArgs): ModernExtend {
 
                 let value = msg.data[attributeKey];
                 assertNumber(value);
-                if (scale !== undefined) value = value / scale;
+                if (scale !== undefined) {
+                    value = typeof scale === 'number' ? value / scale : scale(value);
+                }
 
                 const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
                 return {[expose.property]: value};
@@ -476,7 +481,10 @@ export function numeric(args: NumericArgs): ModernExtend {
         key: [name],
         convertSet: access & ea.SET ? async (entity, key, value, meta) => {
             assertNumber(value, key);
-            const payloadValue = scale === undefined ? value : value * scale;
+            let payloadValue = value;
+            if (scale !== undefined) {
+                payloadValue = typeof scale === 'number' ? payloadValue * scale : scale(payloadValue, true);
+            }
             const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
@@ -750,4 +758,37 @@ export function pressure(args?: Partial<NumericArgs>): ModernExtend {
         access: 'STATE_GET',
         ...args,
     });
+}
+
+export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
+    const luxScale: ScaleFunction = (value: number) => {
+        return Math.pow(10, (value - 1) / 10000);
+    };
+
+    const rawIllinance = numeric({
+        name: 'illuminance',
+        cluster: 'msIlluminanceMeasurement',
+        attribute: 'measuredValue',
+        description: 'Raw measured illuminance',
+        access: 'STATE_GET',
+        ...args,
+    });
+
+    const illiminanceLux = numeric({
+        name: 'illuminance_lux',
+        cluster: 'msIlluminanceMeasurement',
+        attribute: 'measuredValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 5}, // 5 lux
+        description: 'Measured illuminance in lux',
+        unit: 'lx',
+        scale: luxScale,
+        access: 'STATE_GET',
+        ...args,
+    });
+
+    const result: ModernExtend = illiminanceLux;
+    result.fromZigbee.concat(rawIllinance.fromZigbee);
+    result.exposes.concat(rawIllinance.exposes);
+
+    return result;
 }
