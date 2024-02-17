@@ -255,8 +255,8 @@ const sprutModernExtend = {
     sprutActivityIndicator: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
         name: 'activity_indicator',
         cluster: 'genBinaryOutput',
-        attribute: 'measuredValue',
-        reporting: {attribute: 'measuredValue', min: 0, max: 'MAX', change: 1},
+        attribute: 'presentValue',
+        reporting: {attribute: 'presentValue', min: 0, max: 'MAX', change: 1},
         valueOn: ['ON', 1],
         valueOff: ['OFF', 0],
         description: 'Controls green activity LED.',
