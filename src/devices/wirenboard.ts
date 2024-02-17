@@ -9,7 +9,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
 import * as modernExtend from '../lib/modernExtend';
-const {forcePowerSource, temperature, humidity, co2, onOff} = modernExtend;
+const {forcePowerSource, temperature, humidity, co2} = modernExtend;
 
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -111,13 +111,6 @@ const fzLocal = {
             if (msg.data.hasOwnProperty('sprutHeater')) {
                 return {th_heater: switchActionValues[msg.data['sprutHeater']]};
             }
-        },
-    } satisfies Fz.Converter,
-    activity_indicator: {
-        cluster: 'genBinaryOutput',
-        type: ['readResponse', 'attributeReport'],
-        convert: async (model, msg, publish, options, meta) => {
-            return {activity_indicator_l4: switchActionValues[msg.data['presentValue']]};
         },
     } satisfies Fz.Converter,
 };
@@ -256,30 +249,18 @@ const tzLocal = {
             await entity.read('msRelativeHumidity', ['sprutHeater'], manufacturerOptions);
         },
     } satisfies Tz.Converter,
-    activity_indicator: {
-        key: ['activity_indicator'],
-        convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.activity_indicator === 'OFF' ? 0x00 : 0x01;
-            await entity.write('genBinaryOutput', {0x0055: {value: state, type: 0x10}});
-            return {activity_indicator: meta.message.activity_indicator};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genBinaryOutput', ['presentValue']);
-        },
-    } satisfies Tz.Converter,
 };
 
 const sprutModernExtend = {
     sprutActivityIndicator: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
         name: 'activity_indicator',
         cluster: 'genBinaryOutput',
-        endpoint: 'l4',
-        attribute: {ID: 0x0055, type: 0x10},
+        attribute: 'measuredValue',
+        reporting: {attribute: 'measuredValue', min: 0, max: 'MAX', change: 1},
         valueOn: ['ON', 1],
         valueOff: ['OFF', 0],
         description: 'Controls green activity LED.',
         access: 'ALL',
-        zigbeeCommandOptions: manufacturerOptions,
         ...args,
     }),
 };
@@ -360,13 +341,13 @@ const definitions: Definition[] = [
         vendor: 'Wirenboard',
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fz.illuminance, fz.occupancy, fzLocal.occupancy_level, fzLocal.voc,
-            fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout,
-            fzLocal.th_heater, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level],
-        toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout,
-            tzLocal.th_heater, tzLocal.temperature_offset, tzLocal.occupancy_sensitivity, tzLocal.noise_detect_level,
-        ],
+            fzLocal.noise, fzLocal.noise_detected, fzLocal.occupancy_timeout, fzLocal.noise_timeout,
+            fzLocal.th_heater, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level, fz.on_off],
+        toZigbee: [tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout,
+            tzLocal.th_heater, tzLocal.temperature_offset, tzLocal.occupancy_sensitivity, tzLocal.noise_detect_level, tz.on_off],
         exposes: [e.illuminance(), e.illuminance_lux(), e.occupancy(), e.occupancy_level(),
-            e.voc(), e.noise(), e.noise_detected(),
+            e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'),
             e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withCategory('config')
                 .withDescription('Time in seconds after which noise is cleared after detecting it (default: 60)'),
             e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withCategory('config')
@@ -379,30 +360,25 @@ const definitions: Definition[] = [
             e.numeric('noise_detect_level', ea.ALL).withValueMin(0).withValueMax(150).withUnit('dBA').withCategory('config')
                 .withDescription('The minimum noise level at which the detector will work (default: 50)'),
         ],
-        meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['humidity', 'activity_indicator']},
         endpoint: (device) => {
             return {'l1': 2, 'l2': 3, 'l3': 4, 'l4': 5};
         },
         ota: ota.zigbeeOTA,
         extend: [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
-            sprutActivityIndicator(),
+            sprutActivityIndicator({endpoint: 'l4'}),
             temperature(),
             humidity(),
             co2(),
-            onOff({endpoints: {'l1': 2, 'l2': 3, 'l3': 4}}),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const binds = ['msIlluminanceMeasurement', 'msOccupancySensing', 'sprutVoc', 'sprutNoise', 'sprutIrBlaster', 'genOta'];
-            // const binds = ['msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity',
-            //     'msOccupancySensing', 'msCO2', 'sprutVoc', 'sprutNoise', 'sprutIrBlaster', 'genOta'];
             await reporting.bind(endpoint1, coordinatorEndpoint, binds);
 
             // report configuration
-            // await reporting.temperature(endpoint1);
             await reporting.illuminance(endpoint1);
-            // await reporting.humidity(endpoint1);
 
             let payload = reporting.payload('occupancy', 10, constants.repInterval.MINUTE, 0);
             await endpoint1.configureReporting('msOccupancySensing', payload);
@@ -413,30 +389,19 @@ const definitions: Definition[] = [
             payload = reporting.payload('noise', 10, constants.repInterval.MINUTE, 5);
             await endpoint1.configureReporting('sprutNoise', payload);
 
-            // payload = reporting.payload('measuredValue', 10, constants.repInterval.HOUR, 10);
-            // await endpoint1.configureReporting('msCO2', payload);
-
             payload = reporting.payload('voc', 10, constants.repInterval.HOUR, 10);
             await endpoint1.configureReporting('sprutVoc', payload, manufacturerOptions);
 
             // led_red
-            // await device.getEndpoint(2).read('genOnOff', ['onOff']);
+            await device.getEndpoint(2).read('genOnOff', ['onOff']);
 
             // led_green
-            // await device.getEndpoint(3).read('genOnOff', ['onOff']);
+            await device.getEndpoint(3).read('genOnOff', ['onOff']);
 
             // buzzer
-            // await device.getEndpoint(4).read('genOnOff', ['onOff']);
-
-            // disable internal blinking zigbee state green led on start
-            // await device.getEndpoint(5).write('genBinaryOutput', {0x0055: {value: 0x00, type: 0x10}});
-
-            // device.powerSource = 'Mains (single phase)';
+            await device.getEndpoint(4).read('genOnOff', ['onOff']);
             device.save();
         },
-        // endpoint: (device) => {
-        //     return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4, 'l4': 5};
-        // },
     },
 ];
 
