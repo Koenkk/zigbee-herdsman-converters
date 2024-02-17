@@ -102,7 +102,7 @@ export function identify(): ModernExtend {
 
 export interface OnOffArgs {
     powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpoints?: {[s: string]: number},
-    configureReporting?: boolean,
+    configureReporting?: boolean, disableMutliEndpointOverride?: boolean,
 }
 export function onOff(args?: OnOffArgs): ModernExtend {
     args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
@@ -120,7 +120,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
     if (args.ota) result.ota = args.ota;
-    if (args.endpoints) {
+    if (args.endpoints && args.disableMutliEndpointOverride !== true) {
         result.meta = {multiEndpoint: true};
         result.endpoint = (d) => args.endpoints;
     }
