@@ -2,12 +2,14 @@ import {Zcl} from 'zigbee-herdsman';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent, Access} from './types';
-import {presets as e, access as ea} from './exposes';
+import * as constants from '../lib/constants';
+import {presets as e, access as ea, options as opt} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
 import {configure as lightConfigure} from './light';
 import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
+    noOccupancySince,
 } from './utils';
 
 function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | number) {
@@ -790,6 +792,43 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
     result.fromZigbee.concat(rawIllinance.fromZigbee);
     result.toZigbee.concat(rawIllinance.toZigbee);
     result.exposes.concat(rawIllinance.exposes);
+
+    return result;
+}
+
+export function occupancy(args?: Partial<BinaryArgs>): ModernExtend {
+    const name = 'occupancy';
+    const cluster = 'msOccupancySensing';
+    const attribute = 'occupancy';
+    const valueOn: [string | boolean, unknown] = [true, true];
+    const valueOff: [string | boolean, unknown] = [false, false];
+
+    const result = binary({
+        name: name,
+        cluster: cluster,
+        attribute: attribute,
+        reporting: {attribute: attribute, min: constants.repInterval.SECONDS_10, max: constants.repInterval.MINUTE, change: 0},
+        description: 'Indicates whether the device detected occupancy',
+        access: 'STATE_GET',
+        valueOn: valueOn,
+        valueOff: valueOff,
+        ...args,
+    });
+
+    const fromZigbeeOverride: Fz.Converter = {
+        cluster: cluster.toString(),
+        type: ['attributeReport', 'readResponse'],
+        options: [opt.no_occupancy_since_false()],
+        convert: (model, msg, publish, options, meta) => {
+            if (attribute in msg.data && (!args.endpoint || getEndpointName(msg, model, meta) === args.endpoint)) {
+                const payload = {[name]: (msg.data[attribute] % 2) > 0};
+                noOccupancySince(msg.endpoint, options, publish, payload.occupancy ? 'stop' : 'start');
+                return payload;
+            }
+        },
+    };
+
+    result.fromZigbee[0] = fromZigbeeOverride;
 
     return result;
 }
