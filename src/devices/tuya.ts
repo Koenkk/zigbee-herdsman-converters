@@ -1323,7 +1323,13 @@ const definitions: Definition[] = [
         },
         exposes: (device, options) => {
             const exps: Expose[] = [e.water_leak(), e.battery_low(), e.battery()];
-            if (!device || device.manufacturerName !== '_TZ3000_mugyhz0q') {
+            const noTamperModels = [ // manufacturerName for models without a tamper sensor
+                '_TZ3000_mugyhz0q', // TuYa 899WZ
+                '_TZ3000_k4ej3ww2', // Aubess IH-K665
+                '_TZ3000_kstbkt6a', // Aubess IH-K665
+                '_TZ3000_upgcbody', // Zigbee water leak sensor
+            ];
+            if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
             exps.push(e.linkquality());
