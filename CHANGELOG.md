@@ -1,5 +1,14 @@
 # Changelog
 
+## [18.33.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.33.1...v18.33.2) (2024-02-15)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_5cuocqty` as TuYa TS0601_dimmer_5 ([#7072](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7072)) ([299b7c3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/299b7c3c1a10364ac02708fc9070fee41af704f0))
+* Enable configure reporting for SBM300ZX ([#7069](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7069)) ([4b2826a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b2826acc38d540a9540cfc6516b5f764ae653ae))
+* **ignore:** fix d8f8bb3 https://github.com/Koenkk/zigbee2mqtt/issues/20032 ([afbaf66](https://github.com/Koenkk/zigbee-herdsman-converters/commit/afbaf6661360dadca4214b994ec93d963de8c63d))
+
 ## [18.33.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.33.0...v18.33.1) (2024-02-14)
 
 

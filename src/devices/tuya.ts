@@ -953,11 +953,9 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_mvn6jl7x'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_raviyuvk'}, {modelID: 'TS011F', manufacturerName: '_TYZB01_hlla45kx'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_92qd4sqa'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_zwaadvus'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_k6fvknrr'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_6s5dc9lx'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_helyqdvs'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_mvn6jl7x', '_TZ3000_raviyuvk', '_TYZB01_hlla45kx', '_TZ3000_92qd4sqa',
+            '_TZ3000_zwaadvus', '_TZ3000_k6fvknrr', '_TZ3000_6s5dc9lx', '_TZ3000_helyqdvs', '_TZ3000_rgpqqmbj', '_TZ3000_8nyaanzb',
+            '_TZ3000_iy2c3n6p']),
         model: 'TS011F_2_gang_wall',
         vendor: 'TuYa',
         description: '2 gang wall outlet',
@@ -1325,7 +1323,13 @@ const definitions: Definition[] = [
         },
         exposes: (device, options) => {
             const exps: Expose[] = [e.water_leak(), e.battery_low(), e.battery()];
-            if (!device || device.manufacturerName !== '_TZ3000_mugyhz0q') {
+            const noTamperModels = [ // manufacturerName for models without a tamper sensor
+                '_TZ3000_mugyhz0q', // TuYa 899WZ
+                '_TZ3000_k4ej3ww2', // Aubess IH-K665
+                '_TZ3000_kstbkt6a', // Aubess IH-K665
+                '_TZ3000_upgcbody', // Zigbee water leak sensor
+            ];
+            if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
             }
             exps.push(e.linkquality());
@@ -1589,7 +1593,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dcnsggvz']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dcnsggvz', '_TZE204_5cuocqty']),
         model: 'TS0601_dimmer_5',
         vendor: 'TuYa',
         description: '1 gang smart dimmer module',
