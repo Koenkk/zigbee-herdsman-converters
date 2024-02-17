@@ -788,6 +788,7 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
 
     const result: ModernExtend = illiminanceLux;
     result.fromZigbee.concat(rawIllinance.fromZigbee);
+    result.toZigbee.concat(rawIllinance.toZigbee);
     result.exposes.concat(rawIllinance.exposes);
 
     return result;
