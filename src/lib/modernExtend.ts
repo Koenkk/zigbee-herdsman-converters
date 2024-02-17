@@ -374,15 +374,20 @@ export function lock(args?: LockArgs): ModernExtend {
 export interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', endpoint?: string,
-    reporting?: ReportingConfigWithoutAttribute,
+    reporting?: ReportingConfigWithoutAttribute, entityCategory?: 'config' | 'diagnostic',
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
-    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpoint, reporting} = args;
+    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpoint, reporting, entityCategory} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
     let expose = e.enum(name, access, Object.keys(lookup)).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
+    if (entityCategory) {
+        if ((args.access === 'ALL' && entityCategory === 'config') || (args.access !== 'ALL' && entityCategory === 'diagnostic')) {
+            expose = expose.withCategory(entityCategory);
+        }
+    }
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
@@ -420,10 +425,12 @@ export interface NumericArgs {
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
     endpoint?: string, endpoints?: string[], reporting?: ReportingConfigWithoutAttribute,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number | ScaleFunction, label?: string,
+    entityCategory?: 'config' | 'diagnostic',
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
         name, cluster, attribute, description, zigbeeCommandOptions, unit, reporting, valueMin, valueMax, valueStep, scale, label,
+        entityCategory,
     } = args;
 
     let endpoints = args.endpoints;
@@ -444,6 +451,11 @@ export function numeric(args: NumericArgs): ModernExtend {
         if (valueMax !== undefined) expose = expose.withValueMax(valueMax);
         if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
         if (label !== undefined) expose = expose.withLabel(label);
+        if (entityCategory) {
+            if ((args.access === 'ALL' && entityCategory === 'config') || (args.access !== 'ALL' && entityCategory === 'diagnostic')) {
+                expose = expose.withCategory(entityCategory);
+            }
+        }
 
         return expose;
     };
@@ -504,15 +516,20 @@ export function numeric(args: NumericArgs): ModernExtend {
 export interface BinaryArgs {
     name: string, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], cluster: string | number,
     attribute: string | {ID: number, type: number}, description: string, zigbeeCommandOptions?: {manufacturerCode: number},
-    endpoint?: string, reporting?: ReportingConfig, access?: 'STATE' | 'STATE_GET' | 'ALL',
+    endpoint?: string, reporting?: ReportingConfig, access?: 'STATE' | 'STATE_GET' | 'ALL', entityCategory?: 'config' | 'diagnostic',
 }
 export function binary(args: BinaryArgs): ModernExtend {
-    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpoint, reporting} = args;
+    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpoint, reporting, entityCategory} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
     let expose = e.binary(name, access, valueOn[0], valueOff[0]).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
+    if (entityCategory) {
+        if ((args.access === 'ALL' && entityCategory === 'config') || (args.access !== 'ALL' && entityCategory === 'diagnostic')) {
+            expose = expose.withCategory(entityCategory);
+        }
+    }
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
