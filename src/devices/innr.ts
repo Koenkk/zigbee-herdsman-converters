@@ -2,10 +2,9 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 import * as ota from '../lib/ota';
-import {light, onOff, electricityMeter} from '../lib/modernExtend';
+import {light, onOff, electricityMeter, reconfigureReportingsOnDeviceAnnounce} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -43,8 +42,7 @@ const definitions: Definition[] = [
         model: 'RCL 240 T',
         vendor: 'Innr',
         description: 'Smart round ceiling lamp comfort',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
-        meta: {turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [200, 454]}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -52,37 +50,32 @@ const definitions: Definition[] = [
         model: 'FL 142 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip 4m 2000lm',
-        extend: extend.light_onoff_brightness_colortemp_color({
-            colorTempRange: [150, 500], supportsHueAndSaturation: true, disableColorTempStartup: true, disablePowerOnBehavior: true,
-        }),
+        extend: [light({colorTemp: {range: [150, 500], startup: false}, color: {modes: ['xy', 'hs']}, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FL 140 C'],
         model: 'FL 140 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip 4m 1200lm',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['FL 130 C'],
         model: 'FL 130 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: extend.light_onoff_brightness_colortemp_color({
-            colorTempRange: [153, 555], supportsHueAndSaturation: true, disablePowerOnBehavior: true},
-        ),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({
+            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, powerOnBehavior: false, turnsOffAtBrightness1: true,
+        })],
     },
     {
         zigbeeModel: ['FL 120 C'],
         model: 'FL 120 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: extend.light_onoff_brightness_colortemp_color({
-            colorTempRange: [153, 555], supportsHueAndSaturation: true, disablePowerOnBehavior: true},
-        ),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({
+            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, powerOnBehavior: false, turnsOffAtBrightness1: true,
+        })],
     },
     {
         zigbeeModel: ['BF 263'],
@@ -97,49 +90,48 @@ const definitions: Definition[] = [
         model: 'OGL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart globe lights',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [100, 1000], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [100, 1000]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['OPL 130 C'],
         model: 'OPL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart pedestal light colour',
-        extend: extend.light_onoff_brightness_colortemp_color(
-            {colorTempRange: [153, 555], supportsHueAndSaturation: true, disableColorTempStartup: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({
+            colorTemp: {range: [153, 555], startup: false}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true,
+        })],
     },
     {
         zigbeeModel: ['RB 185 C'],
         model: 'RB 185 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['BY 185 C'],
         model: 'BY 185 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RB 250 C'],
         model: 'RB 250 C',
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {supportsEnhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({
+            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
+        })],
     },
     {
         zigbeeModel: ['RB 251 C'],
         model: 'RB 251 C',
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {supportsEnhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({
+            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
+        })],
         ota: ota.zigbeeOTA,
     },
     {
@@ -192,16 +184,14 @@ const definitions: Definition[] = [
         model: 'RB 278 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RB 279 T'],
         model: 'RB 279 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {default: 1};
@@ -212,16 +202,16 @@ const definitions: Definition[] = [
         model: 'RB 285 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {supportsEnhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({
+            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
+        })],
     },
     {
         zigbeeModel: ['RB 286 C'],
         model: 'RB 286 C',
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -229,16 +219,14 @@ const definitions: Definition[] = [
         model: 'BY 285 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['BY 286 C'],
         model: 'BY 286 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -274,16 +262,14 @@ const definitions: Definition[] = [
         model: 'RB 178 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['BY 178 T'],
         model: 'BY 178 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white B22',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RS 122'],
@@ -319,8 +305,7 @@ const definitions: Definition[] = [
         model: 'RS 227 T',
         vendor: 'Innr',
         description: 'GU10 spot 420 lm, dimmable, white spectrum',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
-        meta: {turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [200, 454]}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {default: 1};
@@ -331,24 +316,21 @@ const definitions: Definition[] = [
         model: 'RS 128 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RS 228 T'],
         model: 'RS 228 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [200, 454]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RS 229 T'],
         model: 'RS 229 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [200, 454]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -356,8 +338,9 @@ const definitions: Definition[] = [
         model: 'RS 230 C',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {supportsEnhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({
+            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
+        })],
         ota: ota.zigbeeOTA,
     },
     {
@@ -365,8 +348,9 @@ const definitions: Definition[] = [
         model: 'RS 232 C',
         vendor: 'Innr',
         description: 'GU10 spot, dimmable, RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {supportsEnhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({
+            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
+        })],
         ota: ota.zigbeeOTA,
     },
     {
@@ -389,8 +373,7 @@ const definitions: Definition[] = [
         model: 'RB 248 T',
         vendor: 'Innr',
         description: 'E14 candle with white spectrum',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -398,8 +381,7 @@ const definitions: Definition[] = [
         model: 'RB 249 T',
         vendor: 'Innr',
         description: 'E14 candle, dimmable with, color temp',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
-        meta: {turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [200, 454]}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -407,8 +389,7 @@ const definitions: Definition[] = [
         model: 'RB 148 T',
         vendor: 'Innr',
         description: 'E14 candle with white spectrum',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RF 261'],
@@ -537,8 +518,7 @@ const definitions: Definition[] = [
         model: 'AE 280 C',
         vendor: 'Innr',
         description: 'E26 bulb RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
         ota: ota.zigbeeOTA,
     },
     {
@@ -604,32 +584,30 @@ const definitions: Definition[] = [
         model: 'OFL 120 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 2m, 550lm, RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['OFL 140 C'],
         model: 'OFL 140 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 4m, 1000lm, RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['OFL 142 C'],
         model: 'OFL 142 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 4m, 1440lm, RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [100, 350], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [100, 350]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['RB 255 C'],
         model: 'RB 255 C',
         vendor: 'Innr',
         description: 'E14 mini bulb RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {supportsEnhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({
+            colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], enhancedHue: false, applyRedFix: true}, turnsOffAtBrightness1: true,
+        })],
         ota: ota.zigbeeOTA,
     },
     {
@@ -637,24 +615,21 @@ const definitions: Definition[] = [
         model: 'OFL 122 C',
         vendor: 'Innr',
         description: 'Outdoor flex light colour LED strip 2m, 1440lm, RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [100, 350], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [100, 350]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['FL 122 C'],
         model: 'FL 122 C',
         vendor: 'Innr',
         description: 'Flex light colour LED strip 2m, 1440lm, RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [100, 350], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [100, 350]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['OSL 130 C'],
         model: 'OSL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart spot colour, 230lm/spot, RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ['BE 220'],
@@ -683,6 +658,39 @@ const definitions: Definition[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             }
         },
+    },
+    {
+        zigbeeModel: ['SP 240'],
+        model: 'SP 240',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        extend: [
+            onOff(),
+            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
+        ],
+    },
+    {
+        zigbeeModel: ['SP 242'],
+        model: 'SP 242',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        extend: [
+            onOff(),
+            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
+            // Device looses reporting config on power cycle
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/6747
+            reconfigureReportingsOnDeviceAnnounce(),
+        ],
+    },
+    {
+        zigbeeModel: ['SP 244'],
+        model: 'SP 244',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        extend: [
+            onOff(),
+            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
+        ],
     },
 ];
 

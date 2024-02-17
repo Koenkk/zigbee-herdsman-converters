@@ -1,8 +1,6 @@
 import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -23,13 +21,7 @@ const definitions: Definition[] = [
         model: 'CK-BL702-MSW-01(7010)',
         vendor: 'eWeLink',
         description: 'CMARS Zigbee smart plug',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -39,14 +31,18 @@ const definitions: Definition[] = [
         model: 'SA-003-Zigbee',
         vendor: 'eWeLink',
         description: 'Zigbee smart plug',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            try {
+                await device.getEndpoint(1).bind('genOnOff', coordinatorEndpoint);
+            } catch (error) {
+                // This might fail because there are some repeaters which advertise to support genOnOff but don't support it.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/19865
+                logger.debug('Failed to bind genOnOff for SA-003-Zigbee');
+            }
         },
     },
     {
@@ -54,12 +50,7 @@ const definitions: Definition[] = [
         model: 'SA-030-1',
         vendor: 'eWeLink',
         description: 'Zigbee 3.0 smart plug 13A (3120W)(UK version)',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -69,12 +60,7 @@ const definitions: Definition[] = [
         model: 'SWITCH-ZR02',
         vendor: 'eWeLink',
         description: 'Zigbee smart switch',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -84,12 +70,7 @@ const definitions: Definition[] = [
         model: 'SWITCH-ZR03-1',
         vendor: 'eWeLink',
         description: 'Zigbee smart switch',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({skipDuplicateTransaction: true})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -99,8 +80,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW01',
         vendor: 'eWeLink',
         description: 'Smart light switch - 1 gang',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -110,16 +90,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW02',
         vendor: 'eWeLink',
         description: 'Smart light switch/2 gang relay',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {left: 1, right: 2}, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -129,17 +100,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW03',
         vendor: 'eWeLink',
         description: 'Smart light switch - 3 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -149,19 +110,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW04',
         vendor: 'eWeLink',
         description: 'Smart light switch - 4 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -171,20 +120,7 @@ const definitions: Definition[] = [
         model: 'ZB-SW05',
         vendor: 'eWeLink',
         description: 'Smart light switch - 5 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}, configureReporting: false})],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },

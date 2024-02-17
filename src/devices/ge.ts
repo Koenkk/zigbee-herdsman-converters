@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -35,13 +35,7 @@ const definitions: Definition[] = [
         model: '45852GE',
         vendor: 'GE',
         description: 'ZigBee plug-in smart dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['45853'],
@@ -81,18 +75,7 @@ const definitions: Definition[] = [
         model: '45857GE',
         vendor: 'GE',
         description: 'ZigBee in-wall smart dimmer',
-        exposes: extend.light_onoff_brightness({noConfigure: true}).exposes.concat([e.energy(), e.power()]),
-        fromZigbee: extend.light_onoff_brightness({noConfigure: true}).fromZigbee.concat([fz.metering]),
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 10000, multiplier: 1});
-        },
+        extend: [light({configureReporting: true}), electricityMeter({cluster: 'metering'})],
     },
     {
         zigbeeModel: ['Smart Switch'],
@@ -114,7 +97,7 @@ const definitions: Definition[] = [
         model: 'POTLK-WH02',
         vendor: 'GE',
         description: 'Outlink smart remote outlet',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
 ];
 

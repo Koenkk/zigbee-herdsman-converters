@@ -1,6 +1,5 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -22,14 +21,14 @@ const definitions: Definition[] = [
         model: 'ML-ST-BP-DIM',
         vendor: 'M-ELEC',
         description: 'Stitchy dim mechanism',
-        extend: extend.light_onoff_brightness({disableEffect: true}),
+        extend: [light({effect: false})],
     },
     {
         zigbeeModel: ['ML-ST-R200'],
         model: 'ML-ST-R200',
         vendor: 'M-ELEC',
         description: 'Stitchy switchable wall module',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
 ];
 

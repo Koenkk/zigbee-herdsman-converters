@@ -2,7 +2,8 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {light, onOff, electricityMeter} from '../lib/modernExtend';
+
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -25,7 +26,14 @@ const definitions: Definition[] = [
         model: 'BRHM8E27W70-I1',
         vendor: 'GS',
         description: 'Smart dimmable, RGB + white (E27 & B22)',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
+    },
+    {
+        zigbeeModel: ['SKHMP30-I1'],
+        model: 'SKHMP30-I1',
+        description: 'Smart metering plug',
+        vendor: 'GS',
+        extend: [onOff({powerOnBehavior: false}), electricityMeter()],
     },
 ];
 

@@ -1,5 +1,4 @@
 import {ColorXY, ColorRGB} from './color';
-import extendDontUse from './extend';
 import * as ota from './ota';
 import * as exposes from './exposes';
 import tz from '../converters/toZigbee';
@@ -7,7 +6,9 @@ import * as libColor from './color';
 import * as utils from './utils';
 import {Zcl} from 'zigbee-herdsman';
 import * as globalStore from './store';
-import {Extend, Fz, KeyValue, KeyValueAny, Tz} from './types';
+import {Fz, KeyValue, KeyValueAny, Tz} from './types';
+import * as modernExtend from './modernExtend';
+import {isObject} from './utils';
 const ea = exposes.access;
 const e = exposes.presets;
 
@@ -51,116 +52,53 @@ const knownEffects = {
     '0c80': 'glisten',
 };
 
-export const extend = {
-    light_onoff_brightness: (options: Extend.options_light_onoff_brightness & {disableHueEffects?: boolean}={}) => {
-        options = {disableHueEffects: false, ...options};
-        if (!options.disableHueEffects) options.disableEffect = true;
-        const result = {
-            ...extendDontUse.light_onoff_brightness(options),
-            ota: ota.zigbeeOTA,
-            meta: {turnsOffAtBrightness1: true},
-        };
-        result.toZigbee = result.toZigbee.concat([philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error]);
-        if (!options.disableHueEffects) {
-            result.toZigbee = result.toZigbee.concat([philipsTz.effect]);
-            result.exposes = result.exposes.concat([e.enum('effect', ea.SET,
-                ['blink', 'breathe', 'okay', 'channel_change', 'candle', 'finish_effect', 'stop_effect', 'stop_hue_effect'])]);
-        }
-        return result;
-    },
-    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp & {disableHueEffects?: boolean}={}) => {
-        options = {disableHueEffects: false, ...options};
-        if (!options.disableHueEffects) options.disableEffect = true;
-        const result = {
-            ...extendDontUse.light_onoff_brightness_colortemp(options),
-            ota: ota.zigbeeOTA,
-            meta: {turnsOffAtBrightness1: true},
-        };
-        result.toZigbee = result.toZigbee.concat([philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error]);
-        if (!options.disableHueEffects) {
-            result.toZigbee = result.toZigbee.concat([philipsTz.effect]);
-            result.exposes = result.exposes.concat([e.enum('effect', ea.SET,
-                ['blink', 'breathe', 'okay', 'channel_change', 'candle', 'finish_effect', 'stop_effect', 'stop_hue_effect'])]);
-        }
-        return result;
-    },
-    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color & {disableHueEffects?: boolean}={}) => {
-        options = {disableHueEffects: false, ...options};
-        if (!options.disableHueEffects) options.disableEffect = true;
-        const result = {
-            ...extendDontUse.light_onoff_brightness_color({supportsHueAndSaturation: true, ...options}),
-            ota: ota.zigbeeOTA,
-            meta: {turnsOffAtBrightness1: true},
-        };
-        result.toZigbee = result.toZigbee.concat([philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error]);
-        if (!options.disableHueEffects) {
-            result.toZigbee = result.toZigbee.concat([philipsTz.effect]);
-            result.exposes = result.exposes.concat([e.enum('effect', ea.SET, [
-                'blink', 'breathe', 'okay', 'channel_change',
-                'candle', 'fireplace', 'colorloop',
-                'finish_effect', 'stop_effect', 'stop_hue_effect',
-            ])]);
-        }
-        return result;
-    },
-    light_onoff_brightness_colortemp_color: (options: Extend.options_light_onoff_brightness_colortemp_color & {disableHueEffects?: boolean}={}) => {
-        options = {disableHueEffects: false, ...options};
-        if (!options.disableHueEffects) options.disableEffect = true;
-        const result = {
-            ...extendDontUse.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, ...options}),
-            ota: ota.zigbeeOTA,
-            meta: {turnsOffAtBrightness1: true},
-        };
-        result.toZigbee = result.toZigbee.concat([philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error]);
-        if (!options.disableHueEffects) {
-            result.toZigbee = result.toZigbee.concat([philipsTz.effect]);
-            result.exposes = result.exposes.concat([e.enum('effect', ea.SET, [
-                'blink', 'breathe', 'okay', 'channel_change',
-                'candle', 'fireplace', 'colorloop',
-                'finish_effect', 'stop_effect', 'stop_hue_effect',
-            ])]);
-        }
-        return result;
-    },
-    light_onoff_brightness_colortemp_color_gradient: (options: Extend.options_light_onoff_brightness_colortemp_color &
-            {disableHueEffects?: boolean, extraEffects?: string[]}={}) => {
-        options = {supportsHueAndSaturation: true, disableEffect: true, extraEffects: [], ...options};
-        const result = {
-            ...extendDontUse.light_onoff_brightness_colortemp_color({noConfigure: true, ...options}),
-            ota: ota.zigbeeOTA,
-            meta: {turnsOffAtBrightness1: true},
-        };
-        result.toZigbee = result.toZigbee.concat([
-            philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error, philipsTz.effect,
-            philipsTz.gradient_scene, philipsTz.gradient({reverse: true}),
-        ]);
-        result['fromZigbee'] = result['fromZigbee'].concat([philipsFz.gradient({reverse: true})]);
-        result['configure'] = async (device, coordinatorEndpoint, logger) => {
-            await extendDontUse.light_onoff_brightness_colortemp_color(options)
-                .configure(device, coordinatorEndpoint, logger);
-            for (const ep of device.endpoints) {
-                await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
+export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolean, gradient?: true | {extraEffects: string[]}}) {
+    args = {hueEffect: true, turnsOffAtBrightness1: true, ota: ota.zigbeeOTA, ...args};
+    if (args.hueEffect || args.gradient) args.effect = false;
+    if (args.color) args.color = {modes: ['xy', 'hs'], ...(isObject(args.color) ? args.color : {})};
+    const result = modernExtend.light(args);
+    result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+    if (args.hueEffect || args.gradient) {
+        result.toZigbee.push(philipsTz.effect);
+        const effects = ['blink', 'breathe', 'okay', 'channel_change', 'candle'];
+        if (args.color) effects.push('fireplace', 'colorloop');
+        if (args.gradient) {
+            result.toZigbee.push(philipsTz.gradient_scene, philipsTz.gradient({reverse: true}));
+            result.fromZigbee.push(philipsFz.gradient);
+            effects.push('sunrise');
+            if (args.gradient !== true) {
+                effects.push(...args.gradient.extraEffects);
             }
-        };
-        result.exposes = result.exposes.concat([
-            // gradient_scene is deprecated, use gradient instead
-            e.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
-            e.list('gradient', ea.ALL, e.text('hex', ea.ALL).withDescription('Color in RGB HEX format (eg #663399)'))
-                .withLengthMin(1)
-                .withLengthMax(9)
-                .withDescription('List of RGB HEX colors'),
-            e.enum('effect', ea.SET, [
-                'blink', 'breathe', 'okay', 'channel_change',
-                'candle', 'fireplace', 'colorloop', 'sunrise',
-                'finish_effect', 'stop_effect', 'stop_hue_effect',
-                ...options.extraEffects,
-            ]),
-        ]);
-        return result;
-    },
-};
+            result.exposes.push(
+                // gradient_scene is deprecated, use gradient instead
+                e.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
+                e.list('gradient', ea.ALL, e.text('hex', ea.ALL).withDescription('Color in RGB HEX format (eg #663399)'))
+                    .withLengthMin(1)
+                    .withLengthMax(9)
+                    .withDescription('List of RGB HEX colors'),
+            );
+            const configure = result.configure;
+            result.configure = async (device, coordinatorEndpoint, logger) => {
+                await configure(device, coordinatorEndpoint, logger);
+                for (const ep of device.endpoints) {
+                    await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
+                }
+            };
+        }
+        effects.push('finish_effect', 'stop_effect', 'stop_hue_effect');
+        result.exposes.push(e.enum('effect', ea.SET, effects));
+    }
+    return result;
+}
 
-const philipsTz = {
+export function philipsOnOff(args?: modernExtend.OnOffArgs) {
+    args = {powerOnBehavior: false, ota: ota.zigbeeOTA, ...args};
+    const result = modernExtend.onOff(args);
+    result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+    return result;
+}
+
+export const philipsTz = {
     gradient_scene: {
         key: ['gradient_scene'],
         convertSet: async (entity, key, value, meta) => {
@@ -410,6 +348,17 @@ const hueEffects = {
 };
 
 export const philipsFz = {
+    philips_contact: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse', 'commandOff', 'commandOn'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.type === 'commandOff' || msg.type === 'commandOn') {
+                return {contact: msg.type === 'commandOff'};
+            } else if (msg.data.hasOwnProperty('onOff')) {
+                return {contact: msg.data['onOff'] === 0};
+            }
+        },
+    } satisfies Fz.Converter,
     hue_tap_dial: {
         cluster: 'manuSpecificPhilips',
         type: 'commandHueNotification',
@@ -457,22 +406,20 @@ export const philipsFz = {
             return payload;
         },
     } satisfies Fz.Converter,
-    gradient: (opts = {reverse: false}) => {
-        return {
-            cluster: 'manuSpecificPhilips2',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                if (msg.data && msg.data.hasOwnProperty('state')) {
-                    const input = msg.data['state'].toString('hex');
-                    const decoded = decodeGradientColors(input, opts);
-                    if (decoded.color_mode === 'gradient') {
-                        return {gradient: decoded.colors};
-                    }
+    gradient: {
+        cluster: 'manuSpecificPhilips2',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data && msg.data.hasOwnProperty('state')) {
+                const input = msg.data['state'].toString('hex');
+                const decoded = decodeGradientColors(input, {reverse: true});
+                if (decoded.color_mode === 'gradient') {
+                    return {gradient: decoded.colors};
                 }
-                return {};
-            },
-        } satisfies Fz.Converter;
-    },
+            }
+            return {};
+        },
+    } satisfies Fz.Converter,
 };
 
 // decoder for manuSpecificPhilips2.state
@@ -684,6 +631,5 @@ exports.tz = philipsTz;
 exports.fz = philipsFz;
 exports.decodeGradientColors = decodeGradientColors;
 exports.encodeGradientColors = encodeGradientColors;
-exports.extend = extend;
 exports.gradientScenes = gradientScenes;
 exports.knownEffects = knownEffects;

@@ -21,6 +21,7 @@ import bankamp from './bankamp';
 import bega from './bega';
 import belkin from './belkin';
 import bitron from './bitron';
+import bituo_technik from './bituo_technik';
 import blaupunkt from './blaupunkt';
 import blitzwolf from './blitzwolf';
 import bosch from './bosch';
@@ -70,6 +71,7 @@ import enbrighten from './enbrighten';
 import enocean from './enocean';
 import envilar from './envilar';
 import essentialb from './essentialb';
+import eucontrols from './eucontrols';
 import eurotronic from './eurotronic';
 import evanell from './evanell';
 import evn from './evn';
@@ -178,6 +180,7 @@ import nanoleaf from './nanoleaf';
 import neo from './neo';
 import net2grid from './net2grid';
 import netvox from './netvox';
+import nexelec from './nexelec';
 import niko from './niko';
 import ninja_blocks from './ninja_blocks';
 import niviss from './niviss';
@@ -227,6 +230,7 @@ import shade_control from './shade_control';
 import shenzhen_homa from './shenzhen_homa';
 import shinasystem from './shinasystem';
 import siglis from './siglis';
+import sikom from './sikom';
 import sinope from './sinope';
 import siterwell from './siterwell';
 import skydance from './skydance';
@@ -243,7 +247,7 @@ import somgoms from './somgoms';
 import sonoff from './sonoff';
 import sowilo from './sowilo';
 import spotmau from './spotmau';
-import sprut from './sprut';
+import wirenboard from './wirenboard';
 import stelpro from './stelpro';
 import sunricher from './sunricher';
 import swann from './swann';
@@ -277,7 +281,7 @@ import wisdom from './wisdom';
 import woolley from './woolley';
 import woox from './woox';
 import wyze from './wyze';
-import xiaomi from './xiaomi';
+import lumi from './lumi';
 import xinghuoyuan from './xinghuoyuan';
 import yale from './yale';
 import ynoa from './ynoa';
@@ -311,6 +315,7 @@ export default [
     ...bega,
     ...belkin,
     ...bitron,
+    ...bituo_technik,
     ...blaupunkt,
     ...blitzwolf,
     ...bosch,
@@ -360,6 +365,7 @@ export default [
     ...enocean,
     ...envilar,
     ...essentialb,
+    ...eucontrols,
     ...eurotronic,
     ...evanell,
     ...evn,
@@ -468,6 +474,7 @@ export default [
     ...neo,
     ...net2grid,
     ...netvox,
+    ...nexelec,
     ...niko,
     ...ninja_blocks,
     ...niviss,
@@ -517,6 +524,7 @@ export default [
     ...shenzhen_homa,
     ...shinasystem,
     ...siglis,
+    ...sikom,
     ...sinope,
     ...siterwell,
     ...skydance,
@@ -533,7 +541,7 @@ export default [
     ...sonoff,
     ...sowilo,
     ...spotmau,
-    ...sprut,
+    ...wirenboard,
     ...stelpro,
     ...sunricher,
     ...swann,
@@ -567,7 +575,7 @@ export default [
     ...woolley,
     ...woox,
     ...wyze,
-    ...xiaomi,
+    ...lumi,
     ...xinghuoyuan,
     ...yale,
     ...ynoa,

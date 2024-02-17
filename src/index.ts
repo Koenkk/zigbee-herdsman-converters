@@ -1,14 +1,46 @@
 import * as configureKey from './lib/configureKey';
 import * as exposes from './lib/exposes';
+import type {Feature, Numeric, Enum, Binary, Text, Composite, List, Light, Climate, Switch, Lock, Cover, Fan} from './lib/exposes';
 import toZigbee from './converters/toZigbee';
 import fromZigbee from './converters/fromZigbee';
 import assert from 'assert';
+import * as ota from './lib/ota';
 import allDefinitions from './devices';
-import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure } from './lib/types';
+import * as utils from './lib/utils';
+import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, Logger } from './lib/types';
+import {generateDefinition} from './lib/generateDefinition';
+import * as logger from './lib/logger';
+
+export {
+    Definition as Definition,
+    OnEventType as OnEventType,
+    Feature as Feature,
+    Expose as Expose,
+    Numeric as Numeric,
+    Binary as Binary,
+    Enum as Enum,
+    Text as Text,
+    Composite as Composite,
+    List as List,
+    Light as Light,
+    Climate as Climate,
+    Switch as Switch,
+    Lock as Lock,
+    Cover as Cover,
+    Fan as Fan,
+    toZigbee as toZigbee,
+    fromZigbee as fromZigbee,
+    Tz as Tz,
+    OtaUpdateAvailableResult as OtaUpdateAvailableResult,
+    ota as ota,
+};
+
+export const getConfigureKey = configureKey.getConfigureKey;
+
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
 const lookup = new Map();
-const definitions: Definition[] = [];
+export const definitions: Definition[] = [];
 
 function arrayEquals<T>(as: T[], bs: T[]) {
     if (as.length !== bs.length) return false;
@@ -59,11 +91,11 @@ function validateDefinition(definition: Definition) {
     assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
-function addDefinition(definition: Definition) {
+function processExtensions(definition: Definition): Definition {
     if ('extend' in definition) {
         if (Array.isArray(definition.extend)) {
             // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
-            let {extend, toZigbee, fromZigbee, exposes, meta, configure: definitionConfigure, onEvent, ota, ...definitionWithoutExtend} = definition;
+            let {extend, toZigbee, fromZigbee, exposes, meta, endpoint, configure: definitionConfigure, onEvent, ota, ...definitionWithoutExtend} = definition;
             if (typeof exposes === 'function') {
                 assert.fail(`'${definition.model}' has function exposes which is not allowed`);
             }
@@ -88,6 +120,12 @@ function addDefinition(definition: Definition) {
                     }
                     ota = ext.ota;
                 }
+                if (ext.endpoint) {
+                    if (endpoint) {
+                        assert.fail(`'${definition.model}' has multiple 'endpoint', this is not allowed`);
+                    }
+                    endpoint = ext.endpoint;
+                }
                 if (ext.onEvent) {
                     if (onEvent) {
                         assert.fail(`'${definition.model}' has multiple 'onEvent', this is not allowed`);
@@ -104,7 +142,7 @@ function addDefinition(definition: Definition) {
                     }
                 }
             }
-            definition = {toZigbee, fromZigbee, exposes, meta, configure, onEvent, ota, ...definitionWithoutExtend};
+            definition = {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
         } else {
             // Legacy extend, overrides properties, e.g. when both extend and definition has toZigbee, definition toZigbee will be used
             const {extend, ...definitionWithoutExtend} = definition;
@@ -137,6 +175,12 @@ function addDefinition(definition: Definition) {
         }
     }
 
+    return definition
+}
+
+function prepareDefinition(definition: Definition): Definition {
+    definition = processExtensions(definition);
+
     definition.toZigbee.push(
         toZigbee.scene_store, toZigbee.scene_recall, toZigbee.scene_add, toZigbee.scene_remove, toZigbee.scene_remove_all, 
         toZigbee.scene_rename, toZigbee.read, toZigbee.write,
@@ -147,10 +191,25 @@ function addDefinition(definition: Definition) {
     }
 
     validateDefinition(definition);
-    definitions.splice(0, 0, definition);
 
+    // Add all the options
     if (!definition.options) definition.options = [];
     const optionKeys = definition.options.map((o) => o.name);
+
+    // Add calibration/precision options based on expose
+    for (const expose of Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null)) {
+        if (!optionKeys.includes(expose.name) && utils.isNumericExposeFeature(expose) && expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision) {
+            // Battery voltage is not calibratable
+            if (expose.name === 'voltage' && expose.unit === 'mV') continue;
+            const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? 'percentual' : 'absolute';
+            definition.options.push(exposes.options.calibration(expose.name, type));
+            if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
+                definition.options.push(exposes.options.precision(expose.name));
+            }
+            optionKeys.push(expose.name);
+        }
+    }
+
     for (const converter of [...definition.toZigbee, ...definition.fromZigbee]) {
         if (converter.options) {
             const options = typeof converter.options === 'function' ? converter.options(definition) : converter.options;
@@ -162,6 +221,29 @@ function addDefinition(definition: Definition) {
             }
         }
     }
+
+    return definition
+}
+
+export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue, logger: Logger) {
+    // Apply calibration/precision options
+    for (const [key, value] of Object.entries(payload)) {
+        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null);
+        const expose = definitionExposes.find((e) => e.property === key);
+        if (expose?.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision && utils.isNumber(value)) {
+            try {
+                payload[key] = utils.calibrateAndPrecisionRoundOptions(value, options, expose.name);
+            } catch (error) {
+                logger.error(`Failed to apply calibration to '${expose.name}': ${error.message}`);
+            }
+        }
+    }
+}
+
+export function addDefinition(definition: Definition) {
+    definition = prepareDefinition(definition)
+
+    definitions.splice(0, 0, definition);
 
     if ('fingerprint' in definition) {
         for (const fingerprint of definition.fingerprint) {
@@ -180,18 +262,8 @@ for (const definition of allDefinitions) {
     addDefinition(definition);
 }
 
-function findByZigbeeModel(zigbeeModel: string) {
-    if (!zigbeeModel) {
-        return null;
-    }
-
-    const candidates = getFromLookup(zigbeeModel);
-    // Multiple candidates possible, to use external converters in priority, use last one.
-    return candidates ? candidates[candidates.length-1] : null;
-}
-
-export function findByDevice(device: Zh.Device) {
-    let definition = findDefinition(device);
+export async function findByDevice(device: Zh.Device, generateForUnknown: boolean = false) {
+    let definition = await findDefinition(device, generateForUnknown);
     if (definition && definition.whiteLabel) {
         const match = definition.whiteLabel.find((w) => 'fingerprint' in w && w.fingerprint.find((f) => isFingerprintMatch(f, device)));
         if (match) {
@@ -206,14 +278,20 @@ export function findByDevice(device: Zh.Device) {
     return definition;
 }
 
-function findDefinition(device: Zh.Device): Definition {
+export async function findDefinition(device: Zh.Device, generateForUnknown: boolean = false): Promise<Definition> {
     if (!device) {
         return null;
     }
 
     const candidates = getFromLookup(device.modelID);
     if (!candidates) {
-        return null;
+        if (!generateForUnknown || device.type === 'Coordinator') {
+            return null;
+        }
+
+        // Do not add this definition to cache,
+        // as device configuration might change.
+        return prepareDefinition((await generateDefinition(device)).definition);
     } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
         return candidates[0];
     } else {
@@ -244,6 +322,10 @@ function findDefinition(device: Zh.Device): Definition {
     }
 
     return null;
+}
+
+export async function generateExternalDefinitionSource(device: Zh.Device): Promise<string> {
+    return (await generateDefinition(device)).externalDefinitionSource;
 }
 
 function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device) {
@@ -279,7 +361,7 @@ function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device) {
     return match;
 }
 
-function findByModel(model: string){
+export function findByModel(model: string){
     /*
     Search device description by definition model name.
     Useful when redefining, expanding device descriptions in external converters.
@@ -291,41 +373,31 @@ function findByModel(model: string){
     });
 }
 
-module.exports = {
-    getConfigureKey: configureKey.getConfigureKey,
-    devices: definitions,
-    exposes,
-    definitions,
-    findByZigbeeModel, // Legacy method, use findByDevice instead.
-    findByDevice,
-    findByModel,
-    toZigbeeConverters: toZigbee,
-    fromZigbeeConverters: fromZigbee,
-    addDeviceDefinition: addDefinition,
-    // Can be used to handle events for devices which are not fully paired yet (no modelID).
-    // Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
-    onEvent: async (type: OnEventType, data: OnEventData, device: Zh.Device) => {
-        // support Legrand security protocol
-        // when pairing, a powered device will send a read frame to every device on the network
-        // it expects at least one answer. The payload contains the number of seconds
-        // since when the device is powered. If the value is too high, it will leave & not pair
-        // 23 works, 200 doesn't
-        if (data.meta && data.meta.manufacturerCode === 0x1021 && type === 'message' && data.type === 'read' &&
-            data.cluster === 'genBasic' && data.data && data.data.includes(61440)) {
-            const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
-            const payload = {0xf00: {value: 23, type: 35}};
-            await endpoint.readResponse('genBasic', data.meta.zclTransactionSequenceNumber, payload, options);
-        }
-        // Aqara feeder C1 polls the time during the interview, need to send back the local time instead of the UTC.
-        // The device.definition has not yet been set - therefore the device.definition.onEvent method does not work.
-        if (type === 'message' && data.type === 'read' && data.cluster === 'genTime' &&
-            device.modelID === 'aqara.feeder.acn001') {
-            device.skipTimeResponse = true;
-            const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
-            const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
-            const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
-            await device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal});
-        }
-    },
-};
+// Can be used to handle events for devices which are not fully paired yet (no modelID).
+// Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
+export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.Device) {
+    // support Legrand security protocol
+    // when pairing, a powered device will send a read frame to every device on the network
+    // it expects at least one answer. The payload contains the number of seconds
+    // since when the device is powered. If the value is too high, it will leave & not pair
+    // 23 works, 200 doesn't
+    if (data.meta && data.meta.manufacturerCode === 0x1021 && type === 'message' && data.type === 'read' &&
+        data.cluster === 'genBasic' && data.data && data.data.includes(61440)) {
+        const endpoint = device.getEndpoint(1);
+        const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
+        const payload = {0xf00: {value: 23, type: 35}};
+        await endpoint.readResponse('genBasic', data.meta.zclTransactionSequenceNumber, payload, options);
+    }
+    // Aqara feeder C1 polls the time during the interview, need to send back the local time instead of the UTC.
+    // The device.definition has not yet been set - therefore the device.definition.onEvent method does not work.
+    if (type === 'message' && data.type === 'read' && data.cluster === 'genTime' &&
+        device.modelID === 'aqara.feeder.acn001') {
+        device.skipTimeResponse = true;
+        const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+        const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
+        const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
+        await device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal});
+    }
+}
+
+export const setLogger = logger.setLogger;

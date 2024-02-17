@@ -291,7 +291,6 @@ const definitions: Definition[] = [
             await endpoint3.configureReporting('hvacThermostat', [
                 {attribute: 'runningMode', minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1}]);
             await endpoint3.read('hvacThermostat', ['localTemp', 'occupiedHeatingSetpoint', 'systemMode', 'runningMode']);
-            await endpoint3.read('hvacThermostat', [30464, 30465], manufacturerOptions);
         },
     },
     {
@@ -507,7 +506,6 @@ const definitions: Definition[] = [
             await endpoint4.configureReporting('hvacThermostat', [
                 {attribute: 'runningMode', minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1}]);
             await endpoint4.read('hvacThermostat', ['localTemp', 'occupiedHeatingSetpoint', 'systemMode', 'runningMode']);
-            await endpoint4.read('hvacThermostat', [30464, 30465], manufacturerOptions);
         },
     },
 ];

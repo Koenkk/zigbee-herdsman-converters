@@ -1,5 +1,4 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
 import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import {light} from '../lib/modernExtend';
@@ -12,7 +11,7 @@ const definitions: Definition[] = [
         model: '5412748727371',
         vendor: 'Prolight',
         description: 'E27 white and colour bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
         zigbeeModel: ['PROLIGHT E27 WARM WHITE CLEAR'],
@@ -33,7 +32,7 @@ const definitions: Definition[] = [
         model: '5412748727401',
         vendor: 'Prolight',
         description: 'GU10 white and colour spot',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+        extend: [light({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
         zigbeeModel: ['PROLIGHT GU10 WARM WHITE'],

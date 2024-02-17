@@ -178,7 +178,7 @@ const definitions: Definition[] = [
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});
             }
         },
-        exposes: [e.lock(), e.battery(), e.pincode(),
+        exposes: [e.lock(), e.battery(), e.pincode(), e.door_state(),
             e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
             e.enum('sound_volume', ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock'),
             e.binary('master_pin_mode', ea.ALL, true, false).withDescription('Allow Master PIN Unlock'),

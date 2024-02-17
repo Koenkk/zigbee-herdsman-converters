@@ -3,10 +3,10 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import {Zcl} from 'zigbee-herdsman';
+import {onOff, light} from '../lib/modernExtend';
 import {KeyValueAny, Fz, Tz, Definition} from '../lib/types';
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode._4_NOKS};
@@ -72,22 +72,14 @@ const definitions: Definition[] = [
         model: 'AV2010/16',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wall-mount relay with dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['AV2010/18', '902010/18'],
         model: 'AV2010/18',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wall-mount relay',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['AV2010/21A', '902010/21A'],
@@ -201,22 +193,14 @@ const definitions: Definition[] = [
         model: 'AV2010/26',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless socket with dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['AV2010/28', '902010/28'],
         model: 'AV2010/28',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless socket',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['AV2010/29', '902010/29'],

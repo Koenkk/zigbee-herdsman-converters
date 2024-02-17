@@ -1,5 +1,4 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
 import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
@@ -19,7 +18,7 @@ const definitions: Definition[] = [
         model: '13557',
         vendor: 'Bega',
         description: 'LED lamp with adjustable LED color temperature (Tunable White - RGBW) for use in luminaires with E27 lamp base',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556]}),
+        extend: [light({colorTemp: {range: [153, 556]}, color: true})],
     },
 ];
 

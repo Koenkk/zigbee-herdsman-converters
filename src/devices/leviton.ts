@@ -4,8 +4,8 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import * as utils from '../lib/utils';
+import {light, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -29,62 +29,35 @@ const definitions: Definition[] = [
         model: 'DL15S-1BZ',
         vendor: 'Leviton',
         description: 'Lumina RF 15A switch, 120/277V',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['DG6HD'],
         model: 'DG6HD-1BW',
         vendor: 'Leviton',
         description: 'Zigbee in-wall smart dimmer',
-        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({effect: false, configureReporting: true})],
     },
     {
         zigbeeModel: ['DG3HL'],
         model: 'DG3HL-1BW',
         vendor: 'Leviton',
         description: 'Indoor Decora smart Zigbee 3.0 certified plug-in dimmer',
-        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({effect: false, configureReporting: true})],
     },
     {
         zigbeeModel: ['DG15A'],
         model: 'DG15A-1BW',
         vendor: 'Leviton',
         description: 'Indoor Decora smart Zigbee 3.0 certified plug-in outlet',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['DG15S'],
         model: 'DG15S-1BW',
         vendor: 'Leviton',
         description: 'Decora smart Zigbee 3.0 certified 15A switch',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['65A01-1'],
@@ -122,24 +95,16 @@ const definitions: Definition[] = [
         vendor: 'Leviton',
         description: 'Wall switch, 0-10V dimmer, 120-277V, Lumina™ RF',
         meta: {disableDefaultResponse: true},
-        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
-        fromZigbee: [fz.on_off, fzLocal.on_off_via_brightness, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config],
-        exposes: [e.light_brightness(),
+        extend: [light({effect: false, configureReporting: true})],
+        fromZigbee: [fzLocal.on_off_via_brightness, fz.lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config],
+        exposes: [
             // Note: ballast_power_on_level used to be here, but it doesn't appear to work properly with this device
             // If set, it's reset back to 0 when the device is turned off then back to 32 when turned on
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
             e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum brightness value')],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
-            // This device doesn't reliably report state changes - make it chatty to compensate for that
-            // This feels like a hack - hopefully there is a better fix at some point
-            await reporting.onOff(endpoint, {max: 5});
-            await reporting.brightness(endpoint, {max: 5});
-        },
     },
 ];
 

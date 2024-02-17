@@ -1,5 +1,4 @@
 import {Definition} from '../lib/types';
-import extend from '../lib/extend';
 import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
@@ -8,21 +7,21 @@ const definitions: Definition[] = [
         model: 'A9A19A60WESDZ02',
         vendor: 'EcoSmart',
         description: 'Tuneable white (A19)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['Ecosmart-ZBT-BR30-CCT-Bulb'],
         model: 'A9BR3065WESDZ02',
         vendor: 'EcoSmart',
         description: 'Tuneable white (BR30)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['zhaRGBW'],
         model: 'D1821',
         vendor: 'EcoSmart',
         description: 'A19 RGB bulb',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: [light({colorTemp: {range: undefined}, color: true})],
     },
     {
         // eslint-disable-next-line

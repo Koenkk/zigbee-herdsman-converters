@@ -8,14 +8,59 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {onOff} from '../lib/modernExtend';
+import {onOff, light, electricityMeter, identify, enumLookup} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const exposesLocal = {
-    indicator_mode: e.enum('indicator_mode', ea.ALL, ['consistent_with_load', 'reverse_with_load', 'always_off', 'always_on'])
-        .withDescription('Led Indicator Mode'),
-};
+function indicatorMode(endpoint?: string) {
+    let description = 'Set Indicator Mode.';
+    if (endpoint) {
+        description = 'Set Indicator Mode for ' + endpoint + ' Button.';
+    }
+    return enumLookup({
+        name: 'indicator_mode',
+        lookup: {
+            'reverse_with_load': 2,
+            'consistent_with_load': 0,
+            'always_off': 3,
+            'always_on': 1,
+        },
+        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
+        attribute: {ID: 0x0000, type: 0x30},
+        description: description,
+        endpoint: endpoint,
+    });
+}
+
+function switchActions(endpoint?: string) {
+    let description = 'Set Switch Action.';
+    if (endpoint) {
+        description = 'Set Switch Action for ' + endpoint + ' Button.';
+    }
+    return enumLookup({
+        name: 'switch_actions',
+        lookup: {
+            'light': 0,
+            'light_opposite': 254,
+            'dimmer': 1,
+            'dimmer_opposite': 253,
+            'standard_shutter': 2,
+            'standard_shutter_opposite': 252,
+            'schneider_shutter': 3,
+            'schneider_shutter_opposite': 251,
+            'scene': 4,
+            'toggle_light': 5,
+            'toggle_dimmer': 6,
+            'alternate_light': 7,
+            'alternate_dimmer': 8,
+            'not_used': 127,
+        },
+        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
+        attribute: 'SwitchActions',
+        description: description,
+        endpoint: endpoint,
+    });
+}
 
 const tzLocal = {
     lift_duration: {
@@ -25,21 +70,12 @@ const tzLocal = {
             return {state: {lift_duration: value}};
         },
     } satisfies Tz.Converter,
-    indicator_mode: {
-        key: ['indicator_mode'],
+    fan_mode: {
+        ...tz.fan_mode,
         convertSet: async (entity, key, value, meta) => {
-            utils.assertEndpoint(entity);
             utils.assertString(value);
-            const endpoint = entity.getDevice().getEndpoint(21);
-            const lookup: KeyValue = {'reverse_with_load': 2, 'consistent_with_load': 0, 'always_off': 3, 'always_on': 1};
-            utils.validateValue(value, Object.keys(lookup));
-            await endpoint.write(0xFF17, {0x0000: {value: lookup[value], type: 0x30}}, {manufacturerCode: 0x105e});
-            return {state: {indicator_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            utils.assertEndpoint(entity);
-            const endpoint = entity.getDevice().getEndpoint(21);
-            await endpoint.read(0xFF17, [0x0000], {manufacturerCode: 0x105e});
+            if (value.toLowerCase() === 'on') value = 'low';
+            return tz.fan_mode.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
 };
@@ -173,7 +209,7 @@ const fzLocal = {
             if (rxAfterTx) {
                 // Send Schneider specific ACK to make PowerTag happy
                 // @ts-expect-error
-                const networkParameters = await msg.device.zh.constructor.adapter.getNetworkParameters();
+                const networkParameters = await msg.device.constructor.adapter.getNetworkParameters();
                 const payload = {
                     options: 0b000,
                     tempMaster: msg.data.gppNwkAddr,
@@ -194,18 +230,6 @@ const fzLocal = {
             }
 
             return ret;
-        },
-    } satisfies Fz.Converter,
-    indicator_mode: {
-        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const lookup: KeyValue = {0: 'consistent_with_load', 1: 'always_on', 2: 'reverse_with_load', 3: 'always_off'};
-            if ('indicator_mode' in msg.data) {
-                result.indicator_mode = lookup[msg.data['indicator_mode']];
-            }
-            return result;
         },
     } satisfies Fz.Converter,
 };
@@ -252,8 +276,10 @@ const definitions: Definition[] = [
             legacy.fz.wiser_thermostat, legacy.fz.wiser_itrv_battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
-        exposes: [e.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature(ea.STATE)
-            .withRunningState(['idle', 'heat'], ea.STATE).withPiHeatingDemand(), e.battery(), e.battery_voltage()],
+        exposes: [
+            e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature(ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE).withPiHeatingDemand(), e.battery(), e.battery_voltage(),
+            e.keypad_lockout().withAccess(ea.ALL)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'haDiagnostic'];
@@ -272,23 +298,7 @@ const definitions: Definition[] = [
         model: 'U202DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 2 gang 2x300W dimmer module',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint1 = device.getEndpoint(10);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint1);
-            await reporting.brightness(endpoint1);
-            const endpoint2 = device.getEndpoint(11);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint2);
-            await reporting.brightness(endpoint2);
-        },
-        endpoint: (device) => {
-            return {l1: 10, l2: 11};
-        },
+        extend: [light({endpoints: {l1: 10, l2: 11}, configureReporting: true})],
     },
     {
         zigbeeModel: ['PUCK/DIMMER/1'],
@@ -318,13 +328,16 @@ const definitions: Definition[] = [
         model: 'CCT5011-0001/CCT5011-0002/MEG5011-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module switch',
-        extend: extend.switch({disablePowerOnBehavior: true}),
+        extend: [onOff({powerOnBehavior: false})],
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+    },
+    {
+        zigbeeModel: ['CCTFR6730'],
+        model: 'CCTFR6730',
+        vendor: 'Schneider Electric',
+        description: 'Wiser power micromodule',
+        whiteLabel: [{vendor: 'Elko', model: 'EKO20004'}],
+        extend: [onOff({powerOnBehavior: true}), electricityMeter({'cluster': 'metering'}), identify()],
     },
     {
         zigbeeModel: ['NHROTARY/DIMMER/1'],
@@ -430,14 +443,14 @@ const definitions: Definition[] = [
         model: '41EPBDWCLMZ/354PBDMBTZ',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series Module Dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration, fzLocal.indicator_mode],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.indicator_mode],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
         exposes: [e.light_brightness(),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the maximum light output of the ballast'),
-            exposesLocal.indicator_mode],
+                .withDescription('Specifies the maximum light output of the ballast')],
+        extend: [indicatorMode()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
@@ -451,11 +464,7 @@ const definitions: Definition[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 2A',
         ota: ota.zigbeeOTA,
-        extend: extend.switch( {
-            exposes: [exposesLocal.indicator_mode],
-            fromZigbee: [fzLocal.indicator_mode],
-            toZigbee: [tzLocal.indicator_mode],
-        }),
+        extend: [indicatorMode()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -467,15 +476,25 @@ const definitions: Definition[] = [
         model: '41E10PBSWMZ-VW',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 10A with ControlLink',
-        extend: extend.switch({
-            exposes: [exposesLocal.indicator_mode],
-            fromZigbee: [fzLocal.indicator_mode],
-            toZigbee: [tzLocal.indicator_mode],
-        }),
+        extend: [indicatorMode()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['CHFAN/SWITCH/1'],
+        model: '41ECSFWMZ-VW',
+        vendor: 'Schneider Electric',
+        description: 'Wiser 40/300-Series Module AC Fan Controller',
+        fromZigbee: [fz.fan],
+        toZigbee: [tzLocal.fan_mode],
+        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(7);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
+            await reporting.fanMode(endpoint);
         },
     },
     {
@@ -504,26 +523,14 @@ const definitions: Definition[] = [
         model: 'U201DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 1 gang 550W dimmer module',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(10);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['U201SRY2KWZB'],
         model: 'U201SRY2KWZB',
         vendor: 'Schneider Electric',
         description: 'Ulti 240V 9.1 A 1 gang relay switch impress switch module, amber LED',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(10);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['CCTFR6100'],
@@ -553,32 +560,14 @@ const definitions: Definition[] = [
         model: 'S520530W',
         vendor: 'Schneider Electric',
         description: 'Odace connectable relay switch 10A',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['U202SRY2KWZB'],
         model: 'U202SRY2KWZB',
         vendor: 'Schneider Electric',
         description: 'Ulti 240V 9.1 A 2 gangs relay switch impress switch module, amber LED',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(10);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            const endpoint2 = device.getEndpoint(11);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint2);
-        },
-        endpoint: (device) => {
-            return {l1: 10, l2: 11};
-        },
+        extend: [onOff({endpoints: {l1: 10, l2: 11}})],
     },
     {
         zigbeeModel: ['1GANG/SHUTTER/1'],
@@ -610,11 +599,38 @@ const definitions: Definition[] = [
                 .withDescription('Specifies the maximum light output of the ballast'),
             e.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
                 .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
+        extend: [indicatorMode(), switchActions()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['2GANG/DIMMER/1'],
+        model: 'MEG5126-0300/MEG5171-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (2fold)',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        exposes: [e.light_brightness().withLevelConfig(),
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
+            e.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
+                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
+        extend: [indicatorMode('right'), indicatorMode('left'), switchActions('right'), switchActions('left')],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+        endpoint: (device) => {
+            return {'right': 21, 'left': 22};
         },
     },
     {
@@ -814,20 +830,7 @@ const definitions: Definition[] = [
         model: 'MEG5126-0300',
         vendor: 'Schneider Electric',
         description: 'Merten MEG5165 PlusLink relais insert with Merten Wiser System M push button (2fold)',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint2);
-        },
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
     },
     {
         zigbeeModel: ['EH-ZB-VACT'],
@@ -1070,20 +1073,7 @@ const definitions: Definition[] = [
         model: '3025CSGZ',
         vendor: 'Schneider Electric',
         description: 'Dual connected smart socket',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint2);
-        },
+        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
     },
     {
         zigbeeModel: ['CCT592011_AS'],
@@ -1131,7 +1121,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        zigbeeModel: ['W599001', 'W599501'],
+        zigbeeModel: ['W599001', 'W599501', '755WSA'],
         model: 'W599001',
         vendor: 'Schneider Electric',
         description: 'Wiser smoke alarm',
@@ -1157,6 +1147,7 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             {vendor: 'Schneider Electric', model: 'W599501', description: 'Wiser smoke alarm', fingerprint: [{modelID: 'W599501'}]},
+            {vendor: 'Schneider Electric', model: '755WSA', description: 'Clipsal Wiser smoke alarm', fingerprint: [{modelID: '755WSA'}]},
         ],
     },
     {

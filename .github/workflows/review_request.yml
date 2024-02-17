@@ -4,6 +4,7 @@ on: [pull_request]
 
 jobs:
   review-request:
+    permissions: write-all
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

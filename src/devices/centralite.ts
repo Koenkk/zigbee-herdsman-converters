@@ -4,11 +4,10 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as constants from '../lib/constants';
-import {light} from '../lib/modernExtend';
+import {light, onOff} from '../lib/modernExtend';
 
 const fzLocal = {
     thermostat_3156105: {
@@ -272,11 +271,7 @@ const definitions: Definition[] = [
         model: '4200-C',
         vendor: 'Centralite',
         description: 'Smart outlet',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['3310-G'],

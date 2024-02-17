@@ -310,7 +310,7 @@ const silvercrestEffects: KeyValueAny = {
     rainbow: '02',
     snake: '03',
     twinkle: '04',
-    firework: '08',
+    firework: '05',
     horizontal_flag: '06',
     waves: '07',
     updown: '08',
@@ -360,6 +360,7 @@ const tvThermostatMode: KeyValueAny = {
 const tvThermostatPreset: KeyValueAny = {
     0: 'auto',
     1: 'manual',
+    2: 'holiday',
     3: 'holiday',
 };
 // Zemismart ZM_AM02 Roller Shade Converter
@@ -1840,28 +1841,6 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    WXKG11LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const data = msg.data;
-                let clicks;
-
-                if (data.onOff) {
-                    clicks = 1;
-                } else if (data['32768']) {
-                    clicks = data['32768'];
-                }
-
-                const actionLookup: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
-                if (actionLookup[clicks]) {
-                    return {click: actionLookup[clicks]};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
     SmartButton_skip: {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
@@ -1890,38 +1869,6 @@ const fromZigbee1 = {
                     128: {click: 'single'}, // single click
                     129: {click: 'double'}, // double and many click
                     130: {click: 'long'}, // hold
-                };
-
-                return lookup[value] ? lookup[value] : null;
-            }
-        },
-    } satisfies Fz.Converter,
-    xiaomi_action_click_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const value = msg.data['presentValue'];
-                const lookup: KeyValueAny = {
-                    1: {click: 'single'}, // single click
-                    2: {click: 'double'}, // double click
-                };
-
-                return lookup[value] ? lookup[value] : null;
-            }
-        },
-    } satisfies Fz.Converter,
-    WXKG12LM_action_click_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const value = msg.data['presentValue'];
-                const lookup: KeyValueAny = {
-                    1: {click: 'single'}, // single click
-                    2: {click: 'double'}, // double click
                 };
 
                 return lookup[value] ? lookup[value] : null;
@@ -2109,60 +2056,6 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    QBKG11LM_click: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if ([1, 2].includes(msg.data.presentValue)) {
-                    const times: KeyValueAny = {1: 'single', 2: 'double'};
-                    return {click: times[msg.data.presentValue]};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    QBKG12LM_click: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if ([1, 2].includes(msg.data.presentValue)) {
-                    const mapping: KeyValueAny = {5: 'left', 6: 'right', 7: 'both'};
-                    const times: KeyValueAny = {1: 'single', 2: 'double'};
-                    const button = mapping[msg.endpoint.ID];
-                    return {click: `${button}_${times[msg.data.presentValue]}`};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    QBKG03LM_QBKG12LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if (!msg.data['61440']) {
-                    const mapping: KeyValueAny = {4: 'left', 5: 'right', 6: 'both'};
-                    const button = mapping[msg.endpoint.ID];
-                    return {click: button};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    QBKG04LM_QBKG11LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if (!msg.data['61440']) {
-                    return {click: 'single'};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
     cover_stop: {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',
@@ -2193,16 +2086,6 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    WXKG03LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: 'single'};
-            }
-        },
-    } satisfies Fz.Converter,
     TS0218_click: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
@@ -2212,109 +2095,6 @@ const fromZigbee1 = {
                 return {action: 'click'};
             } else {
                 return fromZigbeeConverters.command_emergency.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    xiaomi_on_off_action: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {action: getKey(model.endpoint(msg.device), msg.endpoint.ID)};
-            } else {
-                return fromZigbeeConverters.xiaomi_on_off_action.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    WXKG02LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const lookup: KeyValueAny = {1: 'left', 2: 'right', 3: 'both'};
-                return {click: lookup[msg.endpoint.ID]};
-            }
-        },
-    } satisfies Fz.Converter,
-    WXKG02LM_click_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            // Somestime WXKG02LM sends multiple messages on a single click, this prevents handling
-            // of a message with the same transaction sequence number twice.
-            const current = msg.meta.zclTransactionSequenceNumber;
-            if (fromZigbeeStore[msg.device.ieeeAddr + 'legacy'] === current) return;
-            fromZigbeeStore[msg.device.ieeeAddr + 'legacy'] = current;
-
-            const buttonLookup: KeyValueAny = {1: 'left', 2: 'right', 3: 'both'};
-            const button = buttonLookup[msg.endpoint.ID];
-            const value = msg.data['presentValue'];
-
-            const actionLookup: KeyValueAny = {
-                0: 'long',
-                1: null,
-                2: 'double',
-            };
-
-            const action = actionLookup[value];
-
-            if (button) {
-                if (utils.isLegacyEnabled(options)) {
-                    return {click: button + (action ? `_${action}` : '')};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    WXKG01LM_click: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const deviceID = msg.device.ieeeAddr;
-                const state = msg.data['onOff'];
-                const key = `${deviceID}_legacy`;
-
-                if (!fromZigbeeStore[key]) {
-                    fromZigbeeStore[key] = {};
-                }
-
-                const current = msg.meta.zclTransactionSequenceNumber;
-                if (fromZigbeeStore[key].transaction === current) return;
-                fromZigbeeStore[key].transaction = current;
-
-                // 0 = click down, 1 = click up, else = multiple clicks
-                if (state === 0) {
-                    fromZigbeeStore[key].timer = setTimeout(() => {
-                        publish({click: 'long'});
-                        fromZigbeeStore[key].timer = null;
-                        fromZigbeeStore[key].long = Date.now();
-                        fromZigbeeStore[key].long_timer = setTimeout(() => {
-                            fromZigbeeStore[key].long = false;
-                        }, 4000); // After 4000 milliseconds of not receiving long_release we assume it will not happen.
-                        // @ts-expect-error
-                    }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
-                } else if (state === 1) {
-                    if (fromZigbeeStore[key].long) {
-                        const duration = Date.now() - fromZigbeeStore[key].long;
-                        publish({click: 'long_release', duration: duration});
-                        fromZigbeeStore[key].long = false;
-                    }
-
-                    if (fromZigbeeStore[key].timer) {
-                        clearTimeout(fromZigbeeStore[key].timer);
-                        fromZigbeeStore[key].timer = null;
-                        publish({click: 'single'});
-                    }
-                } else {
-                    const clicks = msg.data['32768'];
-                    const actionLookup: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
-                    const payload = actionLookup[clicks] ? actionLookup[clicks] : 'many';
-                    publish({click: payload});
-                }
             }
         },
     } satisfies Fz.Converter,
@@ -2463,26 +2243,6 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_multistate_action: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            // refactor to xiaomi_multistate_action]
-            if (utils.isLegacyEnabled(options)) {
-                const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-                const value = msg.data['presentValue'];
-                const actionLookup: KeyValueAny = {0: 'long', 1: null, 2: 'double'};
-                const action = actionLookup[value];
-
-                if (button) {
-                    return {action: `${button}${(action ? `_${action}` : '')}`};
-                }
-            } else {
-                return fromZigbeeConverters.xiaomi_multistate_action.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
     E1744_play_pause: {
         cluster: 'genOnOff',
         type: 'commandToggle',
@@ -2619,39 +2379,6 @@ const fromZigbee1 = {
                 return {action: modeLookup[action]};
             } else {
                 return fromZigbeeConverters.command_arm.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    QBKG25LM_click: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                if ([1, 2, 3, 0, 255].includes(msg.data.presentValue)) {
-                    const mapping: KeyValueAny = {41: 'left', 42: 'center', 43: 'right'};
-                    const times: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 0: 'hold', 255: 'release'};
-                    const button = mapping[msg.endpoint.ID];
-                    return {action: `${button}_${times[msg.data.presentValue]}`};
-                }
-            } else {
-                return fromZigbeeConverters.xiaomi_multistate_action.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    QBKG03LM_buttons: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                const mapping: KeyValueAny = {4: 'left', 5: 'right'};
-                const button = mapping[msg.endpoint.ID];
-                if (button) {
-                    const payload: KeyValueAny = {};
-                    payload[`button_${button}`] = msg.data['onOff'] === 1 ? 'release' : 'hold';
-                    return payload;
-                }
             }
         },
     } satisfies Fz.Converter,
@@ -3786,6 +3513,7 @@ const fromZigbee1 = {
             const dpValue = firstDpValue(msg, meta, 'moes_thermostat');
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
+            const stateLookup: KeyValueAny = {'0': 'cool', '1': 'heat', '2': 'fan_only'};
             let temperature;
             /* See tuyaThermostat above for message structure comment */
             switch (dp) {
@@ -3832,10 +3560,18 @@ const fromZigbee1 = {
                 };
             case dataPoints.state: // Thermostat on standby = OFF, running = ON
                 if (model.model === 'BAC-002-ALZB') {
-                    return {system_mode: value ? 'cool' : 'off'};
+                    if (!value) {
+                        return {system_mode: 'off'};
+                    }
+                    return;
                 } else {
                     return {system_mode: value ? 'heat' : 'off'};
                 }
+            case dataPoints.tvMode:
+                if (model.model === 'BAC-002-ALZB') {
+                    return {system_mode: stateLookup[value]};
+                }
+                return {preset_mode: value ? 'program' : 'hold', preset: value ? 'program' : 'hold'};
             case dataPoints.moesChildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case dataPoints.moesHeatingSetpoint:
@@ -3878,14 +3614,16 @@ const fromZigbee1 = {
                         temperature = temperature / 10;
                     }
                 }
-                return {local_temperature: parseFloat(temperature.toFixed(1))};
+                temperature = parseFloat(temperature.toFixed(1));
+                if (temperature < 100) {
+                    return {local_temperature: parseFloat(temperature.toFixed(1))};
+                }
+                break;
             case dataPoints.moesTempCalibration:
                 temperature = value;
                 // for negative values produce complimentary hex (equivalent to negative values)
                 if (temperature > 4000) temperature = temperature - 4096;
                 return {local_temperature_calibration: temperature};
-            case dataPoints.moesHold: // state is inverted, preset_mode is deprecated
-                return {preset_mode: value ? 'program' : 'hold', preset: value ? 'program' : 'hold'};
             case dataPoints.moesScheduleEnable: // state is inverted, preset_mode is deprecated
                 return {preset_mode: value ? 'hold' : 'program', preset: value ? 'hold' : 'program'};
             case dataPoints.moesValve:
@@ -3982,54 +3720,43 @@ const fromZigbee1 = {
     tuya_air_quality: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: (definition: any) => {
-            const result = [
-                exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-                exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
-                exposes.options.precision('co2'), exposes.options.calibration('co2'),
-                exposes.options.precision('voc'), exposes.options.calibration('voc'),
-                exposes.options.precision('formaldehyd'), exposes.options.calibration('formaldehyd'),
-            ];
-            if (definition.exposes.find((e: any) => e.name === 'pm25')) {
-                result.push(exposes.options.precision('pm25'), exposes.options.calibration('pm25'));
-            }
-            return result;
-        },
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'tuya_air_quality');
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.tuyaSabTemp:
-                return {temperature: utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+                return {temperature: (value > 0x2000 ? value - 0xFFFF : value) / 10};
             case dataPoints.tuyaSabHumidity:
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity')};
+                return {humidity: value / 10};
                 // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
             case dataPoints.tuyaSabFormaldehyd:
                 if (['_TZE200_dwcarsat', '_TZE200_ryfmq5rl', '_TZE200_mja3fuja'].includes(meta.device.manufacturerName)) {
-                    return {co2: utils.calibrateAndPrecisionRoundOptions(value, options, 'co2')};
+                    return {co2: value};
                 } else {
-                    return {formaldehyd: utils.calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
+                    return {formaldehyd: value};
                 }
                 // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
             case dataPoints.tuyaSabCO2:
-                if (['_TZE200_mja3fuja', '_TZE200_dwcarsat'].includes(meta.device.manufacturerName)) {
+                if (['_TZE200_dwcarsat'].includes(meta.device.manufacturerName)) {
                     // Ignore: https://github.com/Koenkk/zigbee2mqtt/issues/11033#issuecomment-1109808552
                     if (value === 0xaaac || value === 0xaaab) return;
-                    return {pm25: utils.calibrateAndPrecisionRoundOptions(value, options, 'pm25')};
+                    return {pm25: value};
                 } else if (meta.device.manufacturerName === '_TZE200_ryfmq5rl') {
-                    return {formaldehyd: utils.calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd') / 100};
+                    return {formaldehyd: value / 100};
+                } else if (meta.device.manufacturerName === '_TZE200_mja3fuja') {
+                    return {formaldehyd: value};
                 } else {
-                    return {co2: utils.calibrateAndPrecisionRoundOptions(value, options, 'co2')};
+                    return {co2: value};
                 }
             case dataPoints.tuyaSabVOC:
                 if (meta.device.manufacturerName === '_TZE200_ryfmq5rl') {
-                    return {voc: utils.calibrateAndPrecisionRoundOptions(value, options, 'voc') / 10};
+                    return {voc: value / 10};
                 } else {
-                    return {voc: utils.calibrateAndPrecisionRoundOptions(value, options, 'voc')};
+                    return {voc: value};
                 }
             case dataPoints.tuyaSahkFormaldehyd:
-                return {formaldehyd: utils.calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
+                return {formaldehyd: value};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
@@ -4039,14 +3766,13 @@ const fromZigbee1 = {
     tuya_CO: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('co'), exposes.options.calibration('co')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'tuya_CO');
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.tuyaSabCO:
-                return {co: utils.calibrateAndPrecisionRoundOptions(value / 100, options, 'co')};
+                return {co: value / 100};
             case dataPoints.tuyaSabCOalarm:
                 return {carbon_monoxide: value ? 'OFF' : 'ON'};
             default:
@@ -5040,7 +4766,7 @@ const fromZigbee1 = {
                 break;
             case dataPoints.moesCoverBacklight:
                 // @ts-ignore
-                result = {backlight: {false: 'OFF', true: 'ON'}[value]};
+                result = {backlight: value ? 'ON' : 'OFF'};
                 break;
             case dataPoints.moesCoverCalibration:
                 // @ts-ignore
@@ -5059,19 +4785,15 @@ const fromZigbee1 = {
     tuya_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'tuya_temperature_humidity_sensor');
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.tthTemperature:
-                return {temperature: utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+                return {temperature: value / 10};
             case dataPoints.tthHumidity:
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(
-                    (value / (['_TZE200_bjawzodf', '_TZE200_zl1kmjqx'].includes(meta.device.manufacturerName) ? 10 : 1)),
-                    options, 'humidity')};
+                return {humidity: (value / (['_TZE200_bjawzodf', '_TZE200_zl1kmjqx'].includes(meta.device.manufacturerName) ? 10 : 1))};
             case dataPoints.tthBatteryLevel:
                 return {
                     // @ts-ignore
@@ -5089,8 +4811,6 @@ const fromZigbee1 = {
     nous_lcd_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -5098,10 +4818,10 @@ const fromZigbee1 = {
                 const value = getDataValue(dpValue);
                 switch (dp) {
                 case dataPoints.nousTemperature:
-                    result.temperature = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    result.temperature = value / 10;
                     break;
                 case dataPoints.nousHumidity:
-                    result.humidity = utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    result.humidity = value;
                     break;
                 case dataPoints.nousBattery:
                     result.battery = value;
@@ -5111,16 +4831,16 @@ const fromZigbee1 = {
                     result.temperature_unit_convert = {0x00: 'celsius', 0x01: 'fahrenheit'}[value];
                     break;
                 case dataPoints.nousMaxTemp:
-                    result.max_temperature = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    result.max_temperature = value / 10;
                     break;
                 case dataPoints.nousMinTemp:
-                    result.min_temperature = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    result.min_temperature = value / 10;
                     break;
                 case dataPoints.nousMaxHumi:
-                    result.max_humidity = utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    result.max_humidity = value;
                     break;
                 case dataPoints.nousMinHumi:
-                    result.min_humidity = utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    result.min_humidity = value;
                     break;
                 case dataPoints.nousTempAlarm:
                     // @ts-ignore
@@ -5131,10 +4851,10 @@ const fromZigbee1 = {
                     result.humidity_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                     break;
                 case dataPoints.nousTempSensitivity:
-                    result.temperature_sensitivity = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    result.temperature_sensitivity = value / 10;
                     break;
                 case dataPoints.nousHumiSensitivity:
-                    result.humidity_sensitivity = utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    result.humidity_sensitivity = value;
                     break;
                 case dataPoints.nousTempReportInterval:
                     result.temperature_report_interval = value;
@@ -5153,17 +4873,15 @@ const fromZigbee1 = {
     tuya_illuminance_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'tuya_illuminance_temperature_humidity_sensor');
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.thitTemperature:
-                return {temperature: utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+                return {temperature: value / 10};
             case dataPoints.thitHumidity:
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+                return {humidity: value};
             case dataPoints.thitBatteryPercentage:
                 return {battery: value};
             case dataPoints.thitIlluminanceLux:
@@ -5177,8 +4895,6 @@ const fromZigbee1 = {
     tuya_illuminance_sensor: {
         cluster: `manuSpecificTuya`,
         type: [`commandDataReport`, `commandDataResponse`],
-        options: [exposes.options.precision('illuminance_lux'),
-            exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (() => {
             const brightnessState: KeyValueAny = {
                 0: 'low',
@@ -5194,7 +4910,7 @@ const fromZigbee1 = {
                 case dataPoints.state:
                     return {brightness_state: brightnessState[value]};
                 case dataPoints.tIlluminanceLux:
-                    return {illuminance_lux: utils.calibrateAndPrecisionRoundOptions(value, options, 'illuminance_lux')};
+                    return {illuminance_lux: value};
                 default:
                     meta.logger.warn(
                         `zigbee-herdsman-converters:tuya_illuminance_sensor: NOT RECOGNIZED ` +
@@ -5293,8 +5009,6 @@ const fromZigbee1 = {
     neo_nas_pd07: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'neo_nas_pd07');
             const dp = dpValue.dp;
@@ -5311,9 +5025,9 @@ const fromZigbee1 = {
             case dataPoints.neoTamper:
                 return {tamper: value > 0 ? true : false};
             case 104:
-                return {temperature: utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+                return {temperature: value / 10};
             case 105:
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+                return {humidity: value};
             case dataPoints.neoMinTemp:
                 return {temperature_min: value};
             case dataPoints.neoMaxTemp:
@@ -5340,8 +5054,6 @@ const fromZigbee1 = {
     neo_t_h_alarm: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'neo_t_h_alarm');
             const dp = dpValue.dp;
@@ -5358,9 +5070,9 @@ const fromZigbee1 = {
             case dataPoints.neoDuration: // 0x0267 [0,0,0,10] duration alarm in second
                 return {duration: value};
             case dataPoints.neoTemp: // 0x0269 [0,0,0,240] temperature
-                return {temperature: utils.calibrateAndPrecisionRoundOptions((value / 10), options, 'temperature')};
+                return {temperature: (value / 10)};
             case dataPoints.neoHumidity: // 0x026A [0,0,0,36] humidity
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+                return {humidity: value};
             case dataPoints.neoMinTemp: // 0x026B [0,0,0,18] min alarm temperature
                 return {temperature_min: value};
             case dataPoints.neoMaxTemp: // 0x026C [0,0,0,27] max alarm temperature
@@ -5802,17 +5514,15 @@ const fromZigbee1 = {
     ZB003X: {
         cluster: 'manuSpecificTuya',
         type: ['commandActiveStatusReport'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, 'ZB003X');
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.fantemTemp:
-                return {temperature: utils.calibrateAndPrecisionRoundOptions((value / 10), options, 'temperature')};
+                return {temperature: (value / 10)};
             case dataPoints.fantemHumidity:
-                return {humidity: utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+                return {humidity: value};
             case dataPoints.fantemBattery:
                 // second battery level, first battery is reported by fz.battery
                 return {battery2: value};
@@ -6093,7 +5803,7 @@ const toZigbee1 = {
         key: ['alarm'],
         convertSet: async (entity, key, value: any, meta) => {
             // @ts-ignore
-            await sendDataPointEnum(entity, 20, {true: 0, false: 1}[value]);
+            await sendDataPointEnum(entity, 20, value ? 0 : 1);
         },
     } satisfies Tz.Converter,
     R7049_silenceSiren: {
@@ -6111,8 +5821,7 @@ const toZigbee1 = {
     R7049_alarm: {
         key: ['alarm'],
         convertSet: async (entity, key, value: any, meta) => {
-            const linkAlarm: KeyValueAny = {true: 0, false: 1};
-            await sendDataPointEnum(entity, 20, linkAlarm[value]);
+            await sendDataPointEnum(entity, 20, value ? 0 : 1);
         },
     } satisfies Tz.Converter,
     valve_state: {
@@ -6603,6 +6312,7 @@ const toZigbee2 = {
             giexWaterValve.cycleIrrigationInterval,
         ],
         convertSet: async (entity, key, value, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             const modelConverters = giexTzModelConverters[meta.mapped?.model] || {};
             switch (key) {
             case giexWaterValve.state:
@@ -6777,6 +6487,33 @@ const toZigbee2 = {
             const schedule = value === 'program' ? 0 : 1;
             await sendDataPointEnum(entity, dataPoints.moesHold, hold);
             await sendDataPointEnum(entity, dataPoints.moesScheduleEnable, schedule);
+        },
+    } satisfies Tz.Converter,
+    moes_thermostat_mode2: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // const stateLookup: KeyValueAny = {'0': 'cool', '1': 'heat', '2': 'fan_only'};
+            switch (value) {
+            case 'off':
+                await sendDataPointBool(entity, dataPoints.moesSsystemMode, 0);
+                break;
+            case 'cool':
+                // turn on
+                await sendDataPointBool(entity, dataPoints.moesSsystemMode, 1);
+                await sendDataPointEnum(entity, dataPoints.tvMode, 0);
+                break;
+            case 'heat':
+                // turn on
+                await sendDataPointBool(entity, dataPoints.moesSsystemMode, 1);
+                await sendDataPointEnum(entity, dataPoints.tvMode, 1);
+                break;
+            case 'fan_only':
+                // turn on
+                await sendDataPointBool(entity, dataPoints.moesSsystemMode, 1);
+                await sendDataPointEnum(entity, dataPoints.tvMode, 2);
+                // await sendDataPointEnum(entity, dataPoints.moesScheduleEnable, 0);
+                break;
+            }
         },
     } satisfies Tz.Converter,
     moes_thermostat_standby: {
@@ -7960,12 +7697,10 @@ const toZigbee2 = {
 
                     if (h) {
                         // The device expects 0-359
-                        if (h >= 360) {
-                            h = 359;
-                        }
-                        hsb.h = make4sizedString(h.toString(16));
+                        // The device expects a round number, otherwise everything breaks
+                        hsb.h = make4sizedString(utils.numberWithinRange(utils.precisionRound(h, 0), 0, 359).toString(16));
                     } else if (state.color && state.color.h) {
-                        hsb.h = make4sizedString(state.color.h.toString(16));
+                        hsb.h = make4sizedString(utils.numberWithinRange(utils.precisionRound(state.color.h, 0), 0, 359).toString(16));
                     }
 
                     // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
@@ -8355,6 +8090,7 @@ const toZigbee2 = {
     tuya_light_wz5: {
         key: ['color', 'color_temp', 'brightness', 'white_brightness'],
         convertSet: async (entity, key, value: any, meta) => {
+            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             const separateWhite = (meta.mapped.meta && meta.mapped.meta.separateWhite);
             if (key == 'white_brightness' || (!separateWhite && (key == 'brightness'))) {
                 // upscale to 1000

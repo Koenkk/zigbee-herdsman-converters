@@ -1,8 +1,9 @@
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import extend from '../lib/extend';
 import {Definition, Fz} from '../lib/types';
+import {onOff} from '../lib/modernExtend';
+
 const ea = exposes.access;
 const e = exposes.presets;
 
@@ -37,7 +38,7 @@ const definitions: Definition[] = [
         model: 'ED2004-012',
         vendor: 'databyte.ch',
         description: 'Panda 1 - wall switch',
-        extend: extend.switch(),
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['DTB-ED2011-014'],

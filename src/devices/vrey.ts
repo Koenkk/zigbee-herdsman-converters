@@ -1,6 +1,5 @@
 import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -11,10 +10,7 @@ const definitions: Definition[] = [
         model: 'VR-X701U',
         vendor: 'Vrey',
         description: '1 gang switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-        },
+        extend: [onOff()],
     },
 ];
 

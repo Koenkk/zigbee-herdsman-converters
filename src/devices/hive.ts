@@ -4,7 +4,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {light} from '../lib/modernExtend';
 
 const e = exposes.presets;
@@ -86,7 +85,7 @@ const definitions: Definition[] = [
         model: 'HV-CE14CXZB6',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E14)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['SLP2', 'SLP2b', 'SLP2c'],
