@@ -2916,21 +2916,21 @@ const definitions: Definition[] = [
         ],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {'button': 1};
+            return {'button_1': 1};
         },
         exposes: [
             e.power(), e.voltage(), e.device_temperature(),
-            e.switch().withEndpoint('button'),
+            e.switch().withEndpoint('button_1'),
 
             e.enum('power_outage_memory', ea.ALL, ['on', 'electric_appliances_on', 'electric_appliances_off', 'inverted'])
-                .withDescription('Power Outage Memory').withEndpoint('button'),
+                .withDescription('Power Outage Memory').withEndpoint('button_1'),
             e.led_disabled_night(),
 
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode').withEndpoint('button'),
+                .withDescription('Decoupled mode').withEndpoint('button_1'),
 
             e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode').withEndpoint('button'),
+                .withDescription('Lock relay mode').withEndpoint('button_1'),
 
             e.action(['single']),
         ],
