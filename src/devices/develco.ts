@@ -719,7 +719,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['MOSZB-141'],
+        zigbeeModel: ['MOSZB-141', 'GWA1511_MotionSensor'],
         model: 'MOSZB-141',
         vendor: 'Develco',
         description: 'Motion sensor',
