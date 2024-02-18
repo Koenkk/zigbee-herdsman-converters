@@ -5,6 +5,10 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import {electricityMeter, light, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
+const lightOnOffBrightness = extend.light_onoff_brightness({
+    disablePowerOnBehavior: true,
+    disableEffect: true,
+});
 
 const definitions: Definition[] = [
     {
@@ -95,6 +99,22 @@ const definitions: Definition[] = [
         description: '220V Zigbee CCT LED dimmer',
         extend: [light({colorTemp: {range: [150, 500]}, configureReporting: true})],
     },
+    {
+        zigbeeModel: ['SM325-ZG'],
+		model: 'SM325-ZG',
+		vendor: 'Samotech',
+		description: 'Zigbee Smart Pull Cord Dimmer Switch',
+		fromZigbee: lightOnOffBrightness.fromZigbee,
+		toZigbee: lightOnOffBrightness.toZigbee,
+		configure: async (device, coordinatorEndpoint, logger) => {
+			await lightOnOffBrightness.configure(device, coordinatorEndpoint, logger);
+			const endpoint = device.getEndpoint(1);
+			await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+			await reporting.onOff(endpoint);
+		},
+    exposes: lightOnOffBrightness.exposes,
+    },
+];
 ];
 
 export default definitions;
