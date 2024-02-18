@@ -115,7 +115,6 @@ const definitions: Definition[] = [
     exposes: lightOnOffBrightness.exposes,
     },
 ];
-];
 
 export default definitions;
 module.exports = definitions;
