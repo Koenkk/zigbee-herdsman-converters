@@ -112,7 +112,7 @@ const definitions: Definition[] = [
 			await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
 			await reporting.onOff(endpoint);
 		},
-    exposes: lightOnOffBrightness.exposes,
+		exposes: lightOnOffBrightness.exposes,
     },
 ];
 
