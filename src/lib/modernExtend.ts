@@ -23,6 +23,14 @@ function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | numbe
     return endpoints;
 }
 
+function validateEntityCategory(category: 'config' | 'diagnostic' | undefined, access: 'STATE' | 'STATE_GET' | 'ALL'): boolean {
+    if ((access === 'ALL' && category === 'config') || (access !== 'ALL' && category === 'diagnostic')) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 const timeLookup = {
     'MAX': 65000,
     '1_HOUR': 3600,
@@ -383,11 +391,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 
     let expose = e.enum(name, access, Object.keys(lookup)).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
-    if (entityCategory) {
-        if ((args.access === 'ALL' && entityCategory === 'config') || (args.access !== 'ALL' && entityCategory === 'diagnostic')) {
-            expose = expose.withCategory(entityCategory);
-        }
-    }
+    if (validateEntityCategory(entityCategory, args.access)) expose = expose.withCategory(entityCategory);
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
@@ -451,11 +455,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         if (valueMax !== undefined) expose = expose.withValueMax(valueMax);
         if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
         if (label !== undefined) expose = expose.withLabel(label);
-        if (entityCategory) {
-            if ((args.access === 'ALL' && entityCategory === 'config') || (args.access !== 'ALL' && entityCategory === 'diagnostic')) {
-                expose = expose.withCategory(entityCategory);
-            }
-        }
+        if (validateEntityCategory(entityCategory, args.access)) expose = expose.withCategory(entityCategory);
 
         return expose;
     };
@@ -525,11 +525,7 @@ export function binary(args: BinaryArgs): ModernExtend {
 
     let expose = e.binary(name, access, valueOn[0], valueOff[0]).withDescription(description);
     if (endpoint) expose = expose.withEndpoint(endpoint);
-    if (entityCategory) {
-        if ((args.access === 'ALL' && entityCategory === 'config') || (args.access !== 'ALL' && entityCategory === 'diagnostic')) {
-            expose = expose.withCategory(entityCategory);
-        }
-    }
+    if (validateEntityCategory(entityCategory, args.access)) expose = expose.withCategory(entityCategory);
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
