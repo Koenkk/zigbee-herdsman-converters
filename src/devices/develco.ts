@@ -631,7 +631,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['WISZB-138'],
+        zigbeeModel: ['WISZB-138', 'GWA1513_WindowSensor'],
         model: 'WISZB-138',
         vendor: 'Develco',
         description: 'Window sensor',
