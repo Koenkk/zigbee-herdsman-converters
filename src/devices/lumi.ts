@@ -1509,7 +1509,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.device_temperature(), e.power_outage_count(false), 
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.device_temperature(), e.power_outage_count(false),
             e.trigger_count()],
     },
     {
