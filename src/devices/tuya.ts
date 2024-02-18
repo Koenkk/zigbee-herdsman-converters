@@ -2872,6 +2872,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_xby0s3ta'}, // Sandy Beach HY367
             {modelID: 'TS0601', manufacturerName: '_TZE200_7fqkphoq'}, // AFINTEK
             {modelID: 'TS0601', manufacturerName: '_TZE200_rufdtfyv'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
         ],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',
@@ -5048,7 +5049,17 @@ const definitions: Definition[] = [
         model: 'TS0052',
         vendor: 'TuYa',
         description: 'Zigbee dimmer module 1 channel',
-        extend: [tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true})],
+        extend: [tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true, minBrightness: true})],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0052', ['_TZ3000_zjtxnoft']),
+        model: 'TS0052_2',
+        vendor: 'TuYa',
+        description: 'Zigbee dimmer module 2 channel',
+        extend: [tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true, minBrightness: true, endpoints: {l1: 1, l2: 2}})],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
