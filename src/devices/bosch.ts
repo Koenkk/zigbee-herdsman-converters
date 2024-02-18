@@ -301,12 +301,19 @@ const tzLocal = {
             'child_lock',
             'calibration', 'calibration_closing_time', 'calibration_opening_time',
             'state',
+            'on_time',
+            'off_wait_time',
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state') {
                 if ('ID' in entity && entity.ID === 1) {
                     await tz.cover_state.convertSet(entity, key, value, meta);
                 } else {
+                    await tz.on_off.convertSet(entity, key, value, meta);
+                }
+            }
+            if (key === 'on_time' || key === 'on_wait_time') {
+                if ('ID' in entity && entity.ID !== 1) {
                     await tz.on_off.convertSet(entity, key, value, meta);
                 }
             }
@@ -342,7 +349,11 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'state':
-                await entity.read('genOnOff', ['onOff']);
+            case 'on_time':
+            case 'off_wait_time':
+                if ('ID' in entity && entity.ID !== 1) {
+                    await entity.read('genOnOff', ['onOff']);
+                }
                 break;
             case 'device_mode':
                 await entity.read('manuSpecificBosch10', ['deviceMode']);
@@ -1390,7 +1401,7 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Light/shutter control unit II',
         fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.on_off, fz.power_on_behavior],
-        toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.on_off, tz.power_on_behavior],
+        toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.power_on_behavior],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
@@ -1411,9 +1422,12 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint3);
         },
         exposes: (device, options) => {
-            const lightExposes = [
+            const commonExposes = [
                 e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
                     .withDescription('Module controlled by a rocker switch or a button'),
+                e.linkquality(),
+            ];
+            const lightExposes = [
                 e.switch().withEndpoint('left'),
                 e.switch().withEndpoint('right'),
                 e.power_on_behavior().withEndpoint('right'),
@@ -1439,9 +1453,9 @@ const definitions: Definition[] = [
                 const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 
                 if (deviceMode === 'light') {
-                    return [...lightExposes, e.linkquality()];
+                    return [...commonExposes, ...lightExposes];
                 } else if (deviceMode === 'shutter') {
-                    return [...coverExposes, e.linkquality()];
+                    return [...commonExposes, ...coverExposes];
                 }
             }
             return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'),
