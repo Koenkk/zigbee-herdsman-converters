@@ -422,7 +422,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 }
 
 // reverseToZigbee provides a way to distinguish between fromZigbee (default) and toZigbee value conversions if they are asymmetrical
-export type ScaleFunction = (value: number, reverseToZigbee?: boolean) => number;
+export type ScaleFunction = (value: number, type: 'from' | 'to') => number;
 
 export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
@@ -482,7 +482,7 @@ export function numeric(args: NumericArgs): ModernExtend {
                 let value = msg.data[attributeKey];
                 assertNumber(value);
                 if (scale !== undefined) {
-                    value = typeof scale === 'number' ? value / scale : scale(value);
+                    value = typeof scale === 'number' ? value / scale : scale(value, 'from');
                 }
 
                 const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
@@ -497,7 +497,7 @@ export function numeric(args: NumericArgs): ModernExtend {
             assertNumber(value, key);
             let payloadValue = value;
             if (scale !== undefined) {
-                payloadValue = typeof scale === 'number' ? payloadValue * scale : scale(payloadValue, true);
+                payloadValue = typeof scale === 'number' ? payloadValue * scale : scale(payloadValue, 'to');
             }
             const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
