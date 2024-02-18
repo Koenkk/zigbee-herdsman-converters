@@ -1411,9 +1411,12 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint3);
         },
         exposes: (device, options) => {
-            const lightExposes = [
+            const commonExposes = [
                 e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
                     .withDescription('Module controlled by a rocker switch or a button'),
+                e.linkquality(),
+            ];
+            const lightExposes = [
                 e.switch().withEndpoint('left'),
                 e.switch().withEndpoint('right'),
                 e.power_on_behavior().withEndpoint('right'),
@@ -1439,9 +1442,9 @@ const definitions: Definition[] = [
                 const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 
                 if (deviceMode === 'light') {
-                    return [...lightExposes, e.linkquality()];
+                    return [...commonExposes, ...lightExposes];
                 } else if (deviceMode === 'shutter') {
-                    return [...coverExposes, e.linkquality()];
+                    return [...commonExposes, ...coverExposes];
                 }
             }
             return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'),
