@@ -18,14 +18,14 @@ export class Base {
     features?: Feature[];
     category?: 'config' | 'diagnostic';
 
-    withEndpoint(endpointName: string) {
+    withEndpoint(endpointName: string, skipEndpointPostfix?: boolean) {
         this.endpoint = endpointName;
 
-        if (this.property) {
+        if (this.property && skipEndpointPostfix !== true) {
             this.property = `${this.property}_${this.endpoint}`;
         }
 
-        if (this.features) {
+        if (this.features && skipEndpointPostfix !== true) {
             for (const feature of this.features) {
                 if (feature.property) {
                     feature.property = `${feature.property}_${endpointName}`;
@@ -76,9 +76,9 @@ export class Base {
         }
     }
 
-    addFeature(feature: Feature) {
+    addFeature(feature: Feature, skipEndpointPostfix?: boolean) {
         assert(this.features, 'Does not have any features');
-        if (this.endpoint) feature.withEndpoint(this.endpoint);
+        if (this.endpoint) feature.withEndpoint(this.endpoint, skipEndpointPostfix);
         this.features.push(feature);
     }
 
@@ -264,8 +264,8 @@ export class Composite extends Base {
         this.access = access;
     }
 
-    withFeature(feature: Feature) {
-        this.addFeature(feature);
+    withFeature(feature: Feature, skipEndpointPostfix?: boolean) {
+        this.addFeature(feature, skipEndpointPostfix);
         return this;
     }
 }
