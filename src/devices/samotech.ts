@@ -95,6 +95,13 @@ const definitions: Definition[] = [
         description: '220V Zigbee CCT LED dimmer',
         extend: [light({colorTemp: {range: [150, 500]}, configureReporting: true})],
     },
+    {
+        zigbeeModel: ['SM325-ZG'],
+        model: 'SM325-ZG',
+        vendor: 'Samotech',
+        description: 'Zigbee smart pull cord dimmer switch',
+        extend: [light({configureReporting: true})],
+    },
 ];
 
 export default definitions;
