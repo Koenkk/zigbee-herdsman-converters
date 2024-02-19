@@ -462,9 +462,9 @@ const definitions: Definition[] = [
         zigbeeModel: ['CH2AX/SWITCH/1'],
         model: '41E2PBSWMZ/356PB2MBTZ',
         vendor: 'Schneider Electric',
-        description: 'Wiser 40/300-Series module switch 2A',
+        description: 'Wiser 40/300-Series module switch 2AX',
         ota: ota.zigbeeOTA,
-        extend: [indicatorMode()],
+        extend: [extend.switch(), indicatorMode()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -475,8 +475,8 @@ const definitions: Definition[] = [
         zigbeeModel: ['CH10AX/SWITCH/1'],
         model: '41E10PBSWMZ-VW',
         vendor: 'Schneider Electric',
-        description: 'Wiser 40/300-Series module switch 10A with ControlLink',
-        extend: [indicatorMode()],
+        description: 'Wiser 40/300-Series module switch 10AX with ControlLink',
+        extend: [extend.switch(), indicatorMode()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
