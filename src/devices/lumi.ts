@@ -2275,7 +2275,7 @@ const definitions: Definition[] = [
         extend: [lumiZigbeeOTA(), lumiLight({colorTemp: true})],
     },
     {
-        zigbeeModel: ['lumi.light.acn026'],
+        zigbeeModel: ['lumi.light.acn026', 'lumi.light.acn024'],
         model: 'SSWQD03LM',
         vendor: 'Aqara',
         description: 'Spotlight T2',
