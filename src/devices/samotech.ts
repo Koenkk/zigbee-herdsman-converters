@@ -5,10 +5,6 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import {electricityMeter, light, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
-const lightOnOffBrightness = extend.light_onoff_brightness({
-    disablePowerOnBehavior: true,
-    disableEffect: true,
-});
 
 const definitions: Definition[] = [
     {
