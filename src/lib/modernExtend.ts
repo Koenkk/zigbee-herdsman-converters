@@ -696,11 +696,16 @@ export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExt
     return {configure, isModernExtend: true};
 }
 
-export function deviceEndpoints(args: {endpoints: {[n: string]: number}}): ModernExtend {
-    return {
+export function deviceEndpoints(args: {endpoints: {[n: string]: number}, multiEndpointSkip?: string[]}): ModernExtend {
+    const result: ModernExtend = {
+        meta: {multiEndpoint: true},
         endpoint: (d) => args.endpoints,
         isModernExtend: true,
     };
+
+    if (args.multiEndpointSkip) result.meta.multiEndpointSkip = args.multiEndpointSkip;
+
+    return result;
 }
 
 export function ota(args: {definition: DefinitionOta}): ModernExtend {
@@ -848,21 +853,6 @@ export function occupancy(args?: Partial<BinaryArgs>): ModernExtend {
     };
 
     result.fromZigbee[0] = fromZigbeeOverride;
-
-    return result;
-}
-
-export interface EndpointsArgs {
-    endpoints?: {[s: string]: number}, multiEndpointSkip?: string[],
-}
-export function endpoints(args?: Partial<EndpointsArgs>): ModernExtend {
-    const result: ModernExtend = {
-        meta: {multiEndpoint: true},
-        endpoint: (d) => args.endpoints,
-        isModernExtend: true,
-    };
-
-    if (args.multiEndpointSkip) result.meta.multiEndpointSkip = args.multiEndpointSkip;
 
     return result;
 }
