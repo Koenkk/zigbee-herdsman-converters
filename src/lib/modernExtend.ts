@@ -110,12 +110,17 @@ export function identify(): ModernExtend {
 
 export interface OnOffArgs {
     powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpoints?: {[s: string]: number},
-    configureReporting?: boolean, disableMutliEndpointOverride?: boolean,
+    configureReporting?: boolean, endpointNames?: string[],
 }
 export function onOff(args?: OnOffArgs): ModernExtend {
     args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
 
-    const exposes: Expose[] = args.endpoints ? Object.keys(args.endpoints).map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
+    let exposes: Expose[];
+    if (args.endpoints && args.endpointNames === undefined) {
+        exposes = Object.keys(args.endpoints).map((ep) => e.switch().withEndpoint(ep));
+    } else {
+        exposes = args.endpointNames ? args.endpointNames.map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
+    }
 
     const fromZigbee: Fz.Converter[] = [(args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off)];
     const toZigbee: Tz.Converter[] = [tz.on_off];
@@ -128,7 +133,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
     if (args.ota) result.ota = args.ota;
-    if (args.endpoints && args.disableMutliEndpointOverride !== true) {
+    if (args.endpoints) {
         result.meta = {multiEndpoint: true};
         result.endpoint = (d) => args.endpoints;
     }
@@ -842,6 +847,21 @@ export function occupancy(args?: Partial<BinaryArgs>): ModernExtend {
     };
 
     result.fromZigbee[0] = fromZigbeeOverride;
+
+    return result;
+}
+
+export interface EndpointsArgs {
+    endpoints?: {[s: string]: number}, multiEndpointSkip?: string[],
+}
+export function endpoints(args?: Partial<EndpointsArgs>): ModernExtend {
+    const result: ModernExtend = {
+        meta: {multiEndpoint: true},
+        endpoint: (d) => args.endpoints,
+        isModernExtend: true,
+    };
+
+    if (args.multiEndpointSkip) result.meta.multiEndpointSkip = args.multiEndpointSkip;
 
     return result;
 }
