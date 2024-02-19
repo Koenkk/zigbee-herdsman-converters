@@ -660,7 +660,7 @@ const definitions: Definition[] = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['MOSZB-140'],
+        zigbeeModel: ['MOSZB-140', 'GWA1511_MotionSensor'],
         model: 'MOSZB-140',
         vendor: 'Develco',
         description: 'Motion sensor',
@@ -719,7 +719,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['MOSZB-141', 'GWA1511_MotionSensor'],
+        zigbeeModel: ['MOSZB-141'],
         model: 'MOSZB-141',
         vendor: 'Develco',
         description: 'Motion sensor',
