@@ -538,10 +538,16 @@ const definitions: Definition[] = [
         exposes: [e.gas(), e.tamper()],
     },
     {
-        fingerprint: tuya.fingerprint('TS0205', ['_TZ3210_up3pngle']),
-        model: 'TS0205_smoke_2',
+        zigbeeModel: ['TS0205'],
+        model: 'TS0205',
         vendor: 'TuYa',
         description: 'Smoke sensor',
+        whiteLabel: [
+            {vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'},
+            {vendor: 'Dongguan Daying Electornics Technology', model: 'YG400A'},
+            tuya.whitelabel('TuYa', 'TS0205_smoke_2', 'Smoke sensor', ['_TZ3210_up3pngle']),
+
+        ],
         fromZigbee: [
             fz.ias_smoke_alarm_1,
             fz.ignore_basic_report,
@@ -553,20 +559,6 @@ const definitions: Definition[] = [
         ],
         extend: [batteryPercentage()],
         meta: {},
-    },
-    {
-        zigbeeModel: ['TS0205'],
-        model: 'TS0205',
-        vendor: 'TuYa',
-        description: 'Smoke sensor',
-        whiteLabel: [
-            {vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'},
-            {vendor: 'Dongguan Daying Electornics Technology', model: 'YG400A'},
-        ],
-        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fz.ignore_basic_report],
-        toZigbee: [],
-        exposes: [e.smoke(), e.battery_low(), e.tamper()],
-        extend: [batteryPercentage()],
     },
     {
         zigbeeModel: ['TS0111'],
