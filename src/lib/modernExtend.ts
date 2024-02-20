@@ -413,7 +413,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-// reverseToZigbee provides a way to distinguish between fromZigbee (default) and toZigbee value conversions if they are asymmetrical
+// type provides a way to distinguish between fromZigbee and toZigbee value conversions if they are asymmetrical
 export type ScaleFunction = (value: number, type: 'from' | 'to') => number;
 
 export interface NumericArgs {

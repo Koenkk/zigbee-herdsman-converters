@@ -76,7 +76,7 @@ export class Base {
         }
     }
 
-    addFeature(feature: Feature, skipEndpointPostfix?: boolean) {
+    addFeature(feature: Feature) {
         assert(this.features, 'Does not have any features');
         if (this.endpoint) feature.withEndpoint(this.endpoint);
         this.features.push(feature);
