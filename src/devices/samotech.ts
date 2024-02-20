@@ -81,9 +81,18 @@ const definitions: Definition[] = [
         extend: [light({configureReporting: true})],
     },
     {
+        // v1 doesn't support electricity measurements
+        // https://github.com/Koenkk/zigbee2mqtt/issues/21449
+        fingerprint: [{manufacturerName: 'Samotech', modelID: 'Dimmer-Switch-ZB3.0'}],
+        model: 'SM323_v1',
+        vendor: 'Samotech',
+        description: 'Zigbee retrofit dimmer 250W',
+        extend: [light({configureReporting: true}), electricityMeter()],
+    },
+    {
         zigbeeModel: ['SM323'],
-        fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'Samotech'}, {modelID: 'HK_DIM_A', manufacturerName: 'Samotech'}],
-        model: 'SM323',
+        fingerprint: [{modelID: 'HK_DIM_A', manufacturerName: 'Samotech'}],
+        model: 'SM323_v2',
         vendor: 'Samotech',
         description: 'Zigbee retrofit dimmer 250W',
         extend: [light({configureReporting: true}), electricityMeter()],
