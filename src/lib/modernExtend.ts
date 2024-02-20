@@ -374,7 +374,7 @@ export function lock(args?: LockArgs): ModernExtend {
 export interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', endpoint?: string,
-    reporting?: ReportingConfigWithoutAttribute, entityCategory?: 'config' | 'diagnostic', skipEndpointPostfix?: boolean,
+    reporting?: ReportingConfigWithoutAttribute, entityCategory?: 'config' | 'diagnostic',
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
     const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpoint, reporting, entityCategory} = args;
@@ -382,7 +382,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
     const access = ea[args.access ?? 'ALL'];
 
     let expose = e.enum(name, access, Object.keys(lookup)).withDescription(description);
-    if (endpoint) expose = expose.withEndpoint(endpoint, args.skipEndpointPostfix);
+    if (endpoint) expose = expose.withEndpoint(endpoint);
     if (entityCategory) expose = expose.withCategory(entityCategory);
 
     const fromZigbee: Fz.Converter[] = [{
@@ -421,7 +421,7 @@ export interface NumericArgs {
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
     endpoint?: string, endpoints?: string[], reporting?: ReportingConfigWithoutAttribute,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number | ScaleFunction, label?: string,
-    entityCategory?: 'config' | 'diagnostic', skipEndpointPostfix?: boolean,
+    entityCategory?: 'config' | 'diagnostic',
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
@@ -441,7 +441,7 @@ export function numeric(args: NumericArgs): ModernExtend {
 
     const createExpose = (endpoint?: string): Expose => {
         let expose = e.numeric(name, access).withDescription(description);
-        if (endpoint) expose = expose.withEndpoint(endpoint, args.skipEndpointPostfix);
+        if (endpoint) expose = expose.withEndpoint(endpoint);
         if (unit) expose = expose.withUnit(unit);
         if (valueMin !== undefined) expose = expose.withValueMin(valueMin);
         if (valueMax !== undefined) expose = expose.withValueMax(valueMax);
@@ -509,7 +509,6 @@ export interface BinaryArgs {
     name: string, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], cluster: string | number,
     attribute: string | {ID: number, type: number}, description: string, zigbeeCommandOptions?: {manufacturerCode: number},
     endpoint?: string, reporting?: ReportingConfig, access?: 'STATE' | 'STATE_GET' | 'ALL', entityCategory?: 'config' | 'diagnostic',
-    skipEndpointPostfix?: boolean,
 }
 export function binary(args: BinaryArgs): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpoint, reporting, entityCategory} = args;
@@ -517,7 +516,7 @@ export function binary(args: BinaryArgs): ModernExtend {
     const access = ea[args.access ?? 'ALL'];
 
     let expose = e.binary(name, access, valueOn[0], valueOff[0]).withDescription(description);
-    if (endpoint) expose = expose.withEndpoint(endpoint, args.skipEndpointPostfix);
+    if (endpoint) expose = expose.withEndpoint(endpoint);
     if (entityCategory) expose = expose.withCategory(entityCategory);
 
     const fromZigbee: Fz.Converter[] = [{
