@@ -102,17 +102,12 @@ export function identify(): ModernExtend {
 
 export interface OnOffArgs {
     powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpoints?: {[s: string]: number},
-    configureReporting?: boolean, endpointNames?: string[],
+    configureReporting?: boolean,
 }
 export function onOff(args?: OnOffArgs): ModernExtend {
     args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
 
-    let exposes: Expose[];
-    if (args.endpoints && args.endpointNames === undefined) {
-        exposes = Object.keys(args.endpoints).map((ep) => e.switch().withEndpoint(ep));
-    } else {
-        exposes = args.endpointNames ? args.endpointNames.map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
-    }
+    const exposes: Expose[] = args.endpoints ? Object.keys(args.endpoints).map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
 
     const fromZigbee: Fz.Converter[] = [(args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off)];
     const toZigbee: Tz.Converter[] = [tz.on_off];
