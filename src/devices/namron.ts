@@ -55,7 +55,6 @@ const fzLocal = {
             const data = msg.data;
             if (data.hasOwnProperty('4096')) {
                 result['operation_mode'] = namronPlugg_op_modeValues[msg.data['4096']];
-                console.log('\nOpMode ' + result['operation_mode'] + '\n');
             }
             return result;
         },
