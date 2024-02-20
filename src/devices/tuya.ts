@@ -546,19 +546,11 @@ const definitions: Definition[] = [
             {vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'},
             {vendor: 'Dongguan Daying Electornics Technology', model: 'YG400A'},
             tuya.whitelabel('TuYa', 'TS0205_smoke_2', 'Smoke sensor', ['_TZ3210_up3pngle']),
-
         ],
-        fromZigbee: [
-            fz.ias_smoke_alarm_1,
-            fz.ignore_basic_report,
-        ],
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
-        exposes: [
-            e.smoke(),
-            e.tamper(),
-        ],
+        exposes: [e.smoke(), e.tamper()],
         extend: [batteryPercentage()],
-        meta: {},
     },
     {
         zigbeeModel: ['TS0111'],
