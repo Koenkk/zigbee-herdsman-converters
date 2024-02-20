@@ -216,6 +216,12 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             assertNumber(value);
             payload.power_outage_count = value - 1;
             break;
+        case '6':
+            if (['MCCGQ11LM', 'SJCGQ11LM'].includes(model.model) && Array.isArray(value)) {
+                assertNumber(value[1]);
+                payload.trigger_count = value[1];
+            }
+            break;
         case '8':
             if (['ZNLDP13LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.

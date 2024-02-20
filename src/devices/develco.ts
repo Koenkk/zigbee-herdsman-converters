@@ -631,7 +631,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['WISZB-138'],
+        zigbeeModel: ['WISZB-138', 'GWA1513_WindowSensor'],
         model: 'WISZB-138',
         vendor: 'Develco',
         description: 'Window sensor',
@@ -660,7 +660,7 @@ const definitions: Definition[] = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['MOSZB-140'],
+        zigbeeModel: ['MOSZB-140', 'GWA1511_MotionSensor'],
         model: 'MOSZB-140',
         vendor: 'Develco',
         description: 'Motion sensor',

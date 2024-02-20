@@ -2,7 +2,7 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import {onOff} from '../lib/modernExtend';
+import {batteryPercentage, humidity, onOff, temperature} from '../lib/modernExtend';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
@@ -146,6 +146,14 @@ const definitions: Definition[] = [
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
         },
+    },
+    {
+        zigbeeModel: ['STPH-4-1-00'],
+        model: 'STPH-4-1-20',
+        vendor: 'NodOn',
+        description: 'Temperature & humidity sensor',
+        extend: [batteryPercentage(), temperature(), humidity()],
+        ota: ota.zigbeeOTA,
     },
 ];
 
