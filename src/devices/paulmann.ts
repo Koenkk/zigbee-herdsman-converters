@@ -164,7 +164,7 @@ const definitions: Definition[] = [
         extend: [light()],
     },
     {
-        zigbeeModel: ['RemoteControl'],
+        zigbeeModel: ['RemoteControl', '50067'],
         model: '500.67',
         vendor: 'Paulmann',
         description: 'RGB remote control',
