@@ -545,10 +545,11 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'},
             {vendor: 'Dongguan Daying Electornics Technology', model: 'YG400A'},
+            tuya.whitelabel('TuYa', 'TS0205_smoke_2', 'Smoke sensor', ['_TZ3210_up3pngle']),
         ],
-        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fz.ignore_basic_report],
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
-        exposes: [e.smoke(), e.battery_low(), e.tamper()],
+        exposes: [e.smoke(), e.tamper()],
         extend: [batteryPercentage()],
     },
     {
@@ -3701,7 +3702,6 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ntcy3xu1'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_ntcy3xu1'},
         ],
         model: 'TS0601_smoke_1',
@@ -3716,6 +3716,25 @@ const definitions: Definition[] = [
                 [1, 'smoke', tuya.valueConverter.trueFalse0],
                 [4, 'tamper', tuya.valueConverter.raw],
                 [14, 'battery_low', tuya.valueConverter.trueFalse0],
+            ],
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ntcy3xu1'},
+        ],
+        model: 'TS0601_smoke_6',
+        vendor: 'TuYa',
+        description: 'Smoke sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.smoke(), e.tamper(), tuya.exposes.batteryState()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'smoke', tuya.valueConverter.trueFalse0],
+                [4, 'tamper', tuya.valueConverter.raw],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
             ],
         },
     },
