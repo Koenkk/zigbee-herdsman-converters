@@ -3654,6 +3654,7 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            utils.attachOutputCluster(device, 'genOta');
             device.save();
         },
         options: [exposes.options.measurement_poll_interval()],
