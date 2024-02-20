@@ -152,7 +152,7 @@ const definitions: Definition[] = [
         model: 'STPH-4-1-20',
         vendor: 'NodOn',
         description: 'Temperature & humidity sensor',
-        extend: [batteryPercentage(), temperature({'endpoints': ['1']}), humidity({'endpoints': ['1']})],
+        extend: [batteryPercentage(), temperature(), humidity()],
         ota: ota.zigbeeOTA,
     },
 ];
