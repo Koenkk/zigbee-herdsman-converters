@@ -773,8 +773,12 @@ export function pressure(args?: Partial<NumericArgs>): ModernExtend {
 }
 
 export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
-    const luxScale: ScaleFunction = (value: number) => {
-        return Math.pow(10, (value - 1) / 10000);
+    const luxScale: ScaleFunction = (value: number, type: 'from' | 'to') => {
+        let result = value;
+        if (type === 'from') {
+            result = Math.pow(10, (result - 1) / 10000);
+        }
+        return result;
     };
 
     const rawIllinance = numeric({
