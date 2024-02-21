@@ -549,7 +549,7 @@ const definitions: Definition[] = [
         ],
         fromZigbee: [fz.ias_smoke_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
-        exposes: [e.smoke(), e.tamper()],
+        exposes: [e.smoke(), e.battery_low(), e.tamper()],
         extend: [batteryPercentage()],
     },
     {
