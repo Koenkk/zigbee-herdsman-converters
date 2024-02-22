@@ -5,7 +5,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import {Definition, Fz, KeyValue} from '../lib/types';
-import {light, onOff} from '../lib/modernExtend';
+import {forcePowerSource, light, onOff} from '../lib/modernExtend';
 import {temperature, humidity, batteryPercentage} from '../lib/modernExtend';
 
 const e = exposes.presets;
@@ -185,27 +185,16 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        extend: [batteryPercentage(), forcePowerSource({powerSource: 'Battery'})],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
-            device.powerSource = 'Battery';
-            device.save();
-        },
     },
     {
         zigbeeModel: ['3RTHS0224Z'],
         model: '3RTHS0224Z',
         vendor: 'Third Reality',
         description: 'Temperature and humidity sensor v2',
-        extend: [temperature(), humidity(), batteryPercentage()],
+        extend: [temperature(), humidity(), batteryPercentage(), forcePowerSource({powerSource: 'Battery'})],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
-            device.powerSource = 'Battery';
-            device.save();
-        },
     },
     {
         zigbeeModel: ['3RSP02028BZ'],
