@@ -109,7 +109,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['500.46'],
         model: '500.46',
         vendor: 'Paulmann',
-        description: 'SmartHome Zigbee MaxLED Tunable White Controller max. 144W / 24V DC',
+        description: 'SmartHome Zigbee MaxLED tunable white controller max. 144W / 24V DC',
         extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
