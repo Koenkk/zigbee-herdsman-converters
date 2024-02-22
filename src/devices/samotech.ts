@@ -109,7 +109,7 @@ const definitions: Definition[] = [
         model: 'SM325-ZG',
         vendor: 'Samotech',
         description: 'Zigbee smart pull cord dimmer switch',
-        extend: [light({configureReporting: true})],
+        extend: [light({configureReporting: true, effect: false, powerOnBehavior: false})],
     },
 ];
 
