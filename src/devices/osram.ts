@@ -5,7 +5,7 @@ import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {ledvanceLight, ledvanceFz, ledvanceOnOff} from '../lib/ledvance';
 import {Definition} from '../lib/types';
-import {deviceEndpoints} from 'src/lib/modernExtend';
+import {deviceEndpoints} from '../lib/modernExtend';
 
 const e = exposes.presets;
 

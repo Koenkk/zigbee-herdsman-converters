@@ -210,7 +210,7 @@ async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedEx
             return prev;
         }, {} as Record<string, number>) : undefined;
         const endpointNames: string[] = endpoints ? Object.keys(endpoints) : undefined;
-        generated.push(new Generator({extend: m.deviceEndpoints, args: {endpoints: endpoints}, source: 'deviceEndpoints'}));
+        if (endpointNames) generated.push(new Generator({extend: m.deviceEndpoints, args: {endpoints: endpoints}, source: 'deviceEndpoints'}));
         generated.push(new Generator({extend: m.onOff, args: {powerOnBehavior: false, endpointNames: endpointNames}, source: 'onOff'}));
     }
 
