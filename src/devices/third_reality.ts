@@ -186,6 +186,12 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+            device.powerSource = 'Battery';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['3RTHS0224Z'],
@@ -194,6 +200,12 @@ const definitions: Definition[] = [
         description: 'Temperature and humidity sensor v2',
         extend: [temperature(), humidity(), batteryPercentage()],
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+            device.powerSource = 'Battery';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['3RSP02028BZ'],
