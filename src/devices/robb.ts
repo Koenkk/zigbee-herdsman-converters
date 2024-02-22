@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -43,7 +43,10 @@ const definitions: Definition[] = [
         model: 'ROB_200-050-0',
         vendor: 'ROBB',
         description: '4 port switch with 2 usb ports (no metering)',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']}),
+        ],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9023A(EU)'}],
     },
     {

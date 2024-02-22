@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
-import {onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -14,7 +14,10 @@ const definitions: Definition[] = [
         model: 'U86K31ND6',
         vendor: 'Honyar',
         description: '3 gang switch ',
-        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}})],
+        extend: [
+            deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
+            onOff({endpointNames: ['left', 'center', 'right']}),
+        ],
     },
     {
         zigbeeModel: ['HY0043'],

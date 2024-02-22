@@ -12,7 +12,7 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {onOff, quirkCheckinInterval, batteryPercentage} from '../lib/modernExtend';
+import {onOff, quirkCheckinInterval, batteryPercentage, deviceEndpoints} from '../lib/modernExtend';
 
 const {tuyaLight} = tuya.modernExtend;
 
@@ -2548,7 +2548,10 @@ const definitions: Definition[] = [
         model: 'TS0003',
         vendor: 'TuYa',
         description: '3 gang switch',
-        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}, powerOnBehavior: false})],
+        extend: [
+            deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
+            onOff({endpointNames: ['left', 'center', 'right'], powerOnBehavior: false}),
+        ],
         whiteLabel: [{vendor: 'BSEED', model: 'TS0003', description: 'Zigbee switch'}],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -4050,7 +4053,10 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Zigbee dimmer module 2 channel',
         whiteLabel: [{vendor: 'OXT', model: 'SWTZ25'}],
-        extend: [tuyaLight({minBrightness: true, endpoints: {l1: 1, l2: 2}, configureReporting: true})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            tuyaLight({minBrightness: true, endpointNames: ['l1', 'l2'], configureReporting: true}),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
         },
@@ -5079,7 +5085,10 @@ const definitions: Definition[] = [
         model: 'TS0052_2',
         vendor: 'TuYa',
         description: 'Zigbee dimmer module 2 channel',
-        extend: [tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true, minBrightness: true, endpoints: {l1: 1, l2: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true, minBrightness: true, endpointNames: ['l1', 'l2']}),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
         },

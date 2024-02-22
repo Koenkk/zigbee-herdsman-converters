@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import {onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,7 +7,10 @@ const definitions: Definition[] = [
         model: 'Z6',
         vendor: 'Atsmart',
         description: '3 gang smart wall switch (no neutral wire)',
-        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}})],
+        extend: [
+            deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
+            onOff({endpointNames: ['left', 'center', 'right']}),
+        ],
     },
 ];
 

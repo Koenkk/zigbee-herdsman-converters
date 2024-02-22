@@ -3,7 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -13,7 +13,10 @@ const definitions: Definition[] = [
         model: 'TZSW22FW-L4',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
-        extend: [onOff({endpoints: {top: 16, bottom: 17}})],
+        extend: [
+            deviceEndpoints({endpoints: {'top': 16, 'bottom': 17}}),
+            onOff({endpointNames: ['top', 'bottom']}),
+        ],
     },
     {
         zigbeeModel: ['FB56+ZSW1GKJ2.3'],
@@ -125,14 +128,20 @@ const definitions: Definition[] = [
         model: 'SLS301ZB_2',
         vendor: 'Feibit',
         description: 'Smart light switch - 2 gang',
-        extend: [onOff({endpoints: {left: 16, right: 17}})],
+        extend: [
+            deviceEndpoints({endpoints: {'left': 16, 'right': 17}}),
+            onOff({endpointNames: ['left', 'right']}),
+        ],
     },
     {
         zigbeeModel: ['FB56+ZSW1IKJ2.2', 'FB56+ZSW1IKJ1.1'],
         model: 'SLS301ZB_3',
         vendor: 'Feibit',
         description: 'Smart light switch - 3 gang',
-        extend: [onOff({endpoints: {left: 16, center: 17, right: 18}})],
+        extend: [
+            deviceEndpoints({endpoints: {'left': 16, 'center': 17, 'right': 18}}),
+            onOff({endpointNames: ['left', 'center', 'right']}),
+        ],
     },
     {
         zigbeeModel: ['FB56+ZSN08KJ2.2'],
