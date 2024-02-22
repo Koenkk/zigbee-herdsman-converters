@@ -80,7 +80,7 @@ const definitions: Definition[] = [
             e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('cm'),
             e.numeric('motion_detection_distance', ea.STATE_SET).withValueMin(0).withValueMax(600)
                 .withValueStep(75).withDescription('Motion detection distance').withUnit('cm'),
-            e.numeric('presence_keep_time', ea.STATE).withDescription('Presence keep time').withUnit('minutes'),
+            e.numeric('presence_keep_time', ea.STATE).withDescription('Presence keep time').withUnit('min'),
             e.numeric('motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(5)
                 .withValueStep(1).withDescription('Motion detection sensitivity'),
             e.numeric('static_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(5)
