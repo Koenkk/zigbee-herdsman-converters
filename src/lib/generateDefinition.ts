@@ -174,6 +174,12 @@ const inputExtenders: Extender[] = [
     [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],
     [['closuresDoorLock'], extenderLock],
+    [['msIlluminanceMeasurement'], async (eps) => [
+        new Generator({extend: m.illuminance, args: {endpoints: stringifyEps(eps)}, source: 'illuminance'}),
+    ]],
+    [['msOccupancySensing'], async (eps) => [
+        new Generator({extend: m.occupancy, source: 'occupancy'}),
+    ]],
 ];
 
 const outputExtenders: Extender[] = [
