@@ -1,5 +1,27 @@
 # Changelog
 
+## [18.37.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.36.0...v18.37.0) (2024-02-22)
+
+
+### Features
+
+* **add:** 3RTHS0224Z ([#7105](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7105)) ([a9d639d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a9d639dbeb51a553b5a9d676c8c23764e8c6c580))
+* **add:** 500.46 ([#7106](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7106)) ([762f865](https://github.com/Koenkk/zigbee-herdsman-converters/commit/762f86548ed2440433bb2952126f8a0470696adb))
+* Enable OTA for Frient HESZB-120 ([93a6eef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/93a6eef4212e55511ed01f243fac020d9ac50de6))
+* Modern extend enhancements ([#7083](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7083)) ([80ec3f5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/80ec3f59d87b21d8f1cfe73aee15ecfd82ad64bb))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_wkai4ga5` as TuYa TS0044_1 https://github.com/Koenkk/zigbee2mqtt/issues/21458 ([5cbfd86](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5cbfd86043e74552d83db20bc0408b4a30df750f))
+* Expose `battery` for TuYa LKWSZ211 @KipK https://github.com/Koenkk/zigbee2mqtt/discussions/19765 ([c7a889b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c7a889b232def8fe2275fb6838b179de9ba7134a))
+* Fix `action` values of Vesternet VES-ZB-REM-013 ([#7027](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7027)) ([a0d4a9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a0d4a9e3201f209310a4cf36b7ac59bd072b91ed))
+* Fix system mode for Acova PERCALE 2 and TAFFETAS 2 ([#7104](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7104)) ([6b355d6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6b355d6477fe5d8c93beefdd25b956f354b8647c))
+* Fix various Linptech ES1ZZ(TY) exposes ([#7099](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7099)) ([6140c2d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6140c2d7ede9bed14b531cfd2c36c6d75e9fafe1))
+* **ignore:** Added battery_low() to TS0205 Smoke Sensor ([#7101](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7101)) ([482e249](https://github.com/Koenkk/zigbee-herdsman-converters/commit/482e249a528b361e20a070b910a892df2b399175))
+* **ignore:** fix a9d639d ([f865e1a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f865e1af39788fbe8384cf678505e46d970fc081))
+* Remove unsupported effect and power on behaviour for Samotech SM325-ZG ([#7098](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7098)) ([9658b12](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9658b12fb629735dd2b57647d443be1b6b8b67c5))
+
 ## [18.36.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.35.0...v18.36.0) (2024-02-20)
 
 
