@@ -108,16 +108,8 @@ const definitions: Definition[] = [
         zigbeeModel: ['SM325-ZG'],
         model: 'SM325-ZG',
         vendor: 'Samotech',
-        description: 'Zigbee Smart Pull Cord Dimmer Switch',
-        fromZigbee: extend.light_onoff_brightness().fromZigbee,
-        toZigbee: extend.light_onoff_brightness().toZigbee,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
-        exposes: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableEffect: true}).exposes,
+        description: 'Zigbee smart pull cord dimmer switch',
+        extend: [light({configureReporting: true, effect: false, powerOnBehavior: false})],
     },
 ];
 
