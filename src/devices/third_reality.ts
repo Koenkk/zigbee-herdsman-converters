@@ -184,7 +184,7 @@ const definitions: Definition[] = [
         description: 'Temperature and humidity sensor',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        exposes: [e.temperature(), e.humidity(), e.battery_voltage()],
         extend: [batteryPercentage(), forcePowerSource({powerSource: 'Battery'})],
         ota: ota.zigbeeOTA,
     },
