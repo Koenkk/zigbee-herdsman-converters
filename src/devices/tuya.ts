@@ -644,7 +644,7 @@ const definitions: Definition[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.action([
+            e.battery(), e.action([
                 'button_1_single', 'button_1_double', 'button_1_hold',
                 'button_2_single', 'button_2_double', 'button_2_hold',
             ]),
@@ -665,6 +665,7 @@ const definitions: Definition[] = [
                         'button_2_hold': tuya.enum(2),
                     }),
                 ],
+                [10, 'battery', tuya.valueConverter.raw],
             ],
         },
         whiteLabel: [
