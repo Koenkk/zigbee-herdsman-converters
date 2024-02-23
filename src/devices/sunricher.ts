@@ -8,7 +8,7 @@ import * as constants from '../lib/constants';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import {Definition, Fz, Zh} from '../lib/types';
-import {light, onOff} from '../lib/modernExtend';
+import {light, onOff, temperature, humidity} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -609,6 +609,23 @@ const definitions: Definition[] = [
         fromZigbee: [fz.U02I007C01_contact, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
+    },
+    {
+        zigbeeModel: ['HK-SENSOR-4IN1-A'],
+        model: 'HK-SENSOR-4IN1-A',
+        vendor: 'Sunricher',
+        description: 'Smart Home Sensor',
+        extend: [temperature(), humidity()],
+        fromZigbee: [fz.occupancy, fz.battery, fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.illuminance],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const firstendpoint = device.getEndpoint(1);
+            await reporting.bind(firstendpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(firstendpoint);
+            const fifthendpoint = device.getEndpoint(5);
+            await reporting.bind(fifthendpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.illuminance(fifthendpoint);
+        },
+        exposes: [e.occupancy(), e.battery(), e.linkquality(), e.illuminance(), e.illuminance_lux()],
     },
 ];
 
