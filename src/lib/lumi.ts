@@ -698,6 +698,11 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 running: !!value,
             };
             break;
+        case '1032':
+            if (['ZNJLBL01LM'].includes(model.model)) {
+                payload.motor_speed = value;
+            }
+            break;
         case '1033':
             if (['ZNJLBL01LM'].includes(model.model)) {
                 payload.charging_status = value === 1;
@@ -3756,6 +3761,22 @@ export const toZigbee = {
         key: ['charging_status'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLumi', [0x0409], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_curtain_motor_speed: {
+        key: ['motor_speed'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'low':
+                await entity.write('manuSpecificLumi', {0x0408: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
+                break;
+            case 'medium':
+                await entity.write('manuSpecificLumi', {0x0408: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
+                break;
+            case 'high':
+                await entity.write('manuSpecificLumi', {0x0408: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
+                break;
+            }
         },
     } satisfies Tz.Converter,
     lumi_curtain_battery: {
