@@ -69,7 +69,7 @@ async function setupAttributes(
 
 export function setupConfigureForReporting(
     cluster: string | number, attribute: ReportingConfigAttribute, config: ReportingConfigWithoutAttribute, access: Access,
-    endpoints?: string[],
+    endpointNames?: string[],
 ) {
     const configureReporting = !!config;
     const read = !!(access & ea.GET);
@@ -77,8 +77,8 @@ export function setupConfigureForReporting(
         const configure: Configure = async (device, coordinatorEndpoint, logger) => {
             const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
             let entities: (Zh.Device | Zh.Endpoint)[] = [device];
-            if (endpoints) {
-                const endpointsMap = new Map<string, boolean>(endpoints.map((e) => [e, true]));
+            if (endpointNames) {
+                const endpointsMap = new Map<string, boolean>(endpointNames.map((e) => [e, true]));
                 entities = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
             }
 
@@ -101,13 +101,13 @@ export function identify(): ModernExtend {
 }
 
 export interface OnOffArgs {
-    powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpoints?: {[s: string]: number},
+    powerOnBehavior?: boolean, ota?: DefinitionOta, skipDuplicateTransaction?: boolean, endpointNames?: string[],
     configureReporting?: boolean,
 }
 export function onOff(args?: OnOffArgs): ModernExtend {
     args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
 
-    const exposes: Expose[] = args.endpoints ? Object.keys(args.endpoints).map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
+    const exposes: Expose[] = args.endpointNames ? args.endpointNames.map((ep) => e.switch().withEndpoint(ep)) : [e.switch()];
 
     const fromZigbee: Fz.Converter[] = [(args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off)];
     const toZigbee: Tz.Converter[] = [tz.on_off];
@@ -120,10 +120,6 @@ export function onOff(args?: OnOffArgs): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
     if (args.ota) result.ota = args.ota;
-    if (args.endpoints) {
-        result.meta = {multiEndpoint: true};
-        result.endpoint = (d) => args.endpoints;
-    }
     if (args.configureReporting) {
         result.configure = async (device, coordinatorEndpoint, logger) => {
             await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff', min: 0, max: 'MAX', change: 1}], logger);
@@ -247,7 +243,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 export interface LightArgs {
     effect?: boolean, powerOnBehavior?: boolean, colorTemp?: {startup?: boolean, range: Range},
     color?: boolean | {modes?: ('xy' | 'hs')[], applyRedFix?: boolean, enhancedHue?: boolean}, turnsOffAtBrightness1?: boolean,
-    configureReporting?: boolean, endpoints?: {[s: string]: number}, ota?: DefinitionOta,
+    configureReporting?: boolean, endpointNames?: string[], ota?: DefinitionOta,
 }
 export function light(args?: LightArgs): ModernExtend {
     args = {effect: true, powerOnBehavior: true, configureReporting: false, ...args};
@@ -258,7 +254,8 @@ export function light(args?: LightArgs): ModernExtend {
         modes: ['xy'] satisfies ('xy' | 'hs')[], applyRedFix: false, enhancedHue: true, ...(isObject(args.color) ? args.color : {}),
     } : false;
 
-    const lightExpose = args.endpoints ? Object.keys(args.endpoints).map((_) => e.light().withBrightness()) : [e.light().withBrightness()];
+    const lightExpose = args.endpointNames ?
+        args.endpointNames.map((ep) => e.light().withBrightness().withEndpoint(ep)) : [e.light().withBrightness()];
 
     const fromZigbee: Fz.Converter[] = [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
     const toZigbee: Tz.Converter[] = [
@@ -297,10 +294,6 @@ export function light(args?: LightArgs): ModernExtend {
         }
     }
 
-    if (args.endpoints) {
-        Object.keys(args.endpoints).forEach((ep, idx) => lightExpose[idx].withEndpoint(ep));
-        meta.multiEndpoint = true;
-    }
     const exposes: Expose[] = lightExpose;
 
     if (args.effect) {
@@ -349,7 +342,6 @@ export function light(args?: LightArgs): ModernExtend {
     };
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, meta, isModernExtend: true};
-    if (args.endpoints) result.endpoint = (d) => args.endpoints;
     if (args.ota) result.ota = args.ota;
     return result;
 }
@@ -373,23 +365,23 @@ export function lock(args?: LockArgs): ModernExtend {
 
 export interface EnumLookupArgs {
     name: string, lookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
-    zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', endpoint?: string,
-    reporting?: ReportingConfigWithoutAttribute, entityCategory?: 'config' | 'diagnostic',
+    zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL',
+    endpointName?: string, reporting?: ReportingConfigWithoutAttribute, entityCategory?: 'config' | 'diagnostic',
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
-    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpoint, reporting, entityCategory} = args;
+    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
     let expose = e.enum(name, access, Object.keys(lookup)).withDescription(description);
-    if (endpoint) expose = expose.withEndpoint(endpoint);
+    if (endpointName) expose = expose.withEndpoint(endpointName);
     if (entityCategory) expose = expose.withCategory(entityCategory);
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (attributeKey in msg.data && (!endpoint || getEndpointName(msg, model, meta) === endpoint)) {
+            if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
                 return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
             }
         },
@@ -419,7 +411,7 @@ export type ScaleFunction = (value: number, type: 'from' | 'to') => number;
 export interface NumericArgs {
     name: string, cluster: string | number, attribute: string | {ID: number, type: number}, description: string,
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
-    endpoint?: string, endpoints?: string[], reporting?: ReportingConfigWithoutAttribute,
+    endpointNames?: string[], reporting?: ReportingConfigWithoutAttribute,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number | ScaleFunction, label?: string,
     entityCategory?: 'config' | 'diagnostic',
 }
@@ -429,11 +421,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         entityCategory,
     } = args;
 
-    let endpoints = args.endpoints;
-    if (!endpoints && args.endpoint) {
-        endpoints = [args.endpoint];
-    }
-
+    const endpoints = args.endpointNames;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
@@ -508,22 +496,22 @@ export function numeric(args: NumericArgs): ModernExtend {
 export interface BinaryArgs {
     name: string, valueOn: [string | boolean, unknown], valueOff: [string | boolean, unknown], cluster: string | number,
     attribute: string | {ID: number, type: number}, description: string, zigbeeCommandOptions?: {manufacturerCode: number},
-    endpoint?: string, reporting?: ReportingConfig, access?: 'STATE' | 'STATE_GET' | 'ALL', entityCategory?: 'config' | 'diagnostic',
+    endpointName?: string, reporting?: ReportingConfig, access?: 'STATE' | 'STATE_GET' | 'ALL', entityCategory?: 'config' | 'diagnostic',
 }
 export function binary(args: BinaryArgs): ModernExtend {
-    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpoint, reporting, entityCategory} = args;
+    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? 'ALL'];
 
     let expose = e.binary(name, access, valueOn[0], valueOff[0]).withDescription(description);
-    if (endpoint) expose = expose.withEndpoint(endpoint);
+    if (endpointName) expose = expose.withEndpoint(endpointName);
     if (entityCategory) expose = expose.withCategory(entityCategory);
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (attributeKey in msg.data && (!endpoint || getEndpointName(msg, model, meta) === endpoint)) {
+            if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
                 return {[expose.property]: msg.data[attributeKey] === valueOn[1] ? valueOn[0] : valueOff[0]};
             }
         },
@@ -834,7 +822,7 @@ export function occupancy(args?: Partial<BinaryArgs>): ModernExtend {
         type: ['attributeReport', 'readResponse'],
         options: [opt.no_occupancy_since_false()],
         convert: (model, msg, publish, options, meta) => {
-            if (attribute in msg.data && (!args.endpoint || getEndpointName(msg, model, meta) === args.endpoint)) {
+            if (attribute in msg.data && (!args.endpointName || getEndpointName(msg, model, meta) === args.endpointName)) {
                 const payload = {[name]: (msg.data[attribute] % 2) > 0};
                 noOccupancySince(msg.endpoint, options, publish, payload.occupancy ? 'stop' : 'start');
                 return payload;

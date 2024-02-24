@@ -1,6 +1,6 @@
 import {Definition} from '../lib/types';
 import * as ota from '../lib/ota';
-import {batteryPercentage, light} from '../lib/modernExtend';
+import {batteryPercentage, deviceEndpoints, light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -9,7 +9,10 @@ const definitions: Definition[] = [
         vendor: 'Dresden Elektronik',
         description: 'ZigBee Light Link wireless electronic ballast',
         ota: ota.zigbeeOTA,
-        extend: [light({colorTemp: {range: undefined}, color: true, endpoints: {rgb: 10, white: 11}})],
+        extend: [
+            deviceEndpoints({endpoints: {'rgb': 10, 'white': 11}}),
+            light({colorTemp: {range: undefined}, color: true, endpointNames: ['rgb', 'white']}),
+        ],
     },
     {
         zigbeeModel: ['FLS-CT'],
@@ -39,7 +42,10 @@ const definitions: Definition[] = [
         model: 'BN-600078',
         vendor: 'Dresden Elektronik',
         description: 'Zigbee controller for 1-10V/PWM',
-        extend: [light({endpoints: {l1: 11, l2: 12, l3: 13, l4: 14}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 11, 'l2': 12, 'l3': 13, 'l4': 14}}),
+            light({endpointNames: ['l1', 'l2', 'l3', 'l4']}),
+        ],
         meta: {disableDefaultResponse: true},
     },
 ];

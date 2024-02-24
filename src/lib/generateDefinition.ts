@@ -165,17 +165,17 @@ function stringifyEps(endpoints: Endpoint[]): string[] {
 
 const inputExtenders: Extender[] = [
     [['msTemperatureMeasurement'], async (eps) => [
-        new Generator({extend: m.temperature, args: {endpoints: stringifyEps(eps)}, source: 'temperature'}),
+        new Generator({extend: m.temperature, args: {endpointNames: stringifyEps(eps)}, source: 'temperature'}),
     ]],
-    [['msPressureMeasurement'], async (eps) => [new Generator({extend: m.pressure, args: {endpoints: stringifyEps(eps)}, source: 'pressure'})]],
-    [['msRelativeHumidity'], async (eps) => [new Generator({extend: m.humidity, args: {endpoints: stringifyEps(eps)}, source: 'humidity'})]],
-    [['msCO2'], async (eps) => [new Generator({extend: m.co2, args: {endpoints: stringifyEps(eps)}, source: 'co2'})]],
+    [['msPressureMeasurement'], async (eps) => [new Generator({extend: m.pressure, args: {endpointNames: stringifyEps(eps)}, source: 'pressure'})]],
+    [['msRelativeHumidity'], async (eps) => [new Generator({extend: m.humidity, args: {endpointNames: stringifyEps(eps)}, source: 'humidity'})]],
+    [['msCO2'], async (eps) => [new Generator({extend: m.co2, args: {endpointNames: stringifyEps(eps)}, source: 'co2'})]],
     [['genPowerCfg'], async () => [new Generator({extend: m.batteryPercentage, source: 'batteryPercentage'})]],
     [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],
     [['closuresDoorLock'], extenderLock],
     [['msIlluminanceMeasurement'], async (eps) => [
-        new Generator({extend: m.illuminance, args: {endpoints: stringifyEps(eps)}, source: 'illuminance'}),
+        new Generator({extend: m.illuminance, args: {endpointNames: stringifyEps(eps)}, source: 'illuminance'}),
     ]],
     [['msOccupancySensing'], async (eps) => [
         new Generator({extend: m.occupancy, source: 'occupancy'}),
@@ -209,7 +209,9 @@ async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedEx
             prev[curr.ID.toString()] = curr.ID;
             return prev;
         }, {} as Record<string, number>) : undefined;
-        generated.push(new Generator({extend: m.onOff, args: {powerOnBehavior: false, endpoints}, source: 'onOff'}));
+        const endpointNames: string[] = endpoints ? Object.keys(endpoints) : undefined;
+        if (endpointNames) generated.push(new Generator({extend: m.deviceEndpoints, args: {endpoints: endpoints}, source: 'deviceEndpoints'}));
+        generated.push(new Generator({extend: m.onOff, args: {powerOnBehavior: false, endpointNames: endpointNames}, source: 'onOff'}));
     }
 
     for (const endpoint of lightEndpoints) {

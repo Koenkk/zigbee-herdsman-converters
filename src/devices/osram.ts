@@ -5,6 +5,7 @@ import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {ledvanceLight, ledvanceFz, ledvanceOnOff} from '../lib/ledvance';
 import {Definition} from '../lib/types';
+import {deviceEndpoints} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -370,7 +371,10 @@ const definitions: Definition[] = [
         model: '4062172044776_3',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices)',
-        extend: [ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11}, ota: ota.zigbeeOTA})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 10, 'l2': 11}}),
+            ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2'], ota: ota.zigbeeOTA}),
+        ],
     },
     {
         fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]},
@@ -378,7 +382,10 @@ const definitions: Definition[] = [
         model: '4062172044776_4',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
-        extend: [ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: ota.zigbeeOTA})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 10, 'l2': 11, 's1': 25}}),
+            ledvanceLight({configureReporting: true, endpointNames: ['l1', 'l2', 's1'], ota: ota.zigbeeOTA}),
+        ],
         fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [e.action(['toggle_s1', 'brightness_move_up_s1', 'brightness_move_down_s1', 'brightness_stop_s1'])],
         onEvent: async (type, data, device) => {

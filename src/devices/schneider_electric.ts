@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {onOff, light, electricityMeter, identify, enumLookup} from '../lib/modernExtend';
+import {onOff, light, electricityMeter, identify, enumLookup, deviceEndpoints} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -28,7 +28,7 @@ function indicatorMode(endpoint?: string) {
         cluster: 'clipsalWiserSwitchConfigurationClusterServer',
         attribute: {ID: 0x0000, type: 0x30},
         description: description,
-        endpoint: endpoint,
+        endpointName: endpoint,
     });
 }
 
@@ -58,7 +58,7 @@ function switchActions(endpoint?: string) {
         cluster: 'clipsalWiserSwitchConfigurationClusterServer',
         attribute: 'SwitchActions',
         description: description,
-        endpoint: endpoint,
+        endpointName: endpoint,
     });
 }
 
@@ -298,7 +298,10 @@ const definitions: Definition[] = [
         model: 'U202DST600ZB',
         vendor: 'Schneider Electric',
         description: 'EZinstall3 2 gang 2x300W dimmer module',
-        extend: [light({endpoints: {l1: 10, l2: 11}, configureReporting: true})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 10, 'l2': 11}}),
+            light({endpointNames: ['l1', 'l2'], configureReporting: true}),
+        ],
     },
     {
         zigbeeModel: ['PUCK/DIMMER/1'],
@@ -567,7 +570,10 @@ const definitions: Definition[] = [
         model: 'U202SRY2KWZB',
         vendor: 'Schneider Electric',
         description: 'Ulti 240V 9.1 A 2 gangs relay switch impress switch module, amber LED',
-        extend: [onOff({endpoints: {l1: 10, l2: 11}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 10, 'l2': 11}}),
+            onOff({endpointNames: ['l1', 'l2']}),
+        ],
     },
     {
         zigbeeModel: ['1GANG/SHUTTER/1'],
@@ -830,7 +836,10 @@ const definitions: Definition[] = [
         model: 'MEG5126-0300',
         vendor: 'Schneider Electric',
         description: 'Merten MEG5165 PlusLink relais insert with Merten Wiser System M push button (2fold)',
-        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            onOff({endpointNames: ['l1', 'l2']}),
+        ],
     },
     {
         zigbeeModel: ['EH-ZB-VACT'],
@@ -1073,7 +1082,10 @@ const definitions: Definition[] = [
         model: '3025CSGZ',
         vendor: 'Schneider Electric',
         description: 'Dual connected smart socket',
-        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            onOff({endpointNames: ['l1', 'l2']}),
+        ],
     },
     {
         zigbeeModel: ['CCT592011_AS'],
