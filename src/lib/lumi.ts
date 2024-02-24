@@ -700,7 +700,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '1032':
             if (['ZNJLBL01LM'].includes(model.model)) {
-                payload.motor_speed = value;
+                payload.motor_speed = getFromLookup(value, {0: 'low', 1: 'medium', 2: 'high'});
             }
             break;
         case '1033':
@@ -3765,6 +3765,9 @@ export const toZigbee = {
     } satisfies Tz.Converter,
     lumi_curtain_motor_speed: {
         key: ['motor_speed'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', [0x0408], manufacturerOptions.lumi);
+        },
         convertSet: async (entity, key, value, meta) => {
             switch (value) {
             case 'low':
