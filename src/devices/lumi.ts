@@ -18,7 +18,7 @@ const {
     lumiAction, lumiOperationMode, lumiPowerOnBehavior, lumiZigbeeOTA,
     lumiSwitchType, lumiAirQuality, lumiVoc, lumiDisplayUnit, lumiLight,
     lumiOutageCountRestoreBindReporting, lumiElectricityMeter, lumiPower,
-    lumiOverloadProtection, lumiLedIndicator, lumiButtonLock,
+    lumiOverloadProtection, lumiLedIndicator, lumiButtonLock, lumiMotorSpeed,
 } = lumi.modernExtend;
 import {Definition, OnEvent} from '../lib/types';
 const {manufacturerCode} = lumi;
@@ -1936,7 +1936,7 @@ const definitions: Definition[] = [
         fromZigbee: [lumi.fromZigbee.lumi_curtain_position, lumi.fromZigbee.lumi_curtain_status,
             fz.ignore_basic_report, lumi.fromZigbee.lumi_specific],
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_battery,
-            lumi.toZigbee.lumi_curtain_charging_status, lumi.toZigbee.lumi_curtain_motor_speed],
+            lumi.toZigbee.lumi_curtain_charging_status],
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'genMultistateOutput' &&
                 data.data.hasOwnProperty('presentValue') && data.data['presentValue'] > 1) {
@@ -1946,7 +1946,6 @@ const definitions: Definition[] = [
             }
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET), e.device_temperature(),
-            e.enum('motor_speed', ea.ALL, ['low', 'medium', 'high']).withDescription('Speed of the motor'),
             e.binary('charging_status', ea.STATE_GET, true, false)
                 .withDescription('The current charging status.'),
             e.enum('motor_state', ea.STATE, ['declining', 'rising', 'pause', 'blocked'])
@@ -1959,7 +1958,10 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('manuSpecificLumi', [0x040a], {manufacturerCode: manufacturerCode});
         },
-        extend: [lumiZigbeeOTA()],
+        extend: [
+            lumiZigbeeOTA(),
+            lumiMotorSpeed(),
+        ],
     },
     {
         // 'lumi.curtain.acn003' - CN version (ZNCLBL01LM), 'lumi.curtain.agl001' - global version (CM-M01)

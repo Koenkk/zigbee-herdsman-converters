@@ -1325,6 +1325,15 @@ export const lumiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
+    lumiMotorSpeed: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'motor_speed',
+        lookup: {'low': 0, 'medium': 1, 'high': 2},
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0408, type: 0x20},
+        description: 'Controls the motor speed',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
     lumiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'power_on_behavior',
         lookup: {'on': 0, 'previous': 1, 'off': 2},
