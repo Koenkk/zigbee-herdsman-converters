@@ -4664,13 +4664,13 @@ const converters1 = {
             const buffer = msg.data;
             const commonForColors = buffer[0] === 17 && buffer[2] === 48 && buffer[3] === 0 && buffer[5] === 8 && buffer[6] === 0;
             let color = null;
-            if (commonForColors && buffer[4] === 255) {
+            if (commonForColors && [255, 254].includes(buffer[4])) {
                 color = 'red';
             } else if (commonForColors && buffer[4] === 42) {
                 color = 'yellow';
-            } else if (commonForColors && buffer[4] === 85) {
+            } else if (commonForColors && [85, 84].includes(buffer[4])) {
                 color = 'green';
-            } else if (commonForColors && buffer[4] === 170) {
+            } else if (commonForColors && [170, 69].includes(buffer[4])) {
                 color = 'blue';
             }
 
