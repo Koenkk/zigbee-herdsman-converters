@@ -158,7 +158,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg']);
             await reporting.temperature(endpoint1);
             await reporting.humidity(endpoint2);
-            await reporting.batteryVoltage(endpoint2);
             await reporting.batteryPercentageRemaining(endpoint2);
         },
         exposes: [e.humidity(), e.temperature(), e.battery()],
