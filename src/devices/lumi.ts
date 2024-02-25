@@ -1167,18 +1167,9 @@ const definitions: Definition[] = [
         model: 'QBKG20LM',
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (with neutral, double rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
-        toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_flip_indicator_light],
-        meta: {multiEndpoint: true},
-        extend: [forceDeviceType({type: 'Router'}), forcePowerSource({powerSource: 'Mains (single phase)'}), lumiZigbeeOTA()],
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2};
-        },
+        fromZigbee: [lumi.fromZigbee.lumi_action_multistate],
+        toZigbee: [lumi.toZigbee.lumi_switch_operation_mode_opple],
         exposes: [
-            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withAccess(ea.STATE), e.energy(), e.voltage(), e.flip_indicator_light(),
-            e.power_outage_memory(), e.led_disabled_night(), e.device_temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
             e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
@@ -1189,23 +1180,26 @@ const definitions: Definition[] = [
                 .withEndpoint('right'),
         ],
         onEvent: preventReset,
+        extend: [
+            forceDeviceType({type: 'Router'}),
+            forcePowerSource({powerSource: 'Mains (single phase)'}),
+            lumiZigbeeOTA(),
+            deviceEndpoints({endpoints: {'left': 1, 'right': 2}}),
+            lumiOnOff({powerOnBehavior: true, endpointNames: ['left', 'right']}),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+            lumiElectricityMeter(),
+            lumiPower(),
+        ],
     },
     {
         zigbeeModel: ['lumi.switch.b3l01'],
         model: 'QBKG33LM',
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (no neutral, triple rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
-        toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_flip_indicator_light],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
+        fromZigbee: [lumi.fromZigbee.lumi_action_multistate],
+        toZigbee: [lumi.toZigbee.lumi_switch_operation_mode_opple],
         exposes: [
-            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            e.flip_indicator_light(),
-            e.power_outage_memory(), e.led_disabled_night(), e.device_temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center',
                 'single_right', 'double_right', 'single_left_center', 'double_left_center',
@@ -1222,24 +1216,22 @@ const definitions: Definition[] = [
                 .withEndpoint('right'),
         ],
         onEvent: preventReset,
-        extend: [lumiZigbeeOTA()],
+        extend: [
+            lumiZigbeeOTA(),
+            deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
+            lumiOnOff({powerOnBehavior: true, endpointNames: ['left', 'center', 'right']}),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+        ],
     },
     {
         zigbeeModel: ['lumi.switch.b3n01'],
         model: 'QBKG34LM',
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (with neutral, triple rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
-        toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_flip_indicator_light],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
+        fromZigbee: [lumi.fromZigbee.lumi_action_multistate],
+        toZigbee: [lumi.toZigbee.lumi_switch_operation_mode_opple],
         exposes: [
-            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            e.power().withAccess(ea.STATE), e.energy(), e.voltage(), e.flip_indicator_light(),
-            e.power_outage_memory(), e.led_disabled_night(), e.device_temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center',
                 'single_right', 'double_right', 'single_left_center', 'double_left_center',
@@ -1256,7 +1248,15 @@ const definitions: Definition[] = [
                 .withEndpoint('right'),
         ],
         onEvent: preventReset,
-        extend: [lumiZigbeeOTA()],
+        extend: [
+            lumiZigbeeOTA(),
+            deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
+            lumiOnOff({powerOnBehavior: true, endpointNames: ['left', 'center', 'right']}),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+            lumiElectricityMeter(),
+            lumiPower(),
+        ],
     },
     {
         zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
