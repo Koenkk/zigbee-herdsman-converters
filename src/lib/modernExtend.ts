@@ -161,6 +161,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
             power: {attribute: 'instantaneousDemand', divisor: 'divisor', multiplier: 'multiplier', forced: args.power, change: 5},
             // Report change with every 0.1kWh change
             energy: {attribute: 'currentSummDelivered', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1},
+            produced_energy: {attribute: 'currentSummReceived', divisor: 'divisor', multiplier: 'multiplier', forced: args.energy, change: 0.1},
         },
     };
 
@@ -215,6 +216,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                     let change: number | [number, number] = property.change * (divisor / multiplier);
                     // currentSummDelivered data type is uint48, so reportableChange also is uint48
                     if (property.attribute === 'currentSummDelivered') change = [0, change];
+                    if (property.attribute === 'currentSummReceived') change = [0, change];
                     items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
                 }
                 if (items.length) {
