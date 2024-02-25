@@ -1115,7 +1115,7 @@ const definitions: Definition[] = [
             lumiOnOff({powerOnBehavior: true, operationMode: true}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
-            lumiAction({lookup: {'single': 1, 'double': 2}}),
+            lumiAction({actionLookup: {'single': 1, 'double': 2}}),
         ],
     },
     {
@@ -1123,11 +1123,6 @@ const definitions: Definition[] = [
         model: 'QBKG18LM',
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (no neutral, double rocker)',
-        fromZigbee: [lumi.fromZigbee.lumi_action_multistate],
-        exposes: [
-            e.action([
-                'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
-        ],
         onEvent: preventReset,
         extend: [
             lumiZigbeeOTA(),
@@ -1135,6 +1130,7 @@ const definitions: Definition[] = [
             lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
+            lumiAction({actionLookup: {'single': 1, 'double': 2}, buttonLookup: {'left': 41, 'right': 42, 'both': 51}}),
         ],
     },
     {
@@ -1148,7 +1144,7 @@ const definitions: Definition[] = [
             lumiOnOff({powerOnBehavior: true, operationMode: true}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
-            lumiAction({lookup: {'single': 1, 'double': 2}}),
+            lumiAction({actionLookup: {'single': 1, 'double': 2}}),
             lumiElectricityMeter(),
             lumiPower(),
         ],
@@ -1158,11 +1154,6 @@ const definitions: Definition[] = [
         model: 'QBKG20LM',
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (with neutral, double rocker)',
-        fromZigbee: [lumi.fromZigbee.lumi_action_multistate],
-        exposes: [
-            e.action([
-                'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
-        ],
         onEvent: preventReset,
         extend: [
             forceDeviceType({type: 'Router'}),
@@ -1172,6 +1163,7 @@ const definitions: Definition[] = [
             lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
+            lumiAction({actionLookup: {'single': 1, 'double': 2}, buttonLookup: {'left': 41, 'right': 42, 'both': 51}}),
             lumiElectricityMeter(),
             lumiPower(),
         ],
@@ -1181,14 +1173,6 @@ const definitions: Definition[] = [
         model: 'QBKG33LM',
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (no neutral, triple rocker)',
-        fromZigbee: [lumi.fromZigbee.lumi_action_multistate],
-        exposes: [
-            e.action([
-                'single_left', 'double_left', 'single_center', 'double_center',
-                'single_right', 'double_right', 'single_left_center', 'double_left_center',
-                'single_left_right', 'double_left_right', 'single_center_right', 'double_center_right',
-                'single_all', 'double_all']),
-        ],
         onEvent: preventReset,
         extend: [
             lumiZigbeeOTA(),
@@ -1196,6 +1180,11 @@ const definitions: Definition[] = [
             lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'center', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
+            lumiAction({actionLookup: {'single': 1, 'double': 2}, buttonLookup: {
+                'left': 41, 'center': 42, 'right': 43,
+                'left_center': 51, 'left_right': 52, 'center_right': 53,
+                'all': 61,
+            }}),
         ],
     },
     {
@@ -1203,14 +1192,6 @@ const definitions: Definition[] = [
         model: 'QBKG34LM',
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (with neutral, triple rocker)',
-        fromZigbee: [lumi.fromZigbee.lumi_action_multistate],
-        exposes: [
-            e.action([
-                'single_left', 'double_left', 'single_center', 'double_center',
-                'single_right', 'double_right', 'single_left_center', 'double_left_center',
-                'single_left_right', 'double_left_right', 'single_center_right', 'double_center_right',
-                'single_all', 'double_all']),
-        ],
         onEvent: preventReset,
         extend: [
             lumiZigbeeOTA(),
@@ -1218,6 +1199,11 @@ const definitions: Definition[] = [
             lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'center', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
+            lumiAction({actionLookup: {'single': 1, 'double': 2}, buttonLookup: {
+                'left': 41, 'center': 42, 'right': 43,
+                'left_center': 51, 'left_right': 52, 'center_right': 53,
+                'all': 61,
+            }}),
             lumiElectricityMeter(),
             lumiPower(),
         ],
