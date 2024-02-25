@@ -8,7 +8,6 @@ import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
-import extend from '../lib/extend';
 import {forcePowerSource, light, onOff} from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 
@@ -166,28 +165,15 @@ const definitions: Definition[] = [
         model: '1402767',
         vendor: 'Namron',
         description: 'Zigbee LED dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
+        extend: [light({effect: false, configureReporting: true}), forcePowerSource({powerSource: 'Mains (single phase)'})],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
     },
     {
         zigbeeModel: ['1402768'],
         model: '1402768',
         vendor: 'Namron',
         description: 'Zigbee LED dimmer TW 250W',
-        extend: extend.light_onoff_brightness_colortemp({noConfigure: true, disableEffect: true, colorTempRange: [250, 65279]}),
-        meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [light({effect: false, configureReporting: true, colorTemp: {range: [250, 65279]}})],
     },
     {
         zigbeeModel: ['4512733'],
@@ -670,6 +656,7 @@ const definitions: Definition[] = [
         model: '540139X',
         vendor: 'Namron',
         description: 'Panel heater 400/600/800/1000 W',
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fzLocal.namron_panelheater, fz.namron_hvac_user_interface],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_system_mode,
             tz.thermostat_running_state, tz.thermostat_local_temperature, tzLocal.namron_panelheater, tz.namron_thermostat_child_lock],

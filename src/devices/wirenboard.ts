@@ -253,7 +253,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['WBMSW3'],
         model: 'WB-MSW-ZIGBEE v.3',
-        vendor: 'Sprut.device',
+        vendor: 'Wirenboard',
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout, fzLocal.co2_mh_z19b_config,
@@ -263,24 +263,24 @@ const definitions: Definition[] = [
         exposes: [e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity(), e.occupancy(), e.occupancy_level(), e.co2(),
             e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.switch().withEndpoint('l3'),
-            e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s')
+            e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withCategory('config')
                 .withDescription('Time in seconds after which noise is cleared after detecting it (default: 60)'),
-            e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s')
+            e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withCategory('config')
                 .withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 60)'),
-            e.numeric('temperature_offset', ea.SET).withValueMin(-10).withValueMax(10).withUnit('°C')
+            e.numeric('temperature_offset', ea.SET).withValueMin(-10).withValueMax(10).withUnit('°C').withCategory('config')
                 .withDescription('Self-heating compensation. The compensation value is subtracted from the measured temperature'),
-            e.numeric('occupancy_sensitivity', ea.ALL).withValueMin(0).withValueMax(2000)
+            e.numeric('occupancy_sensitivity', ea.ALL).withValueMin(0).withValueMax(2000).withCategory('config')
                 .withDescription('If the sensor is triggered by the slightest movement, reduce the sensitivity, '+
                     'otherwise increase it (default: 50)'),
-            e.numeric('noise_detect_level', ea.ALL).withValueMin(0).withValueMax(150).withUnit('dBA')
+            e.numeric('noise_detect_level', ea.ALL).withValueMin(0).withValueMax(150).withUnit('dBA').withCategory('config')
                 .withDescription('The minimum noise level at which the detector will work (default: 50)'),
-            e.enum('co2_autocalibration', ea.ALL, switchActionValues)
+            e.enum('co2_autocalibration', ea.ALL, switchActionValues).withCategory('config')
                 .withDescription('Automatic calibration of the CO2 sensor. If ON, the CO2 sensor will automatically calibrate '+
                     'every 7 days. (MH-Z19B sensor)'),
-            e.enum('co2_manual_calibration', ea.ALL, switchActionValues)
+            e.enum('co2_manual_calibration', ea.ALL, switchActionValues).withCategory('config')
                 .withDescription('Ventilate the room for 20 minutes, turn on manual calibration, and turn it off after one second. '+
                     'After about 5 minutes the CO2 sensor will show 400ppm. Calibration completed. (MH-Z19B sensor)'),
-            e.enum('th_heater', ea.ALL, switchActionValues)
+            e.enum('th_heater', ea.ALL, switchActionValues).withCategory('config')
                 .withDescription('Turn on when working in conditions of high humidity (more than 70 %, RH) or condensation, '+
                     'if the sensor shows 0 or 100 %.'),
         ],
@@ -320,7 +320,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['WBMSW4'],
         model: 'WB-MSW-ZIGBEE v.4',
-        vendor: 'Sprut.device',
+        vendor: 'Wirenboard',
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout,
@@ -330,16 +330,16 @@ const definitions: Definition[] = [
         exposes: [e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity(), e.occupancy(), e.occupancy_level(), e.co2(),
             e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.switch().withEndpoint('l3'),
-            e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s')
+            e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withCategory('config')
                 .withDescription('Time in seconds after which noise is cleared after detecting it (default: 60)'),
-            e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s')
+            e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withCategory('config')
                 .withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 60)'),
-            e.numeric('temperature_offset', ea.SET).withValueMin(-10).withValueMax(10).withUnit('°C')
+            e.numeric('temperature_offset', ea.SET).withValueMin(-10).withValueMax(10).withUnit('°C').withCategory('config')
                 .withDescription('Self-heating compensation. The compensation value is subtracted from the measured temperature (default: 0)'),
-            e.numeric('occupancy_sensitivity', ea.ALL).withValueMin(0).withValueMax(2000)
+            e.numeric('occupancy_sensitivity', ea.ALL).withValueMin(0).withValueMax(2000).withCategory('config')
                 .withDescription('If the sensor is triggered by the slightest movement, reduce the sensitivity, '+
                     'otherwise increase it (default: 50)'),
-            e.numeric('noise_detect_level', ea.ALL).withValueMin(0).withValueMax(150).withUnit('dBA')
+            e.numeric('noise_detect_level', ea.ALL).withValueMin(0).withValueMax(150).withUnit('dBA').withCategory('config')
                 .withDescription('The minimum noise level at which the detector will work (default: 50)'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -377,11 +377,14 @@ const definitions: Definition[] = [
             // buzzer
             await device.getEndpoint(4).read('genOnOff', ['onOff']);
 
+            // disable internal blinking zigbee state green led on start
+            await device.getEndpoint(5).write('genBinaryOutput', {0x0055: {value: 0x00, type: 0x10}});
+
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
         endpoint: (device) => {
-            return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4};
+            return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4, 'l4': 5};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
         ota: ota.zigbeeOTA,

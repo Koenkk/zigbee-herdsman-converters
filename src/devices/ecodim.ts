@@ -2,11 +2,9 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 const e = exposes.presets;
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
-import {light} from '../lib/modernExtend';
+import {deviceEndpoints, light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -25,21 +23,10 @@ const definitions: Definition[] = [
         model: 'Eco-Dim.05',
         vendor: 'EcoDim',
         description: 'LED dimmer duo 2x 0-100W',
-        extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
-        meta: {multiEndpoint: true},
-        exposes: [e.light_brightness().withEndpoint('left'), e.light_brightness().withEndpoint('right')],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            for (const ep of [1, 2]) {
-                const endpoint = device.getEndpoint(ep);
-                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-                await reporting.onOff(endpoint);
-                await reporting.brightness(endpoint);
-            }
-        },
-        endpoint: (device) => {
-            return {'left': 2, 'right': 1};
-        },
+        extend: [
+            deviceEndpoints({endpoints: {'left': 2, 'right': 1}}),
+            light({effect: false, configureReporting: true, endpointNames: ['left', 'right']}),
+        ],
     },
     {
         fingerprint: [
@@ -132,7 +119,7 @@ const definitions: Definition[] = [
         model: 'ED-10042',
         vendor: 'EcoDim',
         description: 'Zigbee LED filament light dimmable E27, globe G125, flame 2200K',
-        extend: tuya.extend.light_onoff_brightness(),
+        extend: [tuya.modernExtend.tuyaLight()],
     },
     {
         fingerprint: [{modelID: 'CCT Light', manufacturerName: 'ZigBee/CCT', manufacturerID: 4137},

@@ -1,9 +1,5 @@
 import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import extend from '../lib/extend';
-import {light, onOff} from '../lib/modernExtend';
-
-const e = exposes.presets;
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -17,12 +13,10 @@ const definitions: Definition[] = [
         model: 'HOMA1001_RGBW',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver RGBW',
-        extend: extend.light_onoff_brightness_color(),
-        exposes: [e.light_brightness().withEndpoint('white'), e.light_brightness_colorxy().withEndpoint('rgb')],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {white: 10, rgb: 11};
-        },
+        extend: [
+            deviceEndpoints({endpoints: {'white': 10, 'rgb': 11}}),
+            light({endpointNames: ['white', 'rgb'], color: true}),
+        ],
     },
     {
         fingerprint: [
@@ -93,7 +87,10 @@ const definitions: Definition[] = [
         model: 'HLC614-ZLL',
         vendor: 'Shenzhen Homa',
         description: '3 channel relay module',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3']}),
+        ],
     },
     {
         zigbeeModel: ['HOMA1064', '012'],

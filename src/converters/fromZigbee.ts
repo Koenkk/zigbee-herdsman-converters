@@ -1,6 +1,6 @@
 import {
     precisionRound, mapNumberRange, isLegacyEnabled, toLocalISOString, numberWithinRange, hasAlreadyProcessedMessage,
-    addActionGroup, postfixWithEndpointName, getKey, batteryVoltageToPercentage, calibrateAndPrecisionRoundOptions,
+    addActionGroup, postfixWithEndpointName, getKey, batteryVoltageToPercentage,
 } from '../lib/utils';
 import {Fz, KeyValueAny, KeyValueNumberString} from '../lib/types';
 import * as globalStore from '../lib/store';
@@ -1351,7 +1351,7 @@ const converters1 = {
         type: ['commandMoveColorTemp'],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = msg.data.movemode === 1 ? 'down' : 'up';
+            const direction = utils.getFromLookup(msg.data.movemode, {0: 'stop', 1: 'up', 3: 'down'});
             const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model, meta);
             const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
             addActionGroup(payload, msg, model);
@@ -2044,49 +2044,6 @@ const converters1 = {
             };
         },
     } satisfies Fz.Converter,
-    ZNMS12LM_low_battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('batteryAlarmMask')) {
-                return {battery_low: msg.data['batteryAlarmMask'] === 1};
-            }
-        },
-    } satisfies Fz.Converter,
-    xiaomi_lock_report: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65328']) {
-                const data = msg.data['65328'];
-                const state = data.substr(2, 2);
-                const action = data.substr(4, 2);
-                const keynum = data.substr(6, 2);
-                if (state == 11) {
-                    if (action == 1) {
-                        // unknown key
-                        return {keyerror: true, inserted: 'unknown'};
-                    }
-                    if (action == 3) {
-                        // explicitly disabled key (i.e. reported lost)
-                        return {keyerror: true, inserted: keynum};
-                    }
-                    if (action == 7) {
-                        // strange object introduced into the cylinder (e.g. a lock pick)
-                        return {keyerror: true, inserted: 'strange'};
-                    }
-                }
-                if (state == 12) {
-                    if (action == 1) {
-                        return {inserted: keynum};
-                    }
-                    if (action == 11) {
-                        return {forgotten: keynum};
-                    }
-                }
-            }
-        },
-    } satisfies Fz.Converter,
     ZigUP: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -2205,17 +2162,10 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model, msg.data[1])) return;
             const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
-            let buttonMapping: KeyValueNumberString = null;
-            if (meta.device.modelID === 'TS0042') {
-                buttonMapping = {1: '1', 2: '2'};
-            } else if (meta.device.modelID === 'TS0043') {
-                buttonMapping = {1: '1', 2: '2', 3: '3'};
-            } else if (['TS0044', 'TS004F'].includes(meta.device.modelID)) {
-                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
-            } else if (['TS0046'].includes(meta.device.modelID)) {
-                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'};
-            }
-            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
+            const buttonMapping: KeyValueNumberString = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'};
+            // TS004F has single endpoint, TS0041A/TS0041 can have multiple but have just one button
+            const button = msg.device.endpoints.length == 1 || ['TS0041A', 'TS0041'].includes(msg.device.modelID) ?
+                '' : `${buttonMapping[msg.endpoint.ID]}_`;
             // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
             // Send the defaultResponse here, otherwise the second button click delays.
             // https://github.com/Koenkk/zigbee2mqtt/issues/8149
@@ -3050,208 +3000,6 @@ const converters1 = {
             return payload;
         },
     } satisfies Fz.Converter,
-    ZNMS11LM_closuresDoorLock_report: {
-        cluster: 'closuresDoorLock',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            const lockStatusLookup: KeyValueAny = {
-                1: 'finger_not_match',
-                2: 'password_not_match',
-                3: 'reverse_lock', // disable open from outside
-                4: 'reverse_lock_cancel', // enable open from outside
-                5: 'locked',
-                6: 'lock_opened',
-                7: 'finger_add',
-                8: 'finger_delete',
-                9: 'password_add',
-                10: 'password_delete',
-                11: 'lock_opened_inside', // Open form inside reverse lock enable
-                12: 'lock_opened_outside', // Open form outside reverse lock disable
-                13: 'ring_bell',
-                14: 'change_language_to',
-                15: 'finger_open',
-                16: 'password_open',
-                17: 'door_closed',
-            };
-            if (msg.data['65296']) { // finger/password success
-                const data = msg.data['65296'].toString(16);
-                const command = data.substr(0, 1); // 1 finger open, 2 password open
-                const userId = data.substr(5, 2);
-                const userType = data.substr(1, 1); // 1 admin, 2 user
-                result.data = data;
-                result.action = (lockStatusLookup[14+parseInt(command, 16)] +
-                    (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
-                result.action_user = parseInt(userId, 16);
-            } else if (msg.data['65297']) { // finger, password failed or bell
-                const data = msg.data['65297'].toString(16);
-                const times = data.substr(0, 1);
-                const type = data.substr(5, 2); // 00 bell, 02 password, 40 error finger
-                result.data = data;
-                if (type === '40') {
-                    result.action_action = lockStatusLookup[1];
-                    result.action_repeat = parseInt(times, 16);
-                } else if (type === '02') {
-                    result.action = lockStatusLookup[2];
-                    result.action_repeat = parseInt(times, 16);
-                } else if (type === '00') {
-                    result.action = lockStatusLookup[13];
-                }
-            } else if (msg.data['65281'] && msg.data['65281']['1']) { // user added/delete
-                const data = msg.data['65281']['1'].toString(16);
-                const command = data.substr(0, 1); // 1 add, 2 delete
-                const userId = data.substr(5, 2);
-                result.data = data;
-                result.action = lockStatusLookup[6+parseInt(command, 16)];
-                result.action_user = parseInt(userId, 16);
-            }
-
-            if (isLegacyEnabled(options)) {
-                result.repeat = result.action_repeat;
-                result.user = result.action_user;
-            } else {
-                delete result.data;
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter,
-    ZNMS12LM_ZNMS13LM_closuresDoorLock_report: {
-        cluster: 'closuresDoorLock',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            const lockStatusLookup: KeyValueAny = {
-                1: 'finger_not_match',
-                2: 'password_not_match',
-                3: 'reverse_lock', // disable open from outside
-                4: 'reverse_lock_cancel', // enable open from outside
-                5: 'locked',
-                6: 'lock_opened',
-                7: 'finger_add',
-                8: 'finger_delete',
-                9: 'password_add',
-                10: 'password_delete',
-                11: 'lock_opened_inside', // Open form inside reverse lock enable
-                12: 'lock_opened_outside', // Open form outside reverse lock disable
-                13: 'ring_bell',
-                14: 'change_language_to',
-                15: 'finger_open',
-                16: 'password_open',
-                17: 'door_closed',
-            };
-
-            if (msg.data['65526']) { // lock final status
-                // Convert data back to hex to decode
-                const data = Buffer.from(msg.data['65526'], 'ascii').toString('hex');
-                const command = data.substr(6, 4);
-                if (
-                    command === '0301' || // ZNMS12LM
-                        command === '0341' // ZNMS13LM
-                ) {
-                    result.action = lockStatusLookup[4];
-                    result.state = 'UNLOCK';
-                    result.reverse = 'UNLOCK';
-                } else if (
-                    command === '0311' || // ZNMS12LM
-                        command === '0351' // ZNMS13LM
-                ) {
-                    result.action = lockStatusLookup[4];
-                    result.state = 'LOCK';
-                    result.reverse = 'UNLOCK';
-                } else if (
-                    command === '0205' || // ZNMS12LM
-                        command === '0245' // ZNMS13LM
-                ) {
-                    result.action = lockStatusLookup[3];
-                    result.state = 'UNLOCK';
-                    result.reverse = 'LOCK';
-                } else if (
-                    command === '0215' || // ZNMS12LM
-                        command === '0255' || // ZNMS13LM
-                        command === '1355' // ZNMS13LM
-                ) {
-                    result.action = lockStatusLookup[3];
-                    result.state = 'LOCK';
-                    result.reverse = 'LOCK';
-                } else if (
-                    command === '0111' || // ZNMS12LM
-                        command === '1351' || // ZNMS13LM locked from inside
-                        command === '1451' // ZNMS13LM locked from outside
-                ) {
-                    result.action = lockStatusLookup[5];
-                    result.state = 'LOCK';
-                    result.reverse = 'UNLOCK';
-                } else if (
-                    command === '0b00' || // ZNMS12LM
-                        command === '0640' || // ZNMS13LM
-                        command === '0600' // ZNMS13LM
-
-                ) {
-                    result.action = lockStatusLookup[12];
-                    result.state = 'UNLOCK';
-                    result.reverse = 'UNLOCK';
-                } else if (
-                    command === '0c00' || // ZNMS12LM
-                        command === '2300' || // ZNMS13LM
-                        command === '0540' || // ZNMS13LM
-                        command === '0440' // ZNMS13LM
-                ) {
-                    result.action = lockStatusLookup[11];
-                    result.state = 'UNLOCK';
-                    result.reverse = 'UNLOCK';
-                } else if (
-                    command === '2400' || // ZNMS13LM door closed from insed
-                        command === '2401' // ZNMS13LM door closed from outside
-                ) {
-                    result.action = lockStatusLookup[17];
-                    result.state = 'UNLOCK';
-                    result.reverse = 'UNLOCK';
-                }
-            } else if (msg.data['65296']) { // finger/password success
-                const data = Buffer.from(msg.data['65296'], 'ascii').toString('hex');
-                const command = data.substr(6, 2); // 1 finger open, 2 password open
-                const userId = data.substr(12, 2);
-                const userType = data.substr(8, 1); // 1 admin, 2 user
-                result.action = (lockStatusLookup[14+parseInt(command, 16)] +
-                    (userType === '1' ? '_admin' : '_user') + '_id' + parseInt(userId, 16).toString());
-                result.action_user = parseInt(userId, 16);
-            } else if (msg.data['65297']) { // finger, password failed or bell
-                const data = Buffer.from(msg.data['65297'], 'ascii').toString('hex');
-                const times = data.substr(6, 2);
-                const type = data.substr(12, 2); // 00 bell, 02 password, 40 error finger
-                if (type === '40') {
-                    result.action = lockStatusLookup[1];
-                    result.action_repeat = parseInt(times, 16);
-                } else if (type === '00') {
-                    result.action = lockStatusLookup[13];
-                    result.action_repeat = null;
-                } else if (type === '02') {
-                    result.action = lockStatusLookup[2];
-                    result.action_repeat = parseInt(times, 16);
-                }
-            } else if (msg.data['65281']) { // password added/delete
-                const data = Buffer.from(msg.data['65281'], 'ascii').toString('hex');
-                const command = data.substr(18, 2); // 1 add, 2 delete
-                const userId = data.substr(12, 2);
-                result.action = lockStatusLookup[6+parseInt(command, 16)];
-                result.action_user = parseInt(userId, 16);
-            } else if (msg.data['65522']) { // set language
-                const data = Buffer.from(msg.data['65522'], 'ascii').toString('hex');
-                const langId = data.substr(6, 2); // 1 chinese, 2: english
-                result.action = (lockStatusLookup[14])+ (langId==='2'?'_english':'_chinese');
-            }
-
-            if (isLegacyEnabled(options)) {
-                result.repeat = result.action_repeat;
-                result.user = result.action_user;
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter,
     restorable_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -3701,214 +3449,6 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    xiaomi_power: {
-        cluster: 'genAnalogInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {power: msg.data['presentValue']};
-        },
-    } satisfies Fz.Converter,
-    xiaomi_on_off_action: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM', 'QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model) && msg.data['61440']) {
-                return;
-            }
-
-            if (['QBKG21LM', 'QBKG04LM'].includes(model.model) && msg.endpoint.ID !== 4) return;
-
-            let mapping: KeyValueNumberString = null;
-            if (['QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model)) mapping = {4: 'left', 5: 'right', 6: 'both'};
-            if (['WXKG02LM_rev1', 'WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) mapping = {1: 'left', 2: 'right', 3: 'both'};
-
-            // Maybe other QKBG also support release/hold?
-            const actionLookup: KeyValueAny = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM', 'QBKG21LM'].includes(model.model) ?
-                {0: 'hold', 1: 'release', 2: 'double'} : {0: 'single', 1: 'single'};
-
-            const action = actionLookup[msg.data['onOff']];
-            const button = mapping && mapping[msg.endpoint.ID] ? `_${mapping[msg.endpoint.ID]}` : '';
-
-            if (action === 'release') {
-                const anotherAction = globalStore.getValue(msg.endpoint, 'hold', false) ? 'hold_release' : 'single';
-                publish({action: `${anotherAction}${button}`});
-            }
-            globalStore.putValue(msg.endpoint, 'hold', action === 'hold');
-
-            return {action: `${action}${button}`};
-        },
-    } satisfies Fz.Converter,
-    xiaomi_multistate_action: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            let actionLookup: KeyValueAny = {0: 'hold', 1: 'single', 2: 'double', 3: 'triple', 255: 'release'};
-            if (model.model === 'WXKG12LM') {
-                actionLookup = {...actionLookup, 16: 'hold', 17: 'release', 18: 'shake'};
-            }
-
-            let buttonLookup: KeyValueNumberString = null;
-            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM', 'WXKG22LM'].includes(model.model)) {
-                buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
-            }
-            if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
-            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG28LM', 'QBKG31LM', 'ZNQBKG25LM'].includes(model.model)) {
-                buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
-            }
-            if (['QBKG25LM', 'QBKG26LM', 'QBKG29LM', 'QBKG32LM', 'QBKG34LM', 'ZNQBKG31LM', 'ZNQBKG26LM'].includes(model.model)) {
-                buttonLookup = {
-                    41: 'left', 42: 'center', 43: 'right',
-                    51: 'left_center', 52: 'left_right', 53: 'center_right',
-                    61: 'all',
-                };
-            }
-            if (['WS-USC02', 'WS-USC04'].includes(model.model)) {
-                buttonLookup = {41: 'top', 42: 'bottom', 51: 'both'};
-            }
-
-            const action = actionLookup[msg.data['presentValue']];
-            if (buttonLookup) {
-                const button = buttonLookup[msg.endpoint.ID];
-                if (button) {
-                    return {action: `${action}_${button}`};
-                }
-            } else {
-                return {action};
-            }
-        },
-    } satisfies Fz.Converter,
-    aqara_occupancy_illuminance: {
-        // This is for occupancy sensor that only send a message when motion detected,
-        // but do not send a motion stop.
-        // Therefore we need to publish the no_motion detected by ourselves.
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true()],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('illuminance')) {
-                // The occupancy sensor only sends a message when motion detected.
-                // Therefore we need to publish the no_motion detected by ourselves.
-                let timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ?
-                    Number(meta.state.detection_interval) : ['RTCGQ14LM'].includes(model.model) ? 30 : 60;
-                timeout = options && options.hasOwnProperty('occupancy_timeout') && Number(options.occupancy_timeout) >= timeout ?
-                    Number(options.occupancy_timeout) : timeout + 2;
-
-                // Stop existing timers because motion is detected and set a new one.
-                clearTimeout(globalStore.getValue(msg.endpoint, 'occupancy_timer', null));
-
-                if (timeout !== 0) {
-                    const timer = setTimeout(() => {
-                        publish({occupancy: false});
-                    }, timeout * 1000);
-
-                    globalStore.putValue(msg.endpoint, 'occupancy_timer', timer);
-                }
-
-                // Sometimes RTCGQ14LM reports high illuminance values in the dark
-                // https://github.com/Koenkk/zigbee2mqtt/issues/12596
-                const illuminance = msg.data['illuminance'] > 130536 ? 0 : msg.data['illuminance'] - 65536;
-
-                const payload = {occupancy: true, illuminance};
-                utils.noOccupancySince(msg.endpoint, options, publish, 'start');
-                return payload;
-            }
-        },
-    } satisfies Fz.Converter,
-    RTCGQ13LM_occupancy: {
-        // This is for occupancy sensor that only send a message when motion detected,
-        // but do not send a motion stop.
-        // Therefore we need to publish the no_motion detected by ourselves.
-        cluster: 'msOccupancySensing',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true()],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.occupancy !== 1) {
-                // In case of 0 no occupancy is reported.
-                // https://github.com/Koenkk/zigbee2mqtt/issues/467
-                return;
-            }
-
-            // The occupancy sensor only sends a message when motion detected.
-            // Therefore we need to publish the no_motion detected by ourselves.
-            let timeout: number = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ?
-                Number(meta.state.detection_interval) : 60;
-            timeout = options && options.hasOwnProperty('occupancy_timeout') && Number(options.occupancy_timeout) >= timeout ?
-                Number(options.occupancy_timeout) : timeout + 2;
-
-            // Stop existing timers because motion is detected and set a new one.
-            clearTimeout(globalStore.getValue(msg.endpoint, 'occupancy_timer', null));
-
-            if (timeout !== 0) {
-                const timer = setTimeout(() => {
-                    publish({occupancy: false});
-                }, timeout * 1000);
-
-                globalStore.putValue(msg.endpoint, 'occupancy_timer', timer);
-            }
-
-            const payload = {occupancy: true};
-            utils.noOccupancySince(msg.endpoint, options, publish, 'start');
-            return payload;
-        },
-    } satisfies Fz.Converter,
-    xiaomi_WXKG01LM_action: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        options: [
-            e.numeric('hold_timeout', ea.SET).withValueMin(0).withDescription(`The WXKG01LM only reports a button press and release.` +
-                `By default, a hold action is published when there is at least 1000 ms between both events. It could be that due to ` +
-                `delays in the network the release message is received late. This causes a single click to be identified as a hold ` +
-                `action. If you are experiencing this you can try experimenting with this option (e.g. set it to 2000) (value is in ms).`),
-            e.numeric('hold_timeout_expire', ea.SET).withValueMin(0).withDescription(`Sometimes it happens that the button does not send a ` +
-                `release. To avoid problems a release is automatically send after a timeout. The default timeout is 4000 ms, you can ` +
-                `increase it with this option (value is in ms).`),
-        ],
-        convert: (model, msg, publish, options: KeyValueAny, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const state = msg.data['onOff'];
-
-            // 0 = click down, 1 = click up, else = multiple clicks
-            if (state === 0) {
-                const timer = setTimeout(() => {
-                    publish({action: 'hold'});
-                    globalStore.putValue(msg.endpoint, 'timer', null);
-                    globalStore.putValue(msg.endpoint, 'hold', Date.now());
-                    const holdTimer = setTimeout(() => {
-                        globalStore.putValue(msg.endpoint, 'hold', false);
-                    }, options.hold_timeout_expire || 4000);
-                    globalStore.putValue(msg.endpoint, 'hold_timer', holdTimer);
-                    // After 4000 milliseconds of not receiving release we assume it will not happen.
-                }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
-                globalStore.putValue(msg.endpoint, 'timer', timer);
-            } else if (state === 1) {
-                if (globalStore.getValue(msg.endpoint, 'hold')) {
-                    const duration = Date.now() - globalStore.getValue(msg.endpoint, 'hold');
-                    publish({action: 'release', duration: duration});
-                    globalStore.putValue(msg.endpoint, 'hold', false);
-                }
-
-                if (globalStore.getValue(msg.endpoint, 'timer')) {
-                    clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
-                    globalStore.putValue(msg.endpoint, 'timer', null);
-                    publish({action: 'single'});
-                }
-            } else {
-                const clicks = msg.data['32768'];
-                const actionLookup: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
-                const payload = actionLookup[clicks] ? actionLookup[clicks] : 'many';
-                publish({action: payload});
-            }
-        },
-    } satisfies Fz.Converter,
-    xiaomi_contact: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return {contact: msg.data['onOff'] === 0};
-        },
-    } satisfies Fz.Converter,
     W2_module_carbon_monoxide: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -3917,36 +3457,6 @@ const converters1 = {
             return {
                 carbon_monoxide: (zoneStatus & 1<<8) > 8,
             };
-        },
-    } satisfies Fz.Converter,
-    xiaomi_temperature: {
-        cluster: 'msTemperatureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-
-            // https://github.com/Koenkk/zigbee2mqtt/issues/798
-            // Sometimes the sensor publishes non-realistic vales.
-            if (temperature > -65 && temperature < 65) {
-                return {temperature};
-            }
-        },
-    } satisfies Fz.Converter,
-    xiaomi_WXKG11LM_action: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            let clicks;
-            if (msg.data.onOff) {
-                clicks = 1;
-            } else if (msg.data['32768']) {
-                clicks = msg.data['32768'];
-            }
-
-            const actionLookup: KeyValueAny = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
-            if (actionLookup[clicks]) {
-                return {action: actionLookup[clicks]};
-            }
         },
     } satisfies Fz.Converter,
     command_status_change_notification_action: {
@@ -3976,139 +3486,6 @@ const converters1 = {
             return lookup[value] ? {action: lookup[value]} : null;
         },
     } satisfies Fz.Converter,
-    xiaomi_curtain_position: {
-        cluster: 'genAnalogOutput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.invert_cover()],
-        convert: (model, msg, publish, options, meta) => {
-            if ((model.model === 'ZNCLDJ12LM' || model.model === 'ZNCLDJ14LM') &&
-              msg.type === 'attributeReport' && [0, 2].includes(msg.data['presentValue'])) {
-                // Incorrect reports from the device, ignore (re-read by onEvent of ZNCLDJ12LM and ZNCLDJ14LM)
-                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1427#issuecomment-663862724
-                return;
-            }
-
-            let position = precisionRound(msg.data['presentValue'], 2);
-            position = options.invert_cover ? 100 - position : position;
-            return {position};
-        },
-    } satisfies Fz.Converter,
-    xiaomi_curtain_position_tilt: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.invert_cover()],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
-                const value = msg.data['currentPositionLiftPercentage'];
-                const position = invert ? 100 - value : value;
-                const state = invert ? (position > 0 ? 'CLOSE' : 'OPEN') : (position > 0 ? 'OPEN' : 'CLOSE');
-                result[postfixWithEndpointName('position', msg, model, meta)] = position;
-                result[postfixWithEndpointName('state', msg, model, meta)] = state;
-            }
-            if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
-                const value = msg.data['currentPositionTiltPercentage'];
-                result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? 100 - value : value;
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    xiaomi_curtain_hagl04_status: {
-        cluster: 'genMultistateOutput',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            let running = false;
-            const data = msg.data;
-            const lookup: KeyValueAny = {
-                0: 'closing',
-                1: 'opening',
-                2: 'stop',
-            };
-            if (data && data.hasOwnProperty('presentValue')) {
-                const value = data['presentValue'];
-                if (value < 2) {
-                    running = true;
-                }
-                return {
-                    motor_state: lookup[value],
-                    running: running,
-                };
-            }
-        },
-    } satisfies Fz.Converter,
-    xiaomi_curtain_hagl07_status: {
-        cluster: 'genMultistateOutput',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            let running = false;
-            const data = msg.data;
-            const lookup: KeyValueAny = {
-                0: 'closing',
-                1: 'opening',
-                2: 'stop',
-            };
-            if (data && data.hasOwnProperty('presentValue')) {
-                const value = data['presentValue'];
-                if (value < 2) {
-                    running = true;
-                }
-                return {
-                    motor_state: lookup[value],
-                    running: running,
-                };
-            }
-        },
-    } satisfies Fz.Converter,
-    xiaomi_curtain_acn002_status: {
-        cluster: 'genMultistateOutput',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            let running = false;
-            const data = msg.data;
-            const lookup: KeyValueAny = {
-                0: 'declining',
-                1: 'rising',
-                2: 'pause',
-                3: 'blocked',
-            };
-            if (data && data.hasOwnProperty('presentValue')) {
-                const value = data['presentValue'];
-                if (value < 2) {
-                    running = true;
-                }
-                return {
-                    motor_state: lookup[value],
-                    running: running,
-                };
-            }
-        },
-    } satisfies Fz.Converter,
-    xiaomi_operation_mode_basic: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload: KeyValueAny = {};
-
-            if (model.meta && !model.meta.multiEndpoint) {
-                const mappingMode: KeyValueNumberString = {0x12: 'control_relay', 0xFE: 'decoupled'};
-                const key = 0xFF22;
-                if (msg.data.hasOwnProperty(key)) {
-                    payload.operation_mode = mappingMode[msg.data[key]];
-                }
-            } else {
-                const mappingButton: KeyValueNumberString = {0xFF22: 'left', 0xFF23: 'right'};
-                const mappingMode: KeyValueNumberString = {0x12: 'control_left_relay', 0x22: 'control_right_relay', 0xFE: 'decoupled'};
-                for (const key in mappingButton) {
-                    if (msg.data.hasOwnProperty(key)) {
-                        payload[`operation_mode_${mappingButton[key]}`] = mappingMode[msg.data[key]];
-                    }
-                }
-            }
-
-            return payload;
-        },
-    } satisfies Fz.Converter,
     qlwz_letv8key_switch: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -4120,116 +3497,6 @@ const converters1 = {
             if (button) {
                 return {action: `${action}_${button}`};
             }
-        },
-    } satisfies Fz.Converter,
-    aqara_opple_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const actionLookup: KeyValueAny = {0: 'hold', 255: 'release', 1: 'single', 2: 'double', 3: 'triple', 5: 'quintuple', 6: 'many'};
-            const button = msg.endpoint.ID;
-            const value = msg.data.presentValue;
-            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
-            if (model.model === 'WXKG13LM') {
-                return {action: `${actionLookup[value]}`};
-            } else {
-                // 0 = hold
-                if (value === 0) {
-                    // Aqara Opple does not generate a release event when pressed for more than 5 seconds
-                    // After 5 seconds of not releasing we assume release.
-                    const timer = setTimeout(() => publish({action: `button_${button}_release`}), 5000);
-                    globalStore.putValue(msg.endpoint, 'timer', timer);
-                }
-                return {action: `button_${button}_${actionLookup[value]}`};
-            }
-        },
-    } satisfies Fz.Converter,
-    aqara_opple_on: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            return {action: 'button_2_single'};
-        },
-    } satisfies Fz.Converter,
-    aqara_opple_off: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            return {action: 'button_1_single'};
-        },
-    } satisfies Fz.Converter,
-    aqara_opple_step: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const button = msg.data.stepmode === 0 ? '4' : '3';
-            return {action: `button_${button}_single`};
-        },
-    } satisfies Fz.Converter,
-    aqara_opple_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStop',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            if (globalStore.hasValue(msg.endpoint, 'button')) {
-                const value = globalStore.getValue(msg.endpoint, 'button');
-                const duration = Date.now() - value.start;
-                const payload = {action: `button_${value.button}_release`, duration, action_duration: duration};
-                if (!isLegacyEnabled(options)) delete payload.duration;
-                return payload;
-            }
-        },
-    } satisfies Fz.Converter,
-    aqara_opple_move: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const button = msg.data.movemode === 0 ? '4' : '3';
-            globalStore.putValue(msg.endpoint, 'button', {button, start: Date.now()});
-            return {action: `button_${button}_hold`};
-        },
-    } satisfies Fz.Converter,
-    aqara_opple_step_color_temp: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandStepColorTemp',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            let action;
-            if (model.model === 'WXCJKG12LM') {
-                // for WXCJKG12LM model it's double click event on buttons 3 and 4
-                action = (msg.data.stepmode === 1) ? '3_double' : '4_double';
-            } else {
-                // but for WXCJKG13LM model it's single click event on buttons 5 and 6
-                action = (msg.data.stepmode === 1) ? '5_single' : '6_single';
-            }
-            return {action: `button_${action}`};
-        },
-    } satisfies Fz.Converter,
-    aqara_opple_move_color_temp: {
-        cluster: 'lightingColorCtrl',
-        type: 'commandMoveColorTemp',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const stop = msg.data.movemode === 0;
-            let result = null;
-            if (stop) {
-                const button = globalStore.getValue(msg.endpoint, 'button').button;
-                const duration = Date.now() - globalStore.getValue(msg.endpoint, 'button').start;
-                result = {action: `button_${button}_release`, duration, action_duration: duration};
-                if (!isLegacyEnabled(options)) delete result.duration;
-            } else {
-                const button = msg.data.movemode === 3 ? '6' : '5';
-                result = {action: `button_${button}_hold`};
-                globalStore.putValue(msg.endpoint, 'button', {button, start: Date.now()});
-            }
-            return result;
         },
     } satisfies Fz.Converter,
     keen_home_smart_vent_pressure: {
@@ -4312,76 +3579,6 @@ const converters1 = {
             const payload = {action: postfixWithEndpointName(`color_stop`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
-        },
-    } satisfies Fz.Converter,
-    MFKZQ01LM_action_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            /*
-            Source: https://github.com/kirovilya/ioBroker.zigbee
-                +---+
-                | 2 |
-            +---+---+---+
-            | 4 | 0 | 1 |
-            +---+---+---+
-                |M5I|
-                +---+
-                | 3 |
-                +---+
-            Side 5 is with the MI logo, side 3 contains the battery door.
-            presentValue = 0 = shake
-            presentValue = 2 = wakeup
-            presentValue = 3 = fly/fall
-            presentValue = y + x * 8 + 64 = 90º Flip from side x on top to side y on top
-            presentValue = x + 128 = 180º flip to side x on top
-            presentValue = x + 256 = push/slide cube while side x is on top
-            presentValue = x + 512 = double tap while side x is on top
-            */
-            const value = msg.data['presentValue'];
-            let result = null;
-
-            if (value === 0) result = {action: 'shake'};
-            else if (value === 1) result = {action: 'throw'};
-            else if (value === 2) result = {action: 'wakeup'};
-            else if (value === 3) result = {action: 'fall'};
-            else if (value >= 512) result = {action: 'tap', side: value-512};
-            else if (value >= 256) result = {action: 'slide', side: value-256};
-            else if (value >= 128) result = {action: 'flip180', side: value-128};
-            else if (value >= 64) {
-                result = {
-                    action: 'flip90', action_from_side: Math.floor((value-64) / 8), action_to_side: value % 8, action_side: value % 8,
-                    from_side: Math.floor((value-64) / 8), to_side: value % 8, side: value % 8,
-                };
-            }
-
-            if (result && !isLegacyEnabled(options)) {
-                delete result.to_side;
-                delete result.from_side;
-            }
-
-            return result ? result : null;
-        },
-    } satisfies Fz.Converter,
-    MFKZQ01LM_action_analog: {
-        cluster: 'genAnalogInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            /*
-            Source: https://github.com/kirovilya/ioBroker.zigbee
-            presentValue = rotation angle left < 0, right > 0
-            */
-            const value = msg.data['presentValue'];
-            const result: KeyValueAny = {
-                action: value < 0 ? 'rotate_left' : 'rotate_right',
-                angle: Math.floor(value * 100) / 100,
-                action_angle: Math.floor(value * 100) / 100,
-            };
-
-            if (!isLegacyEnabled(options)) delete result.angle;
-            return result;
         },
     } satisfies Fz.Converter,
     tradfri_occupancy: {
@@ -4585,20 +3782,6 @@ const converters1 = {
             };
         },
     } satisfies Fz.Converter,
-    xiaomi_bulb_interval: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65281']) {
-                const data = msg.data['65281'];
-                return {
-                    state: data['100'] === 1 ? 'ON' : 'OFF',
-                    brightness: data['101'],
-                    color_temp: data['102'],
-                };
-            }
-        },
-    } satisfies Fz.Converter,
     heiman_scenes: {
         cluster: 'heimanSpecificScenes',
         type: ['commandAtHome', 'commandGoOut', 'commandCinema', 'commandRepast', 'commandSleep'],
@@ -4786,131 +3969,6 @@ const converters1 = {
             return result;
         },
     } satisfies Fz.Converter,
-    JTQJBF01LMBW_gas_density: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data;
-            if (data && data['65281']) {
-                const basicAttrs = data['65281'];
-                if (basicAttrs.hasOwnProperty('100')) {
-                    return {gas_density: basicAttrs['100']};
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    JTQJBF01LMBW_sensitivity: {
-        cluster: 'ssIasZone',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data;
-            const lookup: KeyValueAny = {'1': 'low', '2': 'medium', '3': 'high'};
-
-            if (data && data.hasOwnProperty('65520')) {
-                const value = data['65520'];
-                if (value && value.startsWith('0x020')) {
-                    return {
-                        sensitivity: lookup[value.charAt(5)],
-                    };
-                }
-            }
-        },
-    } satisfies Fz.Converter,
-    DJT11LM_vibration: {
-        cluster: 'closuresDoorLock',
-        type: ['attributeReport', 'readResponse'],
-        options: [
-            exposes.options.vibration_timeout(),
-            exposes.options.calibration('x'),
-            exposes.options.calibration('y'),
-            exposes.options.calibration('z'),
-        ],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-
-            if (msg.data['85']) {
-                const vibrationLookup: KeyValueAny = {1: 'vibration', 2: 'tilt', 3: 'drop'};
-                result.action = vibrationLookup[msg.data['85']];
-
-                // Device only sends a message when vibration is detected.
-                // Therefore we need to publish a no_vibration message on our own.
-                if (result.action === 'vibration') {
-                    result.vibration = true;
-
-                    const timeout = options && options.hasOwnProperty('vibration_timeout') ? Number(options.vibration_timeout) : 90;
-
-                    // Stop any existing timer cause vibration detected
-                    clearTimeout(globalStore.getValue(msg.endpoint, 'vibration_timer', null));
-                    globalStore.putValue(msg.endpoint, 'vibration_timer', null);
-
-                    // Set new timer to publish no_vibration message
-                    if (timeout !== 0) {
-                        const timer = setTimeout(() => {
-                            publish({vibration: false});
-                        }, timeout * 1000);
-
-                        globalStore.putValue(msg.endpoint, 'vibration_timer', timer);
-                    }
-                }
-            }
-
-            if (msg.data['1283']) {
-                result.angle = msg.data['1283'];
-            }
-
-            if (msg.data['1285']) {
-                // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/748#issuecomment-419669995
-                // Only first 2 bytes are relevant.
-                const data = (msg.data['1285'] >> 8);
-                // Swap byte order
-                result.strength = ((data & 0xFF) << 8) | ((data >> 8) & 0xFF);
-            }
-
-            if (msg.data['1288']) {
-                const data = msg.data['1288'];
-
-                // array interpretation:
-                // 12 bit two's complement sign extended integer
-                // data[1][bit0..bit15] : x
-                // data[1][bit16..bit31]: y
-                // data[0][bit0..bit15] : z
-                // left shift first to preserve sign extension for 'x'
-                let x = ((data['1'] << 16) >> 16);
-                let y = (data['1'] >> 16);
-                // left shift first to preserve sign extension for 'z'
-                let z = ((data['0'] << 16) >> 16);
-
-                // simple offset calibration
-                x=calibrateAndPrecisionRoundOptions(x, options, 'x');
-                y=calibrateAndPrecisionRoundOptions(y, options, 'y');
-                z=calibrateAndPrecisionRoundOptions(z, options, 'z');
-
-                // calibrated accelerometer values
-                result.x_axis=x;
-                result.y_axis=y;
-                result.z_axis=z;
-
-                // calculate angle
-                result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
-                result.angle_y = Math.round(Math.atan(y/Math.sqrt(x*x+z*z)) * 180 / Math.PI);
-                result.angle_z = Math.round(Math.atan(z/Math.sqrt(x*x+y*y)) * 180 / Math.PI);
-
-                // calculate absolute angle
-                const R = Math.sqrt(x * x + y * y + z * z);
-                result.angle_x_absolute = Math.round((Math.acos(x / R)) * 180 / Math.PI);
-                result.angle_y_absolute = Math.round((Math.acos(y / R)) * 180 / Math.PI);
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter,
-    DJT12LM_vibration: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'vibration'};
-        },
-    } satisfies Fz.Converter,
     CC2530ROUTER_led: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -4960,17 +4018,6 @@ const converters1 = {
             }
 
             return payload;
-        },
-    } satisfies Fz.Converter,
-    xiaomi_on_off_ignore_endpoint_4_5_6: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            // Xiaomi wall switches use endpoint 4, 5 or 6 to indicate an action on the button so we have to skip that.
-            if (msg.data.hasOwnProperty('onOff') && ![4, 5, 6].includes(msg.endpoint.ID)) {
-                const property = postfixWithEndpointName('state', msg, model, meta);
-                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
-            }
         },
     } satisfies Fz.Converter,
     hue_motion_sensitivity: {
@@ -5413,78 +4460,6 @@ const converters1 = {
             return result;
         },
     } satisfies Fz.Converter,
-    ZNCJMB14LM: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.hasOwnProperty(0x0215)) {
-                const lookup: KeyValueAny = {0: 'classic', 1: 'concise'};
-                result.theme = lookup[msg.data[0x0215]];
-            }
-            if (msg.data.hasOwnProperty(0x0214)) {
-                const lookup: KeyValueAny = {1: 'classic', 2: 'analog clock'};
-                result.screen_saver_style = lookup[msg.data[0x0214]];
-            }
-            if (msg.data.hasOwnProperty(0x0213)) {
-                result.standby_enabled = msg.data[0x0213] & 1 ? true : false;
-            }
-            if (msg.data.hasOwnProperty(0x0212)) {
-                const lookup: KeyValueAny = {0: 'mute', 1: 'low', 2: 'medium', 3: 'high'};
-                result.beep_volume = lookup[msg.data[0x0212]];
-            }
-            if (msg.data.hasOwnProperty(0x0211)) {
-                result.lcd_brightness = msg.data[0x0211];
-            }
-            if (msg.data.hasOwnProperty(0x022b)) {
-                const lookup: KeyValueAny = {0: 'none', 1: '1', 2: '2', 3: '1 and 2', 4: '3', 5: '1 and 3', 6: '2 and 3', 7: 'all'};
-                result.available_switches = lookup[msg.data[0x022b]];
-            }
-            if (msg.data.hasOwnProperty(0x217)) {
-                const lookup: KeyValueAny = {3: 'small', 4: 'medium', 5: 'large'};
-                result.font_size = lookup[msg.data[0x217]];
-            }
-            if (msg.data.hasOwnProperty(0x219)) {
-                const lookup: KeyValueAny = {0: 'scene', 1: 'feel', 2: 'thermostat', 3: 'switch'};
-                result.homepage = lookup[msg.data[0x219]];
-            }
-            if (msg.data.hasOwnProperty(0x210)) {
-                const lookup: KeyValueAny = {0: 'chinese', 1: 'english'};
-                result.language = lookup[msg.data[0x210]];
-            }
-            if (msg.data.hasOwnProperty(0x216)) {
-                result.standby_time = msg.data[0x216];
-            }
-            if (msg.data.hasOwnProperty(0x218)) {
-                result.lcd_auto_brightness_enabled = msg.data[0x218] & 1 ? true : false;
-            }
-            if (msg.data.hasOwnProperty(0x221)) {
-                result.screen_saver_enabled = msg.data[0x221] & 1 ? true : false;
-            }
-            if (msg.data.hasOwnProperty(0x222)) {
-                result.standby_lcd_brightness = msg.data[0x222];
-            }
-            if (msg.data.hasOwnProperty(0x223)) {
-                const lookup: KeyValueAny = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
-                const textarr = msg.data[0x223].slice(1, msg.data[0x223].length);
-                result.switch_1_icon = lookup[msg.data[0x223][0]];
-                result.switch_1_text = String.fromCharCode(...textarr);
-            }
-            if (msg.data.hasOwnProperty(0x224)) {
-                const lookup: KeyValueAny = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
-                const textarr = msg.data[0x224].slice(1, msg.data[0x224].length);
-                result.switch_2_icon = lookup[msg.data[0x224][0]];
-                result.switch_2_text = String.fromCharCode(...textarr);
-            }
-            if (msg.data.hasOwnProperty(0x225)) {
-                const lookup: KeyValueAny = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
-                const textarr = msg.data[0x225].slice(1, msg.data[0x225].length);
-                result.switch_3_icon = lookup[msg.data[0x225][0]];
-                result.switch_3_text = String.fromCharCode(...textarr);
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
     rc_110_level_to_scene: {
         cluster: 'genLevelCtrl',
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
@@ -5508,23 +4483,6 @@ const converters1 = {
                 tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
-        },
-    } satisfies Fz.Converter,
-    aqara_knob_rotation: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(570)) {
-                const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
-                return {
-                    action: act[msg.data[570]],
-                    action_rotation_angle: msg.data[558],
-                    action_rotation_angle_speed: msg.data[560],
-                    action_rotation_percent: msg.data[563],
-                    action_rotation_percent_speed: msg.data[562],
-                    action_rotation_time: msg.data[561],
-                };
-            }
         },
     } satisfies Fz.Converter,
     sihas_people_cnt: {
@@ -5706,18 +4664,18 @@ const converters1 = {
             const buffer = msg.data;
             const commonForColors = buffer[0] === 17 && buffer[2] === 48 && buffer[3] === 0 && buffer[5] === 8 && buffer[6] === 0;
             let color = null;
-            if (commonForColors && buffer[4] === 255) {
+            if (commonForColors && [255, 254].includes(buffer[4])) {
                 color = 'red';
-            } else if (commonForColors && buffer[4] === 42) {
+            } else if (commonForColors && [42, 41].includes(buffer[4])) {
                 color = 'yellow';
-            } else if (commonForColors && buffer[4] === 85) {
+            } else if (commonForColors && [85, 84].includes(buffer[4])) {
                 color = 'green';
-            } else if (commonForColors && buffer[4] === 170) {
+            } else if (commonForColors && [170, 169].includes(buffer[4])) {
                 color = 'blue';
             }
 
             if (color != null) {
-                return {action: color};
+                return {action: color, action_group: msg.groupID};
             }
         },
     } satisfies Fz.Converter,
@@ -5726,9 +4684,7 @@ const converters1 = {
         type: ['commandMoveHue'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.movemode === 1 && msg.data.rate === 12) {
-                return {
-                    action: 'refresh_colored',
-                };
+                return {action: 'refresh_colored', action_group: msg.groupID};
             }
         },
     } satisfies Fz.Converter,
@@ -5740,9 +4696,9 @@ const converters1 = {
             const isRefresh = buffer[0] === 17 && buffer[2] === 16 && (buffer[3] === 1 || buffer[3] === 0) && buffer[4] === 1;
             const isRefreshLong = buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 2;
             if (isRefresh) {
-                return {action: 'refresh'};
+                return {action: 'refresh', action_group: msg.groupID};
             } else if (isRefreshLong) {
-                return {action: 'refresh_long'};
+                return {action: 'refresh_long', action_group: msg.groupID};
             }
         },
     } satisfies Fz.Converter,
@@ -5941,16 +4897,6 @@ const converters2 = {
             return result;
         },
     } satisfies Fz.Converter,
-    JTYJGD01LMBW_smoke: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: async (model, msg, publish, options, meta) => {
-            const result = await converters1.ias_smoke_alarm_1.convert(model, msg, publish, options, meta);
-            const zoneStatus = msg.data.zonestatus;
-            if (result) result.test = (zoneStatus & 1<<1) > 0;
-            return result;
-        },
-    } satisfies Fz.Converter,
     EKO09738_metering: {
         /**
          * Elko EKO09738 and EKO09716 reports power in mW, scale to W
@@ -6096,23 +5042,6 @@ const converters2 = {
                 }
             }
             return result;
-        },
-    } satisfies Fz.Converter,
-    RTCGQ11LM_illuminance: {
-        cluster: 'msIlluminanceMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: async (model, msg, publish, options, meta) => {
-            // also trigger movement, because there is no illuminance without movement
-            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1925
-            msg.data.occupancy = 1;
-            const payload = await converters1.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
-            if (payload) {
-                // DEPRECATED: remove illuminance_lux here.
-                const illuminance = msg.data['measuredValue'];
-                payload.illuminance = illuminance;
-                payload.illuminance_lux = illuminance;
-            }
-            return payload;
         },
     } satisfies Fz.Converter,
     terncy_raw: {

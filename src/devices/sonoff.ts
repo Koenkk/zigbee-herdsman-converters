@@ -3,12 +3,13 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import {binary, forcePowerSource, numeric, enumLookup, onOff} from '../lib/modernExtend';
-import {Definition, Fz, KeyValue} from '../lib/types';
+import {binary, enumLookup, forcePowerSource, numeric, onOff, customTimeResponse} from '../lib/modernExtend';
+import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
+import * as ota from '../lib/ota';
+import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
-import * as ota from '../lib/ota';
 
 const fzLocal = {
     router_config: {
@@ -21,6 +22,123 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+};
+
+const sonoffExtend = {
+    weeklySchedule: (): ModernExtend => {
+        const exposes = e.composite('schedule', 'weekly_schedule', ea.STATE_SET)
+            .withDescription('The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
+                'Up to 6 transitions can be defined per day, where a transition is expressed in the format \'HH:mm/temperature\', each ' +
+                'separated by a space. The first transition for each day must start at 00:00 and the valid temperature range is 4-35°C ' +
+                '(in 0.5°C steps). The temperature will be set at the time of the first transition until the time of the next transition, ' +
+                'e.g. \'04:00/20 10:00/25\' will result in the temperature being set to 20°C at 04:00 until 10:00, when it will change to 25°C.')
+            .withFeature(e.text('sunday', ea.STATE_SET))
+            .withFeature(e.text('monday', ea.STATE_SET))
+            .withFeature(e.text('tuesday', ea.STATE_SET))
+            .withFeature(e.text('wednesday', ea.STATE_SET))
+            .withFeature(e.text('thursday', ea.STATE_SET))
+            .withFeature(e.text('friday', ea.STATE_SET))
+            .withFeature(e.text('saturday', ea.STATE_SET));
+
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'hvacThermostat',
+            type: ['commandGetWeeklyScheduleRsp'],
+            convert: (model, msg, publish, options, meta) => {
+                const day = Object.entries(constants.thermostatDayOfWeek)
+                    .find((d) => msg.data.dayofweek & 1<<+d[0])[1];
+
+                const transitions = msg.data.transitions
+                    .map((t: { heatSetpoint: number, transitionTime: number }) => {
+                        const totalMinutes = t.transitionTime;
+                        const hours = totalMinutes / 60;
+                        const rHours = Math.floor(hours);
+                        const minutes = (hours - rHours) * 60;
+                        const rMinutes = Math.round(minutes);
+                        const strHours = rHours.toString().padStart(2, '0');
+                        const strMinutes = rMinutes.toString().padStart(2, '0');
+
+                        return `${strHours}:${strMinutes}/${t.heatSetpoint / 100}`;
+                    })
+                    .sort()
+                    .join(' ');
+
+                return {
+                    weekly_schedule: {
+                        ...meta.state.weekly_schedule as Record<string, string>[],
+                        [day]: transitions,
+                    },
+                };
+            },
+        }];
+
+        const toZigbee: Tz.Converter[] = [{
+            key: ['weekly_schedule'],
+            convertSet: async (entity, key, value, meta) => {
+                // Transition format: HH:mm/temperature
+                const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
+
+                utils.assertObject(value, key);
+
+                for (const dayOfWeekName of Object.keys(value)) {
+                    const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName.toLowerCase(), null);
+
+                    if (dayKey === null) {
+                        throw new Error(`Invalid schedule: invalid day name, found: ${dayOfWeekName}`);
+                    }
+
+                    const dayOfWeekBit = Number(dayKey);
+
+                    const transitions = value[dayOfWeekName].split(' ').sort();
+
+                    if (transitions.length > 6) {
+                        throw new Error('Invalid schedule: days must have no more than 6 transitions');
+                    }
+
+                    const payload: KeyValueAny = {
+                        dayofweek: (1 << Number(dayOfWeekBit)),
+                        numoftrans: transitions.length,
+                        mode: (1 << 0), // heat
+                        transitions: [],
+                    };
+
+                    for (const transition of transitions) {
+                        const matches = transition.match(transitionRegex);
+
+                        if (!matches) {
+                            throw new Error('Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), ' +
+                                'found: ' + transition);
+                        }
+
+                        const hour = parseInt(matches[1]);
+                        const mins = parseInt(matches[2]);
+                        const temp = parseFloat(matches[3]);
+
+                        if (temp < 4 || temp > 35) {
+                            throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temp}`);
+                        }
+
+                        payload.transitions.push({
+                            transitionTime: (hour * 60) + mins,
+                            heatSetpoint: Math.round(temp * 100),
+                        });
+                    }
+
+                    if (payload.transitions[0].transitionTime !== 0) {
+                        throw new Error('Invalid schedule: the first transition of each day should start at 00:00');
+                    }
+
+                    await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
+                }
+            },
+        }];
+
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 
 const definitions: Definition[] = [
@@ -169,8 +287,8 @@ const definitions: Definition[] = [
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
-                await reporting.humidity(endpoint);
+                await reporting.temperature(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 20});
+                await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 100});
                 await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
                 await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
@@ -190,8 +308,8 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
-            await reporting.humidity(endpoint);
+            await reporting.temperature(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 20});
+            await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 100});
             await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             device.powerSource = 'Battery';
             device.save();
@@ -303,8 +421,8 @@ const definitions: Definition[] = [
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
-                await reporting.humidity(endpoint);
+                await reporting.temperature(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 20});
+                await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 100});
                 await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
                 logger.error(`Configure failed: ${e}`);
@@ -329,7 +447,7 @@ const definitions: Definition[] = [
                 valueOn: [true, 0x01],
                 valueOff: [false, 0x00],
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
-                readOnly: true,
+                access: 'STATE_GET',
             }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -364,7 +482,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x2001, type: 0x20},
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
                 description: 'Only updated when occupancy is detected',
-                readOnly: true,
+                access: 'STATE',
             }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -406,7 +524,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x2001, type: 0x20},
                 description: 'Only updated when occupancy is detected',
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
-                readOnly: true,
+                access: 'STATE',
             }),
         ],
     },
@@ -471,14 +589,14 @@ const definitions: Definition[] = [
                 cluster: 0xFC11,
                 attribute: {ID: 0x6003, type: 0x21},
                 description: 'Number of steps used for calibration (no-load steps)',
-                readOnly: true,
+                access: 'STATE_GET',
             }),
             numeric({
                 name: 'closing_steps',
                 cluster: 0xFC11,
                 attribute: {ID: 0x6004, type: 0x21},
                 description: 'Number of steps it takes to close the valve',
-                readOnly: true,
+                access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_opening_limit_voltage',
@@ -486,7 +604,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x6005, type: 0x21},
                 description: 'Valve opening limit voltage',
                 unit: 'mV',
-                readOnly: true,
+                access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_closing_limit_voltage',
@@ -494,7 +612,7 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x6006, type: 0x21},
                 description: 'Valve closing limit voltage',
                 unit: 'mV',
-                readOnly: true,
+                access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_motor_running_voltage',
@@ -502,8 +620,10 @@ const definitions: Definition[] = [
                 attribute: {ID: 0x6007, type: 0x21},
                 description: 'Valve motor running voltage',
                 unit: 'mV',
-                readOnly: true,
+                access: 'STATE_GET',
             }),
+            sonoffExtend.weeklySchedule(),
+            customTimeResponse('1970_UTC'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

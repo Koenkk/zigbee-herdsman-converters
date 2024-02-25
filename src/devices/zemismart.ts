@@ -217,7 +217,8 @@ const definitions: Definition[] = [
         extend: [forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}, {modelID: 'TS0601', manufacturerName: '_TZE200_shkxsgis'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}, {modelID: 'TS0601', manufacturerName: '_TZE200_shkxsgis'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_shkxsgis'}],
         model: 'TB26-4',
         vendor: 'Zemismart',
         description: '4-gang smart wall switch',

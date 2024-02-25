@@ -11,7 +11,7 @@ const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalD
     const definition = await getDefinition(args.device)
     expect(definition.model).toEqual(args.device.modelID);
     if (args.externalDefintionSource) {
-        expect(args.externalDefintionSource.trim()).toEqual((await generateExternalDefinitionSource(args.device)).trim());
+        expect((await generateExternalDefinitionSource(args.device)).trim()).toEqual(args.externalDefintionSource.trim());
     }
     return await assertDefintion({findByDeviceFn: getDefinition, ...args})
 }
@@ -36,7 +36,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'})],
             toZigbee: ['temperature', 'identify'],
-            exposes: ['linkquality', 'temperature'],
+            exposes: ['identify','linkquality', 'temperature'],
             bind: {1: ['msTemperatureMeasurement']},
             read: {1: [['msTemperatureMeasurement', ['measuredValue']]]},
             configureReporting: {
@@ -58,7 +58,7 @@ describe('GenerateDefinition', () => {
             read: {1: [['msPressureMeasurement', ['measuredValue']]]},
             configureReporting: {
                 1: [
-                    ['msPressureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                    ['msPressureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 50)]],
                 ],
             },
         });
@@ -83,7 +83,7 @@ describe('GenerateDefinition', () => {
 
     test('input(msTemperatureMeasurement, genOnOff)', async () => {
         await assertGeneratedDefinition({
-            device: mockDevice({modelID: 'combo', endpoints: [{inputClusters: ['msTemperatureMeasurement', 'genOnOff'], outputClusters:[]}]}),
+            device: mockDevice({modelID: 'combo', manufacturerName:'vendor', endpoints: [{inputClusters: ['msTemperatureMeasurement', 'genOnOff'], outputClusters:[]}]}),
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
             toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
@@ -105,9 +105,56 @@ const {temperature, onOff} = require('zigbee-herdsman-converters/lib/modernExten
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
-    vendor: 'undefined',
+    vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [temperature(), onOff({powerOnBehavior: false})],
+    extend: [temperature({"endpointNames":["1"]}), onOff({"powerOnBehavior":false})],
+    meta: {},
+};
+
+module.exports = definition;
+            `
+        });
+    });
+
+    test('input(msTemperatureMeasurement, genOnOff, msTemperatureMeasurement)', async () => {
+        await assertGeneratedDefinition({
+            device: mockDevice({modelID: 'combo', endpoints: [
+                {inputClusters: ['msTemperatureMeasurement', 'genOnOff'], outputClusters:[]},
+                {ID: 2, inputClusters: ['msTemperatureMeasurement'], outputClusters: []},
+            ]}),
+            meta: {multiEndpoint: true},
+            fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
+            toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
+            exposes: ['linkquality', 'switch(state)', 'temperature', 'temperature'],
+            bind: {1: ['msTemperatureMeasurement', 'genOnOff'], 2: ['msTemperatureMeasurement']},
+            read: {
+                1: [
+                    ['msTemperatureMeasurement', ['measuredValue']],
+                    ['genOnOff', ['onOff']],
+                ],
+                2: [
+                    ['msTemperatureMeasurement', ['measuredValue']],
+                ]
+            },
+            configureReporting: {
+                1: [
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                    ['genOnOff', [reportingItem('onOff', 0, repInterval.MAX, 1)]],
+                ],
+                2: [
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                ],
+            },
+            externalDefintionSource: `
+const {deviceEndpoints, temperature, onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
+
+const definition = {
+    zigbeeModel: ['combo'],
+    model: 'combo',
+    vendor: '',
+    description: 'Automatically generated definition',
+    extend: [deviceEndpoints({"endpoints":{"1":1,"2":2}}), temperature({"endpointNames":["1","2"]}), onOff({"powerOnBehavior":false})],
+    meta: {"multiEndpoint":true},
 };
 
 module.exports = definition;
@@ -144,9 +191,10 @@ const {light} = require('zigbee-herdsman-converters/lib/modernExtend');
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
-    vendor: 'undefined',
+    vendor: '',
     description: 'Automatically generated definition',
     extend: [light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
+    meta: {},
 };
 
 module.exports = definition;
@@ -183,9 +231,10 @@ const {light} = require('zigbee-herdsman-converters/lib/modernExtend');
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
-    vendor: 'undefined',
+    vendor: '',
     description: 'Automatically generated definition',
     extend: [light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
+    meta: {},
 };
 
 module.exports = definition;
@@ -223,9 +272,10 @@ const {philipsLight} = require('zigbee-herdsman-converters/lib/philips');
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
-    vendor: 'undefined',
+    vendor: '',
     description: 'Automatically generated definition',
     extend: [philipsLight({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
+    meta: {},
 };
 
 module.exports = definition;
@@ -273,9 +323,10 @@ const {onOff, electricityMeter} = require('zigbee-herdsman-converters/lib/modern
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
-    vendor: 'undefined',
+    vendor: '',
     description: 'Automatically generated definition',
-    extend: [onOff({powerOnBehavior: false}), electricityMeter()],
+    extend: [onOff({"powerOnBehavior":false}), electricityMeter()],
+    meta: {},
 };
 
 module.exports = definition;

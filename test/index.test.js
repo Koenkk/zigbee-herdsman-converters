@@ -87,8 +87,8 @@ describe('index.js', () => {
         expect(definition.extend).toBeUndefined();
         expect(definition.fromZigbee).toHaveLength(0);
         expect(definition.toZigbee).toHaveLength(11);
-        expect(definition.exposes).toHaveLength(1);
-        expect(definition.options).toHaveLength(0);
+        expect(definition.exposes).toHaveLength(2);
+        expect(definition.options).toHaveLength(1);
     });
 
     it('Find by device when device has modelID should match', async () => {
@@ -349,7 +349,7 @@ describe('index.js', () => {
 
     it('Verify addDefinition overwrite existing', async () => {
         const device = {type: 'Router', modelID: 'lumi.light.aqcn02'};
-        expect((await index.findByDevice(device)).vendor).toBe('Xiaomi');
+        expect((await index.findByDevice(device)).vendor).toBe('Aqara');
 
         const overwriteDefinition = {
             model: 'mock-model',

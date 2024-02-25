@@ -2,7 +2,7 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import {onOff} from '../lib/modernExtend';
+import {batteryPercentage, deviceEndpoints, humidity, onOff, temperature} from '../lib/modernExtend';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
@@ -80,7 +80,10 @@ const definitions: Definition[] = [
         model: 'SIN-4-2-20',
         vendor: 'NodOn',
         description: 'Lighting relay switch',
-        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            onOff({endpointNames: ['l1', 'l2']}),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
@@ -88,7 +91,10 @@ const definitions: Definition[] = [
         model: 'SIN-4-2-20_PRO',
         vendor: 'NodOn',
         description: 'Lighting relay switch',
-        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            onOff({endpointNames: ['l1', 'l2']}),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
@@ -146,6 +152,14 @@ const definitions: Definition[] = [
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
         },
+    },
+    {
+        zigbeeModel: ['STPH-4-1-00'],
+        model: 'STPH-4-1-20',
+        vendor: 'NodOn',
+        description: 'Temperature & humidity sensor',
+        extend: [batteryPercentage(), temperature(), humidity()],
+        ota: ota.zigbeeOTA,
     },
 ];
 

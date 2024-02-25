@@ -60,7 +60,7 @@ const definitions: Definition[] = [
                 e.climate().withSetpoint('occupied_heating_setpoint', 5, maxSetpoint, 0.5).withLocalTemperature().withPiHeatingDemand()
                     .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
                 e.numeric('occupied_heating_setpoint_scheduled', ea.ALL)
-                    .withValueMin(5).withValueMax(32).withValueStep(0.5).withUnit('°C')
+                    .withValueMin(5).withValueMax(maxSetpoint).withValueStep(0.5).withUnit('°C')
                     .withDescription('Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite ' +
                       'to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. ' +
                       '(more suitable for scheduled changes)'),
@@ -224,7 +224,10 @@ const definitions: Definition[] = [
             {modelID: '0x8030', manufacturerName: 'Danfoss'}, // RTbattery Display
             {modelID: '0x8031', manufacturerName: 'Danfoss'}, // RTbattery Display Infrared
             {modelID: '0x8034', manufacturerName: 'Danfoss'}, // RTbattery Dial
-            {modelID: '0x8035', manufacturerName: 'Danfoss'}], // RTbattery Dial Infrared
+            {modelID: '0x8035', manufacturerName: 'Danfoss'}, // RTbattery Dial Infrared
+            {modelID: '0x8040', manufacturerName: 'Danfoss'}, // RT Zigbee - Display
+            {modelID: '0x8041', manufacturerName: 'Danfoss'}, // RT Zigbee - Featured
+            {modelID: '0x8042', manufacturerName: 'Danfoss'}], // RT Zigbee - Sensor
         model: 'Icon',
         vendor: 'Danfoss',
         description: 'Icon floor heating (regulator, Zigbee module & thermostats)',

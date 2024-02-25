@@ -4,7 +4,7 @@ import * as exposes from '../lib/exposes';
 import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -49,7 +49,10 @@ const definitions: Definition[] = [
         model: '9134',
         vendor: 'LED-Trading',
         description: 'Powerstrip with 4 sockets and USB',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']}),
+        ],
     },
     {
         zigbeeModel: ['HK-ZCC-ZLL-A'],

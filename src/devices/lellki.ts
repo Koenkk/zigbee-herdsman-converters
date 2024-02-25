@@ -7,13 +7,13 @@ import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
-import {onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_air9m6af'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_9djocypn'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_bppxj3sf'}],
-        zigbeeModel: ['JZ-ZB-005', 'E220-KR5N0Z0-HA'],
+        zigbeeModel: ['JZ-ZB-005', 'E220-KR5N0Z0-HA', 'E220-KR5N0Z0-HA'],
         model: 'WP33-EU/WP34-EU',
         vendor: 'LELLKI',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
@@ -21,7 +21,10 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.power_on_behavior_2],
         exposes: [e.power_on_behavior()],
         configure: tuya.configureMagicPacket,
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}, powerOnBehavior: false})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5'], powerOnBehavior: false}),
+        ],
     },
     {
         zigbeeModel: ['JZ-ZB-001'],
@@ -39,14 +42,20 @@ const definitions: Definition[] = [
         model: 'JZ-ZB-003',
         vendor: 'LELLKI',
         description: '3 gang switch',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3']}),
+        ],
     },
     {
         zigbeeModel: ['JZ-ZB-002'],
         model: 'JZ-ZB-002',
         vendor: 'LELLKI',
         description: '2 gang touch switch',
-        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            onOff({endpointNames: ['l1', 'l2']}),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_twqctvna'}],

@@ -289,7 +289,7 @@ function sendQueryNextImageResponse(endpoint: Zh.Endpoint, image: Ota.Image, req
 }
 
 function imageNotify(endpoint: Zh.Endpoint) {
-    return endpoint.commandResponse('genOta', 'imageNotify', {payloadType: 0, queryJitter: 100}, {sendWhen: 'immediate'});
+    return endpoint.commandResponse('genOta', 'imageNotify', {payloadType: 0, queryJitter: 100}, {sendPolicy: 'immediate'});
 }
 
 async function requestOTA(endpoint: Zh.Endpoint): Promise<{payload: Ota.ImageInfo}> {
@@ -537,8 +537,7 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
             if (data.payload.status === 0) {
                 const payload = {
                     manufacturerCode: image.header.manufacturerCode, imageType: image.header.imageType,
-                    fileVersion: image.header.fileVersion, imageSize: image.header.totalImageSize,
-                    currentTime: 0, upgradeTime: 1,
+                    fileVersion: image.header.fileVersion, currentTime: 0, upgradeTime: 1,
                 };
 
                 endpoint.commandResponse('genOta', 'upgradeEndResponse', payload, null, data.header.transactionSequenceNumber).then(

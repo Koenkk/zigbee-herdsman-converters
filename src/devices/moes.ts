@@ -121,7 +121,7 @@ const definitions: Definition[] = [
         ],
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === '_TZE204_5toc8efa' ? 0.5 : 1;
-            return [e.linkquality(), e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(), e.min_temperature_limit(),
+            return [e.linkquality(), e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit().withValueMax(45), e.min_temperature_limit(),
                 e.climate().withSetpoint('current_heating_setpoint', 5, 35, heatingStepSize, ea.STATE_SET)
                     .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                     .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
@@ -302,11 +302,11 @@ const definitions: Definition[] = [
             legacy.tz.moesS_thermostat_system_mode],
         exposes: [
             e.battery(), e.child_lock(), e.eco_mode(),
-            e.eco_temperature().withValueMin(5), e.max_temperature().withValueMax(45), e.min_temperature().withValueMin(5),
+            e.eco_temperature().withValueMin(5), e.max_temperature().withValueMax(45), e.min_temperature().withValueMin(0),
             e.valve_state(), e.position(), e.window_detection(),
             e.binary('window', ea.STATE, 'OPEN', 'CLOSED').withDescription('Window status closed or open '),
             e.climate()
-                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 35, 1, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withSystemMode(['heat'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
@@ -326,8 +326,8 @@ const definitions: Definition[] = [
             e.numeric('boost_heating_countdown', ea.STATE).withUnit('min').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(15),
             e.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('s')
-                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100)
-                .withValueMax(900).withValueStep(100)],
+                .withDescription('Boost Time Setting 0 sec - 900 sec, (default = 300 sec)').withValueMin(0)
+                .withValueMax(900).withValueStep(1)],
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
@@ -357,6 +357,7 @@ const definitions: Definition[] = [
             {modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'},
             {modelID: 'TS1201', manufacturerName: '_TZ3290_ot6ewjvmejq5ekhl'},
             {modelID: 'TS1201', manufacturerName: '_TZ3290_xjpbcxn92aaxvmlz'},
+            {modelID: 'TS1201', manufacturerName: '_TZ3290_gnl5a6a5xvql7c2a'},
         ],
         model: 'UFO-R11',
         vendor: 'Moes',
@@ -375,6 +376,9 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'iH-F8260', 'Universal smart IR remote control', ['_TZ3290_gnl5a6a5xvql7c2a']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_hhiodade'}],
@@ -428,6 +432,65 @@ const definitions: Definition[] = [
                 [14, 'battery_state', tuya.valueConverter.batteryState],
                 [15, 'battery', tuya.valueConverter.raw],
                 [16, 'silence', tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_ja5osu5g'},
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'}],
+        model: 'ERS-10TZBVB-AA',
+        vendor: 'Moes',
+        description: 'Smart button',
+        whiteLabel: [
+            tuya.whitelabel('Loginovo', 'ZG-101ZL', 'Smart button', ['_TZ3000_ja5osu5g']),
+        ],
+        fromZigbee: [
+            fz.command_step, fz.command_on, fz.command_off, fz.command_move_to_color_temp, fz.command_move_to_level,
+            fz.tuya_multi_action, fz.tuya_operation_mode, fz.battery,
+        ],
+        toZigbee: [tz.tuya_operation_mode],
+        exposes: [
+            e.action([
+                'single', 'double', 'hold', 'brightness_move_to_level', 'color_temperature_move',
+                'brightness_step_up', 'brightness_step_down', 'on', 'off',
+            ]),
+            e.battery(),
+            e.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
+                'Operation mode: "command" - for group control, "event" - for clicks'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
+            await endpoint.write('genOnOff', {'tuyaOperationMode': 1});
+            await endpoint.read('genOnOff', ['tuyaOperationMode']);
+            try {
+                await endpoint.read(0xE001, [0xD011]);
+            } catch (err) {/* do nothing */}
+            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_srmahpwl']),
+        model: 'ZS-SR-EUC',
+        vendor: 'Moes',
+        description: 'Star ring - smart curtain switch',
+        options: [exposes.options.invert_cover()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            e.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'calibration', tuya.valueConverterBasic.lookup({'START': tuya.enum(0), 'END': tuya.enum(1)})],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})],
             ],
         },
     },

@@ -3,7 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -19,7 +19,10 @@ const definitions: Definition[] = [
         model: 'GWA1522',
         description: 'Switch actuator 2 channels with input',
         vendor: 'Gewiss',
-        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            onOff({endpointNames: ['l1', 'l2']}),
+        ],
     },
     {
         zigbeeModel: ['GWA1531_Shutter'],

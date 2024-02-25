@@ -23,6 +23,13 @@ const definitions: Definition[] = [
         description: 'LED driver CCT 12V - 30W - CCT',
         extend: [light({colorTemp: {range: [160, 450]}})],
     },
+    {
+        fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'Light Solutions'}],
+        model: '3004482/3137308/3137309',
+        vendor: 'Light Solutions',
+        description: 'Zigbee dimmer for wire',
+        extend: [light({configureReporting: true})],
+    },
 ];
 
 export default definitions;

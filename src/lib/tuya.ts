@@ -5,6 +5,7 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import extend from './extend';
+import * as modernExtend from './modernExtend';
 import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString} from './types';
 // import {Color} from './color';
 const e = exposes.presets;
@@ -264,7 +265,7 @@ function dpValueFromBitmap(dp: number, bitmapBuffer: number) {
     return {dp, datatype: dataTypes.bitmap, data: [bitmapBuffer]};
 }
 
-async function sendDataPointValue(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
+export async function sendDataPointValue(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromNumberValue(dp, value)], cmd, seq);
 }
 
@@ -276,15 +277,15 @@ export async function sendDataPointEnum(entity: Zh.Group | Zh.Endpoint, dp: numb
     return await sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
 }
 
-async function sendDataPointRaw(entity: Zh.Group | Zh.Endpoint, dp: number, value: number[], cmd?: string, seq?: number) {
+export async function sendDataPointRaw(entity: Zh.Group | Zh.Endpoint, dp: number, value: number[], cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
 }
 
-async function sendDataPointBitmap(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
+export async function sendDataPointBitmap(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromBitmap(dp, value)], cmd, seq);
 }
 
-async function sendDataPointStringBuffer(entity: Zh.Group | Zh.Endpoint, dp: number, value: string, cmd?: string, seq?: number) {
+export async function sendDataPointStringBuffer(entity: Zh.Group | Zh.Endpoint, dp: number, value: string, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromString(dp, value)], cmd, seq);
 }
 
@@ -364,7 +365,11 @@ export const skip = {
     // Prevent state from being published when already ON and brightness is also published.
     // This prevents 100% -> X% brightness jumps when the switch is already on
     // https://github.com/Koenkk/zigbee2mqtt/issues/13800#issuecomment-1263592783
-    stateOnAndBrightnessPresent: (meta: Tz.Meta) => meta.message.hasOwnProperty('brightness') && meta.state.state === 'ON',
+    stateOnAndBrightnessPresent: (meta: Tz.Meta) => {
+        if (Array.isArray(meta.mapped)) throw new Error('Not supported');
+        const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name ? `state_${meta.endpoint_name}` : 'state';
+        return meta.message.hasOwnProperty('brightness') && meta.state[convertedKey] === meta.message.state;
+    },
 };
 
 export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => {
@@ -423,11 +428,12 @@ export class Bitmap extends Base {
 
 type LookupMap = {[s: (string)]: number | boolean | Enum | string};
 export const valueConverterBasic = {
-    lookup: (map: LookupMap | ((options: KeyValue) => LookupMap), fallbackValue?: number | boolean | KeyValue | string | null) => {
+    lookup: (map: LookupMap | ((options: KeyValue, device: Zh.Device) => LookupMap),
+        fallbackValue?: number | boolean | KeyValue | string | null) => {
         return {
-            to: (v: string, meta: Tz.Meta) => utils.getFromLookup(v, map instanceof Function ? map(meta.options) : map),
+            to: (v: string, meta: Tz.Meta) => utils.getFromLookup(v, map instanceof Function ? map(meta.options, meta.device) : map),
             from: (v: number, _meta: Fz.Meta, options: KeyValue) => {
-                const m = map instanceof Function ? map(options) : map;
+                const m = map instanceof Function ? map(options, _meta.device) : map;
                 const value = Object.entries(m).find((i) => i[1].valueOf() === v);
                 if (!value) {
                     if (fallbackValue !== undefined) return fallbackValue;
@@ -448,6 +454,9 @@ export const valueConverterBasic = {
     },
     divideBy: (value: number) => {
         return {to: (v: number) => v * value, from: (v: number) => v / value};
+    },
+    divideByFromOnly: (value: number) => {
+        return {to: (v: number) => v, from: (v: number) => v / value};
     },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
@@ -564,6 +573,7 @@ export const valueConverter = {
     batteryState: valueConverterBasic.lookup({'low': 0, 'medium': 1, 'high': 2}),
     divideBy10: valueConverterBasic.divideBy(10),
     divideBy1000: valueConverterBasic.divideBy(1000),
+    divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
     switchMode: valueConverterBasic.lookup({'switch': new Enum(0), 'scene': new Enum(1)}),
     lightMode: valueConverterBasic.lookup({'normal': new Enum(0), 'on': new Enum(1), 'off': new Enum(2), 'flash': new Enum(3)}),
     raw: valueConverterBasic.raw(),
@@ -1121,6 +1131,9 @@ const tuyaTz = {
             'illuminance_treshold_max', 'illuminance_treshold_min', 'presence_illuminance_switch', 'light_switch', 'light_linkage',
             'indicator_light', 'find_switch', 'detection_method', 'sensor', 'hysteresis', 'max_temperature_protection', 'display_brightness',
             'screen_orientation', 'regulator_period', 'regulator_set_point', 'upper_stroke_limit', 'middle_stroke_limit', 'lower_stroke_limit',
+            'buzzer_feedback', 'rf_pairing', 'max_temperature_alarm', 'min_temperature_alarm', 'max_humidity_alarm', 'min_humidity_alarm',
+            'temperature_periodic_report', 'humidity_periodic_report', 'temperature_sensitivity', 'humidity_sensitivity', 'temperature_alarm',
+            'humidity_alarm', 'move_sensitivity', 'radar_range', 'presence_timeout',
         ],
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
@@ -1175,6 +1188,16 @@ const tuyaTz = {
 export {tuyaTz as tz};
 
 const tuyaFz = {
+    brightness: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('61440')) {
+                const property = utils.postfixWithEndpointName('brightness', msg, model, meta);
+                return {[property]: msg.data['61440']};
+            }
+        },
+    } satisfies Fz.Converter,
     gateway_connection_status: {
         cluster: 'manuSpecificTuya',
         type: ['commandMcuGatewayConnectionStatus'],
@@ -1410,27 +1433,6 @@ const tuyaExtend = {
         };
         const meta = {applyRedFix: true, supportsEnhancedHue: false};
         return {...extend.light_onoff_brightness_color(options), meta};
-    },
-    light_onoff_brightness: (options:{
-        endpoints?: string[], disablePowerOnBehavior?: boolean, minBrightness?: boolean,
-        toZigbee?:Tz.Converter[], exposes?: Expose[], noConfigure?: boolean, disableMoveStep?: boolean,
-        disableTransition?: boolean,
-    }={}) => {
-        options = {
-            disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb], exposes: [tuyaExposes.doNotDisturb()],
-            minBrightness: false, ...options,
-        };
-        const result = extend.light_onoff_brightness(options);
-        const exposes_ = options.endpoints ? options.endpoints.map((ee) => e.light_brightness()) : [e.light_brightness()];
-        if (options.minBrightness) {
-            result.fromZigbee.push(tuyaFz.min_brightness);
-            result.toZigbee.push(tuyaTz.min_brightness);
-            result.exposes = exposes_.map((e) => e.withMinBrightness());
-        }
-        if (options.endpoints) {
-            result.exposes = result.exposes.map((e, i) => e.withEndpoint(options.endpoints[i]));
-        }
-        return result;
     },
 };
 export {tuyaExtend as extend};
@@ -1690,6 +1692,38 @@ const tuyaModernExtend = {
         lookup = lookup || {'off': 0, 'on': 1, 'previous': 2};
         return tuyaModernExtend.dpEnumLookup({name: 'power_on_behavior', lookup: lookup, type: dataTypes.enum,
             expose: e.power_on_behavior(Object.keys(lookup)).withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
+    },
+    tuyaLight: (args?: modernExtend.LightArgs & {minBrightness?: boolean, switchType?: boolean}) => {
+        args = {minBrightness: false, powerOnBehavior: false, switchType: false, ...args};
+        const result = modernExtend.light({...args, powerOnBehavior: false});
+
+        result.fromZigbee.push(tuyaFz.brightness);
+        result.toZigbee.push(tuyaTz.do_not_disturb);
+        result.exposes.push(tuyaExposes.doNotDisturb());
+
+        if (args.powerOnBehavior) {
+            result.fromZigbee.push(tuyaFz.power_on_behavior_2);
+            result.toZigbee.push(tuyaTz.power_on_behavior_2);
+            if (args.endpointNames) {
+                result.exposes.push(...args.endpointNames.map((ee) => e.power_on_behavior().withEndpoint(ee)));
+            } else {
+                result.exposes.push(e.power_on_behavior());
+            }
+        }
+
+        if (args.switchType) {
+            result.fromZigbee.push(tuyaFz.switch_type);
+            result.toZigbee.push(tuyaTz.switch_type);
+            result.exposes.push(tuyaExposes.switchType());
+        }
+
+        if (args.minBrightness) {
+            result.fromZigbee.push(tuyaFz.min_brightness);
+            result.toZigbee.push(tuyaTz.min_brightness);
+            result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness() : e);
+        }
+
+        return result;
     },
 };
 export {tuyaModernExtend as modernExtend};

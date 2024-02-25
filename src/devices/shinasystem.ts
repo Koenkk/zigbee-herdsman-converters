@@ -4,7 +4,7 @@ import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {onOff, numeric, enumLookup} from '../lib/modernExtend';
+import {onOff, numeric, enumLookup, deviceEndpoints} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
 
@@ -309,42 +309,60 @@ const definitions: Definition[] = [
         model: 'SBM300Z1',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 1 gang',
-        extend: [onOff()],
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['SBM300Z2'],
         model: 'SBM300Z2',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 2 gang',
-        extend: [onOff({endpoints: {top: 1, bottom: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'top': 1, 'bottom': 2}}),
+            onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false}),
+        ],
     },
     {
         zigbeeModel: ['SBM300Z3'],
         model: 'SBM300Z3',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 3 gang',
-        extend: [onOff({endpoints: {top: 1, center: 2, bottom: 3}})],
+        extend: [
+            deviceEndpoints({endpoints: {'top': 1, 'center': 2, 'bottom': 3}}),
+            onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
+        ],
     },
     {
         zigbeeModel: ['SBM300Z4'],
         model: 'SBM300Z4',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 4 gang',
-        extend: [onOff({endpoints: {top_left: 1, bottom_left: 2, top_right: 3, bottom_right: 4}})],
+        extend: [
+            deviceEndpoints({endpoints: {'top_left': 1, 'bottom_left': 2, 'top_right': 3, 'bottom_right': 4}}),
+            onOff({endpointNames: ['top_left', 'bottom_left', 'top_right', 'bottom_right'], powerOnBehavior: false}),
+        ],
     },
     {
         zigbeeModel: ['SBM300Z5'],
         model: 'SBM300Z5',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 5 gang',
-        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, bottom_right: 5}})],
+        extend: [
+            deviceEndpoints({endpoints: {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'bottom_right': 5}}),
+            onOff({endpointNames: ['top_left', 'center_left', 'bottom_left', 'top_right', 'bottom_right'], powerOnBehavior: false}),
+        ],
     },
     {
         zigbeeModel: ['SBM300Z6'],
         model: 'SBM300Z6',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 6 gang',
-        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6}})],
+        extend: [
+            deviceEndpoints({endpoints: {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'center_right': 5, 'bottom_right': 6}}),
+            onOff({
+                endpointNames: ['top_left', 'center_left', 'bottom_left', 'top_right', 'center_right', 'bottom_right'],
+                powerOnBehavior: false,
+            }),
+        ],
     },
     {
         zigbeeModel: ['BSM-300Z'],
@@ -758,20 +776,20 @@ const definitions: Definition[] = [
             }),
             enumLookup({
                 name: 'volume',
-                lookup: {'Voice': 1, 'High': 2, 'Low': 2},
+                lookup: {'voice': 1, 'high': 2, 'low': 2},
                 cluster: 'genOnOff',
                 attribute: {ID: 0x9008, type: 0x20},
-                description: 'Values observed are `1` (Voice), `2` (High) or `3` (Low).',
+                description: 'Values observed are `1` (voice), `2` (high) or `3` (low).',
                 reporting: {min: 0, max: '1_HOUR', change: 1},
             }),
             enumLookup({
                 name: 'overheat_mode',
-                lookup: {'Normal': 0, 'OverHeat': 1},
+                lookup: {'normal': 0, 'overheat': 1},
                 cluster: 'genOnOff',
                 attribute: {ID: 0x9005, type: 0x20},
                 description: 'Temperature overheating condition.',
                 reporting: {min: 0, max: '1_HOUR', change: 1},
-                readOnly: true,
+                access: 'STATE_GET',
             }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
