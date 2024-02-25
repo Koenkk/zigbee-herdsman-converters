@@ -1379,7 +1379,7 @@ export const lumiModernExtend = {
         ...args,
     }),
     lumiAction: (args?: Partial<modernExtend.ActionEnumLookupArgs>) => modernExtend.actionEnumLookup({
-        lookup: {'single': 1},
+        actionLookup: {'single': 1},
         cluster: 'genMultistateInput',
         attribute: 'presentValue',
         ...args,
