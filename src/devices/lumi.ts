@@ -85,7 +85,7 @@ const definitions: Definition[] = [
             quirkCheckinInterval('1_HOUR'),
             // OTA request: "fieldControl":0, "manufacturerCode":4447, "imageType":10635, no available for now
             // https://github.com/Koenkk/zigbee-OTA/pull/138
-            //lumiZigbeeOTA(),
+            // lumiZigbeeOTA(),
         ],
     },
     {
