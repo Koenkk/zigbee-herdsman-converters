@@ -1197,7 +1197,7 @@ const definitions: Definition[] = [
             await endpoint1.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
         },
     },
-	{
+    {
         zigbeeModel: ['WDE002497'],
         model: 'WDE002497',
         vendor: 'Schneider Electric',
@@ -1224,7 +1224,7 @@ const definitions: Definition[] = [
             await reporting.temperature(endpoint2);
             await endpoint1.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
         },
-	},
+    },
 ];
 
 export default definitions;
