@@ -1320,6 +1320,17 @@ export const lumiModernExtend = {
 
         return result;
     },
+    lumiOnOff: (args?: modernExtend.OnOffArgs) => {
+        args = {...args};
+        const result = modernExtend.onOff({powerOnBehavior: false, ...args});
+        result.fromZigbee.push(fromZigbee.lumi_specific);
+        result.exposes.push(e.device_temperature(), e.power_outage_count());
+        if (args.powerOnBehavior === true) {
+            result.toZigbee.push(toZigbee.lumi_switch_power_outage_memory);
+            result.exposes.push(e.power_outage_memory());
+        }
+        return result;
+    },
     lumiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
@@ -1353,6 +1364,7 @@ export const lumiModernExtend = {
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0200, type: 0x20},
         description: 'Decoupled mode for relay',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1503,6 +1515,18 @@ export const lumiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
+    lumiLedDisabledNight: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'led_disabled_night',
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0203, type: 0x10},
+        valueOn: [true, 1],
+        valueOff: [false, 0],
+        description: 'Enables/disables LED indicator at night',
+        access: 'ALL',
+        entityCategory: 'config',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
     lumiButtonLock: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
         name: 'button_lock',
         cluster: 'manuSpecificLumi',
@@ -1511,6 +1535,18 @@ export const lumiModernExtend = {
         valueOff: ['OFF', 1],
         description: 'Disables the physical switch button',
         access: 'ALL',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    lumiFlipIndicatorLight: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'led_disabled_night',
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x00F0, type: 0x20},
+        valueOn: ['ON', 1],
+        valueOff: ['OFF', 0],
+        description: 'After turn on, the indicator light turns on while switch is off, and vice versa',
+        access: 'ALL',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
