@@ -229,7 +229,6 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
                     let change: number | [number, number] = property.change * (divisor / multiplier);
                     // currentSummDelivered data type is uint48, so reportableChange also is uint48
                     if (property.attribute === 'currentSummDelivered') change = [0, change];
-                    if (property.attribute === 'currentSummReceived') change = [0, change];
                     items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
                 }
                 if (items.length) {
