@@ -4666,11 +4666,11 @@ const converters1 = {
             let color = null;
             if (commonForColors && [255, 254].includes(buffer[4])) {
                 color = 'red';
-            } else if (commonForColors && buffer[4] === 42) {
+            } else if (commonForColors && [42, 41].includes(buffer[4])) {
                 color = 'yellow';
             } else if (commonForColors && [85, 84].includes(buffer[4])) {
                 color = 'green';
-            } else if (commonForColors && [170, 69].includes(buffer[4])) {
+            } else if (commonForColors && [170, 169].includes(buffer[4])) {
                 color = 'blue';
             }
 
