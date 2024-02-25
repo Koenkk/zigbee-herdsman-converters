@@ -8,7 +8,7 @@ import extend from '../lib/extend';
 import {
     light, numeric, binary, enumLookup, forceDeviceType,
     temperature, humidity, forcePowerSource, quirkAddEndpointCluster,
-    quirkCheckinInterval, onOff, customTimeResponse, deviceEndpoints,
+    quirkCheckinInterval, customTimeResponse, deviceEndpoints,
 } from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -1150,18 +1150,17 @@ const definitions: Definition[] = [
         model: 'QBKG19LM',
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (with neutral, single rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
-        toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_flip_indicator_light],
-        exposes: [
-            e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE), e.energy(),
-            e.voltage(), e.device_temperature().withAccess(ea.STATE),
-            e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for left button'),
-        ],
         onEvent: preventReset,
-        extend: [lumiZigbeeOTA()],
+        extend: [
+            lumiZigbeeOTA(),
+            lumiOnOff({powerOnBehavior: true}),
+            lumiOperationMode(),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+            lumiAction({lookup: {'single': 1, 'double': 2}}),
+            lumiElectricityMeter(),
+            lumiPower(),
+        ],
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn01'],
@@ -3290,8 +3289,7 @@ const definitions: Definition[] = [
         description: 'Smart wall outlet H2 EU',
         extend: [
             lumiZigbeeOTA(),
-            onOff({powerOnBehavior: false}),
-            lumiPowerOnBehavior(),
+            lumiOnOff({powerOnBehavior: true}),
             lumiPower(),
             lumiElectricityMeter(),
             lumiOverloadProtection(),

@@ -1480,7 +1480,6 @@ export const lumiModernExtend = {
             e.energy(),
             e.voltage(),
             e.current(),
-            e.device_temperature(),
         ];
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'manuSpecificLumi',
