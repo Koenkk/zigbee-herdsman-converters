@@ -698,6 +698,11 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 running: !!value,
             };
             break;
+        case '1032':
+            if (['ZNJLBL01LM'].includes(model.model)) {
+                payload.motor_speed = getFromLookup(value, {0: 'low', 1: 'medium', 2: 'high'});
+            }
+            break;
         case '1033':
             if (['ZNJLBL01LM'].includes(model.model)) {
                 payload.charging_status = value === 1;
@@ -1317,6 +1322,15 @@ export const lumiModernExtend = {
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x000a, type: 0x20},
         description: 'External switch type',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    lumiMotorSpeed: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'motor_speed',
+        lookup: {'low': 0, 'medium': 1, 'high': 2},
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0408, type: 0x20},
+        description: 'Controls the motor speed',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),

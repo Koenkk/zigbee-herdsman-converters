@@ -18,7 +18,7 @@ const {
     lumiAction, lumiOperationMode, lumiPowerOnBehavior, lumiZigbeeOTA,
     lumiSwitchType, lumiAirQuality, lumiVoc, lumiDisplayUnit, lumiLight,
     lumiOutageCountRestoreBindReporting, lumiElectricityMeter, lumiPower,
-    lumiOverloadProtection, lumiLedIndicator, lumiButtonLock,
+    lumiOverloadProtection, lumiLedIndicator, lumiButtonLock, lumiMotorSpeed,
 } = lumi.modernExtend;
 import {Definition, OnEvent} from '../lib/types';
 const {manufacturerCode} = lumi;
@@ -1958,7 +1958,10 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('manuSpecificLumi', [0x040a], {manufacturerCode: manufacturerCode});
         },
-        extend: [lumiZigbeeOTA()],
+        extend: [
+            lumiZigbeeOTA(),
+            lumiMotorSpeed(),
+        ],
     },
     {
         // 'lumi.curtain.acn003' - CN version (ZNCLBL01LM), 'lumi.curtain.agl001' - global version (CM-M01)
