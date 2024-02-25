@@ -1224,6 +1224,7 @@ const definitions: Definition[] = [
             await reporting.temperature(endpoint2);
             await endpoint1.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
         },
+	},
 ];
 
 export default definitions;
