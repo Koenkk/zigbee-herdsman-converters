@@ -1112,8 +1112,7 @@ const definitions: Definition[] = [
         onEvent: preventReset,
         extend: [
             lumiZigbeeOTA(),
-            lumiOnOff({powerOnBehavior: true}),
-            lumiOperationMode(),
+            lumiOnOff({powerOnBehavior: true, operationMode: true}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
             lumiAction({lookup: {'single': 1, 'double': 2}}),
@@ -1125,22 +1124,15 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (no neutral, double rocker)',
         fromZigbee: [lumi.fromZigbee.lumi_action_multistate],
-        toZigbee: [lumi.toZigbee.lumi_switch_operation_mode_opple],
         exposes: [
             e.action([
                 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for left button')
-                .withEndpoint('left'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button')
-                .withEndpoint('right'),
         ],
         onEvent: preventReset,
         extend: [
             lumiZigbeeOTA(),
             deviceEndpoints({endpoints: {'left': 1, 'right': 2}}),
-            lumiOnOff({powerOnBehavior: true, endpointNames: ['left', 'right']}),
+            lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
         ],
@@ -1153,8 +1145,7 @@ const definitions: Definition[] = [
         onEvent: preventReset,
         extend: [
             lumiZigbeeOTA(),
-            lumiOnOff({powerOnBehavior: true}),
-            lumiOperationMode(),
+            lumiOnOff({powerOnBehavior: true, operationMode: true}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
             lumiAction({lookup: {'single': 1, 'double': 2}}),
@@ -1168,16 +1159,9 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (with neutral, double rocker)',
         fromZigbee: [lumi.fromZigbee.lumi_action_multistate],
-        toZigbee: [lumi.toZigbee.lumi_switch_operation_mode_opple],
         exposes: [
             e.action([
                 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for left button')
-                .withEndpoint('left'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button')
-                .withEndpoint('right'),
         ],
         onEvent: preventReset,
         extend: [
@@ -1185,7 +1169,7 @@ const definitions: Definition[] = [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             lumiZigbeeOTA(),
             deviceEndpoints({endpoints: {'left': 1, 'right': 2}}),
-            lumiOnOff({powerOnBehavior: true, endpointNames: ['left', 'right']}),
+            lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
             lumiElectricityMeter(),
@@ -1198,28 +1182,18 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (no neutral, triple rocker)',
         fromZigbee: [lumi.fromZigbee.lumi_action_multistate],
-        toZigbee: [lumi.toZigbee.lumi_switch_operation_mode_opple],
         exposes: [
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center',
                 'single_right', 'double_right', 'single_left_center', 'double_left_center',
                 'single_left_right', 'double_left_right', 'single_center_right', 'double_center_right',
                 'single_all', 'double_all']),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for left button')
-                .withEndpoint('left'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button')
-                .withEndpoint('center'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button')
-                .withEndpoint('right'),
         ],
         onEvent: preventReset,
         extend: [
             lumiZigbeeOTA(),
             deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
-            lumiOnOff({powerOnBehavior: true, endpointNames: ['left', 'center', 'right']}),
+            lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'center', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
         ],
@@ -1230,28 +1204,18 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Smart wall switch T1 (with neutral, triple rocker)',
         fromZigbee: [lumi.fromZigbee.lumi_action_multistate],
-        toZigbee: [lumi.toZigbee.lumi_switch_operation_mode_opple],
         exposes: [
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center',
                 'single_right', 'double_right', 'single_left_center', 'double_left_center',
                 'single_left_right', 'double_left_right', 'single_center_right', 'double_center_right',
                 'single_all', 'double_all']),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for left button')
-                .withEndpoint('left'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button')
-                .withEndpoint('center'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for right button')
-                .withEndpoint('right'),
         ],
         onEvent: preventReset,
         extend: [
             lumiZigbeeOTA(),
             deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
-            lumiOnOff({powerOnBehavior: true, endpointNames: ['left', 'center', 'right']}),
+            lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'center', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
             lumiElectricityMeter(),

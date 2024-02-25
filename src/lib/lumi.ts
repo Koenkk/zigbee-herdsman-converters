@@ -23,7 +23,7 @@ import {
 import * as ota from './ota';
 import fz from '../converters/fromZigbee';
 import * as globalStore from './store';
-import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range, KeyValueNumberString} from './types';
+import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range, KeyValueNumberString, Expose} from './types';
 import * as modernExtend from './modernExtend';
 import * as exposes from './exposes';
 
@@ -1320,14 +1320,24 @@ export const lumiModernExtend = {
 
         return result;
     },
-    lumiOnOff: (args?: modernExtend.OnOffArgs) => {
-        args = {...args};
+    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean}) => {
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
         result.fromZigbee.push(fromZigbee.lumi_specific);
         result.exposes.push(e.device_temperature(), e.power_outage_count());
         if (args.powerOnBehavior === true) {
             result.toZigbee.push(toZigbee.lumi_switch_power_outage_memory);
             result.exposes.push(e.power_outage_memory());
+        }
+        if (args.operationMode === true) {
+            result.toZigbee.push(toZigbee.lumi_switch_operation_mode_opple);
+            if (args.endpointNames) {
+                const exposes: Expose[] = args.endpointNames.map((ep) =>
+                    e.operation_mode_select(
+                        ['decoupled', 'control_relay']).withDescription('Decoupled mode for ' + ep.toString() + ' button').withEndpoint(ep));
+                result.exposes.concat(exposes);
+            } else {
+                result.exposes.push(e.operation_mode_select(['decoupled', 'control_relay']).withDescription('Decoupled mode for a button'));
+            }
         }
         return result;
     },
