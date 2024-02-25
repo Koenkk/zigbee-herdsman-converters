@@ -760,7 +760,7 @@ export const presets = {
     temperature: () => new Numeric('temperature', access.STATE).withUnit('°C').withDescription('Measured temperature value'),
     temperature_sensor_select: (sensor_names: string[]) => new Enum('sensor', access.STATE_SET, sensor_names).withDescription('Select temperature sensor to use').withCategory('config'),
     test: () => new Binary('test', access.STATE, true, false).withDescription('Indicates whether the device is being tested'),
-    trigger_count: (sincePowerOutage = true) => new Numeric('trigger_count', exports.access.STATE).withDescription('Indicates how many times the sensor was triggered' + (sincePowerOutage ? ' (since last power outage)' : '')).withCategory('diagnostic'),
+    trigger_count: (sinceScheduledReport = true) => new Numeric('trigger_count', exports.access.STATE).withDescription('Indicates how many times the sensor was triggered' + (sinceScheduledReport ? ' (since last scheduled report)' : '')).withCategory('diagnostic'),
     trigger_indicator: () => new Binary('trigger_indicator', access.ALL, true, false).withDescription('Enables trigger indication').withCategory('config'),
     valve_alarm: () => new Binary('valve_alarm', access.STATE, true, false).withCategory('diagnostic'),
     valve_position: () => new Numeric('position', access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of the valve'),

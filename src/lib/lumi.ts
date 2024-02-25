@@ -219,7 +219,11 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
         case '6':
             if (['MCCGQ11LM', 'SJCGQ11LM'].includes(model.model) && Array.isArray(value)) {
                 assertNumber(value[1]);
-                payload.trigger_count = value[1];
+                let count = value[1];
+                // Sometimes, especially when the device is connected through another lumi router, the sensor
+                // send random values after 16 bit (>65536), so we truncate and read this as 16BitUInt.
+                count = parseInt(count.toString(16).slice(-4), 16);
+                payload.trigger_count = count - 1;
             }
             break;
         case '8':
