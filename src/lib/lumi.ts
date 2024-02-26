@@ -1320,12 +1320,44 @@ export const lumiModernExtend = {
 
         return result;
     },
+    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean, powerOutageMemory?: 'binary' | 'enum'}) => {
+        const result = modernExtend.onOff({powerOnBehavior: false, ...args});
+        result.fromZigbee.push(fromZigbee.lumi_specific);
+        result.exposes.push(e.device_temperature(), e.power_outage_count());
+        if (args.powerOutageMemory === 'binary') {
+            const extend = lumiModernExtend.lumiPowerOutageMemory();
+            result.toZigbee.concat(extend.toZigbee);
+            result.exposes.concat(extend.exposes);
+        } else if (args.powerOutageMemory === 'enum') {
+            const extend = lumiModernExtend.lumiPowerOnBehavior();
+            result.toZigbee.concat(extend.toZigbee);
+            result.exposes.concat(extend.exposes);
+        }
+        if (args.operationMode === true) {
+            const extend = lumiModernExtend.lumiOperationMode({description: 'Decoupled mode for a button'});
+            if (args.endpointNames) {
+                args.endpointNames.forEach(function(ep) {
+                    const epExtend = lumiModernExtend.lumiOperationMode({
+                        description: 'Decoupled mode for ' + ep.toString() + ' button',
+                        endpointName: ep,
+                    });
+                    result.toZigbee.concat(epExtend.toZigbee);
+                    result.exposes.concat(epExtend.exposes);
+                });
+            } else {
+                result.toZigbee.concat(extend.toZigbee);
+                result.exposes.concat(extend.exposes);
+            }
+        }
+        return result;
+    },
     lumiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'switch_type',
         lookup: {'toggle': 1, 'momentary': 2, 'none': 3},
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x000a, type: 0x20},
         description: 'External switch type',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1335,6 +1367,7 @@ export const lumiModernExtend = {
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0408, type: 0x20},
         description: 'Controls the motor speed',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1344,6 +1377,19 @@ export const lumiModernExtend = {
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0517, type: 0x20},
         description: 'Controls the behavior when the device is powered on after power loss',
+        entityCategory: 'config',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    lumiPowerOutageMemory: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'power_outage_memory',
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0201, type: 0x10},
+        valueOn: [true, 1],
+        valueOff: [false, 0],
+        description: 'Controls the behavior when the device is powered on after power loss',
+        access: 'ALL',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1353,11 +1399,12 @@ export const lumiModernExtend = {
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0200, type: 0x20},
         description: 'Decoupled mode for relay',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
     lumiAction: (args?: Partial<modernExtend.ActionEnumLookupArgs>) => modernExtend.actionEnumLookup({
-        lookup: {'single': 1},
+        actionLookup: {'single': 1},
         cluster: 'genMultistateInput',
         attribute: 'presentValue',
         ...args,
@@ -1394,6 +1441,7 @@ export const lumiModernExtend = {
         attribute: 'displayUnit',
         zigbeeCommandOptions: {disableDefaultResponse: true},
         description: 'Units to show on the display',
+        entityCategory: 'config',
         ...args,
     }),
     lumiOutageCountRestoreBindReporting: (): ModernExtend => {
@@ -1460,6 +1508,7 @@ export const lumiModernExtend = {
         description: 'Instantaneous measured power',
         unit: 'W',
         access: 'STATE',
+        entityCategory: 'diagnostic',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1468,7 +1517,6 @@ export const lumiModernExtend = {
             e.energy(),
             e.voltage(),
             e.current(),
-            e.device_temperature(),
         ];
         const fromZigbee: Fz.Converter[] = [{
             cluster: 'manuSpecificLumi',
@@ -1489,6 +1537,7 @@ export const lumiModernExtend = {
         valueMax: 3840,
         unit: 'W',
         access: 'ALL',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1500,6 +1549,19 @@ export const lumiModernExtend = {
         valueOff: ['OFF', 0],
         description: 'LED indicator',
         access: 'ALL',
+        entityCategory: 'config',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    lumiLedDisabledNight: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'led_disabled_night',
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0203, type: 0x10},
+        valueOn: [true, 1],
+        valueOff: [false, 0],
+        description: 'Enables/disables LED indicator at night',
+        access: 'ALL',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1511,6 +1573,19 @@ export const lumiModernExtend = {
         valueOff: ['OFF', 1],
         description: 'Disables the physical switch button',
         access: 'ALL',
+        entityCategory: 'config',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    lumiFlipIndicatorLight: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'led_disabled_night',
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x00F0, type: 0x20},
+        valueOn: ['ON', 1],
+        valueOff: ['OFF', 0],
+        description: 'After turn on, the indicator light turns on while switch is off, and vice versa',
+        access: 'ALL',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
