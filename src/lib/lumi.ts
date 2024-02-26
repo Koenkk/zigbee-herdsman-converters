@@ -1507,7 +1507,7 @@ export const lumiModernExtend = {
         description: 'Instantaneous measured power',
         unit: 'W',
         access: 'STATE',
-        entityCategory: 'config',
+        entityCategory: 'diagnostic',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
