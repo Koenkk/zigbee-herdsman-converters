@@ -2,6 +2,8 @@ import {Zcl} from 'zigbee-herdsman';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent, Access} from './types';
+import {zigbeeOTA} from '../lib/ota';
+import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import {presets as e, access as ea, options as opt} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
@@ -28,6 +30,7 @@ const timeLookup = {
     '1_HOUR': 3600,
     '30_MINUTES': 1800,
     '10_SECONDS': 10,
+    ...constants.repInterval,
 };
 
 type ReportingConfigTime = number | keyof typeof timeLookup;
@@ -682,11 +685,24 @@ export function deviceEndpoints(args: {endpoints: {[n: string]: number}, multiEn
     return result;
 }
 
-export function ota(args: {definition: DefinitionOta}): ModernExtend {
-    return {
-        ota: args.definition,
+export interface OtaArgs {
+    definition?: DefinitionOta, bindOtaCluster?: boolean, otaClusterId?: number,
+}
+export function ota(args?: OtaArgs): ModernExtend {
+    let configure: Configure;
+    if (args.bindOtaCluster === true && args.otaClusterId) {
+        configure = async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(args.otaClusterId);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOta']);
+            device.save();
+        };
+    }
+    const result: ModernExtend = {
+        ota: args.definition ? args.definition : zigbeeOTA,
         isModernExtend: true,
     };
+    if (configure) result.configure = configure;
+    return result;
 }
 
 export function temperature(args?: Partial<NumericArgs>) {
