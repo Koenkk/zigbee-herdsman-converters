@@ -4664,18 +4664,18 @@ const converters1 = {
             const buffer = msg.data;
             const commonForColors = buffer[0] === 17 && buffer[2] === 48 && buffer[3] === 0 && buffer[5] === 8 && buffer[6] === 0;
             let color = null;
-            if (commonForColors && buffer[4] === 255) {
+            if (commonForColors && [255, 254].includes(buffer[4])) {
                 color = 'red';
-            } else if (commonForColors && buffer[4] === 42) {
+            } else if (commonForColors && [42, 41].includes(buffer[4])) {
                 color = 'yellow';
-            } else if (commonForColors && buffer[4] === 85) {
+            } else if (commonForColors && [85, 84].includes(buffer[4])) {
                 color = 'green';
-            } else if (commonForColors && buffer[4] === 170) {
+            } else if (commonForColors && [170, 169].includes(buffer[4])) {
                 color = 'blue';
             }
 
             if (color != null) {
-                return {action: color};
+                return {action: color, action_group: msg.groupID};
             }
         },
     } satisfies Fz.Converter,
@@ -4684,9 +4684,7 @@ const converters1 = {
         type: ['commandMoveHue'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.movemode === 1 && msg.data.rate === 12) {
-                return {
-                    action: 'refresh_colored',
-                };
+                return {action: 'refresh_colored', action_group: msg.groupID};
             }
         },
     } satisfies Fz.Converter,
@@ -4698,9 +4696,9 @@ const converters1 = {
             const isRefresh = buffer[0] === 17 && buffer[2] === 16 && (buffer[3] === 1 || buffer[3] === 0) && buffer[4] === 1;
             const isRefreshLong = buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 2;
             if (isRefresh) {
-                return {action: 'refresh'};
+                return {action: 'refresh', action_group: msg.groupID};
             } else if (isRefreshLong) {
-                return {action: 'refresh_long'};
+                return {action: 'refresh_long', action_group: msg.groupID};
             }
         },
     } satisfies Fz.Converter,

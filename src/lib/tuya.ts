@@ -1704,8 +1704,8 @@ const tuyaModernExtend = {
         if (args.powerOnBehavior) {
             result.fromZigbee.push(tuyaFz.power_on_behavior_2);
             result.toZigbee.push(tuyaTz.power_on_behavior_2);
-            if (args.endpoints) {
-                result.exposes.push(...Object.keys(args.endpoints).map((ee) => e.power_on_behavior().withEndpoint(ee)));
+            if (args.endpointNames) {
+                result.exposes.push(...args.endpointNames.map((ee) => e.power_on_behavior().withEndpoint(ee)));
             } else {
                 result.exposes.push(e.power_on_behavior());
             }

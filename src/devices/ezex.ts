@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import {onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,7 +7,10 @@ const definitions: Definition[] = [
         model: 'ECW-100-A03',
         vendor: 'eZEX',
         description: 'Zigbee switch 3 gang',
-        extend: [onOff({endpoints: {top: 1, center: 2, bottom: 3}})],
+        extend: [
+            deviceEndpoints({endpoints: {'top': 1, 'center': 2, 'bottom': 3}}),
+            onOff({endpointNames: ['top', 'center', 'bottom']}),
+        ],
     },
 ];
 

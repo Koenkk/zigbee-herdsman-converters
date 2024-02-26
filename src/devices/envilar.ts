@@ -2,7 +2,7 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 const e = exposes.presets;
 import fz from '../converters/fromZigbee';
-import {light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -49,7 +49,10 @@ const definitions: Definition[] = [
         model: '2CH-ZG-BOX-RELAY',
         vendor: 'Envilar',
         description: '2 channel box relay',
-        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            onOff({endpointNames: ['l1', 'l2']}),
+        ],
     },
 ];
 

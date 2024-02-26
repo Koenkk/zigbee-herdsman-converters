@@ -99,11 +99,18 @@ const definitions: Definition[] = [
         extend: [light({colorTemp: {range: undefined}})],
     },
     {
-        zigbeeModel: ['500.46', 'H036-0006'],
+        zigbeeModel: ['H036-0006'],
         model: '929.63',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee LED-Modul Coin 1x6W Tunable White',
         extend: [light({colorTemp: {range: undefined}})],
+    },
+    {
+        zigbeeModel: ['500.46'],
+        model: '500.46',
+        vendor: 'Paulmann',
+        description: 'SmartHome Zigbee MaxLED tunable white controller max. 144W / 24V DC',
+        extend: [light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ['H036-0005'],
@@ -164,7 +171,7 @@ const definitions: Definition[] = [
         extend: [light()],
     },
     {
-        zigbeeModel: ['RemoteControl'],
+        zigbeeModel: ['RemoteControl', '50067'],
         model: '500.67',
         vendor: 'Paulmann',
         description: 'RGB remote control',

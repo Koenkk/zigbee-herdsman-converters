@@ -216,6 +216,16 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             assertNumber(value);
             payload.power_outage_count = value - 1;
             break;
+        case '6':
+            if (['MCCGQ11LM', 'SJCGQ11LM'].includes(model.model) && Array.isArray(value)) {
+                assertNumber(value[1]);
+                let count = value[1];
+                // Sometimes, especially when the device is connected through another lumi router, the sensor
+                // send random values after 16 bit (>65536), so we truncate and read this as 16BitUInt.
+                count = parseInt(count.toString(16).slice(-4), 16);
+                payload.trigger_count = count - 1;
+            }
+            break;
         case '8':
             if (['ZNLDP13LM'].includes(model.model)) {
                 // We don't know what the value means for these devices.
@@ -691,6 +701,11 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                     {0: 'stopped', 1: 'opening', 2: 'closing'})),
                 running: !!value,
             };
+            break;
+        case '1032':
+            if (['ZNJLBL01LM'].includes(model.model)) {
+                payload.motor_speed = getFromLookup(value, {0: 'low', 1: 'medium', 2: 'high'});
+            }
             break;
         case '1033':
             if (['ZNJLBL01LM'].includes(model.model)) {
@@ -1311,6 +1326,15 @@ export const lumiModernExtend = {
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x000a, type: 0x20},
         description: 'External switch type',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    lumiMotorSpeed: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'motor_speed',
+        lookup: {'low': 0, 'medium': 1, 'high': 2},
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0408, type: 0x20},
+        description: 'Controls the motor speed',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),

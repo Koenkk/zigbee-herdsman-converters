@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "18.33.2",
+  "version": "18.38.0",
   "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "types": "index.d.ts",
@@ -30,7 +30,7 @@
     "lint": "eslint .",
     "test": "ZHC_TEST=true jest test",
     "test-watch": "ZHC_TEST=true jest test --watch",
-    "clean": "rimraf index* devices lib converters tsconfig.tsbuildinfo",
+    "clean": "rimraf --glob index* devices lib converters tsconfig.tsbuildinfo",
     "build": "tsc",
     "build-watch": "tsc --watch",
     "prepack": "npm run clean && npm run build"
@@ -44,22 +44,22 @@
   "dependencies": {
     "axios": "^1.6.7",
     "buffer-crc32": "^1.0.0",
-    "https-proxy-agent": "^7.0.2",
+    "https-proxy-agent": "^7.0.4",
     "iconv-lite": "^0.6.3",
     "semver": "^7.6.0",
     "tar-stream": "^3.1.7",
-    "zigbee-herdsman": "^0.33.8"
+    "zigbee-herdsman": "^0.34.4"
   },
   "devDependencies": {
     "@types/buffer-crc32": "^0.2.4",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.11.17",
+    "@types/node": "^20.11.20",
     "@types/tar-stream": "^3.1.3",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "@typescript-eslint/parser": "^7.0.2",
+    "eslint": "^8.57.0",
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-jest": "^27.6.3",
+    "eslint-plugin-jest": "^27.9.0",
     "eslint-plugin-tsdoc": "^0.2.17",
     "fast-deep-equal": "*",
     "jest": "^29.7.0",
