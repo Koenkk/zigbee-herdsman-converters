@@ -1112,7 +1112,7 @@ const definitions: Definition[] = [
         onEvent: preventReset,
         extend: [
             lumiZigbeeOTA(),
-            lumiOnOff({powerOnBehavior: true, operationMode: true}),
+            lumiOnOff({powerOutageMemory: 'binary', operationMode: true}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
             lumiAction({actionLookup: {'single': 1, 'double': 2}}),
@@ -1127,7 +1127,7 @@ const definitions: Definition[] = [
         extend: [
             lumiZigbeeOTA(),
             deviceEndpoints({endpoints: {'left': 1, 'right': 2}}),
-            lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'right']}),
+            lumiOnOff({powerOutageMemory: 'binary', operationMode: true, endpointNames: ['left', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
             lumiAction({actionLookup: {'single': 1, 'double': 2}, buttonLookup: {'left': 41, 'right': 42, 'both': 51}}),
@@ -1141,7 +1141,7 @@ const definitions: Definition[] = [
         onEvent: preventReset,
         extend: [
             lumiZigbeeOTA(),
-            lumiOnOff({powerOnBehavior: true, operationMode: true}),
+            lumiOnOff({powerOutageMemory: 'binary', operationMode: true}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
             lumiAction({actionLookup: {'single': 1, 'double': 2}}),
@@ -1160,7 +1160,7 @@ const definitions: Definition[] = [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             lumiZigbeeOTA(),
             deviceEndpoints({endpoints: {'left': 1, 'right': 2}}),
-            lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'right']}),
+            lumiOnOff({powerOutageMemory: 'binary', operationMode: true, endpointNames: ['left', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
             lumiAction({actionLookup: {'single': 1, 'double': 2}, buttonLookup: {'left': 41, 'right': 42, 'both': 51}}),
@@ -1177,7 +1177,7 @@ const definitions: Definition[] = [
         extend: [
             lumiZigbeeOTA(),
             deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
-            lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'center', 'right']}),
+            lumiOnOff({powerOutageMemory: 'binary', operationMode: true, endpointNames: ['left', 'center', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
             lumiAction({actionLookup: {'single': 1, 'double': 2}, buttonLookup: {
@@ -1196,7 +1196,7 @@ const definitions: Definition[] = [
         extend: [
             lumiZigbeeOTA(),
             deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
-            lumiOnOff({powerOnBehavior: true, operationMode: true, endpointNames: ['left', 'center', 'right']}),
+            lumiOnOff({powerOutageMemory: 'binary', operationMode: true, endpointNames: ['left', 'center', 'right']}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
             lumiAction({actionLookup: {'single': 1, 'double': 2}, buttonLookup: {
@@ -3239,7 +3239,7 @@ const definitions: Definition[] = [
         description: 'Smart wall outlet H2 EU',
         extend: [
             lumiZigbeeOTA(),
-            lumiOnOff({powerOnBehavior: true}),
+            lumiOnOff({powerOutageMemory: 'enum'}),
             lumiPower(),
             lumiElectricityMeter(),
             lumiOverloadProtection(),

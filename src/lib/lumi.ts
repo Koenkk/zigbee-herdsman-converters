@@ -23,7 +23,7 @@ import {
 import * as ota from './ota';
 import fz from '../converters/fromZigbee';
 import * as globalStore from './store';
-import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range, KeyValueNumberString, Expose} from './types';
+import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range, KeyValueNumberString} from './types';
 import * as modernExtend from './modernExtend';
 import * as exposes from './exposes';
 
@@ -1320,23 +1320,32 @@ export const lumiModernExtend = {
 
         return result;
     },
-    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean}) => {
+    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean, powerOutageMemory?: 'binary' | 'enum'}) => {
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
         result.fromZigbee.push(fromZigbee.lumi_specific);
         result.exposes.push(e.device_temperature(), e.power_outage_count());
-        if (args.powerOnBehavior === true) {
-            result.toZigbee.push(toZigbee.lumi_switch_power_outage_memory);
-            result.exposes.push(e.power_outage_memory());
+        if (args.powerOutageMemory === 'binary') {
+            const extend = lumiModernExtend.lumiPowerOutageMemory();
+            result.toZigbee.concat(extend.toZigbee);
+            result.exposes.concat(extend.exposes);
+        } else if (args.powerOutageMemory === 'enum') {
+            const extend = lumiModernExtend.lumiPowerOnBehavior();
+            result.toZigbee.concat(extend.toZigbee);
+            result.exposes.concat(extend.exposes);
         }
         if (args.operationMode === true) {
-            result.toZigbee.push(toZigbee.lumi_switch_operation_mode_opple);
+            const extend = lumiModernExtend.lumiOperationMode({description: 'Decoupled mode for a button'});
+            result.toZigbee.concat(extend.toZigbee);
             if (args.endpointNames) {
-                const exposes: Expose[] = args.endpointNames.map((ep) =>
-                    e.operation_mode_select(
-                        ['decoupled', 'control_relay']).withDescription('Decoupled mode for ' + ep.toString() + ' button').withEndpoint(ep));
-                result.exposes.concat(exposes);
+                args.endpointNames.forEach(function(ep) {
+                    const epExtend = lumiModernExtend.lumiOperationMode({
+                        description: 'Decoupled mode for ' + ep.toString() + ' button',
+                        endpointName: ep,
+                    });
+                    result.exposes.concat(epExtend.exposes);
+                });
             } else {
-                result.exposes.push(e.operation_mode_select(['decoupled', 'control_relay']).withDescription('Decoupled mode for a button'));
+                result.exposes.concat(extend.exposes);
             }
         }
         return result;
@@ -1347,6 +1356,7 @@ export const lumiModernExtend = {
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x000a, type: 0x20},
         description: 'External switch type',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1356,6 +1366,7 @@ export const lumiModernExtend = {
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0408, type: 0x20},
         description: 'Controls the motor speed',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1365,6 +1376,19 @@ export const lumiModernExtend = {
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0517, type: 0x20},
         description: 'Controls the behavior when the device is powered on after power loss',
+        entityCategory: 'config',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    lumiPowerOutageMemory: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'power_outage_memory',
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0201, type: 0x10},
+        valueOn: [true, 1],
+        valueOff: [false, 0],
+        description: 'Controls the behavior when the device is powered on after power loss',
+        access: 'ALL',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1416,6 +1440,7 @@ export const lumiModernExtend = {
         attribute: 'displayUnit',
         zigbeeCommandOptions: {disableDefaultResponse: true},
         description: 'Units to show on the display',
+        entityCategory: 'config',
         ...args,
     }),
     lumiOutageCountRestoreBindReporting: (): ModernExtend => {
@@ -1482,6 +1507,7 @@ export const lumiModernExtend = {
         description: 'Instantaneous measured power',
         unit: 'W',
         access: 'STATE',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1510,6 +1536,7 @@ export const lumiModernExtend = {
         valueMax: 3840,
         unit: 'W',
         access: 'ALL',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1521,6 +1548,7 @@ export const lumiModernExtend = {
         valueOff: ['OFF', 0],
         description: 'LED indicator',
         access: 'ALL',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
@@ -1544,6 +1572,7 @@ export const lumiModernExtend = {
         valueOff: ['OFF', 1],
         description: 'Disables the physical switch button',
         access: 'ALL',
+        entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
