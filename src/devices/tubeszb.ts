@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['tubeszb.router'],
         model: 'tubeszb.router',
         vendor: 'TubesZB',
-        description: '[CC2652 Router](https://github.com/tube0013/tube_gateways/tree/main/tube_cc_router)',
+        description: 'CC2652 Router',
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
