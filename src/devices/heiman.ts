@@ -280,7 +280,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [{modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'},
             {modelID: 'TS0216', manufacturerName: '_TYZB01_4obovpbi'}],
-        zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0', 'SRHMP-I1'],
+        zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0'],
         model: 'HS2WD-E',
         vendor: 'HEIMAN',
         description: 'Smart siren',
@@ -293,41 +293,6 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.battery(), e.warning()],
-    },
-    {
-        zigbeeModel: ['SOHM-I1'],
-        model: 'SOHM-I1',
-        vendor: 'HEIMAN',
-        description: 'Door contact sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper()],
-    },
-    {
-        zigbeeModel: ['SWHM-I1'],
-        model: 'SWHM-I1',
-        vendor: 'HEIMAN',
-        description: 'Water leakage sensor',
-        fromZigbee: [fz.ias_water_leak_alarm_1],
-        toZigbee: [],
-        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
-    },
-    {
-        zigbeeModel: ['SMHM-I1', 'PIR_TPV12'],
-        model: 'SMHM-I1',
-        vendor: 'HEIMAN',
-        description: 'Smart motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage(), e.tamper()],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const bindClusters = ['genPowerCfg'];
-            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.batteryVoltage(endpoint);
-        },
     },
     {
         zigbeeModel: ['HT-EM', 'TH-EM', 'TH-T_V14'],
@@ -387,33 +352,6 @@ const definitions: Definition[] = [
             await reporting.activePower(endpoint);
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
-    },
-    {
-        zigbeeModel: ['SGMHM-I1'],
-        model: 'SGMHM-I1',
-        vendor: 'HEIMAN',
-        description: 'Methane gas sensor',
-        fromZigbee: [fz.ias_gas_alarm_2],
-        toZigbee: [],
-        exposes: [e.gas()],
-    },
-    {
-        zigbeeModel: ['STHM-I1H'],
-        model: 'STHM-I1H',
-        vendor: 'HEIMAN',
-        description: 'Temperature & humidity sensor',
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
-            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.temperature(endpoint);
-            await reporting.humidity(endpoint);
-            await reporting.batteryVoltage(endpoint);
-        },
-        exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
         fingerprint: [{modelID: 'SOS-EM', manufacturerName: 'HEIMAN'}, {modelID: 'SOS-EF-3.0', manufacturerName: 'HEIMAN'}],
@@ -508,15 +446,6 @@ const definitions: Definition[] = [
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
         fromZigbee: [fz.ias_gas_alarm_2],
-        toZigbee: [],
-        exposes: [e.gas(), e.battery_low(), e.tamper()],
-    },
-    {
-        zigbeeModel: ['SGPHM-I1'],
-        model: 'SGPHM-I1',
-        vendor: 'HEIMAN',
-        description: 'Propane gas sensor',
-        fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
@@ -628,13 +557,6 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificInfraRedRemote']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-    },
-    {
-        zigbeeModel: ['BDHM8E27W70-I1'],
-        model: 'BDHM8E27W70-I1',
-        vendor: 'GS', // actually it is HEIMAN.
-        description: 'Active light, warm to cool white (E27 & B22)',
-        extend: [light({colorTemp: {range: undefined}})],
     },
     {
         zigbeeModel: ['HS2SW1L-EF-3.0', 'HS2SW1L-EFR-3.0', 'HS2SW1A-N'],
