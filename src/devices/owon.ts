@@ -100,8 +100,7 @@ const fzLocal = {
             }
             if (msg.data.hasOwnProperty('owonCurrentSum') || msg.data.hasOwnProperty('12547')) { // 0x3103 -> 12547
                 const data = msg.data['owonCurrentSum'] || msg.data['12547'];
-                const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                payload.current = value * factor;
+                payload.current = data;
             }
             if (msg.data.hasOwnProperty('owonReactiveEnergySum') || msg.data.hasOwnProperty('16643')) { // 0x4103 -> 16643
                 const data = msg.data['owonReactiveEnergySum'] || msg.data['16643'];
