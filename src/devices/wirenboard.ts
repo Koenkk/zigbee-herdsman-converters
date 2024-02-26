@@ -2,14 +2,16 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import * as ota from '../lib/ota';
 import * as constants from '../lib/constants';
-import {Definition, Fz, KeyValueAny, Tz} from '../lib/types';
+import {Configure, Definition, Fz, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 import {assertString, getFromLookup, getOptions, toNumber} from '../lib/utils';
 import * as modernExtend from '../lib/modernExtend';
-const {forcePowerSource, temperature, humidity, co2} = modernExtend;
+const {
+    forcePowerSource, temperature, humidity, co2, deviceEndpoints,
+    onOff, illuminance, occupancy, ota,
+} = modernExtend;
 
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -252,27 +254,202 @@ const tzLocal = {
 };
 
 const sprutModernExtend = {
-    sprutActivityIndicator: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+    sprutActivityIndicator: (args?: Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
         name: 'activity_indicator',
         cluster: 'genBinaryOutput',
         attribute: 'presentValue',
+        description: 'Controls green activity LED',
         reporting: {attribute: 'presentValue', min: 0, max: 'MAX', change: 1},
-        valueOn: ['ON', 1],
-        valueOff: ['OFF', 0],
-        description: 'Controls green activity LED.',
+        valueOn: [true, 1],
+        valueOff: [false, 0],
         access: 'ALL',
+        entityCategory: 'config',
         ...args,
     }),
+    sprutTemperatureOffset: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'temperature_offset',
+        cluster: 'msTemperatureMeasurement',
+        attribute: 'sprutTemperatureOffset',
+        description: 'Self-heating compensation. The compensation value is subtracted from the measured temperature (default: 0)',
+        valueMin: -10,
+        valueMax: 10,
+        unit: '°C',
+        scale: 100,
+        access: 'ALL',
+        entityCategory: 'config',
+        zigbeeCommandOptions: manufacturerOptions,
+        ...args,
+    }),
+    sprutThHeater: (args?: Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'th_heater',
+        cluster: 'msRelativeHumidity',
+        attribute: 'sprutHeater',
+        description: 'Turn on when working in conditions of high humidity (more than 70 %, RH) or condensation, ' +
+            'if the sensor shows 0 or 100 %.',
+        valueOn: [true, 1],
+        valueOff: [false, 0],
+        access: 'ALL',
+        entityCategory: 'config',
+        zigbeeCommandOptions: manufacturerOptions,
+        ...args,
+    }),
+    sprutOccupancyLevel: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'occupancy_level',
+        cluster: 'msOccupancySensing',
+        attribute: 'sprutOccupancyLevel',
+        reporting: {min: '10_SECONDS', max: 'MINUTE', change: 5},
+        description: 'Measured occupancy level',
+        access: 'STATE_GET',
+        entityCategory: 'diagnostic',
+        ...args,
+    }),
+    sprutOccupancyTimeout: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'occupancy_timeout',
+        cluster: 'msOccupancySensing',
+        attribute: 'pirOToUDelay',
+        description: 'Time in seconds after which occupancy is cleared after detecting it (default: 60)',
+        valueMin: 0,
+        valueMax: 2000,
+        unit: 's',
+        access: 'ALL',
+        entityCategory: 'config',
+        ...args,
+    }),
+    sprutOccupancySensitivity: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'occupancy_sensitivity',
+        cluster: 'msOccupancySensing',
+        attribute: 'sprutOccupancySensitivity',
+        description: 'If the sensor is triggered by the slightest movement, reduce the sensitivity, ' +
+            'otherwise increase it (default: 50)',
+        valueMin: 0,
+        valueMax: 2000,
+        access: 'ALL',
+        entityCategory: 'config',
+        zigbeeCommandOptions: manufacturerOptions,
+        ...args,
+    }),
+    sprutNoise: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'noise',
+        cluster: 'sprutNoise',
+        attribute: 'noise',
+        reporting: {min: '10_SECONDS', max: 'MINUTE', change: 5},
+        description: 'Measured noise level',
+        unit: 'dBA',
+        access: 'STATE_GET',
+        ...args,
+    }),
+    sprutNoiseDetectLevel: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'noise_detect_level',
+        cluster: 'sprutNoise',
+        attribute: 'noiseDetectLevel',
+        description: 'The minimum noise level at which the detector will work (default: 50)',
+        valueMin: 0,
+        valueMax: 150,
+        unit: 'dBA',
+        access: 'ALL',
+        entityCategory: 'config',
+        zigbeeCommandOptions: manufacturerOptions,
+        ...args,
+    }),
+    sprutNoiseDetected: (args?: Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'noise_detected',
+        cluster: 'sprutNoise',
+        attribute: 'noiseDetected',
+        valueOn: [true, 1],
+        valueOff: [false, 0],
+        description: 'Indicates whether the device detected noise',
+        access: 'STATE_GET',
+        entityCategory: 'diagnostic',
+        ...args,
+    }),
+    sprutNoiseTimeout: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'noise_timeout',
+        cluster: 'sprutNoise',
+        attribute: 'noiseAfterDetectDelay',
+        description: 'Time in seconds after which noise is cleared after detecting it (default: 60)',
+        valueMin: 0,
+        valueMax: 2000,
+        unit: 's',
+        access: 'ALL',
+        entityCategory: 'config',
+        ...args,
+    }),
+    spritVoc: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+        name: 'voc',
+        label: 'VOC',
+        cluster: 'sprutVoc',
+        attribute: 'voc',
+        reporting: {min: '10_SECONDS', max: 'MINUTE', change: 10},
+        description: 'Measured VOC level',
+        unit: 'µg/m³',
+        access: 'STATE_GET',
+        ...args,
+    }),
+    sprutIrBlaster: (): ModernExtend => {
+        const toZigbee: Tz.Converter[] = [{
+            key: ['play_store', 'learn_start', 'learn_stop', 'clear_store', 'play_ram', 'learn_ram_start', 'learn_ram_stop'],
+            convertSet: async (entity, key, value: KeyValueAny, meta) => {
+                const options = {
+                    frameType: 0, manufacturerCode: sprutCode, disableDefaultResponse: true,
+                    disableResponse: true, reservedBits: 0, direction: 0, writeUndiv: false,
+                    // @ts-expect-error
+                    transactionSequenceNumber: null,
+                };
+
+                switch (key) {
+                case 'play_store':
+                    await entity.command('sprutIrBlaster', 'playStore',
+                        {param: value['rom']}, options);
+                    break;
+                case 'learn_start':
+                    await entity.command('sprutIrBlaster', 'learnStart',
+                        {value: value['rom']}, options);
+                    break;
+                case 'learn_stop':
+                    await entity.command('sprutIrBlaster', 'learnStop',
+                        {value: value['rom']}, options);
+                    break;
+                case 'clear_store':
+                    await entity.command('sprutIrBlaster', 'clearStore',
+                        {}, options);
+                    break;
+                case 'play_ram':
+                    await entity.command('sprutIrBlaster', 'playRam',
+                        {}, options);
+                    break;
+                case 'learn_ram_start':
+                    await entity.command('sprutIrBlaster', 'learnRamStart',
+                        {}, options);
+                    break;
+                case 'learn_ram_stop':
+                    await entity.command('sprutIrBlaster', 'learnRamStop',
+                        {}, options);
+                    break;
+                }
+            },
+        }];
+        const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['sprutIrBlaster']);
+            device.save();
+        };
+        return {toZigbee, configure, isModernExtend: true};
+    },
 };
 
-const {sprutActivityIndicator} = sprutModernExtend;
+const {
+    sprutActivityIndicator, sprutOccupancyLevel, sprutNoise, spritVoc,
+    sprutNoiseDetected, sprutOccupancyTimeout, sprutNoiseTimeout,
+    sprutTemperatureOffset, sprutThHeater, sprutOccupancySensitivity,
+    sprutNoiseDetectLevel, sprutIrBlaster,
+} = sprutModernExtend;
 
 const definitions: Definition[] = [
     {
         zigbeeModel: ['WBMSW3'],
         model: 'WB-MSW-ZIGBEE v.3',
         vendor: 'Wirenboard',
-        description: 'Wall-mounted Zigbee sensor',
+        description: 'Wall-mounted multi sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout, fzLocal.co2_mh_z19b_config,
             fzLocal.th_heater, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level],
@@ -333,75 +510,39 @@ const definitions: Definition[] = [
             return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
-        ota: ota.zigbeeOTA,
+        extend: [ota({bindOtaCluster: true, otaClusterId: 1})],
     },
     {
         zigbeeModel: ['WBMSW4'],
         model: 'WB-MSW-ZIGBEE v.4',
         vendor: 'Wirenboard',
-        description: 'Wall-mounted Zigbee sensor',
-        fromZigbee: [fz.illuminance, fz.occupancy, fzLocal.occupancy_level, fzLocal.voc,
-            fzLocal.noise, fzLocal.noise_detected, fzLocal.occupancy_timeout, fzLocal.noise_timeout,
-            fzLocal.th_heater, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level, fz.on_off],
-        toZigbee: [tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout,
-            tzLocal.th_heater, tzLocal.temperature_offset, tzLocal.occupancy_sensitivity, tzLocal.noise_detect_level, tz.on_off],
-        exposes: [e.illuminance(), e.illuminance_lux(), e.occupancy(), e.occupancy_level(),
-            e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'),
-            e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withCategory('config')
-                .withDescription('Time in seconds after which noise is cleared after detecting it (default: 60)'),
-            e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withCategory('config')
-                .withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 60)'),
-            e.numeric('temperature_offset', ea.SET).withValueMin(-10).withValueMax(10).withUnit('°C').withCategory('config')
-                .withDescription('Self-heating compensation. The compensation value is subtracted from the measured temperature (default: 0)'),
-            e.numeric('occupancy_sensitivity', ea.ALL).withValueMin(0).withValueMax(2000).withCategory('config')
-                .withDescription('If the sensor is triggered by the slightest movement, reduce the sensitivity, '+
-                    'otherwise increase it (default: 50)'),
-            e.numeric('noise_detect_level', ea.ALL).withValueMin(0).withValueMax(150).withUnit('dBA').withCategory('config')
-                .withDescription('The minimum noise level at which the detector will work (default: 50)'),
-        ],
-        meta: {multiEndpoint: true, multiEndpointSkip: ['humidity', 'activity_indicator']},
-        endpoint: (device) => {
-            return {'l1': 2, 'l2': 3, 'l3': 4, 'l4': 5};
-        },
-        ota: ota.zigbeeOTA,
+        description: 'Wall-mounted multi sensor',
         extend: [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
-            sprutActivityIndicator({endpoint: 'l4'}),
+            deviceEndpoints({
+                endpoints: {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4, 'activity_led': 5},
+                multiEndpointSkip: ['humidity'],
+            }),
+            onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
+            sprutActivityIndicator({endpointName: 'activity_led'}),
             temperature(),
+            sprutTemperatureOffset(),
             humidity(),
+            sprutThHeater(),
             co2(),
+            illuminance(),
+            occupancy(),
+            sprutOccupancySensitivity(),
+            sprutOccupancyLevel(),
+            sprutOccupancyTimeout(),
+            sprutNoise(),
+            sprutNoiseDetectLevel(),
+            sprutNoiseDetected(),
+            sprutNoiseTimeout(),
+            spritVoc(),
+            sprutIrBlaster(),
+            ota({bindOtaCluster: true, otaClusterId: 1}),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            const binds = ['msIlluminanceMeasurement', 'msOccupancySensing', 'sprutVoc', 'sprutNoise', 'sprutIrBlaster', 'genOta'];
-            await reporting.bind(endpoint1, coordinatorEndpoint, binds);
-
-            // report configuration
-            await reporting.illuminance(endpoint1);
-
-            let payload = reporting.payload('occupancy', 10, constants.repInterval.MINUTE, 0);
-            await endpoint1.configureReporting('msOccupancySensing', payload);
-
-            payload = reporting.payload('sprutOccupancyLevel', 10, constants.repInterval.MINUTE, 5);
-            await endpoint1.configureReporting('msOccupancySensing', payload, manufacturerOptions);
-
-            payload = reporting.payload('noise', 10, constants.repInterval.MINUTE, 5);
-            await endpoint1.configureReporting('sprutNoise', payload);
-
-            payload = reporting.payload('voc', 10, constants.repInterval.HOUR, 10);
-            await endpoint1.configureReporting('sprutVoc', payload, manufacturerOptions);
-
-            // led_red
-            await device.getEndpoint(2).read('genOnOff', ['onOff']);
-
-            // led_green
-            await device.getEndpoint(3).read('genOnOff', ['onOff']);
-
-            // buzzer
-            await device.getEndpoint(4).read('genOnOff', ['onOff']);
-            device.save();
-        },
     },
 ];
 
