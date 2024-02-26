@@ -1578,7 +1578,7 @@ export const lumiModernExtend = {
         ...args,
     }),
     lumiFlipIndicatorLight: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
-        name: 'led_disabled_night',
+        name: 'flip_indicator_light',
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x00F0, type: 0x20},
         valueOn: ['ON', 1],
