@@ -1335,16 +1335,17 @@ export const lumiModernExtend = {
         }
         if (args.operationMode === true) {
             const extend = lumiModernExtend.lumiOperationMode({description: 'Decoupled mode for a button'});
-            result.toZigbee.concat(extend.toZigbee);
             if (args.endpointNames) {
                 args.endpointNames.forEach(function(ep) {
                     const epExtend = lumiModernExtend.lumiOperationMode({
                         description: 'Decoupled mode for ' + ep.toString() + ' button',
                         endpointName: ep,
                     });
+                    result.toZigbee.concat(epExtend.toZigbee);
                     result.exposes.concat(epExtend.exposes);
                 });
             } else {
+                result.toZigbee.concat(extend.toZigbee);
                 result.exposes.concat(extend.exposes);
             }
         }
