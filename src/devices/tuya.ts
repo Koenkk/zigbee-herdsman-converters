@@ -7476,6 +7476,37 @@ const definitions: Definition[] = [
             tuya.whitelabel('AVATTO', 'ZWSM16-4-Zigbee', '4 gang switch module', ['_TZ3000_5ajpkyq6']),
         ],
     },
+    {
+        whiteLabel: [
+        tuya.whitelabel('PSMART', 'T441', '1 gang switch module', ['_TZ3000_myaaknbq'])
+        ],
+        model: 'TS0001',
+        vendor: 'TuYa',
+        description: '1 gang switch module',
+        extend: tuya.extend.switch({indicatorMode: true,backlightModeOffOn: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        whiteLabel: [
+        tuya.whitelabel('PSMART', 'T442', '2 gang switch module', ['_TZ3000_mufwv0ry'])
+        ],
+        model: 'TS0002',
+        vendor: 'TuYa',
+        description: '2 gang switch module',
+        extend: tuya.extend.switch({endpoints: ['l1', 'l2'],indicatorMode: true,backlightModeOffOn: true}),
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 ];
 
 export default definitions;
