@@ -3173,6 +3173,10 @@ const converters1 = {
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
 
+            if (!msg.data.commandFrame.raw) {
+                return {action: `internal_${commandID}`};
+            }
+
             // Button 1: A0 (top left)
             // Button 2: A1 (bottom left)
             // Button 3: B0 (top right)
