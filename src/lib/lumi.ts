@@ -1648,7 +1648,7 @@ export const fromZigbee = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['measuredValue']) {
-                return {pm25: msg.data['measuredValue'] / 1000};
+                return {pm25: msg.data['measuredValue']};
             }
         },
     } satisfies Fz.Converter,
