@@ -417,12 +417,12 @@ export interface NumericArgs {
     zigbeeCommandOptions?: {manufacturerCode?: number, disableDefaultResponse?: boolean}, access?: 'STATE' | 'STATE_GET' | 'ALL', unit?: string,
     endpointNames?: string[], reporting?: ReportingConfigWithoutAttribute,
     valueMin?: number, valueMax?: number, valueStep?: number, scale?: number | ScaleFunction, label?: string,
-    entityCategory?: 'config' | 'diagnostic',
+    entityCategory?: 'config' | 'diagnostic', precision?: number,
 }
 export function numeric(args: NumericArgs): ModernExtend {
     const {
         name, cluster, attribute, description, zigbeeCommandOptions, unit, reporting, valueMin, valueMax, valueStep, scale, label,
-        entityCategory,
+        entityCategory, precision,
     } = args;
 
     const endpoints = args.endpointNames;
@@ -468,6 +468,8 @@ export function numeric(args: NumericArgs): ModernExtend {
                 if (scale !== undefined) {
                     value = typeof scale === 'number' ? value / scale : scale(value, 'from');
                 }
+                assertNumber(value);
+                if (precision) value = Number.parseFloat(value.toFixed(precision));
 
                 const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
                 return {[expose.property]: value};
@@ -483,6 +485,8 @@ export function numeric(args: NumericArgs): ModernExtend {
             if (scale !== undefined) {
                 payloadValue = typeof scale === 'number' ? payloadValue * scale : scale(payloadValue, 'to');
             }
+            assertNumber(payloadValue);
+            if (precision) payloadValue = Number.parseFloat(payloadValue.toFixed(precision));
             const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
