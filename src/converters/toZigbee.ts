@@ -3117,8 +3117,7 @@ const converters2 = {
     legrand_identify: {
         key: ['identify'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertObject(value);
-            if (!value.timeout) {
+            if (utils.isObject(value) && !value.timeout) {
                 const effects = {
                     'blink3': 0x00,
                     'fixed': 0x01,
