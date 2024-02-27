@@ -970,7 +970,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power_on_behavior']},
         configure: tuya.configureMagicPacket,
     },
     {
