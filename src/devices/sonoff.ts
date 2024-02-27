@@ -622,6 +622,32 @@ const definitions: Definition[] = [
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
+            numeric({
+                name: 'valve_opening_degree(version >= v1.1.4)',
+                cluster: 0xFC11,
+                attribute: {ID: 0x600B, type: 0x20},
+                description: 'Valve open position (percentage) control. ' + 
+                    'If the opening degree is set to 100%, the valve is fully open when it is opened. If the opening degree is set to 0%, the valve is fully closed when it is opened, ' + 
+                    'and the default value is 100%, ' +
+                    'The valve opening degree should be greater than or equal to the valve closing degree.',
+                valueMin: 0.0,
+                valueMax: 100.0,
+                valueStep: 1.0,
+                unit: '%',
+            }),
+            numeric({
+                name: 'valve_closing_degree(version >= v1.1.4)',
+                cluster: 0xFC11,
+                attribute: {ID: 0x600C, type: 0x20},
+                description: 'Valve closed position (percentage) control. ' + 
+                    'If the closing degree is set to 100%, the valve is fully closed when it is closed. If the closing degree is set to 0%, the valve is fully opened when it is closed, ' + 
+                    'and the default value is 100%. ' +
+                    'The valve opening degree should be greater than or equal to the valve closing degree.',
+                valueMin: 0.0,
+                valueMax: 100.0,
+                valueStep: 1.0,
+                unit: '%',
+            }),
             sonoffExtend.weeklySchedule(),
             customTimeResponse('1970_UTC'),
         ],
@@ -632,7 +658,7 @@ const definitions: Definition[] = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007]);
+            await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007, 0x600B, 0x600C]);
         },
     },
     {
