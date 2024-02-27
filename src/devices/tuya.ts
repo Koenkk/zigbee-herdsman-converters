@@ -2518,7 +2518,7 @@ const definitions: Definition[] = [
         model: 'TS0002_switch_module_1',
         vendor: 'TuYa',
         description: '1 gang switch module',
-        extend: tuya.extend.switch({endpoints: ['l1', 'l2'],indicatorMode: true,backlightModeOffOn: true}),
+        extend: tuya.extend.switch({endpoints: ['l1', 'l2'], indicatorMode: true, backlightModeOffOn: true}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
