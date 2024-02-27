@@ -2057,9 +2057,13 @@ export const fromZigbee = {
                     result['schedule'] = getFromLookup(value, {1: true, 0: false});
                     break;
                 case 0x0276: {
-                    // @ts-expect-error
-                    const schedule = trv.decodeSchedule(value);
-                    result['schedule_settings'] = trv.stringifySchedule(schedule);
+                    const buffer = value as Buffer;
+                    // Buffer is empty first message after pairing
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/issues/7128
+                    if (buffer.length) {
+                        const schedule = trv.decodeSchedule(buffer);
+                        result['schedule_settings'] = trv.stringifySchedule(schedule);
+                    }
                     break;
                 }
                 case 0x00EE: {
