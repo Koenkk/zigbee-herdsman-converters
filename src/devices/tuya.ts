@@ -2482,7 +2482,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_myaaknbq']),
-        model: 'TS0001_switch_module',
+        model: 'TS0001_switch_module_1',
         vendor: 'TuYa',
         description: '1 gang switch module',
         extend: tuya.extend.switch({indicatorMode: true, backlightModeOffOn: true}),
