@@ -1,5 +1,28 @@
 # Changelog
 
+## [18.39.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.39.0...v18.39.1) (2024-02-26)
+
+
+### Bug Fixes
+
+* **ignore:** fix 1ec99a5e8305c37479913a7a1b69a0c9a48b38eb ([afc29c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/afc29c186a34e64ec5d01611f79b571a74195a1c))
+
+## [18.39.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.38.0...v18.39.0) (2024-02-26)
+
+
+### Features
+
+* **add:** ZNDDQDQ12LM https://github.com/Koenkk/zigbee2mqtt/issues/19833 ([6febddf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6febddfde00fdbf86bb2e623ef3fcbcabc103d9e))
+
+
+### Bug Fixes
+
+* Correction to the model name for Moes bulbs ([#7123](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7123)) ([25fb16c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/25fb16c2442eeaeb72d7d62f3062c74268e931e4))
+* Fix Orvibo ST30 configure failing https://github.com/Koenkk/zigbee2mqtt/issues/21570 ([c871d0b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c871d0b96b78baedf1898018969a0698131e9670))
+* Fix Owon PC321 current value ([#7121](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7121)) ([2a3f27d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a3f27da4e99e0259a3132bc103e5eec3368f436))
+* Removed links from description fields ([#7122](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7122)) ([9d1c46d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d1c46df0e47be3b07033933bbd96ba2d394b0e9))
+* Update QBKG18LM converter and refactor all Aqara T1 wall switches to modern extend ([#7120](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7120)) ([1ec99a5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1ec99a5e8305c37479913a7a1b69a0c9a48b38eb))
+
 ## [18.38.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.37.1...v18.38.0) (2024-02-25)
 
 

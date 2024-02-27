@@ -2262,6 +2262,13 @@ const definitions: Definition[] = [
         extend: [lumiZigbeeOTA(), lumiLight({colorTemp: true})],
     },
     {
+        zigbeeModel: ['lumi.dimmer.acn004'],
+        model: 'ZNDDQDQ12LM',
+        vendor: 'Aqara',
+        description: 'T1 light strip controller',
+        extend: [lumiZigbeeOTA(), lumiLight({colorTemp: true})],
+    },
+    {
         zigbeeModel: ['lumi.light.acn026', 'lumi.light.acn024'],
         model: 'SSWQD03LM',
         vendor: 'Aqara',
