@@ -255,7 +255,7 @@ const tzLocal = {
 
 const sprutModernExtend = {
     sprutActivityIndicator: (args?: Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
-        name: 'activity_indicator',
+        name: 'activity_led',
         cluster: 'genBinaryOutput',
         attribute: 'presentValue',
         description: 'Controls green activity LED',
@@ -335,6 +335,7 @@ const sprutModernExtend = {
         reporting: {min: '10_SECONDS', max: 'MINUTE', change: 5},
         description: 'Measured noise level',
         unit: 'dBA',
+        precision: 2,
         access: 'STATE_GET',
         ...args,
     }),
@@ -374,7 +375,7 @@ const sprutModernExtend = {
         entityCategory: 'config',
         ...args,
     }),
-    spritVoc: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
+    sprutVoc: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
         name: 'voc',
         label: 'VOC',
         cluster: 'sprutVoc',
@@ -438,7 +439,7 @@ const sprutModernExtend = {
 };
 
 const {
-    sprutActivityIndicator, sprutOccupancyLevel, sprutNoise, spritVoc,
+    sprutActivityIndicator, sprutOccupancyLevel, sprutNoise, sprutVoc,
     sprutNoiseDetected, sprutOccupancyTimeout, sprutNoiseTimeout,
     sprutTemperatureOffset, sprutThHeater, sprutOccupancySensitivity,
     sprutNoiseDetectLevel, sprutIrBlaster,
@@ -520,11 +521,11 @@ const definitions: Definition[] = [
         extend: [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             deviceEndpoints({
-                endpoints: {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4, 'activity_led': 5},
+                endpoints: {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4, 'indicator': 5},
                 multiEndpointSkip: ['humidity'],
             }),
             onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
-            sprutActivityIndicator({endpointName: 'activity_led'}),
+            sprutActivityIndicator({endpointName: 'indicator'}),
             temperature(),
             sprutTemperatureOffset(),
             humidity(),
@@ -539,7 +540,7 @@ const definitions: Definition[] = [
             sprutNoiseDetectLevel(),
             sprutNoiseDetected(),
             sprutNoiseTimeout(),
-            spritVoc(),
+            sprutVoc(),
             sprutIrBlaster(),
             ota({bindOtaCluster: true, otaClusterId: 1}),
         ],
