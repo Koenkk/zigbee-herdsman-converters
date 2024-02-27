@@ -5115,7 +5115,7 @@ const definitions: Definition[] = [
         extend: [tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true, minBrightness: true})],
     },
     {
-        fingerprint: tuya.fingerprint('TS0052', ['_TZ3000_zjtxnoft']),
+        fingerprint: tuya.fingerprint('TS0052', ['_TZ3000_zjtxnoft', '_TZ3000_kvwrdf47']),
         model: 'TS0052_2',
         vendor: 'TuYa',
         description: 'Zigbee dimmer module 2 channel',
