@@ -868,19 +868,18 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
 }
 
 export function iasGas(args: {variant: 'alarm_1' | 'alarm_2'}): ModernExtend {
-    const result: ModernExtend = {
-        isModernExtend: true,
-        exposes: [
-            e.binary('gas', ea.STATE_GET, true, false).withDescription('Indicates whether the device detected gas'),
-            e.binary('tamper', ea.STATE_GET, true, false).withDescription('Indicates whether the device is tampered'),
-            e.binary('battery_low', ea.STATE_GET, true, false).withDescription('Indicates if the battery of this device is almost empty')
-                .withCategory('diagnostic'),
-        ],
-    };
+    const exposes: Expose[] = [
+        e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
+        e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered'),
+        e.binary('battery_low', ea.STATE, true, false).withDescription('Indicates if the battery of this device is almost empty')
+            .withCategory('diagnostic'),
+    ];
+
+    const fromZigbee: Fz.Converter[] = [];
 
     switch (args.variant) {
     case 'alarm_1':
-        result.fromZigbee.push({
+        fromZigbee.push({
             cluster: 'ssIasZone',
             type: 'commandStatusChangeNotification',
             convert: (model, msg, publish, options, meta) => {
@@ -894,7 +893,7 @@ export function iasGas(args: {variant: 'alarm_1' | 'alarm_2'}): ModernExtend {
         });
         break;
     case 'alarm_2':
-        result.fromZigbee.push({
+        fromZigbee.push({
             cluster: 'ssIasZone',
             type: 'commandStatusChangeNotification',
             convert: (model, msg, publish, options, meta) => {
@@ -909,5 +908,5 @@ export function iasGas(args: {variant: 'alarm_1' | 'alarm_2'}): ModernExtend {
         break;
     }
 
-    return result;
+    return {fromZigbee, exposes, isModernExtend: true};
 }
