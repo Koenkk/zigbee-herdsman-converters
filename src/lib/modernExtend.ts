@@ -835,6 +835,16 @@ export function occupancy(args?: Partial<BinaryArgs>): ModernExtend {
     return result;
 }
 
+export function ignoreClusterReport(args: {cluster: string | number}): ModernExtend {
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: args.cluster.toString(),
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {},
+    }];
+
+    return {fromZigbee, isModernExtend: true};
+}
+
 export function iasGas(args: {variant: 'alarm_1' | 'alarm_2'}): ModernExtend {
     const result: ModernExtend = {
         isModernExtend: true,
