@@ -834,3 +834,48 @@ export function occupancy(args?: Partial<BinaryArgs>): ModernExtend {
 
     return result;
 }
+
+export function iasGas(args: {variant: 'alarm_1' | 'alarm_2'}): ModernExtend {
+    const result: ModernExtend = {
+        isModernExtend: true,
+        exposes: [
+            e.binary('gas', ea.STATE_GET, true, false).withDescription('Indicates whether the device detected gas'),
+            e.binary('tamper', ea.STATE_GET, true, false).withDescription('Indicates whether the device is tampered'),
+            e.binary('battery_low', ea.STATE_GET, true, false).withDescription('Indicates if the battery of this device is almost empty')
+                .withCategory('diagnostic'),
+        ],
+    };
+
+    switch (args.variant) {
+    case 'alarm_1':
+        result.fromZigbee.push({
+            cluster: 'ssIasZone',
+            type: 'commandStatusChangeNotification',
+            convert: (model, msg, publish, options, meta) => {
+                const zoneStatus = msg.data.zonestatus;
+                return {
+                    gas: (zoneStatus & 1) > 0,
+                    tamper: (zoneStatus & 1 << 2) > 0,
+                    battery_low: (zoneStatus & 1 << 3) > 0,
+                };
+            },
+        });
+        break;
+    case 'alarm_2':
+        result.fromZigbee.push({
+            cluster: 'ssIasZone',
+            type: 'commandStatusChangeNotification',
+            convert: (model, msg, publish, options, meta) => {
+                const zoneStatus = msg.data.zonestatus;
+                return {
+                    gas: (zoneStatus & 1 << 1) > 0,
+                    tamper: (zoneStatus & 1 << 2) > 0,
+                    battery_low: (zoneStatus & 1 << 3) > 0,
+                };
+            },
+        });
+        break;
+    }
+
+    return result;
+}
