@@ -746,6 +746,20 @@ export function batteryPercentage(args?: Partial<NumericArgs>) {
     });
 }
 
+export interface BatteryArgs {
+    voltageToPercentage?: string | {min: number, max: number}, dontDividePercentage?: boolean,
+}
+
+export function battery(args?: BatteryArgs): ModernExtend {
+    const meta: DefinitionMeta = {};
+    if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
+    if (args.dontDividePercentage) meta.battery.dontDividePercentage = args.dontDividePercentage;
+
+    // TODO battery %, voltage and type
+
+    return {meta, isModernExtend: true};
+}
+
 export function pressure(args?: Partial<NumericArgs>): ModernExtend {
     return numeric({
         name: 'pressure',
