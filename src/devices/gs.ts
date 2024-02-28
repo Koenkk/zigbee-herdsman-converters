@@ -3,7 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {light, onOff, electricityMeter} from '../lib/modernExtend';
+import {light, onOff, electricityMeter, iasGas} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -27,18 +27,14 @@ const definitions: Definition[] = [
         model: 'SGMHM-I1',
         vendor: 'GS',
         description: 'Methane gas sensor',
-        fromZigbee: [fz.ias_gas_alarm_2],
-        toZigbee: [],
-        exposes: [e.gas()],
+        extend: [iasGas({variant: 'alarm_2'})],
     },
     {
         zigbeeModel: ['SGPHM-I1'],
         model: 'SGPHM-I1',
         vendor: 'GS',
         description: 'Propane gas sensor',
-        fromZigbee: [fz.ias_gas_alarm_1],
-        toZigbee: [],
-        exposes: [e.gas(), e.battery_low(), e.tamper()],
+        extend: [iasGas({variant: 'alarm_1'})],
     },
     {
         zigbeeModel: ['SKHMP30-I1'],
