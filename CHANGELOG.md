@@ -1,5 +1,44 @@
 # Changelog
 
+## [18.40.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.39.1...v18.40.0) (2024-02-27)
+
+
+### Features
+
+* **add:** TS0001_switch_module, TS0002_switch_module_1 ([#7126](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7126)) ([c469be8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c469be8e7dca241f8491c81b3e621ea7fd3c90f2))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_kvwrdf47` as TuYa TS0052_2 [@raarts](https://github.com/raarts)  https://github.com/Koenkk/zigbee2mqtt/issues/18535 ([cdb27a0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cdb27a0248a14f82c50cff9311a65d87cecde083))
+* Fix `Attempt to access memory outside buffer bounds` error after pairing of Aqara SRTS-A01 https://github.com/Koenkk/zigbee-herdsman-converters/issues/7128 ([2d3e581](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2d3e58180679426fa21031809eca73741acc575a))
+* Fix `identify` failing for Legrand devices https://github.com/Koenkk/zigbee2mqtt/issues/21589 ([40cdb8b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/40cdb8bfb15773dd9de617a93ccf8ca6f635d46b))
+* Fix `power_on_behavior` for TuYa TS011F_2_gang_wall https://github.com/Koenkk/zigbee2mqtt/issues/20032 ([0495bce](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0495bce4d671fd61fbe1b0cfb62a496b9af90c9e))
+* Fix Aqara KQJCMB11LM value https://github.com/Koenkk/zigbee2mqtt/issues/21475 ([6e6c89e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e6c89e4ef6114ac719c8889920f912d8d4e1ee2))
+
+## [18.39.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.39.0...v18.39.1) (2024-02-26)
+
+
+### Bug Fixes
+
+* **ignore:** fix 1ec99a5e8305c37479913a7a1b69a0c9a48b38eb ([afc29c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/afc29c186a34e64ec5d01611f79b571a74195a1c))
+
+## [18.39.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.38.0...v18.39.0) (2024-02-26)
+
+
+### Features
+
+* **add:** ZNDDQDQ12LM https://github.com/Koenkk/zigbee2mqtt/issues/19833 ([6febddf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6febddfde00fdbf86bb2e623ef3fcbcabc103d9e))
+
+
+### Bug Fixes
+
+* Correction to the model name for Moes bulbs ([#7123](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7123)) ([25fb16c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/25fb16c2442eeaeb72d7d62f3062c74268e931e4))
+* Fix Orvibo ST30 configure failing https://github.com/Koenkk/zigbee2mqtt/issues/21570 ([c871d0b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c871d0b96b78baedf1898018969a0698131e9670))
+* Fix Owon PC321 current value ([#7121](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7121)) ([2a3f27d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a3f27da4e99e0259a3132bc103e5eec3368f436))
+* Removed links from description fields ([#7122](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7122)) ([9d1c46d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d1c46df0e47be3b07033933bbd96ba2d394b0e9))
+* Update QBKG18LM converter and refactor all Aqara T1 wall switches to modern extend ([#7120](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7120)) ([1ec99a5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1ec99a5e8305c37479913a7a1b69a0c9a48b38eb))
+
 ## [18.38.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.37.1...v18.38.0) (2024-02-25)
 
 
