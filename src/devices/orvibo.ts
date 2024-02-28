@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff, batteryPercentage, humidity, temperature} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -149,18 +149,7 @@ const definitions: Definition[] = [
         model: 'ST30',
         vendor: 'ORVIBO',
         description: 'Temperature & humidity sensor',
-        fromZigbee: [fz.humidity, fz.temperature, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg']);
-            await reporting.temperature(endpoint1);
-            await reporting.humidity(endpoint2);
-            await reporting.batteryPercentageRemaining(endpoint2);
-        },
-        exposes: [e.humidity(), e.temperature(), e.battery()],
+        extend: [batteryPercentage(), humidity(), temperature()],
     },
     {
         zigbeeModel: ['9f76c9f31b4c4a499e3aca0977ac4494', '6fd24c0f58a04c848fea837aaa7d6e0f'],
