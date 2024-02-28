@@ -970,7 +970,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power_on_behavior']},
         configure: tuya.configureMagicPacket,
     },
     {
@@ -2481,6 +2481,20 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_myaaknbq']),
+        model: 'TS0001_switch_module_1',
+        vendor: 'TuYa',
+        description: '1 gang switch module',
+        extend: tuya.extend.switch({indicatorMode: true, backlightModeOffOn: true}),
+        whiteLabel: [
+            tuya.whitelabel('PSMART', 'T441', '1 gang switch module', ['_TZ3000_myaaknbq']),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_54hjn4vs', '_TZ3000_aa5t61rh']),
         model: 'TS0002_switch_module_3',
         vendor: 'TuYa',
@@ -2498,6 +2512,24 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Lonsonho', 'X702A', '2 gang switch with backlight', ['_TZ3000_54hjn4vs', '_TZ3000_aa5t61rh']),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_mufwv0ry']),
+        model: 'TS0002_switch_module_1',
+        vendor: 'TuYa',
+        description: '1 gang switch module',
+        extend: tuya.extend.switch({endpoints: ['l1', 'l2'], indicatorMode: true, backlightModeOffOn: true}),
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        whiteLabel: [
+            tuya.whitelabel('PSMART', 'T442', '2 gang switch module', ['_TZ3000_mufwv0ry']),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_rhkfbfcv', '_TZ3000_empogkya', '_TZ3000_lubfc1t5', '_TZ3000_lsunm46z']),
@@ -5083,7 +5115,7 @@ const definitions: Definition[] = [
         extend: [tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true, minBrightness: true})],
     },
     {
-        fingerprint: tuya.fingerprint('TS0052', ['_TZ3000_zjtxnoft']),
+        fingerprint: tuya.fingerprint('TS0052', ['_TZ3000_zjtxnoft', '_TZ3000_kvwrdf47']),
         model: 'TS0052_2',
         vendor: 'TuYa',
         description: 'Zigbee dimmer module 2 channel',
