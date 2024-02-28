@@ -437,6 +437,17 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
+    flow: {
+        cluster: 'msFlowMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const flow = parseFloat(msg.data['measuredValue']) / 10.0;
+            const property = postfixWithEndpointName('flow', msg, model, meta);
+            if (msg.data.hasOwnProperty('measuredValue')) {
+                return {[property]: flow};
+            }
+        },
+    }satisfies Fz.Converter,
     soil_moisture: {
         cluster: 'msSoilMoisture',
         type: ['attributeReport', 'readResponse'],
