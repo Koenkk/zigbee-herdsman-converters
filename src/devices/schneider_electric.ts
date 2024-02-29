@@ -41,7 +41,7 @@ function fanIndicatorMode() {
             'on_with_timeout_but_as_locator': 4,
             'on_with_timeout': 5,
         },
-        cluster: 'clipsalWiserFanSwitchConfigurationCluster',
+        cluster: 'manuSpecificSchneiderFanSwitchConfiguration',
         attribute: {ID: 0x0002, type: 0x20},
         description: description,
     });
@@ -57,7 +57,7 @@ function fanIndicatorOrientation() {
             'vertical_top': 3,
             'vertical_bottom': 1,
         },
-        cluster: 'clipsalWiserFanSwitchConfigurationCluster',
+        cluster: 'manuSpecificSchneiderFanSwitchConfiguration',
         attribute: {ID: 0x0060, type: 0x20},
         description: description,
     });
