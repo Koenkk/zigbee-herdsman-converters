@@ -756,6 +756,8 @@ export function batteryPercentage(args?: Partial<NumericArgs>) {
 
 export interface BatteryArgs {
     voltageToPercentage?: string | {min: number, max: number}, dontDividePercentage?: boolean,
+    batteryPercentage?: boolean, batteryVoltage?: boolean, batteryAlarm?: boolean,
+    batteryPercentageReporting?: ReportingConfigWithoutAttribute,
 }
 
 export function battery(args?: BatteryArgs): ModernExtend {
@@ -763,7 +765,27 @@ export function battery(args?: BatteryArgs): ModernExtend {
     if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
     if (args.dontDividePercentage) meta.battery.dontDividePercentage = args.dontDividePercentage;
 
-    // TODO battery %, voltage and type
+    const exposes: Expose[] = [];
+
+    if (args.batteryPercentage !== false) {
+        exposes.push(
+            e.numeric('battery', ea.STATE).withUnit('%')
+                .withDescription('Remaining battery in %')
+                .withValueMin(0).withValueMax(100).withCategory('diagnostic'),
+        );
+    }
+    if (args.batteryVoltage !== false) {
+        exposes.push(
+            e.numeric('voltage', ea.STATE).withUnit('mV')
+                .withDescription('Reported battery voltage in millivolts').withCategory('diagnostic'),
+        );
+    }
+    if (args.batteryAlarm !== false) {
+        exposes.push(
+            e.binary('battery_low', ea.STATE, true, false)
+                .withDescription('Empty battery indicator').withCategory('diagnostic'),
+        );
+    }
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: 'genPowerCfg',
@@ -776,12 +798,12 @@ export function battery(args?: BatteryArgs): ModernExtend {
                 const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
                 let percentage = msg.data['batteryPercentageRemaining'];
                 percentage = dontDividePercentage ? percentage : percentage / 2;
-                payload.battery = precisionRound(percentage, 2);
+                if (args.batteryPercentage !== false) payload.battery = precisionRound(percentage, 2);
             }
 
             if (msg.data.hasOwnProperty('batteryVoltage') && (msg.data['batteryVoltage'] < 255)) {
                 // Deprecated: voltage is = mV now but should be V
-                payload.voltage = msg.data['batteryVoltage'] * 100;
+                if (args.batteryVoltage !== false) payload.voltage = msg.data['batteryVoltage'] * 100;
 
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
                     payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
@@ -807,14 +829,25 @@ export function battery(args?: BatteryArgs): ModernExtend {
                     msg.data.batteryAlarmState & 1<<22 ||
                     msg.data.batteryAlarmState & 1<<23
                 ) > 0;
-                payload.battery_low = battery1Low || battery2Low || battery3Low;
+                if (args.batteryAlarm !== false) payload.battery_low = battery1Low || battery2Low || battery3Low;
             }
 
             return payload;
         },
     }];
 
-    return {meta, fromZigbee, isModernExtend: true};
+    const access = ea['STATE_GET'];
+
+    const defaultReporting: ReportingConfigWithoutAttribute = {min: '1_HOUR', max: 'MAX', change: 10};
+
+    const configure = setupConfigureForReporting(
+        'genPowerCfg',
+        'batteryPercentageRemaining',
+        args.batteryPercentageReporting ?? defaultReporting,
+        access,
+    );
+
+    return {meta, fromZigbee, configure, isModernExtend: true};
 }
 
 export function pressure(args?: Partial<NumericArgs>): ModernExtend {
