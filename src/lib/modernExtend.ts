@@ -11,7 +11,7 @@ import {configure as lightConfigure} from './light';
 import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
-    noOccupancySince,
+    noOccupancySince, precisionRound,
 } from './utils';
 
 function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | number) {
@@ -469,7 +469,7 @@ export function numeric(args: NumericArgs): ModernExtend {
                     value = typeof scale === 'number' ? value / scale : scale(value, 'from');
                 }
                 assertNumber(value);
-                if (precision) value = Number.parseFloat(value.toFixed(precision));
+                if (precision) value = precisionRound(value, precision);
 
                 const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
                 return {[expose.property]: value};
@@ -486,7 +486,7 @@ export function numeric(args: NumericArgs): ModernExtend {
                 payloadValue = typeof scale === 'number' ? payloadValue * scale : scale(payloadValue, 'to');
             }
             assertNumber(payloadValue);
-            if (precision) payloadValue = Number.parseFloat(payloadValue.toFixed(precision));
+            if (precision) payloadValue = precisionRound(value, precision);
             const payload = isString(attribute) ? {[attribute]: payloadValue} : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
             await entity.write(cluster, payload, zigbeeCommandOptions);
             return {state: {[key]: value}};
