@@ -3,7 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {light, onOff, electricityMeter, iasGas} from '../lib/modernExtend';
+import {light, onOff, electricityMeter, iasGas, temperature, humidity} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -103,18 +103,16 @@ const definitions: Definition[] = [
         model: 'STHM-I1H',
         vendor: 'GS',
         description: 'Temperature and humidity sensor',
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [],
+        fromZigbee: [fz.battery],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            const bindClusters = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.temperature(endpoint);
-            await reporting.humidity(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        exposes: [e.temperature(), e.humidity(), e.battery()],
+        exposes: [e.battery()],
+        extend: [temperature(), humidity()],
     },
     {
         zigbeeModel: ['SWHM-I1'],
