@@ -4,12 +4,12 @@ import fz from '../converters/fromZigbee';
 import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent, Access} from './types';
 import * as constants from '../lib/constants';
 import {presets as e, access as ea, options as opt} from './exposes';
-import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
+import {KeyValue, Configure, Expose, DefinitionMeta, KeyValueAny} from './types';
 import {configure as lightConfigure} from './light';
 import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
-    noOccupancySince,
+    noOccupancySince, precisionRound, batteryVoltageToPercentage,
 } from './utils';
 
 function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | number) {
@@ -765,7 +765,56 @@ export function battery(args?: BatteryArgs): ModernExtend {
 
     // TODO battery %, voltage and type
 
-    return {meta, isModernExtend: true};
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
+                // Some devices do not comply to the ZCL and report a
+                // batteryPercentageRemaining of 100 when the battery is full (should be 200).
+                const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
+                let percentage = msg.data['batteryPercentageRemaining'];
+                percentage = dontDividePercentage ? percentage : percentage / 2;
+                payload.battery = precisionRound(percentage, 2);
+            }
+
+            if (msg.data.hasOwnProperty('batteryVoltage') && (msg.data['batteryVoltage'] < 255)) {
+                // Deprecated: voltage is = mV now but should be V
+                payload.voltage = msg.data['batteryVoltage'] * 100;
+
+                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                    payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
+                }
+            }
+
+            if (msg.data.hasOwnProperty('batteryAlarmState')) {
+                const battery1Low = (
+                    msg.data.batteryAlarmState & 1<<0 ||
+                    msg.data.batteryAlarmState & 1<<1 ||
+                    msg.data.batteryAlarmState & 1<<2 ||
+                    msg.data.batteryAlarmState & 1<<3
+                ) > 0;
+                const battery2Low = (
+                    msg.data.batteryAlarmState & 1<<10 ||
+                    msg.data.batteryAlarmState & 1<<11 ||
+                    msg.data.batteryAlarmState & 1<<12 ||
+                    msg.data.batteryAlarmState & 1<<13
+                ) > 0;
+                const battery3Low = (
+                    msg.data.batteryAlarmState & 1<<20 ||
+                    msg.data.batteryAlarmState & 1<<21 ||
+                    msg.data.batteryAlarmState & 1<<22 ||
+                    msg.data.batteryAlarmState & 1<<23
+                ) > 0;
+                payload.battery_low = battery1Low || battery2Low || battery3Low;
+            }
+
+            return payload;
+        },
+    }];
+
+    return {meta, fromZigbee, isModernExtend: true};
 }
 
 export function pressure(args?: Partial<NumericArgs>): ModernExtend {
