@@ -588,6 +588,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'DS04', 'Door sensor', ['_TZ3000_yfekcy3n']),
             tuya.whitelabel('Moes', 'ZSS-JM-GWM-C-MS', 'Smart door and window sensor', ['_TZ3000_decxrtwa']),
             tuya.whitelabel('Moes', 'ZSS-X-GWM-C', 'Door/window magnetic sensor', ['_TZ3000_gntwytxo']),
+            tuya.whitelabel('Luminea', 'ZX-5232', 'Smart door and window sensor', ['_TZ3000_4ugnzsli']),
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()];
@@ -597,6 +598,7 @@ const definitions: Definition[] = [
                 '_TZ3000_yfekcy3n', // TuYa DS04
                 '_TZ3000_bpkijo14',
                 '_TZ3000_gntwytxo', // Moes ZSS-X-GWM-C
+                '_TZ3000_4ugnzsli', // Luminea ZX-5232
             ];
             if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
