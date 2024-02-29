@@ -759,7 +759,6 @@ export interface BatteryArgs {
     batteryPercentage?: boolean, batteryVoltage?: boolean, batteryAlarm?: boolean,
     batteryPercentageReporting?: ReportingConfigWithoutAttribute,
 }
-
 export function battery(args?: BatteryArgs): ModernExtend {
     const meta: DefinitionMeta = {};
     if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
@@ -949,46 +948,31 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
     return {fromZigbee, isModernExtend: true};
 }
 
-export function iasGas(args: {variant: 'alarm_1' | 'alarm_2'}): ModernExtend {
-    const exposes: Expose[] = [
-        e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
-        e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered'),
-        e.binary('battery_low', ea.STATE, true, false).withDescription('Indicates if the battery of this device is almost empty')
+export enum iasZoneType {
+
+}
+
+export interface IasArgs {
+    zoneType: 'occupancy' | 'contact' | 'smoke' | 'water_leak' | 'carbon_monoxide' | 'sos' | 'vibration' | 'siren' | 'gas' | 'generic',
+    zoneAttributes: ['alarm_1' | 'alarm_2' | 'tamper' | 'battery_low' | 'supervision_reports' | 'restore_reports' | 'ac_status' | 'test' |
+        'battery_defect'],
+    msgType: ['notification' | 'report'],
+    alarmTimeout?: boolean
+}
+export function iasZoneAlarm(args: IasArgs): ModernExtend {
+    const exposeList = {
+        'tamper': e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered'),
+        'battery_low': e.binary('battery_low', ea.STATE, true, false).withDescription('Indicates whether the battery of the device is almost empty')
             .withCategory('diagnostic'),
+        'gas': e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
+        'occupancy': e.binary('occupancy', ea.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
+    };
+
+    const exposes: Expose[] = [
+        exposeList.gas, // TODO
     ];
 
     const fromZigbee: Fz.Converter[] = [];
-
-    switch (args.variant) {
-    case 'alarm_1':
-        fromZigbee.push({
-            cluster: 'ssIasZone',
-            type: 'commandStatusChangeNotification',
-            convert: (model, msg, publish, options, meta) => {
-                const zoneStatus = msg.data.zonestatus;
-                return {
-                    gas: (zoneStatus & 1) > 0,
-                    tamper: (zoneStatus & 1 << 2) > 0,
-                    battery_low: (zoneStatus & 1 << 3) > 0,
-                };
-            },
-        });
-        break;
-    case 'alarm_2':
-        fromZigbee.push({
-            cluster: 'ssIasZone',
-            type: 'commandStatusChangeNotification',
-            convert: (model, msg, publish, options, meta) => {
-                const zoneStatus = msg.data.zonestatus;
-                return {
-                    gas: (zoneStatus & 1 << 1) > 0,
-                    tamper: (zoneStatus & 1 << 2) > 0,
-                    battery_low: (zoneStatus & 1 << 3) > 0,
-                };
-            },
-        });
-        break;
-    }
 
     return {fromZigbee, exposes, isModernExtend: true};
 }
