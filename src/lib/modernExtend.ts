@@ -696,11 +696,8 @@ export function deviceEndpoints(args: {endpoints: {[n: string]: number}, multiEn
     return result;
 }
 
-export interface OtaArgs {
-    definition?: DefinitionOta
-}
-export function ota(args?: OtaArgs): ModernExtend {
-    return {ota: args.definition ? args.definition : zigbeeOTA, isModernExtend: true};
+export function ota(definition?: DefinitionOta): ModernExtend {
+    return {ota: definition !== undefined ? definition : zigbeeOTA, isModernExtend: true};
 }
 
 export function temperature(args?: Partial<NumericArgs>) {
