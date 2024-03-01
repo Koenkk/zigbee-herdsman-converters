@@ -64,14 +64,14 @@ const definitions: Definition[] = [
         extend: [
             onOff({ota: ota.zigbeeOTA}),
             numeric({
-                name: 'impulse_configuration',
+                name: 'impulse_mode_configuration',
                 unit: 'ms',
                 cluster: 'genOnOff',
                 attribute: {ID: 0x0001, type: dataType.uint16},
                 valueMin: 0,
                 valueMax: 10000,
                 scale: 1,
-                description: 'Set the impulse duration in milliseconds. A value > 0 will activate the impulse mode. A value = 0 will deactivate the impulse mode.',
+                description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
                 zigbeeCommandOptions: {manufacturerCode: 0x128B},
             })
         ],
@@ -87,14 +87,14 @@ const definitions: Definition[] = [
         extend: [
             onOff({ota: ota.zigbeeOTA}),
             numeric({
-                name: 'impulse_configuration',
+                name: 'impulse_mode_configuration',
                 unit: 'ms',
                 cluster: 'genOnOff',
                 attribute: {ID: 0x0001, type: dataType.uint16},
                 valueMin: 0,
                 valueMax: 10000,
                 scale: 1,
-                description: 'Set the impulse duration in milliseconds. A value > 0 will activate the impulse mode. A value = 0 will deactivate the impulse mode.',
+                description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
                 zigbeeCommandOptions: {manufacturerCode: 0x128B},
             })
         ],
@@ -173,14 +173,14 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
         extend: [
             numeric({
-                name: 'impulse_configuration',
+                name: 'impulse_mode_configuration',
                 unit: 'ms',
                 cluster: 'genOnOff',
                 attribute: {ID: 0x0001, type: dataType.uint16},
                 valueMin: 0,
                 valueMax: 10000,
                 scale: 1,
-                description: 'Set the impulse duration in milliseconds. A value > 0 will activate the impulse mode. A value = 0 will deactivate the impulse mode.',
+                description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
                 zigbeeCommandOptions: {manufacturerCode: 0x128B},
             })
         ],
