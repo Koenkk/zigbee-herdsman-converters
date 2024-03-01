@@ -825,12 +825,18 @@ export function occupancy(args?: Partial<BinaryArgs>): ModernExtend {
         ...args,
     });
 
+    let endpointName: string = undefined;
+
+    if (args) {
+        if (args.endpointName) endpointName = args.endpointName;
+    }
+
     const fromZigbeeOverride: Fz.Converter = {
         cluster: cluster.toString(),
         type: ['attributeReport', 'readResponse'],
         options: [opt.no_occupancy_since_false()],
         convert: (model, msg, publish, options, meta) => {
-            if (attribute in msg.data && (!args.endpointName || getEndpointName(msg, model, meta) === args.endpointName)) {
+            if (attribute in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
                 const payload = {[name]: (msg.data[attribute] % 2) > 0};
                 noOccupancySince(msg.endpoint, options, publish, payload.occupancy ? 'stop' : 'start');
                 return payload;
