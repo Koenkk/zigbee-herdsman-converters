@@ -843,7 +843,7 @@ const definitions: Definition[] = [
             batteryPercentage(),
             enumLookup({
                 name: 'current_device_status',
-                lookup: {'normal state': 0, 'water shortage': 1, 'water leakage': 2, 'water shortage & water leakage': 3},
+                lookup: {'normal_state': 0, 'water_shortage': 1, 'water_leakage': 2, 'water_shortage & water_leakage': 3},
                 cluster: 0xFC11,
                 attribute: {ID: 0x500C, type: 0x20},
                 description: 'The water valve is in normal state, water shortage or water leakage',
