@@ -511,7 +511,7 @@ const definitions: Definition[] = [
             return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
-        extend: [ota({bindOtaCluster: true, otaClusterId: 1})],
+        extend: [ota()],
     },
     {
         zigbeeModel: ['WBMSW4'],
@@ -542,7 +542,7 @@ const definitions: Definition[] = [
             sprutNoiseTimeout(),
             sprutVoc(),
             sprutIrBlaster(),
-            ota({bindOtaCluster: true, otaClusterId: 1}),
+            ota(),
         ],
     },
 ];

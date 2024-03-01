@@ -3,7 +3,6 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent, Access} from './types';
 import {zigbeeOTA} from '../lib/ota';
-import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import {presets as e, access as ea, options as opt} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
@@ -698,23 +697,10 @@ export function deviceEndpoints(args: {endpoints: {[n: string]: number}, multiEn
 }
 
 export interface OtaArgs {
-    definition?: DefinitionOta, bindOtaCluster?: boolean, otaClusterId?: number,
+    definition?: DefinitionOta
 }
 export function ota(args?: OtaArgs): ModernExtend {
-    let configure: Configure;
-    if (args.bindOtaCluster === true && args.otaClusterId) {
-        configure = async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(args.otaClusterId);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOta']);
-            device.save();
-        };
-    }
-    const result: ModernExtend = {
-        ota: args.definition ? args.definition : zigbeeOTA,
-        isModernExtend: true,
-    };
-    if (configure) result.configure = configure;
-    return result;
+    return {ota: args.definition ? args.definition : zigbeeOTA, isModernExtend: true};
 }
 
 export function temperature(args?: Partial<NumericArgs>) {
