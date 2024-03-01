@@ -25,7 +25,7 @@ function indicatorMode(endpoint?: string) {
             'always_off': 3,
             'always_on': 1,
         },
-        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
+        cluster: 'manuSpecificSchneiderLightSwitchConfiguration',
         attribute: {ID: 0x0000, type: 0x30},
         description: description,
         endpointName: endpoint,
