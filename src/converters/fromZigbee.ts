@@ -3182,9 +3182,10 @@ const converters1 = {
                 '105_6': 'press_3_and_4', '105_7': 'press_1_and_2_and_3', '105_8': 'press_4', '105_9': 'press_1_and_4',
                 '105_10': 'press_2_and_4', '105_11': 'press_1_and_2_and_4', '105_12': 'press_3_and_4', '105_13': 'press_1_and_3_and_4',
                 '105_14': 'press_2_and_3_and_4', '105_15': 'press_all', '105_16': 'press_energy_bar', '106_0': 'release',
+                '104_': 'short_press_2_of_2',
             };
 
-            const ID = `${commandID}_${msg.data.commandFrame.raw.slice(0, 1).join('_')}`;
+            const ID = `${commandID}_${msg.data.commandFrame.raw?.slice(0, 1).join('_') ?? ''}`;
             if (!lookup.hasOwnProperty(ID)) {
                 meta.logger.error(`PTM 216Z: missing command '${ID}'`);
             } else {

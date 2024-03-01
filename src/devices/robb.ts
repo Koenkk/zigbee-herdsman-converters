@@ -175,7 +175,7 @@ const definitions: Definition[] = [
             'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
             'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ['ZG2833K4_EU06', 'ROB_200-008', 'ROB_200-008-0'],

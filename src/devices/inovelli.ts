@@ -920,6 +920,19 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
         description: 'Behavior of single tapping the on or off button. Old behavior turns the switch on or off. ' +
         'New behavior cycles through the levels set by P131-133.',
     },
+    fanTimerMode: {
+        ID: 121,
+        dataType: UINT8,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Enabled': 1},
+        description:
+        'When enabled, then 1x tap up on the paddle turns the fan on, ' +
+        '2x tap up sets a 5 minute timer, 3x tap up sets a 10 minute timer, ' +
+        '4x tap up sets a 15 minute timer, 5x tap up sets a 30 minute timer and ' +
+        'a tap down 1x turns the fan off and the timer is cancelled). ' +
+        'The LED Bar will show how much time is left while active. ' +
+        'By default this feature is set to disabled',
+    },
     fanControlMode: {
         ID: 130,
         dataType: UINT8,

@@ -588,6 +588,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'DS04', 'Door sensor', ['_TZ3000_yfekcy3n']),
             tuya.whitelabel('Moes', 'ZSS-JM-GWM-C-MS', 'Smart door and window sensor', ['_TZ3000_decxrtwa']),
             tuya.whitelabel('Moes', 'ZSS-X-GWM-C', 'Door/window magnetic sensor', ['_TZ3000_gntwytxo']),
+            tuya.whitelabel('Luminea', 'ZX-5232', 'Smart door and window sensor', ['_TZ3000_4ugnzsli']),
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()];
@@ -597,6 +598,7 @@ const definitions: Definition[] = [
                 '_TZ3000_yfekcy3n', // TuYa DS04
                 '_TZ3000_bpkijo14',
                 '_TZ3000_gntwytxo', // Moes ZSS-X-GWM-C
+                '_TZ3000_4ugnzsli', // Luminea ZX-5232
             ];
             if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
@@ -1608,7 +1610,7 @@ const definitions: Definition[] = [
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax(),
             e.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous']),
-            tuya.exposes.countdown(), tuya.exposes.lightType(),
+            tuya.exposes.countdown(), tuya.exposes.lightType(), tuya.exposes.switchType(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1620,6 +1622,7 @@ const definitions: Definition[] = [
                 [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
                 [6, 'countdown', tuya.valueConverter.countdown],
                 [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1), 'previous': tuya.enum(2)})],
+                [57, 'switch_type', tuya.valueConverterBasic.lookup({'toggle': tuya.enum(0), 'state': tuya.enum(1), 'momentary': tuya.enum(2)})],
             ],
         },
         whiteLabel: [
@@ -1747,7 +1750,8 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aqnazj70', '_TZE200_di3tfv5b', '_TZE200_mexisfik', '_TZE204_6wi2mope', '_TZE204_iik0pquw']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aqnazj70', '_TZE200_di3tfv5b', '_TZE200_mexisfik', '_TZE204_6wi2mope', '_TZE204_iik0pquw',
+            '_TZE204_aagrxlbd']),
         model: 'TS0601_switch_4_gang_1',
         vendor: 'TuYa',
         description: '4 gang switch',
