@@ -73,7 +73,7 @@ const definitions: Definition[] = [
                 scale: 1,
                 description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
                 zigbeeCommandOptions: {manufacturerCode: 0x128B},
-            })
+            }),
         ],
         endpoint: (device) => {
             return {default: 1};
@@ -96,7 +96,7 @@ const definitions: Definition[] = [
                 scale: 1,
                 description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
                 zigbeeCommandOptions: {manufacturerCode: 0x128B},
-            })
+            }),
         ],
         endpoint: (device) => {
             return {default: 1};
@@ -182,7 +182,7 @@ const definitions: Definition[] = [
                 scale: 1,
                 description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
                 zigbeeCommandOptions: {manufacturerCode: 0x128B},
-            })
+            }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
