@@ -1,5 +1,18 @@
 # Changelog
 
+## [18.42.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.41.0...v18.42.0) (2024-03-01)
+
+
+### Features
+
+* Support fanTimerMode for Inovelli VZM35-SN ([#7023](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7023)) ([0d71ea4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0d71ea4fb315befd233f968f9c676fe980b4194b))
+
+
+### Bug Fixes
+
+* **ignore:** update dependencies ([#7141](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7141)) ([9b8536a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9b8536a72c47fa6807e7509421ba41644bc2d4fd))
+* Reference attributes directly from cluster for various Schneider Electric specific attributes ([#7139](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7139)) ([0ed1497](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0ed14973316f468f6cf4bbb96b63e5ab02057a23))
+
 ## [18.41.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.40.0...v18.41.0) (2024-02-29)
 
 
