@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -43,7 +43,10 @@ const definitions: Definition[] = [
         model: 'ROB_200-050-0',
         vendor: 'ROBB',
         description: '4 port switch with 2 usb ports (no metering)',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']}),
+        ],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9023A(EU)'}],
     },
     {
@@ -88,8 +91,15 @@ const definitions: Definition[] = [
         zigbeeModel: ['ROB_200-003-0'],
         model: 'ROB_200-003-0',
         vendor: 'ROBB',
-        description: 'Zigbee AC in wall switch',
+        description: 'Zigbee AC in wall switch (push switch)',
         extend: [onOff()],
+    },
+    {
+        zigbeeModel: ['ROB_200-003-1'],
+        model: 'ROB_200-003-1',
+        vendor: 'ROBB',
+        description: 'Zigbee AC in wall switch (normal switch)',
+        extend: [onOff({'powerOnBehavior': false})],
     },
     {
         zigbeeModel: ['ROB_200-030-0'],
@@ -165,7 +175,7 @@ const definitions: Definition[] = [
             'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
             'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ['ZG2833K4_EU06', 'ROB_200-008', 'ROB_200-008-0'],

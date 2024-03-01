@@ -71,6 +71,7 @@ import enbrighten from './enbrighten';
 import enocean from './enocean';
 import envilar from './envilar';
 import essentialb from './essentialb';
+import eucontrols from './eucontrols';
 import eurotronic from './eurotronic';
 import evanell from './evanell';
 import evn from './evn';
@@ -282,6 +283,7 @@ import woox from './woox';
 import wyze from './wyze';
 import lumi from './lumi';
 import xinghuoyuan from './xinghuoyuan';
+import xyzroe from './xyzroe';
 import yale from './yale';
 import ynoa from './ynoa';
 import yookee from './yookee';
@@ -364,6 +366,7 @@ export default [
     ...enocean,
     ...envilar,
     ...essentialb,
+    ...eucontrols,
     ...eurotronic,
     ...evanell,
     ...evn,
@@ -575,6 +578,7 @@ export default [
     ...wyze,
     ...lumi,
     ...xinghuoyuan,
+    ...xyzroe,
     ...yale,
     ...ynoa,
     ...yookee,

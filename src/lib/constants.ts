@@ -44,6 +44,14 @@ export const thermostatSystemModes: KeyValueNumberString = {
     9: 'sleep',
 };
 
+export const acovaThermostatSystemModes: KeyValueNumberString = {
+    0: 'off',
+    1: 'heat',
+    3: 'auto',
+    4: 'away_or_vacation',
+};
+
+
 export const thermostatRunningMode: KeyValueNumberString= {
     0: 'off',
     3: 'cool',

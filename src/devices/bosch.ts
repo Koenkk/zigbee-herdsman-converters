@@ -301,12 +301,19 @@ const tzLocal = {
             'child_lock',
             'calibration', 'calibration_closing_time', 'calibration_opening_time',
             'state',
+            'on_time',
+            'off_wait_time',
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state') {
                 if ('ID' in entity && entity.ID === 1) {
                     await tz.cover_state.convertSet(entity, key, value, meta);
                 } else {
+                    await tz.on_off.convertSet(entity, key, value, meta);
+                }
+            }
+            if (key === 'on_time' || key === 'on_wait_time') {
+                if ('ID' in entity && entity.ID !== 1) {
                     await tz.on_off.convertSet(entity, key, value, meta);
                 }
             }
@@ -342,7 +349,11 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'state':
-                await entity.read('genOnOff', ['onOff']);
+            case 'on_time':
+            case 'off_wait_time':
+                if ('ID' in entity && entity.ID !== 1) {
+                    await entity.read('genOnOff', ['onOff']);
+                }
                 break;
             case 'device_mode':
                 await entity.read('manuSpecificBosch10', ['deviceMode']);
@@ -384,12 +395,12 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     bosch_thermostat: {
-        key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature', 'valve_adapt_process'],
+        key: ['window_detection', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature', 'valve_adapt_process'],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'window_open') {
+            if (key === 'window_detection') {
                 const index = utils.getFromLookup(value, stateOffOn);
                 await entity.write('hvacThermostat', {0x4042: {value: index, type: Zcl.DataType.enum8}}, manufacturerOptions);
-                return {state: {window_open: value}};
+                return {state: {window_detection: value}};
             }
             if (key === 'boost') {
                 const index = utils.getFromLookup(value, stateOffOn);
@@ -447,7 +458,7 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
-            case 'window_open':
+            case 'window_detection':
                 await entity.read('hvacThermostat', [0x4042], manufacturerOptions);
                 break;
             case 'boost':
@@ -699,7 +710,7 @@ const fzLocal = {
                 result.remote_temperature = utils.precisionRound(data[0x4040] / 100, 1);
             }
             if (data.hasOwnProperty(0x4042)) {
-                result.window_open = (Object.keys(stateOffOn)[data[0x4042]]);
+                result.window_detection = (Object.keys(stateOffOn)[data[0x4042]]);
             }
             if (data.hasOwnProperty(0x4043)) {
                 result.boost = (Object.keys(stateOffOn)[data[0x4043]]);
@@ -1056,7 +1067,7 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.binary('boost', ea.ALL, 'ON', 'OFF')
                 .withDescription('Activate boost heating'),
-            e.binary('window_open', ea.ALL, 'ON', 'OFF')
+            e.binary('window_detection', ea.ALL, 'ON', 'OFF')
                 .withDescription('Window open'),
             e.enum('display_orientation', ea.ALL, Object.keys(displayOrientation))
                 .withDescription('Display orientation')
@@ -1131,7 +1142,7 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR * 12,
                 reportableChange: null,
             }], manufacturerOptions);
-            // report window_open
+            // report window_detection
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
@@ -1170,7 +1181,8 @@ const definitions: Definition[] = [
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.humidity(),
-            e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
+            e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
+            e.binary('window_detection', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
             e.child_lock().setAccess('state', ea.ALL),
             e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
             e.numeric('display_brightness', ea.ALL).withValueMin(0).withValueMax(10).withDescription('Specifies the brightness value of the display'),
@@ -1191,23 +1203,22 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
-            // report pi_heating_demand (valve opening)
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x4020, type: Zcl.DataType.enum8},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
-            }], manufacturerOptions);
-            // report is window_open
+            // report window_detection
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
-
+            // report boost as it's disabled by thermostat after 5 minutes
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], manufacturerOptions);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4042], manufacturerOptions);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', [0x403a, 0x403b], manufacturerOptions);
         },
@@ -1230,7 +1241,7 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.humidity(),
             e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
-            e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
+            e.binary('window_detection', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
             e.child_lock().setAccess('state', ea.ALL),
             e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
             e.numeric('display_brightness', ea.ALL).withValueMin(0).withValueMax(10).withDescription('Specifies the brightness value of the display'),
@@ -1257,7 +1268,7 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
-            // report window_open
+            // report window_detection
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
@@ -1390,7 +1401,7 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Light/shutter control unit II',
         fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.on_off, fz.power_on_behavior],
-        toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.on_off, tz.power_on_behavior],
+        toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.power_on_behavior],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
@@ -1411,9 +1422,12 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint3);
         },
         exposes: (device, options) => {
-            const lightExposes = [
+            const commonExposes = [
                 e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
                     .withDescription('Module controlled by a rocker switch or a button'),
+                e.linkquality(),
+            ];
+            const lightExposes = [
                 e.switch().withEndpoint('left'),
                 e.switch().withEndpoint('right'),
                 e.power_on_behavior().withEndpoint('right'),
@@ -1439,9 +1453,9 @@ const definitions: Definition[] = [
                 const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 
                 if (deviceMode === 'light') {
-                    return [...lightExposes, e.linkquality()];
+                    return [...commonExposes, ...lightExposes];
                 } else if (deviceMode === 'shutter') {
-                    return [...coverExposes, e.linkquality()];
+                    return [...commonExposes, ...coverExposes];
                 }
             }
             return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'),

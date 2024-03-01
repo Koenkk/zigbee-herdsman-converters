@@ -407,6 +407,13 @@ const definitions: Definition[] = [
         extend: [onOff()],
     },
     {
+        zigbeeModel: ['TRETAKT Smart plug'],
+        model: 'E2204',
+        vendor: 'IKEA',
+        description: 'TRETAKT smart plug',
+        extend: [onOff()],
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E26 WS opal 980lm', 'TRADFRI bulb E27 WS\uFFFDopal 980lm'],
         model: 'LED1545G12',
         vendor: 'IKEA',
@@ -464,7 +471,8 @@ const definitions: Definition[] = [
         extend: [tradfriLight()],
     },
     {
-        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm', 'TRADFRI bulb GU10 WW 345lm', '\\u001TRADFRI bulb GU10 WW 345lm'],
+        zigbeeModel: ['\u001aTRADFRI bulb GU10 WW 345lm', 'TRADFRI bulb GU10 WW 345lm', '\\u001TRADFRI bulb GU10 WW 345lm',
+            '\u001aTRADFRI bulb GU10 WW 345lm8', 'TRADFRI bulb GU10 WW 380lm'],
         model: 'LED2104R3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 WW 345 lumen, dimmable',

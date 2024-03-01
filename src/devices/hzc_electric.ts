@@ -1,7 +1,7 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import {light} from '../lib/modernExtend';
+import {deviceEndpoints, light} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -10,7 +10,10 @@ const definitions: Definition[] = [
         model: 'D086-ZG',
         vendor: 'HZC Electric',
         description: 'Zigbee dual dimmer',
-        extend: [light({endpoints: {l1: 1, l2: 2}, configureReporting: true})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            light({endpointNames: ['l1', 'l2'], configureReporting: true}),
+        ],
     },
     {
         zigbeeModel: ['TempAndHumSensor-ZB3.0'],

@@ -377,11 +377,14 @@ const definitions: Definition[] = [
             // buzzer
             await device.getEndpoint(4).read('genOnOff', ['onOff']);
 
+            // disable internal blinking zigbee state green led on start
+            await device.getEndpoint(5).write('genBinaryOutput', {0x0055: {value: 0x00, type: 0x10}});
+
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
         endpoint: (device) => {
-            return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4};
+            return {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4, 'l4': 5};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
         ota: ota.zigbeeOTA,

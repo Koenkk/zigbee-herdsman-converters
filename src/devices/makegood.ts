@@ -4,12 +4,12 @@ import * as tuya from '../lib/tuya';
 
 const definitions: Definition[] = [
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_8nyaanzb', '_TZ3000_dd8wwzcy', '_TZ3000_rgpqqmbj', '_TZ3000_iy2c3n6p']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_dd8wwzcy']),
         model: 'MG-AUZG01',
         vendor: 'MakeGood',
         description: 'Double Zigbee power point',
         extend: tuya.extend.switch({powerOutageMemory: true, indicatorMode: true, endpoints: ['l1', 'l2'], electricalMeasurements: true}),
-        meta: {multiEndpointSkip: ['power', 'current', 'voltage', 'energy']},
+        meta: {multiEndpointSkip: ['power', 'current', 'voltage', 'energy'], multiEndpoint: true},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },

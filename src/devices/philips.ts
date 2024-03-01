@@ -895,7 +895,7 @@ const definitions: Definition[] = [
         extend: [philipsLight()],
     },
     {
-        zigbeeModel: ['LWB006', 'LWB014'],
+        zigbeeModel: ['LWB006', 'LWB014', 'LWB019'],
         model: '9290011370',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27/B22',
@@ -1297,7 +1297,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['3417931P6', '929003056201'],
+        zigbeeModel: ['3417931P6', '929003056201', '929003056201_01', '929003056201_02'],
         model: '3417931P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Adore GU10 with Bluetooth (2 spots)',
