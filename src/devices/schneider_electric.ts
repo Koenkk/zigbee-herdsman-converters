@@ -26,7 +26,7 @@ function indicatorMode(endpoint?: string) {
             'always_on': 1,
         },
         cluster: 'manuSpecificSchneiderLightSwitchConfiguration',
-        attribute: {ID: 0x0000, type: 0x30},
+        attribute: 'ledIndication',
         description: description,
         endpointName: endpoint,
     });
@@ -42,7 +42,7 @@ function fanIndicatorMode() {
             'on_with_timeout': 5,
         },
         cluster: 'manuSpecificSchneiderFanSwitchConfiguration',
-        attribute: {ID: 0x0002, type: 0x20},
+        attribute: 'ledIndication',
         description: description,
     });
 }
@@ -58,7 +58,7 @@ function fanIndicatorOrientation() {
             'vertical_bottom': 1,
         },
         cluster: 'manuSpecificSchneiderFanSwitchConfiguration',
-        attribute: {ID: 0x0060, type: 0x20},
+        attribute: 'ledOrientation',
         description: description,
     });
 }
