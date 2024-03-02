@@ -25,8 +25,8 @@ function indicatorMode(endpoint?: string) {
             'always_off': 3,
             'always_on': 1,
         },
-        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
-        attribute: {ID: 0x0000, type: 0x30},
+        cluster: 'manuSpecificSchneiderLightSwitchConfiguration',
+        attribute: 'ledIndication',
         description: description,
         endpointName: endpoint,
     });
@@ -42,7 +42,7 @@ function fanIndicatorMode() {
             'on_with_timeout': 5,
         },
         cluster: 'manuSpecificSchneiderFanSwitchConfiguration',
-        attribute: {ID: 0x0002, type: 0x20},
+        attribute: 'ledIndication',
         description: description,
     });
 }
@@ -58,7 +58,7 @@ function fanIndicatorOrientation() {
             'vertical_bottom': 1,
         },
         cluster: 'manuSpecificSchneiderFanSwitchConfiguration',
-        attribute: {ID: 0x0060, type: 0x20},
+        attribute: 'ledOrientation',
         description: description,
     });
 }
@@ -86,8 +86,8 @@ function switchActions(endpoint?: string) {
             'alternate_dimmer': 8,
             'not_used': 127,
         },
-        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
-        attribute: 'SwitchActions',
+        cluster: 'manuSpecificSchneiderLightSwitchConfiguration',
+        attribute: 'switchActions',
         description: description,
         endpointName: endpoint,
     });

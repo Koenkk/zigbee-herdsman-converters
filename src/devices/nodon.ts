@@ -1,8 +1,9 @@
+import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import {batteryPercentage, deviceEndpoints, humidity, onOff, temperature} from '../lib/modernExtend';
+import {batteryPercentage, deviceEndpoints, humidity, numeric, onOff, temperature} from '../lib/modernExtend';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
@@ -60,7 +61,20 @@ const definitions: Definition[] = [
         model: 'SIN-4-1-20',
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: [onOff({ota: ota.zigbeeOTA})],
+        extend: [
+            onOff({ota: ota.zigbeeOTA}),
+            numeric({
+                name: 'impulse_mode_configuration',
+                unit: 'ms',
+                cluster: 'genOnOff',
+                attribute: {ID: 0x0001, type: dataType.uint16},
+                valueMin: 0,
+                valueMax: 10000,
+                scale: 1,
+                description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
+                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+            }),
+        ],
         endpoint: (device) => {
             return {default: 1};
         },
@@ -70,7 +84,20 @@ const definitions: Definition[] = [
         model: 'SIN-4-1-20_PRO',
         vendor: 'NodOn',
         description: 'Multifunction relay switch',
-        extend: [onOff({ota: ota.zigbeeOTA})],
+        extend: [
+            onOff({ota: ota.zigbeeOTA}),
+            numeric({
+                name: 'impulse_mode_configuration',
+                unit: 'ms',
+                cluster: 'genOnOff',
+                attribute: {ID: 0x0001, type: dataType.uint16},
+                valueMin: 0,
+                valueMax: 10000,
+                scale: 1,
+                description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
+                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+            }),
+        ],
         endpoint: (device) => {
             return {default: 1};
         },
@@ -139,11 +166,24 @@ const definitions: Definition[] = [
         zigbeeModel: ['SIN-4-1-21'],
         model: 'SIN-4-1-21',
         vendor: 'NodOn',
-        description: 'Multifunction relay switch zith metering',
+        description: 'Multifunction relay switch with metering',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
+        extend: [
+            numeric({
+                name: 'impulse_mode_configuration',
+                unit: 'ms',
+                cluster: 'genOnOff',
+                attribute: {ID: 0x0001, type: dataType.uint16},
+                valueMin: 0,
+                valueMax: 10000,
+                scale: 1,
+                description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
+                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+            }),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
@@ -155,7 +195,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['STPH-4-1-00'],
-        model: 'STPH-4-1-20',
+        model: 'STPH-4-1-00',
         vendor: 'NodOn',
         description: 'Temperature & humidity sensor',
         extend: [batteryPercentage(), temperature(), humidity()],

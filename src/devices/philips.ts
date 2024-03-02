@@ -223,6 +223,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
+        zigbeeModel: ['929003531502'],
+        model: '929003531502',
+        vendor: 'Philips',
+        description: 'Hue white ambiance ceiling white Enrave M with Bluetooth',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ['915005996601'],
         model: '915005996601',
         vendor: 'Philips',
