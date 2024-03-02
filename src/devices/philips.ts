@@ -6,6 +6,7 @@ import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {philipsOnOff, philipsLight, philipsFz, philipsTz} from '../lib/philips';
+import {quirkCheckinInterval} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -2180,6 +2181,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'ep1': 1, 'ep2': 2};
         },
+        extend: [quirkCheckinInterval('1_HOUR')],
         ota: ota.zigbeeOTA,
     },
     {
