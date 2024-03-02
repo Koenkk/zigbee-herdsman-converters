@@ -87,7 +87,7 @@ const definitions: Definition[] = [
         model: 'SM323_v1',
         vendor: 'Samotech',
         description: 'Zigbee retrofit dimmer 250W',
-        extend: [light({configureReporting: true}), electricityMeter()],
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['SM323'],
