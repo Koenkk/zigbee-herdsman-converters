@@ -86,8 +86,8 @@ function switchActions(endpoint?: string) {
             'alternate_dimmer': 8,
             'not_used': 127,
         },
-        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
-        attribute: 'SwitchActions',
+        cluster: 'manuSpecificSchneiderLightSwitchConfiguration',
+        attribute: 'switchActions',
         description: description,
         endpointName: endpoint,
     });
