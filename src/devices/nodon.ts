@@ -195,7 +195,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['STPH-4-1-00'],
-        model: 'STPH-4-1-20',
+        model: 'STPH-4-1-00',
         vendor: 'NodOn',
         description: 'Temperature & humidity sensor',
         extend: [batteryPercentage(), temperature(), humidity()],
