@@ -1008,8 +1008,8 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
     }
 
     const type = [];
-    if (args.msgType.includes('notification')) type.push('commandStatusChangeNotification');
-    if (args.msgType.includes('report')) type.push('attributeReport', 'readResponse');
+    if (args.msgType?.includes('notification')) type.push('commandStatusChangeNotification');
+    if (args.msgType?.includes('report')) type.push('attributeReport', 'readResponse');
     if (type.length === 0) type.push('commandStatusChangeNotification');
 
     const fromZigbee: Fz.Converter[] = [{
