@@ -26,7 +26,12 @@ function indicatorMode(endpoint?: string) {
             'always_on': 1,
         },
         cluster: 'manuSpecificSchneiderLightSwitchConfiguration',
-        attribute: 'ledIndication',
+        // Trying to reference this attribute by name seemed to fail for an
+        // unknown reason. If anyone can figure this out, feel free to switch
+        // over these attribute keys. Details in issue below:
+        // https://github.com/Koenkk/zigbee-herdsman-converters/issues/7146
+        // attribute: 'ledIndication',
+        attribute: {ID: 0x0000, type: 0x30},
         description: description,
         endpointName: endpoint,
     });
