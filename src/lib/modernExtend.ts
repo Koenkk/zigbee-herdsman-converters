@@ -951,12 +951,9 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
 export type iasZoneType = 'occupancy' | 'contact' | 'smoke' | 'water_leak' | 'carbon_monoxide' | 'sos' | 'vibration' | 'alarm' | 'gas' | 'generic';
 export type iasZoneAttribute = 'alarm_1' | 'alarm_2' | 'tamper' | 'battery_low' | 'supervision_reports' | 'restore_reports' | 'ac_status' | 'test' |
     'battery_defect';
-export type iasZoneMsgType = 'notification' | 'report';
+export type iasZoneMsgType = 'notification' | 'report'
 export interface IasArgs {
-    zoneType: iasZoneType,
-    zoneAttributes: iasZoneAttribute[],
-    msgType?: iasZoneMsgType[],
-    alarmTimeout?: boolean
+    zoneType: iasZoneType, zoneAttributes: iasZoneAttribute[], msgType?: iasZoneMsgType[], alarmTimeout?: boolean, endpointNames?: string[]
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposeList = {
@@ -989,11 +986,51 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
             .withCategory('diagnostic'),
     };
 
-    const exposes: Expose[] = [
-        exposeList.gas, // TODO
-    ];
+    const exposes: Expose[] = [];
+    const bothAlarms = args.zoneAttributes.includes('alarm_1') && (args.zoneAttributes.includes('alarm_2'));
 
-    const fromZigbee: Fz.Converter[] = [];
+    if (!args.endpointNames) {
+        if (args.zoneType === 'generic') {
+            args.zoneAttributes.map((attr) => exposes.push(exposeList[attr]));
+        } else {
+            if (bothAlarms) {
+                exposes.push(e.binary(args.zoneType + 'alarm_1', ea.STATE, true, false)
+                    .withDescription(exposeList[args.zoneType].description + ' (alarm_1)'));
+                exposes.push(e.binary(args.zoneType + 'alarm_2', ea.STATE, true, false)
+                    .withDescription(exposeList[args.zoneType].description + ' (alarm_2)'));
+            } else {
+                exposes.push(exposeList[args.zoneType]);
+            }
+            args.zoneAttributes.map((attr) => {
+                if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(exposeList[attr]);
+            });
+        }
+    }
+
+    const type = [];
+    if (args.msgType.includes('notification')) type.push('commandStatusChangeNotification');
+    if (args.msgType.includes('report')) type.push('attributeReport', 'readResponse');
+    if (type.length === 0) type.push('commandStatusChangeNotification');
+
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'ssIasZone',
+        type: type,
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+            return {
+                alarm_1: (zoneStatus & 1) > 0,
+                alarm_2: (zoneStatus & 1 << 1) > 0,
+                tamper: (zoneStatus & 1 << 2) > 0,
+                battery_low: (zoneStatus & 1 << 3) > 0,
+                supervision_reports: (zoneStatus & 1 << 4) > 0,
+                restore_reports: (zoneStatus & 1 << 5) > 0,
+                trouble: (zoneStatus & 1 << 6) > 0,
+                ac_status: (zoneStatus & 1 << 7) > 0,
+                test: (zoneStatus & 1 << 8) > 0,
+                battery_defect: (zoneStatus & 1 << 9) > 0,
+            };
+        },
+    }];
 
     return {fromZigbee, exposes, isModernExtend: true};
 }
