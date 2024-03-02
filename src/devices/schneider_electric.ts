@@ -25,10 +25,41 @@ function indicatorMode(endpoint?: string) {
             'always_off': 3,
             'always_on': 1,
         },
-        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
-        attribute: {ID: 0x0000, type: 0x30},
+        cluster: 'manuSpecificSchneiderLightSwitchConfiguration',
+        attribute: 'ledIndication',
         description: description,
         endpointName: endpoint,
+    });
+}
+
+function fanIndicatorMode() {
+    const description = 'Set Indicator Mode.';
+    return enumLookup({
+        name: 'indicator_mode',
+        lookup: {
+            'always_on': 3,
+            'on_with_timeout_but_as_locator': 4,
+            'on_with_timeout': 5,
+        },
+        cluster: 'manuSpecificSchneiderFanSwitchConfiguration',
+        attribute: 'ledIndication',
+        description: description,
+    });
+}
+
+function fanIndicatorOrientation() {
+    const description = 'Set Indicator Orientation.';
+    return enumLookup({
+        name: 'indicator_orientation',
+        lookup: {
+            'horizontal_left': 2,
+            'horizontal_right': 0,
+            'vertical_top': 3,
+            'vertical_bottom': 1,
+        },
+        cluster: 'manuSpecificSchneiderFanSwitchConfiguration',
+        attribute: 'ledOrientation',
+        description: description,
     });
 }
 
@@ -55,8 +86,8 @@ function switchActions(endpoint?: string) {
             'alternate_dimmer': 8,
             'not_used': 127,
         },
-        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
-        attribute: 'SwitchActions',
+        cluster: 'manuSpecificSchneiderLightSwitchConfiguration',
+        attribute: 'switchActions',
         description: description,
         endpointName: endpoint,
     });
@@ -494,6 +525,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.fan],
         toZigbee: [tzLocal.fan_mode],
         exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
+        extend: [fanIndicatorMode(), fanIndicatorOrientation()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(7);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);

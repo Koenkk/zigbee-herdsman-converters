@@ -1,5 +1,36 @@
 # Changelog
 
+## [18.42.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.41.0...v18.42.0) (2024-03-01)
+
+
+### Features
+
+* Support fanTimerMode for Inovelli VZM35-SN ([#7023](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7023)) ([0d71ea4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0d71ea4fb315befd233f968f9c676fe980b4194b))
+
+
+### Bug Fixes
+
+* **ignore:** update dependencies ([#7141](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7141)) ([9b8536a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9b8536a72c47fa6807e7509421ba41644bc2d4fd))
+* Reference attributes directly from cluster for various Schneider Electric specific attributes ([#7139](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7139)) ([0ed1497](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0ed14973316f468f6cf4bbb96b63e5ab02057a23))
+
+## [18.41.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.40.0...v18.41.0) (2024-02-29)
+
+
+### Features
+
+* Add `short_press_2_of_2` action to EnOcean PTM 216Z ([#7127](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7127)) ([bc0506c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc0506cd8e40d7c4ec5b108cc2c652c7b184dead))
+* Enable LED indicator functionality for 41E10PBSWMZ-VW ([#7131](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7131)) ([d2efa24](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d2efa2421ab40e2b55aa9c4a8d0c5152dd9cb163))
+* Support `switch_type` for TuYa TS0601_dimmer_5 @RafaelDuncan https://github.com/Koenkk/zigbee-herdsman-converters/pull/7072 ([81f256e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/81f256ef139a2f95833cb1a05189fe8c21f0b370))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_4ugnzsli` as Luminea ZX-5232 ([#7136](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7136)) ([83a4847](https://github.com/Koenkk/zigbee-herdsman-converters/commit/83a484763974a228b454308c753cd4ba936b6b4f))
+* **detect:** Detect `_TZE204_aagrxlbd` as TuYa TS0601_switch_4_gang_1 https://github.com/Koenkk/zigbee-herdsman-converters/issues/7133 ([e2445f9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e2445f9401d39572ac5a157ce30a0e4f0fb9ac20))
+* Fix battery percentage doubled for ROBB ROB_200-025-0 https://github.com/Koenkk/zigbee2mqtt/issues/21607 ([4f6fadf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4f6fadfdb3478be3d7c11c091d4ce58aaadccc09))
+* Fixes issue of passing function to TuYa lookup value converter ([#7135](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7135)) ([03c02d8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/03c02d8c28771eb8143024dfa653e72bd910aa9f))
+* **ignore:** Use the correct cluster name ([#7138](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7138)) ([dd0c3d6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dd0c3d6b817d69b0ef4421f415622965a4bb72da))
+
 ## [18.40.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.39.1...v18.40.0) (2024-02-27)
 
 

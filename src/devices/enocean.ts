@@ -48,7 +48,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.action(['press_1', 'press_2', 'press_1_and_2', 'press_3', 'press_1_and_3', 'press_3_and_4', 'press_1_and_2_and_3',
             'press_4', 'press_1_and_4', 'press_2_and_4', 'press_1_and_2_and_4', 'press_3_and_4', 'press_1_and_3_and_4',
-            'press_2_and_3_and_4', 'press_all', 'press_energy_bar', 'release'])],
+            'press_2_and_3_and_4', 'press_all', 'press_energy_bar', 'release', 'short_press_2_of_2'])],
     },
 ];
 
