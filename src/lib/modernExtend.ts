@@ -948,24 +948,45 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
     return {fromZigbee, isModernExtend: true};
 }
 
-export enum iasZoneType {
-
-}
-
+export type iasZoneType = 'occupancy' | 'contact' | 'smoke' | 'water_leak' | 'carbon_monoxide' | 'sos' | 'vibration' | 'alarm' | 'gas' | 'generic';
+export type iasZoneAttribute = 'alarm_1' | 'alarm_2' | 'tamper' | 'battery_low' | 'supervision_reports' | 'restore_reports' | 'ac_status' | 'test' |
+    'battery_defect';
+export type iasZoneMsgType = 'notification' | 'report';
 export interface IasArgs {
-    zoneType: 'occupancy' | 'contact' | 'smoke' | 'water_leak' | 'carbon_monoxide' | 'sos' | 'vibration' | 'siren' | 'gas' | 'generic',
-    zoneAttributes: ['alarm_1' | 'alarm_2' | 'tamper' | 'battery_low' | 'supervision_reports' | 'restore_reports' | 'ac_status' | 'test' |
-        'battery_defect'],
-    msgType: ['notification' | 'report'],
+    zoneType: iasZoneType,
+    zoneAttributes: iasZoneAttribute[],
+    msgType?: iasZoneMsgType[],
     alarmTimeout?: boolean
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposeList = {
-        'tamper': e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered'),
+        'occupancy': e.binary('occupancy', ea.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
+        'contact': e.binary('contact', ea.STATE, false, true).withDescription('Indicates whether the device is opened or closed'),
+        'smoke': e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
+        'water_leak': e.binary('water_leak', ea.STATE, true, false).withDescription('Indicates whether the device detected a water leak'),
+        'carbon_monoxide': e.binary('carbon_monoxide', ea.STATE, true, false)
+            .withDescription('Indicates whether the device detected carbon monoxide'),
+        'sos': e.binary('sos', ea.STATE, true, false).withLabel('SOS').withDescription('Indicates whether the SOS alarm is triggered'),
+        'vibration': e.binary('vibration', ea.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
+        'alarm': e.binary('alarm', ea.STATE, true, false).withDescription('Indicates whether the alarm is triggered'),
+        'gas': e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
+        'alarm_1': e.binary('alarm_1', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 1 is active'),
+        'alarm_2': e.binary('alarm_2', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 2 is active'),
+        'tamper': e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered').withCategory('diagnostic'),
         'battery_low': e.binary('battery_low', ea.STATE, true, false).withDescription('Indicates whether the battery of the device is almost empty')
             .withCategory('diagnostic'),
-        'gas': e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
-        'occupancy': e.binary('occupancy', ea.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
+        'supervision_reports': e.binary('supervision_reports', ea.STATE, true, false)
+            .withDescription('Indicates whether the device issues reports on zone operational status')
+            .withCategory('diagnostic'),
+        'restore_reports': e.binary('restore_reports', ea.STATE, true, false)
+            .withDescription('Indicates whether the device issues reports on alarm no longer being present')
+            .withCategory('diagnostic'),
+        'ac_status': e.binary('ac_status', ea.STATE, true, false).withDescription('Indicates whether the device mains voltage supply is at fault')
+            .withCategory('diagnostic'),
+        'test': e.binary('test', ea.STATE, true, false).withDescription('Indicates whether the device is currently performing a test')
+            .withCategory('diagnostic'),
+        'battery_defect': e.binary('battery_defect', ea.STATE, true, false).withDescription('Indicates whether the device battery is defective')
+            .withCategory('diagnostic'),
     };
 
     const exposes: Expose[] = [
