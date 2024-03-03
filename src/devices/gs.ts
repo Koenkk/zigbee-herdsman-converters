@@ -1,12 +1,8 @@
 import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import tz from '../converters/toZigbee';
 import {
     light, onOff, electricityMeter, iasZoneAlarm,
-    temperature, humidity, battery, ignoreClusterReport,
+    temperature, humidity, battery, ignoreClusterReport, iasWarning,
 } from '../lib/modernExtend';
-
-const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
@@ -69,12 +65,11 @@ const definitions: Definition[] = [
         model: 'SRHMP-I1',
         vendor: 'GS',
         description: 'Siren',
-        toZigbee: [tz.warning],
         meta: {disableDefaultResponse: true},
-        exposes: [e.warning()],
         extend: [
             battery({batteryAlarm: false}),
             ignoreClusterReport({cluster: 'genBasic'}),
+            iasWarning(),
         ],
     },
     {
