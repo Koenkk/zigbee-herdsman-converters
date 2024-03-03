@@ -180,6 +180,12 @@ const inputExtenders: Extender[] = [
     [['msOccupancySensing'], async (eps) => [
         new Generator({extend: m.occupancy, source: 'occupancy'}),
     ]],
+    [['ssIasZone'], async (eps) => [
+        new Generator({extend: m.iasZoneAlarm, args: {
+            zoneType: 'generic',
+            zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low'],
+        }, source: 'iasZoneAlarm'}),
+    ]],
 ];
 
 const outputExtenders: Extender[] = [
