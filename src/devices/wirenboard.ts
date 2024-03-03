@@ -337,6 +337,7 @@ const sprutModernExtend = {
         unit: 'dBA',
         precision: 2,
         access: 'STATE_GET',
+        entityCategory: 'diagnostic',
         ...args,
     }),
     sprutNoiseDetectLevel: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
@@ -360,7 +361,6 @@ const sprutModernExtend = {
         valueOff: [false, 0],
         description: 'Indicates whether the device detected noise',
         access: 'STATE_GET',
-        entityCategory: 'diagnostic',
         ...args,
     }),
     sprutNoiseTimeout: (args?: Partial<modernExtend.NumericArgs>) => modernExtend.numeric({
@@ -522,7 +522,6 @@ const definitions: Definition[] = [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             deviceEndpoints({
                 endpoints: {'default': 1, 'l1': 2, 'l2': 3, 'l3': 4, 'indicator': 5},
-                multiEndpointSkip: ['humidity'],
             }),
             onOff({powerOnBehavior: false, endpointNames: ['l1', 'l2', 'l3']}),
             sprutActivityIndicator({endpointName: 'indicator'}),
