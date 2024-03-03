@@ -9,7 +9,7 @@ import {configure as lightConfigure} from './light';
 import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
-    noOccupancySince, precisionRound, batteryVoltageToPercentage,
+    noOccupancySince, precisionRound, batteryVoltageToPercentage, getOptions,
 } from './utils';
 
 function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | number) {
@@ -1039,4 +1039,60 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
     }];
 
     return {fromZigbee, exposes, isModernExtend: true};
+}
+
+export interface IasWarningArgs {
+    reversePayload?: boolean,
+}
+export function iasWarning(args?: IasWarningArgs): ModernExtend {
+    const warningMode = {'stop': 0, 'burglar': 1, 'fire': 2, 'emergency': 3, 'police_panic': 4, 'fire_panic': 5, 'emergency_panic': 6};
+    // levels for siren, strobe and squawk are identical
+    const level = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
+
+    const exposes: Expose[] = [
+        e.composite('warning', 'warning', ea.SET)
+            .withFeature(e.enum('mode', ea.SET, Object.keys(warningMode)).withDescription('Mode of the warning (sound effect)'))
+            .withFeature(e.enum('level', ea.SET, Object.keys(level)).withDescription('Sound level'))
+            .withFeature(e.enum('strobe_level', ea.SET, Object.keys(level)).withDescription('Intensity of the strobe'))
+            .withFeature(e.binary('strobe', ea.SET, true, false).withDescription('Turn on/off the strobe (light) during warning'))
+            .withFeature(e.numeric('strobe_duty_cycle', ea.SET).withValueMax(10).withValueMin(0).withDescription('Length of the flash cycle'))
+            .withFeature(e.numeric('duration', ea.SET).withUnit('s').withDescription('Duration in seconds of the alarm')),
+    ];
+
+    const toZigbee: Tz.Converter[] = [{
+        key: ['warning'],
+        convertSet: async (entity, key, value, meta) => {
+            const values = {
+                // @ts-expect-error
+                mode: value.mode || 'emergency',
+                // @ts-expect-error
+                level: value.level || 'medium',
+                // @ts-expect-error
+                strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
+                // @ts-expect-error
+                duration: value.hasOwnProperty('duration') ? value.duration : 10,
+                // @ts-expect-error
+                strobeDutyCycle: value.hasOwnProperty('strobe_duty_cycle') ? value.strobe_duty_cycle * 10 : 0,
+                // @ts-expect-error
+                strobeLevel: value.hasOwnProperty('strobe_level') ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
+            };
+
+            let info;
+            if (args?.reversePayload) {
+                info = (getFromLookup(values.mode, warningMode)) + ((values.strobe ? 1 : 0) << 4) + (getFromLookup(values.level, level) << 6);
+            } else {
+                info = (getFromLookup(values.mode, warningMode) << 4) + ((values.strobe ? 1 : 0) << 2) + (getFromLookup(values.level, level));
+            }
+
+            const payload = {
+                startwarninginfo: info,
+                warningduration: values.duration,
+                strobedutycycle: values.strobeDutyCycle,
+                strobelevel: values.strobeLevel,
+            };
+
+            await entity.command('ssIasWd', 'startWarning', payload, getOptions(meta.mapped, entity));
+        },
+    }];
+    return {toZigbee, exposes, isModernExtend: true};
 }

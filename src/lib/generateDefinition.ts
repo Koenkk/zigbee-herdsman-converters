@@ -186,6 +186,9 @@ const inputExtenders: Extender[] = [
             zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low'],
         }, source: 'iasZoneAlarm'}),
     ]],
+    [['ssIasWd'], async (eps) => [
+        new Generator({extend: m.iasWarning, source: 'iasWarning'}),
+    ]],
 ];
 
 const outputExtenders: Extender[] = [
