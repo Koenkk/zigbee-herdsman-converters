@@ -953,7 +953,7 @@ export type iasZoneAttribute = 'alarm_1' | 'alarm_2' | 'tamper' | 'battery_low' 
     'battery_defect';
 export type iasZoneMsgType = 'notification' | 'report'
 export interface IasArgs {
-    zoneType: iasZoneType, zoneAttributes: iasZoneAttribute[], msgType?: iasZoneMsgType[], alarmTimeout?: boolean, endpointNames?: string[]
+    zoneType: iasZoneType, zoneAttributes: iasZoneAttribute[], msgType?: iasZoneMsgType[], alarmTimeout?: boolean
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposeList = {
@@ -989,22 +989,27 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposes: Expose[] = [];
     const bothAlarms = args.zoneAttributes.includes('alarm_1') && (args.zoneAttributes.includes('alarm_2'));
 
-    if (!args.endpointNames) {
-        if (args.zoneType === 'generic') {
-            args.zoneAttributes.map((attr) => exposes.push(exposeList[attr]));
+    let alarm1Name = 'alarm_1';
+    let alarm2Name = 'alarm_2';
+
+    if (args.zoneType === 'generic') {
+        args.zoneAttributes.map((attr) => exposes.push(exposeList[attr]));
+    } else {
+        if (bothAlarms) {
+            exposes.push(e.binary(args.zoneType + '_alarm_1', ea.STATE, true, false)
+                .withDescription(exposeList[args.zoneType].description + ' (alarm_1)'));
+            alarm1Name = args.zoneType + '_alarm_1';
+            exposes.push(e.binary(args.zoneType + '_alarm_2', ea.STATE, true, false)
+                .withDescription(exposeList[args.zoneType].description + ' (alarm_2)'));
+            alarm2Name = args.zoneType + '_alarm_2';
         } else {
-            if (bothAlarms) {
-                exposes.push(e.binary(args.zoneType + 'alarm_1', ea.STATE, true, false)
-                    .withDescription(exposeList[args.zoneType].description + ' (alarm_1)'));
-                exposes.push(e.binary(args.zoneType + 'alarm_2', ea.STATE, true, false)
-                    .withDescription(exposeList[args.zoneType].description + ' (alarm_2)'));
-            } else {
-                exposes.push(exposeList[args.zoneType]);
-            }
-            args.zoneAttributes.map((attr) => {
-                if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(exposeList[attr]);
-            });
+            exposes.push(exposeList[args.zoneType]);
+            alarm1Name = args.zoneType;
+            alarm2Name = args.zoneType;
         }
+        args.zoneAttributes.map((attr) => {
+            if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(exposeList[attr]);
+        });
     }
 
     const type = [];
@@ -1017,9 +1022,10 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         type: type,
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+
             return {
-                alarm_1: (zoneStatus & 1) > 0,
-                alarm_2: (zoneStatus & 1 << 1) > 0,
+                [alarm1Name]: (zoneStatus & 1) > 0,
+                [alarm2Name]: (zoneStatus & 1 << 1) > 0,
                 tamper: (zoneStatus & 1 << 2) > 0,
                 battery_low: (zoneStatus & 1 << 3) > 0,
                 supervision_reports: (zoneStatus & 1 << 4) > 0,
