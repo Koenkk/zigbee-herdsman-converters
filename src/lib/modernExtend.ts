@@ -760,7 +760,7 @@ export interface BatteryArgs {
     batteryPercentageReporting?: ReportingConfigWithoutAttribute,
 }
 export function battery(args?: BatteryArgs): ModernExtend {
-    const meta: DefinitionMeta = {};
+    const meta: DefinitionMeta = {battery: {}};
     if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
     if (args.dontDividePercentage) meta.battery.dontDividePercentage = args.dontDividePercentage;
 
