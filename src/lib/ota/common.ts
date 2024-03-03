@@ -8,6 +8,7 @@ import * as URI from 'uri-js';
 import fs from 'fs';
 import path from 'path';
 import {Zcl} from 'zigbee-herdsman';
+import {logger} from '../logger';
 import https from 'https';
 import tls from 'tls';
 let dataDir: string = null;
@@ -31,8 +32,8 @@ interface Waiters {imageBlockOrPageRequest?: Request, nextImageRequest?: Request
 type IsNewImageAvailable = (current: Ota.ImageInfo, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta) =>
     Promise<{available: number, currentFileVersion: number, otaFileVersion: number}>
 type DownloadImage = (meta: Ota.ImageMeta, logger: Logger) => Promise<{data: Buffer}>;
-type GetNewImage = (current: Ota.Version, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta, downloadImage: DownloadImage)
-    => Promise<Ota.Image>;
+type GetNewImage = (current: Ota.Version, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta, downloadImage: DownloadImage,
+    suppressElementImageParseFailure: boolean) => Promise<Ota.Image>;
 
 const validSilabsCrc = 0x2144DF1C;
 
@@ -151,7 +152,7 @@ function parseSubElement(buffer: Buffer, position: number): Ota.ImageElement {
     return {tagID, length, data};
 }
 
-export function parseImage(buffer: Buffer): Ota.Image {
+export function parseImage(buffer: Buffer, suppressElementImageParseFailure: boolean = false): Ota.Image {
     const header: Ota.ImageHeader = {
         otaUpgradeFileIdentifier: buffer.subarray(0, 4),
         otaHeaderVersion: buffer.readUInt16LE(4),
@@ -186,10 +187,17 @@ export function parseImage(buffer: Buffer): Ota.Image {
 
     let position = header.otaHeaderLength;
     const elements = [];
-    while (position < header.totalImageSize) {
-        const element = parseSubElement(buffer, position);
-        elements.push(element);
-        position += element.data.length + 6;
+    try {
+        while (position < header.totalImageSize) {
+            const element = parseSubElement(buffer, position);
+            elements.push(element);
+            position += element.data.length + 6;
+        }
+    } catch (error) {
+        if (!suppressElementImageParseFailure) {
+            throw error;
+        }
+        logger.debug('Partially failed to parse the image, continuing anyway...');
     }
 
     assert(position === header.totalImageSize, `Size mismatch`);
@@ -420,14 +428,14 @@ export async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger
 }
 
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress, getNewImage: GetNewImage,
-    getImageMeta: Ota.GetImageMeta = null, downloadImage: DownloadImage = null): Promise<number> {
+    getImageMeta: Ota.GetImageMeta = null, downloadImage: DownloadImage = null, suppressElementImageParseFailure: boolean = false): Promise<number> {
     logger.debug(`OTA: Updating to latest '${device.ieeeAddr}' (${device.modelID})`);
     const endpoint = getOTAEndpoint(device);
     assert(endpoint != null, `Failed to find an endpoint which supports the OTA cluster`);
     logger.debug(`OTA: Using endpoint '${endpoint.ID}'`);
     const request = await requestOTA(endpoint);
     logger.debug(`OTA: Got request '${JSON.stringify(request.payload)}'`);
-    const image = await getNewImage(request.payload, logger, device, getImageMeta, downloadImage);
+    const image = await getNewImage(request.payload, logger, device, getImageMeta, downloadImage, suppressElementImageParseFailure);
     logger.debug(`OTA: Got new image for '${device.ieeeAddr}' (${device.modelID})`);
 
     const waiters: Waiters = {};
@@ -579,7 +587,7 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
 }
 
 export async function getNewImage(current: Ota.ImageInfo, logger: Logger, device: Zh.Device,
-    getImageMeta: Ota.GetImageMeta, downloadImage: DownloadImage): Promise<Ota.Image> {
+    getImageMeta: Ota.GetImageMeta, downloadImage: DownloadImage, suppressElementImageParseFailure: boolean): Promise<Ota.Image> {
     const meta = await getImageMeta(current, logger, device);
     assert(meta, `Images for '${device.ieeeAddr}' (${device.modelID}) currently unavailable`);
     logger.debug(`OTA: Getting new image for '${device.ieeeAddr}' (${device.modelID}), latest meta ${JSON.stringify(meta)}`);
@@ -597,7 +605,7 @@ export async function getNewImage(current: Ota.ImageInfo, logger: Logger, device
     }
 
     const start = download.data.indexOf(upgradeFileIdentifier);
-    const image = parseImage(download.data.slice(start));
+    const image = parseImage(download.data.slice(start), suppressElementImageParseFailure);
     logger.debug(`OTA: Get new image for '${device.ieeeAddr}' (${device.modelID}), image header ${JSON.stringify(image.header)}`);
     assert(image.header.fileVersion === meta.fileVersion, `File version mismatch`);
     assert(!meta.fileSize || image.header.totalImageSize === meta.fileSize, `Image size mismatch`);
