@@ -502,7 +502,7 @@ const definitions: Definition[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 2AX',
         ota: ota.zigbeeOTA,
-        extend: [onOff({powerOnBehavior: true}), indicatorMode('smart')],
+        extend: [onOff({powerOnBehavior: false}), indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -518,7 +518,7 @@ const definitions: Definition[] = [
         model: '41E10PBSWMZ-VW',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 10AX with ControlLink',
-        extend: [onOff({powerOnBehavior: true}), indicatorMode('smart')],
+        extend: [onOff({powerOnBehavior: false}), indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
