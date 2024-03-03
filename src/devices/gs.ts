@@ -1,8 +1,10 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {light, onOff, electricityMeter, iasZoneAlarm, temperature, humidity, battery, ignoreClusterReport} from '../lib/modernExtend';
+import {
+    light, onOff, electricityMeter, iasZoneAlarm,
+    temperature, humidity, battery, ignoreClusterReport,
+} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -47,20 +49,20 @@ const definitions: Definition[] = [
         model: 'SMHM-I1',
         vendor: 'GS',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
-        extend: [battery({voltageToPercentage: '3V_2500', batteryAlarm: false})],
+        extend: [
+            battery({voltageToPercentage: '3V_2500', batteryAlarm: false}),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+        ],
     },
     {
         zigbeeModel: ['SOHM-I1'],
         model: 'SOHM-I1',
         vendor: 'GS',
         description: 'Open and close sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper()],
-        extend: [battery({batteryAlarm: false})],
+        extend: [
+            battery({batteryAlarm: false}),
+            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+        ],
     },
     {
         zigbeeModel: ['SRHMP-I1'],
@@ -80,9 +82,10 @@ const definitions: Definition[] = [
         model: 'SSHM-I1',
         vendor: 'GS',
         description: 'Smoke detector',
-        fromZigbee: [fz.ias_smoke_alarm_1],
-        exposes: [e.smoke(), e.battery_low(), e.tamper()],
-        extend: [battery({batteryAlarm: false})],
+        extend: [
+            battery({batteryAlarm: false}),
+            iasZoneAlarm({zoneType: 'smoke', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+        ],
     },
     {
         zigbeeModel: ['STHM-I1H'],
@@ -100,9 +103,10 @@ const definitions: Definition[] = [
         model: 'SWHM-I1',
         vendor: 'GS',
         description: 'Water leakage sensor',
-        fromZigbee: [fz.ias_water_leak_alarm_1],
-        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
-        extend: [battery({batteryAlarm: false})],
+        extend: [
+            battery({batteryAlarm: false}),
+            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+        ],
     },
 ];
 
