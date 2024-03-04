@@ -1080,7 +1080,8 @@ const definitions: Definition[] = [
         model: 'QBKG24LM',
         vendor: 'Aqara',
         description: 'Smart wall switch D1 (with neutral, double rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_operation_mode_basic],
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_operation_mode_basic,
+            lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_basic],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_power, lumi.toZigbee.lumi_switch_operation_mode_basic],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
