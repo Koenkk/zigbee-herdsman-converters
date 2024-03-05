@@ -33,7 +33,6 @@ function indicatorMode(endpoint?: string) {
 }
 
 function socketIndicatorMode() {
-    const description = 'Set Indicator Mode.';
     return enumLookup({
         name: 'indicator_mode',
         lookup: {
@@ -44,7 +43,7 @@ function socketIndicatorMode() {
         },
         cluster: 'manuSpecificSchneiderFanSwitchConfiguration',
         attribute: 'ledIndication',
-        description: description,
+        description: 'Set indicator mode',
     });
 }
 
