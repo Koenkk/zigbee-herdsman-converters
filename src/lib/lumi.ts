@@ -1634,22 +1634,22 @@ export const lumiModernExtend = {
                 if (msg.data.hasOwnProperty(652)) {
                     const slideDirection: KeyValueNumberString = {3: 'stop', 4: 'up', 5: 'down'};
                     return {
-                        action_slide_time: msg.data[561],
-                        action_slide_speed: msg.data[562],
-                        action_slide_relative_displacement: msg.data[563],
-                        action_slide_direction: slideDirection[msg.data[652]],
-                        action_769: msg.data[769],
+                        slide_time: msg.data[561],
+                        slide_speed: msg.data[562],
+                        slide_relative_displacement: msg.data[563],
+                        slide_direction: slideDirection[msg.data[652]],
+                        slide_time_delta: msg.data[769],
                     };
                 }
             },
         }];
 
         const exposes: Expose[] = [
-            e.numeric('action_slide_time', ea.STATE).withUnit('ms').withLabel('Sliding time').withCategory('diagnostic'),
-            e.numeric('action_slide_speed', ea.STATE).withUnit('*').withLabel('Sliding speed').withCategory('diagnostic'),
-            e.numeric('action_slide_relative_displacement', ea.STATE).withLabel('Sliding relative displacement').withCategory('diagnostic'),
-            e.enum('action_slide_direction', ea.STATE, ['stop', 'up', 'down']).withLabel('Sliding direction').withCategory('diagnostic'),
-            e.numeric('action_slide_769', ea.STATE).withLabel('Sliding action 769').withCategory('diagnostic'),
+            e.numeric('slide_time', ea.STATE).withUnit('ms').withCategory('diagnostic'),
+            e.numeric('slide_speed', ea.STATE).withUnit('*').withCategory('diagnostic'),
+            e.numeric('slide_relative_displacement', ea.STATE).withCategory('diagnostic'),
+            e.enum('slide_direction', ea.STATE, ['stop', 'up', 'down']).withCategory('diagnostic'),
+            e.numeric('slide_time_delta', ea.STATE).withUnit('ms').withCategory('diagnostic'),
         ];
 
         return {fromZigbee, exposes, isModernExtend: true};
