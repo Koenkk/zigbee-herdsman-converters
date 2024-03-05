@@ -162,6 +162,16 @@ const definitions: Definition[] = [
         exposes: [e.cover_position(), e.battery()],
     },
     {
+        zigbeeModel: ['TRZB3'],
+        model: 'TRZB3',
+        vendor: 'Third Reality',
+        description: 'Roller blind motor',
+        extend: [forcePowerSource({powerSource: 'Battery'})],
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position(), e.battery()],
+    },
+    {
         zigbeeModel: ['3RSB22BZ'],
         model: '3RSB22BZ',
         vendor: 'Third Reality',
