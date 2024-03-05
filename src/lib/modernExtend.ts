@@ -761,27 +761,27 @@ export interface BatteryArgs {
     voltageReportingConfig?: ReportingConfigWithoutAttribute, voltageReporting?: boolean,
 }
 export function battery(args?: BatteryArgs): ModernExtend {
-    args = {percentageReporting: true, voltageReporting: false, ...args};
+    args = {percentage: true, voltage: false, lowStatus: false, percentageReporting: true, voltageReporting: false, ...args};
     const meta: DefinitionMeta = {battery: {}};
     if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
     if (args.dontDividePercentage) meta.battery.dontDividePercentage = args.dontDividePercentage;
 
     const exposes: Expose[] = [];
 
-    if (args.percentage !== false) {
+    if (args.percentage) {
         exposes.push(
             e.numeric('battery', ea.STATE).withUnit('%')
                 .withDescription('Remaining battery in %')
                 .withValueMin(0).withValueMax(100).withCategory('diagnostic'),
         );
     }
-    if (args.voltage !== false) {
+    if (args.voltage) {
         exposes.push(
             e.numeric('voltage', ea.STATE).withUnit('mV')
                 .withDescription('Reported battery voltage in millivolts').withCategory('diagnostic'),
         );
     }
-    if (args.lowStatus !== false) {
+    if (args.lowStatus) {
         exposes.push(
             e.binary('battery_low', ea.STATE, true, false)
                 .withDescription('Empty battery indicator').withCategory('diagnostic'),
@@ -799,12 +799,12 @@ export function battery(args?: BatteryArgs): ModernExtend {
                 const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
                 let percentage = msg.data['batteryPercentageRemaining'];
                 percentage = dontDividePercentage ? percentage : percentage / 2;
-                if (args.percentage !== false) payload.battery = precisionRound(percentage, 2);
+                if (args.percentage) payload.battery = precisionRound(percentage, 2);
             }
 
             if (msg.data.hasOwnProperty('batteryVoltage') && (msg.data['batteryVoltage'] < 255)) {
                 // Deprecated: voltage is = mV now but should be V
-                if (args.voltage !== false) payload.voltage = msg.data['batteryVoltage'] * 100;
+                if (args.voltage) payload.voltage = msg.data['batteryVoltage'] * 100;
 
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
                     payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
@@ -830,7 +830,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
                     msg.data.batteryAlarmState & 1<<22 ||
                     msg.data.batteryAlarmState & 1<<23
                 ) > 0;
-                if (args.lowStatus !== false) payload.battery_low = battery1Low || battery2Low || battery3Low;
+                if (args.lowStatus) payload.battery_low = battery1Low || battery2Low || battery3Low;
             }
 
             return payload;
