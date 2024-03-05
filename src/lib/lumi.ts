@@ -26,7 +26,7 @@ import fz from '../converters/fromZigbee';
 import * as globalStore from './store';
 import {
     Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range,
-    KeyValueNumberString, OnEvent,
+    KeyValueNumberString, OnEvent, Expose,
 } from './types';
 import * as modernExtend from './modernExtend';
 import * as exposes from './exposes';
@@ -1626,6 +1626,34 @@ export const lumiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
+    lumiSlider: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'manuSpecificLumi',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty(652)) {
+                    const slideDirection: KeyValueNumberString = {3: 'stop', 4: 'up', 5: 'down'};
+                    return {
+                        action_slide_time: msg.data[561],
+                        action_slide_speed: msg.data[562],
+                        action_slide_relative_displacement: msg.data[563],
+                        action_slide_direction: slideDirection[msg.data[652]],
+                        // action_unknown: msg.data[769],
+                    };
+                }
+            },
+        }];
+
+        const exposes: Expose[] = [
+            e.numeric('action_slide_time', ea.STATE).withUnit('ms').withDescription('Sliding time'),
+            e.numeric('action_slide_speed', ea.STATE).withUnit('*').withDescription('Sliding speed'),
+            e.enum('action_slide_direction', ea.STATE, ['stop', 'up', 'down']).withDescription('Sliding direction'),
+            e.numeric('action_slide_relative_displacement', ea.STATE).withDescription('Sliding relative displacement'),
+            // e.numeric('action_unknown', ea.STATE).withDescription('action_unknown'),
+        ];
+
+        return {fromZigbee, exposes, isModernExtend: true};
+    },
 };
 
 export {lumiModernExtend as modernExtend};
