@@ -1,5 +1,21 @@
 # Changelog
 
+## [18.44.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.43.0...v18.44.0) (2024-03-05)
+
+
+### Features
+
+* Add status LED switch for WB-MSW-ZIGBEE v.4 and refactor to modern extend ([#7074](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7074)) ([5bdb3e2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5bdb3e266b0e3a242c7c745a66ee9b0de49a6ce7))
+* **add:** EA4161C-BI ([#7158](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7158)) ([d768c10](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d768c10ac1c9b680b3470fbbc4677aec1ea97737))
+* **add:** TRZB3 ([#7157](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7157)) ([55a7640](https://github.com/Koenkk/zigbee-herdsman-converters/commit/55a76407eac371c1e9c101017057d1bed4ecf5d4))
+* Support `indicator_mode` for Schneider Electric EKO09716 ([#7162](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7162)) ([fcbee33](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fcbee3340f0e01a44c9f4e27417b08e61e4a94f4))
+
+
+### Bug Fixes
+
+* Fix power source for Aqara WS-USC01 ([#7159](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7159)) ([c9ccc92](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c9ccc9215c12f98018df1f99e37c398dc7a9795d))
+* **ignore:** update dependencies ([#7151](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7151)) ([2748f64](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2748f64c59d7d27f12c7f9abd064add387e765f0))
+
 ## [18.43.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.42.0...v18.43.0) (2024-03-04)
 
 
