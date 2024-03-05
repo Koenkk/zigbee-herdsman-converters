@@ -7518,7 +7518,7 @@ const definitions: Definition[] = [
         model: 'EA4161C-BI',
         vendor: 'TuYa',
         description: 'Single-phase multifunction energy meter (DIN Module)',
-        fromZigbee: [tuya.fz.datapoints, fzLocal.gateway_connection_status],
+        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         whiteLabel: [{vendor: 'XOCA', model: 'DAC4121C'}],
