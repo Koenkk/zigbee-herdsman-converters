@@ -1376,7 +1376,7 @@ export const lumiModernExtend = {
     }),
     lumiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'power_on_behavior',
-        lookup: {'on': 0, 'previous': 1, 'off': 2},
+        lookup: {'on': 0, 'previous': 1, 'off': 2, 'inverted': 3},
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0517, type: 0x20},
         description: 'Controls the behavior when the device is powered on after power loss',
