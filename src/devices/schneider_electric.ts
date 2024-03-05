@@ -32,6 +32,21 @@ function indicatorMode(endpoint?: string) {
     });
 }
 
+function socketIndicatorMode() {
+    return enumLookup({
+        name: 'indicator_mode',
+        lookup: {
+            'reverse_with_load': 0,
+            'consistent_with_load': 1,
+            'always_off': 2,
+            'always_on': 3,
+        },
+        cluster: 'manuSpecificSchneiderFanSwitchConfiguration',
+        attribute: 'ledIndication',
+        description: 'Set indicator mode',
+    });
+}
+
 function fanIndicatorMode() {
     const description = 'Set Indicator Mode.';
     return enumLookup({
@@ -1045,6 +1060,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [e.switch(), e.power(), e.energy(), e.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
             .withDescription('Controls the behaviour when the device is powered on'), e.current(), e.voltage()],
+        extend: [socketIndicatorMode()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(6);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
