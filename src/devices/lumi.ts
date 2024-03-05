@@ -386,6 +386,8 @@ const definitions: Definition[] = [
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
             await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
         extend: [lumiZigbeeOTA(), lumiPreventReset()],
     },
