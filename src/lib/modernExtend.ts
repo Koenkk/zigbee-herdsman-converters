@@ -837,26 +837,14 @@ export function battery(args?: BatteryArgs): ModernExtend {
 
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
         if (args.percentageReporting) {
-            if (args.percentageReportingConfig) {
-                await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
-                    {attribute: 'batteryPercentageRemaining', ...args.percentageReportingConfig},
-                ], logger);
-            } else {
-                await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
-                    {attribute: 'batteryPercentageRemaining', ...defaultReporting},
-                ], logger);
-            }
+            await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
+                {attribute: 'batteryPercentageRemaining', ...(args.percentageReportingConfig ?? defaultReporting)},
+            ], logger);
         }
         if (args.voltageReporting) {
-            if (args.voltageReportingConfig) {
-                await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
-                    {attribute: 'batteryVoltage', ...args.voltageReportingConfig},
-                ], logger);
-            } else {
-                await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
-                    {attribute: 'batteryVoltage', ...defaultReporting},
-                ], logger);
-            }
+            await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
+                {attribute: 'batteryVoltage', ...(args.voltageReportingConfig ?? defaultReporting)},
+            ], logger);
         }
     };
 
