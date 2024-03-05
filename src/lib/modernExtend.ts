@@ -955,9 +955,8 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
 export type iasZoneType = 'occupancy' | 'contact' | 'smoke' | 'water_leak' | 'carbon_monoxide' | 'sos' | 'vibration' | 'alarm' | 'gas' | 'generic';
 export type iasZoneAttribute = 'alarm_1' | 'alarm_2' | 'tamper' | 'battery_low' | 'supervision_reports' | 'restore_reports' | 'ac_status' | 'test' |
     'battery_defect';
-export type iasZoneMsgType = 'notification' | 'report'
 export interface IasArgs {
-    zoneType: iasZoneType, zoneAttributes: iasZoneAttribute[], msgType?: iasZoneMsgType[], alarmTimeout?: boolean
+    zoneType: iasZoneType, zoneAttributes: iasZoneAttribute[], alarmTimeout?: boolean
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposeList = {
@@ -1016,14 +1015,9 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         });
     }
 
-    const type = [];
-    if (args.msgType?.includes('notification')) type.push('commandStatusChangeNotification');
-    if (args.msgType?.includes('report')) type.push('attributeReport', 'readResponse');
-    if (type.length === 0) type.push('commandStatusChangeNotification');
-
     const fromZigbee: Fz.Converter[] = [{
         cluster: 'ssIasZone',
-        type: type,
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
 
