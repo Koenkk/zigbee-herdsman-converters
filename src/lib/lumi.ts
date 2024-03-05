@@ -1645,11 +1645,11 @@ export const lumiModernExtend = {
         }];
 
         const exposes: Expose[] = [
-            e.numeric('action_slide_time', ea.STATE).withUnit('ms').withDescription('Sliding time'),
-            e.numeric('action_slide_speed', ea.STATE).withUnit('*').withDescription('Sliding speed'),
-            e.numeric('action_slide_relative_displacement', ea.STATE).withDescription('Sliding relative displacement'),
-            e.enum('action_slide_direction', ea.STATE, ['stop', 'up', 'down']).withDescription('Sliding direction'),
-            e.numeric('action_769', ea.STATE).withDescription('Sliding action 769'),
+            e.numeric('action_slide_time', ea.STATE).withUnit('ms').withDescription('Sliding time').withCategory('diagnostic'),
+            e.numeric('action_slide_speed', ea.STATE).withUnit('*').withDescription('Sliding speed').withCategory('diagnostic'),
+            e.numeric('action_slide_relative_displacement', ea.STATE).withDescription('Sliding relative displacement').withCategory('diagnostic'),
+            e.enum('action_slide_direction', ea.STATE, ['stop', 'up', 'down']).withDescription('Sliding direction').withCategory('diagnostic'),
+            e.numeric('action_769', ea.STATE).withDescription('Sliding action 769').withCategory('diagnostic'),
         ];
 
         return {fromZigbee, exposes, isModernExtend: true};
