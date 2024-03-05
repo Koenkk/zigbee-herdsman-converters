@@ -7513,7 +7513,6 @@ const definitions: Definition[] = [
             tuya.whitelabel('AVATTO', 'ZWSM16-4-Zigbee', '4 gang switch module', ['_TZ3000_5ajpkyq6']),
         ],
     },
-
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_l6llgoxq']),
         model: 'EA4161C-BI',
@@ -7543,7 +7542,7 @@ const definitions: Definition[] = [
                 [24, null, null], // Forward Energy T4 - don't know what this
             ],
         },
-    },   
+    },
 ];
 
 export default definitions;
