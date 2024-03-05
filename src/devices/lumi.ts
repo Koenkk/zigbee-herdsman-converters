@@ -19,6 +19,7 @@ const {
     lumiOutageCountRestoreBindReporting, lumiElectricityMeter, lumiPower,
     lumiOverloadProtection, lumiLedIndicator, lumiButtonLock, lumiMotorSpeed,
     lumiOnOff, lumiLedDisabledNight, lumiFlipIndicatorLight, lumiPreventReset,
+    lumiClickMode,
 } = lumi.modernExtend;
 import {Definition} from '../lib/types';
 const {manufacturerCode} = lumi;
@@ -3087,6 +3088,7 @@ const definitions: Definition[] = [
             lumiElectricityMeter(),
             lumiPower(),
             lumiLedDisabledNight(),
+            lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
         ],
     },
     {

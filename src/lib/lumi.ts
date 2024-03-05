@@ -1615,6 +1615,17 @@ export const lumiModernExtend = {
         };
         return {onEvent, isModernExtend: true};
     },
+    lumiClickMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'click_mode',
+        lookup: {'fast': 1, 'multi': 2},
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0125, type: 0x20},
+        description: 'Click mode for wireless button. fast: only supports single click but allows faster reponse time.' +
+            'multi: supports multiple types of clicks but is slower, because it awaits multiple clicks.',
+        entityCategory: 'config',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
 };
 
 export {lumiModernExtend as modernExtend};
