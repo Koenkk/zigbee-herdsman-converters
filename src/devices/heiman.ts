@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
-import {light} from '../lib/modernExtend';
+import {light, battery, iasZoneAlarm} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -721,6 +721,16 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint); // internal backup battery in case of power outage
         },
         exposes: [e.switch(), e.battery()],
+    },
+    {
+        zigbeeModel: ['PIR_TPV12'],
+        model: 'PIR_TPV12',
+        vendor: 'HEIMAN',
+        description: 'Motion sensor',
+        extend: [
+            battery({voltageToPercentage: '3V_2500', voltage: true}),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+        ],
     },
 ];
 
