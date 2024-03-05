@@ -1636,7 +1636,7 @@ const fzLocal = {
                 return {action: `${button}_${action}`};
             } else if (msg.type === 'readResponse') {
                 return Object.keys(msg.data).reduce((p, c) => {
-                    if (ATTRIBUTES[c].displayType === 'enum') {
+                    if (ATTRIBUTES[c] && ATTRIBUTES[c].displayType === 'enum') {
                         return {
                             ...p,
                             [c]: Object.keys(ATTRIBUTES[c].values).find(
