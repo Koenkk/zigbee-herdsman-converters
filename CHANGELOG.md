@@ -1,5 +1,29 @@
 # Changelog
 
+## [18.43.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.42.0...v18.43.0) (2024-03-04)
+
+
+### Features
+
+* Add impulse mode configuration on SIN-4-1-2X devices from NodOn ([#7142](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7142)) ([d892a53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d892a536b7772a0818eac2fe738fd15edc7c22b2))
+* **add:** 929003531502 [@galligan](https://github.com/galligan) https://github.com/Koenkk/zigbee2mqtt/issues/21645 ([ba7d5a7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ba7d5a7f91db218b5a9ee782d2dbb6d3af7952a0))
+* **add:** ZB-3008 ([#7145](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7145)) ([ab72097](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab720971f1bbfa2eb806459bf3f70a788ab9f2d5))
+
+
+### Bug Fixes
+
+* Add Aqara WB-R02D and DW-S03D whitelabels ([#7156](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7156)) ([c0be3df](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c0be3dffbf9344dc6085fafcf2cc614fc4aee24f))
+* Fix `led_indicator` reversed for Aqara ZNCWWSQ01LM https://github.com/Koenkk/zigbee2mqtt/issues/17148 ([3a5c6ae](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a5c6ae2572bb9e6ad070f6fae99799bf9f6b739))
+* Fix `Value '4' is not allowed` for TuYa YXZBRB58 https://github.com/Koenkk/zigbee2mqtt/issues/21648 ([33e902e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/33e902e9f9902d543a40171823903a8e845343c5))
+* Fix incorrect `long` `click` send for WXKG01LM https://github.com/Koenkk/zigbee2mqtt/issues/21661 ([baac6a0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/baac6a00ed4d846323a5b68ffa61ba851b75b035))
+* Fix LEDVANCE ota failing https://github.com/Koenkk/zigbee2mqtt/issues/16900 ([7561baa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7561baa779d9ca858058795786a1cc7bfd183366))
+* Fix no `energy` for Aqara QBKG24LM https://github.com/Koenkk/zigbee2mqtt/issues/20692 ([b002c99](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b002c994e0633fcb201c44e579bf121a61a5dd31))
+* Fix occupancy extend undefined args ([#7143](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7143)) ([69f5bdd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/69f5bdd4142a31c9ace37acd0bffe737fac24449))
+* Fix the broken LED indicator for Schneider Electric wiser devices ([#7152](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7152)) ([ea055df](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ea055dfdbe66de0b5c5b0803af479804cea5a176))
+* Make Philips 324131092621 configure more reliable ([#7149](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7149)) ([5e987c4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e987c495aa76486c99eda85953ffbc06fa07c2c))
+* Reference new named cluster and attribute for Schneider Electric switchActions ([#7144](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7144)) ([05770b3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/05770b3a58f09b29afffe46e558a52ecbe11b747))
+* Remove unsupported electricity measurements from Samotech SM323_v1 https://github.com/Koenkk/zigbee2mqtt/issues/21449 ([c09d44f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c09d44feedbe45ee46b16442a31dd5d807d8aec5))
+
 ## [18.42.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.41.0...v18.42.0) (2024-03-01)
 
 

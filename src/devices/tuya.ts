@@ -6882,7 +6882,7 @@ const definitions: Definition[] = [
                 .withDescription('Detection delay').withUnit('s'),
             e.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(1500).withValueStep(1)
                 .withDescription('Fading time').withUnit('s'),
-            e.enum('radar_scene', ea.STATE_SET, ['default', 'bathroom', 'bedroom', 'sleeping'])
+            e.enum('radar_scene', ea.STATE_SET, ['default', 'bathroom', 'bedroom', 'sleeping', 'unknown'])
                 .withDescription('Presets for sensitivity for presence and movement'),
         ],
         meta: {
@@ -6899,6 +6899,7 @@ const definitions: Definition[] = [
                     'bathroom': tuya.enum(1),
                     'bedroom': tuya.enum(2),
                     'sleeping': tuya.enum(3),
+                    'unknown': tuya.enum(4),
                 })],
                 [0x69, 'target_distance', tuya.valueConverter.divideBy100],
             ],
