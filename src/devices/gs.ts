@@ -1,7 +1,7 @@
 import {Definition} from '../lib/types';
 import {
     light, onOff, electricityMeter, iasZoneAlarm,
-    temperature, humidity, battery, ignoreClusterReport, iasWarning,
+    temperature, humidity, battery, ignoreClusterReport, iasWarning, identify,
 } from '../lib/modernExtend';
 
 const definitions: Definition[] = [
@@ -10,14 +10,20 @@ const definitions: Definition[] = [
         model: 'BRHM8E27W70-I1',
         vendor: 'GS',
         description: 'Smart color light bulb',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
+        extend: [
+            light({colorTemp: {range: undefined}, color: true}),
+            identify(),
+        ],
     },
     {
         zigbeeModel: ['BDHM8E27W70-I1'],
         model: 'BDHM8E27W70-I1',
         vendor: 'GS',
         description: 'Smart light bulb',
-        extend: [light({colorTemp: {range: undefined}})],
+        extend: [
+            light({colorTemp: {range: undefined}}),
+            identify(),
+        ],
     },
     {
         zigbeeModel: ['SGMHM-I1'],
@@ -38,7 +44,11 @@ const definitions: Definition[] = [
         model: 'SKHMP30-I1',
         vendor: 'GS',
         description: 'Smart socket',
-        extend: [onOff({powerOnBehavior: false}), electricityMeter()],
+        extend: [
+            onOff({powerOnBehavior: false}),
+            electricityMeter(),
+            identify(),
+        ],
     },
     {
         zigbeeModel: ['SMHM-I1', 'PIR_TPV12'],
