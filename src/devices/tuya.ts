@@ -7522,6 +7522,7 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints, fzLocal.gateway_connection_status],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
+        whiteLabel: [{vendor: 'XOCA', model: 'DAC4121C'}],
         exposes: [e.current(), e.power(), e.voltage(), e.energy(), e.text('meter_id', ea.STATE).withDescription('Meter ID (ID of device)')],
         meta: {
             tuyaDatapoints: [
