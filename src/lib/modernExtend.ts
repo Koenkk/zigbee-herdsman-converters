@@ -3,7 +3,6 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent, Access} from './types';
 import {zigbeeOTA} from '../lib/ota';
-import * as constants from '../lib/constants';
 import {presets as e, access as ea, options as opt} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
 import {configure as lightConfigure} from './light';
@@ -28,8 +27,9 @@ const timeLookup = {
     'MAX': 65000,
     '1_HOUR': 3600,
     '30_MINUTES': 1800,
+    '1_MINUTE': 60,
     '10_SECONDS': 10,
-    ...constants.repInterval,
+    'MIN': 0,
 };
 
 type ReportingConfigTime = number | keyof typeof timeLookup;
@@ -130,12 +130,12 @@ export function onOff(args?: OnOffArgs): ModernExtend {
     if (args.ota) result.ota = args.ota;
     if (args.configureReporting) {
         result.configure = async (device, coordinatorEndpoint, logger) => {
-            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff', min: 0, max: 'MAX', change: 1}], logger);
+            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff', min: 'MIN', max: 'MAX', change: 1}], logger);
             if (args.powerOnBehavior) {
                 try {
                     // Don't fail configure if reading this attribute fails, some devices don't support it.
                     await setupAttributes(device, coordinatorEndpoint, 'genOnOff',
-                        [{attribute: 'startUpOnOff', min: 0, max: 'MAX', change: 1}], logger, false);
+                        [{attribute: 'startUpOnOff', min: 'MIN', max: 'MAX', change: 1}], logger, false);
                 } catch (e) {
                     if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
                         logger.debug('Reading startUpOnOff failed, this features is unsupported');
@@ -324,7 +324,7 @@ export function light(args?: LightArgs): ModernExtend {
         await lightConfigure(device, coordinatorEndpoint, logger, true);
 
         if (args.configureReporting) {
-            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff', min: 0, max: 'MAX', change: 1}], logger);
+            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff', min: 'MIN', max: 'MAX', change: 1}], logger);
             await setupAttributes(device, coordinatorEndpoint, 'genLevelCtrl',
                 [{attribute: 'currentLevel', min: '10_SECONDS', max: 'MAX', change: 1}], logger);
             if (args.colorTemp) {
@@ -365,7 +365,8 @@ export function lock(args?: LockArgs): ModernExtend {
     const exposes = [e.lock(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
         e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume()];
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        await setupAttributes(device, coordinatorEndpoint, 'closuresDoorLock', [{attribute: 'lockState', min: 0, max: '1_HOUR', change: 0}], logger);
+        await setupAttributes(device, coordinatorEndpoint, 'closuresDoorLock', [
+            {attribute: 'lockState', min: 'MIN', max: '1_HOUR', change: 0}], logger);
     };
     const meta: DefinitionMeta = {pinCodeCount: args.pinCodeCount};
 
@@ -826,7 +827,7 @@ export function occupancy(args?: Partial<BinaryArgs>): ModernExtend {
         name: name,
         cluster: cluster,
         attribute: attribute,
-        reporting: {attribute: attribute, min: constants.repInterval.SECONDS_10, max: constants.repInterval.MINUTE, change: 0},
+        reporting: {attribute: attribute, min: '10_SECONDS', max: '1_MINUTE', change: 0},
         description: 'Indicates whether the device detected occupancy',
         access: 'STATE_GET',
         valueOn: valueOn,
