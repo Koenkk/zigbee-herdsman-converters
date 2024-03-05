@@ -69,7 +69,7 @@ async function setupAttributes(
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
                 await endpoint.read(cluster, config.map((a) => isString(a) ? a : (isObject(a.attribute) ? a.attribute.ID : a.attribute)));
             } catch (e) {
-                logger.debug('Reading attribute failed');
+                logger.debug(`Reading attribute failed: ${e}`);
             }
         }
     }
