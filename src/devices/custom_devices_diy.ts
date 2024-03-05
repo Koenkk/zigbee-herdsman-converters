@@ -14,7 +14,7 @@ import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib
 import {
     light,
     onOff,
-    batteryPercentage,
+    battery,
     temperature,
     humidity,
     enumLookup,
@@ -1298,7 +1298,7 @@ const definitions: Definition[] = [
                     'hvacUserInterfaceCfg',
                 ],
             }),
-            batteryPercentage(),
+            battery(),
             temperature({reporting: {min: 10, max: 300, change: 10}}),
             humidity({reporting: {min: 10, max: 300, change: 50}}),
             enumLookup({
@@ -1422,7 +1422,7 @@ const definitions: Definition[] = [
                     'hvacUserInterfaceCfg',
                 ],
             }),
-            batteryPercentage(),
+            battery(),
             temperature({reporting: {min: 10, max: 300, change: 10}}),
             humidity({reporting: {min: 10, max: 300, change: 50}}),
             // Temperature display and show smile.

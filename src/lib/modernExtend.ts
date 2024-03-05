@@ -740,20 +740,6 @@ export function co2(args?: Partial<NumericArgs>) {
     });
 }
 
-export function batteryPercentage(args?: Partial<NumericArgs>) {
-    return numeric({
-        name: 'battery',
-        cluster: 'genPowerCfg',
-        attribute: 'batteryPercentageRemaining',
-        reporting: {min: '1_HOUR', max: 'MAX', change: 10},
-        description: 'Remaining battery in %',
-        unit: '%',
-        scale: 2,
-        access: 'STATE_GET',
-        ...args,
-    });
-}
-
 export interface BatteryArgs {
     voltageToPercentage?: string | {min: number, max: number}, dontDividePercentage?: boolean,
     percentage?: boolean, voltage?: boolean, lowStatus?: boolean,

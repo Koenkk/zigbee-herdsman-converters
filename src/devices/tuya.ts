@@ -12,7 +12,7 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {onOff, quirkCheckinInterval, batteryPercentage, deviceEndpoints} from '../lib/modernExtend';
+import {onOff, quirkCheckinInterval, battery, deviceEndpoints} from '../lib/modernExtend';
 
 const {tuyaLight} = tuya.modernExtend;
 
@@ -550,7 +550,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_smoke_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [e.smoke(), e.battery_low(), e.tamper()],
-        extend: [batteryPercentage()],
+        extend: [battery()],
     },
     {
         zigbeeModel: ['TS0111'],
