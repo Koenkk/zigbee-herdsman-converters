@@ -5,10 +5,9 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
-import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import {Definition, Fz, Zh} from '../lib/types';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -220,23 +219,8 @@ const definitions: Definition[] = [
         model: 'ZG2835RAC',
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
-        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
-        toZigbee: extend.light_onoff_brightness().toZigbee,
-        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy()],
+        extend: [light({configureReporting: true}), electricityMeter()],
         whiteLabel: [{vendor: 'YPHIX', model: '50208695'}, {vendor: 'Samotech', model: 'SM311'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint, {min: 10});
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
     },
     {
         zigbeeModel: ['ZG2835'],
@@ -252,22 +236,7 @@ const definitions: Definition[] = [
         model: 'SR-ZG9040A',
         vendor: 'Sunricher',
         description: 'Zigbee micro smart dimmer',
-        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
-        toZigbee: extend.light_onoff_brightness().toZigbee,
-        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint, {min: 10});
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
+        extend: [light({configureReporting: true}), electricityMeter()],
     },
     {
         zigbeeModel: ['HK-ZD-DIM-A'],

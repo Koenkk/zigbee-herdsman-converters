@@ -3,7 +3,6 @@ import * as legacy from '../lib/legacy';
 import * as tuya from '../lib/tuya';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import * as libColor from '../lib/color';
 import * as utils from '../lib/utils';
 import * as zosung from '../lib/zosung';
@@ -12,7 +11,7 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {onOff, quirkCheckinInterval, battery, deviceEndpoints} from '../lib/modernExtend';
+import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light} from '../lib/modernExtend';
 
 const {tuyaLight} = tuya.modernExtend;
 
@@ -5611,20 +5610,11 @@ const definitions: Definition[] = [
         model: 'TS110E_1gang_1',
         vendor: 'TuYa',
         description: '1 channel dimmer',
-        fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-            .fromZigbee.concat([tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E]),
-        toZigbee: utils.replaceInArray(
-            extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-                .toZigbee.concat([tuya.tz.power_on_behavior_1, tzLocal.TS110E_options]),
-            [tz.light_onoff_brightness],
-            [tzLocal.TS110E_light_onoff_brightness],
-        ),
-        exposes: [e.light_brightness().withMinBrightness().withMaxBrightness(), e.power_on_behavior(), tuya.exposes.switchType()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
+        extend: [light({powerOnBehavior: false, configureReporting: true})],
+        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E],
+        toZigbee: [tzLocal.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tzLocal.TS110E_options],
+        exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],
+        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia', '_TZ3210_weaqkhab', '_TZ3210_tkkb1ym8']),
@@ -5653,31 +5643,20 @@ const definitions: Definition[] = [
         model: 'TS110E_2gang_1',
         vendor: 'TuYa',
         description: '2 channel dimmer',
-        fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-            .fromZigbee.concat([tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E]),
-        toZigbee: utils.replaceInArray(
-            extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-                .toZigbee.concat([tuya.tz.power_on_behavior_1, tzLocal.TS110E_options]),
-            [tz.light_onoff_brightness],
-            [tzLocal.TS110E_light_onoff_brightness],
-        ),
-        meta: {multiEndpoint: true},
+        extend: [
+            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            light({powerOnBehavior: false, endpointNames: ['l1', 'l2'], configureReporting: true}),
+        ],
+        fromZigbee: [tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E],
+        toZigbee: [tzLocal.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tzLocal.TS110E_options],
+        configure: tuya.configureMagicPacket,
         exposes: [
-            e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint('l1'),
-            e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint('l2'),
+            e.min_brightness().withEndpoint('l1'), e.max_brightness().withEndpoint('l1'),
+            e.min_brightness().withEndpoint('l2'), e.max_brightness().withEndpoint('l2'),
             e.power_on_behavior(),
             tuya.exposes.switchType().withEndpoint('l1'),
             tuya.exposes.switchType().withEndpoint('l2'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
     },
     {
         fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_pagajpog', '_TZ3210_4ubylghk', '_TZ3210_vfwhhldz']),
