@@ -18,33 +18,6 @@ const extend = {
         }
         return {exposes, fromZigbee, toZigbee};
     },
-    light_onoff_brightness: (options: Extend.options_light_onoff_brightness={}): Extend => {
-        options = {
-            disableEffect: false, disablePowerOnBehavior: false, disableMoveStep: false, disableTransition: false,
-            toZigbee: [], fromZigbee: [], exposes: [], ...options,
-        };
-        const exposes = [e.light_brightness(), ...(!options.disableEffect ? [e.effect()] : []), ...options.exposes];
-        const fromZigbee = [fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report, ...options.fromZigbee];
-        const toZigbee = [tz.light_onoff_brightness, tz.ignore_rate, tz.level_config, ...options.toZigbee,
-            ...(!options.disableTransition ? [tz.ignore_transition] : []),
-            ...(!options.disableEffect ? [tz.effect] : []),
-            ...(!options.disableMoveStep ? [tz.light_brightness_move, tz.light_brightness_step] : [])];
-
-        if (!options.disablePowerOnBehavior) {
-            exposes.push(e.power_on_behavior(['off', 'on', 'toggle', 'previous']));
-            fromZigbee.push(fz.power_on_behavior);
-            toZigbee.push(tz.power_on_behavior);
-        }
-
-        const result: Extend = {exposes, fromZigbee, toZigbee};
-        if (!options.noConfigure) {
-            result.configure = async (device, coordinatorEndpoint, logger) => {
-                await light.configure(device, coordinatorEndpoint, logger, true);
-            };
-        }
-
-        return result;
-    },
     light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp={}): Extend => {
         options = {
             disableEffect: false, disableColorTempStartup: false, disablePowerOnBehavior: false,

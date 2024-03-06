@@ -65,7 +65,7 @@ const individualLedEffects: { [key: string]: number } = {
     clear_effect: 255,
 };
 
-const fanModes: { [key: string]: number } = {low: 2, smart: 4, medium: 85, high: 254, on: 255};
+const fanModes: { [key: string]: number } = {low: 2, smart: 4, medium: 86, high: 170, on: 255};
 const breezemodes: string[] = ['off', 'low', 'medium', 'high'];
 
 const UINT8 = 32;
@@ -1427,7 +1427,7 @@ const tzLocal = {
                 'genLevelCtrl',
                 'moveToLevelWithOnOff',
                 {
-                    level: fanModes[parseInt(value) || 0],
+                    level: fanModes[value],
                     transtime: 0xffff,
                 },
                 utils.getOptions(meta.mapped, entity),
@@ -1636,7 +1636,7 @@ const fzLocal = {
                 return {action: `${button}_${action}`};
             } else if (msg.type === 'readResponse') {
                 return Object.keys(msg.data).reduce((p, c) => {
-                    if (ATTRIBUTES[c].displayType === 'enum') {
+                    if (ATTRIBUTES[c] && ATTRIBUTES[c].displayType === 'enum') {
                         return {
                             ...p,
                             [c]: Object.keys(ATTRIBUTES[c].values).find(

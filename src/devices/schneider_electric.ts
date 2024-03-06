@@ -5,7 +5,6 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
 import {onOff, light, electricityMeter, identify, enumLookup, deviceEndpoints} from '../lib/modernExtend';
@@ -354,9 +353,10 @@ const definitions: Definition[] = [
         model: 'CCT5010-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer',
-        fromZigbee: [...extend.light_onoff_brightness().fromZigbee, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [...extend.light_onoff_brightness().toZigbee, tz.ballast_config, tz.wiser_dimmer_mode],
-        exposes: [e.light_brightness().withLevelConfig(),
+        extend: [light({configureReporting: true})],
+        fromZigbee: [fz.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
+        exposes: [
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
@@ -364,13 +364,6 @@ const definitions: Definition[] = [
             e.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
                 .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
         whiteLabel: [{vendor: 'Elko', model: 'EKO07090'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
     },
     {
         zigbeeModel: ['PUCK/SWITCH/1'],
@@ -733,14 +726,14 @@ const definitions: Definition[] = [
         model: '545D6102',
         vendor: 'Schneider Electric',
         description: 'LK FUGA wiser wireless dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.schneider_lighting_ballast_configuration, fz.command_recall,
-            fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.schneider_dimmer_mode],
+        fromZigbee: [fz.schneider_lighting_ballast_configuration, fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        toZigbee: [tz.ballast_config, tz.schneider_dimmer_mode],
         endpoint: (device) => {
             return {'l1': 3, 's1': 21, 's2': 22, 's3': 23, 's4': 24};
         },
         meta: {multiEndpoint: true},
-        exposes: [e.light_brightness().withLevelConfig().withEndpoint('l1'),
+        extend: [light({endpointNames: ['l1'], configureReporting: true})],
+        exposes: [
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast')
                 .withEndpoint('l1'),
@@ -752,11 +745,8 @@ const definitions: Definition[] = [
             e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'recall_*'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             // Configure the dimmer actuator endpoint
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['lightingBallastCfg']);
             // Configure the four front switches
             device.endpoints.forEach(async (ep) => {
                 if (21 <= ep.ID && ep.ID <= 22) {

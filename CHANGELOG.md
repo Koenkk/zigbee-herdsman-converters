@@ -1,5 +1,19 @@
 # Changelog
 
+## [18.45.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.44.0...v18.45.0) (2024-03-06)
+
+
+### Features
+
+* New modern extends and GS device converters update ([#7134](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7134)) ([519130e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/519130efb93cef0707ff53a78b5c01ede000c57f))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_uaa99arv` as TuYa TS0044_1 https://github.com/Koenkk/zigbee2mqtt/issues/21458 ([685c361](https://github.com/Koenkk/zigbee-herdsman-converters/commit/685c361f3545c21c1f34855f3972ae6bfdcc2b54))
+* Inovelli bug fixes ([#7164](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7164)) ([4a18e29](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4a18e2966318e3153cff32198c71dc554528d72a))
+* Use writeStructure for Ubisys input configuration ([#7155](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7155)) ([def8f5c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/def8f5cafd4ea3a88737e9957c7dfa8212a94871))
+
 ## [18.44.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.43.0...v18.44.0) (2024-03-05)
 
 

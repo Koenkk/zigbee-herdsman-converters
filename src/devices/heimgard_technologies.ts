@@ -5,7 +5,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 import * as ota from '../lib/ota';
-import {batteryPercentage} from '../lib/modernExtend';
+import {battery} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -138,7 +138,7 @@ const definitions: Definition[] = [
         description: 'Indoor siren',
         toZigbee: [tz.warning],
         meta: {disableDefaultResponse: true},
-        extend: [batteryPercentage()],
+        extend: [battery()],
         exposes: [e.warning()],
     },
 ];

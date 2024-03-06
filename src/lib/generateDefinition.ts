@@ -170,7 +170,7 @@ const inputExtenders: Extender[] = [
     [['msPressureMeasurement'], async (eps) => [new Generator({extend: m.pressure, args: {endpointNames: stringifyEps(eps)}, source: 'pressure'})]],
     [['msRelativeHumidity'], async (eps) => [new Generator({extend: m.humidity, args: {endpointNames: stringifyEps(eps)}, source: 'humidity'})]],
     [['msCO2'], async (eps) => [new Generator({extend: m.co2, args: {endpointNames: stringifyEps(eps)}, source: 'co2'})]],
-    [['genPowerCfg'], async () => [new Generator({extend: m.batteryPercentage, source: 'batteryPercentage'})]],
+    [['genPowerCfg'], async () => [new Generator({extend: m.battery, source: 'battery'})]],
     [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],
     [['closuresDoorLock'], extenderLock],
@@ -179,6 +179,15 @@ const inputExtenders: Extender[] = [
     ]],
     [['msOccupancySensing'], async (eps) => [
         new Generator({extend: m.occupancy, source: 'occupancy'}),
+    ]],
+    [['ssIasZone'], async (eps) => [
+        new Generator({extend: m.iasZoneAlarm, args: {
+            zoneType: 'generic',
+            zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low'],
+        }, source: 'iasZoneAlarm'}),
+    ]],
+    [['ssIasWd'], async (eps) => [
+        new Generator({extend: m.iasWarning, source: 'iasWarning'}),
     ]],
 ];
 
