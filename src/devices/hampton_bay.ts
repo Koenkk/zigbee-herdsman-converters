@@ -3,8 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {forcePowerSource, light} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -14,20 +13,15 @@ const definitions: Definition[] = [
         model: '99432',
         vendor: 'Hampton Bay',
         description: 'Universal wink enabled white ceiling fan premier remote control',
-        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.fan]),
-        toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.fan_mode]),
-        exposes: [e.light_brightness(), e.fan().withModes(['low', 'medium', 'high', 'on', 'smart'])],
+        fromZigbee: [fz.fan],
+        toZigbee: [tz.fan_mode],
+        exposes: [e.fan().withModes(['low', 'medium', 'high', 'on', 'smart'])],
         meta: {disableDefaultResponse: true},
+        extend: [light({configureReporting: true}), forcePowerSource({powerSource: 'Mains (single phase)'})],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'hvacFanCtrl']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
             await reporting.fanMode(endpoint);
-
-            // Has Unknown power source, force it here.
-            device.powerSource = 'Mains (single phase)';
-            device.save();
         },
     },
     {

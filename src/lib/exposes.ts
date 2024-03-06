@@ -803,6 +803,8 @@ export const presets = {
         .withFeature(new Binary('strobe', access.SET, true, false).withDescription('Turn on/off the strobe (light) for Squawk')),
     identify_duration: () => new Numeric('identify', access.SET).withValueMin(0).withValueMax(30).withUnit('seconds').withDescription('Duration of flashing').withCategory('config'),
     identify: () => new Enum('identify', access.SET, ['identify']).withDescription('Ititiate device identification').withCategory('config'),
+    min_brightness: () => new Numeric('min_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Minimum light brightness'),
+    max_brightness: () => new Numeric('max_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Maximum light brightness'),
 };
 
 exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);

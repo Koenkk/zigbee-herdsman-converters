@@ -6,6 +6,7 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import {fzLegrand, tzLegrand} from '../lib/legrand';
+import {light} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -39,10 +40,9 @@ const definitions: Definition[] = [
         vendor: 'BTicino',
         description: 'Dimmer switch with neutral',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
-        toZigbee: [tz.light_onoff_brightness, tzLegrand.led_mode, tz.legrand_device_mode, tz.legrand_identify, tz.ballast_config],
+        fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
+        toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tz.legrand_identify, tz.ballast_config],
         exposes: [
-            e.light_brightness(),
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
             e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
@@ -56,13 +56,7 @@ const definitions: Definition[] = [
             e.enum('identify', ea.SET, ['blink'])
                 .withDescription('Blinks the built-in LED to make it easier to find the device'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput', 'lightingBallastCfg']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
+        extend: [light({configureReporting: true})],
     },
     {
         zigbeeModel: ['Bticino Din power consumption module '],
