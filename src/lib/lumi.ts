@@ -26,7 +26,7 @@ import fz from '../converters/fromZigbee';
 import * as globalStore from './store';
 import {
     Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range,
-    KeyValueNumberString, OnEvent, Expose,
+    KeyValueNumberString, OnEvent, Expose, Configure,
 } from './types';
 import * as modernExtend from './modernExtend';
 import * as exposes from './exposes';
@@ -1683,6 +1683,13 @@ export const lumiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
+    lumiSetMode: (): ModernExtend => {
+        // I have no idea, why it is used everywhere
+        const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
+        };
+        return {configure, isModernExtend: true};
+    },
 };
 
 export {lumiModernExtend as modernExtend};
