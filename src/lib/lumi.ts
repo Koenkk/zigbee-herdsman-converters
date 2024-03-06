@@ -1649,12 +1649,12 @@ export const lumiModernExtend = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.data.hasOwnProperty(652)) {
-                    const slideDirection: KeyValueNumberString = {3: 'none', 4: 'up', 5: 'down'};
+                    const actionLookup: KeyValueNumberString = {1: 'single', 2: 'double', 3: 'hold', 4: 'slide_up', 5: 'slide_down'};
                     return {
                         slide_time: msg.data[561],
                         slide_speed: msg.data[562],
                         slide_relative_displacement: msg.data[563],
-                        slide_direction: slideDirection[msg.data[652]],
+                        slide_action: actionLookup[msg.data[652]],
                         slide_time_delta: msg.data[769],
                     };
                 }
@@ -1665,7 +1665,7 @@ export const lumiModernExtend = {
             e.numeric('slide_time', ea.STATE).withUnit('ms').withCategory('diagnostic'),
             e.numeric('slide_speed', ea.STATE).withUnit('mm/s').withCategory('diagnostic'),
             e.numeric('slide_relative_displacement', ea.STATE).withCategory('diagnostic'),
-            e.enum('slide_direction', ea.STATE, ['none', 'up', 'down']).withCategory('diagnostic'),
+            e.enum('slide_action', ea.STATE, ['single', 'double', 'hold', 'slide_up', 'slide_down']).withCategory('diagnostic'),
             e.numeric('slide_time_delta', ea.STATE).withUnit('ms').withCategory('diagnostic'),
         ];
 
