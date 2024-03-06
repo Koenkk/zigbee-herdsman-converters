@@ -4,6 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
+import {temperature, batteryPercentage, humidity} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -204,6 +205,60 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.batteryPercentageRemaining(device.getEndpoint(1));
         },
+    },
+    {
+        fingerprint: [
+            {modelID: 'DoorSensor-ZB3.0', softwareBuildID: '2.01'},
+            {modelID: 'DoorSensor-ZB3.0', softwareBuildID: '2.1'},
+            {modelID: 'DoorSensor-ZB3.0', softwareBuildID: '2.03'},
+            {modelID: 'DoorSensor-ZB3.0', softwareBuildID: '2.04'},
+        ],
+        model: 'VES-ZB-DOR-025',
+        vendor: 'Vesternet',
+        description: 'Zigbee door and window sensor',
+        fromZigbee: [fz.ias_enroll, fz.ias_contact_alarm_1],
+        exposes: [e.contact(), e.tamper()],
+        toZigbee: [],
+        extend: [batteryPercentage()],
+        whiteLabel: [{vendor: 'HZC Electric', model: 'S901D-ZG'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone']);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'MotionSensor-ZB3.0', softwareBuildID: '2.01'},
+            {modelID: 'MotionSensor-ZB3.0', softwareBuildID: '2.1'},
+            {modelID: 'MotionSensor-ZB3.0', softwareBuildID: '2.03'},
+            {modelID: 'MotionSensor-ZB3.0', softwareBuildID: '2.04'},
+        ],
+        model: 'VES-ZB-PIR-021',
+        vendor: 'Vesternet',
+        description: 'Zigbee motion sensor',
+        fromZigbee: [fz.ias_enroll, fz.ias_occupancy_alarm_1],
+        exposes: [e.occupancy(), e.tamper()],
+        extend: [batteryPercentage()],
+        toZigbee: [],
+        whiteLabel: [{vendor: 'HZC Electric', model: 'S902M-ZG'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone']);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TempAndHumSensor-ZB3.0', softwareBuildID: '2.01'},
+            {modelID: 'TempAndHumSensor-ZB3.0', softwareBuildID: '2.1'},
+            {modelID: 'TempAndHumSensor-ZB3.0', softwareBuildID: '2.04'},
+        ],
+        model: 'VES-ZB-TEM-027',
+        vendor: 'Vesternet',
+        description: 'Zigbee temperature and humidity sensor',
+        extend: [temperature(), humidity(), batteryPercentage()],
+        whiteLabel: [{vendor: 'HZC Electric', model: 'S093TH-ZG'}],
     },
 ];
 
