@@ -728,6 +728,36 @@ const converters1 = {
             return payload;
         },
     } satisfies Fz.Converter,
+    seMetering: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const payload: KeyValueAny = {};
+            const multiplier = msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier') as number;
+            const divisor = msg.endpoint.getClusterAttributeValue('seMetering', 'divisor') as number;
+            const factor = multiplier && divisor ? multiplier / divisor : null;
+
+            if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
+                msg.data.hasOwnProperty('currentSummReceived'))) {
+                let energy = 0;
+                let producedEnergy = 0;
+                if (msg.data.hasOwnProperty('currentSummDelivered')) {
+                    const data = msg.data['currentSummDelivered'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    energy = value * factor;
+                }
+                if (msg.data.hasOwnProperty('currentSummReceived')) {
+                    const data = msg.data['currentSummReceived'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    producedEnergy = value * factor;
+                }
+                payload.energy = energy;
+                payload.producedEnergy = producedEnergy;
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter,
     electrical_measurement: {
         /**
          * When using this converter also add the following to the configure method of the device:
@@ -749,7 +779,11 @@ const converters1 = {
                 {key: 'activePowerPhB', name: 'power_phase_b', factor: 'acPower'},
                 {key: 'activePowerPhC', name: 'power_phase_c', factor: 'acPower'},
                 {key: 'apparentPower', name: 'power_apparent', factor: 'acPower'},
+                {key: 'apparentPowerPhB', name: 'power_apparent_phase_b', factor: 'acPower'},
+                {key: 'apparentPowerPhC', name: 'power_apparent_phase_c', factor: 'acPower'},
                 {key: 'reactivePower', name: 'power_reactive', factor: 'acPower'},
+                {key: 'reactivePowerPhB', name: 'power_reactive_phase_b', factor: 'acPower'},
+                {key: 'reactivePowerPhC', name: 'power_reactive_phase_c', factor: 'acPower'},
                 {key: 'rmsCurrent', name: 'current', factor: 'acCurrent'},
                 {key: 'rmsCurrentPhB', name: 'current_phase_b', factor: 'acCurrent'},
                 {key: 'rmsCurrentPhC', name: 'current_phase_c', factor: 'acCurrent'},
@@ -770,6 +804,12 @@ const converters1 = {
             }
             if (msg.data.hasOwnProperty('powerFactor')) {
                 payload.power_factor = precisionRound(msg.data['powerFactor'] / 100, 2);
+            }
+            if (msg.data.hasOwnProperty('powerFactorPhB')) {
+                payload.power_factor_phase_b = precisionRound(msg.data['powerFactorPhB'] / 100, 2);
+            }
+            if (msg.data.hasOwnProperty('powerFactorPhC')) {
+                payload.power_factor_phase_c = precisionRound(msg.data['powerFactorPhC'] / 100, 2);
             }
             return payload;
         },
