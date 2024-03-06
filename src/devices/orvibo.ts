@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {deviceEndpoints, light, onOff, batteryPercentage, humidity, temperature} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff, battery, humidity, temperature} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -149,7 +149,7 @@ const definitions: Definition[] = [
         model: 'ST30',
         vendor: 'ORVIBO',
         description: 'Temperature & humidity sensor',
-        extend: [batteryPercentage(), humidity(), temperature()],
+        extend: [battery(), humidity(), temperature()],
     },
     {
         zigbeeModel: ['9f76c9f31b4c4a499e3aca0977ac4494', '6fd24c0f58a04c848fea837aaa7d6e0f'],

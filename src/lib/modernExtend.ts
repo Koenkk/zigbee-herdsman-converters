@@ -4,12 +4,12 @@ import fz from '../converters/fromZigbee';
 import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent, Access} from './types';
 import {zigbeeOTA} from '../lib/ota';
 import {presets as e, access as ea, options as opt} from './exposes';
-import {KeyValue, Configure, Expose, DefinitionMeta} from './types';
+import {KeyValue, Configure, Expose, DefinitionMeta, KeyValueAny} from './types';
 import {configure as lightConfigure} from './light';
 import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
-    noOccupancySince, precisionRound,
+    noOccupancySince, precisionRound, batteryVoltageToPercentage, getOptions,
 } from './utils';
 
 function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | number) {
@@ -750,18 +750,105 @@ export function co2(args?: Partial<NumericArgs>) {
     });
 }
 
-export function batteryPercentage(args?: Partial<NumericArgs>) {
-    return numeric({
-        name: 'battery',
+export interface BatteryArgs {
+    voltageToPercentage?: string | {min: number, max: number}, dontDividePercentage?: boolean,
+    percentage?: boolean, voltage?: boolean, lowStatus?: boolean,
+    percentageReportingConfig?: ReportingConfigWithoutAttribute, percentageReporting?: boolean,
+    voltageReportingConfig?: ReportingConfigWithoutAttribute, voltageReporting?: boolean,
+}
+export function battery(args?: BatteryArgs): ModernExtend {
+    args = {percentage: true, voltage: false, lowStatus: false, percentageReporting: true, voltageReporting: false, ...args};
+    const meta: DefinitionMeta = {battery: {}};
+    if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
+    if (args.dontDividePercentage) meta.battery.dontDividePercentage = args.dontDividePercentage;
+
+    const exposes: Expose[] = [];
+
+    if (args.percentage) {
+        exposes.push(
+            e.numeric('battery', ea.STATE).withUnit('%')
+                .withDescription('Remaining battery in %')
+                .withValueMin(0).withValueMax(100).withCategory('diagnostic'),
+        );
+    }
+    if (args.voltage) {
+        exposes.push(
+            e.numeric('voltage', ea.STATE).withUnit('mV')
+                .withDescription('Reported battery voltage in millivolts').withCategory('diagnostic'),
+        );
+    }
+    if (args.lowStatus) {
+        exposes.push(
+            e.binary('battery_low', ea.STATE, true, false)
+                .withDescription('Empty battery indicator').withCategory('diagnostic'),
+        );
+    }
+
+    const fromZigbee: Fz.Converter[] = [{
         cluster: 'genPowerCfg',
-        attribute: 'batteryPercentageRemaining',
-        reporting: {min: '1_HOUR', max: 'MAX', change: 10},
-        description: 'Remaining battery in %',
-        unit: '%',
-        scale: 2,
-        access: 'STATE_GET',
-        ...args,
-    });
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
+                // Some devices do not comply to the ZCL and report a
+                // batteryPercentageRemaining of 100 when the battery is full (should be 200).
+                const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
+                let percentage = msg.data['batteryPercentageRemaining'];
+                percentage = dontDividePercentage ? percentage : percentage / 2;
+                if (args.percentage) payload.battery = precisionRound(percentage, 2);
+            }
+
+            if (msg.data.hasOwnProperty('batteryVoltage') && (msg.data['batteryVoltage'] < 255)) {
+                // Deprecated: voltage is = mV now but should be V
+                if (args.voltage) payload.voltage = msg.data['batteryVoltage'] * 100;
+
+                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                    payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
+                }
+            }
+
+            if (msg.data.hasOwnProperty('batteryAlarmState')) {
+                const battery1Low = (
+                    msg.data.batteryAlarmState & 1<<0 ||
+                    msg.data.batteryAlarmState & 1<<1 ||
+                    msg.data.batteryAlarmState & 1<<2 ||
+                    msg.data.batteryAlarmState & 1<<3
+                ) > 0;
+                const battery2Low = (
+                    msg.data.batteryAlarmState & 1<<10 ||
+                    msg.data.batteryAlarmState & 1<<11 ||
+                    msg.data.batteryAlarmState & 1<<12 ||
+                    msg.data.batteryAlarmState & 1<<13
+                ) > 0;
+                const battery3Low = (
+                    msg.data.batteryAlarmState & 1<<20 ||
+                    msg.data.batteryAlarmState & 1<<21 ||
+                    msg.data.batteryAlarmState & 1<<22 ||
+                    msg.data.batteryAlarmState & 1<<23
+                ) > 0;
+                if (args.lowStatus) payload.battery_low = battery1Low || battery2Low || battery3Low;
+            }
+
+            return payload;
+        },
+    }];
+
+    const defaultReporting: ReportingConfigWithoutAttribute = {min: '1_HOUR', max: 'MAX', change: 10};
+
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        if (args.percentageReporting) {
+            await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
+                {attribute: 'batteryPercentageRemaining', ...(args.percentageReportingConfig ?? defaultReporting)},
+            ], logger);
+        }
+        if (args.voltageReporting) {
+            await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
+                {attribute: 'batteryVoltage', ...(args.voltageReportingConfig ?? defaultReporting)},
+            ], logger);
+        }
+    };
+
+    return {meta, fromZigbee, configure, isModernExtend: true};
 }
 
 export function pressure(args?: Partial<NumericArgs>): ModernExtend {
@@ -851,4 +938,157 @@ export function occupancy(args?: Partial<BinaryArgs>): ModernExtend {
     result.fromZigbee[0] = fromZigbeeOverride;
 
     return result;
+}
+
+export function ignoreClusterReport(args: {cluster: string | number}): ModernExtend {
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: args.cluster.toString(),
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {},
+    }];
+
+    return {fromZigbee, isModernExtend: true};
+}
+
+export type iasZoneType = 'occupancy' | 'contact' | 'smoke' | 'water_leak' | 'carbon_monoxide' | 'sos' | 'vibration' | 'alarm' | 'gas' | 'generic';
+export type iasZoneAttribute = 'alarm_1' | 'alarm_2' | 'tamper' | 'battery_low' | 'supervision_reports' | 'restore_reports' | 'ac_status' | 'test' |
+    'battery_defect';
+export interface IasArgs {
+    zoneType: iasZoneType, zoneAttributes: iasZoneAttribute[], alarmTimeout?: boolean
+}
+export function iasZoneAlarm(args: IasArgs): ModernExtend {
+    const exposeList = {
+        'occupancy': e.binary('occupancy', ea.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
+        'contact': e.binary('contact', ea.STATE, false, true).withDescription('Indicates whether the device is opened or closed'),
+        'smoke': e.binary('smoke', ea.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
+        'water_leak': e.binary('water_leak', ea.STATE, true, false).withDescription('Indicates whether the device detected a water leak'),
+        'carbon_monoxide': e.binary('carbon_monoxide', ea.STATE, true, false)
+            .withDescription('Indicates whether the device detected carbon monoxide'),
+        'sos': e.binary('sos', ea.STATE, true, false).withLabel('SOS').withDescription('Indicates whether the SOS alarm is triggered'),
+        'vibration': e.binary('vibration', ea.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
+        'alarm': e.binary('alarm', ea.STATE, true, false).withDescription('Indicates whether the alarm is triggered'),
+        'gas': e.binary('gas', ea.STATE, true, false).withDescription('Indicates whether the device detected gas'),
+        'alarm_1': e.binary('alarm_1', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 1 is active'),
+        'alarm_2': e.binary('alarm_2', ea.STATE, true, false).withDescription('Indicates whether IAS Zone alarm 2 is active'),
+        'tamper': e.binary('tamper', ea.STATE, true, false).withDescription('Indicates whether the device is tampered').withCategory('diagnostic'),
+        'battery_low': e.binary('battery_low', ea.STATE, true, false).withDescription('Indicates whether the battery of the device is almost empty')
+            .withCategory('diagnostic'),
+        'supervision_reports': e.binary('supervision_reports', ea.STATE, true, false)
+            .withDescription('Indicates whether the device issues reports on zone operational status')
+            .withCategory('diagnostic'),
+        'restore_reports': e.binary('restore_reports', ea.STATE, true, false)
+            .withDescription('Indicates whether the device issues reports on alarm no longer being present')
+            .withCategory('diagnostic'),
+        'ac_status': e.binary('ac_status', ea.STATE, true, false).withDescription('Indicates whether the device mains voltage supply is at fault')
+            .withCategory('diagnostic'),
+        'test': e.binary('test', ea.STATE, true, false).withDescription('Indicates whether the device is currently performing a test')
+            .withCategory('diagnostic'),
+        'battery_defect': e.binary('battery_defect', ea.STATE, true, false).withDescription('Indicates whether the device battery is defective')
+            .withCategory('diagnostic'),
+    };
+
+    const exposes: Expose[] = [];
+    const bothAlarms = args.zoneAttributes.includes('alarm_1') && (args.zoneAttributes.includes('alarm_2'));
+
+    let alarm1Name = 'alarm_1';
+    let alarm2Name = 'alarm_2';
+
+    if (args.zoneType === 'generic') {
+        args.zoneAttributes.map((attr) => exposes.push(exposeList[attr]));
+    } else {
+        if (bothAlarms) {
+            exposes.push(e.binary(args.zoneType + '_alarm_1', ea.STATE, true, false)
+                .withDescription(exposeList[args.zoneType].description + ' (alarm_1)'));
+            alarm1Name = args.zoneType + '_alarm_1';
+            exposes.push(e.binary(args.zoneType + '_alarm_2', ea.STATE, true, false)
+                .withDescription(exposeList[args.zoneType].description + ' (alarm_2)'));
+            alarm2Name = args.zoneType + '_alarm_2';
+        } else {
+            exposes.push(exposeList[args.zoneType]);
+            alarm1Name = args.zoneType;
+            alarm2Name = args.zoneType;
+        }
+        args.zoneAttributes.map((attr) => {
+            if (attr !== 'alarm_1' && attr !== 'alarm_2') exposes.push(exposeList[attr]);
+        });
+    }
+
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'ssIasZone',
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+
+            return {
+                [alarm1Name]: (zoneStatus & 1) > 0,
+                [alarm2Name]: (zoneStatus & 1 << 1) > 0,
+                tamper: (zoneStatus & 1 << 2) > 0,
+                battery_low: (zoneStatus & 1 << 3) > 0,
+                supervision_reports: (zoneStatus & 1 << 4) > 0,
+                restore_reports: (zoneStatus & 1 << 5) > 0,
+                trouble: (zoneStatus & 1 << 6) > 0,
+                ac_status: (zoneStatus & 1 << 7) > 0,
+                test: (zoneStatus & 1 << 8) > 0,
+                battery_defect: (zoneStatus & 1 << 9) > 0,
+            };
+        },
+    }];
+
+    return {fromZigbee, exposes, isModernExtend: true};
+}
+
+export interface IasWarningArgs {
+    reversePayload?: boolean,
+}
+export function iasWarning(args?: IasWarningArgs): ModernExtend {
+    const warningMode = {'stop': 0, 'burglar': 1, 'fire': 2, 'emergency': 3, 'police_panic': 4, 'fire_panic': 5, 'emergency_panic': 6};
+    // levels for siren, strobe and squawk are identical
+    const level = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
+
+    const exposes: Expose[] = [
+        e.composite('warning', 'warning', ea.SET)
+            .withFeature(e.enum('mode', ea.SET, Object.keys(warningMode)).withDescription('Mode of the warning (sound effect)'))
+            .withFeature(e.enum('level', ea.SET, Object.keys(level)).withDescription('Sound level'))
+            .withFeature(e.enum('strobe_level', ea.SET, Object.keys(level)).withDescription('Intensity of the strobe'))
+            .withFeature(e.binary('strobe', ea.SET, true, false).withDescription('Turn on/off the strobe (light) during warning'))
+            .withFeature(e.numeric('strobe_duty_cycle', ea.SET).withValueMax(10).withValueMin(0).withDescription('Length of the flash cycle'))
+            .withFeature(e.numeric('duration', ea.SET).withUnit('s').withDescription('Duration in seconds of the alarm')),
+    ];
+
+    const toZigbee: Tz.Converter[] = [{
+        key: ['warning'],
+        convertSet: async (entity, key, value, meta) => {
+            const values = {
+                // @ts-expect-error
+                mode: value.mode || 'emergency',
+                // @ts-expect-error
+                level: value.level || 'medium',
+                // @ts-expect-error
+                strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
+                // @ts-expect-error
+                duration: value.hasOwnProperty('duration') ? value.duration : 10,
+                // @ts-expect-error
+                strobeDutyCycle: value.hasOwnProperty('strobe_duty_cycle') ? value.strobe_duty_cycle * 10 : 0,
+                // @ts-expect-error
+                strobeLevel: value.hasOwnProperty('strobe_level') ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
+            };
+
+            let info;
+            if (args?.reversePayload) {
+                info = (getFromLookup(values.mode, warningMode)) + ((values.strobe ? 1 : 0) << 4) + (getFromLookup(values.level, level) << 6);
+            } else {
+                info = (getFromLookup(values.mode, warningMode) << 4) + ((values.strobe ? 1 : 0) << 2) + (getFromLookup(values.level, level));
+            }
+
+            const payload = {
+                startwarninginfo: info,
+                warningduration: values.duration,
+                strobedutycycle: values.strobeDutyCycle,
+                strobelevel: values.strobeLevel,
+            };
+
+            await entity.command('ssIasWd', 'startWarning', payload, getOptions(meta.mapped, entity));
+        },
+    }];
+    return {toZigbee, exposes, isModernExtend: true};
 }

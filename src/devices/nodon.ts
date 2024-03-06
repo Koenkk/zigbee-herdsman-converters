@@ -3,7 +3,7 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import {batteryPercentage, deviceEndpoints, humidity, numeric, onOff, temperature} from '../lib/modernExtend';
+import {battery, deviceEndpoints, humidity, numeric, onOff, temperature} from '../lib/modernExtend';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
@@ -198,7 +198,7 @@ const definitions: Definition[] = [
         model: 'STPH-4-1-00',
         vendor: 'NodOn',
         description: 'Temperature & humidity sensor',
-        extend: [batteryPercentage(), temperature(), humidity()],
+        extend: [battery(), temperature(), humidity()],
         ota: ota.zigbeeOTA,
     },
 ];

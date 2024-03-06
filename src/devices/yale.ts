@@ -5,7 +5,7 @@ import * as reporting from '../lib/reporting';
 import {Extend, Definition, Fz, Reporting, Tz} from 'src/lib/types';
 import {getFromLookup} from '../lib/utils';
 import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
-import * as m from '../lib/modernExtend';
+import {battery, lock} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -278,7 +278,7 @@ const definitions: Definition[] = [
         model: 'YRM476',
         vendor: 'Yale',
         description: 'Assure lock',
-        extend: [m.batteryPercentage(), m.lock({pinCodeCount: 250})],
+        extend: [battery(), lock({pinCodeCount: 250})],
     },
     {
         zigbeeModel: ['YRD216 PBDB'],
