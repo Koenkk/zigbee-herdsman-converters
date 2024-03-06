@@ -219,12 +219,12 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            { modelID: '0x8020', manufacturerName: 'Danfoss' }, // RT24V Display
-            { modelID: '0x8021', manufacturerName: 'Danfoss' }, // RT24V Display  Floor sensor
-            { modelID: '0x8030', manufacturerName: 'Danfoss' }, // RTbattery Display
-            { modelID: '0x8031', manufacturerName: 'Danfoss' }, // RTbattery Display Infrared
-            { modelID: '0x8034', manufacturerName: 'Danfoss' }, // RTbattery Dial
-            { modelID: '0x8035', manufacturerName: 'Danfoss' }, // RTbattery Dial Infrared
+            {modelID: '0x8020', manufacturerName: 'Danfoss'}, // RT24V Display
+            {modelID: '0x8021', manufacturerName: 'Danfoss'}, // RT24V Display  Floor sensor
+            {modelID: '0x8030', manufacturerName: 'Danfoss'}, // RTbattery Display
+            {modelID: '0x8031', manufacturerName: 'Danfoss'}, // RTbattery Display Infrared
+            {modelID: '0x8034', manufacturerName: 'Danfoss'}, // RTbattery Dial
+            {modelID: '0x8035', manufacturerName: 'Danfoss'}, // RTbattery Dial Infrared
         ],
         model: 'Icon',
         vendor: 'Danfoss',
@@ -372,22 +372,16 @@ const definitions: Definition[] = [
             tz.danfoss_system_status_code,
             tz.danfoss_multimaster_role,
         ],
-        meta: { multiEndpoint: true, thermostat: { dontMapPIHeatingDemand: true } },
+        meta: {multiEndpoint: true, thermostat: {dontMapPIHeatingDemand: true}},
         exposes: [].concat(((endpointsCount) => {
             const features = [];
             for (let i = 1; i <= endpointsCount; i++) {
                 const epName = `${i}`;
                 if (i < 16) {
                     features.push(e.battery().withEndpoint(epName));
-                    features.push(e.humidity().withEndpoint(epName))
+                    features.push(e.humidity().withEndpoint(epName));
                     features.push(e.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
                         .withLocalTemperature().withRunningState(['idle', 'heat']).withSystemMode(['heat']).withEndpoint(epName));
-                    features.push(e.numeric('abs_min_heat_setpoint_limit', ea.STATE)
-                        .withUnit('°C').withEndpoint(epName)
-                        .withDescription('Absolute min temperature allowed on the device'));
-                    features.push(e.numeric('abs_max_heat_setpoint_limit', ea.STATE)
-                        .withUnit('°C').withEndpoint(epName)
-                        .withDescription('Absolute max temperature allowed on the device'));
                     features.push(e.numeric('min_heat_setpoint_limit', ea.ALL)
                         .withValueMin(4).withValueMax(35).withValueStep(0.5).withUnit('°C')
                         .withEndpoint(epName).withDescription('Min temperature limit set on the device'));
@@ -415,7 +409,7 @@ const definitions: Definition[] = [
             return features;
         })(16)),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const options = { manufacturerCode: 0x1246 };
+            const options = {manufacturerCode: 0x1246};
 
             // Danfoss Icon2 MainController Specific endpoint
             const endpoint232 = device.getEndpoint(232);
@@ -427,12 +421,16 @@ const definitions: Definition[] = [
                 }
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'msRelativeHumidity', 'hvacUserInterfaceCfg']);
 
-                await reporting.batteryPercentageRemaining(endpoint, { min: constants.repInterval.HOUR, max: constants.repInterval.MAX, change: 1 });
-                await reporting.thermostatTemperature(endpoint, { min: constants.repInterval.SECONDS_5, max: constants.repInterval.HOUR, change: 50 });
-                await reporting.thermostatOccupiedHeatingSetpoint(endpoint, { min: 0, max: constants.repInterval.MAX, change: 1 });
-                await reporting.humidity(endpoint, { min: constants.repInterval.SECONDS_5, max: constants.repInterval.HOUR, change: 1 });
+                await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: constants.repInterval.MAX, change: 1});
+                await reporting.thermostatTemperature(endpoint, {min: constants.repInterval.SECONDS_5, max: constants.repInterval.HOUR, change: 50});
+                await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MAX, change: 1});
+                await reporting.humidity(endpoint, {min: constants.repInterval.SECONDS_5, max: constants.repInterval.HOUR, change: 1});
 
-                await endpoint.read('hvacThermostat', ['localTemp', 'occupiedHeatingSetpoint', 'minHeatSetpointLimit', 'maxHeatSetpointLimit', 'systemMode']);
+                await endpoint.read('hvacThermostat', ['localTemp', 
+                    'occupiedHeatingSetpoint', 
+                    'minHeatSetpointLimit', 
+                    'maxHeatSetpointLimit', 
+                    'systemMode']);
                 await endpoint.read('msRelativeHumidity', ['measuredValue']);
                 await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
                 await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
@@ -440,8 +438,7 @@ const definitions: Definition[] = [
                 // Different attributes depending if it's Main controller or single thermostat
                 if (typeof endpoint232 == 'undefined') {
                     await endpoint.read('genBasic', ['modelId', 'powerSource']);
-                }
-                else {
+                } else {
                     await endpoint.read('hvacThermostat', ['setpointChangeSource']);
                     await endpoint.configureReporting('hvacThermostat', [{
                         attribute: 'danfossOutputStatus',
@@ -454,7 +451,7 @@ const definitions: Definition[] = [
                 }
             }
 
-            //Main controller params
+            // Main controller params
             if (typeof endpoint232 != 'undefined') {
                 await reporting.bind(endpoint232, coordinatorEndpoint, ['genBasic']);
                 await reporting.bind(endpoint232, coordinatorEndpoint, ['haDiagnostic']);
