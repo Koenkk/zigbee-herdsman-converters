@@ -19,7 +19,7 @@ const {
     lumiOutageCountRestoreBindReporting, lumiElectricityMeter, lumiPower,
     lumiOverloadProtection, lumiLedIndicator, lumiButtonLock, lumiMotorSpeed,
     lumiOnOff, lumiLedDisabledNight, lumiFlipIndicatorLight, lumiPreventReset,
-    lumiClickMode, lumiSlider,
+    lumiClickMode, lumiSlider, lumiSetMode,
 } = lumi.modernExtend;
 import {Definition} from '../lib/types';
 const {manufacturerCode} = lumi;
@@ -2868,162 +2868,84 @@ const definitions: Definition[] = [
         model: 'ZNQBKG38LM',
         vendor: 'Aqara',
         description: 'Smart wall switch Z1 (single rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_power],
-        toZigbee: [
-            tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_switch_lock_relay_opple,
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            lumiOnOff({operationMode: true, powerOutageMemory: 'enum', lockRelay: true}),
+            lumiAction(),
+            lumiElectricityMeter(),
+            lumiPower(),
+            lumiLedDisabledNight(),
+            lumiSetMode(),
         ],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'button': 1};
-        },
-        exposes: [
-            e.power(), e.voltage(), e.device_temperature(),
-            e.switch().withEndpoint('button'),
-
-            e.enum('power_outage_memory', ea.ALL, ['on', 'electric_appliances_on', 'electric_appliances_off', 'inverted'])
-                .withDescription('Power Outage Memory').withEndpoint('button'),
-            e.led_disabled_night(),
-
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode').withEndpoint('button'),
-
-            e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode').withEndpoint('button'),
-
-            e.action(['single']),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
-        },
-        extend: [lumiZigbeeOTA(), lumiPreventReset()],
     },
     {
         zigbeeModel: ['lumi.switch.acn049'],
         model: 'ZNQBKG39LM',
         vendor: 'Aqara',
         description: 'Smart wall switch Z1 (double rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_power],
-        toZigbee: [
-            tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_switch_lock_relay_opple,
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            deviceEndpoints({endpoints: {'top': 1, 'bottom': 2}}),
+            lumiOnOff({
+                operationMode: true,
+                powerOutageMemory: 'enum',
+                lockRelay: true,
+                endpointNames: ['top', 'bottom'],
+            }),
+            lumiAction({endpointNames: ['top', 'bottom']}),
+            lumiElectricityMeter(),
+            lumiPower(),
+            lumiLedDisabledNight(),
+            lumiSetMode(),
         ],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'top': 1, 'bottom': 2};
-        },
-        exposes: [
-            e.power(), e.voltage(), e.device_temperature(),
-            e.switch().withEndpoint('top'), e.switch().withEndpoint('bottom'),
-
-            e.enum('power_outage_memory', ea.ALL, ['on', 'electric_appliances_on', 'electric_appliances_off', 'inverted'])
-                .withDescription('Power Outage Memory'),
-            e.led_disabled_night(),
-
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for top button').withEndpoint('top'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
-
-            e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode for top button').withEndpoint('top'),
-            e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode for bottom button').withEndpoint('bottom'),
-
-            e.action(['single_top', 'single_bottom']),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
-        },
-        extend: [lumiZigbeeOTA(), lumiPreventReset()],
     },
     {
         zigbeeModel: ['lumi.switch.acn054'],
         model: 'ZNQBKG40LM',
         vendor: 'Aqara',
         description: 'Smart wall switch Z1 (triple rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_power],
-        toZigbee: [
-            tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_switch_lock_relay_opple,
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            deviceEndpoints({endpoints: {'top': 1, 'center': 2, 'bottom': 3}}),
+            lumiOnOff({
+                operationMode: true,
+                powerOutageMemory: 'enum',
+                lockRelay: true,
+                endpointNames: ['top', 'center', 'bottom']}),
+            lumiAction({endpointNames: ['top', 'center', 'bottom']}),
+            lumiElectricityMeter(),
+            lumiPower(),
+            lumiLedDisabledNight(),
+            lumiSetMode(),
         ],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'top': 1, 'center': 2, 'bottom': 3};
-        },
-        exposes: [
-            e.power(), e.voltage(), e.device_temperature(),
-            e.switch().withEndpoint('top'), e.switch().withEndpoint('center'), e.switch().withEndpoint('bottom'),
-            e.enum('power_outage_memory', ea.ALL, ['on', 'electric_appliances_on', 'electric_appliances_off', 'inverted'])
-                .withDescription('Power Outage Memory'),
-            e.led_disabled_night(),
-
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for top button').withEndpoint('top'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for center button').withEndpoint('center'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
-
-            e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode for top button').withEndpoint('top'),
-            e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode for center button').withEndpoint('center'),
-            e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode for bottom button').withEndpoint('bottom'),
-
-            e.action(['single_top', 'single_center', 'single_bottom']),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
-        },
-        extend: [lumiZigbeeOTA(), lumiPreventReset()],
     },
     {
         zigbeeModel: ['lumi.switch.acn055'],
         model: 'ZNQBKG41LM',
         vendor: 'Aqara',
         description: 'Smart wall switch Z1 (quadruple rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_power],
-        toZigbee: [
-            tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_led_disabled_night, lumi.toZigbee.lumi_switch_lock_relay_opple, lumi.toZigbee.lumi_switch_click_mode,
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            deviceEndpoints({endpoints: {'top': 1, 'center': 2, 'bottom': 3, 'wireless': 4}}),
+            lumiOnOff({
+                operationMode: true,
+                powerOutageMemory: 'enum',
+                lockRelay: true,
+                endpointNames: ['top', 'center', 'bottom'],
+            }),
+            lumiAction({
+                actionLookup: {'hold': 0, 'single': 1, 'double': 2, 'release': 255},
+                endpointNames: ['top', 'center', 'bottom', 'wireless']}),
+            lumiElectricityMeter(),
+            lumiPower(),
+            lumiLedDisabledNight(),
+            lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
+            lumiSetMode(),
         ],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'top': 1, 'center': 2, 'bottom': 3, 'wireless': 4};
-        },
-        exposes: [
-            e.power(), e.voltage(), e.device_temperature(),
-            e.switch().withEndpoint('top'), e.switch().withEndpoint('center'), e.switch().withEndpoint('bottom'),
-            e.enum('power_outage_memory', ea.ALL, ['on', 'electric_appliances_on', 'electric_appliances_off', 'inverted'])
-                .withDescription('Power Outage Memory'),
-            e.led_disabled_night(),
-
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for top button').withEndpoint('top'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for center button').withEndpoint('center'),
-            e.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for bottom button').withEndpoint('bottom'),
-
-            e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode for top button').withEndpoint('top'),
-            e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode for center button').withEndpoint('center'),
-            e.binary('lock_relay', ea.ALL, true, false)
-                .withDescription('Lock relay mode for bottom button').withEndpoint('bottom'),
-
-            e.enum('click_mode', ea.ALL, ['fast', 'multi'])
-                .withDescription('Click mode(Wireless button only), fast: only supports single click which will be send immediately after clicking.' +
-                    'multi: supports more events like double and hold'),
-            e.action(['single_top', 'single_center', 'single_bottom',
-                'hold_wireless', 'single_wireless', 'double_wireless', 'release_wireless']),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
-        },
-        extend: [lumiZigbeeOTA(), lumiPreventReset()],
     },
     {
         zigbeeModel: ['lumi.switch.acn056'],
