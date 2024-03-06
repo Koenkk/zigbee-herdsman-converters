@@ -412,6 +412,8 @@ const definitions: Definition[] = [
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
             await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
         extend: [lumiZigbeeOTA()],
     },
@@ -1080,7 +1082,8 @@ const definitions: Definition[] = [
         model: 'QBKG24LM',
         vendor: 'Aqara',
         description: 'Smart wall switch D1 (with neutral, double rocker)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_operation_mode_basic],
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_operation_mode_basic,
+            lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_basic],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_power, lumi.toZigbee.lumi_switch_operation_mode_basic],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -2602,6 +2605,7 @@ const definitions: Definition[] = [
         model: 'WXKG13LM',
         vendor: 'Aqara',
         description: 'Wireless mini switch T1',
+        whiteLabel: [{vendor: 'Aqara', model: 'WB-R02D'}],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
@@ -2656,6 +2660,7 @@ const definitions: Definition[] = [
         model: 'MCCGQ12LM',
         vendor: 'Aqara',
         description: 'Door and window sensor T1',
+        whiteLabel: [{vendor: 'Aqara', model: 'DW-S03D'}],
         fromZigbee: [lumi.fromZigbee.lumi_contact, lumi.fromZigbee.lumi_specific, fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.battery_voltage()],

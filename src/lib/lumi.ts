@@ -26,7 +26,7 @@ import * as globalStore from './store';
 import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range, KeyValueNumberString} from './types';
 import * as modernExtend from './modernExtend';
 import * as exposes from './exposes';
-
+const legacyFromZigbeeStore: KeyValueAny = {};
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -3035,7 +3035,7 @@ export const toZigbee = {
                 break;
             }
             case 'led_indicator':
-                await sendAttr(0x04170055, getFromLookup(value, {'OFF': 0, 'ON': 1}), 1);
+                await sendAttr(0x04170055, getFromLookup(value, {'ON': 0, 'OFF': 1}), 1);
                 break;
             case 'child_lock':
                 await sendAttr(0x04160055, getFromLookup(value, {'UNLOCK': 0, 'LOCK': 1}), 1);
@@ -4157,40 +4157,39 @@ export const legacyFromZigbee = {
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             if (isLegacyEnabled(options)) {
-                const fromZigbeeStore: KeyValueAny = {};
                 const deviceID = msg.device.ieeeAddr;
                 const state = msg.data['onOff'];
                 const key = `${deviceID}_legacy`;
 
-                if (!fromZigbeeStore[key]) {
-                    fromZigbeeStore[key] = {};
+                if (!legacyFromZigbeeStore[key]) {
+                    legacyFromZigbeeStore[key] = {};
                 }
 
                 const current = msg.meta.zclTransactionSequenceNumber;
-                if (fromZigbeeStore[key].transaction === current) return;
-                fromZigbeeStore[key].transaction = current;
+                if (legacyFromZigbeeStore[key].transaction === current) return;
+                legacyFromZigbeeStore[key].transaction = current;
 
                 // 0 = click down, 1 = click up, else = multiple clicks
                 if (state === 0) {
-                    fromZigbeeStore[key].timer = setTimeout(() => {
+                    legacyFromZigbeeStore[key].timer = setTimeout(() => {
                         publish({click: 'long'});
-                        fromZigbeeStore[key].timer = null;
-                        fromZigbeeStore[key].long = Date.now();
-                        fromZigbeeStore[key].long_timer = setTimeout(() => {
-                            fromZigbeeStore[key].long = false;
+                        legacyFromZigbeeStore[key].timer = null;
+                        legacyFromZigbeeStore[key].long = Date.now();
+                        legacyFromZigbeeStore[key].long_timer = setTimeout(() => {
+                            legacyFromZigbeeStore[key].long = false;
                         }, 4000); // After 4000 milliseconds of not receiving long_release we assume it will not happen.
                         // @ts-expect-error
                     }, options.long_timeout || 1000); // After 1000 milliseconds of not releasing we assume long click.
                 } else if (state === 1) {
-                    if (fromZigbeeStore[key].long) {
-                        const duration = Date.now() - fromZigbeeStore[key].long;
+                    if (legacyFromZigbeeStore[key].long) {
+                        const duration = Date.now() - legacyFromZigbeeStore[key].long;
                         publish({click: 'long_release', duration: duration});
-                        fromZigbeeStore[key].long = false;
+                        legacyFromZigbeeStore[key].long = false;
                     }
 
-                    if (fromZigbeeStore[key].timer) {
-                        clearTimeout(fromZigbeeStore[key].timer);
-                        fromZigbeeStore[key].timer = null;
+                    if (legacyFromZigbeeStore[key].timer) {
+                        clearTimeout(legacyFromZigbeeStore[key].timer);
+                        legacyFromZigbeeStore[key].timer = null;
                         publish({click: 'single'});
                     }
                 } else {
@@ -4281,12 +4280,11 @@ export const legacyFromZigbee = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            const fromZigbeeStore: KeyValueAny = {};
             // Somestime WXKG02LM sends multiple messages on a single click, this prevents handling
             // of a message with the same transaction sequence number twice.
             const current = msg.meta.zclTransactionSequenceNumber;
-            if (fromZigbeeStore[msg.device.ieeeAddr + 'legacy'] === current) return;
-            fromZigbeeStore[msg.device.ieeeAddr + 'legacy'] = current;
+            if (legacyFromZigbeeStore[msg.device.ieeeAddr + 'legacy'] === current) return;
+            legacyFromZigbeeStore[msg.device.ieeeAddr + 'legacy'] = current;
 
             const buttonLookup: KeyValueAny = {1: 'left', 2: 'right', 3: 'both'};
             const button = buttonLookup[msg.endpoint.ID];

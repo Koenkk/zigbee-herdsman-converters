@@ -15,7 +15,7 @@ const ea = exposes.access;
 function indicatorMode(endpoint?: string) {
     let description = 'Set Indicator Mode.';
     if (endpoint) {
-        description = 'Set Indicator Mode for ' + endpoint + ' Button.';
+        description = 'Set Indicator Mode for ' + endpoint + ' switch.';
     }
     return enumLookup({
         name: 'indicator_mode',
@@ -29,6 +29,21 @@ function indicatorMode(endpoint?: string) {
         attribute: 'ledIndication',
         description: description,
         endpointName: endpoint,
+    });
+}
+
+function socketIndicatorMode() {
+    return enumLookup({
+        name: 'indicator_mode',
+        lookup: {
+            'reverse_with_load': 0,
+            'consistent_with_load': 1,
+            'always_off': 2,
+            'always_on': 3,
+        },
+        cluster: 'manuSpecificSchneiderFanSwitchConfiguration',
+        attribute: 'ledIndication',
+        description: 'Set indicator mode',
     });
 }
 
@@ -484,12 +499,16 @@ const definitions: Definition[] = [
                 .withDescription('Specifies the minimum light output of the ballast'),
             e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast')],
-        extend: [indicatorMode()],
+        extend: [indicatorMode('smart')],
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
+        },
+        endpoint: (device) => {
+            return {'smart': 21};
         },
     },
     {
@@ -498,11 +517,15 @@ const definitions: Definition[] = [
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 2AX',
         ota: ota.zigbeeOTA,
-        extend: [onOff({powerOnBehavior: true}), indicatorMode()],
+        extend: [onOff({powerOnBehavior: false}), indicatorMode('smart')],
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+        },
+        endpoint: (device) => {
+            return {'smart': 21};
         },
     },
     {
@@ -510,11 +533,15 @@ const definitions: Definition[] = [
         model: '41E10PBSWMZ-VW',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 10AX with ControlLink',
-        extend: [onOff({powerOnBehavior: true}), indicatorMode()],
+        extend: [onOff({powerOnBehavior: false}), indicatorMode('smart')],
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+        },
+        endpoint: (device) => {
+            return {'smart': 21};
         },
     },
     {
@@ -1033,6 +1060,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [e.switch(), e.power(), e.energy(), e.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
             .withDescription('Controls the behaviour when the device is powered on'), e.current(), e.voltage()],
+        extend: [socketIndicatorMode()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(6);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
