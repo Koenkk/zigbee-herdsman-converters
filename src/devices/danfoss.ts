@@ -354,11 +354,11 @@ const definitions: Definition[] = [
         vendor: 'Danfoss',
         description: 'Icon2 MC(0x0210) or RT(0x8040) (main controller or room thermostat)',
         fromZigbee: [fz.danfoss_icon_regulator,
-        fz.danfoss_thermostat,
-        fz.danfoss_icon_battery,
-        fz.thermostat,
-        fz.humidity,
-        fz.danfoss_icon_hvac_user_interface],
+            fz.danfoss_thermostat,
+            fz.danfoss_icon_battery,
+            fz.thermostat,
+            fz.humidity,
+            fz.danfoss_icon_hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -426,10 +426,10 @@ const definitions: Definition[] = [
                 await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MAX, change: 1});
                 await reporting.humidity(endpoint, {min: constants.repInterval.SECONDS_5, max: constants.repInterval.HOUR, change: 1});
 
-                await endpoint.read('hvacThermostat', ['localTemp', 
-                    'occupiedHeatingSetpoint', 
-                    'minHeatSetpointLimit', 
-                    'maxHeatSetpointLimit', 
+                await endpoint.read('hvacThermostat', ['localTemp',
+                    'occupiedHeatingSetpoint',
+                    'minHeatSetpointLimit',
+                    'maxHeatSetpointLimit',
                     'systemMode']);
                 await endpoint.read('msRelativeHumidity', ['measuredValue']);
                 await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
