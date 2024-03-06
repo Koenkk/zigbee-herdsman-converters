@@ -1323,7 +1323,8 @@ export const lumiModernExtend = {
 
         return result;
     },
-    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean, powerOutageMemory?: 'binary' | 'enum'}) => {
+    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean, powerOutageMemory?: 'binary' | 'enum', lockRelay?: boolean}) => {
+        args = {operationMode: false, lockRelay: false, ...args};
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
         result.fromZigbee.push(fromZigbee.lumi_specific);
         result.exposes.push(e.device_temperature(), e.power_outage_count());
@@ -1342,6 +1343,22 @@ export const lumiModernExtend = {
                 args.endpointNames.forEach(function(ep) {
                     const epExtend = lumiModernExtend.lumiOperationMode({
                         description: 'Decoupled mode for ' + ep.toString() + ' button',
+                        endpointName: ep,
+                    });
+                    result.toZigbee.concat(epExtend.toZigbee);
+                    result.exposes.concat(epExtend.exposes);
+                });
+            } else {
+                result.toZigbee.concat(extend.toZigbee);
+                result.exposes.concat(extend.exposes);
+            }
+        }
+        if (args.lockRelay) {
+            const extend = lumiModernExtend.lumiLockRelay();
+            if (args.endpointNames) {
+                args.endpointNames.forEach(function(ep) {
+                    const epExtend = lumiModernExtend.lumiLockRelay({
+                        description: 'Locks ' + ep.toString() + ' relay and prevents it from operating',
                         endpointName: ep,
                     });
                     result.toZigbee.concat(epExtend.toZigbee);
@@ -1654,6 +1671,18 @@ export const lumiModernExtend = {
 
         return {fromZigbee, exposes, isModernExtend: true};
     },
+    lumiLockRelay: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'lock_relay',
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0285, type: 0x20},
+        valueOn: [true, 1],
+        valueOff: [false, 0],
+        description: 'Locks relay and prevents it from operating',
+        access: 'ALL',
+        entityCategory: 'config',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
 };
 
 export {lumiModernExtend as modernExtend};
