@@ -1649,12 +1649,18 @@ export const lumiModernExtend = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.data.hasOwnProperty(652)) {
-                    const actionLookup: KeyValueNumberString = {1: 'single', 2: 'double', 3: 'hold', 4: 'slide_up', 5: 'slide_down'};
+                    const actionLookup: KeyValueNumberString = {
+                        1: 'slider_single',
+                        2: 'slider_double',
+                        3: 'slider_hold',
+                        4: 'slider_up',
+                        5: 'slider_down',
+                    };
                     return {
                         slide_time: msg.data[561],
                         slide_speed: msg.data[562],
                         slide_relative_displacement: msg.data[563],
-                        slide_action: actionLookup[msg.data[652]],
+                        action: actionLookup[msg.data[652]],
                         slide_time_delta: msg.data[769],
                     };
                 }
@@ -1665,8 +1671,8 @@ export const lumiModernExtend = {
             e.numeric('slide_time', ea.STATE).withUnit('ms').withCategory('diagnostic'),
             e.numeric('slide_speed', ea.STATE).withUnit('mm/s').withCategory('diagnostic'),
             e.numeric('slide_relative_displacement', ea.STATE).withCategory('diagnostic'),
-            e.enum('slide_action', ea.STATE, ['single', 'double', 'hold', 'slide_up', 'slide_down']).withCategory('diagnostic'),
             e.numeric('slide_time_delta', ea.STATE).withUnit('ms').withCategory('diagnostic'),
+            // action is exposed from extraActions inside lumiAction
         ];
 
         return {fromZigbee, exposes, isModernExtend: true};
