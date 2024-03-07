@@ -867,9 +867,9 @@ const definitions: Definition[] = [
             e.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
                 .withLocalTemperature()
-                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1),
+                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
                 .withSystemMode(['off', 'heat'])
-                .withRunningState(['idle', 'heat'])
+                .withRunningState(['idle', 'heat']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint2 = device.getEndpoint(2);
