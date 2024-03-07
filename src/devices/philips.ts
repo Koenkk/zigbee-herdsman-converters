@@ -2892,6 +2892,10 @@ const definitions: Definition[] = [
                 .withDescription('Type of the rotation, value in the first message is `step` and in the next messages value is `rotate`'),
             e.numeric('action_time', ea.STATE)
                 .withDescription('Raw value that represents the amount the dial was turned').withValueMin(0).withValueMax(255),
+            e.numeric('brightness', ea.STATE)
+                .withDescription('Raw rotation state value of the dial that').withValueMin(0).withValueMax(255),
+            e.numeric('action_step_size', ea.STATE)
+                .withDescription('amount of steps the last action took on the dial exposed as a posive value from 0-255').withValueMin(0).withValueMax(255)
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
