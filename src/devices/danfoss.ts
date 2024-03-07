@@ -349,8 +349,13 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['0x0210', '0x8040', '0x8041', '0x8042'],
-        model: 'Icon2 MC or RT',
+        fingerprint: [
+            {modelID: '0x0210', manufacturerName: 'Danfoss'}, // Main Controller
+            {modelID: '0x8040', manufacturerName: 'Danfoss'}, // RT Zigbee - Display
+            {modelID: '0x8041', manufacturerName: 'Danfoss'}, // RT Zigbee - Featured (Infrared)
+            {modelID: '0x8042', manufacturerName: 'Danfoss'}, // RT Zigbee - Sensor
+        ],        
+        model: 'Icon2',
         vendor: 'Danfoss',
         description: 'Icon2 MC(0x0210) or RT(0x8040) (main controller or room thermostat)',
         fromZigbee: [fz.danfoss_icon_regulator,
