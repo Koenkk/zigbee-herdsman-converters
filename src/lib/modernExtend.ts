@@ -551,13 +551,15 @@ export function binary(args: BinaryArgs): ModernExtend {
 
 export interface ActionEnumLookupArgs {
     actionLookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, endpointNames?: string[],
-    buttonLookup?: KeyValue
+    buttonLookup?: KeyValue, extraActions?: string[]
 }
 export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
     const actions = Object.keys(lookup).map((a) => args.endpointNames ? args.endpointNames.map((e) => `${a}_${e}`) : [a]).flat();
+    // allows direct external input to be used by other extends in the same device
+    if (args.extraActions) actions.concat(args.extraActions);
     const expose = e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)');
 
     const fromZigbee: Fz.Converter[] = [{
