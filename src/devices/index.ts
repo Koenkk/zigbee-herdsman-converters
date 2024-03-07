@@ -101,7 +101,6 @@ import heiman from './heiman';
 import heimgard_technologies from './heimgard_technologies';
 import hej from './hej';
 import hfh from './hfh';
-import hgkg from './hgkg';
 import hilux from './hilux';
 import hive from './hive';
 import hommyn from './hommyn';
@@ -396,7 +395,6 @@ export default [
     ...heimgard_technologies,
     ...hej,
     ...hfh,
-    ...hgkg,
     ...hilux,
     ...hive,
     ...hommyn,
