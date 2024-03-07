@@ -865,11 +865,11 @@ const definitions: Definition[] = [
         ],
         exposes: [
             e.climate()
-                .withSystemMode(['off', 'heat'])
-                .withLocalTemperature()
-                .withRunningState(['idle', 'heat'])
                 .withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
+                .withLocalTemperature()
                 .withLocalTemperatureCalibration(-2.5, 2.5, 0.1),
+                .withSystemMode(['off', 'heat'])
+                .withRunningState(['idle', 'heat'])
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint2 = device.getEndpoint(2);
@@ -881,9 +881,9 @@ const definitions: Definition[] = [
             await reporting.thermostatSystemMode(endpoint2);
             await reporting.thermostatTemperatureCalibration(endpoint2);
             await reporting.thermostatRunningState(endpoint2);
-            await endpoint2.read('hvacThermostat', ['systemMode', 'runningState',
-                'occupiedHeatingSetpoint', 'localTemperatureCalibration']);
+            await endpoint2.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint']);
         },
+    ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512747'],
