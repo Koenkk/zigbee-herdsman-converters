@@ -632,6 +632,13 @@ const definitions: Definition[] = [
         extend: [light({colorTemp: {range: [153, 555]}, color: {modes: ['xy', 'hs'], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
+        zigbeeModel: ['OSL 132 C'],
+        model: 'OSL 132 C',
+        vendor: 'Innr',
+        description: 'Outdoor smart spot color',
+        extend: [light({colorTemp: {range: [100, 1000]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ['BE 220'],
         model: 'BE 220',
         vendor: 'Innr',

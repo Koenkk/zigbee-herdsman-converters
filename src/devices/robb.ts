@@ -3,8 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import {light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -43,7 +42,10 @@ const definitions: Definition[] = [
         model: 'ROB_200-050-0',
         vendor: 'ROBB',
         description: '4 port switch with 2 usb ports (no metering)',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5']}),
+        ],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9023A(EU)'}],
     },
     {
@@ -65,24 +67,10 @@ const definitions: Definition[] = [
         model: 'ROB_200-011-0',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
-        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
-        toZigbee: extend.light_onoff_brightness().toZigbee,
-        exposes: [...extend.light_onoff_brightness({noConfigure: true}).exposes, e.power(), e.voltage(), e.energy(), e.current()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acVoltageMultiplier: 1, acVoltageDivisor: 10,
-                acCurrentMultiplier: 1, acCurrentDivisor: 1000,
-                acPowerMultiplier: 1, acPowerDivisor: 10,
-            });
-        },
+        extend: [
+            light({configureReporting: true}),
+            electricityMeter({current: {divisor: 1000}, voltage: {divisor: 10}, power: {divisor: 10}}),
+        ],
     },
     {
         zigbeeModel: ['ROB_200-003-0'],
@@ -110,23 +98,11 @@ const definitions: Definition[] = [
         model: 'ROB_200-014-0',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut rotary dimmer',
-        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
-        toZigbee: extend.light_onoff_brightness().toZigbee,
-        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy()],
+        extend: [
+            light({configureReporting: true}),
+            electricityMeter(),
+        ],
         whiteLabel: [{vendor: 'YPHIX', model: '50208695'}, {vendor: 'Samotech', model: 'SM311'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint, {min: 10});
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
     },
     {
         zigbeeModel: ['ZG2833K8_EU05', 'ROB_200-007-0'],
@@ -172,7 +148,7 @@ const definitions: Definition[] = [
             'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
             'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ['ZG2833K4_EU06', 'ROB_200-008', 'ROB_200-008-0'],

@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 const e = exposes.presets;
 import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
-import {light} from '../lib/modernExtend';
+import {deviceEndpoints, light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -23,7 +23,10 @@ const definitions: Definition[] = [
         model: 'Eco-Dim.05',
         vendor: 'EcoDim',
         description: 'LED dimmer duo 2x 0-100W',
-        extend: [light({effect: false, configureReporting: true, endpoints: {left: 2, right: 1}})],
+        extend: [
+            deviceEndpoints({endpoints: {'left': 2, 'right': 1}}),
+            light({effect: false, configureReporting: true, endpointNames: ['left', 'right']}),
+        ],
     },
     {
         fingerprint: [

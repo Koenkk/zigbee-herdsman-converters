@@ -3,7 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {electricityMeter, light} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
@@ -12,24 +12,8 @@ const definitions: Definition[] = [
         model: 'VES-ZB-DIM-004',
         vendor: 'Vesternet',
         description: 'Zigbee dimmer',
-        fromZigbee: extend.light_onoff_brightness().fromZigbee
-            .concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
-        toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.power_on_behavior]),
-        exposes: [e.light_brightness().withLevelConfig(['on_transition_time', 'off_transition_time']),
-            e.power(), e.voltage(), e.current(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
+        extend: [light({configureReporting: true}), electricityMeter()],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9040A'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint, {min: 10});
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
     },
     {
         fingerprint: [{modelID: 'ON/OFF -M', softwareBuildID: '2.9.2_r54'}],
@@ -74,8 +58,13 @@ const definitions: Definition[] = [
         vendor: 'Vesternet',
         description: 'Zigbee remote control - 12 button',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_recall, fz.battery, fz.ignore_genOta],
-        exposes: [e.battery(),
-            e.action(['on_*', 'off_*', 'stop_*', 'brightness_move_up_*', 'brightness_move_down_*', 'brightness_stop_*', 'recall_*'])],
+        exposes: [e.battery(), e.action([
+            'on_1', 'off_1', 'stop_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
+            'on_2', 'off_2', 'stop_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
+            'on_3', 'off_3', 'stop_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
+            'on_4', 'off_4', 'stop_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4',
+            'recall_1_1', 'recall_1_2', 'recall_1_3', 'recall_1_4',
+            'recall_2_1', 'recall_2_2', 'recall_2_3', 'recall_2_4'])],
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}, publishDuplicateTransaction: true},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K12-DIM-Z4'}],

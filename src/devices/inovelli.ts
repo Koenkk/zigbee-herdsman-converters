@@ -65,7 +65,7 @@ const individualLedEffects: { [key: string]: number } = {
     clear_effect: 255,
 };
 
-const fanModes: { [key: string]: number } = {low: 2, smart: 4, medium: 85, high: 254, on: 255};
+const fanModes: { [key: string]: number } = {low: 2, smart: 4, medium: 86, high: 170, on: 255};
 const breezemodes: string[] = ['off', 'low', 'medium', 'high'];
 
 const UINT8 = 32;
@@ -920,6 +920,19 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
         description: 'Behavior of single tapping the on or off button. Old behavior turns the switch on or off. ' +
         'New behavior cycles through the levels set by P131-133.',
     },
+    fanTimerMode: {
+        ID: 121,
+        dataType: UINT8,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Enabled': 1},
+        description:
+        'When enabled, then 1x tap up on the paddle turns the fan on, ' +
+        '2x tap up sets a 5 minute timer, 3x tap up sets a 10 minute timer, ' +
+        '4x tap up sets a 15 minute timer, 5x tap up sets a 30 minute timer and ' +
+        'a tap down 1x turns the fan off and the timer is cancelled). ' +
+        'The LED Bar will show how much time is left while active. ' +
+        'By default this feature is set to disabled',
+    },
     fanControlMode: {
         ID: 130,
         dataType: UINT8,
@@ -1283,63 +1296,31 @@ const tzLocal = {
                     if (state === 'on') result.state.brightness = level;
                     return result;
                 } else {
-                    if (
-                        state === 'on' &&
-            globalStore.getValue(entity, 'turnedOffWithTransition') === true
-                    ) {
-                        /**
-                         * In case the bulb it turned OFF with a transition and turned ON WITHOUT
-                         * a transition, the brightness is not recovered as it turns on with brightness 1.
-                         * https://github.com/Koenkk/../issues/1073
-                         */
-                        globalStore.putValue(entity, 'turnedOffWithTransition', false);
-                        await entity.command(
-                            'genLevelCtrl',
-                            'moveToLevelWithOnOff',
-                            {
-                                level: globalStore.getValue(entity, 'brightness'),
-                                transtime: transition.specified ? transition.time : 0xffff,
-                            },
-                            utils.getOptions(meta.mapped, entity),
-                        );
-                        const defaultTransitionTime = await entity.read(
-                            'manuSpecificInovelli',
-                            ['rampRateOffToOnRemote'],
-                        );
-                        return {
-                            state: {state: 'ON'},
-                            readAfterWriteTime: transition.specified ?
-                                transition.time * 100 :
-                                // @ts-expect-error
-                                defaultTransitionTime.rampRateOffToOnRemote * 100,
-                        };
-                    } else {
-                        // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
-                        // with transition.
-                        if (meta.state.hasOwnProperty('brightness') && state === 'off') {
-                            globalStore.putValue(entity, 'brightness', meta.state.brightness);
-                            globalStore.putValue(entity, 'turnedOffWithTransition', true);
-                        }
-
-                        const result = await inovelliOnOffConvertSet(
-                            entity,
-                            'state',
-                            state,
-                            meta,
-                        );
-                        // @ts-expect-error
-                        result.readAfterWriteTime = 0;
-                        if (
-                            result.state &&
-                result.state.state === 'ON' &&
-                meta.state.brightness === 0
-                        ) {
-                            // @ts-expect-error
-                            result.state.brightness = 1;
-                        }
-
-                        return result;
+                    // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
+                    // with transition.
+                    if (meta.state.hasOwnProperty('brightness') && state === 'off') {
+                        globalStore.putValue(entity, 'brightness', meta.state.brightness);
+                        globalStore.putValue(entity, 'turnedOffWithTransition', true);
                     }
+
+                    const result = await inovelliOnOffConvertSet(
+                        entity,
+                        'state',
+                        state,
+                        meta,
+                    );
+                    // @ts-expect-error
+                    result.readAfterWriteTime = 0;
+                    if (
+                        result.state &&
+                        result.state.state === 'ON' &&
+                        meta.state.brightness === 0
+                    ) {
+                        // @ts-expect-error
+                        result.state.brightness = 1;
+                    }
+
+                    return result;
                 }
             } else {
                 brightness = Math.min(254, brightness);
@@ -1446,7 +1427,7 @@ const tzLocal = {
                 'genLevelCtrl',
                 'moveToLevelWithOnOff',
                 {
-                    level: fanModes[parseInt(value) || 0],
+                    level: fanModes[value],
                     transtime: 0xffff,
                 },
                 utils.getOptions(meta.mapped, entity),
@@ -1655,7 +1636,7 @@ const fzLocal = {
                 return {action: `${button}_${action}`};
             } else if (msg.type === 'readResponse') {
                 return Object.keys(msg.data).reduce((p, c) => {
-                    if (ATTRIBUTES[c].displayType === 'enum') {
+                    if (ATTRIBUTES[c] && ATTRIBUTES[c].displayType === 'enum') {
                         return {
                             ...p,
                             [c]: Object.keys(ATTRIBUTES[c].values).find(
@@ -1992,6 +1973,68 @@ const exposesListVZM35: Expose[] = [
             'Example a value of 65 would be 65-60 = 5 minutes - 120-254 Is in hours calculated by(value-120) ' +
             ' Example a value of 132 would be 132-120 would be 12 hours. - 255 Indefinitely',
                 ),
+        ),
+    e
+        .composite('breeze mode', 'breezeMode', ea.STATE_SET)
+        .withFeature(
+            e
+                .enum('speed1', ea.STATE_SET, ['low', 'medium', 'high'])
+                .withDescription('Step 1 Speed'),
+        )
+        .withFeature(
+            e
+                .numeric('time1', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(80)
+                .withDescription('Duration (s) for fan in Step 1  '),
+        )
+        .withFeature(
+            e
+                .enum('speed2', ea.STATE_SET, ['low', 'medium', 'high'])
+                .withDescription('Step 2 Speed'),
+        )
+        .withFeature(
+            e
+                .numeric('time2', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(80)
+                .withDescription('Duration (s) for fan in Step 2  '),
+        )
+        .withFeature(
+            e
+                .enum('speed3', ea.STATE_SET, ['low', 'medium', 'high'])
+                .withDescription('Step 3 Speed'),
+        )
+        .withFeature(
+            e
+                .numeric('time3', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(80)
+                .withDescription('Duration (s) for fan in Step 3  '),
+        )
+        .withFeature(
+            e
+                .enum('speed4', ea.STATE_SET, ['low', 'medium', 'high'])
+                .withDescription('Step 4 Speed'),
+        )
+        .withFeature(
+            e
+                .numeric('time4', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(80)
+                .withDescription('Duration (s) for fan in Step 4  '),
+        )
+        .withFeature(
+            e
+                .enum('speed5', ea.STATE_SET, ['low', 'medium', 'high'])
+                .withDescription('Step 5 Speed'),
+        )
+        .withFeature(
+            e
+                .numeric('time5', ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(80)
+                .withDescription('Duration (s) for fan in Step 5  '),
         ),
 ];
 

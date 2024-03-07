@@ -101,7 +101,6 @@ import heiman from './heiman';
 import heimgard_technologies from './heimgard_technologies';
 import hej from './hej';
 import hfh from './hfh';
-import hgkg from './hgkg';
 import hilux from './hilux';
 import hive from './hive';
 import hommyn from './hommyn';
@@ -283,6 +282,7 @@ import woox from './woox';
 import wyze from './wyze';
 import lumi from './lumi';
 import xinghuoyuan from './xinghuoyuan';
+import xyzroe from './xyzroe';
 import yale from './yale';
 import ynoa from './ynoa';
 import yookee from './yookee';
@@ -395,7 +395,6 @@ export default [
     ...heimgard_technologies,
     ...hej,
     ...hfh,
-    ...hgkg,
     ...hilux,
     ...hive,
     ...hommyn,
@@ -577,6 +576,7 @@ export default [
     ...wyze,
     ...lumi,
     ...xinghuoyuan,
+    ...xyzroe,
     ...yale,
     ...ynoa,
     ...yookee,

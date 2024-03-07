@@ -107,7 +107,7 @@ const definition = {
     model: 'combo',
     vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [temperature({"endpoints":["1"]}), onOff({"powerOnBehavior":false})],
+    extend: [temperature({"endpointNames":["1"]}), onOff({"powerOnBehavior":false})],
     meta: {},
 };
 
@@ -153,7 +153,7 @@ const definition = {
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [deviceEndpoints({"endpoints":{"1":1,"2":2}}), temperature({"endpoints":["1","2"]}), onOff({"powerOnBehavior":false})],
+    extend: [deviceEndpoints({"endpoints":{"1":1,"2":2}}), temperature({"endpointNames":["1","2"]}), onOff({"powerOnBehavior":false})],
     meta: {"multiEndpoint":true},
 };
 

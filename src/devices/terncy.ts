@@ -5,7 +5,7 @@ import tz from '../converters/toZigbee';
 import * as ota from '../lib/ota';
 import * as reporting from '../lib/reporting';
 import {Definition} from '../lib/types';
-import {light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -16,7 +16,10 @@ const definitions: Definition[] = [
         model: 'TERNCY-WS01',
         vendor: 'TERNCY',
         description: 'Smart light switch - 4 gang without neutral wire',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4']}),
+        ],
     },
     {
         zigbeeModel: ['DL001'],

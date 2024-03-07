@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import * as utils from '../lib/utils';
 import * as reporting from '../lib/reporting';
-import {light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -155,14 +155,20 @@ const definitions: Definition[] = [
         model: 'KK-LP-Q02D',
         vendor: 'Konke',
         description: 'Light years switch 2 gangs',
-        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            onOff({endpointNames: ['l1', 'l2']}),
+        ],
     },
     {
         zigbeeModel: ['3AFE292000068623'],
         model: 'KK-LP-Q03D',
         vendor: 'Konke',
         description: 'Light years switch 3 gangs',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3']}),
+        ],
     },
     {
         zigbeeModel: ['3AFE2610010C0021'],

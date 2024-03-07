@@ -2895,6 +2895,26 @@ const converters1 = {
             return result;
         },
     } satisfies Fz.Converter,
+    danfoss_icon_hvac_user_interface: {
+        cluster: 'hvacUserInterfaceCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.hasOwnProperty('keypadLockout')) {
+                result[postfixWithEndpointName('keypad_lockout', msg, model, meta)] =
+                    constants.keypadLockoutMode.hasOwnProperty(msg.data['keypadLockout']) ?
+                        constants.keypadLockoutMode[msg.data['keypadLockout']] :
+                        msg.data['keypadLockout'];
+            }
+            if (msg.data.hasOwnProperty('tempDisplayMode')) {
+                result[postfixWithEndpointName('temperature_display_mode', msg, model, meta)] =
+                    constants.temperatureDisplayMode.hasOwnProperty(msg.data['tempDisplayMode']) ?
+                        constants.temperatureDisplayMode[msg.data['tempDisplayMode']] :
+                        msg.data['tempDisplayMode'];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
     orvibo_raw_1: {
         cluster: 23,
         type: 'raw',
@@ -3182,9 +3202,10 @@ const converters1 = {
                 '105_6': 'press_3_and_4', '105_7': 'press_1_and_2_and_3', '105_8': 'press_4', '105_9': 'press_1_and_4',
                 '105_10': 'press_2_and_4', '105_11': 'press_1_and_2_and_4', '105_12': 'press_3_and_4', '105_13': 'press_1_and_3_and_4',
                 '105_14': 'press_2_and_3_and_4', '105_15': 'press_all', '105_16': 'press_energy_bar', '106_0': 'release',
+                '104_': 'short_press_2_of_2',
             };
 
-            const ID = `${commandID}_${msg.data.commandFrame.raw.slice(0, 1).join('_')}`;
+            const ID = `${commandID}_${msg.data.commandFrame.raw?.slice(0, 1).join('_') ?? ''}`;
             if (!lookup.hasOwnProperty(ID)) {
                 meta.logger.error(`PTM 216Z: missing command '${ID}'`);
             } else {
@@ -4664,18 +4685,18 @@ const converters1 = {
             const buffer = msg.data;
             const commonForColors = buffer[0] === 17 && buffer[2] === 48 && buffer[3] === 0 && buffer[5] === 8 && buffer[6] === 0;
             let color = null;
-            if (commonForColors && buffer[4] === 255) {
+            if (commonForColors && [255, 254].includes(buffer[4])) {
                 color = 'red';
-            } else if (commonForColors && buffer[4] === 42) {
+            } else if (commonForColors && [42, 41].includes(buffer[4])) {
                 color = 'yellow';
-            } else if (commonForColors && buffer[4] === 85) {
+            } else if (commonForColors && [85, 84].includes(buffer[4])) {
                 color = 'green';
-            } else if (commonForColors && buffer[4] === 170) {
+            } else if (commonForColors && [170, 169].includes(buffer[4])) {
                 color = 'blue';
             }
 
             if (color != null) {
-                return {action: color};
+                return {action: color, action_group: msg.groupID};
             }
         },
     } satisfies Fz.Converter,
@@ -4684,9 +4705,7 @@ const converters1 = {
         type: ['commandMoveHue'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.movemode === 1 && msg.data.rate === 12) {
-                return {
-                    action: 'refresh_colored',
-                };
+                return {action: 'refresh_colored', action_group: msg.groupID};
             }
         },
     } satisfies Fz.Converter,
@@ -4698,9 +4717,9 @@ const converters1 = {
             const isRefresh = buffer[0] === 17 && buffer[2] === 16 && (buffer[3] === 1 || buffer[3] === 0) && buffer[4] === 1;
             const isRefreshLong = buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 2;
             if (isRefresh) {
-                return {action: 'refresh'};
+                return {action: 'refresh', action_group: msg.groupID};
             } else if (isRefreshLong) {
-                return {action: 'refresh_long'};
+                return {action: 'refresh_long', action_group: msg.groupID};
             }
         },
     } satisfies Fz.Converter,

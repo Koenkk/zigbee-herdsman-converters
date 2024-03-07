@@ -5,8 +5,8 @@ import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import {Definition, Fz, KeyValue} from '../lib/types';
-import {light, onOff} from '../lib/modernExtend';
-import {temperature, humidity, batteryPercentage} from '../lib/modernExtend';
+import {forcePowerSource, light, onOff} from '../lib/modernExtend';
+import {temperature, humidity, battery} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -162,6 +162,16 @@ const definitions: Definition[] = [
         exposes: [e.cover_position(), e.battery()],
     },
     {
+        zigbeeModel: ['TRZB3'],
+        model: 'TRZB3',
+        vendor: 'Third Reality',
+        description: 'Roller blind motor',
+        extend: [forcePowerSource({powerSource: 'Battery'})],
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position(), e.battery()],
+    },
+    {
         zigbeeModel: ['3RSB22BZ'],
         model: '3RSB22BZ',
         vendor: 'Third Reality',
@@ -182,17 +192,18 @@ const definitions: Definition[] = [
         model: '3RTHS24BZ',
         vendor: 'Third Reality',
         description: 'Temperature and humidity sensor',
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        fromZigbee: [fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        exposes: [e.temperature(), e.humidity()],
+        extend: [battery({voltage: true}), forcePowerSource({powerSource: 'Battery'})],
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['3RTHS0224BZ'],
-        model: '3RTHS0224BZ',
+        zigbeeModel: ['3RTHS0224Z'],
+        model: '3RTHS0224Z',
         vendor: 'Third Reality',
         description: 'Temperature and humidity sensor v2',
-        extend: [temperature(), humidity(), batteryPercentage()],
+        extend: [temperature(), humidity(), battery(), forcePowerSource({powerSource: 'Battery'})],
         ota: ota.zigbeeOTA,
     },
     {

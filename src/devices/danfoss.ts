@@ -225,9 +225,7 @@ const definitions: Definition[] = [
             {modelID: '0x8031', manufacturerName: 'Danfoss'}, // RTbattery Display Infrared
             {modelID: '0x8034', manufacturerName: 'Danfoss'}, // RTbattery Dial
             {modelID: '0x8035', manufacturerName: 'Danfoss'}, // RTbattery Dial Infrared
-            {modelID: '0x8040', manufacturerName: 'Danfoss'}, // RT Zigbee - Display
-            {modelID: '0x8041', manufacturerName: 'Danfoss'}, // RT Zigbee - Featured
-            {modelID: '0x8042', manufacturerName: 'Danfoss'}], // RT Zigbee - Sensor
+        ],
         model: 'Icon',
         vendor: 'Danfoss',
         description: 'Icon floor heating (regulator, Zigbee module & thermostats)',
@@ -348,6 +346,133 @@ const definitions: Definition[] = [
                 'danfossSystemStatusCode',
                 'danfossSystemStatusWater',
                 'danfossMultimasterRole'], options);
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: '0x0210', manufacturerName: 'Danfoss'}, // Main Controller
+            {modelID: '0x8040', manufacturerName: 'Danfoss'}, // RT Zigbee - Display
+            {modelID: '0x8041', manufacturerName: 'Danfoss'}, // RT Zigbee - Featured (Infrared)
+            {modelID: '0x8042', manufacturerName: 'Danfoss'}, // RT Zigbee - Sensor
+        ],
+        model: 'Icon2',
+        vendor: 'Danfoss',
+        description: 'Icon2 MC(0x0210) or RT(0x8040) (main controller or room thermostat)',
+        fromZigbee: [fz.danfoss_icon_regulator,
+            fz.danfoss_thermostat,
+            fz.danfoss_icon_battery,
+            fz.thermostat,
+            fz.humidity,
+            fz.danfoss_icon_hvac_user_interface],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.thermostat_min_heat_setpoint_limit,
+            tz.thermostat_max_heat_setpoint_limit,
+            tz.danfoss_output_status,
+            tz.danfoss_room_status_code,
+            tz.danfoss_system_status_water,
+            tz.danfoss_system_status_code,
+            tz.danfoss_multimaster_role,
+            tz.thermostat_keypad_lockout,
+        ],
+        meta: {multiEndpoint: true, thermostat: {dontMapPIHeatingDemand: true}},
+        exposes: [].concat(((endpointsCount) => {
+            const features = [];
+            for (let i = 1; i <= endpointsCount; i++) {
+                const epName = `${i}`;
+                if (i < 16) {
+                    features.push(e.battery().withEndpoint(epName));
+                    features.push(e.humidity().withEndpoint(epName));
+                    features.push(e.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
+                        .withLocalTemperature().withRunningState(['idle', 'heat']).withSystemMode(['heat']).withEndpoint(epName));
+                    features.push(e.numeric('min_heat_setpoint_limit', ea.ALL)
+                        .withValueMin(4).withValueMax(35).withValueStep(0.5).withUnit('°C')
+                        .withEndpoint(epName).withDescription('Min temperature limit set on the device'));
+                    features.push(e.numeric('max_heat_setpoint_limit', ea.ALL)
+                        .withValueMin(4).withValueMax(35).withValueStep(0.5).withUnit('°C')
+                        .withEndpoint(epName).withDescription('Max temperature limit set on the device'));
+                    features.push(e.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
+                        .withEndpoint(epName));
+                    features.push(e.enum('output_status', ea.STATE_GET, ['inactive', 'active'])
+                        .withEndpoint(epName).withDescription('Danfoss Output Status [Active vs Inactive])'));
+                    features.push(e.enum('room_status_code', ea.STATE_GET, ['no_error', 'missing_rt',
+                        'rt_touch_error', 'floor_sensor_short_circuit', 'floor_sensor_disconnected'])
+                        .withEndpoint(epName).withDescription('Thermostat status'));
+                } else {
+                    features.push(e.enum('system_status_code', ea.STATE_GET, ['no_error', 'missing_expansion_board',
+                        'missing_radio_module', 'missing_command_module', 'missing_master_rail', 'missing_slave_rail_no_1',
+                        'missing_slave_rail_no_2', 'pt1000_input_short_circuit', 'pt1000_input_open_circuit',
+                        'error_on_one_or_more_output']).withEndpoint('232').withDescription('Regulator Status'));
+                    features.push(e.enum('system_status_water', ea.STATE_GET, ['hot_water_flow_in_pipes', 'cool_water_flow_in_pipes'])
+                        .withEndpoint('232').withDescription('Water Status of Regulator'));
+                    features.push(e.enum('multimaster_role', ea.STATE_GET, ['invalid_unused', 'master', 'slave_1', 'slave_2'])
+                        .withEndpoint('232').withDescription('Regulator role (Master vs Slave)'));
+                }
+            }
+            return features;
+        })(16)),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const options = {manufacturerCode: 0x1246};
+
+            // Danfoss Icon2 MainController Specific endpoint
+            const endpoint232 = device.getEndpoint(232);
+
+            for (let i = 1; i <= 15; i++) {
+                const endpoint = device.getEndpoint(i);
+                if (typeof endpoint == 'undefined') {
+                    continue;
+                }
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'msRelativeHumidity', 'hvacUserInterfaceCfg']);
+
+                await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: constants.repInterval.MAX, change: 1});
+                await reporting.thermostatTemperature(endpoint, {min: constants.repInterval.SECONDS_5, max: constants.repInterval.HOUR, change: 50});
+                await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MAX, change: 1});
+                await reporting.humidity(endpoint, {min: constants.repInterval.SECONDS_5, max: constants.repInterval.HOUR, change: 1});
+
+                await endpoint.read('hvacThermostat', ['localTemp',
+                    'occupiedHeatingSetpoint',
+                    'minHeatSetpointLimit',
+                    'maxHeatSetpointLimit',
+                    'systemMode']);
+                await endpoint.read('msRelativeHumidity', ['measuredValue']);
+                await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+                await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
+
+                // Different attributes depending if it's Main controller or single thermostat
+                if (typeof endpoint232 == 'undefined') {
+                    await endpoint.read('genBasic', ['modelId', 'powerSource']);
+                } else {
+                    await endpoint.read('hvacThermostat', ['setpointChangeSource']);
+                    await endpoint.configureReporting('hvacThermostat', [{
+                        attribute: 'danfossOutputStatus',
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.MINUTES_10,
+                        reportableChange: 1,
+                    }], options);
+
+                    await endpoint.read('hvacThermostat', ['danfossOutputStatus', 'danfossRoomStatusCode'], options);
+                }
+            }
+
+            // Main controller params
+            if (typeof endpoint232 != 'undefined') {
+                await reporting.bind(endpoint232, coordinatorEndpoint, ['genBasic']);
+                await reporting.bind(endpoint232, coordinatorEndpoint, ['haDiagnostic']);
+
+                await endpoint232.read('genBasic', ['modelId',
+                    'powerSource',
+                    'appVersion',
+                    'stackVersion',
+                    'hwVersion',
+                    'dateCode']);
+                await endpoint232.read('haDiagnostic', [
+                    'danfossSystemStatusCode',
+                    'danfossSystemStatusWater',
+                    'danfossMultimasterRole'], options);
+            }
         },
     },
 ];
