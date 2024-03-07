@@ -635,7 +635,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['OSL 132 C'],
         model: 'OSL 132 C',
         vendor: 'Innr',
-        description: 'Outdoor Smart Spot Colour',
+        description: 'Outdoor smart spot color',
         extend: [light({colorTemp: {range: [100, 1000]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
     {
