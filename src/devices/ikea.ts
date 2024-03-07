@@ -1299,6 +1299,14 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genBasic', 'ssIasZone']);
         },
     },
+    {
+        zigbeeModel: ['BADRING Water Leakage Sensor'],
+        model: 'E2202',
+        vendor: 'IKEA',
+        description: 'IKEA Water Leakage Detection Sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        exposes: [e.water_leak()],
+    },
 ];
 
 export default definitions;
