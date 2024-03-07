@@ -882,7 +882,7 @@ const definitions: Definition[] = [
             await reporting.thermostatTemperatureCalibration(endpoint2);
             await reporting.thermostatRunningState(endpoint2);
             await endpoint2.read('hvacThermostat', ['systemMode', 'runningState',
-                'occupiedHeatingSetpoint', 'localTtemp', 'localTemperatureCalibration']);
+                'occupiedHeatingSetpoint', 'localTemperatureCalibration']);
         },
     },
     {
