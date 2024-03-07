@@ -376,6 +376,7 @@ const definitions: Definition[] = [
             tz.danfoss_system_status_water,
             tz.danfoss_system_status_code,
             tz.danfoss_multimaster_role,
+            tz.thermostat_keypad_lockout,
         ],
         meta: {multiEndpoint: true, thermostat: {dontMapPIHeatingDemand: true}},
         exposes: [].concat(((endpointsCount) => {
