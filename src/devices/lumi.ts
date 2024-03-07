@@ -19,7 +19,7 @@ const {
     lumiOutageCountRestoreBindReporting, lumiElectricityMeter, lumiPower,
     lumiOverloadProtection, lumiLedIndicator, lumiButtonLock, lumiMotorSpeed,
     lumiOnOff, lumiLedDisabledNight, lumiFlipIndicatorLight, lumiPreventReset,
-    lumiClickMode, lumiSlider, lumiSetMode,
+    lumiClickMode, lumiSlider, lumiSetMode, lumiSwitchMode,
 } = lumi.modernExtend;
 import {Definition} from '../lib/types';
 const {manufacturerCode} = lumi;
@@ -2960,6 +2960,7 @@ const definitions: Definition[] = [
             lumiElectricityMeter(),
             lumiPower(),
             lumiSlider(),
+            lumiSwitchMode(),
         ],
     },
     {
@@ -2981,6 +2982,7 @@ const definitions: Definition[] = [
             lumiElectricityMeter(),
             lumiPower(),
             lumiSlider(),
+            lumiSwitchMode(),
         ],
     },
     {
@@ -3001,6 +3003,7 @@ const definitions: Definition[] = [
             lumiElectricityMeter(),
             lumiPower(),
             lumiSlider(),
+            lumiSwitchMode(),
         ],
     },
     {
@@ -3025,6 +3028,7 @@ const definitions: Definition[] = [
             lumiPower(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
+            lumiSwitchMode(),
         ],
     },
     {

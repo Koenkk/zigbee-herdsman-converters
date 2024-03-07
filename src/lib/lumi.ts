@@ -211,7 +211,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '4':
             if (['WS-USC01', 'WS-USC02', 'WS-EUK01', 'WS-EUK02', 'QBKG27LM', 'QBKG28LM', 'QBKG29LM',
-                'QBKG25LM', 'QBKG38LM', 'QBKG39LM'].includes(model.model)) {
+                'QBKG25LM', 'QBKG38LM', 'QBKG39LM', 'ZNQBKG42LM', 'ZNQBKG43LM', 'ZNQBKG44LM', 'ZNQBKG45LM'].includes(model.model)) {
                 payload.mode_switch = getFromLookup(value, {4: 'anti_flicker_mode', 1: 'quick_mode'});
             }
             break;
@@ -1690,6 +1690,17 @@ export const lumiModernExtend = {
         };
         return {configure, isModernExtend: true};
     },
+    lumiSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'mode_switch',
+        lookup: {'quick_mode': 1, 'anti_flicker_mode': 4},
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0004, type: 0x21},
+        description: 'Anti flicker mode can be used to solve blinking issues of some lights.' +
+            'Quick mode makes the device respond faster.',
+        entityCategory: 'config',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
 };
 
 export {lumiModernExtend as modernExtend};
