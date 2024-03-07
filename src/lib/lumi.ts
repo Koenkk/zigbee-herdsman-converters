@@ -1683,8 +1683,11 @@ export const lumiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    lumiSetMode: (): ModernExtend => {
-        // I have no idea, why it is used everywhere
+    lumiSetEventMode: (): ModernExtend => {
+        // I have no idea, why it is used everywhere, even if not supported
+        // modes:
+        // 0 - 'command' mode. keys send commands. useful for binding
+        // 1 - 'event' mode. keys send events. useful for handling
         const configure: Configure = async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         };
