@@ -1725,6 +1725,29 @@ const tuyaModernExtend = {
 
         return result;
     },
+    dpBacklightMode(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        let {readOnly, lookup} = args;
+        lookup = lookup || {'off': 0, 'normal': 1, 'inverted': 2};
+        return tuyaModernExtend.dpEnumLookup({name: 'backlight_mode', lookup: lookup, type: dataTypes.enum,
+            expose: tuyaExposes.backlightModeOffNormalInverted().withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
+    },
+    combineActions(actions: ModernExtend[]): ModernExtend {
+        let newValues: (string|number)[] = [];
+        let newFromZigbee: Fz.Converter[] = [];
+        let description: string;
+        // collect action values and handlers
+        for (const actionME of actions) {
+            const {exposes, fromZigbee} = actionME;
+            newValues = newValues.concat((exposes[0] as exposes.Enum).values);
+            description = (exposes[0] as exposes.Enum).description;
+            newFromZigbee = newFromZigbee.concat(fromZigbee);
+        }
+
+        // create single enum-expose
+        const exp = new exposes.Enum('action', ea.STATE, newValues).withDescription(description);
+
+        return {exposes: [exp], fromZigbee: newFromZigbee, isModernExtend: true};
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
