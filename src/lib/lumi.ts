@@ -1,3 +1,4 @@
+import {Buffer} from 'node:buffer';
 import {
     batteryVoltageToPercentage,
     postfixWithEndpointName,
@@ -23,7 +24,10 @@ import {
 import * as ota from './ota';
 import fz from '../converters/fromZigbee';
 import * as globalStore from './store';
-import {Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range, KeyValueNumberString} from './types';
+import {
+    Fz, Definition, KeyValue, KeyValueAny, Tz, ModernExtend, Range,
+    KeyValueNumberString, OnEvent, Expose, Configure,
+} from './types';
 import * as modernExtend from './modernExtend';
 import * as exposes from './exposes';
 const legacyFromZigbeeStore: KeyValueAny = {};
@@ -41,7 +45,6 @@ export interface TrvScheduleConfig {
     days: Day[];
     events: TrvScheduleConfigEvent[];
 }
-
 
 export const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buffer) => {
     const dataObject: KeyValue = {};
@@ -208,7 +211,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '4':
             if (['WS-USC01', 'WS-USC02', 'WS-EUK01', 'WS-EUK02', 'QBKG27LM', 'QBKG28LM', 'QBKG29LM',
-                'QBKG25LM', 'QBKG38LM', 'QBKG39LM'].includes(model.model)) {
+                'QBKG25LM', 'QBKG38LM', 'QBKG39LM', 'ZNQBKG42LM', 'ZNQBKG43LM', 'ZNQBKG44LM', 'ZNQBKG45LM'].includes(model.model)) {
                 payload.mode_switch = getFromLookup(value, {4: 'anti_flicker_mode', 1: 'quick_mode'});
             }
             break;
@@ -1320,7 +1323,8 @@ export const lumiModernExtend = {
 
         return result;
     },
-    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean, powerOutageMemory?: 'binary' | 'enum'}) => {
+    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean, powerOutageMemory?: 'binary' | 'enum', lockRelay?: boolean}) => {
+        args = {operationMode: false, lockRelay: false, ...args};
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
         result.fromZigbee.push(fromZigbee.lumi_specific);
         result.exposes.push(e.device_temperature(), e.power_outage_count());
@@ -1339,6 +1343,22 @@ export const lumiModernExtend = {
                 args.endpointNames.forEach(function(ep) {
                     const epExtend = lumiModernExtend.lumiOperationMode({
                         description: 'Decoupled mode for ' + ep.toString() + ' button',
+                        endpointName: ep,
+                    });
+                    result.toZigbee.concat(epExtend.toZigbee);
+                    result.exposes.concat(epExtend.exposes);
+                });
+            } else {
+                result.toZigbee.concat(extend.toZigbee);
+                result.exposes.concat(extend.exposes);
+            }
+        }
+        if (args.lockRelay) {
+            const extend = lumiModernExtend.lumiLockRelay();
+            if (args.endpointNames) {
+                args.endpointNames.forEach(function(ep) {
+                    const epExtend = lumiModernExtend.lumiLockRelay({
+                        description: 'Locks ' + ep.toString() + ' relay and prevents it from operating',
                         endpointName: ep,
                     });
                     result.toZigbee.concat(epExtend.toZigbee);
@@ -1373,7 +1393,7 @@ export const lumiModernExtend = {
     }),
     lumiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
         name: 'power_on_behavior',
-        lookup: {'on': 0, 'previous': 1, 'off': 2},
+        lookup: {'on': 0, 'previous': 1, 'off': 2, 'inverted': 3},
         cluster: 'manuSpecificLumi',
         attribute: {ID: 0x0517, type: 0x20},
         description: 'Controls the behavior when the device is powered on after power loss',
@@ -1585,6 +1605,107 @@ export const lumiModernExtend = {
         valueOff: ['OFF', 0],
         description: 'After turn on, the indicator light turns on while switch is off, and vice versa',
         access: 'ALL',
+        entityCategory: 'config',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    lumiPreventReset: (): ModernExtend => {
+        const onEvent: OnEvent = async (type, data, device) => {
+            if (
+                // options.allow_reset ||
+                type !== 'message' ||
+                data.type !== 'attributeReport' ||
+                data.cluster !== 'genBasic' ||
+                !data.data[0xfff0] ||
+                // eg: [0xaa, 0x10, 0x05, 0x41, 0x87, 0x01, 0x01, 0x10, 0x00]
+                !data.data[0xFFF0].slice(0, 5).equals(Buffer.from([0xaa, 0x10, 0x05, 0x41, 0x87]))
+            ) {
+                return;
+            }
+            const payload = {
+                [0xfff0]: {
+                    value: [0xaa, 0x10, 0x05, 0x41, 0x47, 0x01, 0x01, 0x10, 0x01],
+                    type: 0x41,
+                },
+            };
+            await device.getEndpoint(1).write('genBasic', payload, {manufacturerCode});
+        };
+        return {onEvent, isModernExtend: true};
+    },
+    lumiClickMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'click_mode',
+        lookup: {'fast': 1, 'multi': 2},
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0125, type: 0x20},
+        description: 'Click mode for wireless button. fast: only supports single click but allows faster reponse time.' +
+            'multi: supports multiple types of clicks but is slower, because it awaits multiple clicks.',
+        entityCategory: 'config',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    lumiSlider: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'manuSpecificLumi',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty(652)) {
+                    const actionLookup: KeyValueNumberString = {
+                        1: 'slider_single',
+                        2: 'slider_double',
+                        3: 'slider_hold',
+                        4: 'slider_up',
+                        5: 'slider_down',
+                    };
+                    return {
+                        action_slide_time: msg.data[561],
+                        action_slide_speed: msg.data[562],
+                        action_slide_relative_displacement: msg.data[563],
+                        action: actionLookup[msg.data[652]],
+                        action_slide_time_delta: msg.data[769],
+                    };
+                }
+            },
+        }];
+
+        const exposes: Expose[] = [
+            e.numeric('action_slide_time', ea.STATE).withUnit('ms').withCategory('diagnostic'),
+            e.numeric('action_slide_speed', ea.STATE).withUnit('mm/s').withCategory('diagnostic'),
+            e.numeric('action_slide_relative_displacement', ea.STATE).withCategory('diagnostic'),
+            e.numeric('action_slide_time_delta', ea.STATE).withUnit('ms').withCategory('diagnostic'),
+            // action is exposed from extraActions inside lumiAction
+        ];
+
+        return {fromZigbee, exposes, isModernExtend: true};
+    },
+    lumiLockRelay: (args? :Partial<modernExtend.BinaryArgs>) => modernExtend.binary({
+        name: 'lock_relay',
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0285, type: 0x20},
+        valueOn: [true, 1],
+        valueOff: [false, 0],
+        description: 'Locks relay and prevents it from operating',
+        access: 'ALL',
+        entityCategory: 'config',
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
+    lumiSetEventMode: (): ModernExtend => {
+        // I have no idea, why it is used everywhere, even if not supported
+        // modes:
+        // 0 - 'command' mode. keys send commands. useful for binding
+        // 1 - 'event' mode. keys send events. useful for handling
+        const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
+        };
+        return {configure, isModernExtend: true};
+    },
+    lumiSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'mode_switch',
+        lookup: {'quick_mode': 1, 'anti_flicker_mode': 4},
+        cluster: 'manuSpecificLumi',
+        attribute: {ID: 0x0004, type: 0x21},
+        description: 'Anti flicker mode can be used to solve blinking issues of some lights.' +
+            'Quick mode makes the device respond faster.',
         entityCategory: 'config',
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
