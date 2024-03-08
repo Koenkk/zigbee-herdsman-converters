@@ -542,9 +542,9 @@ const converters2 = {
             const alarmState = (value === 'alarm' || value === 'OFF' ? 0 : 1);
 
             let info;
-            // For Develco SMSZB-120, introduced change in fw 4.0.5, tested backward with 4.0.4
+            // For Develco SMSZB-120 and HESZB-120, introduced change in fw 4.0.5, tested backward with 4.0.4
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            if (['SMSZB-120'].includes(meta.mapped.model)) {
+            if (['SMSZB-120', 'HESZB-120'].includes(meta.mapped.model)) {
                 info = ((alarmState) << 7) + ((alarmState) << 6);
             } else {
                 info = (3 << 6) + ((alarmState) << 2);
