@@ -848,7 +848,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
         }
     };
 
-    return {meta, fromZigbee, configure, isModernExtend: true};
+    return {meta, fromZigbee, exposes, configure, isModernExtend: true};
 }
 
 export function pressure(args?: Partial<NumericArgs>): ModernExtend {
