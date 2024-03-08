@@ -1657,21 +1657,21 @@ export const lumiModernExtend = {
                         5: 'slider_down',
                     };
                     return {
-                        slide_time: msg.data[561],
-                        slide_speed: msg.data[562],
-                        slide_relative_displacement: msg.data[563],
+                        action_slide_time: msg.data[561],
+                        action_slide_speed: msg.data[562],
+                        action_slide_relative_displacement: msg.data[563],
                         action: actionLookup[msg.data[652]],
-                        slide_time_delta: msg.data[769],
+                        action_slide_time_delta: msg.data[769],
                     };
                 }
             },
         }];
 
         const exposes: Expose[] = [
-            e.numeric('slide_time', ea.STATE).withUnit('ms').withCategory('diagnostic'),
-            e.numeric('slide_speed', ea.STATE).withUnit('mm/s').withCategory('diagnostic'),
-            e.numeric('slide_relative_displacement', ea.STATE).withCategory('diagnostic'),
-            e.numeric('slide_time_delta', ea.STATE).withUnit('ms').withCategory('diagnostic'),
+            e.numeric('action_slide_time', ea.STATE).withUnit('ms').withCategory('diagnostic'),
+            e.numeric('action_slide_speed', ea.STATE).withUnit('mm/s').withCategory('diagnostic'),
+            e.numeric('action_slide_relative_displacement', ea.STATE).withCategory('diagnostic'),
+            e.numeric('action_slide_time_delta', ea.STATE).withUnit('ms').withCategory('diagnostic'),
             // action is exposed from extraActions inside lumiAction
         ];
 
