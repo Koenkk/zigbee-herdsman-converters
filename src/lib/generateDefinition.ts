@@ -105,20 +105,8 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         mapClusters(endpoint, outputClusters, outputClusterMap);
     }
     // Generate extenders
-    const multiEndpoint = Array.from(inputClusterMap.values()).some((e) => e.length > 1) ||
-                            Array.from(outputClusterMap.values()).some((e) => e.length > 1);
-
     const usedExtenders: Extender[] = [];
     const generatedExtend: GeneratedExtend[] = [];
-    // First of all add endpoint definitions if device is multiEndpoint.
-    if (multiEndpoint) {
-        const endpoints: {[n: string]: number} = {};
-        // Add all endpoints, just to be safe.
-        for (const endpoint of device.endpoints) {
-            endpoints[endpoint.ID.toString()] = endpoint.ID;
-        }
-        generatedExtend.push(new Generator({extend: m.deviceEndpoints, args: {endpoints}, source: 'deviceEndpoints'}));
-    }
 
     const addGenerators = async (clusterName: string, endpoints: Zh.Endpoint[], extenders: Extender[]) => {
         const extender = extenders.find((e) => e[0].includes(clusterName));
@@ -142,6 +130,23 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
     extenders.forEach((extender) => {
         extender.endpoint = undefined;
     });
+
+    // Add endpoint definitions if device is multiEndpoint.
+    // Check for number of endpoints, and if first & only endpoint is not '1',
+    // because generated definition will not be able to poll/command device properly.
+    // Maybe, for ease of development, all generated definitions could be treated
+    // as multiEndpoint, just to avoid complexity as to which configurations should be multiEndpoint.
+    const multiEndpoint = device.endpoints.length > 1 || (device.endpoints.length == 1 && device.endpoints[0].ID != 1);
+    if (multiEndpoint) {
+        const endpoints: {[n: string]: number} = {};
+        for (const endpoint of device.endpoints) {
+            endpoints[endpoint.ID.toString()] = endpoint.ID;
+        }
+        // Add to beginning for better visibility.
+        generatedExtend.unshift(new Generator({extend: m.deviceEndpoints, args: {endpoints}, source: 'deviceEndpoints'}));
+        extenders.unshift(generatedExtend[0].getExtend());
+    }
+
     const definition: Definition = {
         zigbeeModel: [device.modelID],
         model: device.modelID ?? '',
@@ -214,13 +219,14 @@ async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedEx
     const onOffEndpoints = endpoints.filter((e) => lightEndpoints.findIndex((ep) => e.ID === ep.ID) === -1);
 
     if (onOffEndpoints.length !== 0) {
-        const endpoints = onOffEndpoints.length > 1 ? onOffEndpoints.reduce((prev, curr) => {
+        // Map endpoints even for if only one is present.
+        // This will allow to use extender for any endpoint(s),
+        // not only for endpoint ID 1.
+        const endpoints = onOffEndpoints.reduce((prev, curr) => {
             prev[curr.ID.toString()] = curr.ID;
             return prev;
-        }, {} as Record<string, number>) : undefined;
-        const endpointNames: string[] = endpoints ? Object.keys(endpoints) : undefined;
-        if (endpointNames) generated.push(new Generator({extend: m.deviceEndpoints, args: {endpoints: endpoints}, source: 'deviceEndpoints'}));
-        generated.push(new Generator({extend: m.onOff, args: {powerOnBehavior: false, endpointNames: endpointNames}, source: 'onOff'}));
+        }, {} as Record<string, number>);
+        generated.push(new Generator({extend: m.onOff, args: {powerOnBehavior: false, endpointNames: Object.keys(endpoints)}, source: 'onOff'}));
     }
 
     for (const endpoint of lightEndpoints) {
