@@ -3908,6 +3908,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
+                if (['ZNJLBL01LM', 'ZNCLDJ14LM'].includes(meta.mapped.model)) {
                 if (meta.mapped.model == 'ZNJLBL01LM') {
                     const payload = {'presentValue': 2};
                     await entity.write('genMultistateOutput', payload);
@@ -3944,7 +3945,7 @@ export const toZigbee = {
                     await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: value},
                         getOptions(meta.mapped, entity));
                 } else {
-                    const payload = {0x0055: {value, type: 0x39}};
+                    const payload = {'presentValue': value};
                     await entity.write('genAnalogOutput', payload);
                 }
             }
