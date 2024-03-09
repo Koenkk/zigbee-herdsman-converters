@@ -256,7 +256,7 @@ export const philipsTz = {
 };
 export {philipsTz as tz};
 
-const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.PHILIPS};
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V};
 
 const gradientScenes = {
     'blossom': '50010400135000000039d553d2955ba5287a9f697e25fb802800',
