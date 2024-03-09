@@ -16,9 +16,9 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.linkquality(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
-           const endpoint = device.getEndpoint(1);
-           await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-           await reporting.batteryPercentageRemaining(endpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -31,12 +31,12 @@ const definitions: Definition[] = [
         exposes: [e.tamper(), e.warning()],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-           const endpoint = device.getEndpoint(1);
-           await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-           await reporting.batteryPercentageRemaining(endpoint);
-           // Device advertises itself as Router but is an EndDevice
-           device.type = 'EndDevice';
-           device.save();
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            // Device advertises itself as Router but is an EndDevice
+            device.type = 'EndDevice';
+            device.save();
         },
     },
 ];
