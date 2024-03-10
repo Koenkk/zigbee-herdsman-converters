@@ -1,5 +1,22 @@
 # Changelog
 
+## [18.48.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.47.0...v18.48.0) (2024-03-10)
+
+
+### Features
+
+* **add:** 929002401101 ([#7189](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7189)) ([53b5512](https://github.com/Koenkk/zigbee-herdsman-converters/commit/53b55128acdd715fa5bf920a4c70fe8671e6813e))
+* **add:** SPM02-U01 ([#7190](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7190)) ([04b5259](https://github.com/Koenkk/zigbee-herdsman-converters/commit/04b52591207643d87aeaad5db6380def14a5874b))
+* **add:** ZP1-EN, ZR1-EN ([#7187](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7187)) ([939a3ea](https://github.com/Koenkk/zigbee-herdsman-converters/commit/939a3ea1ce839a5b43b177941ac976f269e4b173))
+
+
+### Bug Fixes
+
+* Don't allow sceneID 0 ([#7185](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7185)) ([5ad3798](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5ad37981bed2997044ffd8d20adb2b1f90b9eadf))
+* Fix 8719514440937/8719514440999 description ([#7183](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7183)) ([3edfa24](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3edfa24bd7583557f7adc9b4569f5fb041fe979a))
+* **ignore:** update dependencies ([#7188](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7188)) ([4c6d8ba](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c6d8ba76b8a77d9b1003622d80988f7125a2f79))
+* **ignore:** Update manufacturer codes ([#7186](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7186)) ([c337428](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c3374288dfd5f2058c1f9f45d35c5bc2ac854d50))
+
 ## [18.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.46.0...v18.47.0) (2024-03-08)
 
 
