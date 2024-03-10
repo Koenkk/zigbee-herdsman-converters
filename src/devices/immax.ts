@@ -85,7 +85,7 @@ const definitions: Definition[] = [
         model: '07743L',
         vendor: 'Immax',
         description: 'Neo Smart LED E27 11W RGB + CCT, color, dimmable, Zigbee 3.0',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ['Keyfob-ZB3.0'],
