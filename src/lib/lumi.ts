@@ -4040,7 +4040,7 @@ export const toZigbee = {
     lumi_curtain_limits_calibration: {
         key: ['limits_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            if (meta.mapped.model === 'ZNCLDJ14LM') {
+            if (!Array.isArray(meta.mapped) && meta.mapped.model === 'ZNCLDJ14LM') {
                 switch (value) {
                 case 'recalibrate':
                     await entity.write('manuSpecificLumi', {'curtainCalibrated': false}, manufacturerOptions.lumi);
