@@ -78,14 +78,14 @@ const definitions: Definition[] = [
         model: 'SMCL01-ZB',
         vendor: 'Mercator Ikuü',
         description: 'Ikon ceiling light',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}})],
     },
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_xr5m6kfg'}],
         model: 'SMD4109W-RGB-ZB',
         vendor: 'Mercator Ikuü',
         description: '92mm Walter downlight RGB + CCT',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_raqjcxo5'}],

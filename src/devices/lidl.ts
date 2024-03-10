@@ -365,7 +365,7 @@ const definitions: Definition[] = [
         model: '14153806L',
         vendor: 'Lidl',
         description: 'Livarno smart LED ceiling light',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
@@ -499,9 +499,7 @@ const definitions: Definition[] = [
         model: 'HG08633',
         vendor: 'Lidl',
         description: 'Livarno gardenspot RGB',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({
-            supportsHueAndSaturation: true, preferHueAndSaturation: true, colorTempRange: [153, 500],
-        }),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ['hs', 'xy']}})],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'}],
