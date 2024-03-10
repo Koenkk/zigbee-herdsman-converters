@@ -101,7 +101,6 @@ import heiman from './heiman';
 import heimgard_technologies from './heimgard_technologies';
 import hej from './hej';
 import hfh from './hfh';
-import hgkg from './hgkg';
 import hilux from './hilux';
 import hive from './hive';
 import hommyn from './hommyn';
@@ -118,6 +117,7 @@ import iluminize from './iluminize';
 import ilux from './ilux';
 import imhotepcreation from './imhotepcreation';
 import immax from './immax';
+import imou from './imou';
 import innr from './innr';
 import inovelli from './inovelli';
 import insta from './insta';
@@ -396,7 +396,6 @@ export default [
     ...heimgard_technologies,
     ...hej,
     ...hfh,
-    ...hgkg,
     ...hilux,
     ...hive,
     ...hommyn,
@@ -413,6 +412,7 @@ export default [
     ...ilux,
     ...imhotepcreation,
     ...immax,
+    ...imou,
     ...innr,
     ...inovelli,
     ...insta,

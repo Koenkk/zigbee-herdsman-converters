@@ -1,5 +1,32 @@
 # Changelog
 
+## [18.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.46.0...v18.47.0) (2024-03-08)
+
+
+### Features
+
+* Add additional exposes for 8719514440937/8719514440999 ([#7177](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7177)) ([cb5f0d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb5f0d4a323dfb49737fb7e1cab1e06d4e6cb84a))
+* **add:** E2202 ([#7163](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7163)) ([f370b34](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f370b346d9d33c87018e326ada31d24cfead4240))
+* Added OTA support for various Schneider Electric devices ([#7178](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7178)) ([1499b09](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1499b098bf8f124894d20535ab97dc9171f021de))
+* **add:** ZNQBKG42LM, ZNQBKG43LM, ZNQBKG44LM, ZNQBKG45LM ([#7160](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7160)) ([c1c6095](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c1c609520c4e5bc0bd396bc2a958a75250623f5c))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_b3mgfu0d` as TuYa TS004F ([#7175](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7175)) ([07fe9d6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/07fe9d61d64cdd93b015bed38cbf1f108073d7af))
+* Fix alarm for HESZB-120 ([#7179](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7179)) ([0d46740](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0d4674053d3d579998b6861bdfe6a4206c975d83))
+* Fix battery modernExtend ([#7180](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7180)) ([332da4b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/332da4b263d2d531d87831c8b62dcf4cf4a37506))
+
+## [18.46.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.45.0...v18.46.0) (2024-03-07)
+
+
+### Features
+
+* **add:** Icon2 ([#7166](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7166)) ([fb64f43](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fb64f435d8868cc978967ebfb00b27ee556d72b2))
+* **add:** OSL 132 C ([#7171](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7171)) ([80fec9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/80fec9e724e96ef3bb46189d821f4270e46b6464))
+* BAC-002-ALZB & BAC-003 fan control units support ([#7173](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7173)) ([3d1c5d7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3d1c5d78648357360fe7613d7623a8177c045627))
+* **ignore:** Refactor more to modernExtend ([#7168](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7168)) ([ed7ed68](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ed7ed68b9d08a50ce0507183b7daa27b031cc07b))
+
 ## [18.45.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.44.0...v18.45.0) (2024-03-06)
 
 

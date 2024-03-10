@@ -2895,6 +2895,26 @@ const converters1 = {
             return result;
         },
     } satisfies Fz.Converter,
+    danfoss_icon_hvac_user_interface: {
+        cluster: 'hvacUserInterfaceCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.hasOwnProperty('keypadLockout')) {
+                result[postfixWithEndpointName('keypad_lockout', msg, model, meta)] =
+                    constants.keypadLockoutMode.hasOwnProperty(msg.data['keypadLockout']) ?
+                        constants.keypadLockoutMode[msg.data['keypadLockout']] :
+                        msg.data['keypadLockout'];
+            }
+            if (msg.data.hasOwnProperty('tempDisplayMode')) {
+                result[postfixWithEndpointName('temperature_display_mode', msg, model, meta)] =
+                    constants.temperatureDisplayMode.hasOwnProperty(msg.data['tempDisplayMode']) ?
+                        constants.temperatureDisplayMode[msg.data['tempDisplayMode']] :
+                        msg.data['tempDisplayMode'];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
     orvibo_raw_1: {
         cluster: 23,
         type: 'raw',

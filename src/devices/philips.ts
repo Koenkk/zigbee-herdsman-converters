@@ -1795,6 +1795,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929002401101'],
+        model: '929002401101',
+        vendor: 'Philips',
+        description: 'Hue Iris silver limited edition (generation 4) ',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ['929002376703'],
         model: '929002376703',
         vendor: 'Philips',
@@ -2891,7 +2898,12 @@ const definitions: Definition[] = [
             e.enum('action_type', ea.STATE, ['step', 'rotate'])
                 .withDescription('Type of the rotation, value in the first message is `step` and in the next messages value is `rotate`'),
             e.numeric('action_time', ea.STATE)
-                .withDescription('Raw value that represents the amount the dial was turned').withValueMin(0).withValueMax(255),
+                .withDescription('value in seconds representing the amount of time the last action took').withValueMin(0).withValueMax(255),
+            e.numeric('brightness', ea.STATE)
+                .withDescription('Raw rotation state value of the dial which represents brightness from 0-255').withValueMin(0).withValueMax(255),
+            e.numeric('action_step_size', ea.STATE)
+                .withDescription('amount of steps the last action took on the dial exposed as a posive value from 0-255')
+                .withValueMin(0).withValueMax(255),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

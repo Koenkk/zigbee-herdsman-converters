@@ -353,6 +353,7 @@ const definitions: Definition[] = [
         model: 'CCT5010-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer',
+        ota: ota.zigbeeOTA,
         extend: [light({configureReporting: true})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
@@ -370,6 +371,7 @@ const definitions: Definition[] = [
         model: 'CCT5011-0001/CCT5011-0002/MEG5011-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module switch',
+        ota: ota.zigbeeOTA,
         extend: [onOff({powerOnBehavior: false})],
         whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
     },
@@ -492,6 +494,7 @@ const definitions: Definition[] = [
                 .withDescription('Specifies the minimum light output of the ballast'),
             e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast')],
+        ota: ota.zigbeeOTA,
         extend: [indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -526,6 +529,7 @@ const definitions: Definition[] = [
         model: '41E10PBSWMZ-VW',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 10AX with ControlLink',
+        ota: ota.zigbeeOTA,
         extend: [onOff({powerOnBehavior: false}), indicatorMode('smart')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -545,6 +549,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.fan],
         toZigbee: [tzLocal.fan_mode],
         exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
+        ota: ota.zigbeeOTA,
         extend: [fanIndicatorMode(), fanIndicatorOrientation()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(7);
@@ -1132,6 +1137,7 @@ const definitions: Definition[] = [
         model: '3025CSGZ',
         vendor: 'Schneider Electric',
         description: 'Dual connected smart socket',
+        ota: ota.zigbeeOTA,
         extend: [
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
             onOff({endpointNames: ['l1', 'l2']}),

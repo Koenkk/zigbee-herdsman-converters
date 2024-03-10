@@ -542,9 +542,9 @@ const converters2 = {
             const alarmState = (value === 'alarm' || value === 'OFF' ? 0 : 1);
 
             let info;
-            // For Develco SMSZB-120, introduced change in fw 4.0.5, tested backward with 4.0.4
+            // For Develco SMSZB-120 and HESZB-120, introduced change in fw 4.0.5, tested backward with 4.0.4
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            if (['SMSZB-120'].includes(meta.mapped.model)) {
+            if (['SMSZB-120', 'HESZB-120'].includes(meta.mapped.model)) {
                 info = ((alarmState) << 7) + ((alarmState) << 6);
             } else {
                 info = (3 << 6) + ((alarmState) << 2);
@@ -3473,18 +3473,23 @@ const converters2 = {
                 scenename = value.name;
             }
 
+            utils.assertNumber(sceneid, 'ID');
+            if (sceneid < 1) {
+                // Don't allow ID 0, from the spec:
+                // "Scene identifier 0x00, along with group identifier 0x0000, is reserved for the global scene used by the OnOff cluster"
+                throw new Error('ID must be at least 1');
+            }
+
             const response = await entity.command('genScenes', 'store', {groupid, sceneid}, utils.getOptions(meta.mapped, entity));
 
             if (isGroup) {
                 if (meta.membersState) {
                     for (const member of entity.members) {
-                        // @ts-expect-error
                         utils.saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr], scenename);
                     }
                 }
             // @ts-expect-error
             } else if (response.status === 0) {
-                // @ts-expect-error
                 utils.saveSceneState(entity, sceneid, groupid, meta.state, scenename);
             } else {
                 // @ts-expect-error
@@ -3560,6 +3565,12 @@ const converters2 = {
 
             if (!value.hasOwnProperty('ID')) {
                 throw new Error('Payload missing ID.');
+            }
+
+            if (value.ID < 1) {
+                // Don't allow ID 0, from the spec:
+                // "Scene identifier 0x00, along with group identifier 0x0000, is reserved for the global scene used by the OnOff cluster"
+                throw new Error('ID must be at least 1');
             }
 
             if (value.hasOwnProperty('color_temp') && value.hasOwnProperty('color')) {
