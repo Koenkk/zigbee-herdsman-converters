@@ -247,7 +247,7 @@ async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedEx
             }
         }
 
-        if (endpoint.getDevice().manufacturerID === zh.Zcl.ManufacturerCode.Philips) {
+        if (endpoint.getDevice().manufacturerID === zh.Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V) {
             generated.push(new Generator({extend: philipsLight, args, source: `philipsLight`, lib: 'philips'}));
         } else {
             generated.push(new Generator({extend: m.light, args, source: `light`}));
