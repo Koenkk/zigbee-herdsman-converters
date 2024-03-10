@@ -1850,21 +1850,19 @@ const definitions: Definition[] = [
             lumi.fromZigbee.lumi_basic,
             lumi.fromZigbee.lumi_curtain_position,
             lumi.fromZigbee.lumi_curtain_status,
-            lumi.fromZigbee.lumi_curtain_options
+            lumi.fromZigbee.lumi_curtain_options,
         ],
         toZigbee: [
             lumi.toZigbee.lumi_curtain_position_state,
             lumi.toZigbee.lumi_curtain_hand_open,
             lumi.toZigbee.lumi_curtain_reverse,
-            lumi.toZigbee.lumi_curtain_limits_calibration
+            lumi.toZigbee.lumi_curtain_limits_calibration_ZNCLDJ14LM,
         ],
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             e.binary('reverse_direction', ea.ALL, true, false)
                 .withDescription('Whether the curtain direction is inverted'),
             e.binary('hand_open', ea.ALL, true, false)
                 .withDescription('Pulling curtains by hand starts the motor'),
-            e.enum('limits_calibration', ea.ALL, ['calibrated', 'recalibrate', 'open', 'close'])
-                .withDescription('Recalibrate the position limits'),
             e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
             e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])

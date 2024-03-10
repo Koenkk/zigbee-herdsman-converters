@@ -4040,35 +4040,38 @@ export const toZigbee = {
     lumi_curtain_limits_calibration: {
         key: ['limits_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            if (!Array.isArray(meta.mapped) && meta.mapped.model === 'ZNCLDJ14LM') {
-                switch (value) {
-                case 'recalibrate':
-                    await entity.write('manuSpecificLumi', {'curtainCalibrated': false}, manufacturerOptions.lumi);
-                    break;
-                case 'open':
-                    await entity.write('genMultistateOutput', {'presentValue': 1}, manufacturerOptions.lumi);
-                    break;
-                case 'close':
-                    await entity.write('genMultistateOutput', {'presentValue': 0}, manufacturerOptions.lumi);
-                    break;
-                }
-            } else {
-                switch (value) {
-                case 'start':
-                    await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
-                    break;
-                case 'end':
-                    await entity.write('manuSpecificLumi', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
-                    break;
-                case 'reset':
-                    await entity.write('manuSpecificLumi', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
-                    // also? await entity.write('manuSpecificLumi', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
-                    break;
-                }
+            switch (value) {
+            case 'start':
+                await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
+                break;
+            case 'end':
+                await entity.write('manuSpecificLumi', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
+                break;
+            case 'reset':
+                await entity.write('manuSpecificLumi', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
+                // also? await entity.write('manuSpecificLumi', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
+                break;
             }
         },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', ['curtainCalibrated'], manufacturerOptions.lumi);
+    } satisfies Tz.Converter,
+    lumi_curtain_limits_calibration_ZNCLDJ14LM: {
+        key: ['limits_calibration'],
+        options: [
+            e.enum('limits_calibration', ea.ALL, ['calibrated', 'recalibrate', 'open', 'close'])
+                .withDescription('Recalibrate the position limits'),
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'recalibrate':
+                await entity.write('manuSpecificLumi', {'curtainCalibrated': false}, manufacturerOptions.lumi);
+                break;
+            case 'open':
+                await entity.write('genMultistateOutput', {'presentValue': 1}, manufacturerOptions.lumi);
+                break;
+            case 'close':
+                await entity.write('genMultistateOutput', {'presentValue': 0}, manufacturerOptions.lumi);
+                break;
+            }
         },
     } satisfies Tz.Converter,
     lumi_buzzer: {
