@@ -2461,9 +2461,9 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('curtainManual')) {
                 return {hand_open: msg.data['curtainManual'] === 0};
-            else if (msg.data.hasOwnProperty('curtainReverse')) {
+            } else if (msg.data.hasOwnProperty('curtainReverse')) {
                 return {reverse_direction: msg.data['curtainReverse'] === 1};
-            else if (msg.data.hasOwnProperty('curtainCalibrated')) {
+            } else if (msg.data.hasOwnProperty('curtainCalibrated')) {
                 return {limits_calibration: (msg.data['curtainCalibrated'] === 1) ? 'calibrated' : 'recalibrate'};
             }
         },
@@ -3885,7 +3885,7 @@ export const toZigbee = {
                 await entity.write('genBasic', {0xff29: {value: !opts.hand_open, type: 0x10}}, manufacturerOptions.lumi);
 
                 if (opts.reset_limits) {
-                    await entity.write('genBasic', {0xff26: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
+                    await entity.write('genBasic', {0xff27: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
                 }
             } else if (meta.mapped.model === 'ZNCLDJ11LM') {
                 const payload = [
@@ -3922,7 +3922,6 @@ export const toZigbee = {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
                 if (['ZNJLBL01LM', 'ZNCLDJ14LM'].includes(meta.mapped.model)) {
-                if (meta.mapped.model == 'ZNJLBL01LM') {
                     const payload = {'presentValue': 2};
                     await entity.write('genMultistateOutput', payload);
                 } else {
