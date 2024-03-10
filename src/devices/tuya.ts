@@ -222,6 +222,7 @@ const tzLocal = {
                 return await tz.light_color.convertSet(entity, key, value, meta);
             }
         },
+        convertGet: tz.light_color.convertGet,
     } satisfies Tz.Converter,
     TS0224: {
         key: ['light', 'duration', 'volume'],
