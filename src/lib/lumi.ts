@@ -1330,12 +1330,12 @@ export const lumiModernExtend = {
         result.exposes.push(e.device_temperature(), e.power_outage_count());
         if (args.powerOutageMemory === 'binary') {
             const extend = lumiModernExtend.lumiPowerOutageMemory();
-            result.toZigbee.concat(extend.toZigbee);
-            result.exposes.concat(extend.exposes);
+            result.toZigbee.push(...extend.toZigbee);
+            result.exposes.push(...extend.exposes);
         } else if (args.powerOutageMemory === 'enum') {
             const extend = lumiModernExtend.lumiPowerOnBehavior();
-            result.toZigbee.concat(extend.toZigbee);
-            result.exposes.concat(extend.exposes);
+            result.toZigbee.push(...extend.toZigbee);
+            result.exposes.push(...extend.exposes);
         }
         if (args.operationMode === true) {
             const extend = lumiModernExtend.lumiOperationMode({description: 'Decoupled mode for a button'});
@@ -1345,12 +1345,12 @@ export const lumiModernExtend = {
                         description: 'Decoupled mode for ' + ep.toString() + ' button',
                         endpointName: ep,
                     });
-                    result.toZigbee.concat(epExtend.toZigbee);
-                    result.exposes.concat(epExtend.exposes);
+                    result.toZigbee.push(...epExtend.toZigbee);
+                    result.exposes.push(...epExtend.exposes);
                 });
             } else {
-                result.toZigbee.concat(extend.toZigbee);
-                result.exposes.concat(extend.exposes);
+                result.toZigbee.push(...extend.toZigbee);
+                result.exposes.push(...extend.exposes);
             }
         }
         if (args.lockRelay) {
@@ -1361,12 +1361,12 @@ export const lumiModernExtend = {
                         description: 'Locks ' + ep.toString() + ' relay and prevents it from operating',
                         endpointName: ep,
                     });
-                    result.toZigbee.concat(epExtend.toZigbee);
-                    result.exposes.concat(epExtend.exposes);
+                    result.toZigbee.push(...epExtend.toZigbee);
+                    result.exposes.push(...epExtend.exposes);
                 });
             } else {
-                result.toZigbee.concat(extend.toZigbee);
-                result.exposes.concat(extend.exposes);
+                result.toZigbee.push(...extend.toZigbee);
+                result.exposes.push(...extend.exposes);
             }
         }
         return result;

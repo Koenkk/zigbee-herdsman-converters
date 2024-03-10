@@ -127,7 +127,7 @@ const definitions: Definition[] = [
         model: 'ED-10041',
         vendor: 'EcoDim',
         description: 'Zigbee LED filament light dimmable E27, edison ST64, flame 2200K',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 454]}})],
     },
 ];
 
