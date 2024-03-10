@@ -1849,23 +1849,25 @@ const definitions: Definition[] = [
         model: 'ZNCLDJ14LM',
         vendor: 'Aqara',
         description: 'Curtain controller C2',
-        fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_curtain_position,
-            lumi.fromZigbee.lumi_curtain_position_tilt, lumi.fromZigbee.lumi_curtain_status],
-        toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_options],
-        onEvent: async (type, data, device) => {
-            // The position (genAnalogOutput.presentValue) reported via an attribute contains an invalid value
-            // however when reading it will provide the correct value.
-            if (data.type === 'attributeReport' && data.cluster === 'genAnalogOutput') {
-                await device.endpoints[0].read('genAnalogOutput', ['presentValue']);
-            }
-        },
+        fromZigbee: [
+            lumi.fromZigbee.lumi_basic,
+            lumi.fromZigbee.lumi_curtain_position,
+            lumi.fromZigbee.lumi_curtain_status,
+            lumi.fromZigbee.lumi_curtain_options
+        ],
+        toZigbee: [
+            lumi.toZigbee.lumi_curtain_position_state,
+            lumi.toZigbee.lumi_curtain_hand_open,
+            lumi.toZigbee.lumi_curtain_reverse,
+            lumi.toZigbee.lumi_curtain_limits_calibration
+        ],
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             e.binary('reverse_direction', ea.ALL, true, false)
                 .withDescription('Whether the curtain direction is inverted'),
             e.binary('hand_open', ea.ALL, true, false)
-                .withDescription('Whether the curtain can be manually opened'),
-            e.binary('reset_limits', ea.ALL, true, false)
-                .withDescription('Whether the curtain limits should be recalibrated'),
+                .withDescription('Pulling curtains by hand starts the motor'),
+            e.enum('limits_calibration', ea.ALL, ['calibrated', 'recalibrate', 'open', 'close'])
+                .withDescription('Recalibrate the position limits'),
             e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
             e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
