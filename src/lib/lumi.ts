@@ -2455,6 +2455,19 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
+    lumi_curtain_options: {
+        cluster: 'manuSpecificLumi',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('curtainManual')) {
+                return {hand_open: msg.data['curtainManual'] === 0};
+            else if (msg.data.hasOwnProperty('curtainReverse')) {
+                return {reverse_direction: msg.data['curtainReverse'] === 1};
+            else if (msg.data.hasOwnProperty('curtainCalibrated')) {
+                return {limits_calibration: (msg.data['curtainCalibrated'] === 1) ? 'calibrated' : 'recalibrate'};
+            }
+        },
+    } satisfies Fz.Converter,
     lumi_vibration: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -3867,12 +3880,12 @@ export const toZigbee = {
             if (value.hasOwnProperty('auto_close')) opts.hand_open = value.auto_close;
             if (value.hasOwnProperty('reset_move')) opts.reset_limits = value.reset_move;
 
-            if (meta.mapped.model === 'ZNCLDJ12LM' || meta.mapped.model === 'ZNCLDJ14LM') {
+            if (meta.mapped.model === 'ZNCLDJ12LM') {
                 await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, manufacturerOptions.lumi);
                 await entity.write('genBasic', {0xff29: {value: !opts.hand_open, type: 0x10}}, manufacturerOptions.lumi);
 
                 if (opts.reset_limits) {
-                    await entity.write('genBasic', {0xff27: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
+                    await entity.write('genBasic', {0xff26: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
                 }
             } else if (meta.mapped.model === 'ZNCLDJ11LM') {
                 const payload = [
@@ -4010,26 +4023,49 @@ export const toZigbee = {
     lumi_curtain_hand_open: {
         key: ['hand_open'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {0x0401: {value: !value, type: 0x10}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {'curtainManual': !value}, manufacturerOptions.lumi);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0401], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', ['curtainManual'], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_curtain_reverse: {
+        key: ['reverse_direction'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificLumi', {'curtainReverse': value}, manufacturerOptions.lumi);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', ['curtainReverse'], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_curtain_limits_calibration: {
         key: ['limits_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            switch (value) {
-            case 'start':
-                await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
-                break;
-            case 'end':
-                await entity.write('manuSpecificLumi', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
-                break;
-            case 'reset':
-                await entity.write('manuSpecificLumi', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
-                // also? await entity.write('manuSpecificLumi', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
-                break;
+            if (meta.mapped.model === 'ZNCLDJ14LM') {
+                switch (value) {
+                case 'recalibrate':
+                    await entity.write('manuSpecificLumi', {'curtainCalibrated': false}, manufacturerOptions.lumi);
+                    break;
+                case 'open':
+                    await entity.write('genMultistateOutput', {'presentValue': 1}, manufacturerOptions.lumi);
+                    break;
+                case 'close':
+                    await entity.write('genMultistateOutput', {'presentValue': 0}, manufacturerOptions.lumi);
+                    break;
+                }
+            } else {
+                switch (value) {
+                case 'start':
+                    await entity.write('manuSpecificLumi', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.lumi);
+                    break;
+                case 'end':
+                    await entity.write('manuSpecificLumi', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.lumi);
+                    break;
+                case 'reset':
+                    await entity.write('manuSpecificLumi', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
+                    // also? await entity.write('manuSpecificLumi', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
+                    break;
+                }
             }
         },
     } satisfies Tz.Converter,

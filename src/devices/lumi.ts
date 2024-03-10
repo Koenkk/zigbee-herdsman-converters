@@ -1860,6 +1860,12 @@ const definitions: Definition[] = [
             }
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL),
+            e.binary('reverse_direction', ea.ALL, true, false)
+                .withDescription('Whether the curtain direction is inverted'),
+            e.binary('hand_open', ea.ALL, true, false)
+                .withDescription('Whether the curtain can be manually opened'),
+            e.binary('reset_limits', ea.ALL, true, false)
+                .withDescription('Whether the curtain limits should be recalibrated'),
             e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
             e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
