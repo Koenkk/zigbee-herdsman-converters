@@ -19,7 +19,7 @@ const manufacturerOptions = {
      * This bug has been reported, but it has not been fixed:
      * https://github.com/Koenkk/zigbee-herdsman/issues/52
      */
-    ubisys: {manufacturerCode: Zcl.ManufacturerCode.UBISYS},
+    ubisys: {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
     // @ts-expect-error
     ubisysNull: {manufacturerCode: null},
 };

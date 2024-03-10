@@ -9,7 +9,7 @@ import {Zcl} from 'zigbee-herdsman';
 import {onOff, light} from '../lib/modernExtend';
 import {KeyValueAny, Fz, Tz, Definition} from '../lib/types';
 
-const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode._4_NOKS};
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ASTREL_GROUP_SRL};
 
 const bitron = {
     fz: {

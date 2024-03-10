@@ -9,16 +9,16 @@ import * as exposes from '../lib/exposes';
 import {Zcl} from 'zigbee-herdsman';
 
 const manufacturerOptions = {
-    sunricher: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICH},
-    lumi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
-    eurotronic: {manufacturerCode: Zcl.ManufacturerCode.JENNIC},
-    danfoss: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS},
-    hue: {manufacturerCode: Zcl.ManufacturerCode.PHILIPS},
+    sunricher: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD},
+    lumi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECHOLOGY_LTD_SHENZHEN, disableDefaultResponse: true},
+    eurotronic: {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS},
+    danfoss: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
+    hue: {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V},
     ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
-    sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECH},
-    tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INT},
-    legrand: {manufacturerCode: Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
-    viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
+    sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
+    tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
+    legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
+    viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH},
     nodon: {manufacturerCode: Zcl.ManufacturerCode.NODON},
 };
 
@@ -4038,11 +4038,11 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             const controlMode = utils.getKey(constants.wiserDimmerControlMode, value, value, Number);
             await entity.write('lightingBallastCfg', {'wiserControlMode': controlMode},
-                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER});
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
             return {state: {dimmer_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('lightingBallastCfg', ['wiserControlMode'], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER});
+            await entity.read('lightingBallastCfg', ['wiserControlMode'], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
         },
     } satisfies Tz.Converter,
     schneider_temperature_measured_value: {

@@ -250,7 +250,7 @@ module.exports = definition;
         }};
 
         await assertGeneratedDefinition({
-            device: mockDevice({modelID: 'combo', manufacturerID: zh.Zcl.ManufacturerCode.Philips, endpoints: [{inputClusters: ['genOnOff', 'lightingColorCtrl'], outputClusters:[], attributes}]}),
+            device: mockDevice({modelID: 'combo', manufacturerID: zh.Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, endpoints: [{inputClusters: ['genOnOff', 'lightingColorCtrl'], outputClusters:[], attributes}]}),
             meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
             fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
