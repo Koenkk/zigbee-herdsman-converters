@@ -3,6 +3,7 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent, Access} from './types';
 import {zigbeeOTA} from '../lib/ota';
+import * as globalStore from '../lib/store';
 import {presets as e, access as ea, options as opt} from './exposes';
 import {KeyValue, Configure, Expose, DefinitionMeta, KeyValueAny} from './types';
 import {configure as lightConfigure} from './light';
@@ -1015,11 +1016,24 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         });
     }
 
+    const timeoutProperty = `${args.zoneType}_timeout`;
+
     const fromZigbee: Fz.Converter[] = [{
         cluster: 'ssIasZone',
         type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
+        options: args.alarmTimeout ? [e.numeric(timeoutProperty, ea.SET).withValueMin(0)
+            .withDescription(`Time in seconds after which ${args.zoneType} is cleared after detecting it (default 90 seconds).`)] : [],
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+
+            if (args.alarmTimeout) {
+                const timeout = options?.hasOwnProperty(timeoutProperty) ? Number(options[timeoutProperty]) : 90;
+                clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+                if (timeout !== 0) {
+                    const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), timeout * 1000);
+                    globalStore.putValue(msg.endpoint, 'timer', timer);
+                }
+            }
 
             return {
                 [alarm1Name]: (zoneStatus & 1) > 0,
