@@ -4067,6 +4067,9 @@ export const toZigbee = {
                 }
             }
         },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', ['curtainCalibrated'], manufacturerOptions.lumi);
+        },
     } satisfies Tz.Converter,
     lumi_buzzer: {
         key: ['buzzer'],
