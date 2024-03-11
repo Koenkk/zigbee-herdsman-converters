@@ -1787,6 +1787,9 @@ const tuyaModernExtend = {
 
         return {exposes: [exp], toZigbee, fromZigbee, isModernExtend: true};
     },
+    tuyaMagicPacket(): ModernExtend {
+        return {configure: configureMagicPacket, isModernExtend: true};
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
