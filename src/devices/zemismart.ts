@@ -67,7 +67,7 @@ const definitions: Definition[] = [
         model: 'TB25',
         vendor: 'Zemismart',
         description: 'Smart light switch and socket - 2 gang with neutral wire',
-        extend: tuya.extend.switch({endpoints: ['left', 'center', 'right']}),
+        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ['left', 'center', 'right']})],
         meta: {multiEndpoint: true},
         endpoint: () => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -109,7 +109,7 @@ const definitions: Definition[] = [
         model: 'ZIGBEE-B09-UK',
         vendor: 'Zemismart',
         description: 'Zigbee smart outlet universal socket with USB port',
-        extend: tuya.extend.switch({powerOutageMemory: true, endpoints: ['l1', 'l2']}),
+        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, endpoints: ['l1', 'l2']})],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
