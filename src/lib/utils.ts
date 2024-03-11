@@ -542,6 +542,10 @@ export function isString(value: unknown): value is string {
     return typeof value === 'string';
 }
 
+export function isBoolean(value: unknown): value is boolean {
+    return typeof value === 'boolean';
+}
+
 export function assertNumber(value: unknown, property?: string): asserts value is number {
     property = property ? `'${property}'` : 'Value';
     if (typeof value !== 'number' || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value?.toString()})`);

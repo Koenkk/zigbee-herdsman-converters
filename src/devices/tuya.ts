@@ -222,6 +222,7 @@ const tzLocal = {
                 return await tz.light_color.convertSet(entity, key, value, meta);
             }
         },
+        convertGet: tz.light_color.convertGet,
     } satisfies Tz.Converter,
     TS0224: {
         key: ['light', 'duration', 'volume'],
@@ -997,7 +998,7 @@ const definitions: Definition[] = [
         model: 'CK-BL702-AL-01',
         vendor: 'TuYa',
         description: 'Zigbee LED bulb',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [142, 500]}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [142, 500]}, color: true})],
     },
     {
         zigbeeModel: ['SM0001'],
@@ -1060,7 +1061,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'TS0505B_1_1', 'Zigbee 3.0 18W led light bulb E27 RGBCW', ['_TZ3210_jd3z4yig', '_TZ3210_r5afgmkl']),
             tuya.whitelabel('MiBoxer', 'FUTC11ZR', 'Outdoor light', ['_TZB210_zmppwawa']),
         ],
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
@@ -1092,18 +1093,15 @@ const definitions: Definition[] = [
             {vendor: 'BTF-Lighting', model: 'C03Z'},
             tuya.whitelabel('MiBoxer', 'FUT037Z', 'RGB led controller', ['_TZ3210_778drfdt']),
         ],
-        extend: tuya.extend.light_onoff_brightness_color(),
+        extend: [tuya.modernExtend.tuyaLight({color: true})],
     },
     {
         zigbeeModel: ['TS0504B'],
         model: 'TS0504B',
         vendor: 'TuYa',
         description: 'Zigbee RGBW light',
-        extend: tuya.extend.light_onoff_brightness_color(),
-        exposes: [e.light_brightness_color(false)
-            .setAccess('color_xy', ea.STATE_SET).setAccess('color_hs', ea.STATE_SET)],
-        toZigbee: utils.replaceInArray<Tz.Converter>(tuya.extend.light_onoff_brightness_color().toZigbee, [tz.light_color], [tzLocal.TS0504B_color]),
-        meta: {applyRedFix: true},
+        toZigbee: [tzLocal.TS0504B_color],
+        extend: [tuya.modernExtend.tuyaLight({color: true})],
     },
     {
         zigbeeModel: ['TS0501A'],
@@ -2034,7 +2032,7 @@ const definitions: Definition[] = [
         model: 'TS0503A',
         vendor: 'TuYa',
         description: 'Led strip controller',
-        extend: tuya.extend.light_onoff_brightness_color(),
+        extend: [tuya.modernExtend.tuyaLight({color: true})],
     },
     {
         zigbeeModel: ['TS0503A'],
@@ -2050,7 +2048,7 @@ const definitions: Definition[] = [
         model: 'TS0502A',
         vendor: 'TuYa',
         description: 'Light controller',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}})],
         whiteLabel: [
             tuya.whitelabel('Lidl', 'HG06492B', 'Livarno Lux E14 candle CCT', ['_TZ3000_oborybow']),
             tuya.whitelabel('Lidl', 'HG06492A/HG08130A', 'Livarno Lux GU10 spot CCT', ['_TZ3000_el5kt5im']),
@@ -2075,14 +2073,10 @@ const definitions: Definition[] = [
                 ['_TZ3210_frm6149r', '_TZ3210_jtifm80b', '_TZ3210_xwqng7ol', '_TZB210_lmqquxus']),
             tuya.whitelabel('Lidl', '14156408L', 'Livarno Lux smart LED ceiling light', ['_TZ3210_c2iwpxf1']),
         ],
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, configureReporting: true})],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await tuya.extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.brightness(device.getEndpoint(1));
         },
     },
     {
@@ -2090,7 +2084,7 @@ const definitions: Definition[] = [
         model: 'TS0504A',
         vendor: 'TuYa',
         description: 'RGBW LED controller',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color(),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: undefined}, color: true})],
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_sosdczdl'}],
@@ -2106,7 +2100,7 @@ const definitions: Definition[] = [
         model: 'TS0505A',
         vendor: 'TuYa',
         description: 'RGB+CCT light controller',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: undefined}, color: true})],
         whiteLabel: [
             tuya.whitelabel('Lidl', 'HG06106B', 'Livarno Lux E14 candle RGB', ['_TZ3000_odygigth']),
             tuya.whitelabel('Lidl', 'HG06106A', 'Livarno Lux GU10 spot RGB', ['_TZ3000_kdpxju99']),

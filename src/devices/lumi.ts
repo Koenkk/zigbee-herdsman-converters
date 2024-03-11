@@ -3,7 +3,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {
     light, numeric, binary, enumLookup, forceDeviceType,
     temperature, humidity, forcePowerSource, quirkAddEndpointCluster,
@@ -90,14 +89,9 @@ const definitions: Definition[] = [
         model: 'ZNDDMK11LM',
         vendor: 'Aqara',
         description: 'Smart lightstrip driver',
-        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
-            lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_specific]),
-        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
-            lumi.toZigbee.lumi_dimmer_mode, lumi.toZigbee.lumi_switch_power_outage_memory]),
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
+        fromZigbee: [lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_specific, ...light({colorTemp: {range: undefined}, color: true}).fromZigbee],
+        toZigbee: [lumi.toZigbee.lumi_dimmer_mode, lumi.toZigbee.lumi_switch_power_outage_memory,
+            ...light({colorTemp: {range: undefined}, color: true}).toZigbee],
         exposes: [e.power(), e.energy(), e.voltage(), e.device_temperature(), e.power_outage_memory(),
             // When in rgbw mode, only one of color and colortemp will be valid, and l2 will be invalid
             // Do not control l2 in rgbw mode
@@ -105,7 +99,10 @@ const definitions: Definition[] = [
             e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('l2'),
             e.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct'])
                 .withDescription('Switch between rgbw mode or dual color temperature mode')],
-        extend: [lumiZigbeeOTA()],
+        extend: [
+            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            lumiZigbeeOTA(),
+        ],
     },
     {
         zigbeeModel: ['lumi.light.aqcn02'],

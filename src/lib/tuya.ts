@@ -4,7 +4,6 @@ import * as exposes from './exposes';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
-import extend from './extend';
 import * as modernExtend from './modernExtend';
 import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString} from './types';
 // import {Color} from './color';
@@ -1411,29 +1410,6 @@ const tuyaExtend = {
         if (options.exposes) exposes.push(...options.exposes);
         return {exposes, fromZigbee, toZigbee};
     },
-    light_onoff_brightness_colortemp_color: (options={}) => {
-        options = {
-            disableColorTempStartup: true, disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb, tuyaTz.color_power_on_behavior],
-            exposes: [tuyaExposes.doNotDisturb(), tuyaExposes.colorPowerOnBehavior()], ...options,
-        };
-        const meta = {applyRedFix: true, supportsEnhancedHue: false};
-        return {...extend.light_onoff_brightness_colortemp_color(options), meta};
-    },
-    light_onoff_brightness_colortemp: (options={}) => {
-        options = {
-            disableColorTempStartup: true, disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb],
-            exposes: [tuyaExposes.doNotDisturb()], ...options,
-        };
-        return extend.light_onoff_brightness_colortemp(options);
-    },
-    light_onoff_brightness_color: (options={}) => {
-        options = {
-            disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb, tuyaTz.color_power_on_behavior],
-            exposes: [tuyaExposes.doNotDisturb(), tuyaExposes.colorPowerOnBehavior()], ...options,
-        };
-        const meta = {applyRedFix: true, supportsEnhancedHue: false};
-        return {...extend.light_onoff_brightness_color(options), meta};
-    },
 };
 export {tuyaExtend as extend};
 
@@ -1695,6 +1671,13 @@ const tuyaModernExtend = {
     },
     tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: boolean, switchType?: boolean}) {
         args = {minBrightness: false, powerOnBehavior: false, switchType: false, ...args};
+        if (args.colorTemp) {
+            args.colorTemp = {startup: false, ...args.colorTemp};
+        }
+        if (args.color) {
+            args.color = {applyRedFix: true, enhancedHue: false, ...(utils.isBoolean(args.color) ? {} : args.color)};
+        }
+
         const result = modernExtend.light({...args, powerOnBehavior: false});
 
         result.fromZigbee.push(tuyaFz.brightness);
@@ -1721,6 +1704,11 @@ const tuyaModernExtend = {
             result.fromZigbee.push(tuyaFz.min_brightness);
             result.toZigbee.push(tuyaTz.min_brightness);
             result.exposes = result.exposes.map((e) => utils.isLightExpose(e) ? e.withMinBrightness() : e);
+        }
+
+        if (args.color) {
+            result.toZigbee.push(tuyaTz.color_power_on_behavior);
+            result.exposes.push(tuyaExposes.colorPowerOnBehavior());
         }
 
         return result;
