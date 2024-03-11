@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
-import {forcePowerSource, light, onOff} from '../lib/modernExtend';
+import {forcePowerSource, light, onOff, binary, temperature, electricityMeter} from '../lib/modernExtend';
 import * as tuya from '../lib/tuya';
 
 const ea = exposes.access;
@@ -94,6 +94,75 @@ const tzLocal = {
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.namron_panelheater.convertGet ${key}`);
             }
+        },
+    } satisfies Tz.Converter,
+};
+
+const namronPlug = {
+    thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint2 = meta.device.getEndpoint(2); // Thermostat cluster is located on endpoint 2
+            let numSysMode = 0;
+            if (value=='heat') {
+                numSysMode=4;
+            }
+            const payload = {0x001c: {value: numSysMode, type: 0x30}};
+            await endpoint2.write('hvacThermostat', payload);
+            return {readAfterWriteTime: 250, state: {system_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint2 = meta.device.getEndpoint(2); // the Thermostat cluster is located on endpoint 2
+            await endpoint2.read('hvacThermostat', ['systemMode']);
+        },
+    } satisfies Tz.Converter,
+    thermostat_occupied_heating_setpoint: {
+        key: ['occupied_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint2 = meta.device.getEndpoint(2); // Thermostat cluster is located on endpoint 2
+            utils.assertNumber(value, key);
+            let result: number;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
+            } else {
+                result = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
+            }
+            const occupiedHeatingSetpoint = result;
+            const payload = {0x0012: {value: occupiedHeatingSetpoint, type: 0x29}};
+            await endpoint2.write('hvacThermostat', payload);
+            return {state: {occupied_heating_setpoint: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint2 = meta.device.getEndpoint(2); // Thermostat cluster is located on endpoint 2
+            await endpoint2.read('hvacThermostat', ['occupiedHeatingSetpoint']);
+        },
+    } satisfies Tz.Converter,
+    thermostat_local_temperature: {
+        key: ['local_temperature'],
+        convertGet: async (entity, key, meta) => {
+            const endpoint2 = meta.device.getEndpoint(2); // the Thermostat cluster is located on endpoint 2
+            await endpoint2.read('hvacThermostat', ['localTemp']);
+        },
+    } satisfies Tz.Converter,
+    thermostat_local_temperature_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint2 = meta.device.getEndpoint(2); // Thermostat cluster is located on endpoint 2
+            utils.assertNumber(value, key);
+            const payload = {0x0010: {value: Math.round(value*10), type: 0x28}};
+            await endpoint2.write('hvacThermostat', payload);
+            return {state: {local_temperature_calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint2 = meta.device.getEndpoint(2); // Thermostat cluster is located on endpoint 2
+            await endpoint2.read('hvacThermostat', ['localTemperatureCalibration']);
+        },
+    } satisfies Tz.Converter,
+    thermostat_running_state: {
+        key: ['running_state'],
+        convertGet: async (entity, key, meta) => {
+            const endpoint2 = meta.device.getEndpoint(2); // Thermostat cluster is located on endpoint 2
+            await endpoint2.read('hvacThermostat', ['runningState']);
         },
     } satisfies Tz.Converter,
 };
@@ -789,21 +858,50 @@ const definitions: Definition[] = [
         zigbeeModel: ['4512749-N'],
         model: '4512749-N',
         vendor: 'Namron',
-        description: 'Thermostat outlet socket',
-        fromZigbee: [fz.metering, fz.electrical_measurement, fz.on_off, fz.temperature],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [e.temperature(), e.power(), e.current(), e.voltage(), e.switch(), e.power_on_behavior()],
+        description: 'Namron Thermostat outlet socket',
+        fromZigbee: [fz.thermostat],
+        toZigbee: [
+            namronPlug.thermostat_occupied_heating_setpoint,
+            namronPlug.thermostat_local_temperature,
+            namronPlug.thermostat_local_temperature_calibration,
+            namronPlug.thermostat_system_mode,
+            namronPlug.thermostat_running_state,
+        ],
+        extend: [
+            onOff(),
+            temperature(),
+            electricityMeter(),
+            binary({
+                name: 'operation_mode',
+                cluster: 0x0000,
+                attribute: {ID: 0x1000, type: 0x30},
+                description: 'Set operation mode as ON/OFF or as Thermostat.',
+                valueOn: ['Thermostat', 0x01],
+                valueOff: ['ON/OFF', 0x00],
+                access: 'ALL',
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+        ],
+        exposes: [
+            e.climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
+                .withLocalTemperature()
+                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
+                .withSystemMode(['off', 'heat'])
+                .withRunningState(['idle', 'heat']),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
-            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
-            await reporting.onOff(endpoint);
-            await reporting.temperature(endpoint, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2v
-            await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - z2m displays only the first decimals, so change of 10
-            await reporting.activePower(endpoint, {min: 10, change: 1}); // W - Min change of 0,1W
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['hvacThermostat']);
+
+            // Thermostat reporting
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint2);
+            await reporting.thermostatTemperature(endpoint2, {min: 1, change: 10});
+            await reporting.thermostatSystemMode(endpoint2, {min: 1, max: 10});
+            await reporting.thermostatTemperatureCalibration(endpoint2);
+            await reporting.thermostatRunningState(endpoint2, {min: 1, max: 10});
+            await endpoint2.read('hvacThermostat', ['systemMode', 'runningState',
+                'occupiedHeatingSetpoint', 'localTemp', 'localTemperatureCalibration']);
         },
     },
     {
