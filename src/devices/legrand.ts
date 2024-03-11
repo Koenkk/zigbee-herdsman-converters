@@ -4,10 +4,9 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import {tzLegrand, fzLegrand, readInitialBatteryState, _067776, legrandOptions} from '../lib/legrand';
-import {deviceEndpoints, light} from '../lib/modernExtend';
+import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -35,11 +34,10 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'DIN dry contactor module',
         whiteLabel: [{vendor: 'BTicino', model: 'FC80AC'}],
-        extend: extend.switch(),
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_device_mode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
+        extend: [onOff()],
+        fromZigbee: [fz.identify, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.legrand_device_mode, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [
-            e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             e.power().withAccess(ea.STATE_GET), e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP'),
         ],
@@ -60,25 +58,16 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'DIN contactor module',
         whiteLabel: [{vendor: 'BTicino', model: 'FC80CC'}],
-        extend: extend.switch(),
+        extend: [onOff(), electricityMeter({cluster: 'electrical'})],
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_device_mode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power, tzLegrand.auto_mode],
+        fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.legrand_device_mode, tz.legrand_identify, tzLegrand.auto_mode],
         exposes: [
-            e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
-            e.power().withAccess(ea.STATE_GET),
             e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('Switch: allow manual on/off, auto uses contact\'s C1/C2 wired actions for Peak/Off-Peak electricity rates'),
             e.enum('auto_mode', ea.STATE_SET, ['off', 'auto', 'on_override'])
                 .withDescription('Off/auto/on (override) (works only if device is set to "auto" mode)'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
-            await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-        },
     },
     {
         zigbeeModel: [' Teleruptor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
@@ -87,19 +76,17 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'DIN smart relay for light control',
         whiteLabel: [{vendor: 'BTicino', model: 'FC80RC'}],
-        extend: extend.switch(),
+        extend: [onOff()],
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_device_mode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
+        fromZigbee: [fz.identify, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.legrand_device_mode, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [
-            e.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             e.power().withAccess(ea.STATE_GET), e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on teleruptor with buttons'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
-            await reporting.onOff(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'haElectricalMeasurement']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
         },
@@ -370,13 +357,13 @@ const definitions: Definition[] = [
         vendor: 'Legrand',
         description: 'Wired micromodule switch',
         whiteLabel: [{vendor: 'BTicino', model: '3584C'}],
-        extend: extend.switch(),
+        extend: [onOff()],
         ota: ota.zigbeeOTA,
-        fromZigbee: [...extend.switch().fromZigbee, fz.identify],
-        toZigbee: [...extend.switch().toZigbee, tz.legrand_identify],
+        fromZigbee: [fz.identify],
+        toZigbee: [tz.legrand_identify],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput']);
         },
     },
     {

@@ -207,7 +207,7 @@ const definitions: Definition[] = [
         model: 'HG06337',
         vendor: 'Lidl',
         description: 'Silvercrest smart plug (EU, CH, FR, BS, DK)',
-        extend: tuya.extend.switch({indicatorMode: true}),
+        extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -220,7 +220,7 @@ const definitions: Definition[] = [
         vendor: 'Lidl',
         description: 'Silvercrest smart plug with power monitoring (EU, FR)',
         ota: ota.zigbeeOTA,
-        extend: tuya.extend.switch({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true}),
+        extend: [tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true})],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -339,7 +339,7 @@ const definitions: Definition[] = [
         model: 'HG06338',
         vendor: 'Lidl',
         description: 'Silvercrest 3 gang switch, with 4 USB (EU, FR, CZ, BS)',
-        extend: tuya.extend.switch({endpoints: ['l1', 'l2', 'l3']}),
+        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3']})],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -475,7 +475,7 @@ const definitions: Definition[] = [
         model: 'HG06620',
         vendor: 'Lidl',
         description: 'Silvercrest garden spike with 2 sockets',
-        extend: tuya.extend.switch(),
+        extend: [tuya.modernExtend.tuyaOnOff()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -487,7 +487,7 @@ const definitions: Definition[] = [
         model: 'HG06619',
         vendor: 'Lidl',
         description: 'Silvercrest outdoor plug',
-        extend: tuya.extend.switch(),
+        extend: [tuya.modernExtend.tuyaOnOff()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

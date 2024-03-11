@@ -1340,80 +1340,6 @@ const tuyaFz = {
 };
 export {tuyaFz as fz};
 
-const tuyaExtend = {
-    switch: (options:{
-        endpoints?: string[], powerOutageMemory?: boolean, powerOnBehavior2?: boolean, switchType?: boolean, backlightModeLowMediumHigh?: boolean,
-        indicatorMode?: boolean, backlightModeOffNormalInverted?: boolean, backlightModeOffOn?: boolean, electricalMeasurements?: boolean,
-        electricalMeasurementsFzConverter?: Fz.Converter, childLock?: boolean, fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
-        exposes?: Expose[],
-    }={}) => {
-        const exposes: Expose[] = options.endpoints ? options.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
-        const fromZigbee: Fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
-        const toZigbee: Tz.Converter[] = [tz.on_off];
-        if (options.powerOutageMemory) {
-            // Legacy, powerOnBehavior is preferred
-            fromZigbee.push(tuyaFz.power_outage_memory);
-            toZigbee.push(tuyaTz.power_on_behavior_1);
-            exposes.push(tuyaExposes.powerOutageMemory());
-        } else if (options.powerOnBehavior2) {
-            fromZigbee.push(tuyaFz.power_on_behavior_2);
-            toZigbee.push(tuyaTz.power_on_behavior_2);
-            if (options.endpoints) {
-                exposes.push(...options.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)));
-            } else {
-                exposes.push(e.power_on_behavior());
-            }
-        } else {
-            fromZigbee.push(tuyaFz.power_on_behavior_1);
-            toZigbee.push(tuyaTz.power_on_behavior_1);
-            exposes.push(e.power_on_behavior());
-        }
-
-        if (options.switchType) {
-            fromZigbee.push(tuyaFz.switch_type);
-            toZigbee.push(tuyaTz.switch_type);
-            exposes.push(tuyaExposes.switchType());
-        }
-
-        if (options.backlightModeOffOn) {
-            fromZigbee.push(tuyaFz.backlight_mode_off_on);
-            exposes.push(tuyaExposes.backlightModeOffOn());
-            toZigbee.push(tuyaTz.backlight_indicator_mode_2);
-        }
-        if (options.backlightModeLowMediumHigh) {
-            fromZigbee.push(tuyaFz.backlight_mode_low_medium_high);
-            exposes.push(tuyaExposes.backlightModeLowMediumHigh());
-            toZigbee.push(tuyaTz.backlight_indicator_mode_1);
-        }
-        if (options.backlightModeOffNormalInverted) {
-            fromZigbee.push(tuyaFz.backlight_mode_off_normal_inverted);
-            exposes.push(tuyaExposes.backlightModeOffNormalInverted());
-            toZigbee.push(tuyaTz.backlight_indicator_mode_1);
-        }
-        if (options.indicatorMode) {
-            fromZigbee.push(tuyaFz.indicator_mode);
-            exposes.push(tuyaExposes.indicatorMode());
-            toZigbee.push(tuyaTz.backlight_indicator_mode_1);
-        }
-
-        if (options.electricalMeasurements) {
-            fromZigbee.push((options.electricalMeasurementsFzConverter || fz.electrical_measurement), fz.metering);
-            exposes.push(e.power(), e.current(), e.voltage(), e.energy());
-        }
-        if (options.childLock) {
-            fromZigbee.push(tuyaFz.child_lock);
-            toZigbee.push(tuyaTz.child_lock);
-            exposes.push(e.child_lock());
-        }
-        if (options.fromZigbee) fromZigbee.push(...options.fromZigbee);
-        if (options.toZigbee) toZigbee.push(...options.toZigbee);
-        if (options.exposes) exposes.push(...options.exposes);
-        return {exposes, fromZigbee, toZigbee};
-    },
-};
-export {tuyaExtend as extend};
-
-
 function getHandlersForDP(name: string, dp: number, type: number, converter: Tuya.ValueConverterSingle,
     readOnly?: boolean, skip?: (meta: Tz.Meta) => boolean, endpoint?: string, useGlobalSequence?: boolean): [Fz.Converter[], Tz.Converter[]] {
     const keyName = (endpoint) ? `${name}_${endpoint}` : name;
@@ -1713,11 +1639,75 @@ const tuyaModernExtend = {
 
         return result;
     },
+    tuyaOnOff: (args: {
+        endpoints?: string[], powerOutageMemory?: boolean, powerOnBehavior2?: boolean, switchType?: boolean, backlightModeLowMediumHigh?: boolean,
+        indicatorMode?: boolean, backlightModeOffNormalInverted?: boolean, backlightModeOffOn?: boolean, electricalMeasurements?: boolean,
+        electricalMeasurementsFzConverter?: Fz.Converter, childLock?: boolean,
+    }={}): ModernExtend => {
+        const exposes: Expose[] = args.endpoints ? args.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
+        const fromZigbee: Fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
+        const toZigbee: Tz.Converter[] = [tz.on_off];
+        if (args.powerOutageMemory) {
+            // Legacy, powerOnBehavior is preferred
+            fromZigbee.push(tuyaFz.power_outage_memory);
+            toZigbee.push(tuyaTz.power_on_behavior_1);
+            exposes.push(tuyaExposes.powerOutageMemory());
+        } else if (args.powerOnBehavior2) {
+            fromZigbee.push(tuyaFz.power_on_behavior_2);
+            toZigbee.push(tuyaTz.power_on_behavior_2);
+            if (args.endpoints) {
+                exposes.push(...args.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)));
+            } else {
+                exposes.push(e.power_on_behavior());
+            }
+        } else {
+            fromZigbee.push(tuyaFz.power_on_behavior_1);
+            toZigbee.push(tuyaTz.power_on_behavior_1);
+            exposes.push(e.power_on_behavior());
+        }
+
+        if (args.switchType) {
+            fromZigbee.push(tuyaFz.switch_type);
+            toZigbee.push(tuyaTz.switch_type);
+            exposes.push(tuyaExposes.switchType());
+        }
+
+        if (args.backlightModeOffOn) {
+            fromZigbee.push(tuyaFz.backlight_mode_off_on);
+            exposes.push(tuyaExposes.backlightModeOffOn());
+            toZigbee.push(tuyaTz.backlight_indicator_mode_2);
+        }
+        if (args.backlightModeLowMediumHigh) {
+            fromZigbee.push(tuyaFz.backlight_mode_low_medium_high);
+            exposes.push(tuyaExposes.backlightModeLowMediumHigh());
+            toZigbee.push(tuyaTz.backlight_indicator_mode_1);
+        }
+        if (args.backlightModeOffNormalInverted) {
+            fromZigbee.push(tuyaFz.backlight_mode_off_normal_inverted);
+            exposes.push(tuyaExposes.backlightModeOffNormalInverted());
+            toZigbee.push(tuyaTz.backlight_indicator_mode_1);
+        }
+        if (args.indicatorMode) {
+            fromZigbee.push(tuyaFz.indicator_mode);
+            exposes.push(tuyaExposes.indicatorMode());
+            toZigbee.push(tuyaTz.backlight_indicator_mode_1);
+        }
+
+        if (args.electricalMeasurements) {
+            fromZigbee.push((args.electricalMeasurementsFzConverter || fz.electrical_measurement), fz.metering);
+            exposes.push(e.power(), e.current(), e.voltage(), e.energy());
+        }
+        if (args.childLock) {
+            fromZigbee.push(tuyaFz.child_lock);
+            toZigbee.push(tuyaTz.child_lock);
+            exposes.push(e.child_lock());
+        }
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
 exports.exposes = tuyaExposes;
-exports.extend = tuyaExtend;
 exports.modernExtend = tuyaModernExtend;
 exports.tz = tuyaTz;
 exports.fz = tuyaFz;

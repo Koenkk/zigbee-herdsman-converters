@@ -6,7 +6,6 @@ import tz from '../converters/toZigbee';
 import {Definition, Tz, Fz, KeyValueAny, KeyValue, Zh, Expose} from '../lib/types';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import extend from '../lib/extend';
 import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -21,6 +20,7 @@ import {
     binary,
     numeric,
     quirkAddEndpointCluster,
+    deviceEndpoints,
 } from '../lib/modernExtend';
 
 const switchTypesList = {
@@ -764,46 +764,33 @@ const definitions: Definition[] = [
         model: 'DNCKATSW002',
         vendor: 'Custom devices (DiY)',
         description: 'DNCKAT double key wired wall light switch',
-        fromZigbee: [fz.on_off, fz.DNCKAT_S00X_buttons],
-        meta: {multiEndpoint: true},
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.action(['release_left', 'hold_left', 'release_right', 'hold_right'])],
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2};
-        },
+        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        extend: [deviceEndpoints({endpoints: {left: 1, right: 2}}), onOff({endpointNames: ['left', 'right']})],
+        exposes: [e.action(['release_left', 'hold_left', 'release_right', 'hold_right'])],
     },
     {
         zigbeeModel: ['DNCKAT_S003'],
         model: 'DNCKATSW003',
         vendor: 'Custom devices (DiY)',
         description: 'DNCKAT triple key wired wall light switch',
-        fromZigbee: [fz.on_off, fz.DNCKAT_S00X_buttons],
-        meta: {multiEndpoint: true},
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.switch().withEndpoint('center'),
-            e.action(['release_left', 'hold_left', 'release_right', 'hold_right', 'release_center', 'hold_center'])],
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
+        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        extend: [deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), onOff({endpointNames: ['left', 'center', 'right']})],
+        exposes: [e.action(['release_left', 'hold_left', 'release_right', 'hold_right', 'release_center', 'hold_center'])],
     },
     {
         zigbeeModel: ['DNCKAT_S004'],
         model: 'DNCKATSW004',
         vendor: 'Custom devices (DiY)',
         description: 'DNCKAT quadruple key wired wall light switch',
-        fromZigbee: [fz.on_off, fz.DNCKAT_S00X_buttons],
-        meta: {multiEndpoint: true},
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('bottom_left'), e.switch().withEndpoint('bottom_right'),
-            e.switch().withEndpoint('top_left'), e.switch().withEndpoint('top_right'),
+        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        extend: [
+            deviceEndpoints({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4}}),
+            onOff({endpointNames: ['bottom_left', 'bottom_right', 'top_left', 'top_right']})],
+        exposes: [
             e.action([
                 'release_bottom_left', 'hold_bottom_left', 'release_bottom_right', 'hold_bottom_right',
                 'release_top_left', 'hold_top_left', 'release_top_right', 'hold_top_right',
             ])],
-        endpoint: (device) => {
-            return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4};
-        },
     },
     {
         zigbeeModel: ['ZigUP'],

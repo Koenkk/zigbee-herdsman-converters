@@ -3,10 +3,9 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import {fzLegrand, tzLegrand} from '../lib/legrand';
-import {light} from '../lib/modernExtend';
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -63,24 +62,13 @@ const definitions: Definition[] = [
         model: 'F20T60A',
         description: 'DIN power consumption module (same as Legrand 412015)',
         vendor: 'BTicino',
-        extend: extend.switch(),
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_device_mode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
+        extend: [onOff(), electricityMeter({cluster: 'electrical'})],
+        fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.legrand_device_mode, tz.legrand_identify],
         exposes: [
-            e.switch()
-                .withState('state', true, 'On/off (works only if device is in "switch" mode)'),
-            e.power()
-                .withAccess(ea.STATE_GET),
             e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-        },
     },
     {
         zigbeeModel: ['Power socket Bticino Serie LL '],
