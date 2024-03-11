@@ -1330,12 +1330,12 @@ export const lumiModernExtend = {
         result.exposes.push(e.device_temperature(), e.power_outage_count());
         if (args.powerOutageMemory === 'binary') {
             const extend = lumiModernExtend.lumiPowerOutageMemory();
-            result.toZigbee.concat(extend.toZigbee);
-            result.exposes.concat(extend.exposes);
+            result.toZigbee.push(...extend.toZigbee);
+            result.exposes.push(...extend.exposes);
         } else if (args.powerOutageMemory === 'enum') {
             const extend = lumiModernExtend.lumiPowerOnBehavior();
-            result.toZigbee.concat(extend.toZigbee);
-            result.exposes.concat(extend.exposes);
+            result.toZigbee.push(...extend.toZigbee);
+            result.exposes.push(...extend.exposes);
         }
         if (args.operationMode === true) {
             const extend = lumiModernExtend.lumiOperationMode({description: 'Decoupled mode for a button'});
@@ -1345,12 +1345,12 @@ export const lumiModernExtend = {
                         description: 'Decoupled mode for ' + ep.toString() + ' button',
                         endpointName: ep,
                     });
-                    result.toZigbee.concat(epExtend.toZigbee);
-                    result.exposes.concat(epExtend.exposes);
+                    result.toZigbee.push(...epExtend.toZigbee);
+                    result.exposes.push(...epExtend.exposes);
                 });
             } else {
-                result.toZigbee.concat(extend.toZigbee);
-                result.exposes.concat(extend.exposes);
+                result.toZigbee.push(...extend.toZigbee);
+                result.exposes.push(...extend.exposes);
             }
         }
         if (args.lockRelay) {
@@ -1361,12 +1361,12 @@ export const lumiModernExtend = {
                         description: 'Locks ' + ep.toString() + ' relay and prevents it from operating',
                         endpointName: ep,
                     });
-                    result.toZigbee.concat(epExtend.toZigbee);
-                    result.exposes.concat(epExtend.exposes);
+                    result.toZigbee.push(...epExtend.toZigbee);
+                    result.exposes.push(...epExtend.exposes);
                 });
             } else {
-                result.toZigbee.concat(extend.toZigbee);
-                result.exposes.concat(extend.exposes);
+                result.toZigbee.push(...extend.toZigbee);
+                result.exposes.push(...extend.exposes);
             }
         }
         return result;
@@ -2356,9 +2356,9 @@ export const fromZigbee = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
-            if ((model.model === 'ZNCLDJ12LM' || model.model === 'ZNCLDJ14LM') &&
+            if ((model.model === 'ZNCLDJ12LM') &&
               msg.type === 'attributeReport' && [0, 2].includes(msg.data['presentValue'])) {
-                // Incorrect reports from the device, ignore (re-read by onEvent of ZNCLDJ12LM and ZNCLDJ14LM)
+                // Incorrect reports from the device, ignore (re-read by onEvent of ZNCLDJ12LM)
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1427#issuecomment-663862724
                 return;
             }
@@ -2480,6 +2480,19 @@ export const fromZigbee = {
                     motor_state: lookup[value],
                     running: running,
                 };
+            }
+        },
+    } satisfies Fz.Converter,
+    lumi_curtain_options: {
+        cluster: 'manuSpecificLumi',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('curtainManual')) {
+                return {hand_open: msg.data['curtainManual'] === 0};
+            } else if (msg.data.hasOwnProperty('curtainReverse')) {
+                return {reverse_direction: msg.data['curtainReverse'] === 1};
+            } else if (msg.data.hasOwnProperty('curtainCalibrated')) {
+                return {limits_calibration: (msg.data['curtainCalibrated'] === 1) ? 'calibrated' : 'recalibrate'};
             }
         },
     } satisfies Fz.Converter,
@@ -3895,7 +3908,7 @@ export const toZigbee = {
             if (value.hasOwnProperty('auto_close')) opts.hand_open = value.auto_close;
             if (value.hasOwnProperty('reset_move')) opts.reset_limits = value.reset_move;
 
-            if (meta.mapped.model === 'ZNCLDJ12LM' || meta.mapped.model === 'ZNCLDJ14LM') {
+            if (meta.mapped.model === 'ZNCLDJ12LM') {
                 await entity.write('genBasic', {0xff28: {value: opts.reverse_direction, type: 0x10}}, manufacturerOptions.lumi);
                 await entity.write('genBasic', {0xff29: {value: !opts.hand_open, type: 0x10}}, manufacturerOptions.lumi);
 
@@ -3936,7 +3949,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
             if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
-                if (meta.mapped.model == 'ZNJLBL01LM') {
+                if (['ZNJLBL01LM', 'ZNCLDJ14LM'].includes(meta.mapped.model)) {
                     const payload = {'presentValue': 2};
                     await entity.write('genMultistateOutput', payload);
                 } else {
@@ -3972,7 +3985,7 @@ export const toZigbee = {
                     await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: value},
                         getOptions(meta.mapped, entity));
                 } else {
-                    const payload = {0x0055: {value, type: 0x39}};
+                    const payload = {'presentValue': value};
                     await entity.write('genAnalogOutput', payload);
                 }
             }
@@ -4037,10 +4050,19 @@ export const toZigbee = {
     lumi_curtain_hand_open: {
         key: ['hand_open'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificLumi', {0x0401: {value: !value, type: 0x10}}, manufacturerOptions.lumi);
+            await entity.write('manuSpecificLumi', {'curtainManual': !value}, manufacturerOptions.lumi);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLumi', [0x0401], manufacturerOptions.lumi);
+            await entity.read('manuSpecificLumi', ['curtainManual'], manufacturerOptions.lumi);
+        },
+    } satisfies Tz.Converter,
+    lumi_curtain_reverse: {
+        key: ['reverse_direction'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificLumi', {'curtainReverse': value}, manufacturerOptions.lumi);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLumi', ['curtainReverse'], manufacturerOptions.lumi);
         },
     } satisfies Tz.Converter,
     lumi_curtain_limits_calibration: {
@@ -4056,6 +4078,26 @@ export const toZigbee = {
             case 'reset':
                 await entity.write('manuSpecificLumi', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.lumi);
                 // also? await entity.write('manuSpecificLumi', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.lumi);
+                break;
+            }
+        },
+    } satisfies Tz.Converter,
+    lumi_curtain_limits_calibration_ZNCLDJ14LM: {
+        key: ['limits_calibration'],
+        options: [
+            e.enum('limits_calibration', ea.ALL, ['calibrated', 'recalibrate', 'open', 'close'])
+                .withDescription('Recalibrate the position limits'),
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'recalibrate':
+                await entity.write('manuSpecificLumi', {'curtainCalibrated': false}, manufacturerOptions.lumi);
+                break;
+            case 'open':
+                await entity.write('genMultistateOutput', {'presentValue': 1}, manufacturerOptions.lumi);
+                break;
+            case 'close':
+                await entity.write('genMultistateOutput', {'presentValue': 0}, manufacturerOptions.lumi);
                 break;
             }
         },

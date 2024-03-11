@@ -1795,6 +1795,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929002401101'],
+        model: '929002401101',
+        vendor: 'Philips',
+        description: 'Hue Iris silver limited edition (generation 4) ',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ['929002376703'],
         model: '929002376703',
         vendor: 'Philips',

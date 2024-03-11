@@ -1,5 +1,55 @@
 # Changelog
 
+## [19.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.49.0...v19.0.0) (2024-03-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove legacy extend support ([#7200](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7200))
+
+### Features
+
+* Remove legacy extend support ([#7200](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7200)) ([0558a15](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0558a1527d4e112747ce912ac68a054314e3fc06))
+
+
+### Bug Fixes
+
+* Refactor all switches to modernExtend ([#7198](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7198)) ([cb24821](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb24821aebe8c2be5cef27bbd3a71f5937580b1f))
+
+## [18.49.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.48.0...v18.49.0) (2024-03-11)
+
+
+### Features
+
+* **add:** LED2109G6 [@millionsofjeffries](https://github.com/millionsofjeffries) https://github.com/Koenkk/zigbee2mqtt/issues/21755 ([dbf268e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dbf268ead2d2397a1544aac3354e7d0a50b96f27))
+* **add:** TS0601_gas_sensor_3 [@onmobs](https://github.com/onmobs) https://github.com/Koenkk/zigbee2mqtt/issues/21741 ([abd30a8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/abd30a89429a373fdfafc15e72a828d4c1503c86))
+* Improve Aqara ZNCLDJ14LM support ([#7191](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7191)) ([c951b18](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c951b187489280d02f92f070b385efb00da3cac8))
+* Support battery and OTA for IKEA E2202 ([#7196](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7196)) ([e2860b2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e2860b2ec6ab4ccabbb418565bfd0aa5a5bf385e))
+
+
+### Bug Fixes
+
+* Fix some Aqara modernExtend ([#7192](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7192)) ([d22efc7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d22efc74acb70a2e41adfa216469ceef147c1446))
+* **ignore:** add back level config https://github.com/Koenkk/zigbee-herdsman-converters/pull/7168 ([63756b5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/63756b57cf711dd01304b582684ca57db80464c6))
+* Refactor more devices to modernExtend ([#7194](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7194)) ([fe6f97e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fe6f97ec8da0a3e5048bddff155b283c96035819))
+
+## [18.48.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.47.0...v18.48.0) (2024-03-10)
+
+
+### Features
+
+* **add:** 929002401101 ([#7189](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7189)) ([53b5512](https://github.com/Koenkk/zigbee-herdsman-converters/commit/53b55128acdd715fa5bf920a4c70fe8671e6813e))
+* **add:** SPM02-U01 ([#7190](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7190)) ([04b5259](https://github.com/Koenkk/zigbee-herdsman-converters/commit/04b52591207643d87aeaad5db6380def14a5874b))
+* **add:** ZP1-EN, ZR1-EN ([#7187](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7187)) ([939a3ea](https://github.com/Koenkk/zigbee-herdsman-converters/commit/939a3ea1ce839a5b43b177941ac976f269e4b173))
+
+
+### Bug Fixes
+
+* Don't allow sceneID 0 ([#7185](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7185)) ([5ad3798](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5ad37981bed2997044ffd8d20adb2b1f90b9eadf))
+* Fix 8719514440937/8719514440999 description ([#7183](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7183)) ([3edfa24](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3edfa24bd7583557f7adc9b4569f5fb041fe979a))
+* **ignore:** update dependencies ([#7188](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7188)) ([4c6d8ba](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c6d8ba76b8a77d9b1003622d80988f7125a2f79))
+* **ignore:** Update manufacturer codes ([#7186](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7186)) ([c337428](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c3374288dfd5f2058c1f9f45d35c5bc2ac854d50))
+
 ## [18.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.46.0...v18.47.0) (2024-03-08)
 
 

@@ -2,7 +2,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import * as ota from '../lib/ota';
 import {Definition, Fz, KeyValue} from '../lib/types';
 import {forcePowerSource, light, onOff} from '../lib/modernExtend';
@@ -64,13 +63,8 @@ const definitions: Definition[] = [
         model: '3RSS007Z',
         vendor: 'Third Reality',
         description: 'Smart light switch',
-        extend: extend.switch(),
+        extend: [onOff()],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
     },
     {
         zigbeeModel: ['3RSL011Z'],
@@ -254,11 +248,9 @@ const definitions: Definition[] = [
         vendor: 'Third Reality',
         description: 'Zigbee multi-function night light',
         ota: ota.zigbeeOTA,
-        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
-            fzLocal.thirdreality_private_motion_sensor, fz.illuminance, fz.ias_occupancy_alarm_1_report]),
-        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee,
-        exposes: [e.light_brightness_colorxy(),
-            e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
+        extend: [light({color: true})],
+        fromZigbee: [fzLocal.thirdreality_private_motion_sensor, fz.illuminance, fz.ias_occupancy_alarm_1_report],
+        exposes: [e.occupancy(), e.illuminance(), e.illuminance_lux().withUnit('lx')],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();

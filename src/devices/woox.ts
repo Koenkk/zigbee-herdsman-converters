@@ -26,7 +26,7 @@ const definitions: Definition[] = [
         model: 'R9077',
         vendor: 'Woox',
         description: 'RGB+CCT LED',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color(),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: undefined}, color: true})],
         meta: {applyRedFix: true},
     },
     {

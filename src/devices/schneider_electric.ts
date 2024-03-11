@@ -354,7 +354,7 @@ const definitions: Definition[] = [
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer',
         ota: ota.zigbeeOTA,
-        extend: [light({configureReporting: true})],
+        extend: [light({configureReporting: true, levelConfig: {}})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
         exposes: [
@@ -737,7 +737,7 @@ const definitions: Definition[] = [
             return {'l1': 3, 's1': 21, 's2': 22, 's3': 23, 's4': 24};
         },
         meta: {multiEndpoint: true},
-        extend: [light({endpointNames: ['l1'], configureReporting: true})],
+        extend: [light({endpointNames: ['l1'], configureReporting: true, levelConfig: {}})],
         exposes: [
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast')

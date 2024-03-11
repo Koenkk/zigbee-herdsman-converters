@@ -3,7 +3,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
@@ -31,7 +30,7 @@ const definitions: Definition[] = [
         model: 'JZ-ZB-001',
         description: 'Smart plug (without power monitoring)',
         vendor: 'LELLKI',
-        extend: tuya.extend.switch({powerOutageMemory: true}),
+        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true})],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -69,7 +68,7 @@ const definitions: Definition[] = [
         model: 'XF-EU-S100-1-M',
         description: 'Touch switch 1 gang (with power monitoring)',
         vendor: 'LELLKI',
-        extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true}),
+        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true})],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -85,7 +84,7 @@ const definitions: Definition[] = [
         model: 'WK34-EU',
         description: 'Power socket EU (with power monitoring)',
         vendor: 'LELLKI',
-        extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true}),
+        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true})],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -102,7 +101,6 @@ const definitions: Definition[] = [
         model: 'WP30-EU',
         description: 'Power cord 4 sockets EU (with power monitoring)',
         vendor: 'LELLKI',
-        extend: extend.switch(),
         fromZigbee: [fz.on_off_force_multiendpoint, fz.electrical_measurement, fz.metering, fz.ignore_basic_report,
             tuya.fz.power_outage_memory],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1],

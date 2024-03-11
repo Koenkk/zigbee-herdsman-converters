@@ -6,10 +6,10 @@ import * as legacy from '../lib/legacy';
 import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as zosung from '../lib/zosung';
+import {onOff} from '../lib/modernExtend';
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -28,7 +28,7 @@ const definitions: Definition[] = [
         model: 'ZP-LZ-FR2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
-        extend: tuya.extend.switch({powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ['l1', 'l2']}),
+        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ['l1', 'l2']})],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -47,7 +47,7 @@ const definitions: Definition[] = [
         model: 'MS-104Z',
         description: 'Smart light switch module (1 gang)',
         vendor: 'Moes',
-        extend: tuya.extend.switch(),
+        extend: [tuya.modernExtend.tuyaOnOff()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -65,7 +65,7 @@ const definitions: Definition[] = [
         model: 'MS-104BZ',
         description: 'Smart light switch module (2 gang)',
         vendor: 'Moes',
-        extend: tuya.extend.switch({endpoints: ['l1', 'l2']}),
+        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2']})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -87,16 +87,11 @@ const definitions: Definition[] = [
         model: 'ZK-EU-2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        extend: [onOff({endpointNames: ['l1', 'l2']})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             const hasEndpoint2 = !!device.getEndpoint(2);
             return {l1: 1, l2: hasEndpoint2 ? 2 : 7};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -385,7 +380,7 @@ const definitions: Definition[] = [
         model: 'ZS-EUB_1gang',
         vendor: 'Moes',
         description: 'Wall light switch (1 gang)',
-        extend: tuya.extend.switch({backlightModeOffNormalInverted: true}),
+        extend: [tuya.modernExtend.tuyaOnOff({backlightModeOffNormalInverted: true})],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';

@@ -253,7 +253,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 export interface LightArgs {
     effect?: boolean, powerOnBehavior?: boolean, colorTemp?: {startup?: boolean, range: Range},
     color?: boolean | {modes?: ('xy' | 'hs')[], applyRedFix?: boolean, enhancedHue?: boolean}, turnsOffAtBrightness1?: boolean,
-    configureReporting?: boolean, endpointNames?: string[], ota?: DefinitionOta,
+    configureReporting?: boolean, endpointNames?: string[], ota?: DefinitionOta, levelConfig?: {disabledFeatures?: string[]},
 }
 export function light(args?: LightArgs): ModernExtend {
     args = {effect: true, powerOnBehavior: true, configureReporting: false, ...args};
@@ -302,6 +302,11 @@ export function light(args?: LightArgs): ModernExtend {
         if (!argsColor.enhancedHue) {
             meta.supportsEnhancedHue = false;
         }
+    }
+
+    if (args.levelConfig) {
+        lightExpose.forEach((e) => e.withLevelConfig(args.levelConfig.disabledFeatures ?? []));
+        toZigbee.push(tz.level_config);
     }
 
     const exposes: Expose[] = lightExpose;
@@ -558,9 +563,9 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
 
-    const actions = Object.keys(lookup).map((a) => args.endpointNames ? args.endpointNames.map((e) => `${a}_${e}`) : [a]).flat();
+    let actions = Object.keys(lookup).map((a) => args.endpointNames ? args.endpointNames.map((e) => `${a}_${e}`) : [a]).flat();
     // allows direct external input to be used by other extends in the same device
-    if (args.extraActions) actions.concat(args.extraActions);
+    if (args.extraActions) actions = actions.concat(args.extraActions);
     const expose = e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)');
 
     const fromZigbee: Fz.Converter[] = [{
@@ -899,9 +904,9 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
     });
 
     const result: ModernExtend = illiminanceLux;
-    result.fromZigbee.concat(rawIllinance.fromZigbee);
-    result.toZigbee.concat(rawIllinance.toZigbee);
-    result.exposes.concat(rawIllinance.exposes);
+    result.fromZigbee.push(...rawIllinance.fromZigbee);
+    result.toZigbee.push(...rawIllinance.toZigbee);
+    result.exposes.push(...rawIllinance.exposes);
 
     return result;
 }

@@ -3,7 +3,6 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {
     light, numeric, binary, enumLookup, forceDeviceType,
     temperature, humidity, forcePowerSource, quirkAddEndpointCluster,
@@ -90,14 +89,9 @@ const definitions: Definition[] = [
         model: 'ZNDDMK11LM',
         vendor: 'Aqara',
         description: 'Smart lightstrip driver',
-        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
-            lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_specific]),
-        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
-            lumi.toZigbee.lumi_dimmer_mode, lumi.toZigbee.lumi_switch_power_outage_memory]),
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
+        fromZigbee: [lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_specific, ...light({colorTemp: {range: undefined}, color: true}).fromZigbee],
+        toZigbee: [lumi.toZigbee.lumi_dimmer_mode, lumi.toZigbee.lumi_switch_power_outage_memory,
+            ...light({colorTemp: {range: undefined}, color: true}).toZigbee],
         exposes: [e.power(), e.energy(), e.voltage(), e.device_temperature(), e.power_outage_memory(),
             // When in rgbw mode, only one of color and colortemp will be valid, and l2 will be invalid
             // Do not control l2 in rgbw mode
@@ -105,7 +99,10 @@ const definitions: Definition[] = [
             e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('l2'),
             e.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct'])
                 .withDescription('Switch between rgbw mode or dual color temperature mode')],
-        extend: [lumiZigbeeOTA()],
+        extend: [
+            deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            lumiZigbeeOTA(),
+        ],
     },
     {
         zigbeeModel: ['lumi.light.aqcn02'],
@@ -1851,17 +1848,23 @@ const definitions: Definition[] = [
         model: 'ZNCLDJ14LM',
         vendor: 'Aqara',
         description: 'Curtain controller C2',
-        fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_curtain_position,
-            lumi.fromZigbee.lumi_curtain_position_tilt, lumi.fromZigbee.lumi_curtain_status],
-        toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_options],
-        onEvent: async (type, data, device) => {
-            // The position (genAnalogOutput.presentValue) reported via an attribute contains an invalid value
-            // however when reading it will provide the correct value.
-            if (data.type === 'attributeReport' && data.cluster === 'genAnalogOutput') {
-                await device.endpoints[0].read('genAnalogOutput', ['presentValue']);
-            }
-        },
+        fromZigbee: [
+            lumi.fromZigbee.lumi_basic,
+            lumi.fromZigbee.lumi_curtain_position,
+            lumi.fromZigbee.lumi_curtain_status,
+            lumi.fromZigbee.lumi_curtain_options,
+        ],
+        toZigbee: [
+            lumi.toZigbee.lumi_curtain_position_state,
+            lumi.toZigbee.lumi_curtain_hand_open,
+            lumi.toZigbee.lumi_curtain_reverse,
+            lumi.toZigbee.lumi_curtain_limits_calibration_ZNCLDJ14LM,
+        ],
         exposes: [e.cover_position().setAccess('state', ea.ALL),
+            e.binary('reverse_direction', ea.ALL, true, false)
+                .withDescription('Whether the curtain direction is inverted'),
+            e.binary('hand_open', ea.ALL, true, false)
+                .withDescription('Pulling curtains by hand starts the motor'),
             e.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
             e.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
