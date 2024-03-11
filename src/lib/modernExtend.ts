@@ -253,7 +253,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 export interface LightArgs {
     effect?: boolean, powerOnBehavior?: boolean, colorTemp?: {startup?: boolean, range: Range},
     color?: boolean | {modes?: ('xy' | 'hs')[], applyRedFix?: boolean, enhancedHue?: boolean}, turnsOffAtBrightness1?: boolean,
-    configureReporting?: boolean, endpointNames?: string[], ota?: DefinitionOta,
+    configureReporting?: boolean, endpointNames?: string[], ota?: DefinitionOta, levelConfig?: {disabledFeatures?: string[]},
 }
 export function light(args?: LightArgs): ModernExtend {
     args = {effect: true, powerOnBehavior: true, configureReporting: false, ...args};
@@ -302,6 +302,11 @@ export function light(args?: LightArgs): ModernExtend {
         if (!argsColor.enhancedHue) {
             meta.supportsEnhancedHue = false;
         }
+    }
+
+    if (args.levelConfig) {
+        lightExpose.forEach((e) => e.withLevelConfig(args.levelConfig.disabledFeatures ?? []));
+        toZigbee.push(tz.level_config);
     }
 
     const exposes: Expose[] = lightExpose;
