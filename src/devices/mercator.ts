@@ -5,7 +5,6 @@ import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
-const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
@@ -14,14 +13,10 @@ const definitions: Definition[] = [
         vendor: 'Mercator Ikuü',
         description: 'Quad power point',
         extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']})],
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'), e.current().withEndpoint('left'),
-            e.voltage().withEndpoint('left').withAccess(ea.STATE), e.energy(),
-            tuya.exposes.powerOutageMemory()],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -93,13 +88,10 @@ const definitions: Definition[] = [
         vendor: 'Mercator Ikuü',
         description: 'Double power point',
         extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']})],
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'), e.current().withEndpoint('left'),
-            e.voltage().withEndpoint('left').withAccess(ea.STATE), e.energy(), tuya.exposes.powerOutageMemory()],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -124,13 +116,10 @@ const definitions: Definition[] = [
         vendor: 'Mercator Ikuü',
         description: 'Double power point IP54',
         extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']})],
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'), e.current().withEndpoint('left'),
-            e.voltage().withEndpoint('left').withAccess(ea.STATE), e.energy(), tuya.exposes.powerOutageMemory()],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
