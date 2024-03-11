@@ -1469,17 +1469,14 @@ const definitions: Definition[] = [
         model: 'TS0601_dimmer_2',
         vendor: 'TuYa',
         description: '2 gang smart dimmer',
-        configure: tuya.configureMagicPacket,
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 1};
-        },
         whiteLabel: [
             {vendor: 'Moes', model: 'ZS-EUD_2gang'},
             {vendor: 'Moes', model: 'MS-105B'}, // _TZE200_e3oitdyu
             tuya.whitelabel('Moes', 'ZS-SR-EUD-2', 'Star ring smart dimmer switch 2 gangs', ['_TZE204_zenj4lxv']),
         ],
         extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 1}}),
             tuya.modernExtend.dpLight({
                 state: {dp: 1, type: tuya.dataTypes.bool, valueOn: ['ON', true], valueOff: ['OFF', false],
                     skip: tuya.skip.stateOnAndBrightnessPresent},
