@@ -1710,6 +1710,34 @@ export const lumiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
+    lumiVibrationT1: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e.enum('action', ea.STATE, ['shake', 'strike_3_times']).withDescription('Triggered vibration action'),
+        ];
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'manuSpecificLumi',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.hasOwnProperty(280)) {
+                        return {action: 'shake'};
+                    }
+                },
+            },
+            {
+                cluster: 'genMultistateInput',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.hasOwnProperty('presentValue')) {
+                        return {action: 'strike_3_times'};
+                    }
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
 };
 
 export {lumiModernExtend as modernExtend};
