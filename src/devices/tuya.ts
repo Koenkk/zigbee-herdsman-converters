@@ -1513,7 +1513,6 @@ const definitions: Definition[] = [
             }),
             tuya.modernExtend.dpBacklightMode({
                 dp: 21, type: tuya.dataTypes.enum,
-                lookup: {'off': 0, 'normal': 1, 'inverted': 2},
             }),
         ],
     },

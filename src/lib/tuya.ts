@@ -1475,7 +1475,7 @@ function getHandlersForDP(name: string, dp: number, type: number, converter: Tuy
 }
 
 export interface TuyaDPEnumLookupArgs {
-    name: string, dp: number, type: number, lookup: KeyValue,
+    name: string, dp: number, type?: number, lookup?: KeyValue,
     description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
     expose?: Expose,
 }
