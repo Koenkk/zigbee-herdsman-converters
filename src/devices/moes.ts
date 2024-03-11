@@ -499,7 +499,7 @@ const definitions: Definition[] = [
         fingerprint: [{modelID: 'TS0726', manufacturerName: '_TZ3002_vaq2bfcu'}],
         model: 'SR-ZS',
         vendor: 'Moes',
-        description: 'Smart switch (Light+Sence)',
+        description: 'Smart switch (light + scene)',
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
