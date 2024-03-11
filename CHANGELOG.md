@@ -1,5 +1,21 @@
 # Changelog
 
+## [19.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.49.0...v19.0.0) (2024-03-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove legacy extend support ([#7200](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7200))
+
+### Features
+
+* Remove legacy extend support ([#7200](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7200)) ([0558a15](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0558a1527d4e112747ce912ac68a054314e3fc06))
+
+
+### Bug Fixes
+
+* Refactor all switches to modernExtend ([#7198](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7198)) ([cb24821](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb24821aebe8c2be5cef27bbd3a71f5937580b1f))
+
 ## [18.49.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.48.0...v18.49.0) (2024-03-11)
 
 
