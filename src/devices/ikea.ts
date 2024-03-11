@@ -11,7 +11,7 @@ import * as utils from '../lib/utils';
 import * as globalStore from '../lib/store';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {postfixWithEndpointName, precisionRound, isObject, replaceInArray} from '../lib/utils';
-import {onOff, LightArgs, light as lightDontUse, iasZoneAlarm} from '../lib/modernExtend';
+import {onOff, LightArgs, light as lightDontUse, battery, iasZoneAlarm} from '../lib/modernExtend';
 import * as semver from 'semver';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -1311,7 +1311,8 @@ const definitions: Definition[] = [
         model: 'E2202',
         vendor: 'IKEA',
         description: 'Water leakage detection sensor',
-        extend: [iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']})],
+        extend: [iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']}), battery()],
+        ota: ota.tradfri,
     },
 ];
 
