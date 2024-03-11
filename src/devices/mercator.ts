@@ -196,17 +196,12 @@ const definitions: Definition[] = [
         vendor: 'Mercator Ikuü',
         description: 'Double power point with USB',
         extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']})],
-        exposes: [
-            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'), e.current().withEndpoint('left'), e.voltage().withEndpoint('left').withAccess(ea.STATE),
-            e.energy(), tuya.exposes.powerOutageMemory(),
-        ],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
