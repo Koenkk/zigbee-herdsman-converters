@@ -159,16 +159,6 @@ export interface DefinitionMeta {
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => Promise<void>;
 export type OnEvent = (type: OnEventType, data: OnEventData, device: Zh.Device, settings: KeyValue, state: KeyValue) => Promise<void>;
-export interface Extend {
-    fromZigbee: Fz.Converter[],
-    toZigbee: Tz.Converter[],
-    exposes: Expose[],
-    configure?: Configure,
-    meta?: DefinitionMeta,
-    ota?: DefinitionOta,
-    onEvent?: OnEvent,
-    isModernExtend?: false,
-}
 
 export interface ModernExtend {
     fromZigbee?: Fz.Converter[],
@@ -208,7 +198,7 @@ export type Definition = {
     ota?: DefinitionOta,
     generated?: boolean,
 } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
-    & ({ extend: Extend | ModernExtend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
+    & ({ extend: ModernExtend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
         exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[])) } |
     {
         fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[],
@@ -274,12 +264,6 @@ export namespace Tuya {
     export interface MetaTuyaDataPointsMeta {skip?: (meta: Tz.Meta) => boolean, optimistic?: boolean}
     export type MetaTuyaDataPointsSingle = [number, string, Tuya.ValueConverterSingle, MetaTuyaDataPointsMeta?];
     export type MetaTuyaDataPoints = MetaTuyaDataPointsSingle[];
-}
-
-export namespace Extend {
-    export interface options_switch {
-        disablePowerOnBehavior?: boolean, toZigbee?: Tz.Converter[], fromZigbee?: Fz.Converter[], exposes?: Expose[]
-    }
 }
 
 export namespace Ota {
