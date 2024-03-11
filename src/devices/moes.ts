@@ -500,6 +500,7 @@ const definitions: Definition[] = [
         model: 'SR-ZS',
         vendor: 'Moes',
         description: 'Smart switch (Light+Sence)',
+        configure: tuya.configureMagicPacket,
         extend: [
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
             tuya.modernExtend.tuyaSwitch({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: true, switchMode: true}),
