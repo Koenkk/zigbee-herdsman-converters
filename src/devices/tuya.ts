@@ -2524,7 +2524,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_irrmjcgi'}],
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_aaifmpuq', '_TZ3000_irrmjcgi']),
         model: 'TS0002_power',
         vendor: 'TuYa',
         description: '2 gang switch with power monitoring',
@@ -2548,6 +2548,7 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('TuYa', 'XSH01B', '2 gang switch module with power monitoring', ['_TZ3000_irrmjcgi']),
+            tuya.whitelabel('Nous', 'B3Z', '2 gang switch module with power monitoring', ['_TZ3000_aaifmpuq']),
         ],
     },
     {
