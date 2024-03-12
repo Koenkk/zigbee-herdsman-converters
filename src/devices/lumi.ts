@@ -3247,6 +3247,53 @@ const definitions: Definition[] = [
             }),
         ],
     },
+    {
+    zigbeeModel: ["lumi.light.acn031", "lumi.light.acn032"],
+    model: "T1/T1m",
+    vendor: "Aqara",
+    description: "Ceiling Light T1/T1m",
+    meta: { multiEndpoint: true },
+    endpoint: () => ({ white: 1, rgb: 2 }),
+    fromZigbee: [
+      fz.color_colortemp,
+      fz.on_off,
+      fz.brightness,
+      fz.level_config,
+      fz.ignore_basic_report,
+      fz.power_on_behavior,
+    ],
+    toZigbee: [
+      // [White light with color temperature]
+      tz.light_colortemp,
+      tz.light_colortemp_move,
+      tz.light_colortemp_step,
+      // [Notification light]
+      tz.light_color,
+      tz.light_hue_saturation_move,
+      tz.light_hue_saturation_step,
+      tz.light_color_options,
+      tz.light_color_mode,
+      // [Common]
+      tz.light_onoff_brightness,
+      tz.ignore_transition,
+      tz.ignore_rate,
+      tz.light_brightness_move,
+      tz.light_brightness_step,
+      tz.level_config,
+      tz.effect,
+      tz.power_on_behavior,
+    ],
+    exposes: [
+      // [White light with color temperature]
+      e
+        .light_brightness_colortemp([153, 370])
+        .removeFeature("color_temp_startup")
+        .withEndpoint("white"), // White light: On/Off, brightness, color temperature, no color_temp_startup
+      // [Notification Light]
+      e.light_brightness_colorxy().withEndpoint("rgb"), // On/Off, brightness, color
+    ],
+    configure: extend.light_onoff_brightness_colortemp_color().configure,
+  },
 ];
 
 export default definitions;
