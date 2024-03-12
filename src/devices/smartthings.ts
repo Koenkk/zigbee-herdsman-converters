@@ -5,8 +5,7 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -130,18 +129,9 @@ const definitions: Definition[] = [
         model: 'GP-WOU019BBDWG',
         vendor: 'SmartThings',
         description: 'Outlet with power meter',
-        extend: extend.switch({fromZigbee: [fz.electrical_measurement, fz.metering], exposes: [e.power(), e.energy()]}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            // This plug only actively reports power. The voltage and current values are always 0, so we can ignore them.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/5198
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.activePower(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
+        // This plug only actively reports power. The voltage and current values are always 0, so we can ignore them.
+        // https://github.com/Koenkk/zigbee2mqtt/issues/5198
+        extend: [onOff(), electricityMeter({current: false, voltage: false})],
     },
     {
         zigbeeModel: ['outlet'],

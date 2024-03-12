@@ -93,86 +93,58 @@ function validateDefinition(definition: Definition) {
 
 function processExtensions(definition: Definition): Definition {
     if ('extend' in definition) {
-        if (Array.isArray(definition.extend)) {
-            // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
-            let {extend, toZigbee, fromZigbee, exposes, meta, endpoint, configure: definitionConfigure, onEvent, ota, ...definitionWithoutExtend} = definition;
-            if (typeof exposes === 'function') {
-                assert.fail(`'${definition.model}' has function exposes which is not allowed`);
-            }
-
-            toZigbee = [...toZigbee ?? []];
-            fromZigbee = [...fromZigbee ?? []];
-            exposes = [...exposes ?? []];
-            const configures: Configure[] = definitionConfigure ? [definitionConfigure] : [];
-
-            for (const ext of extend) {
-                if (!ext.isModernExtend) {
-                    assert.fail(`'${definition.model}' has legacy extend in modern extend`);
-                }
-                if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
-                if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
-                if (ext.exposes) exposes.push(...ext.exposes);
-                if (ext.meta) meta = {...ext.meta, ...meta};
-                if (ext.configure) configures.push(ext.configure);
-                if (ext.ota) {
-                    if (ota) {
-                        assert.fail(`'${definition.model}' has multiple 'ota', this is not allowed`);
-                    }
-                    ota = ext.ota;
-                }
-                if (ext.endpoint) {
-                    if (endpoint) {
-                        assert.fail(`'${definition.model}' has multiple 'endpoint', this is not allowed`);
-                    }
-                    endpoint = ext.endpoint;
-                }
-                if (ext.onEvent) {
-                    if (onEvent) {
-                        assert.fail(`'${definition.model}' has multiple 'onEvent', this is not allowed`);
-                    }
-                    onEvent = ext.onEvent;
-                }
-            }
-
-            let configure: Configure = null;
-            if (configures.length !== 0) {
-                configure = async (device, coordinatorEndpoint, logger) => {
-                    for (const func of configures) {
-                        await func(device, coordinatorEndpoint, logger);
-                    }
-                }
-            }
-            definition = {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
-        } else {
-            // Legacy extend, overrides properties, e.g. when both extend and definition has toZigbee, definition toZigbee will be used
-            const {extend, ...definitionWithoutExtend} = definition;
-
-            if (extend.isModernExtend) {
-                assert.fail(`'${definition.model}' has modern extend in legacy extend`);
-            }
-            if (extend.configure && definition.configure) {
-                assert.fail(`'${definition.model}' has configure in extend and definition, this is not allowed`);
-            }
-            if (extend.ota && definition.ota) {
-                assert.fail(`'${definition.model}' has OTA in extend and definition, this is not allowed`);
-            }
-            if (extend.onEvent && definition.onEvent) {
-                assert.fail(`'${definition.model}' has onEvent in extend and definition, this is not allowed`);
-            }
-            if (typeof definition.exposes === 'function') {
-                assert.fail(`'${definition.model}' has function exposes which is not allowed`);
-            }
-    
-            const toZigbee = [...definition.toZigbee ?? [], ...extend.toZigbee];
-            const fromZigbee = [...definition.fromZigbee ?? [], ...extend.fromZigbee];
-            const exposes = [...definition.exposes ?? [], ...extend.exposes];
-            const meta = extend.meta || definitionWithoutExtend.meta ? {
-                ...extend.meta,
-                ...definitionWithoutExtend.meta,
-            } : undefined;
-    
-            definition = {...extend, toZigbee, fromZigbee, exposes, meta, ...definitionWithoutExtend};
+        if (!Array.isArray(definition.extend)) {
+            assert.fail(`'${definition.model}' has legacy extend which is not supported anymore`);
         }
+        // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
+        let {extend, toZigbee, fromZigbee, exposes, meta, endpoint, configure: definitionConfigure, onEvent, ota, ...definitionWithoutExtend} = definition;
+        if (typeof exposes === 'function') {
+            assert.fail(`'${definition.model}' has function exposes which is not allowed`);
+        }
+
+        toZigbee = [...toZigbee ?? []];
+        fromZigbee = [...fromZigbee ?? []];
+        exposes = [...exposes ?? []];
+        const configures: Configure[] = definitionConfigure ? [definitionConfigure] : [];
+
+        for (const ext of extend) {
+            if (!ext.isModernExtend) {
+                assert.fail(`'${definition.model}' has legacy extend in modern extend`);
+            }
+            if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
+            if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
+            if (ext.exposes) exposes.push(...ext.exposes);
+            if (ext.meta) meta = {...ext.meta, ...meta};
+            if (ext.configure) configures.push(ext.configure);
+            if (ext.ota) {
+                if (ota) {
+                    assert.fail(`'${definition.model}' has multiple 'ota', this is not allowed`);
+                }
+                ota = ext.ota;
+            }
+            if (ext.endpoint) {
+                if (endpoint) {
+                    assert.fail(`'${definition.model}' has multiple 'endpoint', this is not allowed`);
+                }
+                endpoint = ext.endpoint;
+            }
+            if (ext.onEvent) {
+                if (onEvent) {
+                    assert.fail(`'${definition.model}' has multiple 'onEvent', this is not allowed`);
+                }
+                onEvent = ext.onEvent;
+            }
+        }
+
+        let configure: Configure = null;
+        if (configures.length !== 0) {
+            configure = async (device, coordinatorEndpoint, logger) => {
+                for (const func of configures) {
+                    await func(device, coordinatorEndpoint, logger);
+                }
+            }
+        }
+        definition = {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
     }
 
     return definition
