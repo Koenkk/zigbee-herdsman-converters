@@ -7,7 +7,7 @@ import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 import * as reporting from '../lib/reporting';
 import extend from '../lib/extend';
-import {deviceEndpoints, actionCommand} from '../lib/modernExtend';
+import {deviceEndpoints, actionEnumLookup} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as zosung from '../lib/zosung';
@@ -499,14 +499,14 @@ const definitions: Definition[] = [
         fingerprint: [{modelID: 'TS0726', manufacturerName: '_TZ3002_vaq2bfcu'}],
         model: 'SR-ZS',
         vendor: 'Moes',
-        description: 'Smart switch (light + scene)',
+        description: 'Smart switch (light + sence)',
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
             tuya.modernExtend.tuyaSwitch({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: true, switchMode: true}),
-            actionCommand({
+            actionEnumLookup({
                 cluster: 'genOnOff',
-                command: 'commandTuyaAction',
+                commands: ['commandTuyaAction'],
                 attribute: 'value',
                 actionLookup: {'button': 0},
                 buttonLookup: {

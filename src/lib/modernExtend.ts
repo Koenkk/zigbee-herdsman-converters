@@ -552,11 +552,12 @@ export function binary(args: BinaryArgs): ModernExtend {
 
 export interface ActionEnumLookupArgs {
     actionLookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, endpointNames?: string[],
-    buttonLookup?: KeyValue, extraActions?: string[]
+    buttonLookup?: KeyValue, extraActions?: string[], commands?: string[],
 }
 export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
+    const commands = args.commands || ['attributeReport', 'readResponse'];
 
     let actions = Object.keys(lookup).map((a) => args.endpointNames ? args.endpointNames.map((e) => `${a}_${e}`) : [a]).flat();
     // allows direct external input to be used by other extends in the same device
@@ -565,7 +566,7 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
-        type: ['attributeReport', 'readResponse'],
+        type: commands,
         convert: (model, msg, publish, options, meta) => {
             if (attributeKey in msg.data) {
                 let value = getFromLookupByValue(msg.data[attributeKey], lookup);
@@ -578,37 +579,6 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
                 }
                 return {[expose.property]: value};
             }
-        },
-    }];
-
-    return {exposes: [expose], fromZigbee, isModernExtend: true};
-}
-
-export interface ActionCommandArgs {
-    actionLookup: KeyValue, cluster: string | number, command: string, attribute: string, endpointNames?: string[],
-    buttonLookup?: KeyValue, extraActions?: string[],
-}
-export function actionCommand(args: ActionCommandArgs): ModernExtend {
-    const {actionLookup: lookup, command, attribute, cluster, buttonLookup} = args;
-
-    const actions = Object.keys(lookup).map((a) => args.endpointNames ? args.endpointNames.map((e) => `${a}_${e}`) : [a]).flat();
-    // allows direct external input to be used by other extends in the same device
-    if (args.extraActions) actions.push(...args.extraActions);
-    const expose = e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)');
-
-    const fromZigbee: Fz.Converter[] = [{
-        cluster: cluster.toString(),
-        type: [command],
-        convert: (model, msg, publish, options, meta) => {
-            let value = getFromLookupByValue(msg.data[attribute], lookup);
-            // endpointNames is used when action endpoint names don't overlap with other endpoint names
-            if (args.endpointNames) value = postfixWithEndpointName(value, msg, model, meta);
-            // buttonLookup is used when action endpoint names overlap with other endpoint names
-            if (args.buttonLookup) {
-                const endpointName = getFromLookupByValue(msg.endpoint.ID, buttonLookup);
-                value =`${value}_${endpointName}`;
-            }
-            return {[expose.property]: value};
         },
     }];
 
