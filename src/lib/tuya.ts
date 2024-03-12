@@ -1710,15 +1710,15 @@ const tuyaModernExtend = {
                         description: `Switch mode ${ep}`,
                         endpointName: ep,
                     });
-                    result.fromZigbee.push(...epExtend.fromZigbee);
-                    result.toZigbee.push(...epExtend.toZigbee);
-                    result.exposes.push(...epExtend.exposes);
+                    fromZigbee.push(...epExtend.fromZigbee);
+                    toZigbee.push(...epExtend.toZigbee);
+                    exposes.push(...epExtend.exposes);
                 });
             } else {
                 const extend = tuyaModernExtend.tuyaSwitchMode({description: 'Switch mode'});
-                result.fromZigbee.push(...extend.fromZigbee);
-                result.toZigbee.push(...extend.toZigbee);
-                result.exposes.push(...extend.exposes);
+                fromZigbee.push(...extend.fromZigbee);
+                toZigbee.push(...extend.toZigbee);
+                exposes.push(...extend.exposes);
             }
         }
 
