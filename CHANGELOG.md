@@ -1,5 +1,17 @@
 # Changelog
 
+## [19.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.0.0...v19.1.0) (2024-03-12)
+
+
+### Features
+
+* **add:** SR-ZS ([#7195](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7195)) ([45a4a41](https://github.com/Koenkk/zigbee-herdsman-converters/commit/45a4a41ef4b90eabe4a35fe37f5df769a3c12edf))
+
+
+### Bug Fixes
+
+* Fix Develco FLSZB-110 temperature reporting ([#7202](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7202)) ([fc52b55](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc52b5576c88e9517e2eb406eeee8bb20bbcf6e6))
+
 ## [19.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v18.49.0...v19.0.0) (2024-03-11)
 
 
