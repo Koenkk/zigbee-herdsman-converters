@@ -1401,7 +1401,7 @@ function getHandlersForDP(name: string, dp: number, type: number, converter: Tuy
 }
 
 export interface TuyaDPEnumLookupArgs {
-    name: string, dp: number, type: number, lookup: KeyValue,
+    name: string, dp: number, type?: number, lookup?: KeyValue,
     description?: string, readOnly?: boolean, endpoint?: string, skip?: (meta: Tz.Meta) => boolean,
     expose?: Expose,
 }
@@ -1595,7 +1595,7 @@ const tuyaModernExtend = {
         return tuyaModernExtend.dpEnumLookup({name: 'power_on_behavior', lookup: lookup, type: dataTypes.enum,
             expose: e.power_on_behavior(Object.keys(lookup)).withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
     },
-    tuyaLight: (args?: modernExtend.LightArgs & {minBrightness?: boolean, switchType?: boolean}) => {
+    tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: boolean, switchType?: boolean}) {
         args = {minBrightness: false, powerOnBehavior: false, switchType: false, ...args};
         if (args.colorTemp) {
             args.colorTemp = {startup: false, ...args.colorTemp};
@@ -1642,7 +1642,7 @@ const tuyaModernExtend = {
     tuyaOnOff: (args: {
         endpoints?: string[], powerOutageMemory?: boolean, powerOnBehavior2?: boolean, switchType?: boolean, backlightModeLowMediumHigh?: boolean,
         indicatorMode?: boolean, backlightModeOffNormalInverted?: boolean, backlightModeOffOn?: boolean, electricalMeasurements?: boolean,
-        electricalMeasurementsFzConverter?: Fz.Converter, childLock?: boolean,
+        electricalMeasurementsFzConverter?: Fz.Converter, childLock?: boolean, switchMode?: boolean,
     }={}): ModernExtend => {
         const exposes: Expose[] = args.endpoints ? args.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
         const fromZigbee: Fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
@@ -1702,7 +1702,69 @@ const tuyaModernExtend = {
             toZigbee.push(tuyaTz.child_lock);
             exposes.push(e.child_lock());
         }
+
+        if (args.switchMode) {
+            if (args.endpoints) {
+                args.endpoints.forEach(function(ep) {
+                    const epExtend = tuyaModernExtend.tuyaSwitchMode({
+                        description: `Switch mode ${ep}`,
+                        endpointName: ep,
+                    });
+                    fromZigbee.push(...epExtend.fromZigbee);
+                    toZigbee.push(...epExtend.toZigbee);
+                    exposes.push(...epExtend.exposes);
+                });
+            } else {
+                const extend = tuyaModernExtend.tuyaSwitchMode({description: 'Switch mode'});
+                fromZigbee.push(...extend.fromZigbee);
+                toZigbee.push(...extend.toZigbee);
+                exposes.push(...extend.exposes);
+            }
+        }
+
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    dpBacklightMode(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        let {readOnly, lookup} = args;
+        lookup = lookup || {'off': 0, 'normal': 1, 'inverted': 2};
+        return tuyaModernExtend.dpEnumLookup({name: 'backlight_mode', lookup: lookup, type: dataTypes.enum,
+            expose: tuyaExposes.backlightModeOffNormalInverted().withAccess(readOnly ? ea.STATE : ea.STATE_SET), ...args});
+    },
+    combineActions(actions: ModernExtend[]): ModernExtend {
+        let newValues: (string|number)[] = [];
+        let newFromZigbee: Fz.Converter[] = [];
+        let description: string;
+        // collect action values and handlers
+        for (const actionME of actions) {
+            const {exposes, fromZigbee} = actionME;
+            newValues = newValues.concat((exposes[0] as exposes.Enum).values);
+            description = (exposes[0] as exposes.Enum).description;
+            newFromZigbee = newFromZigbee.concat(fromZigbee);
+        }
+
+        // create single enum-expose
+        const exp = new exposes.Enum('action', ea.STATE, newValues).withDescription(description);
+
+        return {exposes: [exp], fromZigbee: newFromZigbee, isModernExtend: true};
+    },
+    tuyaSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({
+        name: 'switch_mode',
+        lookup: {'switch': 0, 'scene': 1},
+        cluster: 'manuSpecificTuya_3',
+        attribute: 'switchMode',
+        description: 'Work mode for switch',
+        entityCategory: 'config',
+        ...args,
+    }),
+    tuyaLedIndicator(): ModernExtend {
+        const fromZigbee = [tuyaFz.backlight_mode_off_normal_inverted];
+        const exp = tuyaExposes.backlightModeOffNormalInverted();
+        const toZigbee = [tuyaTz.backlight_indicator_mode_1];
+
+        return {exposes: [exp], toZigbee, fromZigbee, isModernExtend: true};
+    },
+    tuyaMagicPacket(): ModernExtend {
+        return {configure: configureMagicPacket, isModernExtend: true};
     },
 };
 export {tuyaModernExtend as modernExtend};

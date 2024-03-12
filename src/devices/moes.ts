@@ -9,7 +9,7 @@ import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as zosung from '../lib/zosung';
-import {onOff} from '../lib/modernExtend';
+import {onOff, deviceEndpoints, actionEnumLookup} from '../lib/modernExtend';
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -488,6 +488,29 @@ const definitions: Definition[] = [
                 [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})],
             ],
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS0726', manufacturerName: '_TZ3002_vaq2bfcu'}],
+        model: 'SR-ZS',
+        vendor: 'Moes',
+        description: 'Smart switch (light + sence)',
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3'], powerOnBehavior2: true, switchMode: true}),
+            actionEnumLookup({
+                cluster: 'genOnOff',
+                commands: ['commandTuyaAction'],
+                attribute: 'value',
+                actionLookup: {'button': 0},
+                buttonLookup: {
+                    '1_up': 4, '1_down': 1,
+                    '2_up': 5, '2_down': 2,
+                    '3_up': 6, '3_down': 3,
+                },
+            }),
+            tuya.modernExtend.tuyaLedIndicator(),
+        ],
     },
 ];
 
