@@ -1,5 +1,15 @@
 # Changelog
 
+## [19.1.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.1.0...v19.1.1) (2024-03-13)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_aaifmpuq` as Nous B3Z ([#7209](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7209)) ([4e01a45](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4e01a454bf3a1e7942c226856a2c8ec0af9fcd3f))
+* **detect:** Detect `_TZ3000_qlai3277` as Nous B2Z ([#7207](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7207)) ([3c91bee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c91beed8ff54a4a80e7e17f737aed2a5822b951))
+* Fix crash when customTimeResponse fails [@srett](https://github.com/srett) https://github.com/Koenkk/zigbee2mqtt/issues/21775 ([10a834a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10a834ae0c11e06ea0ca46b87943fe91dc3437dc))
+* Fix for Legrand OTA updates (newer firmwares) ([#7212](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7212)) ([a1dc6db](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a1dc6db70b096ddcf6488904f288605296ff6ef5))
+
 ## [19.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.0.0...v19.1.0) (2024-03-12)
 
 
