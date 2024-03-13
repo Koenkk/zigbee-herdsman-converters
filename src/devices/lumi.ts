@@ -3263,7 +3263,6 @@ const definitions: Definition[] = [
             e.light_brightness_colorxy().withEndpoint('rgb'),
         ],
     },
-  },
 ];
 
 export default definitions;
