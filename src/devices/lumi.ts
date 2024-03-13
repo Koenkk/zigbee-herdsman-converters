@@ -3257,8 +3257,8 @@ const definitions: Definition[] = [
         fromZigbee: light({colorTemp: {range: [153, 370]}, color: true}).fromZigbee,
         toZigbee: light({colorTemp: {range: [153, 370]}, color: true}).toZigbee,
         exposes: [
-            // White light: On/Off, brightness, color temperature, no color_temp_startup
-            e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('white'),
+            // White light: On/Off, brightness, color temperature
+            e.light_brightness_colortemp([153, 370]).withEndpoint('white'),
             // [Notification Light]
             e.light_brightness_colorxy().withEndpoint('rgb'),
         ],
