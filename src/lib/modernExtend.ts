@@ -685,7 +685,7 @@ export function customTimeResponse(start: '1970_UTC' | '2000_LOCAL'): ModernExte
                 const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
                 payload.time = secondsUTC - (new Date()).getTimezoneOffset() * 60;
             }
-            data.endpoint.readResponse('genTime', data.meta.zclTransactionSequenceNumber, payload);
+            await data.endpoint.readResponse('genTime', data.meta.zclTransactionSequenceNumber, payload);
         }
     };
 
