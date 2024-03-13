@@ -52,9 +52,9 @@ const definitions: Definition[] = [
         model: '99106', 
         vendor: 'EGLO', 
         description: 'Eglo Connect-Z Motion (PIR) sensor', 
-        fromZigbee: [fz.command_on, fz.command_move_to_level, fz.command_move_to_color_temp],
+        fromZigbee: [fzLocal.battery, fz.command_on, fz.command_move_to_level, fz.command_move_to_color_temp],
         toZigbee: [], 
-        exposes: [e.action(['on', 'brightness_move_to_level', 'color_temperature_move'])],
+        exposes: [e.battery(), e.action(['on', 'brightness_move_to_level', 'color_temperature_move'])],
     },
 ];
 
