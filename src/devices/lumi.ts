@@ -1768,10 +1768,20 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Vibration sensor T1',
         extend: [
-            quirkCheckinInterval('1_HOUR'),
-            lumiZigbeeOTA(),
-            battery({voltageToPercentage: '3V_2850_3000', voltage: true}),
             lumiVibrationT1(),
+            numeric({
+                name: 'vibration_sensetivity',
+                cluster: 'manuSpecificLumi',
+                attribute: {ID: 0x00FC, type: 0x39},
+                valueMin: 0,
+                valueMax: 10,
+                description: 'Vibration sensetivity',
+                access: 'ALL',
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            battery({voltageToPercentage: '3V_2850_3000', voltage: true}),
+            lumiZigbeeOTA(),
+            quirkCheckinInterval('1_HOUR'),
         ],
     },
     {
