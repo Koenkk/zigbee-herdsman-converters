@@ -11,7 +11,7 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light} from '../lib/modernExtend';
+import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm} from '../lib/modernExtend';
 
 const {tuyaLight} = tuya.modernExtend;
 
@@ -1486,41 +1486,48 @@ const definitions: Definition[] = [
         model: 'TS0601_dimmer_2',
         vendor: 'TuYa',
         description: '2 gang smart dimmer',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [
-            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l1'),
-            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l2'),
-            tuya.exposes.countdown().withEndpoint('l1'),
-            tuya.exposes.countdown().withEndpoint('l2'),
-            e.power_on_behavior().withAccess(ea.STATE_SET),
-            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET),
-        ],
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, 'state_l1', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
-                [2, 'brightness_l1', tuya.valueConverter.scale0_254to0_1000],
-                [3, 'min_brightness_l1', tuya.valueConverter.scale0_254to0_1000],
-                [5, 'max_brightness_l1', tuya.valueConverter.scale0_254to0_1000],
-                [6, 'countdown_l1', tuya.valueConverter.countdown],
-                [7, 'state_l2', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
-                [8, 'brightness_l2', tuya.valueConverter.scale0_254to0_1000],
-                [9, 'min_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
-                [11, 'max_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
-                [12, 'countdown_l2', tuya.valueConverter.countdown],
-                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
-                [21, 'backlight_mode', tuya.valueConverter.backlightModeOffNormalInverted],
-            ],
-        },
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 1};
-        },
         whiteLabel: [
             {vendor: 'Moes', model: 'ZS-EUD_2gang'},
             {vendor: 'Moes', model: 'MS-105B'}, // _TZE200_e3oitdyu
             tuya.whitelabel('Moes', 'ZS-SR-EUD-2', 'Star ring smart dimmer switch 2 gangs', ['_TZE204_zenj4lxv']),
+        ],
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 1}}),
+            tuya.modernExtend.dpLight({
+                state: {dp: 1, type: tuya.dataTypes.bool, valueOn: ['ON', true], valueOff: ['OFF', false],
+                    skip: tuya.skip.stateOnAndBrightnessPresent},
+                brightness: {dp: 2, type: tuya.dataTypes.number, scale: [0, 254, 0, 1000]},
+                min: {dp: 3, type: tuya.dataTypes.number, scale: [0, 254, 0, 1000]},
+                max: {dp: 5, type: tuya.dataTypes.number, scale: [0, 254, 0, 1000]},
+                endpoint: 'l1',
+            }),
+            tuya.modernExtend.dpNumeric({
+                name: 'countdown',
+                dp: 6, type: tuya.dataTypes.number,
+                expose: tuya.exposes.countdown(),
+                endpoint: 'l1',
+            }),
+            tuya.modernExtend.dpLight({
+                state: {dp: 7, type: tuya.dataTypes.bool, valueOn: ['ON', true], valueOff: ['OFF', false],
+                    skip: tuya.skip.stateOnAndBrightnessPresent},
+                brightness: {dp: 8, type: tuya.dataTypes.number, scale: [0, 254, 0, 1000]},
+                min: {dp: 9, type: tuya.dataTypes.number, scale: [0, 254, 0, 1000]},
+                max: {dp: 11, type: tuya.dataTypes.number, scale: [0, 254, 0, 1000]},
+                endpoint: 'l2',
+            }),
+            tuya.modernExtend.dpNumeric({
+                name: 'countdown',
+                dp: 12, type: tuya.dataTypes.number,
+                expose: tuya.exposes.countdown(),
+                endpoint: 'l2',
+            }),
+            tuya.modernExtend.dpPowerOnBehavior({
+                dp: 14, type: tuya.dataTypes.enum,
+            }),
+            tuya.modernExtend.dpBacklightMode({
+                dp: 21, type: tuya.dataTypes.enum,
+            }),
         ],
     },
     {
@@ -2491,7 +2498,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_xkap8wtb', '_TZ3000_qnejhcsu', '_TZ3000_x3ewpzyr',
-            '_TZ3000_mkhkxx1p', '_TZ3000_tgddllx4', '_TZ3000_kqvb5akv', '_TZ3000_g92baclx']),
+            '_TZ3000_mkhkxx1p', '_TZ3000_tgddllx4', '_TZ3000_kqvb5akv', '_TZ3000_g92baclx', '_TZ3000_qlai3277']),
         model: 'TS0001_power',
         description: 'Switch with power monitoring',
         vendor: 'TuYa',
@@ -2512,9 +2519,12 @@ const definitions: Definition[] = [
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), tuya.exposes.switchType(),
             e.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage')],
+        whiteLabel: [
+            tuya.whitelabel('Nous', 'B2Z', '1 gang switch with power monitoring', ['_TZ3000_qlai3277']),
+        ],
     },
     {
-        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_irrmjcgi'}],
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_aaifmpuq', '_TZ3000_irrmjcgi']),
         model: 'TS0002_power',
         vendor: 'TuYa',
         description: '2 gang switch with power monitoring',
@@ -2538,6 +2548,7 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('TuYa', 'XSH01B', '2 gang switch module with power monitoring', ['_TZ3000_irrmjcgi']),
+            tuya.whitelabel('Nous', 'B3Z', '2 gang switch module with power monitoring', ['_TZ3000_aaifmpuq']),
         ],
     },
     {
@@ -7522,15 +7533,13 @@ const definitions: Definition[] = [
         model: 'ZG-101Z',
         vendor: 'Loginovo',
         description: 'SOS button',
-        fromZigbee: [tuya.fz.datapoints, fz.battery],
-        toZigbee: [],
-        exposes: [e.action(['emergency', 'sos']), e.battery_low()],
-        meta: {
-            tuyaDatapoints: [
-                [26, 'action', tuya.valueConverter.static('sos')],
-                [29, 'action', tuya.valueConverter.static('emergency')],
-            ],
-        },
+        extend: [
+            tuya.modernExtend.combineActions([
+                tuya.modernExtend.dpAction({dp: 26, lookup: {'sos': 0}}),
+                tuya.modernExtend.dpAction({dp: 29, lookup: {'emergency': 0}}),
+            ]),
+            iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['battery_low']}),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_muvkrjr5']),

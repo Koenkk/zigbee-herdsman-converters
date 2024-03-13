@@ -811,7 +811,8 @@ const definitions: Definition[] = [
             const endpoint35 = device.getEndpoint(35);
             await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
             const endpoint38 = device.getEndpoint(38);
-            await reporting.temperature(endpoint38);
+            await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint38, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
         },
     },
     {
