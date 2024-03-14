@@ -1041,9 +1041,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                 }
             }
 
-            return {
-                [alarm1Name]: (zoneStatus & 1) > 0,
-                [alarm2Name]: (zoneStatus & 1 << 1) > 0,
+            let payload = {
                 tamper: (zoneStatus & 1 << 2) > 0,
                 battery_low: (zoneStatus & 1 << 3) > 0,
                 supervision_reports: (zoneStatus & 1 << 4) > 0,
@@ -1053,6 +1051,17 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                 test: (zoneStatus & 1 << 8) > 0,
                 battery_defect: (zoneStatus & 1 << 9) > 0,
             };
+
+            if (bothAlarms) {
+                payload = {[alarm1Name]: (zoneStatus & 1) > 0, ...payload};
+                payload = {[alarm2Name]: (zoneStatus & 1 << 1) > 0, ...payload};
+            } else if (args.zoneAttributes.includes('alarm_1')) {
+                payload = {[alarm1Name]: (zoneStatus & 1) > 0, ...payload};
+            } else if (args.zoneAttributes.includes('alarm_2')) {
+                payload = {[alarm2Name]: (zoneStatus & 1 << 1) > 0, ...payload};
+            }
+
+            return payload;
         },
     }];
 
