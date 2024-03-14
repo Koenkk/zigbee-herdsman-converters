@@ -3252,32 +3252,24 @@ const definitions: Definition[] = [
         model: 'HCXDD12LM',
         vendor: 'Aqara',
         description: 'Ceiling light T1',
-        meta: {multiEndpoint: true},
-        endpoint: () => ({white: 1, rgb: 2}),
-        fromZigbee: light({colorTemp: {range: [153, 370]}, color: true}).fromZigbee,
-        toZigbee: light({colorTemp: {range: [153, 370]}, color: true}).toZigbee,
-        exposes: [
-            // White light: On/Off, brightness, color temperature
-            e.light_brightness_colortemp([153, 370]).withEndpoint('white'),
-            // [Notification Light]
-            e.light_brightness_colorxy().withEndpoint('rgb'),
-        ],
+        extend: [
+            deviceEndpoints({endpoints: {'white': 1, 'rgb': 2}}),
+            lumiLight({colorTemp: true, powerOutageMemory: 'light', endpointNames: ['white']}),
+            lumiLight({colorTemp: true, color: {modes: ['xy', 'hs']}, endpointNames: ['rgb']}),
+            lumiZigbeeOTA()
+          ],
     },
     {
         zigbeeModel: ['lumi.light.acn032'],
         model: 'CL-L02D',
         vendor: 'Aqara',
         description: 'Ceiling light T1M',
-        meta: {multiEndpoint: true},
-        endpoint: () => ({white: 1, rgb: 2}),
-        fromZigbee: light({colorTemp: {range: [153, 370]}, color: true}).fromZigbee,
-        toZigbee: light({colorTemp: {range: [153, 370]}, color: true}).toZigbee,
-        exposes: [
-            // White light: On/Off, brightness, color temperature
-            e.light_brightness_colortemp([153, 370]).withEndpoint('white'),
-            // [Notification Light]
-            e.light_brightness_colorxy().withEndpoint('rgb'),
-        ],
+        extend: [
+            deviceEndpoints({endpoints: {'white': 1, 'rgb': 2}}),
+            lumiLight({colorTemp: true, powerOutageMemory: 'light', endpointNames: ['white']}),
+            lumiLight({colorTemp: true, color: {modes: ['xy', 'hs']}, endpointNames: ['rgb']}),
+            lumiZigbeeOTA()
+          ],
     },
 ];
 
