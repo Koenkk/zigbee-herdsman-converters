@@ -3255,7 +3255,7 @@ const definitions: Definition[] = [
         extend: [
             deviceEndpoints({endpoints: {'white': 1, 'rgb': 2}}),
             lumiLight({colorTemp: true, powerOutageMemory: 'light', endpointNames: ['white']}),
-            lumiLight({colorTemp: true, color: {modes: ['xy', 'hs']}, endpointNames: ['rgb']}),
+            lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ['xy', 'hs']}, endpointNames: ['rgb']}),
             lumiZigbeeOTA(),
         ],
     },
@@ -3267,7 +3267,7 @@ const definitions: Definition[] = [
         extend: [
             deviceEndpoints({endpoints: {'white': 1, 'rgb': 2}}),
             lumiLight({colorTemp: true, powerOutageMemory: 'light', endpointNames: ['white']}),
-            lumiLight({colorTemp: true, color: {modes: ['xy', 'hs']}, endpointNames: ['rgb']}),
+            lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ['xy', 'hs']}, endpointNames: ['rgb']}),
             lumiZigbeeOTA(),
         ],
     },

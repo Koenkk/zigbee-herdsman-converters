@@ -1303,14 +1303,18 @@ const manufacturerOptions = {
 };
 
 export const lumiModernExtend = {
-    lumiLight: (args?: Omit<modernExtend.LightArgs, 'colorTemp'> & {colorTemp?: true, powerOutageMemory?: 'switch' | 'light'}) => {
+    lumiLight: (args?: Omit<modernExtend.LightArgs, 'colorTemp'> & {colorTemp?: true, powerOutageMemory?: 'switch' | 'light',
+        deviceTemperature?: boolean, powerOutageCount?: boolean}) => {
+        args = {powerOutageCount: true, deviceTemperature: true, ...args};
         const colorTemp: {range: Range, startup: boolean} = args.colorTemp ? {startup: false, range: [153, 370]} : undefined;
         const result = modernExtend.light({effect: false, powerOnBehavior: false, ...args, colorTemp});
         result.fromZigbee.push(
             fromZigbee.lumi_bulb_interval, fz.ignore_occupancy_report, fz.ignore_humidity_report,
             fz.ignore_pressure_report, fz.ignore_temperature_report, fromZigbee.lumi_specific,
         );
-        result.exposes.push(e.device_temperature(), e.power_outage_count());
+
+        if (args.powerOutageCount) result.exposes.push(e.power_outage_count());
+        if (args.deviceTemperature) result.exposes.push(e.device_temperature());
 
         if (args.powerOutageMemory === 'switch') {
             result.toZigbee.push(toZigbee.lumi_switch_power_outage_memory);
