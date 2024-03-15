@@ -455,9 +455,8 @@ export function numeric(args: NumericArgs): ModernExtend {
 
         return expose;
     };
-    // Generate for multiple endpoints only if required
-    const noEndpoint = !endpoints || (endpoints && endpoints.length === 1 && endpoints[0] === '1');
-    if (noEndpoint) {
+    // Generate for multiple endpoints only if required.
+    if (!endpoints) {
         exposes.push(createExpose(undefined));
     } else {
         for (const endpoint of endpoints) {

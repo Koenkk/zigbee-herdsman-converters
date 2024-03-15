@@ -41,7 +41,9 @@ class Generator<T> implements GeneratedExtend {
     }
 }
 
-type ExtendGenerator = (endpoints?: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
+// Device passed as the first argument mostly to check
+// if passed endpoint(if only one) is the first endpoint in the device.
+type ExtendGenerator = (device: Zh.Device, endpoints: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
 type Extender = [string[], ExtendGenerator];
 
 type DefinitionWithZigbeeModel = Definition & {zigbeeModel: string[]};
@@ -114,7 +116,7 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
             return;
         }
         usedExtenders.push(extender);
-        generatedExtend.push(...(await extender[1](endpoints)));
+        generatedExtend.push(...(await extender[1](device, endpoints)));
     };
 
     for (const [cluster, endpoints] of inputClusterMap) {
@@ -131,12 +133,11 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         extender.endpoint = undefined;
     });
 
-    // Add endpoint definitions if device is multiEndpoint.
-    // Check for number of endpoints, and if first & only endpoint is not '1',
-    // because generated definition will not be able to poll/command device properly.
-    // Maybe, for ease of development, all generated definitions could be treated
-    // as multiEndpoint, just to avoid complexity as to which configurations should be multiEndpoint.
-    const multiEndpoint = device.endpoints.length > 1 || (device.endpoints.length == 1 && device.endpoints[0].ID != 1);
+    // Currently multiEndpoint is enabled if device has more then 1 endpoint.
+    // It is possible to better check if device should be considered multiEndpoint
+    // based, for example, on generator arguments(i.e. presence of "endpointNames"),
+    // but this will be enough for now.
+    const multiEndpoint = device.endpoints.length > 1;
     if (multiEndpoint) {
         const endpoints: {[n: string]: number} = {};
         for (const endpoint of device.endpoints) {
@@ -168,39 +169,60 @@ function stringifyEps(endpoints: Endpoint[]): string[] {
     return endpoints.map((e) => e.ID.toString());
 }
 
+// This function checks if provided array of endpoints contain
+// only first device endpoint, which is passed in as `firstEndpoint`.
+function onlyFirstDeviceEnpoint(device: Zh.Device, endpoints: Endpoint[]): boolean {
+    return endpoints.length === 1 && endpoints[0].ID === device.endpoints[0].ID;
+}
+
+// maybeEndpoints returns either `toExtend` if only first device endpoint is provided
+// as `endpoints`, or `endpointNames` with `toExtend`.
+// This allows to drop unnecessary `endpointNames` argument if it is not needed.
+function maybeEndpointArgs<T>(device: Zh.Device, endpoints: Zh.Endpoint[], toExtend?: T): T | undefined {
+    if (onlyFirstDeviceEnpoint(device, endpoints)) {
+        return toExtend;
+    }
+
+    return {endpointNames: stringifyEps(endpoints), ...toExtend};
+}
+
+// If generator will have endpoint argument - generator implementation
+// should not provide it if only the first device endpoint is passed in.
+// If multiple endpoints provided(maybe including the first device endpoint) -
+// they all should be passed as an argument, where possible, to be explicit.
 const inputExtenders: Extender[] = [
-    [['msTemperatureMeasurement'], async (eps) => [
-        new Generator({extend: m.temperature, args: {endpointNames: stringifyEps(eps)}, source: 'temperature'}),
+    [['msTemperatureMeasurement'], async (d, eps) => [
+        new Generator({extend: m.temperature, args: maybeEndpointArgs(d, eps), source: 'temperature'}),
     ]],
-    [['msPressureMeasurement'], async (eps) => [new Generator({extend: m.pressure, args: {endpointNames: stringifyEps(eps)}, source: 'pressure'})]],
-    [['msRelativeHumidity'], async (eps) => [new Generator({extend: m.humidity, args: {endpointNames: stringifyEps(eps)}, source: 'humidity'})]],
-    [['msCO2'], async (eps) => [new Generator({extend: m.co2, args: {endpointNames: stringifyEps(eps)}, source: 'co2'})]],
-    [['genPowerCfg'], async () => [new Generator({extend: m.battery, source: 'battery'})]],
+    [['msPressureMeasurement'], async (d, eps) => [new Generator({extend: m.pressure, args: maybeEndpointArgs(d, eps), source: 'pressure'})]],
+    [['msRelativeHumidity'], async (d, eps) => [new Generator({extend: m.humidity, args: maybeEndpointArgs(d, eps), source: 'humidity'})]],
+    [['msCO2'], async (d, eps) => [new Generator({extend: m.co2, args: maybeEndpointArgs(d, eps), source: 'co2'})]],
+    [['genPowerCfg'], async (d, eps) => [new Generator({extend: m.battery, source: 'battery'})]],
     [['genOnOff', 'lightingColorCtrl'], extenderOnOffLight],
     [['seMetering', 'haElectricalMeasurement'], extenderElectricityMeter],
     [['closuresDoorLock'], extenderLock],
-    [['msIlluminanceMeasurement'], async (eps) => [
-        new Generator({extend: m.illuminance, args: {endpointNames: stringifyEps(eps)}, source: 'illuminance'}),
+    [['msIlluminanceMeasurement'], async (d, eps) => [
+        new Generator({extend: m.illuminance, args: maybeEndpointArgs(d, eps), source: 'illuminance'}),
     ]],
-    [['msOccupancySensing'], async (eps) => [
+    [['msOccupancySensing'], async (d, eps) => [
         new Generator({extend: m.occupancy, source: 'occupancy'}),
     ]],
-    [['ssIasZone'], async (eps) => [
+    [['ssIasZone'], async (d, eps) => [
         new Generator({extend: m.iasZoneAlarm, args: {
             zoneType: 'generic',
             zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low'],
         }, source: 'iasZoneAlarm'}),
     ]],
-    [['ssIasWd'], async (eps) => [
+    [['ssIasWd'], async (d, eps) => [
         new Generator({extend: m.iasWarning, source: 'iasWarning'}),
     ]],
 ];
 
 const outputExtenders: Extender[] = [
-    [['genIdentify'], async () => [new Generator({extend: m.identify, source: 'identify'})]],
+    [['genIdentify'], async (d, eps) => [new Generator({extend: m.identify, source: 'identify'})]],
 ];
 
-async function extenderLock(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
         logger.warn('extenderLock can accept only one endpoint');
@@ -212,21 +234,18 @@ async function extenderLock(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]
     return [new Generator({extend: m.lock, args: {pinCodeCount}, source: `lock`})];
 }
 
-async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     const generated: GeneratedExtend[] = [];
 
     const lightEndpoints = endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'));
     const onOffEndpoints = endpoints.filter((e) => lightEndpoints.findIndex((ep) => e.ID === ep.ID) === -1);
 
     if (onOffEndpoints.length !== 0) {
-        // Map endpoints even for if only one is present.
-        // This will allow to use extender for any endpoint(s),
-        // not only for endpoint ID 1.
-        const endpoints = onOffEndpoints.reduce((prev, curr) => {
-            prev[curr.ID.toString()] = curr.ID;
-            return prev;
-        }, {} as Record<string, number>);
-        generated.push(new Generator({extend: m.onOff, args: {powerOnBehavior: false, endpointNames: Object.keys(endpoints)}, source: 'onOff'}));
+        let endpointNames: string[] | undefined = undefined;
+        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+            endpointNames = endpoints.map((e) => e.ID.toString());
+        }
+        generated.push(new Generator({extend: m.onOff, args: {powerOnBehavior: false, endpointNames}, source: 'onOff'}));
     }
 
     for (const endpoint of lightEndpoints) {
@@ -263,7 +282,7 @@ async function extenderOnOffLight(endpoints: Zh.Endpoint[]): Promise<GeneratedEx
     return generated;
 }
 
-async function extenderElectricityMeter(endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
         logger.warn('extenderElectricityMeter can accept only one endpoint');

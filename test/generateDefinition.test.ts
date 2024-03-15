@@ -87,7 +87,7 @@ describe('GenerateDefinition', () => {
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
             toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
-            exposes: ['linkquality', 'switch_1(state)', 'temperature'],
+            exposes: ['linkquality', 'switch(state)', 'temperature'],
             bind: {1: ['msTemperatureMeasurement', 'genOnOff']},
             read: {1: [
                 ['msTemperatureMeasurement', ['measuredValue']],
@@ -107,7 +107,7 @@ const definition = {
     model: 'combo',
     vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [temperature({"endpointNames":["1"]}), onOff({"powerOnBehavior":false,"endpointNames":["1"]})],
+    extend: [temperature(), onOff({"powerOnBehavior":false})],
     meta: {},
 };
 
@@ -119,11 +119,10 @@ module.exports = definition;
     test('input(msTemperatureMeasurement_2, genOnOff_2)', async () => {
         await assertGeneratedDefinition({
             device: mockDevice({modelID: 'combo', manufacturerName:'vendor', endpoints: [{ID: 2, inputClusters: ['msTemperatureMeasurement', 'genOnOff'], outputClusters:[]}]}),
-            meta: {multiEndpoint:true},
-            endpoints: {'2':2},
+            meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
             toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
-            exposes: ['linkquality', 'switch_2(state)', 'temperature'],
+            exposes: ['linkquality', 'switch(state)', 'temperature'],
             bind: {2: ['msTemperatureMeasurement', 'genOnOff']},
             read: {2: [
                 ['msTemperatureMeasurement', ['measuredValue']],
@@ -136,15 +135,15 @@ module.exports = definition;
                 ],
             },
             externalDefintionSource: `
-const {deviceEndpoints, temperature, onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
+const {temperature, onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [deviceEndpoints({"endpoints":{"2":2}}), temperature({"endpointNames":["2"]}), onOff({"powerOnBehavior":false,"endpointNames":["2"]})],
-    meta: {"multiEndpoint":true},
+    extend: [temperature(), onOff({"powerOnBehavior":false})],
+    meta: {},
 };
 
 module.exports = definition;
@@ -162,7 +161,7 @@ module.exports = definition;
             endpoints: {"1":1,"2":2},
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
             toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
-            exposes: ['linkquality', 'switch_1(state)', 'temperature', 'temperature'],
+            exposes: ['linkquality', 'switch(state)', 'temperature', 'temperature'],
             bind: {1: ['msTemperatureMeasurement', 'genOnOff'], 2: ['msTemperatureMeasurement']},
             read: {
                 1: [
@@ -190,7 +189,7 @@ const definition = {
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [deviceEndpoints({"endpoints":{"1":1,"2":2}}), temperature({"endpointNames":["1","2"]}), onOff({"powerOnBehavior":false,"endpointNames":["1"]})],
+    extend: [deviceEndpoints({"endpoints":{"1":1,"2":2}}), temperature({"endpointNames":["1","2"]}), onOff({"powerOnBehavior":false})],
     meta: {"multiEndpoint":true},
 };
 
@@ -337,7 +336,7 @@ module.exports = definition;
             meta: undefined,
             fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
             toZigbee: ['state', 'on_time', 'off_wait_time', 'power', 'voltage', 'current', 'energy'],
-            exposes: ['current', 'energy', 'linkquality', 'power', 'switch_1(state)', 'voltage'],
+            exposes: ['current', 'energy', 'linkquality', 'power', 'switch(state)', 'voltage'],
             bind: {1: ['genOnOff', 'haElectricalMeasurement', 'seMetering']},
             read: {1: [
                 ['genOnOff', ['onOff']],
@@ -362,7 +361,7 @@ const definition = {
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [onOff({"powerOnBehavior":false,"endpointNames":["1"]}), electricityMeter()],
+    extend: [onOff({"powerOnBehavior":false}), electricityMeter()],
     meta: {},
 };
 
