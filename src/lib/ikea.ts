@@ -1,4 +1,4 @@
-import {Fz, Tz, OnEvent, Configure, KeyValue, Zh, Range, ModernExtend} from '../lib/types';
+import {Fz, Tz, OnEvent, Configure, KeyValue, Zh, Range, ModernExtend, Expose} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import tz from '../converters/toZigbee';
 import * as otaBase from '../lib/ota';
@@ -11,6 +11,7 @@ import {postfixWithEndpointName, precisionRound, isObject, replaceInArray} from 
 import {LightArgs, light as lightDontUse, ota, setupAttributes, ReportingConfigWithoutAttribute} from '../lib/modernExtend';
 import * as semver from 'semver';
 const e = exposes.presets;
+const ea = exposes.access;
 
 export const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
     /**
@@ -91,6 +92,12 @@ export function tradfriOta(): ModernExtend {
 }
 
 export function tradfriBattery(): ModernExtend {
+    const exposes: Expose[] = [
+        e.numeric('battery', ea.STATE_GET).withUnit('%')
+            .withDescription('Remaining battery in %')
+            .withValueMin(0).withValueMax(100).withCategory('diagnostic'),
+    ];
+
     const fromZigbee: Fz.Converter[] = [{
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -132,7 +139,7 @@ export function tradfriBattery(): ModernExtend {
         ], logger);
     };
 
-    return {fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export function tradfriConfigureRemote(): ModernExtend {
