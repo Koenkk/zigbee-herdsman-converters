@@ -632,17 +632,17 @@ const definitions: Definition[] = [
         model: 'E1757',
         vendor: 'IKEA',
         description: 'FYRTUR roller blind, block-out',
-        fromZigbee: [fz.cover_position_tilt, fromZigbee.battery],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
             await configureGenPollCtrl(device, endpoint);
         },
-        exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
+        exposes: [e.cover_position()],
         extend: [
+            tradfriBattery(),
             tradfriOta(),
         ],
     },
@@ -651,17 +651,17 @@ const definitions: Definition[] = [
         model: 'E1926',
         vendor: 'IKEA',
         description: 'KADRILJ roller blind',
-        fromZigbee: [fz.cover_position_tilt, fromZigbee.battery],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
             await configureGenPollCtrl(device, endpoint);
         },
-        exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
+        exposes: [e.cover_position()],
         extend: [
+            tradfriBattery(),
             tradfriOta(),
         ],
     },
@@ -670,17 +670,17 @@ const definitions: Definition[] = [
         model: 'E2102',
         vendor: 'IKEA',
         description: 'PRAKTLYSING cellular blind',
-        fromZigbee: [fz.cover_position_tilt, fromZigbee.battery],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
             await configureGenPollCtrl(device, endpoint);
         },
-        exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
+        exposes: [e.cover_position()],
         extend: [
+            tradfriBattery(),
             tradfriOta(),
         ],
     },
@@ -689,18 +689,17 @@ const definitions: Definition[] = [
         model: 'E2103',
         vendor: 'IKEA',
         description: 'TREDANSEN cellular blind, block-out',
-        fromZigbee: [fz.cover_position_tilt, fromZigbee.battery],
+        fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
             await configureGenPollCtrl(device, endpoint);
         },
-        exposes: [e.cover_position(), e.battery()],
+        exposes: [e.cover_position()],
         extend: [
+            battery({dontDividePercentage: true}),
             tradfriOta(),
         ],
     },
@@ -792,17 +791,16 @@ const definitions: Definition[] = [
         model: 'E1524/E1810',
         description: 'TRADFRI remote control',
         vendor: 'IKEA',
-        fromZigbee: [fromZigbee.battery, fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.ikea_arrow_click, fz.ikea_arrow_hold,
+        fromZigbee: [fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.ikea_arrow_click, fz.ikea_arrow_hold,
             fz.ikea_arrow_release],
-        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release',
+        exposes: [e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release',
             'arrow_right_click', 'arrow_right_hold', 'arrow_right_release', 'brightness_down_click', 'brightness_down_hold',
             'brightness_down_release', 'brightness_up_click', 'brightness_up_hold', 'brightness_up_release', 'toggle'])],
-        toZigbee: [tz.battery_percentage_remaining],
         extend: [
-            tradfriBattery(),
-            tradfriOta(),
             tradfriConfigureRemote(),
             identify(),
+            tradfriBattery(),
+            tradfriOta(),
         ],
     },
     {
@@ -810,27 +808,25 @@ const definitions: Definition[] = [
         model: 'E2001/E2002',
         vendor: 'IKEA',
         description: 'STYRBAR remote control',
-        fromZigbee: [fromZigbee.battery, fromZigbee.styrbar_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
+        fromZigbee: [fromZigbee.styrbar_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
             fz.ikea_arrow_hold, fromZigbee.styrbar_arrow_release],
-        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
-        toZigbee: [tz.battery_percentage_remaining],
         configure: async (device, coordinatorEndpoint, logger) => {
             // Binding genOnOff is not required to make device send events.
             const endpoint = device.getEndpoint(1);
             const version = device.softwareBuildID.split('.').map((n) => Number(n));
             // https://github.com/Koenkk/zigbee2mqtt/issues/15725
             const v245OrLater = version[0] > 2 || (version[0] == 2 && version[1] >= 4);
-            const binds = v245OrLater ? ['genPowerCfg', 'genOnOff', 'genLevelCtrl', 'genScenes'] : ['genPowerCfg'];
+            const binds = v245OrLater ? ['genOnOff', 'genLevelCtrl', 'genScenes'] : [];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.batteryPercentageRemaining(endpoint);
         },
         extend: [
-            tradfriBattery(),
-            tradfriOta(),
             tradfriConfigureRemote(),
             identify(),
+            tradfriBattery(),
+            tradfriOta(),
         ],
     },
     {
@@ -839,19 +835,17 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI on/off switch',
         fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff, fz.command_move,
-            fromZigbee.battery, legacy.fz.E1743_brightness_up, legacy.fz.E1743_brightness_down, fz.command_stop,
+            legacy.fz.E1743_brightness_up, legacy.fz.E1743_brightness_down, fz.command_stop,
             legacy.fz.E1743_brightness_stop],
         exposes: [
-            e.battery().withAccess(ea.STATE_GET),
             e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
         ],
-        toZigbee: [tz.battery_percentage_remaining],
         meta: {disableActionGroup: true},
         extend: [
-            tradfriBattery(),
-            tradfriOta(),
             tradfriConfigureRemote(),
             identify(),
+            tradfriBattery(),
+            tradfriOta(),
         ],
     },
     {
@@ -859,15 +853,14 @@ const definitions: Definition[] = [
         model: 'E1841',
         vendor: 'IKEA',
         description: 'KNYCKLAN open/close water valve remote',
-        fromZigbee: [fz.command_on, fz.command_off, fromZigbee.battery],
-        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off'])],
-        toZigbee: [tz.battery_percentage_remaining],
+        fromZigbee: [fz.command_on, fz.ignore_command_off],
+        exposes: [e.action(['on', 'off'])],
         meta: {disableActionGroup: true},
         extend: [
-            tradfriBattery(),
-            tradfriOta(),
             tradfriConfigureRemote(),
             identify(),
+            tradfriBattery(),
+            tradfriOta(),
         ],
     },
     {
@@ -875,16 +868,9 @@ const definitions: Definition[] = [
         model: 'E1812',
         vendor: 'IKEA',
         description: 'TRADFRI shortcut button',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fromZigbee.battery],
-        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_stop'])],
-        toZigbee: [tz.battery_percentage_remaining],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_stop'])],
         meta: {disableActionGroup: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            // Binding genOnOff is not required to make device send events.
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
         extend: [
             tradfriBattery(),
             tradfriOta(),
@@ -895,13 +881,12 @@ const definitions: Definition[] = [
         model: 'E1744',
         vendor: 'IKEA',
         description: 'SYMFONISK sound controller',
-        fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_stop, legacy.fz.E1744_play_pause, legacy.fz.E1744_skip, fromZigbee.battery],
-        exposes: [e.battery(), e.action([
+        fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_stop, legacy.fz.E1744_play_pause, legacy.fz.E1744_skip],
+        exposes: [e.action([
             'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'toggle', 'brightness_step_up', 'brightness_step_down'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
         },
         extend: [
             tradfriBattery(),
@@ -913,13 +898,13 @@ const definitions: Definition[] = [
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        fromZigbee: [fromZigbee.battery, fz.command_cover_close, legacy.fz.cover_close, fz.command_cover_open, legacy.fz.cover_open,
+        fromZigbee: [fz.command_cover_close, legacy.fz.cover_close, fz.command_cover_open, legacy.fz.cover_open,
             fz.command_cover_stop, legacy.fz.cover_stop],
-        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['close', 'open', 'stop'])],
-        toZigbee: [tz.battery_percentage_remaining],
+        exposes: [e.action(['close', 'open', 'stop'])],
         extend: [
-            tradfriOta(),
             tradfriConfigureRemote(),
+            tradfriBattery(),
+            tradfriOta(),
         ],
     },
     {
@@ -927,13 +912,12 @@ const definitions: Definition[] = [
         model: 'E2123',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote gen2',
-        fromZigbee: [fz.battery, legacy.fz.E1744_play_pause, fromZigbee.ikea_track_click, fromZigbee.ikea_volume_click,
+        fromZigbee: [legacy.fz.E1744_play_pause, fromZigbee.ikea_track_click, fromZigbee.ikea_volume_click,
             fromZigbee.ikea_volume_hold, fromZigbee.ikea_dots_click_v1, fromZigbee.ikea_dots_click_v2],
-        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['toggle', 'track_previous', 'track_next', 'volume_up',
+        exposes: [e.action(['toggle', 'track_previous', 'track_next', 'volume_up',
             'volume_down', 'volume_up_hold', 'volume_down_hold', 'dots_1_initial_press', 'dots_2_initial_press',
             'dots_1_long_press', 'dots_2_long_press', 'dots_1_short_release', 'dots_2_short_release', 'dots_1_long_release',
             'dots_2_long_release', 'dots_1_double_press', 'dots_2_double_press'])],
-        toZigbee: [tz.battery_percentage_remaining],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -945,9 +929,9 @@ const definitions: Definition[] = [
             if (endpoint3) {
                 await reporting.bind(endpoint3, coordinatorEndpoint, ['tradfriButton']);
             }
-            await reporting.batteryVoltage(endpoint1);
         },
         extend: [
+            battery({voltage: true}),
             tradfriOta(),
         ],
     },
@@ -958,7 +942,6 @@ const definitions: Definition[] = [
         description: 'RODRET wireless dimmer/power switch',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
         exposes: [
-            e.battery().withAccess(ea.STATE_GET),
             e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -967,8 +950,8 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
         extend: [
-            tradfriOta(),
             battery(),
+            tradfriOta(),
         ],
     },
     {
@@ -989,8 +972,8 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
         },
         extend: [
-            tradfriOta(),
             battery(),
+            tradfriOta(),
         ],
     },
     {
@@ -998,22 +981,16 @@ const definitions: Definition[] = [
         model: 'E1525/E1745',
         vendor: 'IKEA',
         description: 'TRADFRI motion sensor',
-        fromZigbee: [fromZigbee.battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
-        exposes: [e.battery(), e.occupancy(),
+        fromZigbee: [fz.tradfri_occupancy, fz.E1745_requested_brightness],
+        exposes: [e.occupancy(),
             e.numeric('requested_brightness_level', ea.STATE).withValueMin(76).withValueMax(254),
             e.numeric('requested_brightness_percent', ea.STATE).withValueMin(30).withValueMax(100),
             e.binary('illuminance_above_threshold', ea.STATE, true, false)
                 .withDescription('Indicates whether the device detected bright light (works only in night mode)')],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-            device.save();
-        },
         extend: [
+            forcePowerSource({powerSource: 'Battery'}),
             tradfriBattery(),
             tradfriOta(),
-            forcePowerSource({powerSource: 'Battery'}),
         ],
     },
     {
@@ -1048,11 +1025,11 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'VALLHORN wireless motion sensor',
         extend: [
-            tradfriOta(),
-            battery(),
             occupancy(),
             illuminance(),
             identify(),
+            battery(),
+            tradfriOta(),
         ],
     },
     {
@@ -1067,10 +1044,10 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genBasic', 'ssIasZone']);
         },
         extend: [
-            tradfriOta(),
-            battery(),
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
             identify(),
+            battery(),
+            tradfriOta(),
         ],
     },
     {
@@ -1080,8 +1057,8 @@ const definitions: Definition[] = [
         description: 'BADRING water leakage sensor',
         extend: [
             iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
-            battery(),
             identify(),
+            battery(),
             tradfriOta(),
         ],
     },
