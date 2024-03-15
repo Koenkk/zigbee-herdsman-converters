@@ -47,7 +47,7 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
     }
 }
 
-async function setupAttributes(
+export async function setupAttributes(
     entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string | number, config: ReportingConfig[], logger: Logger,
     configureReporting: boolean=true, read: boolean=true,
 ) {
