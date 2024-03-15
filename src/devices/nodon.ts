@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
@@ -72,7 +73,7 @@ const definitions: Definition[] = [
                 valueMax: 10000,
                 scale: 1,
                 description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
-                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
             }),
         ],
         endpoint: (device) => {
@@ -95,7 +96,7 @@ const definitions: Definition[] = [
                 valueMax: 10000,
                 scale: 1,
                 description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
-                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
             }),
         ],
         endpoint: (device) => {
@@ -181,7 +182,7 @@ const definitions: Definition[] = [
                 valueMax: 10000,
                 scale: 1,
                 description: 'Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).',
-                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
             }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
