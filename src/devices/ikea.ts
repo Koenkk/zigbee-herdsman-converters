@@ -473,6 +473,13 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true}), identify()],
     },
     {
+        zigbeeModel: ['JORMLIEN door WS 40x80'],
+        model: 'L1530',
+        vendor: 'IKEA',
+        description: 'JORMLIEN door light panel, white spectrum, 40x80 cm',
+        extend: [tradfriLight({colorTemp: true}), identify()],
+    },
+    {
         zigbeeModel: ['FLOALT panel WS 30x30'],
         model: 'L1527',
         vendor: 'IKEA',
@@ -485,13 +492,6 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'FLOALT light panel, white spectrum, 60x60 cm',
         extend: [tradfriLight({colorTemp: true, turnsOffAtBrightness1: true}), identify()],
-    },
-    {
-        zigbeeModel: ['JORMLIEN door WS 40x80'],
-        model: 'L1530',
-        vendor: 'IKEA',
-        description: 'JORMLIEN door light panel, white spectrum, 40x80 cm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['FLOALT panel WS 30x90'],
