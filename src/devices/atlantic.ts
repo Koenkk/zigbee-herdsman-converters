@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition, KeyValue, Tz} from '../lib/types';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -21,7 +22,7 @@ const tzLocal = {
         key: ['quiet_fan'],
         convertSet: async (entity, key, value, meta) => {
             assert(typeof value === 'boolean');
-            await entity.write('hvacFanCtrl', {0x1000: {value: value ? 1 : 0, type: 0x10}}, {manufacturerCode: 0x125b});
+            await entity.write('hvacFanCtrl', {0x1000: {value: value ? 1 : 0, type: 0x10}}, {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP});
             return {state: {quiet_fan: value}};
         },
     } satisfies Tz.Converter,
@@ -31,7 +32,7 @@ const tzLocal = {
             utils.assertString(value, 'ac_louver_position');
             utils.validateValue(value, Object.keys(thermostatPositions));
             const index = thermostatPositions[value.toLowerCase()];
-            await entity.write('hvacThermostat', {0x4273: {value: index, type: 0x30}}, {manufacturerCode: 0x125b});
+            await entity.write('hvacThermostat', {0x4273: {value: index, type: 0x30}}, {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP});
             return {state: {ac_louver_position: value}};
         },
     } satisfies Tz.Converter,
@@ -45,9 +46,9 @@ const tzLocal = {
             const boost = value === 'boost' ? 1 : 0;
             const eco = value === 'eco' ? 4 : 0;
 
-            await entity.write('hvacThermostat', {0x4275: {value: activity, type: 0x30}}, {manufacturerCode: 0x125b});
+            await entity.write('hvacThermostat', {0x4275: {value: activity, type: 0x30}}, {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP});
             await entity.write('hvacThermostat', {'programingOperMode': eco});
-            await entity.write('hvacThermostat', {0x4270: {value: boost, type: 0x10}}, {manufacturerCode: 0x125b});
+            await entity.write('hvacThermostat', {0x4270: {value: boost, type: 0x10}}, {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP});
 
             return {state: {preset: value}};
         },
@@ -58,7 +59,11 @@ const tzLocal = {
             utils.assertString(value, 'swing_mode');
             value = value.toLowerCase();
             utils.validateValue(value, ['on', 'off']);
-            await entity.write('hvacThermostat', {0x4274: {value: value === 'on' ? 1 : 0, type: 0x10}}, {manufacturerCode: 0x125b});
+            await entity.write(
+                'hvacThermostat',
+                {0x4274: {value: value === 'on' ? 1 : 0, type: 0x10}},
+                {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP},
+            );
             return {state: {swing_mode: value}};
         },
     } satisfies Tz.Converter,

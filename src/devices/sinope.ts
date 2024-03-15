@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
@@ -11,7 +12,7 @@ const ea = exposes.access;
 import {precisionRound} from '../lib/utils';
 import {onOff, electricityMeter, light} from '../lib/modernExtend';
 
-const manuSinope = {manufacturerCode: 0x119C};
+const manuSinope = {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES};
 
 const fzLocal = {
     ias_water_leak_alarm: {
