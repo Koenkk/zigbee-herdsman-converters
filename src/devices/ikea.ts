@@ -22,14 +22,14 @@ const definitions: Definition[] = [
             'TRADFRI bulb E27 WS\uFFFDopal 980lm'],
         model: 'LED1545G12',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, white spectrum, opal, 980 lm',
+        description: 'TRADFRI bulb E26/E27, white spectrum, globe, opal, 980 lm',
         extend: [tradfriLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 CWS globe 806lm'],
         model: 'LED2109G6',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E27, color/white spectrum, opal, 806 lm',
+        description: 'TRADFRI bulb E27, color/white spectrum, globe, opal, 806 lm',
         extend: [tradfriLight({colorTemp: true, color: true}), identify()],
     },
     {
@@ -39,7 +39,7 @@ const definitions: Definition[] = [
             'TRADFRI bulb E27 WS\uFFFDclear 950lm'],
         model: 'LED1546G12',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, white spectrum, clear, 950 lm',
+        description: 'TRADFRI bulb E26/E27, white spectrum, globe, clear, 950 lm',
         extend: [tradfriLight({colorTemp: true}), identify()],
     },
     {
@@ -49,7 +49,7 @@ const definitions: Definition[] = [
         ],
         model: 'LED1623G12',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E27, white, opal, 1000 lm',
+        description: 'TRADFRI bulb E27, white, globe, opal, 1000 lm',
         extend: [tradfriLight(), identify()],
     },
     {
@@ -136,7 +136,7 @@ const definitions: Definition[] = [
         ],
         model: 'LED1842G3',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, warm white, clear, 250 lm',
+        description: 'TRADFRI bulb E26/E27, warm white, globe, clear, 250 lm',
         extend: [tradfriLight(), identify()],
     },
     {
@@ -156,7 +156,7 @@ const definitions: Definition[] = [
         ],
         model: 'LED1622G12',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26, white, opal, 1000 lm',
+        description: 'TRADFRI bulb E26, white, globe, opal, 1000 lm',
         extend: [tradfriLight(), identify()],
     },
     {
@@ -168,7 +168,7 @@ const definitions: Definition[] = [
         ],
         model: 'LED1924G9',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, color/white spectrum, opal, 800/806/810 lm',
+        description: 'TRADFRI bulb E26/E27, color/white spectrum, globe, opal, 800/806/810 lm',
         extend: [tradfriLight({colorTemp: true, color: true, turnsOffAtBrightness1: true}), identify()],
     },
     {
@@ -178,7 +178,7 @@ const definitions: Definition[] = [
         ],
         model: 'LED1732G11',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, white spectrum, opal, 1000 lm',
+        description: 'TRADFRI bulb E26/E27, white spectrum, globe, opal, 1000 lm',
         extend: [tradfriLight({colorTemp: true}), identify()],
     },
     {
@@ -188,7 +188,7 @@ const definitions: Definition[] = [
         ],
         model: 'LED1836G9',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, warm white, 806 lm',
+        description: 'TRADFRI bulb E26/E27, warm white, globe, opal, 806 lm',
         extend: [tradfriLight({turnsOffAtBrightness1: true}), identify()],
     },
     {
@@ -198,21 +198,21 @@ const definitions: Definition[] = [
         ],
         model: 'LED1736G9',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26/E27, white spectrum, clear, 806 lm',
+        description: 'TRADFRI bulb E26/E27, white spectrum, globe, clear, 806 lm',
         extend: [tradfriLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS globe 1055lm'],
         model: 'LED2201G8',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E27, white spectrum, globe, 1055 lm',
+        description: 'TRADFRI bulb E27, white spectrum, globe, opal, 1055 lm',
         extend: [tradfriLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRIbulbPAR38WS900lm'],
         model: 'LED2006R9',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E26, white spectrum, PAR38 downlight, 900 lm',
+        description: 'TRADFRI bulb E26, white spectrum, PAR38 downlight, clear, 900 lm',
         extend: [tradfriLight({colorTemp: true}), identify()],
     },
     {
@@ -224,6 +224,22 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI bulb B22, white spectrum, globe, opal, 1055 lm',
         extend: [tradfriLight({colorTemp: true}), identify()],
+    },
+    {
+        zigbeeModel: [
+            'TRADFRI bulb E27 CWS opal 600lm',
+            'TRADFRI bulb E26 CWS opal 600lm',
+            'TRADFRI bulb E14 CWS opal 600lm',
+            'TRADFRI bulb E12 CWS opal 600lm',
+            'TRADFRI bulb E27 C/WS opal 600',
+        ],
+        model: 'LED1624G9',
+        vendor: 'IKEA',
+        description: 'TRADFRI bulb E12/E14/E26/E27, color/white spectum, globe, opal, 600 lm',
+        extend: [
+            tradfriLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
+            identify(),
+        ],
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS candle 470lm'],
@@ -239,7 +255,7 @@ const definitions: Definition[] = [
         ],
         model: 'LED1536G5',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E12/E14, white spectrum, opal, 400 lm',
+        description: 'TRADFRI bulb E12/E14, white spectrum, globe, opal, 400 lm',
         extend: [tradfriLight({colorTemp: true}), identify()],
     },
     {
@@ -248,7 +264,7 @@ const definitions: Definition[] = [
             'TRADFRI bulb E12 WS 450lm',
             'TRADFRI bulb E17 WS 440lm',
         ],
-        model: 'LED1903C5/LED1835C6',
+        model: 'LED1835C6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E17, white spectrum, opal, 450/470/440 lm',
         extend: [tradfriLight({colorTemp: true}), identify()],
@@ -269,22 +285,6 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14, white spectrum, opal, 600 lm',
         extend: [tradfriLight({colorTemp: true}), identify()],
-    },
-    {
-        zigbeeModel: [
-            'TRADFRI bulb E27 CWS opal 600lm',
-            'TRADFRI bulb E26 CWS opal 600lm',
-            'TRADFRI bulb E14 CWS opal 600lm',
-            'TRADFRI bulb E12 CWS opal 600lm',
-            'TRADFRI bulb E27 C/WS opal 600',
-        ],
-        model: 'LED1624G9',
-        vendor: 'IKEA',
-        description: 'TRADFRI bulb E12/E14/E26/E27, color/white spectum, opal, 600 lm',
-        extend: [
-            tradfriLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
-            identify(),
-        ],
     },
     {
         zigbeeModel: [
@@ -397,7 +397,7 @@ const definitions: Definition[] = [
             'TRADFRI bulb GU10 CWS 345lm',
             'TRADFRI bulb GU10 CWS 380lm',
         ],
-        model: 'LED1923R5/LED1925G6',
+        model: 'LED1923R5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, color/white spectrum, 345/380 lm',
         extend: [
