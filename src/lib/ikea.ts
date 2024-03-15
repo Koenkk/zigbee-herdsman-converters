@@ -8,7 +8,7 @@ import * as utils from '../lib/utils';
 import * as globalStore from '../lib/store';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {postfixWithEndpointName, precisionRound, isObject, replaceInArray} from '../lib/utils';
-import {LightArgs, light as lightDontUse, ota} from '../lib/modernExtend';
+import {LightArgs, light as lightDontUse, ota, setupAttributes, ReportingConfigWithoutAttribute} from '../lib/modernExtend';
 import * as semver from 'semver';
 const e = exposes.presets;
 
@@ -91,7 +91,48 @@ export function tradfriOta(): ModernExtend {
 }
 
 export function tradfriBattery(): ModernExtend {
-    return ota(otaBase.tradfri);
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValue = {};
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
+                // Some devices do not comply to the ZCL and report a
+                // batteryPercentageRemaining of 100 when the battery is full (should be 200).
+                //
+                // IKEA corrected this on newer remote fw version, but many people are still
+                // 2.2.010 which is the last version supporting group bindings. We try to be
+                // smart and pick the correct one for IKEA remotes.
+                let dividePercentage = true;
+                // If softwareBuildID is below 2.4.0 it should not be divided
+                if (semver.lt(meta.device.softwareBuildID, '2.4.0', true)) {
+                    dividePercentage = false;
+                }
+                let percentage = msg.data['batteryPercentageRemaining'];
+                percentage = dividePercentage ? percentage / 2 : percentage;
+                payload.battery = precisionRound(percentage, 2);
+            }
+
+            return payload;
+        },
+    }];
+
+    const toZigbee: Tz.Converter[] = [{
+        key: ['battery'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
+    }];
+
+    const defaultReporting: ReportingConfigWithoutAttribute = {min: '1_HOUR', max: 'MAX', change: 10};
+
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
+            {attribute: 'batteryPercentageRemaining', ...defaultReporting},
+        ], logger);
+    };
+
+    return {fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export function tradfriConfigureRemote(): ModernExtend {
@@ -104,8 +145,6 @@ export function tradfriConfigureRemote(): ModernExtend {
         const bindTarget = version[0] > 2 || (version[0] == 2 && version[1] > 3) || (version[0] == 2 && version[1] == 3 && version[2] >= 75) ?
             coordinatorEndpoint : constants.defaultBindGroup;
         await endpoint.bind('genOnOff', bindTarget);
-        await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-        await reporting.batteryPercentageRemaining(endpoint);
     };
 
     return {configure, isModernExtend: true};
