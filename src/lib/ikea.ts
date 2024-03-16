@@ -13,6 +13,8 @@ import * as semver from 'semver';
 const e = exposes.presets;
 const ea = exposes.access;
 
+export const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
+
 export const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
     /**
      * IKEA bulbs lose their configured reportings when losing power.
@@ -73,7 +75,7 @@ export const configureRemote: Configure = async (device, coordinatorEndpoint, lo
     await reporting.batteryPercentageRemaining(endpoint);
 };
 
-export function tradfriLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: true | {range: Range, viaColor: true}}) {
+export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: true | {range: Range, viaColor: true}}) {
     const colorTemp: {range: Range} = args?.colorTemp ? (args.colorTemp === true ? {range: [250, 454]} : args.colorTemp) : undefined;
     const result = lightDontUse({...args, colorTemp});
     result.ota = otaBase.tradfri;
@@ -87,11 +89,11 @@ export function tradfriLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: 
     return result;
 }
 
-export function tradfriOta(): ModernExtend {
+export function ikeaOta(): ModernExtend {
     return ota(otaBase.tradfri);
 }
 
-export function tradfriBattery(): ModernExtend {
+export function ikeaBattery(): ModernExtend {
     const exposes: Expose[] = [
         e.numeric('battery', ea.STATE_GET).withUnit('%')
             .withDescription('Remaining battery in %')
@@ -142,7 +144,7 @@ export function tradfriBattery(): ModernExtend {
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export function tradfriConfigureRemote(): ModernExtend {
+export function ikeaConfigureRemote(): ModernExtend {
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
         // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
         // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
@@ -157,7 +159,9 @@ export function tradfriConfigureRemote(): ModernExtend {
     return {configure, isModernExtend: true};
 }
 
-export const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
+export function ikeaAirPurifier(): ModernExtend {
+    return {isModernExtend: true};
+}
 
 export const configureGenPollCtrl = async (device: Zh.Device, endpoint: Zh.Endpoint) => {
     // NOTE: Firmware 24.4.11 introduce genPollCtrl

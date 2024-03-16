@@ -8,8 +8,8 @@ import {repInterval} from '../lib/constants';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {onOff, battery, iasZoneAlarm, identify, forcePowerSource, temperature, humidity, occupancy, illuminance} from '../lib/modernExtend';
 import {
-    tradfriConfigureRemote, configureGenPollCtrl, manufacturerOptions, fromZigbee, toZigbee,
-    tradfriLight, tradfriOta, tradfriBattery,
+    ikeaConfigureRemote, configureGenPollCtrl, manufacturerOptions, fromZigbee, toZigbee,
+    ikeaLight, ikeaOta, ikeaBattery,
 } from '../lib/ikea';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -23,14 +23,14 @@ const definitions: Definition[] = [
         model: 'LED1545G12',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, white spectrum, globe, opal, 980 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 CWS globe 806lm'],
         model: 'LED2109G6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E27, color/white spectrum, globe, opal, 806 lm',
-        extend: [tradfriLight({colorTemp: true, color: true}), identify()],
+        extend: [ikeaLight({colorTemp: true, color: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -40,7 +40,7 @@ const definitions: Definition[] = [
         model: 'LED1546G12',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, white spectrum, globe, clear, 950 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -50,7 +50,7 @@ const definitions: Definition[] = [
         model: 'LED1623G12',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E27, white, globe, opal, 1000 lm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: [
@@ -60,14 +60,14 @@ const definitions: Definition[] = [
         model: 'LED2103G5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, warm white, globe, 806 lumen',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['TRADFRIbulbE26WWglobeclear250lm'],
         model: 'LED2008G3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26, warm white, globe, clear, 250 lm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: [
@@ -79,7 +79,7 @@ const definitions: Definition[] = [
         model: 'LED2102G3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, warm white, globe, clear, 440/450/470 lm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: [
@@ -90,7 +90,7 @@ const definitions: Definition[] = [
         model: 'LED1936G5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, white spectrum, globe, opal, 450/470 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -103,7 +103,7 @@ const definitions: Definition[] = [
         model: 'LED2003G10',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/27, white spectrum, globe, opal, 1055/1100/1160 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -114,7 +114,7 @@ const definitions: Definition[] = [
         model: 'LED2004G8',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, white spectrum, globe, clear, 800/806 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -127,7 +127,7 @@ const definitions: Definition[] = [
         model: 'LED1937T5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, white spectrum, T120 cylinder, opal, 450/470 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -137,7 +137,7 @@ const definitions: Definition[] = [
         model: 'LED1842G3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, warm white, globe, clear, 250 lm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: [
@@ -147,7 +147,7 @@ const definitions: Definition[] = [
         model: 'LED1934G3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, warm white, globe, clear, 250 lm',
-        extend: [tradfriLight({turnsOffAtBrightness1: true}), identify()],
+        extend: [ikeaLight({turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -157,7 +157,7 @@ const definitions: Definition[] = [
         model: 'LED1622G12',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26, white, globe, opal, 1000 lm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: [
@@ -169,7 +169,7 @@ const definitions: Definition[] = [
         model: 'LED1924G9',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, color/white spectrum, globe, opal, 800/806/810 lm',
-        extend: [tradfriLight({colorTemp: true, color: true, turnsOffAtBrightness1: true}), identify()],
+        extend: [ikeaLight({colorTemp: true, color: true, turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -179,7 +179,7 @@ const definitions: Definition[] = [
         model: 'LED1732G11',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, white spectrum, globe, opal, 1000 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -189,7 +189,7 @@ const definitions: Definition[] = [
         model: 'LED1836G9',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, warm white, globe, opal, 806 lm',
-        extend: [tradfriLight({turnsOffAtBrightness1: true}), identify()],
+        extend: [ikeaLight({turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -199,21 +199,21 @@ const definitions: Definition[] = [
         model: 'LED1736G9',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27, white spectrum, globe, clear, 806 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS globe 1055lm'],
         model: 'LED2201G8',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E27, white spectrum, globe, opal, 1055 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRIbulbPAR38WS900lm'],
         model: 'LED2006R9',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26, white spectrum, PAR38 downlight, clear, 900 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -223,7 +223,7 @@ const definitions: Definition[] = [
         model: 'LED2035G10',
         vendor: 'IKEA',
         description: 'TRADFRI bulb B22, white spectrum, globe, opal, 1055 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -237,7 +237,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E26/E27, color/white spectum, globe, opal, 600 lm',
         extend: [
-            tradfriLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
+            ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
             identify(),
         ],
     },
@@ -246,7 +246,7 @@ const definitions: Definition[] = [
         model: 'LED2107C4',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14, white spectrum, candle, opal, 470 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -256,7 +256,7 @@ const definitions: Definition[] = [
         model: 'LED1536G5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14, white spectrum, globe, opal, 400 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -267,7 +267,7 @@ const definitions: Definition[] = [
         model: 'LED1835C6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E17, white spectrum, candle, opal, 450/470/440 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -277,14 +277,14 @@ const definitions: Definition[] = [
         model: 'LED2101G4',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14, white spectrum, globe, opal, 450/470 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 600lm'],
         model: 'LED1733G7',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14, white spectrum, globe, opal, 600 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -295,7 +295,7 @@ const definitions: Definition[] = [
         model: 'LED1649C5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E17, white, candle, opal, 400 lm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: [
@@ -307,7 +307,7 @@ const definitions: Definition[] = [
         model: 'LED2002G5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14/E12/E17, white spectrum, globe, clear, 440/470 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -317,7 +317,7 @@ const definitions: Definition[] = [
         model: 'LED1738G7',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E17, white spectrum, globe, opal, 600 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -328,7 +328,7 @@ const definitions: Definition[] = [
         model: 'LED1925G6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E17, color/white spectrum, globe, opal, 440/450/470 lm',
-        extend: [tradfriLight({colorTemp: true, color: true, turnsOffAtBrightness1: true}), identify()],
+        extend: [ikeaLight({colorTemp: true, color: true, turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -339,14 +339,14 @@ const definitions: Definition[] = [
         model: 'LED1935C3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E17, warm white, candle, clear, 250 lm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['TRADFRIbulbE12WWcandleclear250lm'],
         model: 'LED2009C3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12, warm white, candle, clear, 250 lm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: [
@@ -356,7 +356,7 @@ const definitions: Definition[] = [
         model: 'LED1949C5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14, white spectrum, candle, opal, 450/470 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -369,28 +369,28 @@ const definitions: Definition[] = [
         model: 'LED2104R3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, warm white, 345/380 lm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 WS 400lm'],
         model: 'LED1537R6/LED1739R5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, white spectrum, 400 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 W 400lm'],
         model: 'LED1650R5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, white, 400 lm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 WW 400lm'],
         model: 'LED1837R5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, warm white, 400 lm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: [
@@ -401,7 +401,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, color/white spectrum, 345/380 lm',
         extend: [
-            tradfriLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
+            ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
             identify(),
         ],
     },
@@ -410,7 +410,7 @@ const definitions: Definition[] = [
         model: 'LED2005R5',
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, white spectrum, 380 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -421,140 +421,140 @@ const definitions: Definition[] = [
         model: 'LED2106R3',
         vendor: 'IKEA',
         description: 'TRADFRI bulb GU10, white spectrum, 345 lm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['LEPTITER Recessed spot light'],
         model: 'T1820',
         vendor: 'IKEA',
         description: 'LEPTITER recessed spot light, white spectrum',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['STOFTMOLN ceiling/wall lamp WW37'],
         model: 'T2037',
         vendor: 'IKEA',
         description: 'STOFTMOLN ceiling/wall lamp, warm white, 37 cm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['STOFTMOLN ceiling/wall lamp WW24'],
         model: 'T2035',
         vendor: 'IKEA',
         description: 'STOFTMOLN ceiling/wall lamp, warm white, 24 cm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['STOFTMOLN ceiling/wall lamp WW10'],
         model: 'T2105',
         vendor: 'IKEA',
         description: 'STOFTMOLN ceiling/wall lamp, warm white, 10 cm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['STOFTMOLN ceiling/wall lamp WW15'],
         model: 'T2106',
         vendor: 'IKEA',
         description: 'STOFTMOLN ceiling/wall lamp, warm white, 15 cm',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['JETSTROM 40100'],
         model: 'L2208',
         vendor: 'IKEA',
         description: 'JETSTROM ceiling light panel, white spectrum, 100x40 cm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['JETSTROM 6060'],
         model: 'L2207',
         vendor: 'IKEA',
         description: 'JETSTROM ceiling light panel, white spectrum, 60x60 cm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['JORMLIEN door WS 40x80'],
         model: 'L1530',
         vendor: 'IKEA',
         description: 'JORMLIEN door light panel, white spectrum, 40x80 cm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['FLOALT panel WS 30x30'],
         model: 'L1527',
         vendor: 'IKEA',
         description: 'FLOALT light panel, white spectrum, 30x30 cm',
-        extend: [tradfriLight({colorTemp: true, turnsOffAtBrightness1: true}), identify()],
+        extend: [ikeaLight({colorTemp: true, turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: ['FLOALT panel WS 60x60'],
         model: 'L1529',
         vendor: 'IKEA',
         description: 'FLOALT light panel, white spectrum, 60x60 cm',
-        extend: [tradfriLight({colorTemp: true, turnsOffAtBrightness1: true}), identify()],
+        extend: [ikeaLight({colorTemp: true, turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: ['FLOALT panel WS 30x90'],
         model: 'L1528',
         vendor: 'IKEA',
         description: 'FLOALT light panel, white spectrum, 30x90 cm',
-        extend: [tradfriLight({colorTemp: true, turnsOffAtBrightness1: true}), identify()],
+        extend: [ikeaLight({colorTemp: true, turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: ['SURTE door WS 38x64'],
         model: 'L1531',
         vendor: 'IKEA',
         description: 'SURTE door light panel, white spectrum, 38x64 cm',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['GUNNARP panel round'],
         model: 'T1828',
         description: 'GUNNARP light panel, round',
         vendor: 'IKEA',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['GUNNARP panel 40*40'],
         model: 'T1829',
         description: 'GUNNARP light panel, 40x40 cm',
         vendor: 'IKEA',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI Light Engine'],
         model: 'T2011',
         description: 'OSVALLA panel round',
         vendor: 'IKEA',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['NYMANE PENDANT'],
         model: '90504044',
         vendor: 'IKEA',
         description: 'NYMANE pendant lamp',
-        extend: [tradfriLight({colorTemp: true}), identify()],
+        extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['Pendant lamp WW'],
         model: 'T2030',
         vendor: 'IKEA',
         description: 'PILSKOTT pendant lamp, warm white',
-        extend: [tradfriLight({turnsOffAtBrightness1: true}), identify()],
+        extend: [ikeaLight({turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: ['Floor lamp WW'],
         model: 'G2015',
         vendor: 'IKEA',
         description: 'PILSKOTT floor lamp, warm white',
-        extend: [tradfriLight(), identify()],
+        extend: [ikeaLight(), identify()],
     },
     {
         zigbeeModel: ['ORMANAS LED Strip'],
         model: 'L2112',
         vendor: 'IKEA',
         description: 'ORMANAS LED strip',
-        extend: [tradfriLight({colorTemp: true, color: true}), identify()],
+        extend: [ikeaLight({colorTemp: true, color: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -564,7 +564,7 @@ const definitions: Definition[] = [
         model: 'ICPSHC24-10EU-IL-1',
         vendor: 'IKEA',
         description: 'TRADFRI LED driver, 10 w',
-        extend: [tradfriLight({turnsOffAtBrightness1: true}), identify()],
+        extend: [ikeaLight({turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -574,14 +574,14 @@ const definitions: Definition[] = [
         model: 'ICPSHC24-30EU-IL-1',
         vendor: 'IKEA',
         description: 'TRADFRI LED driver, 30 w',
-        extend: [tradfriLight({turnsOffAtBrightness1: true}), identify()],
+        extend: [ikeaLight({turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: ['SILVERGLANS IP44 LED driver'],
         model: 'ICPSHC24-30-IL44-1',
         vendor: 'IKEA',
         description: 'SILVERGLANS LED driver, 30 w, IP44',
-        extend: [tradfriLight({turnsOffAtBrightness1: true}), identify()],
+        extend: [ikeaLight({turnsOffAtBrightness1: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI control outlet'],
@@ -591,7 +591,7 @@ const definitions: Definition[] = [
         extend: [
             onOff(),
             identify(),
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
     {
@@ -601,7 +601,7 @@ const definitions: Definition[] = [
         description: 'ASKVADER on/off switch',
         extend: [
             onOff(),
-            tradfriOta(),
+            ikeaOta(),
             identify(),
         ],
     },
@@ -612,7 +612,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         extend: [
             onOff(),
-            tradfriOta(),
+            ikeaOta(),
             iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
         ],
     },
@@ -623,7 +623,7 @@ const definitions: Definition[] = [
         description: 'TRETAKT smart plug',
         extend: [
             onOff(),
-            tradfriOta(),
+            ikeaOta(),
             identify(),
         ],
     },
@@ -642,8 +642,8 @@ const definitions: Definition[] = [
         },
         exposes: [e.cover_position()],
         extend: [
-            tradfriBattery(),
-            tradfriOta(),
+            ikeaBattery(),
+            ikeaOta(),
         ],
     },
     {
@@ -661,8 +661,8 @@ const definitions: Definition[] = [
         },
         exposes: [e.cover_position()],
         extend: [
-            tradfriBattery(),
-            tradfriOta(),
+            ikeaBattery(),
+            ikeaOta(),
         ],
     },
     {
@@ -680,8 +680,8 @@ const definitions: Definition[] = [
         },
         exposes: [e.cover_position()],
         extend: [
-            tradfriBattery(),
-            tradfriOta(),
+            ikeaBattery(),
+            ikeaOta(),
         ],
     },
     {
@@ -700,7 +700,7 @@ const definitions: Definition[] = [
         exposes: [e.cover_position()],
         extend: [
             battery({dontDividePercentage: true}),
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
     {
@@ -750,7 +750,7 @@ const definitions: Definition[] = [
             await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock', 'filterRunTime']);
         },
         extend: [
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
     {
@@ -766,7 +766,7 @@ const definitions: Definition[] = [
             await endpoint.configureReporting('genBasic', payload);
         },
         extend: [
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
     {
@@ -783,7 +783,7 @@ const definitions: Definition[] = [
         },
         extend: [
             battery({dontDividePercentage: true}),
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
     {
@@ -797,10 +797,10 @@ const definitions: Definition[] = [
             'arrow_right_click', 'arrow_right_hold', 'arrow_right_release', 'brightness_down_click', 'brightness_down_hold',
             'brightness_down_release', 'brightness_up_click', 'brightness_up_hold', 'brightness_up_release', 'toggle'])],
         extend: [
-            tradfriConfigureRemote(),
+            ikeaConfigureRemote(),
             identify(),
-            tradfriBattery(),
-            tradfriOta(),
+            ikeaBattery(),
+            ikeaOta(),
         ],
     },
     {
@@ -823,10 +823,10 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
         extend: [
-            tradfriConfigureRemote(),
+            ikeaConfigureRemote(),
             identify(),
-            tradfriBattery(),
-            tradfriOta(),
+            ikeaBattery(),
+            ikeaOta(),
         ],
     },
     {
@@ -842,10 +842,10 @@ const definitions: Definition[] = [
         ],
         meta: {disableActionGroup: true},
         extend: [
-            tradfriConfigureRemote(),
+            ikeaConfigureRemote(),
             identify(),
-            tradfriBattery(),
-            tradfriOta(),
+            ikeaBattery(),
+            ikeaOta(),
         ],
     },
     {
@@ -857,10 +857,10 @@ const definitions: Definition[] = [
         exposes: [e.action(['on', 'off'])],
         meta: {disableActionGroup: true},
         extend: [
-            tradfriConfigureRemote(),
+            ikeaConfigureRemote(),
             identify(),
-            tradfriBattery(),
-            tradfriOta(),
+            ikeaBattery(),
+            ikeaOta(),
         ],
     },
     {
@@ -872,8 +872,8 @@ const definitions: Definition[] = [
         exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_stop'])],
         meta: {disableActionGroup: true},
         extend: [
-            tradfriBattery(),
-            tradfriOta(),
+            ikeaBattery(),
+            ikeaOta(),
         ],
     },
     {
@@ -889,8 +889,8 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
         },
         extend: [
-            tradfriBattery(),
-            tradfriOta(),
+            ikeaBattery(),
+            ikeaOta(),
         ],
     },
     {
@@ -902,9 +902,9 @@ const definitions: Definition[] = [
             fz.command_cover_stop, legacy.fz.cover_stop],
         exposes: [e.action(['close', 'open', 'stop'])],
         extend: [
-            tradfriConfigureRemote(),
-            tradfriBattery(),
-            tradfriOta(),
+            ikeaConfigureRemote(),
+            ikeaBattery(),
+            ikeaOta(),
         ],
     },
     {
@@ -932,7 +932,7 @@ const definitions: Definition[] = [
         },
         extend: [
             battery({voltage: true}),
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
     {
@@ -951,7 +951,7 @@ const definitions: Definition[] = [
         },
         extend: [
             battery(),
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
     {
@@ -973,7 +973,7 @@ const definitions: Definition[] = [
         },
         extend: [
             battery(),
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
     {
@@ -989,8 +989,8 @@ const definitions: Definition[] = [
                 .withDescription('Indicates whether the device detected bright light (works only in night mode)')],
         extend: [
             forcePowerSource({powerSource: 'Battery'}),
-            tradfriBattery(),
-            tradfriOta(),
+            ikeaBattery(),
+            ikeaOta(),
         ],
     },
     {
@@ -1016,7 +1016,7 @@ const definitions: Definition[] = [
         extend: [
             temperature(),
             humidity(),
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
     {
@@ -1029,7 +1029,7 @@ const definitions: Definition[] = [
             illuminance(),
             identify(),
             battery(),
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
     {
@@ -1047,7 +1047,7 @@ const definitions: Definition[] = [
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
             identify(),
             battery(),
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
     {
@@ -1059,7 +1059,7 @@ const definitions: Definition[] = [
             iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
             identify(),
             battery(),
-            tradfriOta(),
+            ikeaOta(),
         ],
     },
 ];
