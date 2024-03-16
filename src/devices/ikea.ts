@@ -4,12 +4,11 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {repInterval} from '../lib/constants';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {onOff, battery, iasZoneAlarm, identify, forcePowerSource, temperature, humidity, occupancy, illuminance} from '../lib/modernExtend';
 import {
-    ikeaConfigureRemote, configureGenPollCtrl, manufacturerOptions, fromZigbee, toZigbee,
-    ikeaLight, ikeaOta, ikeaBattery,
+    ikeaConfigureRemote, configureGenPollCtrl, fromZigbee,
+    ikeaLight, ikeaOta, ikeaBattery, ikeaAirPurifier,
 } from '../lib/ikea';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -704,52 +703,15 @@ const definitions: Definition[] = [
         ],
     },
     {
-        zigbeeModel: ['STARKVIND Air purifier', 'STARKVIND Air purifier table'],
+        zigbeeModel: [
+            'STARKVIND Air purifier',
+            'STARKVIND Air purifier table',
+        ],
         model: 'E2007',
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
-        exposes: [
-            e.fan().withModes(['off', 'auto', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
-            e.numeric('fan_speed', exposes.access.STATE_GET).withValueMin(0).withValueMax(9)
-                .withDescription('Current fan speed'),
-            e.pm25().withAccess(ea.STATE_GET),
-            e.enum('air_quality', ea.STATE_GET, [
-                'excellent', 'good', 'moderate', 'poor',
-                'unhealthy', 'hazardous', 'out_of_range',
-                'unknown',
-            ]).withDescription('Measured air quality'),
-            e.binary('led_enable', ea.ALL, true, false).withDescription('Enabled LED'),
-            e.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
-            e.binary('replace_filter', ea.STATE_GET, true, false)
-                .withDescription('Filter is older than 6 months and needs replacing'),
-            e.numeric('filter_age', ea.STATE_GET).withDescription('Time the filter has been used in minutes'),
-        ],
-        fromZigbee: [fromZigbee.air_purifier],
-        toZigbee: [
-            toZigbee.air_purifier_fan_mode, toZigbee.air_purifier_fan_speed,
-            toZigbee.air_purifier_pm25, toZigbee.air_purifier_child_lock, toZigbee.air_purifier_led_enable,
-            toZigbee.air_purifier_replace_filter,
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-
-            await reporting.bind(endpoint, coordinatorEndpoint, ['manuSpecificIkeaAirPurifier']);
-            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'particulateMatter25Measurement',
-                minimumReportInterval: repInterval.MINUTE, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
-            manufacturerOptions);
-            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'filterRunTime',
-                minimumReportInterval: repInterval.HOUR, maximumReportInterval: repInterval.HOUR, reportableChange: 0}],
-            manufacturerOptions);
-            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanMode',
-                minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
-            manufacturerOptions);
-            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanSpeed',
-                minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
-            manufacturerOptions);
-
-            await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock', 'filterRunTime']);
-        },
         extend: [
+            ikeaAirPurifier(),
             ikeaOta(),
         ],
     },

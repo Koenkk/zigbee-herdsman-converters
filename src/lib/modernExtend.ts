@@ -24,7 +24,7 @@ function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | numbe
     return endpoints;
 }
 
-const timeLookup = {
+export const timeLookup = {
     'MAX': 65000,
     '1_HOUR': 3600,
     '30_MINUTES': 1800,

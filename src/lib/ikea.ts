@@ -8,7 +8,7 @@ import * as utils from '../lib/utils';
 import * as globalStore from '../lib/store';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {postfixWithEndpointName, precisionRound, isObject, replaceInArray} from '../lib/utils';
-import {LightArgs, light as lightDontUse, ota, setupAttributes, ReportingConfigWithoutAttribute} from '../lib/modernExtend';
+import {LightArgs, light as lightDontUse, ota, setupAttributes, ReportingConfigWithoutAttribute, timeLookup} from '../lib/modernExtend';
 import * as semver from 'semver';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -160,7 +160,198 @@ export function ikeaConfigureRemote(): ModernExtend {
 }
 
 export function ikeaAirPurifier(): ModernExtend {
-    return {isModernExtend: true};
+    const exposes: Expose[] = [
+        e.fan().withModes(['off', 'auto', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
+        e.numeric('fan_speed', ea.STATE_GET).withValueMin(0).withValueMax(9)
+            .withDescription('Current fan speed'),
+        e.numeric('pm25', ea.STATE_GET).withLabel('PM25').withUnit('µg/m³').withDescription('Measured PM2.5 (particulate matter) concentration'),
+        e.enum('air_quality', ea.STATE_GET, [
+            'excellent', 'good', 'moderate', 'poor',
+            'unhealthy', 'hazardous', 'out_of_range',
+            'unknown',
+        ]).withDescription('Calculated air quality'),
+        e.binary('led_enable', ea.ALL, true, false).withDescription('Controls the LED').withCategory('config'),
+        e.binary('child_lock', ea.ALL, true, false).withDescription('Controls physical input on the device').withCategory('config'),
+        e.binary('replace_filter', ea.STATE_GET, true, false)
+            .withDescription('Indicates if the filter is older than 6 months and needs replacing')
+            .withCategory('diagnostic'),
+        e.numeric('filter_age', ea.STATE_GET).withDescription('Time the filter has been used in minutes').withCategory('diagnostic'),
+    ];
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'manuSpecificIkeaAirPurifier',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const state: KeyValue = {};
+
+                if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
+                    const pm25Property = postfixWithEndpointName('pm25', msg, model, meta);
+                    let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
+
+                    // Air Quality
+                    // Scale based on EU AQI (https://www.eea.europa.eu/themes/air/air-quality-index)
+                    // Using German IAQ labels to match the Develco Air Quality Sensor
+                    let airQuality;
+                    const airQualityProperty = postfixWithEndpointName('air_quality', msg, model, meta);
+                    if (pm25 <= 10) {
+                        airQuality = 'excellent';
+                    } else if (pm25 <= 20) {
+                        airQuality = 'good';
+                    } else if (pm25 <= 25) {
+                        airQuality = 'moderate';
+                    } else if (pm25 <= 50) {
+                        airQuality = 'poor';
+                    } else if (pm25 <= 75) {
+                        airQuality = 'unhealthy';
+                    } else if (pm25 <= 800) {
+                        airQuality = 'hazardous';
+                    } else if (pm25 < 65535) {
+                        airQuality = 'out_of_range';
+                    } else {
+                        airQuality = 'unknown';
+                    }
+
+                    pm25 = (pm25 == 65535) ? -1 : pm25;
+
+                    state[pm25Property] = pm25;
+                    state[airQualityProperty] = airQuality;
+                }
+
+                if (msg.data.hasOwnProperty('filterRunTime')) {
+                    // Filter needs to be replaced after 6 months
+                    state['replace_filter'] = (parseInt(msg.data['filterRunTime']) >= 259200);
+                    state['filter_age'] = parseInt(msg.data['filterRunTime']);
+                }
+
+                if (msg.data.hasOwnProperty('controlPanelLight')) {
+                    state['led_enable'] = (msg.data['controlPanelLight'] == 0);
+                }
+
+                if (msg.data.hasOwnProperty('childLock')) {
+                    state['child_lock'] = (msg.data['childLock'] == 0);
+                }
+
+                if (msg.data.hasOwnProperty('fanSpeed')) {
+                    let fanSpeed = msg.data['fanSpeed'];
+                    if (fanSpeed >= 10) {
+                        fanSpeed = (((fanSpeed - 5) * 2) / 10);
+                    } else {
+                        fanSpeed = 0;
+                    }
+
+                    state['fan_speed'] = fanSpeed;
+                }
+
+                if (msg.data.hasOwnProperty('fanMode')) {
+                    let fanMode = msg.data['fanMode'];
+                    if (fanMode >= 10) {
+                        fanMode = (((fanMode - 5) * 2) / 10).toString();
+                    } else if (fanMode == 1) {
+                        fanMode = 'auto';
+                    } else {
+                        fanMode = 'off';
+                    }
+
+                    state['fan_mode'] = fanMode;
+                    state['fan_state'] = (fanMode === 'off' ? 'OFF' : 'ON');
+                }
+
+                return state;
+            },
+        },
+    ];
+
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ['fan_mode', 'fan_state'],
+            convertSet: async (entity, key, value, meta) => {
+                if (key == 'fan_state' && typeof value === 'string' && value.toLowerCase() == 'on') {
+                    value = 'auto';
+                } else {
+                    value = value.toString().toLowerCase();
+                }
+
+                let fanMode;
+                switch (value) {
+                case 'off':
+                    fanMode = 0;
+                    break;
+                case 'auto':
+                    fanMode = 1;
+                    break;
+                default:
+                    fanMode = ((Number(value) / 2.0) * 10) + 5;
+                }
+
+                await entity.write('manuSpecificIkeaAirPurifier', {'fanMode': fanMode}, manufacturerOptions);
+                return {state: {fan_mode: value, fan_state: value === 'off' ? 'OFF' : 'ON'}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['fanMode']);
+            },
+        },
+        {
+            key: ['fan_speed'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['fanSpeed']);
+            },
+        },
+        {
+            key: ['pm25', 'air_quality'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['particulateMatter25Measurement']);
+            },
+        },
+        {
+            key: ['replace_filter', 'filter_age'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
+            },
+        },
+        {
+            key: ['child_lock'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('manuSpecificIkeaAirPurifier', {'childLock': ((value) ? 0 : 1)}, manufacturerOptions);
+                return {state: {child_lock: ((value) ? true : false)}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['childLock']);
+            },
+        },
+        {
+            key: ['led_enable'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('manuSpecificIkeaAirPurifier', {'controlPanelLight': ((value) ? 0 : 1)}, manufacturerOptions);
+                return {state: {led_enable: ((value) ? true : false)}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['controlPanelLight']);
+            },
+        },
+    ];
+
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        const endpoint = device.getEndpoint(1);
+
+        await reporting.bind(endpoint, coordinatorEndpoint, ['manuSpecificIkeaAirPurifier']);
+        await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'particulateMatter25Measurement',
+            minimumReportInterval: timeLookup['1_MINUTE'], maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 1}],
+        manufacturerOptions);
+        await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'filterRunTime',
+            minimumReportInterval: timeLookup['1_HOUR'], maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 0}],
+        manufacturerOptions);
+        await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanMode',
+            minimumReportInterval: 0, maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 1}],
+        manufacturerOptions);
+        await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanSpeed',
+            minimumReportInterval: 0, maximumReportInterval: timeLookup['1_HOUR'], reportableChange: 1}],
+        manufacturerOptions);
+
+        await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock', 'filterRunTime']);
+    };
+
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export const configureGenPollCtrl = async (device: Zh.Device, endpoint: Zh.Endpoint) => {
