@@ -1,17 +1,19 @@
-import {Fz, Tz, OnEvent, Configure, KeyValue, Zh, Range, ModernExtend, Expose} from '../lib/types';
-import * as exposes from '../lib/exposes';
+import {Fz, Tz, OnEvent, Configure, KeyValue, Zh, Range, ModernExtend, Expose, KeyValueAny} from '../lib/types';
+import {presets, access, options} from '../lib/exposes';
+import {
+    postfixWithEndpointName, precisionRound, isObject, replaceInArray, isLegacyEnabled, hasAlreadyProcessedMessage,
+    getFromLookup, mapNumberRange,
+} from '../lib/utils';
+import {LightArgs, light as lightDontUse, ota, setupAttributes, ReportingConfigWithoutAttribute, timeLookup} from '../lib/modernExtend';
+import {tradfri as ikea} from '../lib/ota';
+
+import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import * as otaBase from '../lib/ota';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import * as utils from '../lib/utils';
 import * as globalStore from '../lib/store';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
-import {postfixWithEndpointName, precisionRound, isObject, replaceInArray} from '../lib/utils';
-import {LightArgs, light as lightDontUse, ota, setupAttributes, ReportingConfigWithoutAttribute, timeLookup} from '../lib/modernExtend';
 import * as semver from 'semver';
-const e = exposes.presets;
-const ea = exposes.access;
 
 export const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
 
@@ -78,24 +80,24 @@ export const configureRemote: Configure = async (device, coordinatorEndpoint, lo
 export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: true | {range: Range, viaColor: true}}) {
     const colorTemp: {range: Range} = args?.colorTemp ? (args.colorTemp === true ? {range: [250, 454]} : args.colorTemp) : undefined;
     const result = lightDontUse({...args, colorTemp});
-    result.ota = otaBase.tradfri;
+    result.ota = ikea;
     result.onEvent = bulbOnEvent;
     if (isObject(args?.colorTemp) && args.colorTemp.viaColor) {
         result.toZigbee = replaceInArray(result.toZigbee, [tz.light_color_colortemp], [tz.light_color_and_colortemp_via_color]);
     }
     if (args?.colorTemp || args?.color) {
-        result.exposes.push(e.light_color_options());
+        result.exposes.push(presets.light_color_options());
     }
     return result;
 }
 
 export function ikeaOta(): ModernExtend {
-    return ota(otaBase.tradfri);
+    return ota(ikea);
 }
 
 export function ikeaBattery(): ModernExtend {
     const exposes: Expose[] = [
-        e.numeric('battery', ea.STATE_GET).withUnit('%')
+        presets.numeric('battery', access.STATE_GET).withUnit('%')
             .withDescription('Remaining battery in %')
             .withValueMin(0).withValueMax(100).withCategory('diagnostic'),
     ];
@@ -161,21 +163,22 @@ export function ikeaConfigureRemote(): ModernExtend {
 
 export function ikeaAirPurifier(): ModernExtend {
     const exposes: Expose[] = [
-        e.fan().withModes(['off', 'auto', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
-        e.numeric('fan_speed', ea.STATE_GET).withValueMin(0).withValueMax(9)
+        presets.fan().withModes(['off', 'auto', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
+        presets.numeric('fan_speed', access.STATE_GET).withValueMin(0).withValueMax(9)
             .withDescription('Current fan speed'),
-        e.numeric('pm25', ea.STATE_GET).withLabel('PM25').withUnit('µg/m³').withDescription('Measured PM2.5 (particulate matter) concentration'),
-        e.enum('air_quality', ea.STATE_GET, [
+        presets.numeric('pm25', access.STATE_GET).withLabel('PM25').withUnit('µg/m³')
+            .withDescription('Measured PM2.5 (particulate matter) concentration'),
+        presets.enum('air_quality', access.STATE_GET, [
             'excellent', 'good', 'moderate', 'poor',
             'unhealthy', 'hazardous', 'out_of_range',
             'unknown',
         ]).withDescription('Calculated air quality'),
-        e.binary('led_enable', ea.ALL, true, false).withDescription('Controls the LED').withCategory('config'),
-        e.binary('child_lock', ea.ALL, true, false).withDescription('Controls physical input on the device').withCategory('config'),
-        e.binary('replace_filter', ea.STATE_GET, true, false)
+        presets.binary('led_enable', access.ALL, true, false).withDescription('Controls the LED').withCategory('config'),
+        presets.binary('child_lock', access.ALL, true, false).withDescription('Controls physical input on the device').withCategory('config'),
+        presets.binary('replace_filter', access.STATE_GET, true, false)
             .withDescription('Indicates if the filter is older than 6 months and needs replacing')
             .withCategory('diagnostic'),
-        e.numeric('filter_age', ea.STATE_GET).withDescription('Time the filter has been used in minutes').withCategory('diagnostic'),
+        presets.numeric('filter_age', access.STATE_GET).withDescription('Time the filter has been used in minutes').withCategory('diagnostic'),
     ];
 
     const fromZigbee: Fz.Converter[] = [
@@ -380,7 +383,7 @@ export const fromZigbee = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const arrowReleaseAgo = Date.now() - globalStore.getValue(msg.endpoint, 'arrow_release', 0);
             if (arrowReleaseAgo > 700) {
                 return {action: 'on'};
@@ -390,16 +393,16 @@ export const fromZigbee = {
     styrbar_arrow_release: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowRelease',
-        options: [exposes.options.legacy()],
+        options: [options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
             const direction = globalStore.getValue(msg.endpoint, 'direction');
             if (direction) {
                 globalStore.clearValue(msg.endpoint, 'direction');
                 const duration = msg.data.value / 1000;
                 const result = {action: `arrow_${direction}_release`, duration, action_duration: duration};
-                if (!utils.isLegacyEnabled(options)) delete result.duration;
+                if (!isLegacyEnabled(options)) delete result.duration;
                 return result;
             }
         },
@@ -426,7 +429,7 @@ export const fromZigbee = {
         cluster: 'tradfriButton',
         type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
         convert: (model, msg, publish, options, meta) => {
-            const button = utils.getFromLookup(msg.endpoint.ID, {2: '1', 3: '2'});
+            const button = getFromLookup(msg.endpoint.ID, {2: '1', 3: '2'});
             const lookup = {
                 commandAction1: 'initial_press',
                 commandAction2: 'long_press',
@@ -434,7 +437,7 @@ export const fromZigbee = {
                 commandAction4: 'long_release',
                 commandAction6: 'double_press',
             };
-            const action = utils.getFromLookup(msg.type, lookup);
+            const action = getFromLookup(msg.type, lookup);
             return {action: `dots_${button}_${action}`};
         },
     } satisfies Fz.Converter,
@@ -442,7 +445,7 @@ export const fromZigbee = {
         cluster: 'tradfriButton',
         type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
         convert: (model, msg, publish, options, meta) => {
-            const button = utils.getFromLookup(msg.endpoint.ID, {1: '1', 2: '2'});
+            const button = getFromLookup(msg.endpoint.ID, {1: '1', 2: '2'});
             const lookup = {
                 commandAction1: 'initial_press',
                 commandAction2: 'long_press',
@@ -450,7 +453,7 @@ export const fromZigbee = {
                 commandAction4: 'long_release',
                 commandAction6: 'double_press',
             };
-            const action = utils.getFromLookup(msg.type, lookup);
+            const action = getFromLookup(msg.type, lookup);
             return {action: `${button}_${action}`};
         },
     } satisfies Fz.Converter,
@@ -458,7 +461,7 @@ export const fromZigbee = {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             return {action: `volume_${direction}`};
         },
@@ -467,7 +470,7 @@ export const fromZigbee = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.movemode === 1 ? 'down_hold' : 'up_hold';
             return {action: `volume_${direction}`};
         },
@@ -476,9 +479,184 @@ export const fromZigbee = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'previous' : 'next';
             return {action: `track_${direction}`};
         },
     } satisfies Fz.Converter,
+    tradfri_occupancy: {
+        cluster: 'genOnOff',
+        type: 'commandOnWithTimedOff',
+        options: [options.occupancy_timeout(), options.illuminance_below_threshold_check()],
+        convert: (model, msg, publish, options, meta) => {
+            const onlyWhenOnFlag = (msg.data.ctrlbits & 1) != 0;
+            if (onlyWhenOnFlag &&
+                (!options || !options.hasOwnProperty('illuminance_below_threshold_check') ||
+                  options.illuminance_below_threshold_check) &&
+                !globalStore.hasValue(msg.endpoint, 'timer')) return;
+
+            const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
+                Number(options.occupancy_timeout) : msg.data.ontime / 10;
+
+            // Stop existing timer because motion is detected and set a new one.
+            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+            globalStore.clearValue(msg.endpoint, 'timer');
+
+            if (timeout !== 0) {
+                const timer = setTimeout(() => {
+                    publish({occupancy: false});
+                    globalStore.clearValue(msg.endpoint, 'timer');
+                }, timeout * 1000);
+                globalStore.putValue(msg.endpoint, 'timer', timer);
+            }
+
+            return {occupancy: true, illuminance_above_threshold: onlyWhenOnFlag};
+        },
+    } satisfies Fz.Converter,
+    E1745_requested_brightness: {
+        // Possible values are 76 (30%) or 254 (100%)
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                requested_brightness_level: msg.data.level,
+                requested_brightness_percent: mapNumberRange(msg.data.level, 0, 254, 0, 100),
+            };
+        },
+    } satisfies Fz.Converter,
+    E1524_E1810_toggle: {
+        cluster: 'genOnOff',
+        type: 'commandToggle',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: postfixWithEndpointName('toggle', msg, model, meta)};
+        },
+    } satisfies Fz.Converter,
+    ikea_arrow_click: {
+        cluster: 'genScenes',
+        type: 'commandTradfriArrowSingle',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            if (msg.data.value === 2) {
+                // This is send on toggle hold, ignore it as a toggle_hold is already handled above.
+                return;
+            }
+
+            const direction = msg.data.value === 257 ? 'left' : 'right';
+            return {action: `arrow_${direction}_click`};
+        },
+    } satisfies Fz.Converter,
+    ikea_arrow_hold: {
+        cluster: 'genScenes',
+        type: 'commandTradfriArrowHold',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const direction = msg.data.value === 3329 ? 'left' : 'right';
+            globalStore.putValue(msg.endpoint, 'direction', direction);
+            return {action: `arrow_${direction}_hold`};
+        },
+    } satisfies Fz.Converter,
+    ikea_arrow_release: {
+        cluster: 'genScenes',
+        type: 'commandTradfriArrowRelease',
+        options: [options.legacy()],
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const direction = globalStore.getValue(msg.endpoint, 'direction');
+            if (direction) {
+                globalStore.clearValue(msg.endpoint, 'direction');
+                const duration = msg.data.value / 1000;
+                const result: KeyValueAny = {action: `arrow_${direction}_release`, duration, action_duration: duration};
+                if (!isLegacyEnabled(options)) delete result.duration;
+                return result;
+            }
+        },
+    } satisfies Fz.Converter,
+    E1524_E1810_levelctrl: {
+        cluster: 'genLevelCtrl',
+        type: [
+            'commandStepWithOnOff', 'commandStep', 'commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop',
+            'commandMoveToLevelWithOnOff',
+        ],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {
+                commandStepWithOnOff: 'brightness_up_click',
+                commandStep: 'brightness_down_click',
+                commandMoveWithOnOff: 'brightness_up_hold',
+                commandStopWithOnOff: 'brightness_up_release',
+                commandMove: 'brightness_down_hold',
+                commandStop: 'brightness_down_release',
+                commandMoveToLevelWithOnOff: 'toggle_hold',
+            };
+            return {action: lookup[msg.type]};
+        },
+    } satisfies Fz.Converter,
+};
+
+export const legacy = {
+    fromZigbee: {
+        E1744_play_pause: {
+            cluster: 'genOnOff',
+            type: 'commandToggle',
+            options: [options.legacy()],
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                if (isLegacyEnabled(options)) {
+                    return {action: 'play_pause'};
+                } else {
+                    return fz.command_toggle.convert(model, msg, publish, options, meta);
+                }
+            },
+        } satisfies Fz.Converter,
+        E1744_skip: {
+            cluster: 'genLevelCtrl',
+            type: 'commandStep',
+            options: [options.legacy()],
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                if (isLegacyEnabled(options)) {
+                    const direction = msg.data.stepmode === 1 ? 'backward' : 'forward';
+                    return {
+                        action: `skip_${direction}`,
+                        step_size: msg.data.stepsize,
+                        transition_time: msg.data.transtime,
+                    };
+                } else {
+                    return fz.command_step.convert(model, msg, publish, options, meta);
+                }
+            },
+        } satisfies Fz.Converter,
+        E1743_brightness_down: {
+            cluster: 'genLevelCtrl',
+            type: 'commandMove',
+            options: [options.legacy()],
+            convert: (model, msg, publish, options, meta) => {
+                if (isLegacyEnabled(options)) {
+                    return {click: 'brightness_down'};
+                }
+            },
+        } satisfies Fz.Converter,
+        E1743_brightness_up: {
+            cluster: 'genLevelCtrl',
+            type: 'commandMoveWithOnOff',
+            options: [options.legacy()],
+            convert: (model, msg, publish, options, meta) => {
+                if (isLegacyEnabled(options)) {
+                    return {click: 'brightness_up'};
+                }
+            },
+        } satisfies Fz.Converter,
+        E1743_brightness_stop: {
+            cluster: 'genLevelCtrl',
+            type: 'commandStopWithOnOff',
+            options: [options.legacy()],
+            convert: (model, msg, publish, options, meta) => {
+                if (isLegacyEnabled(options)) {
+                    return {click: 'brightness_stop'};
+                }
+            },
+        } satisfies Fz.Converter,
+    },
+    toZigbee: {
+
+    },
 };

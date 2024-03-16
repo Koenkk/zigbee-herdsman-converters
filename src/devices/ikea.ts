@@ -5,10 +5,13 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
-import {onOff, battery, iasZoneAlarm, identify, forcePowerSource, temperature, humidity, occupancy, illuminance} from '../lib/modernExtend';
+import {
+    onOff, battery, iasZoneAlarm, identify, forcePowerSource,
+    temperature, humidity, occupancy, illuminance,
+} from '../lib/modernExtend';
 import {
     ikeaConfigureRemote, configureGenPollCtrl, fromZigbee,
-    ikeaLight, ikeaOta, ikeaBattery, ikeaAirPurifier,
+    ikeaLight, ikeaOta, ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
 } from '../lib/ikea';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -753,8 +756,8 @@ const definitions: Definition[] = [
         model: 'E1524/E1810',
         description: 'TRADFRI remote control',
         vendor: 'IKEA',
-        fromZigbee: [fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.ikea_arrow_click, fz.ikea_arrow_hold,
-            fz.ikea_arrow_release],
+        fromZigbee: [fromZigbee.E1524_E1810_toggle, fromZigbee.E1524_E1810_levelctrl, fromZigbee.ikea_arrow_click, fromZigbee.ikea_arrow_hold,
+            fromZigbee.ikea_arrow_release],
         exposes: [e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release',
             'arrow_right_click', 'arrow_right_hold', 'arrow_right_release', 'brightness_down_click', 'brightness_down_hold',
             'brightness_down_release', 'brightness_up_click', 'brightness_up_hold', 'brightness_up_release', 'toggle'])],
@@ -770,8 +773,8 @@ const definitions: Definition[] = [
         model: 'E2001/E2002',
         vendor: 'IKEA',
         description: 'STYRBAR remote control',
-        fromZigbee: [fromZigbee.styrbar_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
-            fz.ikea_arrow_hold, fromZigbee.styrbar_arrow_release],
+        fromZigbee: [fromZigbee.styrbar_on, fz.command_off, fz.command_move, fz.command_stop, fromZigbee.ikea_arrow_click,
+            fromZigbee.ikea_arrow_hold, fromZigbee.styrbar_arrow_release],
         exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
@@ -797,8 +800,8 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI on/off switch',
         fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff, fz.command_move,
-            legacy.fz.E1743_brightness_up, legacy.fz.E1743_brightness_down, fz.command_stop,
-            legacy.fz.E1743_brightness_stop],
+            ikeaLegacy.fromZigbee.E1743_brightness_up, ikeaLegacy.fromZigbee.E1743_brightness_down, fz.command_stop,
+            ikeaLegacy.fromZigbee.E1743_brightness_stop],
         exposes: [
             e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
         ],
@@ -843,7 +846,7 @@ const definitions: Definition[] = [
         model: 'E1744',
         vendor: 'IKEA',
         description: 'SYMFONISK sound controller',
-        fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_stop, legacy.fz.E1744_play_pause, legacy.fz.E1744_skip],
+        fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_stop, ikeaLegacy.fromZigbee.E1744_play_pause, ikeaLegacy.fromZigbee.E1744_skip],
         exposes: [e.action([
             'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'toggle', 'brightness_step_up', 'brightness_step_down'])],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -874,7 +877,7 @@ const definitions: Definition[] = [
         model: 'E2123',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote gen2',
-        fromZigbee: [legacy.fz.E1744_play_pause, fromZigbee.ikea_track_click, fromZigbee.ikea_volume_click,
+        fromZigbee: [ikeaLegacy.fromZigbee.E1744_play_pause, fromZigbee.ikea_track_click, fromZigbee.ikea_volume_click,
             fromZigbee.ikea_volume_hold, fromZigbee.ikea_dots_click_v1, fromZigbee.ikea_dots_click_v2],
         exposes: [e.action(['toggle', 'track_previous', 'track_next', 'volume_up',
             'volume_down', 'volume_up_hold', 'volume_down_hold', 'dots_1_initial_press', 'dots_2_initial_press',
@@ -943,7 +946,7 @@ const definitions: Definition[] = [
         model: 'E1525/E1745',
         vendor: 'IKEA',
         description: 'TRADFRI motion sensor',
-        fromZigbee: [fz.tradfri_occupancy, fz.E1745_requested_brightness],
+        fromZigbee: [fromZigbee.tradfri_occupancy, fromZigbee.E1745_requested_brightness],
         exposes: [e.occupancy(),
             e.numeric('requested_brightness_level', ea.STATE).withValueMin(76).withValueMax(254),
             e.numeric('requested_brightness_percent', ea.STATE).withValueMin(30).withValueMax(100),
