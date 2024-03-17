@@ -4,7 +4,10 @@ import {
     postfixWithEndpointName, precisionRound, isObject, replaceInArray, isLegacyEnabled, hasAlreadyProcessedMessage,
     getFromLookup, mapNumberRange,
 } from '../lib/utils';
-import {LightArgs, light as lightDontUse, ota, setupAttributes, ReportingConfigWithoutAttribute, timeLookup} from '../lib/modernExtend';
+import {
+    LightArgs, light as lightDontUse, ota, setupAttributes, ReportingConfigWithoutAttribute,
+    timeLookup, numeric, NumericArgs,
+} from '../lib/modernExtend';
 import {tradfri as ikea} from '../lib/ota';
 
 import fz from '../converters/fromZigbee';
@@ -355,6 +358,19 @@ export function ikeaAirPurifier(): ModernExtend {
     };
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+}
+
+export function ikeaVoc(args?: Partial<NumericArgs>) {
+    return numeric({
+        name: 'voc_index',
+        label: 'VOC index',
+        cluster: 'msIkeaVocIndexMeasurement',
+        attribute: 'measuredValue',
+        reporting: {min: '1_MINUTE', max: '2_MINUTES', change: 1},
+        description: 'Sensirion VOC index',
+        access: 'STATE',
+        ...args,
+    });
 }
 
 export const configureGenPollCtrl = async (device: Zh.Device, endpoint: Zh.Endpoint) => {

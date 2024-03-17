@@ -12,6 +12,7 @@ import {
 import {
     ikeaConfigureRemote, configureGenPollCtrl, fromZigbee,
     ikeaLight, ikeaOta, ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
+    ikeaVoc,
 } from '../lib/ikea';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -963,24 +964,21 @@ const definitions: Definition[] = [
         model: 'E2112',
         vendor: 'IKEA',
         description: 'VINDSTYRKA air quality and humidity sensor',
-        fromZigbee: [fz.pm25, fromZigbee.ikea_voc_index],
-        exposes: [e.pm25(), e.voc_index().withDescription('Sensirion VOC index')],
+        fromZigbee: [fz.pm25],
+        exposes: [e.pm25()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint,
-                ['pm25Measurement', 'msIkeaVocIndexMeasurement']);
+                ['pm25Measurement']);
             await ep.configureReporting('pm25Measurement', [{
                 attribute: {ID: 0x0000, type: zigbeeHerdsman.Zcl.DataType.singlePrec},
                 minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 2,
-            }]);
-            await ep.configureReporting('msIkeaVocIndexMeasurement', [{
-                attribute: 'measuredValue',
-                minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 1,
             }]);
         },
         extend: [
             temperature(),
             humidity(),
+            ikeaVoc(),
             ikeaOta(),
         ],
     },

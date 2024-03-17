@@ -28,6 +28,7 @@ export const timeLookup = {
     'MAX': 65000,
     '1_HOUR': 3600,
     '30_MINUTES': 1800,
+    '2_MINUTES': 120,
     '1_MINUTE': 60,
     '10_SECONDS': 10,
     'MIN': 0,
