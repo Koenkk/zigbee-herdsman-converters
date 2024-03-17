@@ -1052,12 +1052,25 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
             };
 
             if (bothAlarms) {
-                payload = {[alarm1Name]: (zoneStatus & 1) > 0, ...payload};
-                payload = {[alarm2Name]: (zoneStatus & 1 << 1) > 0, ...payload};
+                if (args.zoneType === 'contact') {
+                    payload = {[alarm1Name]: !((zoneStatus & 1) > 0), ...payload};
+                    payload = {[alarm2Name]: !((zoneStatus & 1 << 1) > 0), ...payload};
+                } else {
+                    payload = {[alarm1Name]: (zoneStatus & 1) > 0, ...payload};
+                    payload = {[alarm2Name]: (zoneStatus & 1 << 1) > 0, ...payload};
+                }
             } else if (args.zoneAttributes.includes('alarm_1')) {
-                payload = {[alarm1Name]: (zoneStatus & 1) > 0, ...payload};
+                if (args.zoneType === 'contact') {
+                    payload = {[alarm1Name]: !((zoneStatus & 1) > 0), ...payload};
+                } else {
+                    payload = {[alarm1Name]: (zoneStatus & 1) > 0, ...payload};
+                }
             } else if (args.zoneAttributes.includes('alarm_2')) {
-                payload = {[alarm2Name]: (zoneStatus & 1 << 1) > 0, ...payload};
+                if (args.zoneType === 'contact') {
+                    payload = {[alarm2Name]: !((zoneStatus & 1) > 0), ...payload};
+                } else {
+                    payload = {[alarm2Name]: (zoneStatus & 1) > 0, ...payload};
+                }
             }
 
             return payload;
