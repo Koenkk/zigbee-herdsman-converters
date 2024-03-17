@@ -1,4 +1,4 @@
-import {Fz, Tz, OnEvent, Configure, KeyValue, Zh, Range, ModernExtend, Expose, KeyValueAny} from '../lib/types';
+import {Fz, Tz, OnEvent, Configure, KeyValue, Range, ModernExtend, Expose, KeyValueAny} from '../lib/types';
 import {presets, access, options} from '../lib/exposes';
 import {
     postfixWithEndpointName, precisionRound, isObject, replaceInArray, isLegacyEnabled, hasAlreadyProcessedMessage,
@@ -20,7 +20,7 @@ import * as semver from 'semver';
 
 export const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
 
-export const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
+const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
     /**
      * IKEA bulbs lose their configured reportings when losing power.
      * A deviceAnnounce indicates they are powered on again.
@@ -65,19 +65,6 @@ export const bulbOnEvent: OnEvent = async (type, data, device, options, state: K
             device.endpoints[0].write('genLevelCtrl', {onLevel: onLevel});
         }
     }
-};
-
-export const configureRemote: Configure = async (device, coordinatorEndpoint, logger) => {
-    // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
-    // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-    // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
-    const endpoint = device.getEndpoint(1);
-    const version = device.softwareBuildID.split('.').map((n) => Number(n));
-    const bindTarget = version[0] > 2 || (version[0] == 2 && version[1] > 3) || (version[0] == 2 && version[1] == 3 && version[2] >= 75) ?
-        coordinatorEndpoint : constants.defaultBindGroup;
-    await endpoint.bind('genOnOff', bindTarget);
-    await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-    await reporting.batteryPercentageRemaining(endpoint);
 };
 
 export function ikeaLight(args?: Omit<LightArgs, 'colorTemp'> & {colorTemp?: true | {range: Range, viaColor: true}}) {
@@ -373,15 +360,17 @@ export function ikeaVoc(args?: Partial<NumericArgs>) {
     });
 }
 
-export const configureGenPollCtrl = async (device: Zh.Device, endpoint: Zh.Endpoint) => {
-    // NOTE: Firmware 24.4.11 introduce genPollCtrl
-    //       after OTA update the checkinInterval is 4 which spams the network a lot
-    //       removing + factory resetting has it set to 172800, we set the same value here
-    //       so people do not need to update.
-    if (Number(device?.softwareBuildID?.split('.')[0]) >= 24) {
-        await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
-    }
-};
+export function ikeaConfigureGenPollCtrl(args?: {endpointId: number}): ModernExtend {
+    args = {endpointId: 1, ...args};
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        const endpoint = device.getEndpoint(args.endpointId);
+        if (Number(device?.softwareBuildID?.split('.')[0]) >= 24) {
+            await endpoint.write('genPollCtrl', {'checkinInterval': 172800});
+        }
+    };
+
+    return {configure, isModernExtend: true};
+}
 
 export const fromZigbee = {
     ikea_voc_index: {

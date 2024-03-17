@@ -10,9 +10,9 @@ import {
     temperature, humidity, occupancy, illuminance,
 } from '../lib/modernExtend';
 import {
-    ikeaConfigureRemote, configureGenPollCtrl, fromZigbee,
-    ikeaLight, ikeaOta, ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
-    ikeaVoc,
+    ikeaConfigureRemote, fromZigbee, ikeaLight, ikeaOta,
+    ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
+    ikeaVoc, ikeaConfigureGenPollCtrl,
 } from '../lib/ikea';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -641,10 +641,10 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
-            await configureGenPollCtrl(device, endpoint);
         },
         exposes: [e.cover_position()],
         extend: [
+            ikeaConfigureGenPollCtrl(),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -660,10 +660,10 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
-            await configureGenPollCtrl(device, endpoint);
         },
         exposes: [e.cover_position()],
         extend: [
+            ikeaConfigureGenPollCtrl(),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -679,10 +679,10 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
-            await configureGenPollCtrl(device, endpoint);
         },
         exposes: [e.cover_position()],
         extend: [
+            ikeaConfigureGenPollCtrl(),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -698,10 +698,10 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
-            await configureGenPollCtrl(device, endpoint);
         },
         exposes: [e.cover_position()],
         extend: [
+            ikeaConfigureGenPollCtrl(),
             battery({dontDividePercentage: true}),
             ikeaOta(),
         ],
