@@ -12,10 +12,10 @@ import {
 import {
     ikeaConfigureRemote, fromZigbee, ikeaLight, ikeaOta,
     ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
-    ikeaVoc, ikeaConfigureGenPollCtrl,
+    ikeaVoc, ikeaConfigureGenPollCtrl, tradfriOccupancy,
+    tradfriRequestedBrightness,
 } from '../lib/ikea';
 const e = exposes.presets;
-const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
@@ -947,14 +947,10 @@ const definitions: Definition[] = [
         model: 'E1525/E1745',
         vendor: 'IKEA',
         description: 'TRADFRI motion sensor',
-        fromZigbee: [fromZigbee.tradfri_occupancy, fromZigbee.E1745_requested_brightness],
-        exposes: [e.occupancy(),
-            e.numeric('requested_brightness_level', ea.STATE).withValueMin(76).withValueMax(254),
-            e.numeric('requested_brightness_percent', ea.STATE).withValueMin(30).withValueMax(100),
-            e.binary('illuminance_above_threshold', ea.STATE, true, false)
-                .withDescription('Indicates whether the device detected bright light (works only in night mode)')],
         extend: [
             forcePowerSource({powerSource: 'Battery'}),
+            tradfriOccupancy(),
+            tradfriRequestedBrightness(),
             ikeaBattery(),
             ikeaOta(),
         ],

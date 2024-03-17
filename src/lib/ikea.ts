@@ -372,6 +372,68 @@ export function ikeaConfigureGenPollCtrl(args?: {endpointId: number}): ModernExt
     return {configure, isModernExtend: true};
 }
 
+export function tradfriOccupancy(): ModernExtend {
+    const exposes: Expose[] = [
+        presets.binary('occupancy', access.STATE, true, false).withDescription('Indicates whether the device detected occupancy'),
+        presets.binary('illuminance_above_threshold', access.STATE, true, false)
+            .withDescription('Indicates whether the device detected bright light (works only in night mode)')
+            .withCategory('diagnostic'),
+    ];
+
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'genOnOff',
+        type: 'commandOnWithTimedOff',
+        options: [options.occupancy_timeout(), options.illuminance_below_threshold_check()],
+        convert: (model, msg, publish, options, meta) => {
+            const onlyWhenOnFlag = (msg.data.ctrlbits & 1) != 0;
+            if (onlyWhenOnFlag &&
+                (!options || !options.hasOwnProperty('illuminance_below_threshold_check') ||
+                  options.illuminance_below_threshold_check) &&
+                !globalStore.hasValue(msg.endpoint, 'timer')) return;
+
+            const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
+                Number(options.occupancy_timeout) : msg.data.ontime / 10;
+
+            // Stop existing timer because motion is detected and set a new one.
+            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+            globalStore.clearValue(msg.endpoint, 'timer');
+
+            if (timeout !== 0) {
+                const timer = setTimeout(() => {
+                    publish({occupancy: false});
+                    globalStore.clearValue(msg.endpoint, 'timer');
+                }, timeout * 1000);
+                globalStore.putValue(msg.endpoint, 'timer', timer);
+            }
+
+            return {occupancy: true, illuminance_above_threshold: onlyWhenOnFlag};
+        },
+    }];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
+
+export function tradfriRequestedBrightness(): ModernExtend {
+    const exposes: Expose[] = [
+        presets.numeric('requested_brightness_level', access.STATE).withValueMin(76).withValueMax(254).withCategory('diagnostic'),
+        presets.numeric('requested_brightness_percent', access.STATE).withValueMin(30).withValueMax(100).withCategory('diagnostic'),
+    ];
+
+    const fromZigbee: Fz.Converter[] = [{
+        // Possible values are 76 (30%) or 254 (100%)
+        cluster: 'genLevelCtrl',
+        type: 'commandMoveToLevelWithOnOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                requested_brightness_level: msg.data.level,
+                requested_brightness_percent: mapNumberRange(msg.data.level, 0, 254, 0, 100),
+            };
+        },
+    }];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
+
 export const fromZigbee = {
     // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
     // https://github.com/Koenkk/zigbee2mqtt/issues/13335
@@ -478,46 +540,6 @@ export const fromZigbee = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'previous' : 'next';
             return {action: `track_${direction}`};
-        },
-    } satisfies Fz.Converter,
-    tradfri_occupancy: {
-        cluster: 'genOnOff',
-        type: 'commandOnWithTimedOff',
-        options: [options.occupancy_timeout(), options.illuminance_below_threshold_check()],
-        convert: (model, msg, publish, options, meta) => {
-            const onlyWhenOnFlag = (msg.data.ctrlbits & 1) != 0;
-            if (onlyWhenOnFlag &&
-                (!options || !options.hasOwnProperty('illuminance_below_threshold_check') ||
-                  options.illuminance_below_threshold_check) &&
-                !globalStore.hasValue(msg.endpoint, 'timer')) return;
-
-            const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
-                Number(options.occupancy_timeout) : msg.data.ontime / 10;
-
-            // Stop existing timer because motion is detected and set a new one.
-            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
-            globalStore.clearValue(msg.endpoint, 'timer');
-
-            if (timeout !== 0) {
-                const timer = setTimeout(() => {
-                    publish({occupancy: false});
-                    globalStore.clearValue(msg.endpoint, 'timer');
-                }, timeout * 1000);
-                globalStore.putValue(msg.endpoint, 'timer', timer);
-            }
-
-            return {occupancy: true, illuminance_above_threshold: onlyWhenOnFlag};
-        },
-    } satisfies Fz.Converter,
-    E1745_requested_brightness: {
-        // Possible values are 76 (30%) or 254 (100%)
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveToLevelWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                requested_brightness_level: msg.data.level,
-                requested_brightness_percent: mapNumberRange(msg.data.level, 0, 254, 0, 100),
-            };
         },
     } satisfies Fz.Converter,
     E1524_E1810_toggle: {
