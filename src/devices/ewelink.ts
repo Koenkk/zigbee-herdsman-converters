@@ -1,6 +1,6 @@
 import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const fzLocal = {
@@ -16,6 +16,13 @@ const fzLocal = {
 };
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['CK-BL702-AL-01(7009_Z102LG03-1)'],
+        model: 'CK-BL702-AL-01(7009_Z102LG03-1)',
+        vendor: 'eWeLink',
+        description: 'GU10 LED bulb',
+        extend: [light({colorTemp: {range: [142, 500]}, color: {enhancedHue: true}})],
+    },
     {
         zigbeeModel: ['CK-BL702-MSW-01(7010)'],
         model: 'CK-BL702-MSW-01(7010)',
