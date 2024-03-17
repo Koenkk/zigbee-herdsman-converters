@@ -373,15 +373,6 @@ export function ikeaConfigureGenPollCtrl(args?: {endpointId: number}): ModernExt
 }
 
 export const fromZigbee = {
-    ikea_voc_index: {
-        cluster: 'msIkeaVocIndexMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('measuredValue')) {
-                return {voc_index: msg.data['measuredValue']};
-            }
-        },
-    } satisfies Fz.Converter,
     // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
     // https://github.com/Koenkk/zigbee2mqtt/issues/13335
     styrbar_on: {
