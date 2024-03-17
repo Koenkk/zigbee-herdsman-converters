@@ -604,19 +604,20 @@ const definitions: Definition[] = [
         description: 'ASKVADER on/off switch',
         extend: [
             onOff(),
-            ikeaOta(),
             identify(),
+            ikeaOta(),
         ],
     },
     {
         zigbeeModel: ['KNYCKLAN receiver'],
         model: 'E1842',
-        description: 'KNYCKLAN electronic water valve shut-off receiver',
+        description: 'KNYCKLAN electronic dishwasher shut-off unit',
         vendor: 'IKEA',
         extend: [
             onOff(),
-            ikeaOta(),
             iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
+            identify(),
+            ikeaOta(),
         ],
     },
     {
@@ -626,8 +627,8 @@ const definitions: Definition[] = [
         description: 'TRETAKT smart plug',
         extend: [
             onOff(),
-            ikeaOta(),
             identify(),
+            ikeaOta(),
         ],
     },
     {
@@ -645,6 +646,7 @@ const definitions: Definition[] = [
         exposes: [e.cover_position()],
         extend: [
             ikeaConfigureGenPollCtrl(),
+            identify(),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -664,6 +666,7 @@ const definitions: Definition[] = [
         exposes: [e.cover_position()],
         extend: [
             ikeaConfigureGenPollCtrl(),
+            identify(),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -683,6 +686,7 @@ const definitions: Definition[] = [
         exposes: [e.cover_position()],
         extend: [
             ikeaConfigureGenPollCtrl(),
+            identify(),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -702,6 +706,7 @@ const definitions: Definition[] = [
         exposes: [e.cover_position()],
         extend: [
             ikeaConfigureGenPollCtrl(),
+            identify(),
             battery({dontDividePercentage: true}),
             ikeaOta(),
         ],
@@ -716,6 +721,7 @@ const definitions: Definition[] = [
         description: 'STARKVIND air purifier',
         extend: [
             ikeaAirPurifier(),
+            identify(),
             ikeaOta(),
         ],
     },
@@ -732,6 +738,7 @@ const definitions: Definition[] = [
             await endpoint.configureReporting('genBasic', payload);
         },
         extend: [
+            identify(),
             ikeaOta(),
         ],
     },
@@ -975,6 +982,7 @@ const definitions: Definition[] = [
             temperature(),
             humidity(),
             ikeaVoc(),
+            identify(),
             ikeaOta(),
         ],
     },
