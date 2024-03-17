@@ -1,6 +1,6 @@
 import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const fzLocal = {
