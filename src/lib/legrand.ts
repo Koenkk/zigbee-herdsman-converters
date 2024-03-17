@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Fz, Tz, OnEvent, KeyValueString, KeyValueAny} from '../lib/types';
 import * as exposes from './exposes';
 import * as utils from '../lib/utils';
@@ -23,7 +24,7 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
         .map((e) => [e[0], e[1].description]));
 };
 
-export const legrandOptions = {manufacturerCode: 0x1021, disableDefaultResponse: true};
+export const legrandOptions = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
 
 export const _067776 = {
     getCover: () => {

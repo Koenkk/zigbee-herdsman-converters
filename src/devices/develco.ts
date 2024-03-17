@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, Logger, Tz, Zh, KeyValue} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -11,7 +12,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 // develco specific cosntants
-const manufacturerOptions = {manufacturerCode: 0x1015};
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
 /* MOSZB-1xx - ledControl - bitmap8 - r/w
  * 0x00 Disable LED when movement is detected.

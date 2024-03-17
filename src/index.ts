@@ -9,6 +9,7 @@ import allDefinitions from './devices';
 import * as utils from './lib/utils';
 import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, Logger } from './lib/types';
 import {generateDefinition} from './lib/generateDefinition';
+import {Zcl} from 'zigbee-herdsman';
 import * as logger from './lib/logger';
 
 export {
@@ -353,10 +354,10 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
     // it expects at least one answer. The payload contains the number of seconds
     // since when the device is powered. If the value is too high, it will leave & not pair
     // 23 works, 200 doesn't
-    if (data.meta && data.meta.manufacturerCode === 0x1021 && type === 'message' && data.type === 'read' &&
+    if (data.meta && data.meta.manufacturerCode === Zcl.ManufacturerCode.LEGRAND_GROUP && type === 'message' && data.type === 'read' &&
         data.cluster === 'genBasic' && data.data && data.data.includes(61440)) {
         const endpoint = device.getEndpoint(1);
-        const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
+        const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
         const payload = {0xf00: {value: 23, type: 35}};
         await endpoint.readResponse('genBasic', data.meta.zclTransactionSequenceNumber, payload, options);
     }

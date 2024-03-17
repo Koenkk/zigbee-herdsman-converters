@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -446,7 +447,7 @@ const definitions: Definition[] = [
                 description: 'Tamper-proof status',
                 valueOn: [true, 0x01],
                 valueOff: [false, 0x00],
-                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 access: 'STATE_GET',
             }),
         ],
@@ -480,7 +481,7 @@ const definitions: Definition[] = [
                 lookup: {'dim': 0, 'bright': 1},
                 cluster: 0xFC11,
                 attribute: {ID: 0x2001, type: 0x20},
-                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 description: 'Only updated when occupancy is detected',
                 access: 'STATE',
             }),
@@ -523,7 +524,7 @@ const definitions: Definition[] = [
                 cluster: 0xFC11,
                 attribute: {ID: 0x2001, type: 0x20},
                 description: 'Only updated when occupancy is detected',
-                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 access: 'STATE',
             }),
         ],

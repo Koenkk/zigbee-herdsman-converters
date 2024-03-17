@@ -67,6 +67,7 @@ const definitions: Definition[] = [
         model: 'QT06_2',
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_7ytb3h8u'},
         ],
         exposes: [
             ...exportTemplates.giexWaterValve.exposes,
@@ -82,6 +83,9 @@ const definitions: Definition[] = [
                 .withValueMax(SECONDS_IN_12_HOURS)
                 .withUnit('sec')
                 .withDescription('Cycle irrigation interval'),
+        ],
+        whiteLabel: [
+            tuya.whitelabel('GiEX', 'GX02', 'Water valve', ['_TZE204_7ytb3h8u']),
         ],
     },
 ];

@@ -107,7 +107,42 @@ const definition = {
     model: 'combo',
     vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [temperature({"endpointNames":["1"]}), onOff({"powerOnBehavior":false})],
+    extend: [temperature(), onOff({"powerOnBehavior":false})],
+    meta: {},
+};
+
+module.exports = definition;
+            `
+        });
+    });
+
+    test('input(msTemperatureMeasurement_2, genOnOff_2)', async () => {
+        await assertGeneratedDefinition({
+            device: mockDevice({modelID: 'combo', manufacturerName:'vendor', endpoints: [{ID: 2, inputClusters: ['msTemperatureMeasurement', 'genOnOff'], outputClusters:[]}]}),
+            meta: undefined,
+            fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
+            toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
+            exposes: ['linkquality', 'switch(state)', 'temperature'],
+            bind: {2: ['msTemperatureMeasurement', 'genOnOff']},
+            read: {2: [
+                ['msTemperatureMeasurement', ['measuredValue']],
+                ['genOnOff', ['onOff']],
+            ]},
+            configureReporting: {
+                2: [
+                    ['msTemperatureMeasurement', [reportingItem('measuredValue', 10, repInterval.HOUR, 100)]],
+                    ['genOnOff', [reportingItem('onOff', 0, repInterval.MAX, 1)]],
+                ],
+            },
+            externalDefintionSource: `
+const {temperature, onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
+
+const definition = {
+    zigbeeModel: ['combo'],
+    model: 'combo',
+    vendor: 'vendor',
+    description: 'Automatically generated definition',
+    extend: [temperature(), onOff({"powerOnBehavior":false})],
     meta: {},
 };
 
@@ -123,6 +158,7 @@ module.exports = definition;
                 {ID: 2, inputClusters: ['msTemperatureMeasurement'], outputClusters: []},
             ]}),
             meta: {multiEndpoint: true},
+            endpoints: {"1":1,"2":2},
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'}), fz.on_off],
             toZigbee: ['temperature', 'state', 'on_time', 'off_wait_time'],
             exposes: ['linkquality', 'switch(state)', 'temperature', 'temperature'],

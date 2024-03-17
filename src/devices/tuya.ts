@@ -956,6 +956,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_3a9beq8a'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_ark8nv4y'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_mx3vgyea'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_fdxihpp7'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_qsp2pwtf'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_46t1rvdu'}],
         model: 'WHD02',
@@ -3402,7 +3403,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(['auto', 'heat', 'off'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
-                .withLocalTemperatureCalibration(-3, 3, 1, ea.STATE_SET),
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
             e.binary('scale_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('If the heat sink is not fully opened within ' +
                 'two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be ' +
@@ -5239,6 +5240,7 @@ const definitions: Definition[] = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_lyetpprm'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_jva8ink8'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_xpq2rzhq'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_holel4dk'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xpq2rzhq'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_wukb7rhc'},

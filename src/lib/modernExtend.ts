@@ -456,9 +456,8 @@ export function numeric(args: NumericArgs): ModernExtend {
 
         return expose;
     };
-    // Generate for multiple endpoints only if required
-    const noEndpoint = !endpoints || (endpoints && endpoints.length === 1 && endpoints[0] === '1');
-    if (noEndpoint) {
+    // Generate for multiple endpoints only if required.
+    if (!endpoints) {
         exposes.push(createExpose(undefined));
     } else {
         for (const endpoint of endpoints) {
@@ -998,6 +997,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
     };
 
     const exposes: Expose[] = [];
+    const invertAlarmPayload = args.zoneType === 'contact';
     const bothAlarms = args.zoneAttributes.includes('alarm_1') && (args.zoneAttributes.includes('alarm_2'));
 
     let alarm1Name = 'alarm_1';
@@ -1042,9 +1042,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                 }
             }
 
-            return {
-                [alarm1Name]: (zoneStatus & 1) > 0,
-                [alarm2Name]: (zoneStatus & 1 << 1) > 0,
+            let payload = {
                 tamper: (zoneStatus & 1 << 2) > 0,
                 battery_low: (zoneStatus & 1 << 3) > 0,
                 supervision_reports: (zoneStatus & 1 << 4) > 0,
@@ -1054,6 +1052,25 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                 test: (zoneStatus & 1 << 8) > 0,
                 battery_defect: (zoneStatus & 1 << 9) > 0,
             };
+
+            let alarm1Payload = (zoneStatus & 1) > 0;
+            let alarm2Payload = (zoneStatus & 1 << 1) > 0;
+
+            if (invertAlarmPayload) {
+                alarm1Payload = !alarm1Payload;
+                alarm2Payload = !alarm2Payload;
+            }
+
+            if (bothAlarms) {
+                payload = {[alarm1Name]: alarm1Payload, ...payload};
+                payload = {[alarm2Name]: alarm2Payload, ...payload};
+            } else if (args.zoneAttributes.includes('alarm_1')) {
+                payload = {[alarm1Name]: alarm1Payload, ...payload};
+            } else if (args.zoneAttributes.includes('alarm_2')) {
+                payload = {[alarm2Name]: alarm2Payload, ...payload};
+            }
+
+            return payload;
         },
     }];
 
