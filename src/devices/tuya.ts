@@ -1422,7 +1422,7 @@ const definitions: Definition[] = [
                     [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
                 ],
             },
-            whiteLabel: [
+        whiteLabel: [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
