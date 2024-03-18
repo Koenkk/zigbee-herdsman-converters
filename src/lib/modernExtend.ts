@@ -1131,3 +1131,16 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
     }];
     return {toZigbee, exposes, isModernExtend: true};
 }
+
+export function pm25(args?: Partial<NumericArgs>): ModernExtend {
+    return numeric({
+        name: 'pm25',
+        cluster: 'pm25Measurement',
+        attribute: 'measuredValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 1},
+        description: 'Measured PM2.5 (particulate matter) concentration',
+        unit: 'µg/m³',
+        access: 'STATE_GET',
+        ...args,
+    });
+}
