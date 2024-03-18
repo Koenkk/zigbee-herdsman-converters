@@ -1410,17 +1410,19 @@ const definitions: Definition[] = [
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
         description: 'Zigbee smart dimmer',
-        fromZigbee: [legacy.fromZigbee.tuya_dimmer, fz.ignore_basic_report],
-        toZigbee: [legacy.toZigbee.tuya_dimmer_state, legacy.toZigbee.tuya_dimmer_level],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        exposes: [e.light_brightness().withMinBrightness().withMaxBrightness().setAccess(
-            'state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET).setAccess(
-            'min_brightness', ea.STATE_SET).setAccess('max_brightness', ea.STATE_SET)],
-        whiteLabel: [
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.lightBrightnessWithMinMax()],
+        meta: {
+                tuyaDatapoints: [
+                    [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                    [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
+                    [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
+                    [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
+                ],
+            },
+            whiteLabel: [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
