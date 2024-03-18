@@ -50,14 +50,14 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {type: 'EndDevice', manufacturerID: 4417, modelID: 'TLSR82xx', endpoints: [
-                {ID: 1, profileID: 260, deviceID: 263, inputClusters: [0,3,4,4096], outputClusters: [0,3,4,5,6,8,768,4096]},
+                {ID: 1, profileID: 260, deviceID: 263, inputClusters: [0, 3, 4, 4096], outputClusters: [0, 3, 4, 5, 6, 8, 768, 4096]},
             ]},
         ],
-        model: '99106', 
-        vendor: 'EGLO', 
-        description: 'Eglo Connect-Z Motion (PIR) sensor', 
+        model: '99106',
+        vendor: 'EGLO',
+        description: 'Eglo Connect-Z Motion (PIR) sensor',
         fromZigbee: [fz.command_on, fz.command_move_to_level, fz.command_move_to_color_temp],
-        toZigbee: [], 
+        toZigbee: [],
         exposes: [e.action(['on', 'brightness_move_to_level', 'color_temperature_move'])],
     },
 ];
