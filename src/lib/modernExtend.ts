@@ -103,10 +103,10 @@ export function setupConfigureForReporting(
 
 export function identify(args?: {isSleepy: boolean}): ModernExtend {
     args = {isSleepy: false, ...args};
-    const normal: Expose = e.enum('identify', ea.SET, ['identify']).withDescription('Ititiate device identification').withCategory('config');
+    const normal: Expose = e.enum('identify', ea.SET, ['identify']).withDescription('Initiate device identification').withCategory('config');
     const sleepy: Expose = e.enum('identify_sleepy', ea.SET, ['identify_sleepy'])
-        .withDescription('Ititiate device identification. This device is sleepping by default.' +
-            'You may need to wake it up first, before sending the indetify command.')
+        .withDescription('Initiate device identification. This device is sleeping by default.' +
+            'You may need to wake it up first before sending the indetify command.')
         .withCategory('config');
 
     const exposes: Expose[] = args.isSleepy ? [sleepy] : [normal];
