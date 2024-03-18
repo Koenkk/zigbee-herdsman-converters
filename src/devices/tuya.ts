@@ -1415,13 +1415,13 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
         exposes: [tuya.exposes.lightBrightnessWithMinMax()],
         meta: {
-                tuyaDatapoints: [
-                    [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
-                    [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
-                    [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
-                    [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
-                ],
-            },
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
+                [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
+                [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
+            ],
+        },
         whiteLabel: [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
