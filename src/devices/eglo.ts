@@ -48,6 +48,11 @@ const definitions: Definition[] = [
             'recall_1', 'color_temperature_step_up', 'color_temperature_step_down'])],
     },
     {
+        fingerprint: [
+            {type: 'EndDevice', manufacturerID: 4417, endpoints: [
+                {ID: 1, inputClusters: [0,3,4,4096], outputClusters: [0,3,4,5,6,8,768,4096]},
+            ]},
+        ],
         zigbeeModel: ['TLSR82xx'],
         model: '99106', 
         vendor: 'EGLO', 
