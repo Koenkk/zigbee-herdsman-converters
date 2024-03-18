@@ -101,12 +101,27 @@ export function setupConfigureForReporting(
     }
 }
 
-export function identify(): ModernExtend {
-    return {
-        toZigbee: [tz.identify],
-        exposes: [e.identify()],
-        isModernExtend: true,
-    };
+export function identify(args?: {isSleepy: boolean}): ModernExtend {
+    args = {isSleepy: false, ...args};
+    const normal: Expose = e.enum('identify', ea.SET, ['identify']).withDescription('Ititiate device identification').withCategory('config');
+    const sleepy: Expose = e.enum('identify_sleepy', ea.SET, ['identify_sleepy'])
+        .withDescription('Ititiate device identification. This device is sleepping by default.' +
+            'You may need to wake it up first, before sending the indetify command.')
+        .withCategory('config');
+
+    const exposes: Expose[] = args.isSleepy ? [sleepy] : [normal];
+
+    const toZigbee: Tz.Converter[] = [{
+        key: ['identify', 'identify_sleepy'],
+        options: [opt.identify_timeout()],
+        convertSet: async (entity, key, value, meta) => {
+            // External value takes priority over options for compatibility
+            const identifyTimeout = value ?? meta.options.identify_timeout ?? 3;
+            await entity.command('genIdentify', 'identify', {identifytime: identifyTimeout}, getOptions(meta.mapped, entity));
+        },
+    }];
+
+    return {exposes, toZigbee, isModernExtend: true};
 }
 
 export interface OnOffArgs {
