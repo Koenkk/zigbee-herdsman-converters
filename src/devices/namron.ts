@@ -1033,7 +1033,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['4512770', '4512771'],
+        zigbeeModel: ['4512770', '4512771', 'HK-SENSOR-4IN1-A'],
         model: '4512770',
         vendor: 'Namron',
         description: 'Zigbee multisensor (white)',
