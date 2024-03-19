@@ -370,13 +370,19 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
 
     // Aqara feeder C1 polls the time during the interview, need to send back the local time instead of the UTC.
     // The device.definition has not yet been set - therefore the device.definition.onEvent method does not work.
-    if (type === 'message' && data.type === 'read' && data.cluster === 'genTime' &&
-        device.modelID === 'aqara.feeder.acn001') {
-        device.skipTimeResponse = true;
-        const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
-        const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
-        const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
-        await device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal});
+    if (device.modelID === 'aqara.feeder.acn001' && !device.customReadResponse) {
+        device.customReadResponse = (frame, endpoint) => {
+            if (frame.isCluster('genTime')) {
+                const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+                const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
+                const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
+                device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal}).catch((e) => {
+                    logger.logger.warn(`ZNCWWSQ01LM custom time response failed: ${e}`);
+                })
+                return true;
+            }
+            return false;
+        }
     }
 }
 
