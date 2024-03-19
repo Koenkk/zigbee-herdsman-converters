@@ -25,6 +25,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
+const sonoffPrivateCluster = 0xFC11;
 const sonoffExtend = {
     weeklySchedule: (): ModernExtend => {
         const exposes = e.composite('schedule', 'weekly_schedule', ea.STATE_SET)
@@ -133,6 +134,74 @@ const sonoffExtend = {
             },
         }];
 
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    inchingControlSet: (): ModernExtend => {
+        const exposes = e.composite('inching_control_set', 'inching_control_set', ea.SET)
+            .withDescription('Device Inching function Settings. The device will automatically turn off (turn on) '+
+            'after each turn on (turn off) for a specified period of time.')
+            .withFeature(e.binary('inching_control', ea.SET, "ENABLE", "DISABLE").withDescription('Enable/disable inching function.'))
+            .withFeature(e.numeric('inching_time', ea.SET).withDescription('Delay time for executing a inching action.').withUnit(
+            'seconds').withValueMin(0.5).withValueMax(3599.5).withValueStep(0.5))
+            .withFeature(e.binary('inching_mode', ea.SET, "ON", "OFF").withDescription('Set inching off or inching on mode.').withValueToggle('ON'),);
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: sonoffPrivateCluster.toString(),
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+            }
+        }];
+        const toZigbee: Tz.Converter[] = [{
+            key: ['inching_control_set'],
+            convertSet: async (entity, key, value, meta) => {
+                //meta.logger.debug(`to zigbee inching_control_set ${key}`);
+                const inchingControl:string = 'inching_control';
+                //meta.logger.debug(`to zigbee inchingControl ${value[inchingControl as keyof typeof value]}`);
+                const inchingTime:string = 'inching_time';
+                //meta.logger.debug(`to zigbee inchingTime ${value[inchingTime as keyof typeof value]}`);
+                const inchingMode:string = 'inching_mode';
+                //meta.logger.debug(`to zigbee inchingMode ${value[inchingMode as keyof typeof value]}`);
+
+                let tmpTime: number;
+                tmpTime = Number((Math.round(Number((value[inchingTime as keyof typeof value] * 2).toFixed(1)))).toFixed(1));
+                //meta.logger.debug(`to zigbee tmpTime ${tmpTime}`);
+
+                const payloadValue = [];
+                payloadValue[0] = 0x01; // Cmd
+                payloadValue[1] = 0x17; // SubCmd
+                payloadValue[2] = 0x07; // Length
+                payloadValue[3] = 0x80; // SeqNum
+
+                payloadValue[4] = 0x00; // Mode
+                if (value[inchingControl as keyof typeof value] != 'DISABLE') {
+                    payloadValue[4] |= 0x80;
+                }
+                if (value[inchingMode as keyof typeof value] != 'OFF') {
+                    payloadValue[4] |= 0x01;
+                }
+                //meta.logger.debug(`to zigbee payloadValue[4] ${payloadValue[4]}`);
+
+                payloadValue[5] = 0x00; // Channel
+
+                payloadValue[6] = tmpTime; // Timeout
+                payloadValue[7] = tmpTime >> 8;
+
+                payloadValue[8] = 0x00; // Reserve
+                payloadValue[9] = 0x00;
+
+                payloadValue[10] = 0x00; // CheckCode
+                for (let i = 0; i < (payloadValue[2] + 3); i++) {
+                    payloadValue[10] ^= payloadValue[i];
+                }
+   
+                await entity.command(sonoffPrivateCluster, 0x01, {data: payloadValue}, {manufacturerCode: 0x1286});
+                return {state: {[key]: value}};
+            }
+        }];
         return {
             exposes: [exposes],
             fromZigbee,
@@ -649,6 +718,26 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
         extend: [onOff()],
+    },
+    {
+        zigbeeModel: ['ZBMicro'],
+        model: 'ZBMicro',
+        vendor: 'SONOFF',
+        description: 'Zigbee USB repeater plug',
+        ota: ota.zigbeeOTA,
+        extend: [
+            onOff(),
+            binary({
+                name: 'rf_turbo_mode',
+                cluster: 0xFC11,
+                attribute: {ID: 0x0012, type: 0x29},
+                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                description: 'Enable/disable Radio power turbo mode',
+                valueOff: ['DISABLE', 0x09],
+                valueOn: ['ENABLE', 0x14],
+            }),
+            sonoffExtend.inchingControlSet(),
+        ],
     },
 ];
 
