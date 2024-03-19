@@ -1,5 +1,13 @@
 # Changelog
 
+## [19.4.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.4.0...v19.4.1) (2024-03-19)
+
+
+### Bug Fixes
+
+* Fix pairing of Legrand devices failing ([#7228](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7228)) ([8c36b33](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8c36b3313bbc4a9e95bedd5a3a277ebb2d660d76))
+* **ignore:** update dependencies ([#7240](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7240)) ([9c9ac0a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c9ac0ad37a51f82d608bdfdce6a289c80830fc1))
+
 ## [19.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.3.0...v19.4.0) (2024-03-19)
 
 
