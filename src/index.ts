@@ -354,13 +354,20 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
     // it expects at least one answer. The payload contains the number of seconds
     // since when the device is powered. If the value is too high, it will leave & not pair
     // 23 works, 200 doesn't
-    if (data.meta && data.meta.manufacturerCode === Zcl.ManufacturerCode.LEGRAND_GROUP && type === 'message' && data.type === 'read' &&
-        data.cluster === 'genBasic' && data.data && data.data.includes(61440)) {
-        const endpoint = device.getEndpoint(1);
-        const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
-        const payload = {0xf00: {value: 23, type: 35}};
-        await endpoint.readResponse('genBasic', data.meta.zclTransactionSequenceNumber, payload, options);
+    if (device.manufacturerID === Zcl.ManufacturerCode.LEGRAND_GROUP && !device.customReadResponse) {
+        device.customReadResponse = (frame, endpoint) => {
+            if (frame.isCluster('genBasic') && frame.Payload.find((i: {attrId: number}) => i.attrId === 61440)) {
+                const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
+                const payload = {0xf00: {value: 23, type: 35}};
+                endpoint.readResponse('genBasic', frame.Header.transactionSequenceNumber, payload, options).catch((e) => {
+                    logger.logger.warn(`Legrand security read response failed: ${e}`);
+                })
+                return true;
+            }
+            return false;
+        }
     }
+
     // Aqara feeder C1 polls the time during the interview, need to send back the local time instead of the UTC.
     // The device.definition has not yet been set - therefore the device.definition.onEvent method does not work.
     if (type === 'message' && data.type === 'read' && data.cluster === 'genTime' &&
