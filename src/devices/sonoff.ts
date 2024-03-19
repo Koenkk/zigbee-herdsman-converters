@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import {binary, enumLookup, forcePowerSource, numeric, onOff, customTimeResponse, batteryPercentage} from '../lib/modernExtend';
+import {binary, enumLookup, forcePowerSource, numeric, onOff, customTimeResponse, battery} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
@@ -902,7 +902,7 @@ const definitions: Definition[] = [
             e.numeric('flow', ea.STATE).withDescription('Current water flow').withUnit('m³/h'),
         ],
         extend: [
-            batteryPercentage(),
+            battery(),
             enumLookup({
                 name: 'current_device_status',
                 lookup: {'normal_state': 0, 'water_shortage': 1, 'water_leakage': 2, 'water_shortage & water_leakage': 3},
