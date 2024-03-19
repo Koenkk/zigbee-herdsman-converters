@@ -120,18 +120,22 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
     args = {isSleepy: false, ...args};
     const normal: Expose = e.enum('identify', ea.SET, ['identify']).withDescription('Initiate device identification').withCategory('config');
     const sleepy: Expose = e.enum('identify_sleepy', ea.SET, ['identify_sleepy'])
-        .withDescription('Initiate device identification. This device is sleeping by default.' +
+        .withDescription('Initiate device identification. This device is asleep by default.' +
             'You may need to wake it up first before sending the indetify command.')
         .withCategory('config');
 
     const exposes: Expose[] = args.isSleepy ? [sleepy] : [normal];
 
+    const identifyTimeout = e.numeric('identify_timeout', ea.SET)
+        .withDescription('Sets the duration of the identification procedure in seconds (i.e., how long the device would flash).' +
+            'The value ranges from 1 to 30 seconds (default: 3).')
+        .withValueMin(1).withValueMax(30);
+
     const toZigbee: Tz.Converter[] = [{
-        key: ['identify', 'identify_sleepy'],
-        options: [opt.identify_timeout()],
+        key: [args.isSleepy ? 'identify_sleepy' : 'identify'],
+        options: [identifyTimeout],
         convertSet: async (entity, key, value, meta) => {
-            // External value takes priority over options for compatibility
-            const identifyTimeout = value ?? meta.options.identify_timeout ?? 3;
+            const identifyTimeout = meta.options.identify_timeout ?? 3;
             await entity.command('genIdentify', 'identify', {identifytime: identifyTimeout}, getOptions(meta.mapped, entity));
         },
     }];
