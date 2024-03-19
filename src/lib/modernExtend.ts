@@ -40,6 +40,7 @@ function getEndpointsWithOutputCluster(device: Zh.Device, cluster: string | numb
 
 const timeLookup = {
     'MAX': 65000,
+    '4_HOURS': 14400,
     '1_HOUR': 3600,
     '30_MINUTES': 1800,
     '1_MINUTE': 60,
@@ -1216,6 +1217,36 @@ export function commandsOnOff(args?: {commands: ('on' | 'off' | 'toggle')[], bin
                     await endpoint.bind('genOnOff', coordinatorEndpoint);
                 }
             }
+        };
+    }
+
+    return result;
+}
+
+export interface LinkqualityArgs {
+    reporting?: boolean, attribute?: string | {ID: number, type: number}, reportingConfig?: ReportingConfigWithoutAttribute
+}
+export function linkquality(args?: LinkqualityArgs): ModernExtend {
+    args = {reporting: false, attribute: 'modelId', reportingConfig: {min: '1_HOUR', max: '4_HOURS', change: 0}};
+
+    const exposes: Expose[] = [
+        e.numeric('linkquality', ea.STATE).withUnit('lqi').withDescription('Link quality (signal strength)')
+            .withValueMin(0).withValueMax(255).withCategory('diagnostic'),
+    ];
+
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {linkquality: msg.linkquality};
+        },
+    }];
+
+    const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
+
+    if (args.reporting) {
+        result.configure = async (device, coordinatorEndpoint, logger) => {
+            setupAttributes(device, coordinatorEndpoint, 'genBasic', [{attribute: args.attribute, ...args.reportingConfig}], logger);
         };
     }
 
