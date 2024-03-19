@@ -996,6 +996,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
     };
 
     const exposes: Expose[] = [];
+    const invertAlarmPayload = args.zoneType === 'contact';
     const bothAlarms = args.zoneAttributes.includes('alarm_1') && (args.zoneAttributes.includes('alarm_2'));
 
     let alarm1Name = 'alarm_1';
@@ -1051,13 +1052,21 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                 battery_defect: (zoneStatus & 1 << 9) > 0,
             };
 
+            let alarm1Payload = (zoneStatus & 1) > 0;
+            let alarm2Payload = (zoneStatus & 1 << 1) > 0;
+
+            if (invertAlarmPayload) {
+                alarm1Payload = !alarm1Payload;
+                alarm2Payload = !alarm2Payload;
+            }
+
             if (bothAlarms) {
-                payload = {[alarm1Name]: (zoneStatus & 1) > 0, ...payload};
-                payload = {[alarm2Name]: (zoneStatus & 1 << 1) > 0, ...payload};
+                payload = {[alarm1Name]: alarm1Payload, ...payload};
+                payload = {[alarm2Name]: alarm2Payload, ...payload};
             } else if (args.zoneAttributes.includes('alarm_1')) {
-                payload = {[alarm1Name]: (zoneStatus & 1) > 0, ...payload};
+                payload = {[alarm1Name]: alarm1Payload, ...payload};
             } else if (args.zoneAttributes.includes('alarm_2')) {
-                payload = {[alarm2Name]: (zoneStatus & 1 << 1) > 0, ...payload};
+                payload = {[alarm2Name]: alarm2Payload, ...payload};
             }
 
             return payload;
