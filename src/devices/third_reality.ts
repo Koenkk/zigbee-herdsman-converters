@@ -185,7 +185,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['3RTHS24BZ'],
         model: '3RTHS24BZ',
         vendor: 'Third Reality',
-        description: 'Temperature and Humidity Sensor',
+        description: 'Temperature and humidity sensor',
         fromZigbee: [fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity()],
