@@ -1,16 +1,19 @@
 import {Zcl} from 'zigbee-herdsman';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
-import {Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent, Access} from './types';
+import {
+    Fz, Tz, ModernExtend, Range, Zh, Logger, DefinitionOta, OnEvent, Access,
+    KeyValueString, KeyValue, Configure, Expose, DefinitionMeta, KeyValueAny,
+} from './types';
 import {zigbeeOTA} from '../lib/ota';
 import * as globalStore from '../lib/store';
 import {presets as e, access as ea, options as opt} from './exposes';
-import {KeyValue, Configure, Expose, DefinitionMeta, KeyValueAny} from './types';
 import {configure as lightConfigure} from './light';
 import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
     noOccupancySince, precisionRound, batteryVoltageToPercentage, getOptions,
+    hasAlreadyProcessedMessage, addActionGroup,
 } from './utils';
 
 function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | number) {
@@ -20,6 +23,17 @@ function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | numbe
     const endpoints = device.endpoints.filter((ep) => ep.getInputClusters().find((c) => isNumber(cluster) ? c.ID === cluster : c.name === cluster));
     if (endpoints.length === 0) {
         throw new Error(`Device ${device.ieeeAddr} has no input cluster ${cluster}`);
+    }
+    return endpoints;
+}
+
+function getEndpointsWithOutputCluster(device: Zh.Device, cluster: string | number) {
+    if (!device.endpoints) {
+        throw new Error(device.ieeeAddr + ' ' + device.endpoints);
+    }
+    const endpoints = device.endpoints.filter((ep) => ep.getOutputClusters().find((c) => isNumber(cluster) ? c.ID === cluster : c.name === cluster));
+    if (endpoints.length === 0) {
+        throw new Error(`Device ${device.ieeeAddr} has no output cluster ${cluster}`);
     }
     return endpoints;
 }
@@ -1158,4 +1172,52 @@ export function pm25(args?: Partial<NumericArgs>): ModernExtend {
         access: 'STATE_GET',
         ...args,
     });
+}
+
+export function commandsOnOff(args?: {commands: ('on' | 'off' | 'toggle')[], bind?: boolean, endpointNames?: string[]}): ModernExtend {
+    args = {commands: ['on', 'off', 'toggle'], bind: false, ...args};
+    const exposes: Expose[] = [
+        e.enum('action', ea.STATE, args.commands).withDescription('Triggered action (e.g. a button click)'),
+    ];
+
+    const actionPayloadLookup: KeyValueString = {
+        'commandOn': 'on',
+        'commandOff': 'off',
+        'commandOffWithEffect': 'off',
+        'commandToggle': 'toggle',
+    };
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'genOnOff',
+            type: ['commandOn', 'commandOff', 'commandOffWithEffect', 'commandToggle'],
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const payload = {action: postfixWithEndpointName(actionPayloadLookup[msg.type], msg, model, meta)};
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+    ];
+
+    const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
+
+    if (args.bind) {
+        result.configure = async (device, coordinatorEndpoint, logger) => {
+            if (args.endpointNames) {
+                const endpointsMap = new Map<string, boolean>(args.endpointNames.map((e) => [e, true]));
+                const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
+                for (const endpoint of endpoints) {
+                    await endpoint.bind('genOnOff', coordinatorEndpoint);
+                }
+            } else {
+                const endpoints = getEndpointsWithOutputCluster(device, 'genOnOff');
+                for (const endpoint of endpoints) {
+                    await endpoint.bind('genOnOff', coordinatorEndpoint);
+                }
+            }
+        };
+    }
+
+    return result;
 }
