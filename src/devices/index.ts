@@ -159,6 +159,7 @@ import linptech from './linptech';
 import livingwise from './livingwise';
 import livolo from './livolo';
 import lixee from './lixee';
+import llama_devices from './llama_devices';
 import lonsonho from './lonsonho';
 import ls from './ls';
 import lubeez from './lubeez';
@@ -455,6 +456,7 @@ export default [
     ...livolo,
     ...lixee,
     ...lonsonho,
+    ...llama_devices,
     ...ls,
     ...lubeez,
     ...lupus,
