@@ -92,7 +92,7 @@ interface BreezeModeValues {
 }
 
 // Converts brightness level to a fan mode
-const intToFanMode = (value) => {
+const intToFanMode = (value: number) => {
     let selectedMode = 'low';
     if (value >= fanModes.low) {
       selectedMode = 'low';
