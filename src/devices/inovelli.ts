@@ -95,16 +95,16 @@ interface BreezeModeValues {
 const intToFanMode = (value: number) => {
     let selectedMode = 'low';
     if (value >= fanModes.low) {
-      selectedMode = 'low';
+        selectedMode = 'low';
     }
     if (value >= fanModes.medium) {
-      selectedMode = 'medium';
+        selectedMode = 'medium';
     }
     if (value >= fanModes.high) {
-      selectedMode = 'high';
+        selectedMode = 'high';
     }
     if (value == 4) {
-      selectedMode = 'smart';
+        selectedMode = 'smart';
     }
     return selectedMode;
 };
