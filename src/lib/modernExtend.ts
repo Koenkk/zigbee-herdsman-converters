@@ -252,15 +252,14 @@ export function battery(args?: BatteryArgs): ModernExtend {
 
     const toZigbee: Tz.Converter[] = [
         {
-            key: ['battery'],
-            convertGet: async (entity, key, meta) => {
-                await entity.read('genPowerCfg', ['batteryPercentageRemaining']);
-            },
-        },
-        {
             key: ['battery', 'voltage'],
             convertGet: async (entity, key, meta) => {
-                await entity.read('genPowerCfg', ['batteryVoltage']);
+                try {
+                    // Don't fail GET reqest if reading this attribute fails
+                    await entity.read('genPowerCfg', ['batteryPercentageRemaining', 'batteryVoltage']);
+                } catch (e) {
+                    meta.logger.debug(`Reading attribute failed: ${e}, device probably doesn't support it`);
+                }
             },
         },
     ];
