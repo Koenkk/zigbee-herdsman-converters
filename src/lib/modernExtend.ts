@@ -175,10 +175,9 @@ export interface BatteryArgs {
     voltageReportingConfig?: ReportingConfigWithoutAttribute, voltageReporting?: boolean,
 }
 export function battery(args?: BatteryArgs): ModernExtend {
-    args = {percentage: true, voltage: false, lowStatus: false, percentageReporting: true, voltageReporting: false, ...args};
-    const meta: DefinitionMeta = {battery: {}};
-    if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
-    if (args.dontDividePercentage) meta.battery.dontDividePercentage = args.dontDividePercentage;
+    args = {
+        percentage: true, voltage: false, lowStatus: false, percentageReporting: true, voltageReporting: false, dontDividePercentage: false, ...args,
+    };
 
     const exposes: Expose[] = [];
 
@@ -210,7 +209,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
             if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
                 // Some devices do not comply to the ZCL and report a
                 // batteryPercentageRemaining of 100 when the battery is full (should be 200).
-                const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
+                const dontDividePercentage = args.dontDividePercentage;
                 let percentage = msg.data['batteryPercentageRemaining'];
                 percentage = dontDividePercentage ? percentage : percentage / 2;
                 if (args.percentage) payload.battery = precisionRound(percentage, 2);
@@ -220,8 +219,8 @@ export function battery(args?: BatteryArgs): ModernExtend {
                 // Deprecated: voltage is = mV now but should be V
                 if (args.voltage) payload.voltage = msg.data['batteryVoltage'] * 100;
 
-                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
+                if (args.voltageToPercentage) {
+                    payload.battery = batteryVoltageToPercentage(payload.voltage, args.voltageToPercentage);
                 }
             }
 
@@ -251,22 +250,47 @@ export function battery(args?: BatteryArgs): ModernExtend {
         },
     }];
 
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ['battery'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('genPowerCfg', ['batteryPercentageRemaining']);
+            },
+        },
+        {
+            key: ['battery', 'voltage'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('genPowerCfg', ['batteryVoltage']);
+            },
+        },
+    ];
+
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+
     const defaultReporting: ReportingConfigWithoutAttribute = {min: '1_HOUR', max: 'MAX', change: 10};
+    if (args.percentageReporting || args.voltageReporting) {
+        result.configure = async (device, coordinatorEndpoint, logger) => {
+            if (args.percentageReporting) {
+                await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
+                    {attribute: 'batteryPercentageRemaining', ...(args.percentageReportingConfig ?? defaultReporting)},
+                ], logger);
+            }
+            if (args.voltageReporting) {
+                await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
+                    {attribute: 'batteryVoltage', ...(args.voltageReportingConfig ?? defaultReporting)},
+                ], logger);
+            }
+        };
+    }
 
-    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        if (args.percentageReporting) {
-            await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
-                {attribute: 'batteryPercentageRemaining', ...(args.percentageReportingConfig ?? defaultReporting)},
-            ], logger);
-        }
-        if (args.voltageReporting) {
-            await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
-                {attribute: 'batteryVoltage', ...(args.voltageReportingConfig ?? defaultReporting)},
-            ], logger);
-        }
-    };
+    if (args.voltageToPercentage || args.dontDividePercentage) {
+        const meta: DefinitionMeta = {battery: {}};
+        if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
+        if (args.dontDividePercentage) meta.battery.dontDividePercentage = args.dontDividePercentage;
+        result.meta = meta;
+    }
 
-    return {meta, fromZigbee, exposes, configure, isModernExtend: true};
+    return result;
 }
 
 export function deviceTemperature(args?: Partial<NumericArgs>) {
