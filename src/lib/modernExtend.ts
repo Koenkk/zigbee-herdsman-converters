@@ -13,7 +13,7 @@ import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
     noOccupancySince, precisionRound, batteryVoltageToPercentage, getOptions,
-    hasAlreadyProcessedMessage, addActionGroup,
+    hasAlreadyProcessedMessage, addActionGroup, numberWithinRange,
 } from './utils';
 import * as logger from '../lib/logger';
 
@@ -722,6 +722,166 @@ export function light(args?: LightArgs): ModernExtend {
     return result;
 }
 
+
+export interface CommandsLevelCtrl {
+    commands?: (
+        'brightness_move_to_level' | 'brightness_move_up' | 'brightness_move_down' | 'brightness_step_up' | 'brightness_step_down' | 'brightness_stop'
+    )[],
+    bind?: boolean, endpointNames?: string[]
+}
+export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
+    args = {commands: [
+        'brightness_move_to_level', 'brightness_move_up', 'brightness_move_down', 'brightness_step_up', 'brightness_step_down', 'brightness_stop',
+    ], bind: false, ...args};
+    let actions: string[] = args.commands;
+    if (args.endpointNames) {
+        actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
+    }
+    const exposes: Expose[] = [
+        e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)'),
+    ];
+
+    const defaultSimulatedBrightness = 255;
+
+    const simulatedBrightness = [e.composite('simulated_brightness', 'simulated_brightness', ea.SET)
+        .withDescription(`Simulate a brightness value.` +
+        `If this device provides a brightness_move_up or brightness_move_down action it is possible to specify the update interval and delta.` +
+        `The action_brightness_delta indicates the delta for each interval.`)
+        .withFeature(e.numeric('delta', ea.SET).withValueMin(0).withDescription('Delta per interval, 20 by default'))
+        .withFeature(e.numeric('interval', ea.SET).withValueMin(0).withUnit('ms').withDescription('Interval duration'))];
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'genLevelCtrl',
+            type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
+            options: simulatedBrightness,
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const payload: KeyValueAny = {
+                    action: postfixWithEndpointName(`brightness_move_to_level`, msg, model, meta),
+                    action_level: msg.data.level,
+                    action_transition_time: msg.data.transtime / 100,
+                };
+                addActionGroup(payload, msg, model);
+
+                if (options.simulated_brightness) {
+                    const currentBrightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
+                    globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
+                    const property = postfixWithEndpointName('brightness', msg, model, meta);
+                    payload[property] = msg.data.level;
+                    const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
+                    payload[deltaProperty] = msg.data.level - currentBrightness;
+                }
+
+                return payload;
+            },
+        },
+        {
+            cluster: 'genLevelCtrl',
+            type: ['commandMove', 'commandMoveWithOnOff'],
+            options: simulatedBrightness,
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const direction = msg.data.movemode === 1 ? 'down' : 'up';
+                const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model, meta);
+                const payload = {action, action_rate: msg.data.rate};
+                addActionGroup(payload, msg, model);
+
+                if (options.simulated_brightness) {
+                    const opts: KeyValueAny = options.simulated_brightness;
+                    const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 20;
+                    const intervalOpts = typeof opts === 'object' && opts.hasOwnProperty('interval') ? opts.interval : 200;
+
+                    globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
+                    if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
+                        const timer = setInterval(() => {
+                            let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
+                            const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ?
+                                deltaOpts : -1 * deltaOpts;
+                            brightness += delta;
+                            brightness = numberWithinRange(brightness, 0, 255);
+                            globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
+                            const property = postfixWithEndpointName('brightness', msg, model, meta);
+                            const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
+                            publish({[property]: brightness, [deltaProperty]: delta});
+                        }, intervalOpts);
+
+                        globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
+                    }
+                }
+
+                return payload;
+            },
+        },
+        {
+            cluster: 'genLevelCtrl',
+            type: ['commandStep', 'commandStepWithOnOff'],
+            options: simulatedBrightness,
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const direction = msg.data.stepmode === 1 ? 'down' : 'up';
+                const payload: KeyValueAny = {
+                    action: postfixWithEndpointName(`brightness_step_${direction}`, msg, model, meta),
+                    action_step_size: msg.data.stepsize,
+                    action_transition_time: msg.data.transtime / 100,
+                };
+                addActionGroup(payload, msg, model);
+
+                if (options.simulated_brightness) {
+                    let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
+                    const delta = direction === 'up' ? msg.data.stepsize : -1 * msg.data.stepsize;
+                    brightness += delta;
+                    brightness = numberWithinRange(brightness, 0, 255);
+                    globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
+                    const property = postfixWithEndpointName('brightness', msg, model, meta);
+                    payload[property] = brightness;
+                    const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
+                    payload[deltaProperty] = delta;
+                }
+
+                return payload;
+            },
+        },
+        {
+            cluster: 'genLevelCtrl',
+            type: ['commandStop', 'commandStopWithOnOff'],
+            options: simulatedBrightness,
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                if (options.simulated_brightness) {
+                    clearInterval(globalStore.getValue(msg.endpoint, 'simulated_brightness_timer'));
+                    globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', undefined);
+                }
+
+                const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model, meta)};
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+    ];
+
+    const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
+
+    if (args.bind) {
+        result.configure = async (device, coordinatorEndpoint, logger) => {
+            if (args.endpointNames) {
+                const endpointsMap = new Map<string, boolean>(args.endpointNames.map((e) => [e, true]));
+                const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
+                for (const endpoint of endpoints) {
+                    await endpoint.bind('genLevelCtrl', coordinatorEndpoint);
+                }
+            } else {
+                const endpoints = getEndpointsWithOutputCluster(device, 'genLevelCtrl');
+                for (const endpoint of endpoints) {
+                    await endpoint.bind('genLevelCtrl', coordinatorEndpoint);
+                }
+            }
+        };
+    }
+
+    return result;
+}
+
 // #endregion
 
 // #region HVAC
@@ -1030,6 +1190,8 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
+
+// #endregion
 
 // #region OTA
 
