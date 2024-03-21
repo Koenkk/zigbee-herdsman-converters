@@ -7,13 +7,14 @@ import {
 } from './types';
 import {zigbeeOTA} from '../lib/ota';
 import * as globalStore from '../lib/store';
-import {presets as e, access as ea, options as opt} from './exposes';
+import {presets as e, access as ea, options as opt, Cover} from './exposes';
 import {configure as lightConfigure} from './light';
 import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
     noOccupancySince, precisionRound, batteryVoltageToPercentage, getOptions,
     hasAlreadyProcessedMessage, addActionGroup, numberWithinRange,
+    assertString,
 } from './utils';
 import * as logger from '../lib/logger';
 
@@ -47,6 +48,7 @@ const timeLookup = {
     '5_MINUTES': 300,
     '1_MINUTE': 60,
     '10_SECONDS': 10,
+    '1_SECOND': 1,
     'MIN': 0,
 };
 
@@ -910,6 +912,126 @@ export function lock(args?: LockArgs): ModernExtend {
     const meta: DefinitionMeta = {pinCodeCount: args.pinCodeCount};
 
     return {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
+}
+
+export interface WindowCoveringArgs {
+    controls: ('lift' | 'tilt')[], coverInverted?: boolean, stateSource?: 'lift' | 'tilt', configureReporting?: boolean,
+}
+export function windowCovering(args: WindowCoveringArgs): ModernExtend {
+    args = {stateSource: 'lift', configureReporting: true, ...args};
+    let coverExpose: Cover = e.cover();
+    if (args.controls.includes('lift')) coverExpose = coverExpose.withPosition();
+    if (args.controls.includes('tilt')) coverExpose = coverExpose.withTilt();
+    const exposes: Expose[] = [coverExpose];
+
+    const invertCover = [e.binary(`invert_cover`, ea.SET, true, false)
+        .withDescription(`Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).`)];
+
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        options: invertCover,
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
+            // HomeAssistant etc. work the other way round.
+            // For zigbee-herdsman-converters: open = 100, close = 0
+            // ubisys J1 will report 255 if lift or tilt positions are not known, so skip that.
+            const metaInvert = args.coverInverted;
+            const invert = args.coverInverted ? !options.invert_cover : options.invert_cover;
+            const coverStateFromTilt = args.stateSource === 'tilt';
+            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
+                const value = msg.data['currentPositionLiftPercentage'];
+                result[postfixWithEndpointName('position', msg, model, meta)] = invert ? value : 100 - value;
+                if (!coverStateFromTilt) {
+                    result[postfixWithEndpointName('state', msg, model, meta)] =
+                        metaInvert ? (value === 0 ? 'CLOSE' : 'OPEN') : (value === 100 ? 'CLOSE' : 'OPEN');
+                }
+            }
+            if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
+                const value = msg.data['currentPositionTiltPercentage'];
+                result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? value : 100 - value;
+                if (coverStateFromTilt) {
+                    result[postfixWithEndpointName('state', msg, model, meta)] =
+                        metaInvert ? (value === 100 ? 'OPEN' : 'CLOSE') : (value === 0 ? 'OPEN' : 'CLOSE');
+                }
+            }
+            return result;
+        },
+    }];
+
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ['state'],
+            convertSet: async (entity, key, value, meta) => {
+                const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
+                assertString(value, key);
+                value = value.toLowerCase();
+                await entity.command('closuresWindowCovering', getFromLookup(value, lookup), {}, getOptions(meta.mapped, entity));
+            },
+        },
+        {
+            key: ['position', 'tilt'],
+            options: invertCover,
+            convertSet: async (entity, key, value, meta) => {
+                assertNumber(value, key);
+                const isPosition = (key === 'position');
+                const invert = !(args.coverInverted ?
+                    !meta.options.invert_cover : meta.options.invert_cover);
+                const position = invert ? 100 - value : value;
+
+                // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
+                // HomeAssistant etc. work the other way round.
+                // For zigbee-herdsman-converters: open = 100, close = 0
+                await entity.command(
+                    'closuresWindowCovering',
+                    isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
+                    isPosition ? {percentageliftvalue: position} : {percentagetiltvalue: position},
+                    getOptions(meta.mapped, entity),
+                );
+
+                return {state: {[isPosition ? 'position' : 'tilt']: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                const isPosition = (key === 'position');
+                await entity.read('closuresWindowCovering', [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']);
+            },
+        },
+    ];
+
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+
+    if (args.configureReporting) {
+        result.configure = async (device, coordinatorEndpoint, logger) => {
+            if (args.controls.includes('lift')) {
+                await setupAttributes(
+                    device,
+                    coordinatorEndpoint,
+                    'closuresWindowCovering',
+                    [{attribute: 'currentPositionLiftPercentage', min: '1_SECOND', max: 'MAX', change: 1}],
+                    logger,
+                );
+            }
+            if (args.controls.includes('tilt')) {
+                await setupAttributes(
+                    device,
+                    coordinatorEndpoint,
+                    'closuresWindowCovering',
+                    [{attribute: 'currentPositionTiltPercentage', min: '1_SECOND', max: 'MAX', change: 1}],
+                    logger,
+                );
+            }
+        };
+    }
+
+    if (args.coverInverted || args.stateSource === 'tilt') {
+        const meta: DefinitionMeta = {};
+        if (args.coverInverted) meta.coverInverted = true;
+        if (args.stateSource === 'tilt') meta.coverStateFromTilt = true;
+        result.meta = meta;
+    }
+
+    return result;
 }
 
 export function commandsWindowCovering(args?: {commands?: ('open' | 'close' | 'stop')[], bind?: boolean, endpointNames?: string[]}): ModernExtend {
