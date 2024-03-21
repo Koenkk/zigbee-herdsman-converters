@@ -349,10 +349,14 @@ export function onOff(args?: OnOffArgs): ModernExtend {
     return result;
 }
 
-export function commandsOnOff(args?: {commands: ('on' | 'off' | 'toggle')[], bind?: boolean, endpointNames?: string[]}): ModernExtend {
+export function commandsOnOff(args?: {commands?: ('on' | 'off' | 'toggle')[], bind?: boolean, endpointNames?: string[]}): ModernExtend {
     args = {commands: ['on', 'off', 'toggle'], bind: false, ...args};
+    let actions: string[] = args.commands;
+    if (args.endpointNames) {
+        actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
+    }
     const exposes: Expose[] = [
-        e.enum('action', ea.STATE, args.commands).withDescription('Triggered action (e.g. a button click)'),
+        e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)'),
     ];
 
     const actionPayloadLookup: KeyValueString = {
