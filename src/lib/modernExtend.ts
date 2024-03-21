@@ -43,6 +43,7 @@ const timeLookup = {
     '4_HOURS': 14400,
     '1_HOUR': 3600,
     '30_MINUTES': 1800,
+    '5_MINUTES': 300,
     '1_MINUTE': 60,
     '10_SECONDS': 10,
     'MIN': 0,
@@ -263,6 +264,20 @@ export function battery(args?: BatteryArgs): ModernExtend {
     };
 
     return {meta, fromZigbee, exposes, configure, isModernExtend: true};
+}
+
+export function deviceTemperature(args?: Partial<NumericArgs>) {
+    return numeric({
+        name: 'device_temperature',
+        cluster: 'genDeviceTempCfg',
+        attribute: 'currentTemperature',
+        reporting: {min: '5_MINUTES', max: '1_HOUR', change: 1},
+        description: 'Temperature of the device',
+        unit: '°C',
+        access: 'STATE_GET',
+        entityCategory: 'diagnostic',
+        ...args,
+    });
 }
 
 export function identify(args?: {isSleepy: boolean}): ModernExtend {

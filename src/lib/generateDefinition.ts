@@ -216,6 +216,9 @@ const inputExtenders: Extender[] = [
     [['ssIasWd'], async (d, eps) => [
         new Generator({extend: m.iasWarning, source: 'iasWarning'}),
     ]],
+    [['genDeviceTempCfg'], async (d, eps) => [
+        new Generator({extend: m.deviceTemperature, args: maybeEndpointArgs(d, eps), source: 'deviceTemperature'}),
+    ]],
 ];
 
 const outputExtenders: Extender[] = [
