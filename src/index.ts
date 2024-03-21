@@ -376,7 +376,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
                 const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
                 const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
                 const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
-                device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal}).catch((e) => {
+                endpoint.readResponse('genTime', frame.Header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
                     logger.logger.warn(`ZNCWWSQ01LM custom time response failed: ${e}`);
                 })
                 return true;
