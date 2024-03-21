@@ -1144,7 +1144,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'JETSTRÖM LED wall light panel, smart dimmable/wired-in colour and white spectrum, 30x30cm',
         extend: [tradfriLight({colorTemp: true, color: true})],
-    },    
+    },
     {
         zigbeeModel: ['JETSTROM 40100'],
         model: 'L2208',
