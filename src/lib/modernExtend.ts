@@ -500,6 +500,20 @@ export function pressure(args?: Partial<NumericArgs>): ModernExtend {
     });
 }
 
+export function flow(args?: Partial<NumericArgs>) {
+    return numeric({
+        name: 'flow',
+        cluster: 'msFlowMeasurement',
+        attribute: 'measuredValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 10},
+        description: 'Measured water flow',
+        unit: 'm³/h',
+        scale: 10,
+        access: 'STATE_GET',
+        ...args,
+    });
+}
+
 export function humidity(args?: Partial<NumericArgs>) {
     return numeric({
         name: 'humidity',
