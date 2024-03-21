@@ -93,16 +93,19 @@ interface BreezeModeValues {
 
 // Converts brightness level to a fan mode
 const intToFanMode = (value: number) => {
-    let selectedMode = 'Low';
-
-    Object.values(fanModes).forEach((mode) => {
-        if (value >= mode) {
-            selectedMode = Object.keys(fanModes).find(
-                (key) => fanModes[key] === mode,
-            ) || 'Low';
-        }
-    });
-
+    let selectedMode = 'low';
+    if (value >= fanModes.low) {
+        selectedMode = 'low';
+    }
+    if (value >= fanModes.medium) {
+        selectedMode = 'medium';
+    }
+    if (value >= fanModes.high) {
+        selectedMode = 'high';
+    }
+    if (value == 4) {
+        selectedMode = 'smart';
+    }
     return selectedMode;
 };
 

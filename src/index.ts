@@ -354,22 +354,35 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
     // it expects at least one answer. The payload contains the number of seconds
     // since when the device is powered. If the value is too high, it will leave & not pair
     // 23 works, 200 doesn't
-    if (data.meta && data.meta.manufacturerCode === Zcl.ManufacturerCode.LEGRAND_GROUP && type === 'message' && data.type === 'read' &&
-        data.cluster === 'genBasic' && data.data && data.data.includes(61440)) {
-        const endpoint = device.getEndpoint(1);
-        const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
-        const payload = {0xf00: {value: 23, type: 35}};
-        await endpoint.readResponse('genBasic', data.meta.zclTransactionSequenceNumber, payload, options);
+    if (device.manufacturerID === Zcl.ManufacturerCode.LEGRAND_GROUP && !device.customReadResponse) {
+        device.customReadResponse = (frame, endpoint) => {
+            if (frame.isCluster('genBasic') && frame.Payload.find((i: {attrId: number}) => i.attrId === 61440)) {
+                const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
+                const payload = {0xf00: {value: 23, type: 35}};
+                endpoint.readResponse('genBasic', frame.Header.transactionSequenceNumber, payload, options).catch((e) => {
+                    logger.logger.warn(`Legrand security read response failed: ${e}`);
+                })
+                return true;
+            }
+            return false;
+        }
     }
+
     // Aqara feeder C1 polls the time during the interview, need to send back the local time instead of the UTC.
     // The device.definition has not yet been set - therefore the device.definition.onEvent method does not work.
-    if (type === 'message' && data.type === 'read' && data.cluster === 'genTime' &&
-        device.modelID === 'aqara.feeder.acn001') {
-        device.skipTimeResponse = true;
-        const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
-        const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
-        const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
-        await device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal});
+    if (device.modelID === 'aqara.feeder.acn001' && !device.customReadResponse) {
+        device.customReadResponse = (frame, endpoint) => {
+            if (frame.isCluster('genTime')) {
+                const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+                const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
+                const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
+                device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal}).catch((e) => {
+                    logger.logger.warn(`ZNCWWSQ01LM custom time response failed: ${e}`);
+                })
+                return true;
+            }
+            return false;
+        }
     }
 }
 
