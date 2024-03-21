@@ -14,7 +14,7 @@ import {
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
     noOccupancySince, precisionRound, batteryVoltageToPercentage, getOptions,
     hasAlreadyProcessedMessage, addActionGroup, numberWithinRange,
-    assertString,
+    assertString, mapNumberRange,
 } from './utils';
 import * as logger from '../lib/logger';
 
@@ -751,7 +751,6 @@ export function light(args?: LightArgs): ModernExtend {
     return result;
 }
 
-
 export interface CommandsLevelCtrl {
     commands?: (
         'brightness_move_to_level' | 'brightness_move_up' | 'brightness_move_down' | 'brightness_step_up' | 'brightness_step_down' | 'brightness_stop'
@@ -903,6 +902,264 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
                 const endpoints = getEndpointsWithOutputCluster(device, 'genLevelCtrl');
                 for (const endpoint of endpoints) {
                     await endpoint.bind('genLevelCtrl', coordinatorEndpoint);
+                }
+            }
+        };
+    }
+
+    return result;
+}
+
+export type ColorCtrlCommand = 'color_temperature_move_stop' |
+    'color_temperature_move_up' |
+    'color_temperature_move_down' |
+    'color_temperature_step_up' |
+    'color_temperature_step_down' |
+    'enhanced_move_to_hue_and_saturation' |
+    'color_hue_step_up' |
+    'color_hue_step_down' |
+    'color_saturation_step_up' |
+    'color_saturation_step_down' |
+    'color_loop_set' |
+    'color_temperature_move' |
+    'color_move' |
+    'hue_move' |
+    'hue_stop' |
+    'move_to_saturation' |
+    'move_to_hue'
+export interface CommandsColorCtrl {
+    commands?: ColorCtrlCommand[],
+    bind?: boolean, endpointNames?: string[]
+}
+export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
+    args = {
+        commands: [
+            'color_temperature_move_stop',
+            'color_temperature_move_up',
+            'color_temperature_move_down',
+            'color_temperature_step_up',
+            'color_temperature_step_down',
+            'enhanced_move_to_hue_and_saturation',
+            'color_hue_step_up',
+            'color_hue_step_down',
+            'color_saturation_step_up',
+            'color_saturation_step_down',
+            'color_loop_set',
+            'color_temperature_move',
+            'color_move',
+            'hue_move',
+            'hue_stop',
+            'move_to_saturation',
+            'move_to_hue',
+        ],
+        bind: true,
+        ...args,
+    };
+    let actions: string[] = args.commands;
+    if (args.endpointNames) {
+        actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
+    }
+    const exposes: Expose[] = [
+        e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic'),
+    ];
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'lightingColorCtrl',
+            type: ['commandMoveColorTemp'],
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const direction = getFromLookup(msg.data.movemode, {0: 'stop', 1: 'up', 3: 'down'});
+                const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model, meta);
+                const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+        {
+            cluster: 'lightingColorCtrl',
+            type: 'commandStepColorTemp',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const direction = msg.data.stepmode === 1 ? 'up' : 'down';
+                const payload: KeyValueAny = {
+                    action: postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model, meta),
+                    action_step_size: msg.data.stepsize,
+                };
+
+                if (msg.data.hasOwnProperty('transtime')) {
+                    payload.action_transition_time = msg.data.transtime / 100;
+                }
+
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+        {
+            cluster: 'lightingColorCtrl',
+            type: 'commandEnhancedMoveToHueAndSaturation',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const payload = {
+                    action: postfixWithEndpointName(`enhanced_move_to_hue_and_saturation`, msg, model, meta),
+                    action_enhanced_hue: msg.data.enhancehue,
+                    action_hue: mapNumberRange(msg.data.enhancehue, 0, 65535, 0, 360, 1),
+                    action_saturation: msg.data.saturation,
+                    action_transition_time: msg.data.transtime,
+                };
+
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+        {
+            cluster: 'lightingColorCtrl',
+            type: ['commandStepHue'],
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const direction = msg.data.stepmode === 1 ? 'up' : 'down';
+                const payload = {
+                    action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model, meta),
+                    action_step_size: msg.data.stepsize,
+                    action_transition_time: msg.data.transtime/100,
+                };
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+        {
+            cluster: 'lightingColorCtrl',
+            type: ['commandStepSaturation'],
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const direction = msg.data.stepmode === 1 ? 'up' : 'down';
+                const payload = {
+                    action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model, meta),
+                    action_step_size: msg.data.stepsize,
+                    action_transition_time: msg.data.transtime/100,
+                };
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+        {
+            cluster: 'lightingColorCtrl',
+            type: 'commandColorLoopSet',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const updateFlags = msg.data.updateflags;
+                const actionLookup: KeyValueAny = {
+                    0x00: 'deactivate',
+                    0x01: 'activate_from_color_loop_start_enhanced_hue',
+                    0x02: 'activate_from_enhanced_current_hue',
+                };
+
+                const payload = {
+                    action: postfixWithEndpointName(`color_loop_set`, msg, model, meta),
+                    action_update_flags: {
+                        action: (updateFlags & 1 << 0) > 0,
+                        direction: (updateFlags & 1 << 1) > 0,
+                        time: (updateFlags & 1 << 2) > 0,
+                        start_hue: (updateFlags & 1 << 3) > 0,
+                    },
+                    action_action: actionLookup[msg.data.action],
+                    action_direction: msg.data.direction === 0 ? 'decrement' : 'increment',
+                    action_time: msg.data.time,
+                    action_start_hue: msg.data.starthue,
+                };
+
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+        {
+            cluster: 'lightingColorCtrl',
+            type: 'commandMoveToColorTemp',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const payload = {
+                    action: postfixWithEndpointName(`color_temperature_move`, msg, model, meta),
+                    action_color_temperature: msg.data.colortemp,
+                    action_transition_time: msg.data.transtime,
+                };
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+        {
+            cluster: 'lightingColorCtrl',
+            type: 'commandMoveToColor',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const payload = {
+                    action: postfixWithEndpointName(`color_move`, msg, model, meta),
+                    action_color: {
+                        x: precisionRound(msg.data.colorx / 65535, 3),
+                        y: precisionRound(msg.data.colory / 65535, 3),
+                    },
+                    action_transition_time: msg.data.transtime,
+                };
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+        {
+            cluster: 'lightingColorCtrl',
+            type: 'commandMoveHue',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const movestop = msg.data.movemode == 1 ? 'move' : 'stop';
+                const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
+                const payload = {action, action_rate: msg.data.rate};
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+        {
+            cluster: 'lightingColorCtrl',
+            type: 'commandMoveToSaturation',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const payload = {
+                    action: postfixWithEndpointName('move_to_saturation', msg, model, meta),
+                    action_saturation: msg.data.saturation,
+                    action_transition_time: msg.data.transtime,
+                };
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+        {
+            cluster: 'lightingColorCtrl',
+            type: 'commandMoveToHue',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const payload = {
+                    action: postfixWithEndpointName(`move_to_hue`, msg, model, meta),
+                    action_hue: msg.data.hue,
+                    action_transition_time: msg.data.transtime / 100,
+                    action_direction: msg.data.direction === 0 ? 'decrement' : 'increment',
+                };
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+    ];
+
+    const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
+
+    if (args.bind) {
+        result.configure = async (device, coordinatorEndpoint, logger) => {
+            if (args.endpointNames) {
+                const endpointsMap = new Map<string, boolean>(args.endpointNames.map((e) => [e, true]));
+                const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
+                for (const endpoint of endpoints) {
+                    await endpoint.bind('lightingColorCtrl', coordinatorEndpoint);
+                }
+            } else {
+                const endpoints = getEndpointsWithOutputCluster(device, 'lightingColorCtrl');
+                for (const endpoint of endpoints) {
+                    await endpoint.bind('lightingColorCtrl', coordinatorEndpoint);
                 }
             }
         };

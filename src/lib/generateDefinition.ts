@@ -235,6 +235,9 @@ const outputExtenders: Extender[] = [
     [['genLevelCtrl'], async (d, eps) => [
         new Generator({extend: m.commandsLevelCtrl, args: maybeEndpointArgs(d, eps), source: 'commandsLevelCtrl'}),
     ]],
+    [['lightingColorCtrl'], async (d, eps) => [
+        new Generator({extend: m.commandsColorCtrl, args: maybeEndpointArgs(d, eps), source: 'commandsColorCtrl'}),
+    ]],
     [['closuresWindowCovering'], async (d, eps) => [
         new Generator({extend: m.commandsWindowCovering, args: maybeEndpointArgs(d, eps), source: 'commandsWindowCovering'}),
     ]],
