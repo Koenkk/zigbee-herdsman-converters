@@ -801,6 +801,62 @@ const definitions: Definition[] = [
             await endpoint.read('genOnOff', ['onOff']);
         },
     },
+    {
+        zigbeeModel: ['DIO-300Z'],
+        model: 'DIO-300Z',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS DI/DO Module',
+        fromZigbee: [fz.sihas_action],
+        toZigbee: [],
+        exposes: [e.action(['single', 'double', 'long'])],
+        extend: [
+            enumLookup({
+                name: 'di_status',
+                lookup: {'Close': 0, 'Open': 1},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9009, type: 0x20},
+                description: 'Indicates whether the DI(Digital Input) is open or closed',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+                access: 'STATE_GET',
+            }),
+            onOff({powerOnBehavior: false}),
+            enumLookup({
+                name: 'di_type',
+                lookup: {'Button': 0, 'Door': 1},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x900A, type: 0x20},
+                description: 'Set the DI(Digital Input) type to either a button or door sensor(latch) type',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+            }),
+            enumLookup({
+                name: 'do_type',
+                lookup: {'Pulse': 0, 'Latch': 1},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x900B, type: 0x20},
+                description: 'Set the DO(Digital Output) type to either a pulse or latch type',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+            }),
+            enumLookup({
+                name: 'di_do_link',
+                lookup: {'Off': 0, 'On': 1},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x900C, type: 0x20},
+                description: 'Configure DO linkage according to DI status. When set to ON, DO is output according to the DI input.',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+            }),
+            numeric({
+                name: 'do_pulse_time',
+                cluster: 'genOnOff',
+                attribute: {ID: 0x900D, type: 0x21},
+                description: 'When the DO output is set to pulse type, you can set the DO pulse time. The unit is milliseconds.',
+                valueMin: 100,
+                valueMax: 3000,
+                valueStep: 100,
+                unit: 'ms',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+            }),
+        ],
+    },
 ];
 
 export default definitions;
