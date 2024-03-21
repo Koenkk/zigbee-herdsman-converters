@@ -1139,6 +1139,13 @@ const definitions: Definition[] = [
         extend: [tradfriLight()],
     },
     {
+        zigbeeModel: ['JETSTROM 3030 ceiling'],
+        model: 'L2206',
+        vendor: 'IKEA',
+        description: 'JETSTRÖM LED wall light panel, smart dimmable/wired-in colour and white spectrum, 30x30cm',
+        extend: [tradfriLight({colorTemp: true, color: true})],
+    },
+    {
         zigbeeModel: ['JETSTROM 40100'],
         model: 'L2208',
         vendor: 'IKEA',
