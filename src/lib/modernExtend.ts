@@ -767,7 +767,7 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
     }
     const exposes: Expose[] = [
-        e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)'),
+        e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic'),
     ];
 
     const defaultSimulatedBrightness = 255;
@@ -1064,7 +1064,7 @@ export function commandsWindowCovering(args?: {commands?: ('open' | 'close' | 's
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
     }
     const exposes: Expose[] = [
-        e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)'),
+        e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic'),
     ];
 
     const actionPayloadLookup: KeyValueString = {
@@ -1590,7 +1590,7 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     let actions = Object.keys(lookup).map((a) => args.endpointNames ? args.endpointNames.map((e) => `${a}_${e}`) : [a]).flat();
     // allows direct external input to be used by other extends in the same device
     if (args.extraActions) actions = actions.concat(args.extraActions);
-    const expose = e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)');
+    const expose = e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic');
 
     const fromZigbee: Fz.Converter[] = [{
         cluster: cluster.toString(),
