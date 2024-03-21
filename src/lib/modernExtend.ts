@@ -183,14 +183,14 @@ export function battery(args?: BatteryArgs): ModernExtend {
 
     if (args.percentage) {
         exposes.push(
-            e.numeric('battery', ea.STATE).withUnit('%')
+            e.numeric('battery', ea.STATE_GET).withUnit('%')
                 .withDescription('Remaining battery in %')
                 .withValueMin(0).withValueMax(100).withCategory('diagnostic'),
         );
     }
     if (args.voltage) {
         exposes.push(
-            e.numeric('voltage', ea.STATE).withUnit('mV')
+            e.numeric('voltage', ea.STATE_GET).withUnit('mV')
                 .withDescription('Reported battery voltage in millivolts').withCategory('diagnostic'),
         );
     }
