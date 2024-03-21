@@ -229,6 +229,7 @@ const inputExtenders: Extender[] = [
 ];
 
 const outputExtenders: Extender[] = [
+    [['genOta'], async (d, eps) => [new Generator({extend: m.ota, source: 'ota'})]],
     [['genOnOff'], async (d, eps) => [
         new Generator({extend: m.commandsOnOff, args: maybeEndpointArgs(d, eps), source: 'commandsOnOff'}),
     ]],
