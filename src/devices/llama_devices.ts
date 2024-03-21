@@ -1,14 +1,14 @@
-import {Definition, Tz, Fz} from '../lib/types';
-import fz from '../converters/fromZigbee';
+import {Definition, Fz, ModernExtend} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+import * as modernExtend from '../lib/modernExtend';
 
 const e = exposes.presets;
-const ea = exposes.access;
 const prefixEnpointName: string = 'button_';
 const endpointCount = 4;
 
 type Config = {
+    cluster: string,
     attribute: string,
     name: string,
     description: string,
@@ -20,6 +20,7 @@ type ConfigValues = {
     command?: string
 };
 const switchTypeConf: Config = {
+    cluster: 'genOnOffSwitchCfg',
     attribute: 'switchType',
     name: 'switch_type',
     description: 'Operation method of the switch',
@@ -39,6 +40,7 @@ const switchTypeConf: Config = {
     ],
 };
 const switchAtionConf: Config = {
+    cluster: 'genOnOffSwitchCfg',
     attribute: 'switchActions',
     name: 'switch_actions',
     description: 'Command to be generated when the switch moves between its two states',
@@ -62,22 +64,35 @@ const configs: Config[] = [
     switchAtionConf,
 ];
 
-function addEndpointPrefix(ep: number) {
-    return `${prefixEnpointName}${ep}`;
+function mapModernActionEnum() {
+    return modernExtend.actionEnumLookup({
+        actionLookup: {a: '1'}, // todo:
+        attribute: 'ss', // todo:
+        cluster: 'genOnOff',
+        commands: [
+            'commandOn',
+            'commandOff',
+            'commandToggle',
+            // 'commandOnWithTimedOff'
+        ],
+    });
 }
 
-function createSwitchExposes(epc: number) {
-    const feature: exposes.Enum[] = [];
-    for (let i = 0; i < epc; i++) {
-        configs.forEach((c) => {
-            feature.push(e.enum(c.name, ea.ALL,
-                c.values.map((v) => v.name))
-                .withDescription(c.description)
-                .withEndpoint(addEndpointPrefix(i + 1),
-                ));
-        });
-    }
-    return feature;
+function mapModernEnum(cfg: Config, epName: string) {
+    return modernExtend.enumLookup({
+        name: cfg.name,
+        lookup: mapObject(cfg.values, (k) => k.name, (v) => v.value),
+        endpointName: epName,
+        cluster: cfg.cluster,
+        attribute: cfg.attribute,
+        description: cfg.description,
+        access: 'ALL',
+        entityCategory: 'config',
+    });
+}
+
+function addEndpointPrefix(ep: number) {
+    return `${prefixEnpointName}${ep}`;
 }
 
 function mapObject<T>(arr: T[], mapKey: (k: T) => string | [string], mapValue: (v: T) => string | number) {
@@ -85,19 +100,6 @@ function mapObject<T>(arr: T[], mapKey: (k: T) => string | [string], mapValue: (
 }
 
 const fzLocal = {
-    on_off_switch_config: {
-        cluster: 'genOnOffSwitchCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return mapObject(
-                configs,
-                (k) => [`${k.name}_${addEndpointPrefix(msg.endpoint.ID)}`],
-                (v) => {
-                    const vv = v.values.find((vv) => vv.value == msg.data[v.attribute]);
-                    return vv?.name;
-                });
-        },
-    } satisfies Fz.Converter,
     on_off_action: {
         cluster: 'genOnOff',
         type: [
@@ -112,36 +114,30 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const tzLocal = {
-    on_off_switch_config: {
-        key: ['switch_type', 'switch_actions'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOffSwitchCfg', configs.map((c) => c.attribute));
-        },
-        convertSet: async (entity, key, value, meta) => {
-            const cfg = configs.find((c) => c.name == key);
-            const ret = mapObject([cfg], (k) => k.attribute, (v) => v.values.find((v) => v.name == value).value);
-            await entity.write('genOnOffSwitchCfg', ret);
-
-            return {state: {[key]: value}};
-        },
-    } satisfies Tz.Converter,
-};
-
 const definitions: Definition[] = [
     {
         zigbeeModel: ['Zucchini'],
         model: 'Zucchini',
         vendor: 'Llama Devices',
         description: 'On/Off output device',
-        fromZigbee: [fzLocal.on_off_action, fz.battery, fz.temperature, fz.humidity, fzLocal.on_off_switch_config],
-        toZigbee: [tzLocal.on_off_switch_config],
+        fromZigbee: [fzLocal.on_off_action],
         exposes: [
             e.action([]),
-            e.battery(),
-            e.temperature(),
-            e.humidity(),
-            ...createSwitchExposes(endpointCount),
+        ],
+        extend: [
+            mapModernActionEnum(),
+            modernExtend.battery(),
+            modernExtend.temperature(),
+            modernExtend.humidity(),
+            ...((epCount: number) => {
+                const features: ModernExtend[] = [];
+                for (let ep = 1; ep <= epCount; ep++) {
+                    for (let i = 0; i < configs.length; i++) {
+                        features.push(mapModernEnum(configs[i], addEndpointPrefix(ep)));
+                    }
+                }
+                return features;
+            })(endpointCount),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep1 = device.getEndpoint(1);
