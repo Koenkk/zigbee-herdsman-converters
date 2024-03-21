@@ -35,8 +35,8 @@ describe('GenerateDefinition', () => {
             device: mockDevice({modelID: 'temp', endpoints: [{inputClusters: ['msTemperatureMeasurement'], outputClusters:['genIdentify']}]}),
             meta: undefined,
             fromZigbee: [expect.objectContaining({cluster: 'msTemperatureMeasurement'})],
-            toZigbee: ['temperature', 'identify'],
-            exposes: ['identify','linkquality', 'temperature'],
+            toZigbee: ['temperature'],
+            exposes: ['linkquality', 'temperature'],
             bind: {1: ['msTemperatureMeasurement']},
             read: {1: [['msTemperatureMeasurement', ['measuredValue']]]},
             configureReporting: {
