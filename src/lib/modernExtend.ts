@@ -528,6 +528,20 @@ export function humidity(args?: Partial<NumericArgs>) {
     });
 }
 
+export function soilMoisture(args?: Partial<NumericArgs>) {
+    return numeric({
+        name: 'soil_moisture',
+        cluster: 'msSoilMoisture',
+        attribute: 'measuredValue',
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 100},
+        description: 'Measured soil moisture value',
+        unit: '%',
+        scale: 100,
+        access: 'STATE_GET',
+        ...args,
+    });
+}
+
 export function occupancy(args?: Partial<BinaryArgs>): ModernExtend {
     const name = 'occupancy';
     const cluster = 'msOccupancySensing';
