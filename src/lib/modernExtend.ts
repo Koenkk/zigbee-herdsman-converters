@@ -375,7 +375,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
 }
 
 export function commandsOnOff(args?: {commands?: ('on' | 'off' | 'toggle')[], bind?: boolean, endpointNames?: string[]}): ModernExtend {
-    args = {commands: ['on', 'off', 'toggle'], bind: false, ...args};
+    args = {commands: ['on', 'off', 'toggle'], bind: true, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -760,7 +760,7 @@ export interface CommandsLevelCtrl {
 export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
     args = {commands: [
         'brightness_move_to_level', 'brightness_move_up', 'brightness_move_down', 'brightness_step_up', 'brightness_step_down', 'brightness_stop',
-    ], bind: false, ...args};
+    ], bind: true, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -1315,7 +1315,7 @@ export function windowCovering(args: WindowCoveringArgs): ModernExtend {
 }
 
 export function commandsWindowCovering(args?: {commands?: ('open' | 'close' | 'stop')[], bind?: boolean, endpointNames?: string[]}): ModernExtend {
-    args = {commands: ['open', 'close', 'stop'], bind: false, ...args};
+    args = {commands: ['open', 'close', 'stop'], bind: true, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
