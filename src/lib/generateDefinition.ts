@@ -226,6 +226,9 @@ const inputExtenders: Extender[] = [
 
 const outputExtenders: Extender[] = [
     [['genIdentify'], async (d, eps) => [new Generator({extend: m.identify, source: 'identify'})]],
+    [['closuresWindowCovering'], async (d, eps) => [
+        new Generator({extend: m.commandsWindowCovering, args: maybeEndpointArgs(d, eps), source: 'commandsWindowCovering'}),
+    ]],
 ];
 
 async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {

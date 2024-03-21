@@ -912,6 +912,57 @@ export function lock(args?: LockArgs): ModernExtend {
     return {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
 }
 
+export function commandsWindowCovering(args?: {commands?: ('open' | 'close' | 'stop')[], bind?: boolean, endpointNames?: string[]}): ModernExtend {
+    args = {commands: ['open', 'close', 'stop'], bind: false, ...args};
+    let actions: string[] = args.commands;
+    if (args.endpointNames) {
+        actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
+    }
+    const exposes: Expose[] = [
+        e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)'),
+    ];
+
+    const actionPayloadLookup: KeyValueString = {
+        'commandUpOpen': 'open',
+        'commandDownClose': 'close',
+        'commandStop': 'stop',
+    };
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'closuresWindowCovering',
+            type: ['commandUpOpen', 'commandDownClose', 'commandStop'],
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const payload = {action: postfixWithEndpointName(actionPayloadLookup[msg.type], msg, model, meta)};
+                addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+    ];
+
+    const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
+
+    if (args.bind) {
+        result.configure = async (device, coordinatorEndpoint, logger) => {
+            if (args.endpointNames) {
+                const endpointsMap = new Map<string, boolean>(args.endpointNames.map((e) => [e, true]));
+                const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
+                for (const endpoint of endpoints) {
+                    await endpoint.bind('closuresWindowCovering', coordinatorEndpoint);
+                }
+            } else {
+                const endpoints = getEndpointsWithOutputCluster(device, 'closuresWindowCovering');
+                for (const endpoint of endpoints) {
+                    await endpoint.bind('closuresWindowCovering', coordinatorEndpoint);
+                }
+            }
+        };
+    }
+
+    return result;
+}
+
 // #endregion
 
 // #region Security and Safety
