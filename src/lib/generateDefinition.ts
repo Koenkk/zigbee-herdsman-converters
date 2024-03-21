@@ -226,6 +226,12 @@ const inputExtenders: Extender[] = [
 
 const outputExtenders: Extender[] = [
     [['genIdentify'], async (d, eps) => [new Generator({extend: m.identify, source: 'identify'})]],
+    [['genOnOff'], async (d, eps) => [
+        new Generator({extend: m.commandsOnOff, args: maybeEndpointArgs(d, eps), source: 'commandsOnOff'}),
+    ]],
+    [['genLevelCtrl'], async (d, eps) => [
+        new Generator({extend: m.commandsLevelCtrl, args: maybeEndpointArgs(d, eps), source: 'commandsLevelCtrl'}),
+    ]],
     [['closuresWindowCovering'], async (d, eps) => [
         new Generator({extend: m.commandsWindowCovering, args: maybeEndpointArgs(d, eps), source: 'commandsWindowCovering'}),
     ]],
