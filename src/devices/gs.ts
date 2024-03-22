@@ -68,6 +68,7 @@ const definitions: Definition[] = [
         extend: [
             battery(),
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({voltage: true}),
         ],
     },
     {
@@ -111,6 +112,7 @@ const definitions: Definition[] = [
         extend: [
             battery(),
             iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({voltage: true}),
         ],
     },
 ];
