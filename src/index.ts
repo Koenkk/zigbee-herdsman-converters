@@ -104,23 +104,7 @@ function processExtensions(definition: Definition): Definition {
             assert.fail(`'${definition.model}' has function exposes which is not allowed`);
         }
 
-        const actionExposes: Expose[] = [];
-
-        if (exposes) {
-            const filteredExposes: Expose[] = [];
-            for (const expose of exposes) {
-                // filteing out actions to combine them
-                if (expose.name === 'action') {
-                    actionExposes.push(expose);
-                } else {
-                    filteredExposes.push(expose);
-                }
-            }
-            exposes = filteredExposes;
-        } else {
-            exposes = [];
-        }
-
+        exposes = [...exposes ?? []]
         toZigbee = [...toZigbee ?? []];
         fromZigbee = [...fromZigbee ?? []];
 
@@ -132,16 +116,7 @@ function processExtensions(definition: Definition): Definition {
             }
             if (ext.toZigbee) toZigbee.push(...ext.toZigbee);
             if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
-            if (ext.exposes) {
-                for (const expose of ext.exposes) {
-                    // filteing out actions to combine them
-                    if (expose.name === 'action') {
-                        actionExposes.push(expose)
-                    } else {
-                        exposes.push(expose);
-                    }
-                } 
-            };
+            if (ext.exposes) exposes.push(...ext.exposes);
             if (ext.meta) meta = {...ext.meta, ...meta};
             if (ext.configure) configures.push(ext.configure);
             if (ext.ota) {
@@ -163,6 +138,19 @@ function processExtensions(definition: Definition): Definition {
                 onEvent = ext.onEvent;
             }
         }
+
+        const actionExposes: Expose[] = [];
+        const filteredExposes: Expose[] = [];
+        
+        for (const expose of exposes) {
+            // filteing out actions to combine them
+            if (expose.name === 'action') {
+                actionExposes.push(expose);
+            } else {
+                filteredExposes.push(expose);
+            }
+        }
+        exposes = filteredExposes;
 
         // combining all action exposes into one
         if (actionExposes.length > 0) {
