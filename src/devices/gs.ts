@@ -56,8 +56,8 @@ const definitions: Definition[] = [
         vendor: 'GS',
         description: 'Motion sensor',
         extend: [
-            battery({voltageToPercentage: '3V_2500', voltage: true}),
             iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({voltageToPercentage: '3V_2500', voltage: true}),
         ],
     },
     {
@@ -66,7 +66,6 @@ const definitions: Definition[] = [
         vendor: 'GS',
         description: 'Open and close sensor',
         extend: [
-            battery(),
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
             battery({voltage: true}),
         ],
@@ -78,9 +77,9 @@ const definitions: Definition[] = [
         description: 'Siren',
         meta: {disableDefaultResponse: true},
         extend: [
-            battery(),
             ignoreClusterReport({cluster: 'genBasic'}),
             iasWarning(),
+            battery(),
         ],
     },
     {
@@ -89,8 +88,8 @@ const definitions: Definition[] = [
         vendor: 'GS',
         description: 'Smoke detector',
         extend: [
-            battery(),
             iasZoneAlarm({zoneType: 'smoke', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery(),
         ],
     },
     {
@@ -110,7 +109,6 @@ const definitions: Definition[] = [
         vendor: 'GS',
         description: 'Water leakage sensor',
         extend: [
-            battery(),
             iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
             battery({voltage: true}),
         ],
