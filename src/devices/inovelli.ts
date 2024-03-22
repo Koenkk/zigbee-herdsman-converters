@@ -536,7 +536,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 120,
         dataType: UINT8,
         displayType: 'enum',
-        values: { 'Old Behavior': 0, 'New Behavior': 1, 'Down Always Off': 2 },
+        values: {'Old Behavior': 0, 'New Behavior': 1, 'Down Always Off': 2},
         description: 'Behavior of single tapping the on or off button. Old behavior turns the switch on or off. ' +
             'New behavior cycles through the levels set by P131-133. Down Always Off is like the new behavior but ' +
             'down always turns the switch off instead of going to next lower speed.',
@@ -545,14 +545,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 121,
         dataType: BOOLEAN,
         displayType: 'enum',
-        values: { 'Disabled': 0, 'Enabled': 1 },
+        values: {'Disabled': 0, 'Enabled': 1},
         description: 'Enable or disable advanced timer mode to have the switch act like a bathroom fan timer',
     },
     fanControlMode: {
         ID: 130,
         dataType: UINT8,
         displayType: 'enum',
-        values: { 'Disabled': 0, 'Multi Tap': 1, 'Cycle': 2 },
+        values: {'Disabled': 0, 'Multi Tap': 1, 'Cycle': 2},
         description: 'Which mode to use when binding EP3 to a fan module.',
     },
     lowLevelForFanControlMode: {
