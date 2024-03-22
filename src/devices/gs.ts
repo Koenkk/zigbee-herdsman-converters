@@ -21,7 +21,7 @@ const definitions: Definition[] = [
         vendor: 'GS',
         description: 'Smart light bulb',
         extend: [
-            light({colorTemp: {range: undefined}}),
+            light({colorTemp: {range: [153, 370]}}),
             identify(),
         ],
     },
