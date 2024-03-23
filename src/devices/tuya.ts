@@ -2378,8 +2378,14 @@ const definitions: Definition[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverter.onOff],
-                [2, 'system_mode', {
+                [1, null, {
+                    from: (v, meta) => {
+                        return v === true ?
+                            {state: 'ON', system_mode: meta.state.system_mode_device ? meta.state.system_mode_device : 'cool'} :
+                            {state: 'OFF', system_mode: 'off'};
+                    },
+                }],
+                [null, 'system_mode', {
                     // Extend system_mode to support 'off' in addition to 'cool', 'heat' and 'fan_only'
                     to: async (v: string, meta) => {
                         const entity = meta.device.endpoints[0];
@@ -2402,10 +2408,12 @@ const definitions: Definition[] = [
                 }],
                 [2, null, {
                     // Map system_mode back to both 'state' and 'system_mode'
-                    from: (v: string) => {
+                    from: (v: number, meta) => {
+                        const modes = ['cool', 'heat', 'fan_only'];
+
                         return {
-                            state: v == 'off' ? 'OFF' : 'ON',
-                            system_mode: v,
+                            system_mode: modes[v],
+                            system_mode_device: modes[v],
                         };
                     },
                 }],
