@@ -7,7 +7,6 @@ const prefixEnpointName: string = 'button_';
 const endpointCount = 4;
 
 type Config = {
-    cluster: string,
     attribute: string,
     name: string,
     description: string,
@@ -19,7 +18,6 @@ type ConfigValues = {
     command?: string
 };
 const switchTypeConf: Config = {
-    cluster: 'genOnOffSwitchCfg',
     attribute: 'switchType',
     name: 'switch_type',
     description: 'Operation method of the switch',
@@ -39,7 +37,6 @@ const switchTypeConf: Config = {
     ],
 };
 const switchAtionConf: Config = {
-    cluster: 'genOnOffSwitchCfg',
     attribute: 'switchActions',
     name: 'switch_actions',
     description: 'Command to be generated when the switch moves between its two states',
@@ -68,7 +65,7 @@ function mapModernEnum(cfg: Config, epName: string) {
         name: cfg.name,
         lookup: mapObject(cfg.values, (k) => k.name, (v) => v.value),
         endpointName: epName,
-        cluster: cfg.cluster,
+        cluster: 'genOnOffSwitchCfg',
         attribute: cfg.attribute,
         description: cfg.description,
         access: 'ALL',
@@ -96,7 +93,7 @@ function mapObject<T>(arr: T[], mapKey: (k: T) => string | [string], mapValue: (
 
 const fzLocal = {
     on_off_action: {
-        cluster: switchTypeConf.cluster,
+        cluster: 'genOnOff',
         type: [
             'commandOn',
             'commandOff',
@@ -134,15 +131,15 @@ const definitions: Definition[] = [
             ...createSwitchExpends(endpointCount),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.endpoints.filter((ep) => ep.supportsInputCluster(switchAtionConf.cluster))
+            device.endpoints.filter((ep) => ep.supportsInputCluster('genOnOffSwitchCfg'))
                 .forEach(async (ep) => {
-                    await ep.read(switchAtionConf.cluster, configs.map((c) => c.attribute));
+                    await ep.read('genOnOffSwitchCfg', configs.map((c) => c.attribute));
                 });
             device.save();
         },
         endpoint: (device) => {
             return mapObject(
-                device.endpoints.filter((ep) => ep.supportsInputCluster(switchTypeConf.cluster)), (epk) => addEndpointPrefix(epk.ID), (epv) => epv.ID,
+                device.endpoints.filter((ep) => ep.supportsInputCluster('genOnOff')), (epk) => addEndpointPrefix(epk.ID), (epv) => epv.ID,
             );
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['battery', 'temperature', 'humidity']},
