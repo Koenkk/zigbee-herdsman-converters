@@ -142,7 +142,7 @@ const definitions: Definition[] = [
             device.save();
         },
         endpoint: (device) => {
-            return mapObject(device.endpoints.filter((ep) => ep.ID != 242), (epk) => addEndpointPrefix(epk.ID), (epv) => epv.ID);
+            return mapObject(device.endpoints.filter((ep) => ep.supportsInputCluster('genOnOff')), (epk) => addEndpointPrefix(epk.ID), (epv) => epv.ID);
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['battery', 'temperature', 'humidity']},
     },
