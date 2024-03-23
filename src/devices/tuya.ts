@@ -2371,10 +2371,10 @@ const definitions: Definition[] = [
             e.child_lock(),
             e.text('schedule', ea.STATE_SET)
                 .withDescription('Schedule will work with "auto" preset. In this mode, the device executes ' +
-                'a preset week programming temperature time and temperature. Schedule can contains 12 segments.' +
-                'All 12 segments should be defined. It should be defined in the following format: `hh:mm/tt`.' +
-                'Segments should be divided by space symbol.' +
-                'Example: `06:00/20 11:30/21 13:30/22 17:30/23 06:00/24 12:00/23 14:30/22 17:30/21 06:00/19 12:30/20 14:30/21 18:30/20`.'),
+                'a preset week programming temperature time and temperature. Schedule can contains 12 segments. ' +
+                'All 12 segments should be defined. It should be defined in the following format: "hh:mm/tt". ' +
+                'Segments should be divided by space symbol. ' +
+                'Example: "06:00/20 11:30/21 13:30/22 17:30/23 06:00/24 12:00/23 14:30/22 17:30/21 06:00/19 12:30/20 14:30/21 18:30/20"'),
         ],
         meta: {
             tuyaDatapoints: [
