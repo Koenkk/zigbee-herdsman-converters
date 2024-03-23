@@ -2033,9 +2033,9 @@ export const fromZigbee = {
             } else {
                 pressure = parseFloat(msg.data['measuredValue']);
             }
-	    if (pressure > 500 && pressure < 2000) {
-		return {pressure};
-	    }
+            if (pressure > 500 && pressure < 2000) {
+                return {pressure};
+            }
         },
     } satisfies Fz.Converter,
 
