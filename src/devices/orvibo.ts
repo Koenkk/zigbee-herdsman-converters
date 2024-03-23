@@ -3,7 +3,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {deviceEndpoints, light, onOff, battery, humidity, temperature} from '../lib/modernExtend';
 
 const e = exposes.presets;
@@ -274,14 +273,7 @@ const definitions: Definition[] = [
         model: 'T40W1Z',
         vendor: 'ORVIBO',
         description: 'MixSwitch 1 gang',
-        extend: extend.switch(),
-        exposes: [e.switch()],
-
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['2e13af8e17434961be98f055d68c2166'],
@@ -327,13 +319,7 @@ const definitions: Definition[] = [
         model: 'T41W1Z',
         vendor: 'ORVIBO',
         description: 'MixSwitch 1 gang (without neutral wire)',
-        extend: extend.switch(),
-        exposes: [e.switch()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        extend: [onOff()],
     },
     {
         zigbeeModel: ['7c8f476a0f764cd4b994bc73d07c906d'],

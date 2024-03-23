@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -1795,6 +1796,13 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929002401101'],
+        model: '929002401101',
+        vendor: 'Philips',
+        description: 'Hue Iris silver limited edition (generation 4) ',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ['929002376703'],
         model: '929002376703',
         vendor: 'Philips',
@@ -2152,7 +2160,7 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'manuSpecificPhilips']);
             await reporting.batteryPercentageRemaining(endpoint);
-            const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
             await endpoint.write('genBasic', {0x0034: {value: 0, type: 48}}, options);
         },
     },
@@ -2173,7 +2181,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
 
             const endpoint2 = device.getEndpoint(2);
-            const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
             await endpoint2.write('genBasic', {0x0031: {value: 0x000B, type: 0x19}}, options);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['manuSpecificPhilips', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint2);
@@ -2198,7 +2206,7 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificPhilips', 'genPowerCfg']);
-            const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
             await endpoint.write('genBasic', {0x0031: {value: 0x000B, type: 0x19}}, options);
             await reporting.batteryPercentageRemaining(endpoint);
         },
@@ -2216,7 +2224,7 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
 
-            const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
             await endpoint.write('genBasic', {0x0031: {value: 0x000B, type: 0x19}}, options);
             await reporting.bind(endpoint, coordinatorEndpoint, ['manuSpecificPhilips', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -2248,7 +2256,7 @@ const definitions: Definition[] = [
             await reporting.illuminance(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
-            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: 4107});
+            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
         ota: ota.zigbeeOTA,
     },
@@ -2277,7 +2285,7 @@ const definitions: Definition[] = [
             await reporting.illuminance(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
-            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: 4107});
+            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
         ota: ota.zigbeeOTA,
     },
@@ -2352,7 +2360,7 @@ const definitions: Definition[] = [
             await reporting.illuminance(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
-            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: 4107});
+            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
     },
     {
@@ -2377,7 +2385,7 @@ const definitions: Definition[] = [
             await reporting.illuminance(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
-            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: 4107});
+            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
         // Temporary disable until OTA is available: https://github.com/Koenkk/zigbee2mqtt/issues/14923
         // ota: ota.zigbeeOTA,
@@ -2891,12 +2899,17 @@ const definitions: Definition[] = [
             e.enum('action_type', ea.STATE, ['step', 'rotate'])
                 .withDescription('Type of the rotation, value in the first message is `step` and in the next messages value is `rotate`'),
             e.numeric('action_time', ea.STATE)
-                .withDescription('Raw value that represents the amount the dial was turned').withValueMin(0).withValueMax(255),
+                .withDescription('value in seconds representing the amount of time the last action took').withValueMin(0).withValueMax(255),
+            e.numeric('brightness', ea.STATE)
+                .withDescription('Raw rotation state value of the dial which represents brightness from 0-255').withValueMin(0).withValueMax(255),
+            e.numeric('action_step_size', ea.STATE)
+                .withDescription('amount of steps the last action took on the dial exposed as a posive value from 0-255')
+                .withValueMin(0).withValueMax(255),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificPhilips', 'genPowerCfg']);
-            const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
             await endpoint.write('genBasic', {0x0031: {value: 0x000B, type: 0x19}}, options);
             await reporting.batteryPercentageRemaining(endpoint);
         },

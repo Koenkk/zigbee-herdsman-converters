@@ -12,7 +12,10 @@ const definitions: Definition[] = [
         model: 'VES-ZB-DIM-004',
         vendor: 'Vesternet',
         description: 'Zigbee dimmer',
-        extend: [light({configureReporting: true}), electricityMeter()],
+        extend: [
+            light({configureReporting: true, levelConfig: {disabledFeatures: ['on_transition_time', 'off_transition_time']}}),
+            electricityMeter(),
+        ],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9040A'}],
     },
     {

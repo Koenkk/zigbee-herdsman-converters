@@ -117,6 +117,7 @@ import iluminize from './iluminize';
 import ilux from './ilux';
 import imhotepcreation from './imhotepcreation';
 import immax from './immax';
+import imou from './imou';
 import innr from './innr';
 import inovelli from './inovelli';
 import insta from './insta';
@@ -411,6 +412,7 @@ export default [
     ...ilux,
     ...imhotepcreation,
     ...immax,
+    ...imou,
     ...innr,
     ...inovelli,
     ...insta,

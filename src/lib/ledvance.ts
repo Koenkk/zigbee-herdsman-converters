@@ -5,7 +5,7 @@ import * as utils from '../lib/utils';
 import {Zcl} from 'zigbee-herdsman';
 import * as ota from '../lib/ota';
 
-const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM};
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
 
 export const ledvanceFz = {
     pbc_level_to_action: {

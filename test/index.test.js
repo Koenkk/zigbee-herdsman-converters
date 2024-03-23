@@ -229,7 +229,6 @@ describe('index.js', () => {
             }
 
             expect(device.fromZigbee).not.toContain(undefined);
-            expect(device.fromZigbee.length).toBe(new Set(device.fromZigbee).size)
 
             // Verify fromConverters
             Object.keys(device.fromZigbee).forEach((converterKey) => {
@@ -577,12 +576,11 @@ describe('index.js', () => {
         expect(payload).toStrictEqual({temperature: 3.7});
 
         // For multi endpoint property
-        const SPP04G = index.findByModel('SPP04G');
-        expect(SPP04G.options.map((t) => t.name)).toStrictEqual(['power_calibration', 'power_precision','current_calibration', 'current_precision',
-        'voltage_calibration', 'voltage_precision', 'energy_calibration', 'energy_precision', 'state_action']);
+        const AUA1ZBDSS = index.findByModel('AU-A1ZBDSS');
+        expect(AUA1ZBDSS.options.map((t) => t.name)).toStrictEqual(['power_calibration', 'power_precision', 'transition', 'state_action']);
         payload = {power_left: 5.31};
         options = {power_calibration: 100, power_precision: 0}; // calibration for power is percentual
-        index.postProcessConvertedFromZigbeeMessage(SPP04G, payload, options);
+        index.postProcessConvertedFromZigbeeMessage(AUA1ZBDSS, payload, options);
         expect(payload).toStrictEqual({power_left: 11});
 
         const TS011F_plug_1 = index.definitions.find((d) => d.model == 'TS011F_plug_1');

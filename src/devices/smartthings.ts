@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -5,8 +6,7 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import {light} from '../lib/modernExtend';
+import {electricityMeter, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -82,7 +82,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x104E};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC};
             await reporting.bind(endpoint, coordinatorEndpoint,
                 ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await reporting.temperature(endpoint);
@@ -130,18 +130,9 @@ const definitions: Definition[] = [
         model: 'GP-WOU019BBDWG',
         vendor: 'SmartThings',
         description: 'Outlet with power meter',
-        extend: extend.switch({fromZigbee: [fz.electrical_measurement, fz.metering], exposes: [e.power(), e.energy()]}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            // This plug only actively reports power. The voltage and current values are always 0, so we can ignore them.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/5198
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.activePower(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
+        // This plug only actively reports power. The voltage and current values are always 0, so we can ignore them.
+        // https://github.com/Koenkk/zigbee2mqtt/issues/5198
+        extend: [onOff(), electricityMeter({current: false, voltage: false})],
     },
     {
         zigbeeModel: ['outlet'],
@@ -277,7 +268,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x110A};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SMARTTHINGS_INC};
             await reporting.bind(endpoint, coordinatorEndpoint,
                 ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x01, type: 0x20}}, options);
@@ -310,7 +301,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x1241};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD};
             await reporting.bind(endpoint, coordinatorEndpoint,
                 ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x14, type: 0x20}}, options);
@@ -351,7 +342,11 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 10,
             }];
-            await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, {manufacturerCode: 0x104E});
+            await endpoint.configureReporting(
+                'manuSpecificCentraliteHumidity',
+                payload,
+                {manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC},
+            );
 
             await reporting.batteryVoltage(endpoint);
         },

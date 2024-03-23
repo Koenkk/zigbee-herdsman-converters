@@ -11,7 +11,7 @@ import * as utils from '../lib/utils';
 import * as globalStore from '../lib/store';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {postfixWithEndpointName, precisionRound, isObject, replaceInArray} from '../lib/utils';
-import {onOff, LightArgs, light as lightDontUse} from '../lib/modernExtend';
+import {onOff, LightArgs, light as lightDontUse, battery, iasZoneAlarm} from '../lib/modernExtend';
 import * as semver from 'semver';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -419,6 +419,13 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/E27 980 lumen, dimmable, white spectrum, opal white',
         extend: [tradfriLight({colorTemp: true})],
+    },
+    {
+        zigbeeModel: ['TRADFRI bulb E27 CWS globe 806lm'],
+        model: 'LED2109G6',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 806 lumen, dimmable, color, opal white',
+        extend: [tradfriLight({colorTemp: true, color: true})],
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS candle 470lm'],
@@ -1132,6 +1139,13 @@ const definitions: Definition[] = [
         extend: [tradfriLight()],
     },
     {
+        zigbeeModel: ['JETSTROM 3030 ceiling'],
+        model: 'L2206',
+        vendor: 'IKEA',
+        description: 'JETSTRÖM LED wall light panel, smart dimmable/wired-in colour and white spectrum, 30x30cm',
+        extend: [tradfriLight({colorTemp: true, color: true})],
+    },
+    {
         zigbeeModel: ['JETSTROM 40100'],
         model: 'L2208',
         vendor: 'IKEA',
@@ -1298,6 +1312,14 @@ const definitions: Definition[] = [
             await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genBasic', 'ssIasZone']);
         },
+    },
+    {
+        zigbeeModel: ['BADRING Water Leakage Sensor'],
+        model: 'E2202',
+        vendor: 'IKEA',
+        description: 'Water leakage detection sensor',
+        extend: [iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']}), battery()],
+        ota: ota.tradfri,
     },
 ];
 

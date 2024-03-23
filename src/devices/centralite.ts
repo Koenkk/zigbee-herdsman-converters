@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -294,7 +295,11 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 10,
             }];
-            await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, {manufacturerCode: 0x104E});
+            await endpoint.configureReporting(
+                'manuSpecificCentraliteHumidity',
+                payload,
+                {manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC},
+            );
 
             await reporting.batteryVoltage(endpoint);
         },

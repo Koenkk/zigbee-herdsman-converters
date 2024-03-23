@@ -3,7 +3,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as globalStore from '../lib/store';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -68,7 +67,7 @@ const definitions: Definition[] = [
         vendor: 'Livolo',
         fromZigbee: [fz.livolo_new_switch_state, fz.power_on_behavior],
         toZigbee: [tz.livolo_socket_switch_on_off, tz.power_on_behavior],
-        extend: extend.switch(),
+        exposes: [e.switch()],
         configure: poll,
         endpoint: (device) => {
             return {'left': 6, 'right': 6};
@@ -151,7 +150,7 @@ const definitions: Definition[] = [
         model: 'TI0001-socket',
         description: 'Zigbee socket',
         vendor: 'Livolo',
-        extend: extend.switch(),
+        exposes: [e.switch()],
         fromZigbee: [fz.livolo_socket_state, fz.power_on_behavior],
         toZigbee: [tz.livolo_socket_switch_on_off, tz.power_on_behavior],
         configure: poll,
