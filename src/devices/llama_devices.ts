@@ -96,7 +96,7 @@ function mapObject<T>(arr: T[], mapKey: (k: T) => string | [string], mapValue: (
 
 const fzLocal = {
     on_off_action: {
-        cluster: 'genOnOff',
+        cluster: switchTypeConf.cluster,
         type: [
             'commandOn',
             'commandOff',
@@ -134,15 +134,15 @@ const definitions: Definition[] = [
             ...createSwitchExpends(endpointCount),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.endpoints.filter((ep) => ep.supportsInputCluster('genOnOffSwitchCfg'))
+            device.endpoints.filter((ep) => ep.supportsInputCluster(switchAtionConf.cluster))
                 .forEach(async (ep) => {
-                    await ep.read('genOnOffSwitchCfg', configs.map((c) => c.attribute));
+                    await ep.read(switchAtionConf.cluster, configs.map((c) => c.attribute));
                 });
             device.save();
         },
         endpoint: (device) => {
             return mapObject(
-                device.endpoints.filter((ep) => ep.supportsInputCluster('genOnOff')), (epk) => addEndpointPrefix(epk.ID), (epv) => epv.ID,
+                device.endpoints.filter((ep) => ep.supportsInputCluster(switchTypeConf.cluster)), (epk) => addEndpointPrefix(epk.ID), (epv) => epv.ID,
             );
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['battery', 'temperature', 'humidity']},
