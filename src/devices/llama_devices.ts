@@ -1,6 +1,5 @@
 import {Definition, Fz, ModernExtend} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
 import * as modernExtend from '../lib/modernExtend';
 
 const e = exposes.presets;
@@ -121,28 +120,30 @@ const definitions: Definition[] = [
             e.action([]),
         ],
         extend: [
-            modernExtend.battery(),
-            modernExtend.temperature(),
-            modernExtend.humidity(),
+            modernExtend.battery({
+                percentageReporting: true,
+                voltageReporting: false,
+                percentageReportingConfig: {change: 0, max: 3600, min: 0},
+            }),
+            modernExtend.temperature({
+                reporting: {min: 0, max: 3600, change: 0},
+            }),
+            modernExtend.humidity({
+                reporting: {min: 0, max: 3600, change: 0},
+            }),
             ...createSwitchExpends(endpointCount),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const ep1 = device.getEndpoint(1);
-            await reporting.bind(ep1, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.bind(ep1, coordinatorEndpoint, ['msRelativeHumidity']);
-            await reporting.bind(ep1, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            device.endpoints.filter((ep) => ep.ID != 242)
+            device.endpoints.filter((ep) => ep.supportsInputCluster('genOnOffSwitchCfg'))
                 .forEach(async (ep) => {
-                    await ep.bind('genOnOff', coordinatorEndpoint);
                     await ep.read('genOnOffSwitchCfg', configs.map((c) => c.attribute));
                 });
-            await reporting.batteryPercentageRemaining(ep1, {min: 0, max: 3600, change: 0});
-            await reporting.temperature(ep1, {min: 0, max: 3600, change: 0});
-            await reporting.humidity(ep1, {min: 0, max: 3600, change: 0});
             device.save();
         },
         endpoint: (device) => {
-            return mapObject(device.endpoints.filter((ep) => ep.supportsInputCluster('genOnOff')), (epk) => addEndpointPrefix(epk.ID), (epv) => epv.ID);
+            return mapObject(
+                device.endpoints.filter((ep) => ep.supportsInputCluster('genOnOff')), (epk) => addEndpointPrefix(epk.ID), (epv) => epv.ID,
+            );
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['battery', 'temperature', 'humidity']},
     },
