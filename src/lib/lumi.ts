@@ -2022,6 +2022,22 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
+    lumi_pressure: {
+        cluster: 'msPressureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let pressure = 0;
+            if (msg.data.hasOwnProperty('scaledValue')) {
+                const scale = msg.endpoint.getClusterAttributeValue('msPressureMeasurement', 'scale') as number;
+                pressure = msg.data['scaledValue'] / Math.pow(10, scale) / 100.0; // convert to hPa
+            } else {
+                pressure = parseFloat(msg.data['measuredValue']);
+            }
+	    if (pressure > 500 && pressure < 2000) {
+		return {pressure};
+	    }
+        },
+    } satisfies Fz.Converter,
 
     // lumi class specific
     lumi_feeder: {
