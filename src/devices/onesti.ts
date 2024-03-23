@@ -91,7 +91,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['NimlyPRO', 'NimlyCode', 'NimlyTouch', 'NimlyIn'],
         model: 'Nimly',
         vendor: 'Onesti Products AS',
-        description: 'Zigbee module for EasyAccess code touch series',
+        description: 'Zigbee module for Nimly Doorlock series',
         fromZigbee: [fzLocal.nimly_pro_lock_actions, fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event,
             fz.easycodetouch_action],
         toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume, tz.pincode_lock],
