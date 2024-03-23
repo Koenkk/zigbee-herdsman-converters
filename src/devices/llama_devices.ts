@@ -64,20 +64,6 @@ const configs: Config[] = [
     switchAtionConf,
 ];
 
-function mapModernActionEnum() {
-    return modernExtend.actionEnumLookup({
-        actionLookup: {a: '1'}, // todo:
-        attribute: 'ss', // todo:
-        cluster: 'genOnOff',
-        commands: [
-            'commandOn',
-            'commandOff',
-            'commandToggle',
-            // 'commandOnWithTimedOff'
-        ],
-    });
-}
-
 function mapModernEnum(cfg: Config, epName: string) {
     return modernExtend.enumLookup({
         name: cfg.name,
@@ -93,6 +79,16 @@ function mapModernEnum(cfg: Config, epName: string) {
 
 function addEndpointPrefix(ep: number) {
     return `${prefixEnpointName}${ep}`;
+}
+
+function createSwitchExpends(epc: number) {
+    const features: ModernExtend[] = [];
+    for (let ep = 1; ep <= epc; ep++) {
+        for (let i = 0; i < configs.length; i++) {
+            features.push(mapModernEnum(configs[i], addEndpointPrefix(ep)));
+        }
+    }
+    return features;
 }
 
 function mapObject<T>(arr: T[], mapKey: (k: T) => string | [string], mapValue: (v: T) => string | number) {
@@ -125,19 +121,10 @@ const definitions: Definition[] = [
             e.action([]),
         ],
         extend: [
-            mapModernActionEnum(),
             modernExtend.battery(),
             modernExtend.temperature(),
             modernExtend.humidity(),
-            ...((epCount: number) => {
-                const features: ModernExtend[] = [];
-                for (let ep = 1; ep <= epCount; ep++) {
-                    for (let i = 0; i < configs.length; i++) {
-                        features.push(mapModernEnum(configs[i], addEndpointPrefix(ep)));
-                    }
-                }
-                return features;
-            })(endpointCount),
+            ...createSwitchExpends(endpointCount),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep1 = device.getEndpoint(1);
