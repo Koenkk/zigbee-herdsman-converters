@@ -1,10 +1,8 @@
-import {Definition, Tz, Fz} from '../lib/types';
-import fz from '../converters/fromZigbee';
+import {Definition, Fz, ModernExtend} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
+import * as modernExtend from '../lib/modernExtend';
 
 const e = exposes.presets;
-const ea = exposes.access;
 const prefixEnpointName: string = 'button_';
 const endpointCount = 4;
 
@@ -62,22 +60,31 @@ const configs: Config[] = [
     switchAtionConf,
 ];
 
+function mapModernEnum(cfg: Config, epName: string) {
+    return modernExtend.enumLookup({
+        name: cfg.name,
+        lookup: mapObject(cfg.values, (k) => k.name, (v) => v.value),
+        endpointName: epName,
+        cluster: 'genOnOffSwitchCfg',
+        attribute: cfg.attribute,
+        description: cfg.description,
+        access: 'ALL',
+        entityCategory: 'config',
+    });
+}
+
 function addEndpointPrefix(ep: number) {
     return `${prefixEnpointName}${ep}`;
 }
 
-function createSwitchExposes(epc: number) {
-    const feature: exposes.Enum[] = [];
-    for (let i = 0; i < epc; i++) {
-        configs.forEach((c) => {
-            feature.push(e.enum(c.name, ea.ALL,
-                c.values.map((v) => v.name))
-                .withDescription(c.description)
-                .withEndpoint(addEndpointPrefix(i + 1),
-                ));
-        });
+function createSwitchExpends(epc: number) {
+    const features: ModernExtend[] = [];
+    for (let ep = 1; ep <= epc; ep++) {
+        for (let i = 0; i < configs.length; i++) {
+            features.push(mapModernEnum(configs[i], addEndpointPrefix(ep)));
+        }
     }
-    return feature;
+    return features;
 }
 
 function mapObject<T>(arr: T[], mapKey: (k: T) => string | [string], mapValue: (v: T) => string | number) {
@@ -85,19 +92,6 @@ function mapObject<T>(arr: T[], mapKey: (k: T) => string | [string], mapValue: (
 }
 
 const fzLocal = {
-    on_off_switch_config: {
-        cluster: 'genOnOffSwitchCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            return mapObject(
-                configs,
-                (k) => [`${k.name}_${addEndpointPrefix(msg.endpoint.ID)}`],
-                (v) => {
-                    const vv = v.values.find((vv) => vv.value == msg.data[v.attribute]);
-                    return vv?.name;
-                });
-        },
-    } satisfies Fz.Converter,
     on_off_action: {
         cluster: 'genOnOff',
         type: [
@@ -112,54 +106,41 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const tzLocal = {
-    on_off_switch_config: {
-        key: ['switch_type', 'switch_actions'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOffSwitchCfg', configs.map((c) => c.attribute));
-        },
-        convertSet: async (entity, key, value, meta) => {
-            const cfg = configs.find((c) => c.name == key);
-            const ret = mapObject([cfg], (k) => k.attribute, (v) => v.values.find((v) => v.name == value).value);
-            await entity.write('genOnOffSwitchCfg', ret);
-
-            return {state: {[key]: value}};
-        },
-    } satisfies Tz.Converter,
-};
-
 const definitions: Definition[] = [
     {
         zigbeeModel: ['Zucchini'],
         model: 'Zucchini',
         vendor: 'Llama Devices',
         description: 'On/Off output device',
-        fromZigbee: [fzLocal.on_off_action, fz.battery, fz.temperature, fz.humidity, fzLocal.on_off_switch_config],
-        toZigbee: [tzLocal.on_off_switch_config],
+        fromZigbee: [fzLocal.on_off_action],
         exposes: [
             e.action([]),
-            e.battery(),
-            e.temperature(),
-            e.humidity(),
-            ...createSwitchExposes(endpointCount),
+        ],
+        extend: [
+            modernExtend.battery({
+                percentageReporting: true,
+                voltageReporting: false,
+                percentageReportingConfig: {change: 0, max: 3600, min: 0},
+            }),
+            modernExtend.temperature({
+                reporting: {min: 0, max: 3600, change: 0},
+            }),
+            modernExtend.humidity({
+                reporting: {min: 0, max: 3600, change: 0},
+            }),
+            ...createSwitchExpends(endpointCount),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const ep1 = device.getEndpoint(1);
-            await reporting.bind(ep1, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.bind(ep1, coordinatorEndpoint, ['msRelativeHumidity']);
-            await reporting.bind(ep1, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            device.endpoints.filter((ep) => ep.ID != 242)
+            device.endpoints.filter((ep) => ep.supportsInputCluster('genOnOffSwitchCfg'))
                 .forEach(async (ep) => {
-                    await ep.bind('genOnOff', coordinatorEndpoint);
                     await ep.read('genOnOffSwitchCfg', configs.map((c) => c.attribute));
                 });
-            await reporting.batteryPercentageRemaining(ep1, {min: 0, max: 3600, change: 0});
-            await reporting.temperature(ep1, {min: 0, max: 3600, change: 0});
-            await reporting.humidity(ep1, {min: 0, max: 3600, change: 0});
             device.save();
         },
         endpoint: (device) => {
-            return mapObject(device.endpoints.filter((ep) => ep.ID != 242), (epk) => addEndpointPrefix(epk.ID), (epv) => epv.ID);
+            return mapObject(
+                device.endpoints.filter((ep) => ep.supportsInputCluster('genOnOff')), (epk) => addEndpointPrefix(epk.ID), (epv) => epv.ID,
+            );
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['battery', 'temperature', 'humidity']},
     },
