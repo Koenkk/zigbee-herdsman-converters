@@ -22,9 +22,9 @@ function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, ty
     if (!device.endpoints) {
         throw new Error(device.ieeeAddr + ' ' + device.endpoints);
     }
-    const endpoints = device.endpoints.filter((ep) => {
-        (type === 'input' ? ep.getInputClusters() : ep.getOutputClusters()).find((c) => isNumber(cluster) ? c.ID === cluster : c.name === cluster);
-    });
+    const endpoints = (type === 'input' ?
+        device.endpoints.filter((ep) => ep.getInputClusters().find((c) => isNumber(cluster) ? c.ID === cluster : c.name === cluster)) :
+        device.endpoints.filter((ep) => ep.getOutputClusters().find((c) => isNumber(cluster) ? c.ID === cluster : c.name === cluster)));
     if (endpoints.length === 0) {
         throw new Error(`Device ${device.ieeeAddr} has no ${type} cluster ${cluster}`);
     }
