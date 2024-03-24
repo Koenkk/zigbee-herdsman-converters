@@ -139,20 +139,9 @@ function processExtensions(definition: Definition): Definition {
             }
         }
 
-        const actionExposes: Expose[] = [];
-        const filteredExposes: Expose[] = [];
-        
-        for (const expose of exposes) {
-            // filteing out actions to combine them
-            if (expose.name === 'action') {
-                actionExposes.push(expose);
-            } else {
-                filteredExposes.push(expose);
-            }
-        }
-        exposes = filteredExposes;
-
-        // combining all action exposes into one
+        // Filtering out action exposes to combine them one
+        const actionExposes = exposes.filter((e) => e.name === 'action');
+        exposes = exposes.filter((e) => e.name !== 'action');
         if (actionExposes.length > 0) {
             const actions: string[] = [];
             for (const expose of actionExposes) {
