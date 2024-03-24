@@ -7,7 +7,6 @@ import * as utils from '../lib/utils';
 import * as light from '../lib/light';
 import * as legacy from '../lib/legacy';
 import * as exposes from '../lib/exposes';
-import type {Endpoint} from 'zigbee-herdsman/dist/controller/model';
 
 const manufacturerOptions = {
     sunricher: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD},
@@ -239,7 +238,7 @@ const converters2 = {
             await entity.command('genIdentify', 'identify', {identifytime: identifyTimeout}, utils.getOptions(meta.mapped, entity));
         },
     } satisfies Tz.Converter,
-    zclCommand: {
+    zcl_command: {
         key: ['zclcommand'],
         convertSet: async (entity, key, value, meta) => {
             utils.assertObject(value, key);
