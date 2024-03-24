@@ -18,24 +18,15 @@ import {
 } from './utils';
 import * as logger from '../lib/logger';
 
-function getEndpointsWithInputCluster(device: Zh.Device, cluster: string | number) {
+function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: 'input' | 'output') {
     if (!device.endpoints) {
         throw new Error(device.ieeeAddr + ' ' + device.endpoints);
     }
-    const endpoints = device.endpoints.filter((ep) => ep.getInputClusters().find((c) => isNumber(cluster) ? c.ID === cluster : c.name === cluster));
+    const endpoints = device.endpoints.filter((ep) => {
+        (type === 'input' ? ep.getInputClusters() : ep.getOutputClusters()).find((c) => isNumber(cluster) ? c.ID === cluster : c.name === cluster);
+    });
     if (endpoints.length === 0) {
-        throw new Error(`Device ${device.ieeeAddr} has no input cluster ${cluster}`);
-    }
-    return endpoints;
-}
-
-function getEndpointsWithOutputCluster(device: Zh.Device, cluster: string | number) {
-    if (!device.endpoints) {
-        throw new Error(device.ieeeAddr + ' ' + device.endpoints);
-    }
-    const endpoints = device.endpoints.filter((ep) => ep.getOutputClusters().find((c) => isNumber(cluster) ? c.ID === cluster : c.name === cluster));
-    if (endpoints.length === 0) {
-        throw new Error(`Device ${device.ieeeAddr} has no output cluster ${cluster}`);
+        throw new Error(`Device ${device.ieeeAddr} has no ${type} cluster ${cluster}`);
     }
     return endpoints;
 }
@@ -70,7 +61,7 @@ async function setupAttributes(
     entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string | number, config: ReportingConfig[], logger: Logger,
     configureReporting: boolean=true, read: boolean=true,
 ) {
-    const endpoints = isEndpoint(entity) ? [entity] : getEndpointsWithInputCluster(entity, cluster);
+    const endpoints = isEndpoint(entity) ? [entity] : getEndpointsWithCluster(entity, cluster, 'input');
     const ieeeAddr = isEndpoint(entity) ? entity.deviceIeeeAddress : entity.ieeeAddr;
     for (const endpoint of endpoints) {
         logger.debug(`Configure reporting: ${configureReporting}, read: ${read} for ${ieeeAddr}/${endpoint.ID} ${cluster} ${JSON.stringify(config)}`);
@@ -415,7 +406,7 @@ export function commandsOnOff(args?: {commands?: ('on' | 'off' | 'toggle')[], bi
                     await endpoint.bind('genOnOff', coordinatorEndpoint);
                 }
             } else {
-                const endpoints = getEndpointsWithOutputCluster(device, 'genOnOff');
+                const endpoints = getEndpointsWithCluster(device, 'genOnOff', 'output');
                 for (const endpoint of endpoints) {
                     await endpoint.bind('genOnOff', coordinatorEndpoint);
                 }
@@ -899,7 +890,7 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
                     await endpoint.bind('genLevelCtrl', coordinatorEndpoint);
                 }
             } else {
-                const endpoints = getEndpointsWithOutputCluster(device, 'genLevelCtrl');
+                const endpoints = getEndpointsWithCluster(device, 'genLevelCtrl', 'output');
                 for (const endpoint of endpoints) {
                     await endpoint.bind('genLevelCtrl', coordinatorEndpoint);
                 }
@@ -1157,7 +1148,7 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
                     await endpoint.bind('lightingColorCtrl', coordinatorEndpoint);
                 }
             } else {
-                const endpoints = getEndpointsWithOutputCluster(device, 'lightingColorCtrl');
+                const endpoints = getEndpointsWithCluster(device, 'lightingColorCtrl', 'output');
                 for (const endpoint of endpoints) {
                     await endpoint.bind('lightingColorCtrl', coordinatorEndpoint);
                 }
@@ -1354,7 +1345,7 @@ export function commandsWindowCovering(args?: {commands?: ('open' | 'close' | 's
                     await endpoint.bind('closuresWindowCovering', coordinatorEndpoint);
                 }
             } else {
-                const endpoints = getEndpointsWithOutputCluster(device, 'closuresWindowCovering');
+                const endpoints = getEndpointsWithCluster(device, 'closuresWindowCovering', 'output');
                 for (const endpoint of endpoints) {
                     await endpoint.bind('closuresWindowCovering', coordinatorEndpoint);
                 }
@@ -1615,7 +1606,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 
     const configure: Configure = async (device, coordinatorEndpoint, logger) => {
         for (const [cluster, properties] of Object.entries(configureLookup)) {
-            for (const endpoint of getEndpointsWithInputCluster(device, cluster)) {
+            for (const endpoint of getEndpointsWithCluster(device, cluster, 'input')) {
                 const items: ReportingConfig[] = [];
                 for (const property of Object.values(properties)) {
                     // In case multiplier or divisor was provided, use that instead of reading from device.
