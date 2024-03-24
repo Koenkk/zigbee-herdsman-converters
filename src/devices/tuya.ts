@@ -959,6 +959,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_mx3vgyea'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_fdxihpp7'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_qsp2pwtf'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_kycczpw8'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_46t1rvdu'}],
         model: 'WHD02',
         vendor: 'TuYa',
@@ -7437,6 +7438,42 @@ const definitions: Definition[] = [
                 [102, 'keep_time', tuya.valueConverter.raw],
                 [111, 'minimum_range', tuya.valueConverter.divideBy100],
                 [112, 'maximum_range', tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_kyhbrfyl']),
+        model: 'NAS-PS09B2 ',
+        vendor: 'Neo',
+        description: 'Human presence sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.occupancy(),
+            e.enum('human_motion_state', ea.STATE, ['none', 'small', 'large'])
+                .withDescription('Human Motion State'),
+            e.numeric('departure_delay', ea.STATE_SET).withUnit('s').withValueMin(3)
+                .withValueMax(600).withValueStep(1).withDescription('Presence Time'),
+            e.numeric('radar_range', ea.STATE_SET).withUnit('cm').withValueMin(150).withValueMax(600)
+                .withValueStep(75).withDescription('Motion Range Detection'),
+            e.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(7)
+                .withValueStep(1).withDescription('Motion Detection Sensitivity'),
+            e.numeric('presence_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(7)
+                .withValueStep(1).withDescription('Motionless Detection Sensitivity'),
+            e.numeric('dis_current', ea.STATE).withUnit('cm').withValueMin(0).withValueMax(1000)
+                .withValueStep(1).withLabel('Current distance')
+                .withDescription('Current Distance of Detected Motion'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'occupancy', tuya.valueConverter.trueFalse1],
+                [11, 'human_motion_state', tuya.valueConverterBasic.lookup({'none': 0, 'small': 1, 'large': 2})],
+                [12, 'departure_delay', tuya.valueConverter.raw],
+                [13, 'radar_range', tuya.valueConverter.raw],
+                [15, 'radar_sensitivity', tuya.valueConverter.raw],
+                [16, 'presence_sensitivity', tuya.valueConverter.raw],
+                [19, 'dis_current', tuya.valueConverter.raw],
             ],
         },
     },
