@@ -299,7 +299,7 @@ export function deviceTemperature(args?: Partial<NumericArgs>) {
 export function identify(args?: {isSleepy: boolean}): ModernExtend {
     args = {isSleepy: false, ...args};
     const normal: Expose = e.enum('identify', ea.SET, ['identify']).withDescription('Initiate device identification').withCategory('config');
-    const sleepy: Expose = e.enum('identify_sleepy', ea.SET, ['identify_sleepy'])
+    const sleepy: Expose = e.enum('identify', ea.SET, ['identify'])
         .withDescription('Initiate device identification. This device is asleep by default.' +
             'You may need to wake it up first before sending the indetify command.')
         .withCategory('config');
@@ -312,7 +312,7 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
         .withValueMin(1).withValueMax(30);
 
     const toZigbee: Tz.Converter[] = [{
-        key: [args.isSleepy ? 'identify_sleepy' : 'identify'],
+        key: ['identify'],
         options: [identifyTimeout],
         convertSet: async (entity, key, value, meta) => {
             const identifyTimeout = meta.options.identify_timeout ?? 3;
