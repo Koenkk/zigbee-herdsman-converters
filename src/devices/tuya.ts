@@ -2391,15 +2391,21 @@ const definitions: Definition[] = [
             e.child_lock(),
             e.text('schedule', ea.STATE_SET)
                 .withDescription('Schedule will work with "auto" preset. In this mode, the device executes ' +
-                'a preset week programming temperature time and temperature. Schedule can contains 12 segments.' +
-                'All 12 segments should be defined. It should be defined in the following format: `hh:mm/tt`.' +
-                'Segments should be divided by space symbol.' +
-                'Example: `06:00/20 11:30/21 13:30/22 17:30/23 06:00/24 12:00/23 14:30/22 17:30/21 06:00/19 12:30/20 14:30/21 18:30/20`.'),
+                'a preset week programming temperature time and temperature. Schedule can contains 12 segments. ' +
+                'All 12 segments should be defined. It should be defined in the following format: "hh:mm/tt". ' +
+                'Segments should be divided by space symbol. ' +
+                'Example: "06:00/20 11:30/21 13:30/22 17:30/23 06:00/24 12:00/23 14:30/22 17:30/21 06:00/19 12:30/20 14:30/21 18:30/20"'),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverter.onOff],
-                [2, 'system_mode', {
+                [1, null, {
+                    from: (v, meta) => {
+                        return v === true ?
+                            {state: 'ON', system_mode: meta.state.system_mode_device ? meta.state.system_mode_device : 'cool'} :
+                            {state: 'OFF', system_mode: 'off'};
+                    },
+                }],
+                [null, 'system_mode', {
                     // Extend system_mode to support 'off' in addition to 'cool', 'heat' and 'fan_only'
                     to: async (v: string, meta) => {
                         const entity = meta.device.endpoints[0];
@@ -2422,10 +2428,12 @@ const definitions: Definition[] = [
                 }],
                 [2, null, {
                     // Map system_mode back to both 'state' and 'system_mode'
-                    from: (v: string) => {
+                    from: (v: number, meta) => {
+                        const modes = ['cool', 'heat', 'fan_only'];
+
                         return {
-                            state: v == 'off' ? 'OFF' : 'ON',
-                            system_mode: v,
+                            system_mode: modes[v],
+                            system_mode_device: modes[v],
                         };
                     },
                 }],
