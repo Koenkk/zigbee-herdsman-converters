@@ -13,8 +13,7 @@ import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
     noOccupancySince, precisionRound, batteryVoltageToPercentage, getOptions,
-    hasAlreadyProcessedMessage, addActionGroup, numberWithinRange,
-    assertString, mapNumberRange,
+    hasAlreadyProcessedMessage, addActionGroup,
 } from './utils';
 import * as logger from '../lib/logger';
 
@@ -760,123 +759,11 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
         e.enum('action', ea.STATE, actions).withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic'),
     ];
 
-    const defaultSimulatedBrightness = 255;
-
-    const simulatedBrightness = [e.composite('simulated_brightness', 'simulated_brightness', ea.SET)
-        .withDescription(`Simulate a brightness value.` +
-        `If this device provides a brightness_move_up or brightness_move_down action it is possible to specify the update interval and delta.` +
-        `The action_brightness_delta indicates the delta for each interval.`)
-        .withFeature(e.numeric('delta', ea.SET).withValueMin(0).withDescription('Delta per interval, 20 by default'))
-        .withFeature(e.numeric('interval', ea.SET).withValueMin(0).withUnit('ms').withDescription('Interval duration'))];
-
     const fromZigbee: Fz.Converter[] = [
-        {
-            cluster: 'genLevelCtrl',
-            type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
-            options: simulatedBrightness,
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const payload: KeyValueAny = {
-                    action: postfixWithEndpointName(`brightness_move_to_level`, msg, model, meta),
-                    action_level: msg.data.level,
-                    action_transition_time: msg.data.transtime / 100,
-                };
-                addActionGroup(payload, msg, model);
-
-                if (options.simulated_brightness) {
-                    const currentBrightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
-                    globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
-                    const property = postfixWithEndpointName('brightness', msg, model, meta);
-                    payload[property] = msg.data.level;
-                    const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
-                    payload[deltaProperty] = msg.data.level - currentBrightness;
-                }
-
-                return payload;
-            },
-        },
-        {
-            cluster: 'genLevelCtrl',
-            type: ['commandMove', 'commandMoveWithOnOff'],
-            options: simulatedBrightness,
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const direction = msg.data.movemode === 1 ? 'down' : 'up';
-                const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model, meta);
-                const payload = {action, action_rate: msg.data.rate};
-                addActionGroup(payload, msg, model);
-
-                if (options.simulated_brightness) {
-                    const opts: KeyValueAny = options.simulated_brightness;
-                    const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 20;
-                    const intervalOpts = typeof opts === 'object' && opts.hasOwnProperty('interval') ? opts.interval : 200;
-
-                    globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
-                    if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
-                        const timer = setInterval(() => {
-                            let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
-                            const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ?
-                                deltaOpts : -1 * deltaOpts;
-                            brightness += delta;
-                            brightness = numberWithinRange(brightness, 0, 255);
-                            globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
-                            const property = postfixWithEndpointName('brightness', msg, model, meta);
-                            const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
-                            publish({[property]: brightness, [deltaProperty]: delta});
-                        }, intervalOpts);
-
-                        globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
-                    }
-                }
-
-                return payload;
-            },
-        },
-        {
-            cluster: 'genLevelCtrl',
-            type: ['commandStep', 'commandStepWithOnOff'],
-            options: simulatedBrightness,
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const direction = msg.data.stepmode === 1 ? 'down' : 'up';
-                const payload: KeyValueAny = {
-                    action: postfixWithEndpointName(`brightness_step_${direction}`, msg, model, meta),
-                    action_step_size: msg.data.stepsize,
-                    action_transition_time: msg.data.transtime / 100,
-                };
-                addActionGroup(payload, msg, model);
-
-                if (options.simulated_brightness) {
-                    let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
-                    const delta = direction === 'up' ? msg.data.stepsize : -1 * msg.data.stepsize;
-                    brightness += delta;
-                    brightness = numberWithinRange(brightness, 0, 255);
-                    globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
-                    const property = postfixWithEndpointName('brightness', msg, model, meta);
-                    payload[property] = brightness;
-                    const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
-                    payload[deltaProperty] = delta;
-                }
-
-                return payload;
-            },
-        },
-        {
-            cluster: 'genLevelCtrl',
-            type: ['commandStop', 'commandStopWithOnOff'],
-            options: simulatedBrightness,
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                if (options.simulated_brightness) {
-                    clearInterval(globalStore.getValue(msg.endpoint, 'simulated_brightness_timer'));
-                    globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', undefined);
-                }
-
-                const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model, meta)};
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
+        fz.command_move_to_level,
+        fz.command_move,
+        fz.command_step,
+        fz.command_stop,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -955,186 +842,17 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
     ];
 
     const fromZigbee: Fz.Converter[] = [
-        {
-            cluster: 'lightingColorCtrl',
-            type: ['commandMoveColorTemp'],
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const direction = getFromLookup(msg.data.movemode, {0: 'stop', 1: 'up', 3: 'down'});
-                const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model, meta);
-                const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-        {
-            cluster: 'lightingColorCtrl',
-            type: 'commandStepColorTemp',
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const direction = msg.data.stepmode === 1 ? 'up' : 'down';
-                const payload: KeyValueAny = {
-                    action: postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model, meta),
-                    action_step_size: msg.data.stepsize,
-                };
-
-                if (msg.data.hasOwnProperty('transtime')) {
-                    payload.action_transition_time = msg.data.transtime / 100;
-                }
-
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-        {
-            cluster: 'lightingColorCtrl',
-            type: 'commandEnhancedMoveToHueAndSaturation',
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const payload = {
-                    action: postfixWithEndpointName(`enhanced_move_to_hue_and_saturation`, msg, model, meta),
-                    action_enhanced_hue: msg.data.enhancehue,
-                    action_hue: mapNumberRange(msg.data.enhancehue, 0, 65535, 0, 360, 1),
-                    action_saturation: msg.data.saturation,
-                    action_transition_time: msg.data.transtime,
-                };
-
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-        {
-            cluster: 'lightingColorCtrl',
-            type: ['commandStepHue'],
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const direction = msg.data.stepmode === 1 ? 'up' : 'down';
-                const payload = {
-                    action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model, meta),
-                    action_step_size: msg.data.stepsize,
-                    action_transition_time: msg.data.transtime/100,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-        {
-            cluster: 'lightingColorCtrl',
-            type: ['commandStepSaturation'],
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const direction = msg.data.stepmode === 1 ? 'up' : 'down';
-                const payload = {
-                    action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model, meta),
-                    action_step_size: msg.data.stepsize,
-                    action_transition_time: msg.data.transtime/100,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-        {
-            cluster: 'lightingColorCtrl',
-            type: 'commandColorLoopSet',
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const updateFlags = msg.data.updateflags;
-                const actionLookup: KeyValueAny = {
-                    0x00: 'deactivate',
-                    0x01: 'activate_from_color_loop_start_enhanced_hue',
-                    0x02: 'activate_from_enhanced_current_hue',
-                };
-
-                const payload = {
-                    action: postfixWithEndpointName(`color_loop_set`, msg, model, meta),
-                    action_update_flags: {
-                        action: (updateFlags & 1 << 0) > 0,
-                        direction: (updateFlags & 1 << 1) > 0,
-                        time: (updateFlags & 1 << 2) > 0,
-                        start_hue: (updateFlags & 1 << 3) > 0,
-                    },
-                    action_action: actionLookup[msg.data.action],
-                    action_direction: msg.data.direction === 0 ? 'decrement' : 'increment',
-                    action_time: msg.data.time,
-                    action_start_hue: msg.data.starthue,
-                };
-
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-        {
-            cluster: 'lightingColorCtrl',
-            type: 'commandMoveToColorTemp',
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const payload = {
-                    action: postfixWithEndpointName(`color_temperature_move`, msg, model, meta),
-                    action_color_temperature: msg.data.colortemp,
-                    action_transition_time: msg.data.transtime,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-        {
-            cluster: 'lightingColorCtrl',
-            type: 'commandMoveToColor',
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const payload = {
-                    action: postfixWithEndpointName(`color_move`, msg, model, meta),
-                    action_color: {
-                        x: precisionRound(msg.data.colorx / 65535, 3),
-                        y: precisionRound(msg.data.colory / 65535, 3),
-                    },
-                    action_transition_time: msg.data.transtime,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-        {
-            cluster: 'lightingColorCtrl',
-            type: 'commandMoveHue',
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const movestop = msg.data.movemode == 1 ? 'move' : 'stop';
-                const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
-                const payload = {action, action_rate: msg.data.rate};
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-        {
-            cluster: 'lightingColorCtrl',
-            type: 'commandMoveToSaturation',
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const payload = {
-                    action: postfixWithEndpointName('move_to_saturation', msg, model, meta),
-                    action_saturation: msg.data.saturation,
-                    action_transition_time: msg.data.transtime,
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-        {
-            cluster: 'lightingColorCtrl',
-            type: 'commandMoveToHue',
-            convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
-                const payload = {
-                    action: postfixWithEndpointName(`move_to_hue`, msg, model, meta),
-                    action_hue: msg.data.hue,
-                    action_transition_time: msg.data.transtime / 100,
-                    action_direction: msg.data.direction === 0 ? 'decrement' : 'increment',
-                };
-                addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
+        fz.command_move_color_temperature,
+        fz.command_step_color_temperature,
+        fz.command_ehanced_move_to_hue_and_saturation,
+        fz.command_step_hue,
+        fz.command_step_saturation,
+        fz.command_color_loop_set,
+        fz.command_move_to_color_temp,
+        fz.command_move_to_color,
+        fz.command_move_hue,
+        fz.command_move_to_saturation,
+        fz.command_move_to_hue,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -1195,80 +913,8 @@ export function windowCovering(args: WindowCoveringArgs): ModernExtend {
     if (args.controls.includes('tilt')) coverExpose = coverExpose.withTilt();
     const exposes: Expose[] = [coverExpose];
 
-    const invertCover = [e.binary(`invert_cover`, ea.SET, true, false)
-        .withDescription(`Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).`)];
-
-    const fromZigbee: Fz.Converter[] = [{
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        options: invertCover,
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
-            // HomeAssistant etc. work the other way round.
-            // For zigbee-herdsman-converters: open = 100, close = 0
-            // ubisys J1 will report 255 if lift or tilt positions are not known, so skip that.
-            const metaInvert = args.coverInverted;
-            const invert = args.coverInverted ? !options.invert_cover : options.invert_cover;
-            const coverStateFromTilt = args.stateSource === 'tilt';
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
-                const value = msg.data['currentPositionLiftPercentage'];
-                result[postfixWithEndpointName('position', msg, model, meta)] = invert ? value : 100 - value;
-                if (!coverStateFromTilt) {
-                    result[postfixWithEndpointName('state', msg, model, meta)] =
-                        metaInvert ? (value === 0 ? 'CLOSE' : 'OPEN') : (value === 100 ? 'CLOSE' : 'OPEN');
-                }
-            }
-            if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
-                const value = msg.data['currentPositionTiltPercentage'];
-                result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? value : 100 - value;
-                if (coverStateFromTilt) {
-                    result[postfixWithEndpointName('state', msg, model, meta)] =
-                        metaInvert ? (value === 100 ? 'OPEN' : 'CLOSE') : (value === 0 ? 'OPEN' : 'CLOSE');
-                }
-            }
-            return result;
-        },
-    }];
-
-    const toZigbee: Tz.Converter[] = [
-        {
-            key: ['state'],
-            convertSet: async (entity, key, value, meta) => {
-                const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
-                assertString(value, key);
-                value = value.toLowerCase();
-                await entity.command('closuresWindowCovering', getFromLookup(value, lookup), {}, getOptions(meta.mapped, entity));
-            },
-        },
-        {
-            key: ['position', 'tilt'],
-            options: invertCover,
-            convertSet: async (entity, key, value, meta) => {
-                assertNumber(value, key);
-                const isPosition = (key === 'position');
-                const invert = !(args.coverInverted ?
-                    !meta.options.invert_cover : meta.options.invert_cover);
-                const position = invert ? 100 - value : value;
-
-                // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
-                // HomeAssistant etc. work the other way round.
-                // For zigbee-herdsman-converters: open = 100, close = 0
-                await entity.command(
-                    'closuresWindowCovering',
-                    isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
-                    isPosition ? {percentageliftvalue: position} : {percentagetiltvalue: position},
-                    getOptions(meta.mapped, entity),
-                );
-
-                return {state: {[isPosition ? 'position' : 'tilt']: value}};
-            },
-            convertGet: async (entity, key, meta) => {
-                const isPosition = (key === 'position');
-                await entity.read('closuresWindowCovering', [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']);
-            },
-        },
-    ];
+    const fromZigbee: Fz.Converter[] = [fz.cover_position_tilt];
+    const toZigbee: Tz.Converter[] = [tz.cover_state, tz.cover_position_tilt];
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
 
