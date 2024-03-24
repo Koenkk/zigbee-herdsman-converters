@@ -1,39 +1,117 @@
 import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
-import {light, onOff, electricityMeter} from '../lib/modernExtend';
-
-const e = exposes.presets;
+import {
+    light, onOff, electricityMeter, iasZoneAlarm,
+    temperature, humidity, battery, ignoreClusterReport, iasWarning, identify,
+} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['BRHM8E27W70-I1'],
+        model: 'BRHM8E27W70-I1',
+        vendor: 'GS',
+        description: 'Smart color light bulb',
+        extend: [
+            light({colorTemp: {range: undefined}, color: true}),
+            identify(),
+        ],
+    },
+    {
+        zigbeeModel: ['BDHM8E27W70-I1'],
+        model: 'BDHM8E27W70-I1',
+        vendor: 'GS',
+        description: 'Smart light bulb',
+        extend: [
+            light({colorTemp: {range: [153, 370]}}),
+            identify(),
+        ],
+    },
+    {
+        zigbeeModel: ['SGMHM-I1'],
+        model: 'SGMHM-I1',
+        vendor: 'GS',
+        description: 'Methane gas sensor',
+        extend: [iasZoneAlarm({zoneType: 'gas', zoneAttributes: ['alarm_2', 'tamper', 'battery_low']})],
+    },
+    {
+        zigbeeModel: ['SGPHM-I1'],
+        model: 'SGPHM-I1',
+        vendor: 'GS',
+        description: 'Propane gas sensor',
+        extend: [iasZoneAlarm({zoneType: 'gas', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
+    },
+    {
+        zigbeeModel: ['SKHMP30-I1'],
+        model: 'SKHMP30-I1',
+        vendor: 'GS',
+        description: 'Smart socket',
+        extend: [
+            onOff({powerOnBehavior: false}),
+            electricityMeter(),
+            identify(),
+        ],
+    },
+    {
+        zigbeeModel: ['SMHM-I1'],
+        model: 'SMHM-I1',
+        vendor: 'GS',
+        description: 'Motion sensor',
+        extend: [
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({voltageToPercentage: '3V_2500', voltage: true}),
+        ],
+    },
+    {
+        zigbeeModel: ['SOHM-I1'],
+        model: 'SOHM-I1',
+        vendor: 'GS',
+        description: 'Open and close sensor',
+        extend: [
+            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({voltage: true}),
+        ],
+    },
+    {
+        zigbeeModel: ['SRHMP-I1'],
+        model: 'SRHMP-I1',
+        vendor: 'GS',
+        description: 'Siren',
+        meta: {disableDefaultResponse: true},
+        extend: [
+            ignoreClusterReport({cluster: 'genBasic'}),
+            iasWarning(),
+            battery(),
+        ],
+    },
     {
         zigbeeModel: ['SSHM-I1'],
         model: 'SSHM-I1',
         vendor: 'GS',
         description: 'Smoke detector',
-        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+        extend: [
+            iasZoneAlarm({zoneType: 'smoke', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery(),
+        ],
     },
     {
-        zigbeeModel: ['BRHM8E27W70-I1'],
-        model: 'BRHM8E27W70-I1',
+        zigbeeModel: ['STHM-I1H'],
+        model: 'STHM-I1H',
         vendor: 'GS',
-        description: 'Smart dimmable, RGB + white (E27 & B22)',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
+        description: 'Temperature and humidity sensor',
+        extend: [
+            temperature(),
+            humidity(),
+            battery({voltageToPercentage: '3V_2500', voltage: true}),
+        ],
     },
     {
-        zigbeeModel: ['SKHMP30-I1'],
-        model: 'SKHMP30-I1',
-        description: 'Smart metering plug',
+        zigbeeModel: ['SWHM-I1'],
+        model: 'SWHM-I1',
         vendor: 'GS',
-        extend: [onOff({powerOnBehavior: false}), electricityMeter()],
+        description: 'Water leakage sensor',
+        extend: [
+            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({voltage: true}),
+        ],
     },
 ];
 

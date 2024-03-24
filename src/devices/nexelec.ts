@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import {temperature, humidity, co2, batteryPercentage, identify} from '../lib/modernExtend';
+import {temperature, humidity, co2, battery, identify} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -7,7 +7,7 @@ const definitions: Definition[] = [
         model: 'Open\'R',
         vendor: 'Nexelec',
         description: 'Open\'R CO2, Temperature and Humidity sensor',
-        extend: [temperature(), humidity(), co2(), batteryPercentage(), identify()],
+        extend: [temperature(), humidity(), co2(), battery(), identify()],
     },
 ];
 

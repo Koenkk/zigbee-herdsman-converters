@@ -5,7 +5,6 @@ import * as reporting from '../lib/reporting';
 import * as tuya from '../lib/tuya';
 import {Definition} from '../lib/types';
 const e = exposes.presets;
-const ea = exposes.access;
 
 const definitions: Definition[] = [
     {
@@ -13,15 +12,11 @@ const definitions: Definition[] = [
         model: 'SPP04G',
         vendor: 'Mercator Ikuü',
         description: 'Quad power point',
-        extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']}),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'), e.current().withEndpoint('left'),
-            e.voltage().withEndpoint('left').withAccess(ea.STATE), e.energy(),
-            tuya.exposes.powerOutageMemory()],
+        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']})],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -78,28 +73,25 @@ const definitions: Definition[] = [
         model: 'SMCL01-ZB',
         vendor: 'Mercator Ikuü',
         description: 'Ikon ceiling light',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}})],
     },
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_xr5m6kfg'}],
         model: 'SMD4109W-RGB-ZB',
         vendor: 'Mercator Ikuü',
         description: '92mm Walter downlight RGB + CCT',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_raqjcxo5'}],
         model: 'SPP02G',
         vendor: 'Mercator Ikuü',
         description: 'Double power point',
-        extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']}),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'), e.current().withEndpoint('left'),
-            e.voltage().withEndpoint('left').withAccess(ea.STATE), e.energy(), tuya.exposes.powerOutageMemory()],
+        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']})],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -123,14 +115,11 @@ const definitions: Definition[] = [
         model: 'SPP02GIP',
         vendor: 'Mercator Ikuü',
         description: 'Double power point IP54',
-        extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']}),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'), e.current().withEndpoint('left'),
-            e.voltage().withEndpoint('left').withAccess(ea.STATE), e.energy(), tuya.exposes.powerOutageMemory()],
+        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']})],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -154,7 +143,7 @@ const definitions: Definition[] = [
         model: 'SSW03G',
         vendor: 'Mercator Ikuü',
         description: 'Triple switch',
-        extend: tuya.extend.switch({backlightModeLowMediumHigh: true, endpoints: ['left', 'center', 'right']}),
+        extend: [tuya.modernExtend.tuyaOnOff({backlightModeLowMediumHigh: true, endpoints: ['left', 'center', 'right']})],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -195,18 +184,13 @@ const definitions: Definition[] = [
         model: 'SPPUSB02',
         vendor: 'Mercator Ikuü',
         description: 'Double power point with USB',
-        extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']}),
-        exposes: [
-            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'), e.current().withEndpoint('left'), e.voltage().withEndpoint('left').withAccess(ea.STATE),
-            e.energy(), tuya.exposes.powerOutageMemory(),
-        ],
+        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']})],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['current', 'voltage', 'power']},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);

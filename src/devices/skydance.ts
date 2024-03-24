@@ -60,7 +60,7 @@ const definitions: Definition[] = [
         model: 'WZ5_rgb_1',
         vendor: 'TuYa',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB mode)',
-        extend: tuya.extend.light_onoff_brightness_color({supportsHueAndSaturation: true, preferHueAndSaturation: true, disableEffect: true}),
+        extend: [tuya.modernExtend.tuyaLight({color: {modes: ['hs', 'xy']}})],
     },
     {
         fingerprint: [

@@ -8,7 +8,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 
-const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.PLUGWISE_BV};
+const manufacturerOptions = {manufacturerCode: zigbeeHerdsman.Zcl.ManufacturerCode.PLUGWISE_B_V};
 
 const plugwisePushForce = {
     0: 'standard',

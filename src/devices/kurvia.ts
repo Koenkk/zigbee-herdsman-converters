@@ -1,8 +1,6 @@
 import {Definition} from '../lib/types';
 import tz from '../converters/toZigbee';
-import extend from '../lib/extend';
-
-const extendData = extend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]});
+import {light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -10,9 +8,8 @@ const definitions: Definition[] = [
         model: 'ZB-CL01',
         vendor: 'KURVIA',
         description: 'GU10 GRBWC built from AliExpress',
-        extend: extendData,
-        toZigbee: [tz.on_off, ...extendData.toZigbee],
-        meta: {applyRedFix: true, supportsEnhancedHue: false},
+        extend: [light({colorTemp: {range: [250, 454]}, color: {applyRedFix: true, enhancedHue: false}})],
+        toZigbee: [tz.on_off],
     },
 ];
 

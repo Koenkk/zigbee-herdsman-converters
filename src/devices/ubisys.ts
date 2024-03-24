@@ -9,6 +9,7 @@ import * as constants from '../lib/constants';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
 import {ubisysModernExtend} from '../lib/ubisys';
+import * as semver from 'semver';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -18,7 +19,7 @@ const manufacturerOptions = {
      * This bug has been reported, but it has not been fixed:
      * https://github.com/Koenkk/zigbee-herdsman/issues/52
      */
-    ubisys: {manufacturerCode: Zcl.ManufacturerCode.UBISYS},
+    ubisys: {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
     // @ts-expect-error
     ubisysNull: {manufacturerCode: null},
 };
@@ -307,23 +308,68 @@ const ubisys = {
             key: ['configure_device_setup'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const devMgmtEp = meta.device.getEndpoint(232);
+                const cluster = Zcl.Utils.getCluster('manuSpecificUbisysDeviceSetup');
+                const attributeInputConfigurations = cluster.getAttribute('inputConfigurations');
+                const attributeInputActions = cluster.getAttribute('inputActions');
+
+                // ubisys switched to writeStructure a while ago, change log only goes back to 1.9.x
+                // and it happened before that but to be safe we will only use writeStrucutre on 1.9.0 and up
+                let useWriteStruct = false;
+                if (meta.device.softwareBuildID != undefined) {
+                    useWriteStruct = semver.gte(meta.device.softwareBuildID, '1.9.0', true);
+                }
+                if (useWriteStruct) {
+                    meta.logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`);
+                }
 
                 if (value.hasOwnProperty('input_configurations')) {
                     // example: [0, 0, 0, 0]
-                    await devMgmtEp.write(
-                        'manuSpecificUbisysDeviceSetup',
-                        {'inputConfigurations': {elementType: 'data8', elements: value.input_configurations}},
-                        manufacturerOptions.ubisysNull,
-                    );
+                    if (useWriteStruct) {
+                        await devMgmtEp.writeStructured(
+                            'manuSpecificUbisysDeviceSetup',
+                            [{
+                                attrId: attributeInputConfigurations.ID,
+                                selector: {},
+                                dataType: Zcl.DataType.array,
+                                elementData: {
+                                    elementType: 'data8',
+                                    elements: value.input_configurations,
+                                },
+                            }],
+                            manufacturerOptions.ubisysNull,
+                        );
+                    } else {
+                        await devMgmtEp.write(
+                            'manuSpecificUbisysDeviceSetup',
+                            {[attributeInputConfigurations.name]: {elementType: 'data8', elements: value.input_configurations}},
+                            manufacturerOptions.ubisysNull,
+                        );
+                    }
                 }
 
                 if (value.hasOwnProperty('input_actions')) {
                     // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
-                    await devMgmtEp.write(
-                        'manuSpecificUbisysDeviceSetup',
-                        {'inputActions': {elementType: 'octetStr', elements: value.input_actions}},
-                        manufacturerOptions.ubisysNull,
-                    );
+                    if (useWriteStruct) {
+                        await devMgmtEp.writeStructured(
+                            'manuSpecificUbisysDeviceSetup',
+                            [{
+                                attrId: attributeInputActions.ID,
+                                selector: {},
+                                dataType: Zcl.DataType.array,
+                                elementData: {
+                                    elementType: 'octetStr',
+                                    elements: value.input_actions,
+                                },
+                            }],
+                            manufacturerOptions.ubisysNull,
+                        );
+                    } else {
+                        await devMgmtEp.write(
+                            'manuSpecificUbisysDeviceSetup',
+                            {[attributeInputActions.name]: {elementType: 'octetStr', elements: value.input_actions}},
+                            manufacturerOptions.ubisysNull,
+                        );
+                    }
                 }
 
                 if (value.hasOwnProperty('input_action_templates')) {
@@ -506,11 +552,27 @@ const ubisys = {
 
                     meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendly_name}': ` +
                         JSON.stringify(resultingInputActions));
-                    await devMgmtEp.write(
-                        'manuSpecificUbisysDeviceSetup',
-                        {'inputActions': {elementType: 'octetStr', elements: resultingInputActions}},
-                        manufacturerOptions.ubisysNull,
-                    );
+                    if (useWriteStruct) {
+                        await devMgmtEp.writeStructured(
+                            'manuSpecificUbisysDeviceSetup',
+                            [{
+                                attrId: attributeInputActions.ID,
+                                selector: {},
+                                dataType: Zcl.DataType.array,
+                                elementData: {
+                                    elementType: 'octetStr',
+                                    elements: resultingInputActions,
+                                },
+                            }],
+                            manufacturerOptions.ubisysNull,
+                        );
+                    } else {
+                        await devMgmtEp.write(
+                            'manuSpecificUbisysDeviceSetup',
+                            {[attributeInputActions.name]: {elementType: 'octetStr', elements: resultingInputActions}},
+                            manufacturerOptions.ubisysNull,
+                        );
+                    }
                 }
 
                 // re-read effective settings and dump them to the log

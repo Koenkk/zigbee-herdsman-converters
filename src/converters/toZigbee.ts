@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Tz, KeyValueAny} from '../lib/types';
 import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
@@ -6,19 +7,18 @@ import * as utils from '../lib/utils';
 import * as light from '../lib/light';
 import * as legacy from '../lib/legacy';
 import * as exposes from '../lib/exposes';
-import {Zcl} from 'zigbee-herdsman';
 
 const manufacturerOptions = {
-    sunricher: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICH},
-    lumi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
-    eurotronic: {manufacturerCode: Zcl.ManufacturerCode.JENNIC},
-    danfoss: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS},
-    hue: {manufacturerCode: Zcl.ManufacturerCode.PHILIPS},
+    sunricher: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD},
+    lumi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECHOLOGY_LTD_SHENZHEN, disableDefaultResponse: true},
+    eurotronic: {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS},
+    danfoss: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
+    hue: {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V},
     ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
-    sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECH},
-    tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INT},
-    legrand: {manufacturerCode: Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
-    viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
+    sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
+    tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
+    legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
+    viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH},
     nodon: {manufacturerCode: Zcl.ManufacturerCode.NODON},
 };
 
@@ -542,9 +542,9 @@ const converters2 = {
             const alarmState = (value === 'alarm' || value === 'OFF' ? 0 : 1);
 
             let info;
-            // For Develco SMSZB-120, introduced change in fw 4.0.5, tested backward with 4.0.4
+            // For Develco SMSZB-120 and HESZB-120, introduced change in fw 4.0.5, tested backward with 4.0.4
             if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            if (['SMSZB-120'].includes(meta.mapped.model)) {
+            if (['SMSZB-120', 'HESZB-120'].includes(meta.mapped.model)) {
                 info = ((alarmState) << 7) + ((alarmState) << 6);
             } else {
                 info = (3 << 6) + ((alarmState) << 2);
@@ -2177,7 +2177,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'siren_led': 3, 'siren': 2, 'led': 1, 'nothing': 0};
             await entity.write('genBasic', {0x400a: {value: utils.getFromLookup(value, lookup), type: 32}},
-                {manufacturerCode: 0x1168, disableDefaultResponse: true});
+                {manufacturerCode: Zcl.ManufacturerCode.LEEDARSON_LIGHTING_CO_LTD, disableDefaultResponse: true});
             return {state: {alert_behaviour: value}};
         },
     } satisfies Tz.Converter,
@@ -2859,7 +2859,7 @@ const converters2 = {
             };
 
             await endpoint.write(
-                'seMetering', {0x0302: {value: utils.getFromLookup(value, lookup).value, type: 49}}, {manufacturerCode: 0x1015},
+                'seMetering', {0x0302: {value: utils.getFromLookup(value, lookup).value, type: 49}}, {manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
             );
 
             // As the device reports the incorrect divisor, we need to set it here
@@ -3117,8 +3117,7 @@ const converters2 = {
     legrand_identify: {
         key: ['identify'],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertObject(value);
-            if (!value.timeout) {
+            if (utils.isObject(value) && !value.timeout) {
                 const effects = {
                     'blink3': 0x00,
                     'fixed': 0x01,
@@ -3474,18 +3473,23 @@ const converters2 = {
                 scenename = value.name;
             }
 
+            utils.assertNumber(sceneid, 'ID');
+            if (sceneid < 1) {
+                // Don't allow ID 0, from the spec:
+                // "Scene identifier 0x00, along with group identifier 0x0000, is reserved for the global scene used by the OnOff cluster"
+                throw new Error('ID must be at least 1');
+            }
+
             const response = await entity.command('genScenes', 'store', {groupid, sceneid}, utils.getOptions(meta.mapped, entity));
 
             if (isGroup) {
                 if (meta.membersState) {
                     for (const member of entity.members) {
-                        // @ts-expect-error
                         utils.saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr], scenename);
                     }
                 }
             // @ts-expect-error
             } else if (response.status === 0) {
-                // @ts-expect-error
                 utils.saveSceneState(entity, sceneid, groupid, meta.state, scenename);
             } else {
                 // @ts-expect-error
@@ -3561,6 +3565,12 @@ const converters2 = {
 
             if (!value.hasOwnProperty('ID')) {
                 throw new Error('Payload missing ID.');
+            }
+
+            if (value.ID < 1) {
+                // Don't allow ID 0, from the spec:
+                // "Scene identifier 0x00, along with group identifier 0x0000, is reserved for the global scene used by the OnOff cluster"
+                throw new Error('ID must be at least 1');
             }
 
             if (value.hasOwnProperty('color_temp') && value.hasOwnProperty('color')) {
@@ -3944,22 +3954,22 @@ const converters2 = {
         key: ['master_pin_mode'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('closuresDoorLock', {0x4000: {value: value === true ? 1 : 0, type: 0x10}},
-                {manufacturerCode: 4919});
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             return {state: {master_pin_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('closuresDoorLock', [0x4000], {manufacturerCode: 4919});
+            await entity.read('closuresDoorLock', [0x4000], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
         },
     } satisfies Tz.Converter,
     idlock_rfid_enable: {
         key: ['rfid_enable'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('closuresDoorLock', {0x4001: {value: value === true ? 1 : 0, type: 0x10}},
-                {manufacturerCode: 4919});
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             return {state: {rfid_enable: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('closuresDoorLock', [0x4001], {manufacturerCode: 4919});
+            await entity.read('closuresDoorLock', [0x4001], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
         },
     } satisfies Tz.Converter,
     idlock_service_mode: {
@@ -3967,11 +3977,11 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'deactivated': 0, 'random_pin_1x_use': 5, 'random_pin_24_hours': 6};
             await entity.write('closuresDoorLock', {0x4003: {value: utils.getFromLookup(value, lookup), type: 0x20}},
-                {manufacturerCode: 4919});
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             return {state: {service_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('closuresDoorLock', [0x4003], {manufacturerCode: 4919});
+            await entity.read('closuresDoorLock', [0x4003], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
         },
     } satisfies Tz.Converter,
     idlock_lock_mode: {
@@ -3979,22 +3989,22 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'auto_off_away_off': 0, 'auto_on_away_off': 1, 'auto_off_away_on': 2, 'auto_on_away_on': 3};
             await entity.write('closuresDoorLock', {0x4004: {value: utils.getFromLookup(value, lookup), type: 0x20}},
-                {manufacturerCode: 4919});
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             return {state: {lock_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('closuresDoorLock', [0x4004], {manufacturerCode: 4919});
+            await entity.read('closuresDoorLock', [0x4004], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
         },
     } satisfies Tz.Converter,
     idlock_relock_enabled: {
         key: ['relock_enabled'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('closuresDoorLock', {0x4005: {value: value === true ? 1 : 0, type: 0x10}},
-                {manufacturerCode: 4919});
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             return {state: {relock_enabled: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('closuresDoorLock', [0x4005], {manufacturerCode: 4919});
+            await entity.read('closuresDoorLock', [0x4005], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
         },
     } satisfies Tz.Converter,
     schneider_pilot_mode: {
@@ -4004,11 +4014,11 @@ const converters2 = {
             const lookup = {'contactor': 1, 'pilot': 3};
             value = value.toLowerCase();
             const mode = utils.getFromLookup(value, lookup);
-            await entity.write('schneiderSpecificPilotMode', {'pilotMode': mode}, {manufacturerCode: 0x105e});
+            await entity.write('schneiderSpecificPilotMode', {'pilotMode': mode}, {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
             return {state: {schneider_pilot_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('schneiderSpecificPilotMode', ['pilotMode'], {manufacturerCode: 0x105e});
+            await entity.read('schneiderSpecificPilotMode', ['pilotMode'], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
         },
     } satisfies Tz.Converter,
     schneider_dimmer_mode: {
@@ -4016,11 +4026,15 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'RC': 1, 'RL': 2};
             const mode = utils.getFromLookup(value, lookup);
-            await entity.write('lightingBallastCfg', {0xe000: {value: mode, type: 0x30}}, {manufacturerCode: 0x105e});
+            await entity.write(
+                'lightingBallastCfg',
+                {0xe000: {value: mode, type: 0x30}},
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
             return {state: {dimmer_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('lightingBallastCfg', [0xe000], {manufacturerCode: 0x105e});
+            await entity.read('lightingBallastCfg', [0xe000], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
         },
     } satisfies Tz.Converter,
     wiser_dimmer_mode: {
@@ -4028,11 +4042,11 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             const controlMode = utils.getKey(constants.wiserDimmerControlMode, value, value, Number);
             await entity.write('lightingBallastCfg', {'wiserControlMode': controlMode},
-                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER});
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
             return {state: {dimmer_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('lightingBallastCfg', ['wiserControlMode'], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER});
+            await entity.read('lightingBallastCfg', ['wiserControlMode'], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
         },
     } satisfies Tz.Converter,
     schneider_temperature_measured_value: {
@@ -4216,11 +4230,11 @@ const converters2 = {
         key: ['led_on_motion'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('ssIasZone', {0x4000: {value: value === true ? 1 : 0, type: 0x10}},
-                {manufacturerCode: 4919});
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
             return {state: {led_on_motion: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('ssIasZone', [0x4000], {manufacturerCode: 4919});
+            await entity.read('ssIasZone', [0x4000], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
         },
     } satisfies Tz.Converter,
     nodon_pilot_wire_mode: {

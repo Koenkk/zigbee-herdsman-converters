@@ -2,14 +2,14 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {Extend, Definition, Fz, Reporting, Tz} from 'src/lib/types';
+import {Definition, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
 import {getFromLookup} from '../lib/utils';
 import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
-import * as m from '../lib/modernExtend';
+import {battery, lock} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const lockExtend = (meta={}, lockStateOptions: Reporting.Override=null, binds=['closuresDoorLock', 'genPowerCfg']): Extend => {
+const lockExtend = (meta={}, lockStateOptions: Reporting.Override=null, binds=['closuresDoorLock', 'genPowerCfg']): ModernExtend => {
     return {
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response,
             fz.lock_user_status_response],
@@ -28,6 +28,7 @@ const lockExtend = (meta={}, lockStateOptions: Reporting.Override=null, binds=['
                 // Fails for some: https://github.com/Koenkk/zigbee-herdsman-converters/pull/5414
             }
         },
+        isModernExtend: true,
     };
 };
 
@@ -200,49 +201,49 @@ const definitions: Definition[] = [
         model: 'YRD426NRSC',
         vendor: 'Yale',
         description: 'Assure lock',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         zigbeeModel: ['YRD226 TSDB', 'YRD226L TSDB'],
         model: 'YRD226HA2619',
         vendor: 'Yale',
         description: 'Assure lock',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         zigbeeModel: ['YRD256 TSDB', 'YRD256L TSDB'],
         model: 'YRD256HA20BP',
         vendor: 'Yale',
         description: 'Assure lock SL',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         zigbeeModel: ['YRD652 TSDB', 'YRD652L TSDB'],
         model: 'YRD652HA20BP',
         vendor: 'Yale',
         description: 'Assure lock SL',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         zigbeeModel: ['0600000001'],
         model: 'YMF30',
         vendor: 'Yale',
         description: 'Digital lock',
-        extend: lockExtend({battery: {dontDividePercentage: true}}),
+        extend: [lockExtend({battery: {dontDividePercentage: true}})],
     },
     {
         zigbeeModel: ['iZBModule01', '0700000001'],
         model: 'YMF40/YDM4109+/YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        extend: lockExtend({battery: {dontDividePercentage: true}}),
+        extend: [lockExtend({battery: {dontDividePercentage: true}})],
     },
     {
         zigbeeModel: ['YRD210 PB DB'],
         model: 'YRD210-HA-605',
         vendor: 'Yale',
         description: 'Real living keyless push button deadbolt lock',
-        extend: lockExtend({battery: {dontDividePercentage: true}}),
+        extend: [lockExtend({battery: {dontDividePercentage: true}})],
     },
     {
         zigbeeModel: ['YRL220 TS LL'],
@@ -250,84 +251,84 @@ const definitions: Definition[] = [
         model: 'YRL-220L',
         vendor: 'Yale',
         description: 'Real living keyless leveler lock',
-        extend: lockExtend({battery: {dontDividePercentage: true}}),
+        extend: [lockExtend({battery: {dontDividePercentage: true}})],
     },
     {
         zigbeeModel: ['YRD226/246 TSDB'],
         model: 'YRD226/246 TSDB',
         vendor: 'Yale',
         description: 'Assure lock',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         zigbeeModel: ['YRD220/240 TSDB'],
         model: 'YRD220/YRD221',
         vendor: 'Yale',
         description: 'Lockwood keyless push button deadbolt lock',
-        extend: lockExtend({battery: {dontDividePercentage: true}}),
+        extend: [lockExtend({battery: {dontDividePercentage: true}})],
     },
     {
         zigbeeModel: ['YRD246 TSDB'],
         model: 'YRD246HA20BP',
         vendor: 'Yale',
         description: 'Assure lock key free deadbolt with Zigbee',
-        extend: lockExtend({battery: {dontDividePercentage: true}}),
+        extend: [lockExtend({battery: {dontDividePercentage: true}})],
     },
     {
         zigbeeModel: ['YRM476 TS BLE'],
         model: 'YRM476',
         vendor: 'Yale',
         description: 'Assure lock',
-        extend: [m.batteryPercentage(), m.lock({pinCodeCount: 250})],
+        extend: [battery(), lock({pinCodeCount: 250})],
     },
     {
         zigbeeModel: ['YRD216 PBDB'],
         model: 'YRD216-HA2-619',
         vendor: 'Yale',
         description: 'Real living keyless push button deadbolt lock',
-        extend: lockExtend({battery: {dontDividePercentage: true}}),
+        extend: [lockExtend({battery: {dontDividePercentage: true}})],
     },
     {
         zigbeeModel: ['YRL226L TS'],
         model: 'YRL226L TS',
         vendor: 'Yale',
         description: 'Assure lock SL',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         zigbeeModel: ['YRL226 TS'],
         model: 'YRL226 TS',
         vendor: 'Yale',
         description: 'Assure lock SL',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         zigbeeModel: ['YRD410 TS'],
         model: 'YRD410-BLE',
         vendor: 'Yale',
         description: 'Assure lock 2',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         zigbeeModel: ['YRD420 TS'],
         model: 'YRD420-BLE',
         vendor: 'Yale',
         description: 'Assure lock 2',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         zigbeeModel: ['YRD430 TS', 'YRD430 PB'],
         model: 'YRD430-BLE',
         vendor: 'Yale',
         description: 'Assure lock 2',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         zigbeeModel: ['YRD450 TS'],
         model: 'YRD450-BLE',
         vendor: 'Yale',
         description: 'Assure lock 2',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         // Appears to be a slightly rebranded Assure lock SL
@@ -337,21 +338,21 @@ const definitions: Definition[] = [
         model: 'YDD-D4F0-TSDB',
         vendor: 'Yale',
         description: 'Lockwood T-Lock',
-        extend: lockExtend(),
+        extend: [lockExtend()],
     },
     {
         zigbeeModel: ['c700000202', '06ffff2029'],
         model: 'YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        extend: lockExtend({battery: {dontDividePercentage: true}}, {max: 900}, ['closuresDoorLock']),
+        extend: [lockExtend({battery: {dontDividePercentage: true}}, {max: 900}, ['closuresDoorLock'])],
     },
     {
         zigbeeModel: ['06ffff2027'],
         model: 'YMF40A RL',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        extend: lockExtend({battery: {dontDividePercentage: true}}),
+        extend: [lockExtend({battery: {dontDividePercentage: true}})],
     },
     {
         fingerprint: [{

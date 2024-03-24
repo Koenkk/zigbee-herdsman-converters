@@ -1,6 +1,6 @@
 import {Definition} from '../lib/types';
 import * as ota from '../lib/ota';
-import {batteryPercentage, deviceEndpoints, light} from '../lib/modernExtend';
+import {battery, deviceEndpoints, light} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -35,7 +35,7 @@ const definitions: Definition[] = [
         vendor: 'Phoscon',
         description: 'Battery powered smart LED light',
         ota: ota.zigbeeOTA,
-        extend: [light({colorTemp: {range: [153, 370]}, color: true}), batteryPercentage()],
+        extend: [light({colorTemp: {range: [153, 370]}, color: true}), battery()],
     },
     {
         zigbeeModel: ['FLS-A lp (1-10V)'],

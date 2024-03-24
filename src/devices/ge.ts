@@ -3,7 +3,6 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {electricityMeter, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
@@ -82,14 +81,9 @@ const definitions: Definition[] = [
         model: 'PTAPT-WH02',
         vendor: 'GE',
         description: 'Quirky smart switch',
-        extend: extend.switch(),
+        extend: [onOff()],
         endpoint: (device) => {
             return {'default': 2};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
         },
     },
     {

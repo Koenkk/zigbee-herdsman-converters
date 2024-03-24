@@ -4791,7 +4791,7 @@ const fromZigbee1 = {
             const value = getDataValue(dpValue);
             switch (dp) {
             case dataPoints.tthTemperature:
-                return {temperature: value / 10};
+                return {temperature: (value > 0x2000 ? value - 0xFFFF : value) / 10};
             case dataPoints.tthHumidity:
                 return {humidity: (value / (['_TZE200_bjawzodf', '_TZE200_zl1kmjqx'].includes(meta.device.manufacturerName) ? 10 : 1))};
             case dataPoints.tthBatteryLevel:
