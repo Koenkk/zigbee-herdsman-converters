@@ -1,5 +1,5 @@
 import * as configureKey from './lib/configureKey';
-import {options, presets} from './lib/exposes';
+import * as exposesLib from './lib/exposes';
 import type {Feature, Numeric, Enum, Binary, Text, Composite, List, Light, Climate, Switch, Lock, Cover, Fan} from './lib/exposes';
 import {Enum as EnumClass} from './lib/exposes';
 import toZigbee from './converters/toZigbee';
@@ -152,7 +152,7 @@ function processExtensions(definition: Definition): Definition {
                 }
             } 
             const uniqueActions = actions.filter((value, index, array) => array.indexOf(value) === index);
-            exposes.push(presets.action(uniqueActions));
+            exposes.push(exposesLib.presets.action(uniqueActions));
         }
 
         let configure: Configure = null;
@@ -178,7 +178,7 @@ function prepareDefinition(definition: Definition): Definition {
         toZigbee.command, toZigbee.factory_reset);
 
     if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
-        definition.exposes = definition.exposes.concat([presets.linkquality()]);
+        definition.exposes = definition.exposes.concat([exposesLib.presets.linkquality()]);
     }
 
     validateDefinition(definition);
@@ -193,9 +193,9 @@ function prepareDefinition(definition: Definition): Definition {
             // Battery voltage is not calibratable
             if (expose.name === 'voltage' && expose.unit === 'mV') continue;
             const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? 'percentual' : 'absolute';
-            definition.options.push(options.calibration(expose.name, type));
+            definition.options.push(exposesLib.options.calibration(expose.name, type));
             if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
-                definition.options.push(options.precision(expose.name));
+                definition.options.push(exposesLib.options.precision(expose.name));
             }
             optionKeys.push(expose.name);
         }
