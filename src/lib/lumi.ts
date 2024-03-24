@@ -2025,16 +2025,10 @@ export const fromZigbee = {
     lumi_pressure: {
         cluster: 'msPressureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            let pressure = 0;
-            if (msg.data.hasOwnProperty('scaledValue')) {
-                const scale = msg.endpoint.getClusterAttributeValue('msPressureMeasurement', 'scale') as number;
-                pressure = msg.data['scaledValue'] / Math.pow(10, scale) / 100.0; // convert to hPa
-            } else {
-                pressure = parseFloat(msg.data['measuredValue']);
-            }
-            if (pressure > 500 && pressure < 2000) {
-                return {pressure};
+        convert: async (model, msg, publish, options, meta) => {
+	    const result = await fz.pressure.convert(model, msg, publish, options, meta);
+            if (result && result.pressure < 500 && result.pressure < 2000) {
+                return result;
             }
         },
     } satisfies Fz.Converter,
