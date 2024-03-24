@@ -2022,16 +2022,6 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
-    lumi_pressure: {
-        cluster: 'msPressureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: async (model, msg, publish, options, meta) => {
-            const result = await fz.pressure.convert(model, msg, publish, options, meta);
-            if (result && result.pressure < 500 && result.pressure < 2000) {
-                return result;
-            }
-        },
-    } satisfies Fz.Converter,
 
     // lumi class specific
     lumi_feeder: {
