@@ -110,6 +110,24 @@ export function setupConfigureForReporting(
     }
 }
 
+export function setupConfigureForBinding(cluster: string | number, endpointNames?: string[]) {
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        if (endpointNames) {
+            const endpointsMap = new Map<string, boolean>(endpointNames.map((e) => [e, true]));
+            const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
+            for (const endpoint of endpoints) {
+                await endpoint.bind(cluster, coordinatorEndpoint);
+            }
+        } else {
+            const endpoints = getEndpointsWithCluster(device, cluster, 'output');
+            for (const endpoint of endpoints) {
+                await endpoint.bind(cluster, coordinatorEndpoint);
+            }
+        }
+    };
+    return configure;
+}
+
 // #region General
 
 export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExtend {
@@ -396,22 +414,7 @@ export function commandsOnOff(args?: {commands?: ('on' | 'off' | 'toggle')[], bi
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) {
-        result.configure = async (device, coordinatorEndpoint, logger) => {
-            if (args.endpointNames) {
-                const endpointsMap = new Map<string, boolean>(args.endpointNames.map((e) => [e, true]));
-                const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
-                for (const endpoint of endpoints) {
-                    await endpoint.bind('genOnOff', coordinatorEndpoint);
-                }
-            } else {
-                const endpoints = getEndpointsWithCluster(device, 'genOnOff', 'output');
-                for (const endpoint of endpoints) {
-                    await endpoint.bind('genOnOff', coordinatorEndpoint);
-                }
-            }
-        };
-    }
+    if (args.bind) result.configure = setupConfigureForBinding('genOnOff', args.endpointNames);
 
     return result;
 }
@@ -768,22 +771,7 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) {
-        result.configure = async (device, coordinatorEndpoint, logger) => {
-            if (args.endpointNames) {
-                const endpointsMap = new Map<string, boolean>(args.endpointNames.map((e) => [e, true]));
-                const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
-                for (const endpoint of endpoints) {
-                    await endpoint.bind('genLevelCtrl', coordinatorEndpoint);
-                }
-            } else {
-                const endpoints = getEndpointsWithCluster(device, 'genLevelCtrl', 'output');
-                for (const endpoint of endpoints) {
-                    await endpoint.bind('genLevelCtrl', coordinatorEndpoint);
-                }
-            }
-        };
-    }
+    if (args.bind) result.configure = setupConfigureForBinding('genLevelCtrl', args.endpointNames);
 
     return result;
 }
@@ -857,22 +845,7 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) {
-        result.configure = async (device, coordinatorEndpoint, logger) => {
-            if (args.endpointNames) {
-                const endpointsMap = new Map<string, boolean>(args.endpointNames.map((e) => [e, true]));
-                const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
-                for (const endpoint of endpoints) {
-                    await endpoint.bind('lightingColorCtrl', coordinatorEndpoint);
-                }
-            } else {
-                const endpoints = getEndpointsWithCluster(device, 'lightingColorCtrl', 'output');
-                for (const endpoint of endpoints) {
-                    await endpoint.bind('lightingColorCtrl', coordinatorEndpoint);
-                }
-            }
-        };
-    }
+    if (args.bind) result.configure = setupConfigureForBinding('lightingColorCtrl', args.endpointNames);
 
     return result;
 }
@@ -982,22 +955,7 @@ export function commandsWindowCovering(args?: {commands?: ('open' | 'close' | 's
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) {
-        result.configure = async (device, coordinatorEndpoint, logger) => {
-            if (args.endpointNames) {
-                const endpointsMap = new Map<string, boolean>(args.endpointNames.map((e) => [e, true]));
-                const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
-                for (const endpoint of endpoints) {
-                    await endpoint.bind('closuresWindowCovering', coordinatorEndpoint);
-                }
-            } else {
-                const endpoints = getEndpointsWithCluster(device, 'closuresWindowCovering', 'output');
-                for (const endpoint of endpoints) {
-                    await endpoint.bind('closuresWindowCovering', coordinatorEndpoint);
-                }
-            }
-        };
-    }
+    if (args.bind) result.configure = setupConfigureForBinding('closuresWindowCovering', args.endpointNames);
 
     return result;
 }
