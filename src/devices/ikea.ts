@@ -993,6 +993,13 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true})],
     },
     {
+        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm'],
+        model: 'LED2111G6',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 806 lumen',
+        extend: [tradfriLight({colorTemp: true, color: true})],
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E12 WS opal 600lm', 'TRADFRI bulb E17 WS opal 600lm'],
         model: 'LED1738G7',
         vendor: 'IKEA',
