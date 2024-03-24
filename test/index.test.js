@@ -86,7 +86,7 @@ describe('index.js', () => {
         expect(definition.description).toBe('Automatically generated definition');
         expect(definition.extend).toBeUndefined();
         expect(definition.fromZigbee).toHaveLength(0);
-        expect(definition.toZigbee).toHaveLength(11);
+        expect(definition.toZigbee).toHaveLength(12);
         expect(definition.exposes).toHaveLength(2);
         expect(definition.options).toHaveLength(1);
     });
