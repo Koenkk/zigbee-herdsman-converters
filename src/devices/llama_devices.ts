@@ -15,14 +15,14 @@ const fzLocal = {
         ],
         convert: (model, msg, publish, options, meta) => {
             switch (msg.type) {
-                case 'commandOn':
-                    return {action: `on_button_${msg.endpoint.ID}`};
-                case 'commandOff':
-                    return {action: `off_button_${msg.endpoint.ID}`};
-                case 'commandToggle':
-                    return {action: `toggle_button_${msg.endpoint.ID}`};
-                default:
-                    return {action: 'NULL'};
+            case 'commandOn':
+                return {action: `on_button_${msg.endpoint.ID}`};
+            case 'commandOff':
+                return {action: `off_button_${msg.endpoint.ID}`};
+            case 'commandToggle':
+                return {action: `toggle_button_${msg.endpoint.ID}`};
+            default:
+                return {action: 'NULL'};
             }
         },
     } satisfies Fz.Converter,
@@ -36,7 +36,7 @@ const definitions: Definition[] = [
         description: 'On/Off output device',
         fromZigbee: [fzLocal.on_off_action],
         exposes: [
-            e.action([]),
+            e.action(['on/off', 'off/on', 'toggle', 'on', 'off']),
         ],
         extend: [
             modernExtend.temperature(),
@@ -45,28 +45,27 @@ const definitions: Definition[] = [
                 () => {
                     const feature: ModernExtend[] = [];
 
-                    for(let i = 0; i < 4; i++)
-                    {
+                    for (let i = 0; i < 4; i++) {
                         feature.push(
                             modernExtend.enumLookup({
                                 name: 'switch_mode',
                                 lookup: {
                                     'toggle': 0,
-                                    'alternate': 2
+                                    'alternate': 2,
                                 },
                                 endpointName: `button_${i + 1}`,
                                 cluster: 0xfcb0,
                                 attribute: {
                                     ID: 0x0a00,
-                                    type: 0x30
+                                    type: 0x30,
                                 },
                                 description: '',
                                 access: 'ALL',
                                 entityCategory: 'config',
                                 zigbeeCommandOptions: {
-                                    manufacturerCode: 0x4c44
-                                }
-                            })
+                                    manufacturerCode: 0x4c44,
+                                },
+                            }),
                         );
                         feature.push(
                             modernExtend.enumLookup({
@@ -82,15 +81,15 @@ const definitions: Definition[] = [
                                 cluster: 0xfcb0,
                                 attribute: {
                                     ID: 0x0a01,
-                                    type: 0x30
+                                    type: 0x30,
                                 },
                                 description: '',
                                 access: 'ALL',
                                 entityCategory: 'config',
                                 zigbeeCommandOptions: {
-                                    manufacturerCode: 0x4c44
-                                }
-                            })
+                                    manufacturerCode: 0x4c44,
+                                },
+                            }),
                         );
                     }
 
@@ -99,7 +98,7 @@ const definitions: Definition[] = [
             )(),
             modernExtend.deviceEndpoints({
                 endpoints: {'button_1': 1, 'button_2': 2, 'button_3': 3, 'button_4': 4},
-                multiEndpointSkip: ['battery', 'temperature', 'humidity']
+                multiEndpointSkip: ['battery', 'temperature', 'humidity'],
             }),
         ],
     },

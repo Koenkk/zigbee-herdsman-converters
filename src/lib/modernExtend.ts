@@ -50,7 +50,7 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
 
 async function setupAttributes(
     entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string | number, config: ReportingConfig[], logger: Logger,
-    configureReporting: boolean=true, read: boolean=true, options?: {manufacturerCode?: number, disableDefaultResponse?: boolean}
+    configureReporting: boolean=true, read: boolean=true, options?: {manufacturerCode?: number, disableDefaultResponse?: boolean},
 ) {
     const endpoints = isEndpoint(entity) ? [entity] : getEndpointsWithInputCluster(entity, cluster);
     const ieeeAddr = isEndpoint(entity) ? entity.deviceIeeeAddress : entity.ieeeAddr;
