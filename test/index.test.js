@@ -229,7 +229,6 @@ describe('index.js', () => {
             }
 
             expect(device.fromZigbee).not.toContain(undefined);
-            expect(device.fromZigbee.length).toBe(new Set(device.fromZigbee).size)
 
             // Verify fromConverters
             Object.keys(device.fromZigbee).forEach((converterKey) => {

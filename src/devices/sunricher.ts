@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
@@ -461,109 +462,162 @@ const definitions: Definition[] = [
             await reporting.currentSummDelivered(endpoint);
 
             // Custom attributes
-            const options = {manufacturerCode: 0x1224}; // Sunricher Manufacturer Code
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD};
 
             // OperateDisplayLcdBrightnesss
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x1000, type: 0x30},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
-            options);
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x1000, type: 0x30},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                }],
+                options,
+            );
             // ButtonVibrationLevel
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x1001, type: 0x30},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
-            options);
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x1001, type: 0x30},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                }],
+                options,
+            );
             // FloorSensorType
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x1002, type: 0x30},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
-            options);
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x1002, type: 0x30},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                }],
+                options,
+            );
             // ControlType
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x1003, type: 0x30},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
-            options);
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x1003, type: 0x30},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                }],
+                options,
+            );
             // PowerUpStatus
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x1004, type: 0x30},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
-            options);
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x1004, type: 0x30},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                }],
+                options,
+            );
             // FloorSensorCalibration
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x1005, type: 0x28},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 0}],
-            options);
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x1005, type: 0x28},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 0,
+                }],
+                options,
+            );
             // DryTime
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x1006, type: 0x20},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 0}],
-            options);
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x1006, type: 0x20},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 0,
+                }],
+                options,
+            );
             // ModeAfterDry
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x1007, type: 0x30},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
-            options);
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x1007, type: 0x30},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                }],
+                options,
+            );
             // TemperatureDisplay
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x1008, type: 0x30},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
-            options);
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x1008, type: 0x30},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                }],
+                options,
+            );
             // WindowOpenCheck
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x1009, type: 0x20},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 0}],
-            options);
-
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x1009, type: 0x20},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 0,
+                }],
+                options,
+            );
             // Hysterersis
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x100A, type: 0x20},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 0}],
-            options);
-
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x100A, type: 0x20},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 0,
+                }],
+                options,
+            );
             // DisplayAutoOffEnable
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x100B, type: 0x30},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
-            options);
-
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x100B, type: 0x30},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                }],
+                options,
+            );
             // AlarmAirTempOverValue
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x2001, type: 0x20},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 0}],
-            options);
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x2001, type: 0x20},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 0,
+                }],
+                options,
+            );
             // Away Mode Set
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: {ID: 0x2002, type: 0x30},
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
-            options);
+            await endpoint.configureReporting(
+                'hvacThermostat',
+                [{
+                    attribute: {ID: 0x2002, type: 0x30},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                }],
+                options,
+            );
 
             // Device does not asks for the time with binding, we need to write time during configure
             syncTime(endpoint);
