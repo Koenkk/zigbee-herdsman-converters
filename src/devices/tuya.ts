@@ -5518,7 +5518,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_qoy0ekbd', '_TZE200_znbl8dj5', '_TZE200_a8sdabtg', '_TZE200_dikkika5']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_qoy0ekbd', '_TZE200_znbl8dj5', '_TZE200_a8sdabtg', '_TZE200_dikkika5','_TZE200_ysm4dsb1']),
         model: 'ZG-227ZL',
         vendor: 'TuYa',
         description: 'Temperature & humidity LCD sensor',
@@ -5530,6 +5530,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('TuYa', 'ZG-227Z', 'Temperature and humidity sensor', ['_TZE200_a8sdabtg']),
             tuya.whitelabel('KOJIMA', 'KOJIMA-THS-ZG-LCD', 'Temperature and humidity sensor', ['_TZE200_dikkika5']),
+            tuya.whitelabel('KOJIMA', 'KOJIMA-THS-ZG-LITE', 'Temperature and humidity sensor', ['_TZE200_ysm4dsb1']),
         ],
         meta: {
             tuyaDatapoints: [
@@ -5718,6 +5719,45 @@ const definitions: Definition[] = [
                 // [118, 'auto1', tuya.valueConverter.raw],
                 // [119, 'auto2', tuya.valueConverter.raw],
                 // [120, 'auto3', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_2aaelwxk']),
+        model: 'ZG-204ZM',
+        vendor: 'TuYa',
+        description: 'PIR 24Ghz human presence sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tzDatapoints],
+        exposes: [
+            e.presence(),
+            e.enum('motion_state', ea.STATE, ['none', 'large', 'small', 'static']).withDescription('Motion state'),
+            e.illuminance_lux(),e.battery(),
+            e.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(28800).withValueStep(1).withUnit('s')
+                .withDescription('Presence keep time'),
+            e.numeric('static_detection_distance', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.01).withUnit('m')
+                .withDescription('Static detection distance'),
+            e.numeric('static_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withUnit('x')
+                .withDescription('Static detection sensitivity'),
+            e.binary('indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('LED indicator mode'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse1],
+                [106, 'illuminance_lux', tuya.valueConverter.raw],
+                [101, 'motion_state', tuya.valueConverterBasic.lookup({
+                    'none': tuya.enum(0), 'large': tuya.enum(1), 'small': tuya.enum(2), 'static': tuya.enum(3),
+                })],
+                [102, 'fading_time', tuya.valueConverter.raw],
+                [4, 'static_detection_distance', tuya.valueConverter.divideBy100],
+                [2, 'static_detection_sensitivity', tuya.valueConverter.raw],
+                [107, 'indicator', tuya.valueConverter.onOff],
+                [121, 'battery', tuya.valueConverter.raw],
+              //  [104, 'small_motion_detection_distance', tuya.valueConverter.divideBy100],
+              //  [105, 'small_motion_detection_sensitivity', tuya.valueConverter.raw],
+              //  [108, 'static_detection_distance', tuya.valueConverter.divideBy100],
+              //  [109, 'static_detection_sensitivity', tuya.valueConverter.raw],
+               
             ],
         },
     },
