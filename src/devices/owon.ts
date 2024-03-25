@@ -99,7 +99,7 @@ const fzLocal = {
                 payload.power_reactive = value;
             }
             if (msg.data.hasOwnProperty('owonCurrentSum') || msg.data.hasOwnProperty('12547')) { // 0x3103 -> 12547
-                const data = msg.data['owonCurrentSum'] || msg.data['12547'];
+                const data = msg.data['owonCurrentSum'] || msg.data['12547'] * factor;
                 payload.current = data;
             }
             if (msg.data.hasOwnProperty('owonReactiveEnergySum') || msg.data.hasOwnProperty('16643')) { // 0x4103 -> 16643
