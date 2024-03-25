@@ -19,6 +19,7 @@ const {
     lumiOverloadProtection, lumiLedIndicator, lumiButtonLock, lumiMotorSpeed,
     lumiOnOff, lumiLedDisabledNight, lumiFlipIndicatorLight, lumiPreventReset,
     lumiClickMode, lumiSlider, lumiSetEventMode, lumiSwitchMode, lumiVibration,
+    lumiMiscellaneous,
 } = lumi.modernExtend;
 import {Definition} from '../lib/types';
 const {manufacturerCode} = lumi;
@@ -1769,6 +1770,7 @@ const definitions: Definition[] = [
         description: 'Vibration sensor T1',
         extend: [
             lumiVibration(),
+            lumiMiscellaneous(),
             battery({voltageToPercentage: '3V_2850_3000', voltage: true}),
             lumiZigbeeOTA(),
             quirkCheckinInterval('1_HOUR'),

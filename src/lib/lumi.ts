@@ -1730,6 +1730,38 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    lumiMiscellaneous: (args?: {
+        cluster: 'genBasic' | 'manuSpecificLumi',
+        deviceTemperatureAttribute?: number,
+        powerOutageCountAttribute?: number,
+        resetsWhenPairing?: boolean,
+    }): ModernExtend => {
+        args = {cluster: 'manuSpecificLumi', deviceTemperatureAttribute: 3, powerOutageCountAttribute: 5, ...args};
+        const exposes: Expose[] = [e.device_temperature(), e.power_outage_count(args.resetsWhenPairing)];
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: args.cluster,
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    const payload: KeyValueAny = {};
+                    if (msg.data.hasOwnProperty(args.deviceTemperatureAttribute)) {
+                        const value = msg.data[args.deviceTemperatureAttribute];
+                        assertNumber(value);
+                        payload['device_temperature'] = value;
+                    }
+                    if (msg.data.hasOwnProperty(args.powerOutageCountAttribute)) {
+                        const value = msg.data[args.powerOutageCountAttribute];
+                        assertNumber(value);
+                        payload['power_outage_count'] = value - 1;
+                    }
+                    return payload;
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
 };
 
 export {lumiModernExtend as modernExtend};
