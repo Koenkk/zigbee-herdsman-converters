@@ -252,6 +252,7 @@ import stelpro from './stelpro';
 import sunricher from './sunricher';
 import swann from './swann';
 import sylvania from './sylvania';
+import tapestry from './tapestry';
 import tci from './tci';
 import technicolor from './technicolor';
 import terncy from './terncy';
@@ -548,6 +549,7 @@ export default [
     ...sunricher,
     ...swann,
     ...sylvania,
+    ...tapestry,
     ...tci,
     ...technicolor,
     ...terncy,
