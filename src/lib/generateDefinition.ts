@@ -216,10 +216,32 @@ const inputExtenders: Extender[] = [
     [['ssIasWd'], async (d, eps) => [
         new Generator({extend: m.iasWarning, source: 'iasWarning'}),
     ]],
+    [['genDeviceTempCfg'], async (d, eps) => [
+        new Generator({extend: m.deviceTemperature, args: maybeEndpointArgs(d, eps), source: 'deviceTemperature'}),
+    ]],
+    [['pm25Measurement'], async (d, eps) => [new Generator({extend: m.pm25, args: maybeEndpointArgs(d, eps), source: 'pm25'})]],
+    [['msFlowMeasurement'], async (d, eps) => [new Generator({extend: m.flow, args: maybeEndpointArgs(d, eps), source: 'flow'})]],
+    [['msSoilMoisture'], async (d, eps) => [new Generator({extend: m.soilMoisture, args: maybeEndpointArgs(d, eps), source: 'soilMoisture'})]],
+    [['closuresWindowCovering'], async (d, eps) => [
+        new Generator({extend: m.windowCovering, args: {controls: ['lift', 'tilt']}, source: 'windowCovering'}),
+    ]],
+    [['genIdentify'], async (d, eps) => [new Generator({extend: m.identify, source: 'identify'})]],
 ];
 
 const outputExtenders: Extender[] = [
-    [['genIdentify'], async (d, eps) => [new Generator({extend: m.identify, source: 'identify'})]],
+    [['genOta'], async (d, eps) => [new Generator({extend: m.ota, source: 'ota'})]],
+    [['genOnOff'], async (d, eps) => [
+        new Generator({extend: m.commandsOnOff, args: maybeEndpointArgs(d, eps), source: 'commandsOnOff'}),
+    ]],
+    [['genLevelCtrl'], async (d, eps) => [
+        new Generator({extend: m.commandsLevelCtrl, args: maybeEndpointArgs(d, eps), source: 'commandsLevelCtrl'}),
+    ]],
+    [['lightingColorCtrl'], async (d, eps) => [
+        new Generator({extend: m.commandsColorCtrl, args: maybeEndpointArgs(d, eps), source: 'commandsColorCtrl'}),
+    ]],
+    [['closuresWindowCovering'], async (d, eps) => [
+        new Generator({extend: m.commandsWindowCovering, args: maybeEndpointArgs(d, eps), source: 'commandsWindowCovering'}),
+    ]],
 ];
 
 async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
