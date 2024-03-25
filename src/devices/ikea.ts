@@ -366,7 +366,7 @@ const definitions: Definition[] = [
         model: 'LED2111G6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E14, color/white spectrum, globe, opal, 806 lm',
-        extend: [tradfriLight({colorTemp: true, color: true}), identify()],
+        extend: [ikeaLight({colorTemp: true, color: true}), identify()],
     },
     {
         zigbeeModel: [
@@ -487,7 +487,7 @@ const definitions: Definition[] = [
         model: 'L2206',
         vendor: 'IKEA',
         description: 'JETSTROM wall light panel, color/white spectrum, 30x30 cm',
-        extend: [tradfriLight({colorTemp: true, color: true}), identify()],
+        extend: [ikeaLight({colorTemp: true, color: true}), identify()],
     },
     {
         zigbeeModel: ['JORMLIEN door WS 40x80'],
