@@ -528,22 +528,22 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['GUNNARP panel round'],
         model: 'T1828',
-        description: 'GUNNARP light panel, round',
         vendor: 'IKEA',
+        description: 'GUNNARP light panel, round',
         extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['GUNNARP panel 40*40'],
         model: 'T1829',
-        description: 'GUNNARP light panel, 40x40 cm',
         vendor: 'IKEA',
+        description: 'GUNNARP light panel, 40x40 cm',
         extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
         zigbeeModel: ['TRADFRI Light Engine'],
         model: 'T2011',
-        description: 'OSVALLA panel round',
         vendor: 'IKEA',
+        description: 'OSVALLA panel round',
         extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
@@ -604,8 +604,8 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['TRADFRI control outlet'],
         model: 'E1603/E1702/E1708',
-        description: 'TRADFRI control outlet',
         vendor: 'IKEA',
+        description: 'TRADFRI control outlet',
         extend: [
             onOff(),
             identify(),
@@ -626,8 +626,8 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['KNYCKLAN receiver'],
         model: 'E1842',
-        description: 'KNYCKLAN electronic dishwasher shut-off unit',
         vendor: 'IKEA',
+        description: 'KNYCKLAN electronic dishwasher shut-off unit',
         extend: [
             onOff(),
             iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
@@ -744,8 +744,8 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['TRADFRI remote control'],
         model: 'E1524/E1810',
-        description: 'TRADFRI remote control',
         vendor: 'IKEA',
+        description: 'TRADFRI remote control',
         fromZigbee: [fromZigbee.ikea_arrow_click, fromZigbee.ikea_arrow_hold,
             fromZigbee.ikea_arrow_release],
         exposes: [e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release',
