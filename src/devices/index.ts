@@ -309,6 +309,7 @@ import xyzroe from './xyzroe';
 import yale from './yale';
 import yandex from './yandex';
 import ynoa from './ynoa';
+import yokis from './yokis';
 import yookee from './yookee';
 import ysrsai from './ysrsai';
 import zemismart from './zemismart';
@@ -627,6 +628,7 @@ export default [
     ...yale,
     ...yandex,
     ...ynoa,
+    ...yokis,
     ...yookee,
     ...ysrsai,
     ...zemismart,
