@@ -1202,7 +1202,7 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Temperature and humidity sensor T1',
         whiteLabel: [{vendor: 'Aqara', model: 'TH-S02D'}],
-        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.temperature, fz.humidity, fz.pressure, fz.battery],
+        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.temperature, fz.humidity, lumi.fromZigbee.lumi_pressure, fz.battery],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.pressure(), e.device_temperature(), e.battery(), e.battery_voltage(),
             e.power_outage_count(false)],

@@ -362,6 +362,13 @@ const definitions: Definition[] = [
         extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
+        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm'],
+        model: 'LED2111G6',
+        vendor: 'IKEA',
+        description: 'TRADFRI bulb E14, color/white spectrum, globe, opal, 806 lm',
+        extend: [tradfriLight({colorTemp: true, color: true}), identify()],
+    },
+    {
         zigbeeModel: [
             '\u001aTRADFRI bulb GU10 WW 345lm',
             'TRADFRI bulb GU10 WW 345lm',
@@ -474,6 +481,13 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'JETSTROM ceiling light panel, white spectrum, 60x60 cm',
         extend: [ikeaLight({colorTemp: true}), identify()],
+    },
+    {
+        zigbeeModel: ['JETSTROM 3030 ceiling'],
+        model: 'L2206',
+        vendor: 'IKEA',
+        description: 'JETSTROM wall light panel, color/white spectrum, 30x30 cm',
+        extend: [tradfriLight({colorTemp: true, color: true}), identify()],
     },
     {
         zigbeeModel: ['JORMLIEN door WS 40x80'],

@@ -238,6 +238,16 @@ const converters2 = {
             await entity.command('genIdentify', 'identify', {identifytime: identifyTimeout}, utils.getOptions(meta.mapped, entity));
         },
     } satisfies Tz.Converter,
+    zcl_command: {
+        key: ['zclcommand'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertObject(value, key);
+            const payload = (value.hasOwnProperty('payload') ? value.payload : {});
+            utils.assertEndpoint(entity);
+            await entity.zclCommand(value.cluster, value.command, payload, (value.hasOwnProperty('options') ? value.options : {}));
+            meta.logger.info(`Invoked ZCL command ${value.cluster}.${value.command} with payload '${JSON.stringify(payload)}'`);
+        },
+    } satisfies Tz.Converter,
     arm_mode: {
         key: ['arm_mode'],
         convertSet: async (entity, key, value, meta) => {

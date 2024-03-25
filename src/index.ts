@@ -1,6 +1,7 @@
 import * as configureKey from './lib/configureKey';
-import * as exposes from './lib/exposes';
+import * as exposesLib from './lib/exposes';
 import type {Feature, Numeric, Enum, Binary, Text, Composite, List, Light, Climate, Switch, Lock, Cover, Fan} from './lib/exposes';
+import {Enum as EnumClass} from './lib/exposes';
 import toZigbee from './converters/toZigbee';
 import fromZigbee from './converters/fromZigbee';
 import assert from 'assert';
@@ -103,9 +104,10 @@ function processExtensions(definition: Definition): Definition {
             assert.fail(`'${definition.model}' has function exposes which is not allowed`);
         }
 
+        exposes = [...exposes ?? []]
         toZigbee = [...toZigbee ?? []];
         fromZigbee = [...fromZigbee ?? []];
-        exposes = [...exposes ?? []];
+
         const configures: Configure[] = definitionConfigure ? [definitionConfigure] : [];
 
         for (const ext of extend) {
@@ -137,6 +139,22 @@ function processExtensions(definition: Definition): Definition {
             }
         }
 
+        // Filtering out action exposes to combine them one
+        const actionExposes = exposes.filter((e) => e.name === 'action');
+        exposes = exposes.filter((e) => e.name !== 'action');
+        if (actionExposes.length > 0) {
+            const actions: string[] = [];
+            for (const expose of actionExposes) {
+                if (expose instanceof EnumClass) {
+                    for (const action of expose.values) {
+                        actions.push(action.toString())
+                    } 
+                }
+            } 
+            const uniqueActions = actions.filter((value, index, array) => array.indexOf(value) === index);
+            exposes.push(exposesLib.presets.action(uniqueActions));
+        }
+
         let configure: Configure = null;
         if (configures.length !== 0) {
             configure = async (device, coordinatorEndpoint, logger) => {
@@ -157,10 +175,10 @@ function prepareDefinition(definition: Definition): Definition {
     definition.toZigbee.push(
         toZigbee.scene_store, toZigbee.scene_recall, toZigbee.scene_add, toZigbee.scene_remove, toZigbee.scene_remove_all, 
         toZigbee.scene_rename, toZigbee.read, toZigbee.write,
-        toZigbee.command, toZigbee.factory_reset);
+        toZigbee.command, toZigbee.factory_reset, toZigbee.zcl_command);
 
     if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
-        definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);
+        definition.exposes = definition.exposes.concat([exposesLib.presets.linkquality()]);
     }
 
     validateDefinition(definition);
@@ -175,9 +193,9 @@ function prepareDefinition(definition: Definition): Definition {
             // Battery voltage is not calibratable
             if (expose.name === 'voltage' && expose.unit === 'mV') continue;
             const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? 'percentual' : 'absolute';
-            definition.options.push(exposes.options.calibration(expose.name, type));
+            definition.options.push(exposesLib.options.calibration(expose.name, type));
             if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
-                definition.options.push(exposes.options.precision(expose.name));
+                definition.options.push(exposesLib.options.precision(expose.name));
             }
             optionKeys.push(expose.name);
         }
@@ -354,22 +372,35 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
     // it expects at least one answer. The payload contains the number of seconds
     // since when the device is powered. If the value is too high, it will leave & not pair
     // 23 works, 200 doesn't
-    if (data.meta && data.meta.manufacturerCode === Zcl.ManufacturerCode.LEGRAND_GROUP && type === 'message' && data.type === 'read' &&
-        data.cluster === 'genBasic' && data.data && data.data.includes(61440)) {
-        const endpoint = device.getEndpoint(1);
-        const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
-        const payload = {0xf00: {value: 23, type: 35}};
-        await endpoint.readResponse('genBasic', data.meta.zclTransactionSequenceNumber, payload, options);
+    if (device.manufacturerID === Zcl.ManufacturerCode.LEGRAND_GROUP && !device.customReadResponse) {
+        device.customReadResponse = (frame, endpoint) => {
+            if (frame.isCluster('genBasic') && frame.Payload.find((i: {attrId: number}) => i.attrId === 61440)) {
+                const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
+                const payload = {0xf00: {value: 23, type: 35}};
+                endpoint.readResponse('genBasic', frame.Header.transactionSequenceNumber, payload, options).catch((e) => {
+                    logger.logger.warn(`Legrand security read response failed: ${e}`);
+                })
+                return true;
+            }
+            return false;
+        }
     }
+
     // Aqara feeder C1 polls the time during the interview, need to send back the local time instead of the UTC.
     // The device.definition has not yet been set - therefore the device.definition.onEvent method does not work.
-    if (type === 'message' && data.type === 'read' && data.cluster === 'genTime' &&
-        device.modelID === 'aqara.feeder.acn001') {
-        device.skipTimeResponse = true;
-        const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
-        const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
-        const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
-        await device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal});
+    if (device.modelID === 'aqara.feeder.acn001' && !device.customReadResponse) {
+        device.customReadResponse = (frame, endpoint) => {
+            if (frame.isCluster('genTime')) {
+                const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+                const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
+                const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
+                endpoint.readResponse('genTime', frame.Header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
+                    logger.logger.warn(`ZNCWWSQ01LM custom time response failed: ${e}`);
+                })
+                return true;
+            }
+            return false;
+        }
     }
 }
 
