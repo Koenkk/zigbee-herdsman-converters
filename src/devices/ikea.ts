@@ -6,7 +6,7 @@ import * as reporting from '../lib/reporting';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
-    temperature, humidity, occupancy, illuminance, windowCovering,
+    temperature, humidity, occupancy, illuminance, windowCovering, commandsOnOff, commandsLevelCtrl, commandsWindowCovering,
 } from '../lib/modernExtend';
 import {
     ikeaConfigureRemote, fromZigbee, ikeaLight, ikeaOta,
@@ -749,14 +749,15 @@ const definitions: Definition[] = [
         model: 'E1524/E1810',
         description: 'TRADFRI remote control',
         vendor: 'IKEA',
-        fromZigbee: [fromZigbee.E1524_E1810_toggle, fromZigbee.E1524_E1810_levelctrl, fromZigbee.ikea_arrow_click, fromZigbee.ikea_arrow_hold,
+        fromZigbee: [fromZigbee.E1524_E1810_levelctrl, fromZigbee.ikea_arrow_click, fromZigbee.ikea_arrow_hold,
             fromZigbee.ikea_arrow_release],
         exposes: [e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release',
             'arrow_right_click', 'arrow_right_hold', 'arrow_right_release', 'brightness_down_click', 'brightness_down_hold',
-            'brightness_down_release', 'brightness_up_click', 'brightness_up_hold', 'brightness_up_release', 'toggle'])],
+            'brightness_down_release', 'brightness_up_click', 'brightness_up_hold', 'brightness_up_release'])],
         extend: [
             ikeaConfigureRemote(),
             identify(),
+            // commandsOnOff({commands: ['toggle'], bind: false}),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -766,10 +767,9 @@ const definitions: Definition[] = [
         model: 'E2001/E2002',
         vendor: 'IKEA',
         description: 'STYRBAR remote control',
-        fromZigbee: [fromZigbee.styrbar_on, fz.command_off, fz.command_move, fz.command_stop, fromZigbee.ikea_arrow_click,
+        fromZigbee: [fromZigbee.styrbar_on, fromZigbee.ikea_arrow_click,
             fromZigbee.ikea_arrow_hold, fromZigbee.styrbar_arrow_release],
-        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
-            'brightness_stop', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
+        exposes: [e.action(['arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             // Binding genOnOff is not required to make device send events.
@@ -777,12 +777,14 @@ const definitions: Definition[] = [
             const version = device.softwareBuildID.split('.').map((n) => Number(n));
             // https://github.com/Koenkk/zigbee2mqtt/issues/15725
             const v245OrLater = version[0] > 2 || (version[0] == 2 && version[1] >= 4);
-            const binds = v245OrLater ? ['genOnOff', 'genLevelCtrl', 'genScenes'] : [];
+            const binds = v245OrLater ? ['genScenes'] : [];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
         extend: [
             ikeaConfigureRemote(),
             identify(),
+            commandsOnOff({commands: ['off']}),
+            commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -792,16 +794,16 @@ const definitions: Definition[] = [
         model: 'E1743',
         vendor: 'IKEA',
         description: 'TRADFRI on/off switch',
-        fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff, fz.command_move,
-            ikeaLegacy.fromZigbee.E1743_brightness_up, ikeaLegacy.fromZigbee.E1743_brightness_down, fz.command_stop,
-            ikeaLegacy.fromZigbee.E1743_brightness_stop],
-        exposes: [
-            e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
+        fromZigbee: [ // DEPRECATED
+            legacy.fz.genOnOff_cmdOn, legacy.fz.genOnOff_cmdOff, ikeaLegacy.fromZigbee.E1743_brightness_up,
+            ikeaLegacy.fromZigbee.E1743_brightness_down, ikeaLegacy.fromZigbee.E1743_brightness_stop,
         ],
         meta: {disableActionGroup: true},
         extend: [
             ikeaConfigureRemote(),
             identify(),
+            commandsOnOff({commands: ['on', 'off']}),
+            commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -811,12 +813,11 @@ const definitions: Definition[] = [
         model: 'E1841',
         vendor: 'IKEA',
         description: 'KNYCKLAN open/close water valve remote',
-        fromZigbee: [fz.command_on, fz.ignore_command_off],
-        exposes: [e.action(['on', 'off'])],
         meta: {disableActionGroup: true},
         extend: [
             ikeaConfigureRemote(),
             identify(),
+            commandsOnOff({commands: ['on', 'off']}),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -826,10 +827,10 @@ const definitions: Definition[] = [
         model: 'E1812',
         vendor: 'IKEA',
         description: 'TRADFRI shortcut button',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
-        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_stop'])],
         meta: {disableActionGroup: true},
         extend: [
+            commandsOnOff({commands: ['on', 'off']}),
+            commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_stop']}),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -840,13 +841,11 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'SYMFONISK sound controller',
         fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_stop, ikeaLegacy.fromZigbee.E1744_play_pause, ikeaLegacy.fromZigbee.E1744_skip],
-        exposes: [e.action([
-            'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'toggle', 'brightness_step_up', 'brightness_step_down'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
-        },
         extend: [
+            commandsOnOff({commands: ['toggle']}),
+            commandsLevelCtrl({
+                commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down'],
+            }),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -856,11 +855,10 @@ const definitions: Definition[] = [
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        fromZigbee: [fz.command_cover_close, legacy.fz.cover_close, fz.command_cover_open, legacy.fz.cover_open,
-            fz.command_cover_stop, legacy.fz.cover_stop],
-        exposes: [e.action(['close', 'open', 'stop'])],
+        fromZigbee: [legacy.fz.cover_close, legacy.fz.cover_open, legacy.fz.cover_stop],
         extend: [
             ikeaConfigureRemote(),
+            commandsWindowCovering(),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -898,16 +896,14 @@ const definitions: Definition[] = [
         model: 'E2201',
         vendor: 'IKEA',
         description: 'RODRET wireless dimmer/power switch',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
-        exposes: [
-            e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
-        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'genLevelCtrl', 'genPollCtrl'];
+            const binds = ['genPollCtrl'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
         extend: [
+            commandsOnOff({commands: ['on', 'off']}),
+            commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             battery(),
             ikeaOta(),
         ],
