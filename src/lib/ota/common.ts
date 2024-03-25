@@ -459,6 +459,12 @@ export async function updateToLatest(device: Zh.Device, logger: Logger, onProgre
                 imageBlockOrPageRequestTimeoutMs = 60 * 60 * 1000;
             }
 
+            // Increase the timeout for Legrand devices, so that they will re-initiate and update themselves
+            // Newer firmwares have ackward behaviours when it comes to the handling of the last bytes of OTA updates
+            if ( request.payload.manufacturerCode === 4129 ) {
+                imageBlockOrPageRequestTimeoutMs = 30 * 60 * 1000;
+            }
+
             const imageBlockRequest = endpoint.waitForCommand('genOta', 'imageBlockRequest', null, imageBlockOrPageRequestTimeoutMs);
             const imagePageRequest = endpoint.waitForCommand('genOta', 'imagePageRequest', null, imageBlockOrPageRequestTimeoutMs);
             waiters.imageBlockOrPageRequest = {

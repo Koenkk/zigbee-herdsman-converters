@@ -227,6 +227,16 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_krwtzhfd'}],
+        model: '07767L',
+        vendor: 'Immax',
+        description: 'NEO Smart outdoor button',
+        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
+        fromZigbee: [fz.battery, fz.tuya_on_off_action],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+    },
 ];
 
 export default definitions;

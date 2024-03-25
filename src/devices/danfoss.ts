@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -129,7 +130,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x1246};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
 
             // standard ZCL attributes
@@ -298,7 +299,7 @@ const definitions: Definition[] = [
             return features;
         })(16)),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const options = {manufacturerCode: 0x1246};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
 
             for (let i = 1; i <= 15; i++) {
                 const endpoint = device.getEndpoint(i);
@@ -415,7 +416,7 @@ const definitions: Definition[] = [
             return features;
         })(16)),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const options = {manufacturerCode: 0x1246};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
 
             // Danfoss Icon2 MainController Specific endpoint
             const endpoint232 = device.getEndpoint(232);

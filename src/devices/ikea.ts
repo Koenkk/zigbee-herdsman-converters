@@ -993,6 +993,13 @@ const definitions: Definition[] = [
         extend: [tradfriLight({colorTemp: true})],
     },
     {
+        zigbeeModel: ['TRADFRI bulb E14 CWS globe 806lm'],
+        model: 'LED2111G6',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 806 lumen',
+        extend: [tradfriLight({colorTemp: true, color: true})],
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E12 WS opal 600lm', 'TRADFRI bulb E17 WS opal 600lm'],
         model: 'LED1738G7',
         vendor: 'IKEA',
@@ -1137,6 +1144,13 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'STOFTMOLN ceiling/wall lamp 15 warm light dimmable',
         extend: [tradfriLight()],
+    },
+    {
+        zigbeeModel: ['JETSTROM 3030 ceiling'],
+        model: 'L2206',
+        vendor: 'IKEA',
+        description: 'JETSTRÖM LED wall light panel, smart dimmable/wired-in colour and white spectrum, 30x30cm',
+        extend: [tradfriLight({colorTemp: true, color: true})],
     },
     {
         zigbeeModel: ['JETSTROM 40100'],

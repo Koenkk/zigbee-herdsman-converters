@@ -1,3 +1,4 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -81,7 +82,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x104E};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC};
             await reporting.bind(endpoint, coordinatorEndpoint,
                 ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await reporting.temperature(endpoint);
@@ -267,7 +268,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x110A};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SMARTTHINGS_INC};
             await reporting.bind(endpoint, coordinatorEndpoint,
                 ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x01, type: 0x20}}, options);
@@ -300,7 +301,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x1241};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD};
             await reporting.bind(endpoint, coordinatorEndpoint,
                 ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x14, type: 0x20}}, options);
@@ -341,7 +342,11 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 10,
             }];
-            await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, {manufacturerCode: 0x104E});
+            await endpoint.configureReporting(
+                'manuSpecificCentraliteHumidity',
+                payload,
+                {manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC},
+            );
 
             await reporting.batteryVoltage(endpoint);
         },

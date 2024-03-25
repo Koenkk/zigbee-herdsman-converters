@@ -1,5 +1,6 @@
 import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
+import fz from '../converters/fromZigbee';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
@@ -16,6 +17,15 @@ const fzLocal = {
 };
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['CK-BL702-ROUTER-01(7018)'],
+        model: 'CK-BL702-ROUTER-01(7018)',
+        vendor: 'eWeLink',
+        description: 'USB router',
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        exposes: [],
+    },
     {
         zigbeeModel: ['CK-BL702-MSW-01(7010)'],
         model: 'CK-BL702-MSW-01(7010)',
