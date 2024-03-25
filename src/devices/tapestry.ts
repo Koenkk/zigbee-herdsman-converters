@@ -8,7 +8,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['Presence Z1'],
         model: 'THPZ1',
         vendor: 'Tapestry',
-        description: 'Tapestry Presence Sensor Z1 Occupancy and Temperature/Humidity Sensor',
+        description: 'Presence sensor Z1 occupancy and temperature/humidity sensor',
         extend: [],
         fromZigbee: [fz.temperature, fz.humidity, fz.occupancy],
         toZigbee: [],
