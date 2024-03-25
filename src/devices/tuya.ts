@@ -5728,7 +5728,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'PIR 24Ghz human presence sensor',
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tzDatapoints],
+        toZigbee: [tuya.tz.datapoints],
         exposes: [
             e.presence(),
             e.enum('motion_state', ea.STATE, ['none', 'large', 'small', 'static']).withDescription('Motion state'),
