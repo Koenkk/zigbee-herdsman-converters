@@ -1713,7 +1713,7 @@ export const lumiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
-    lumiVibrationT1: (): ModernExtend => {
+    lumiVibration: (): ModernExtend => {
         const exposes: Expose[] = [
             e.enum('action', ea.STATE, ['shake', 'strike_3_times']).withDescription('Triggered vibration action'),
         ];

@@ -18,7 +18,7 @@ const {
     lumiOutageCountRestoreBindReporting, lumiElectricityMeter, lumiPower,
     lumiOverloadProtection, lumiLedIndicator, lumiButtonLock, lumiMotorSpeed,
     lumiOnOff, lumiLedDisabledNight, lumiFlipIndicatorLight, lumiPreventReset,
-    lumiClickMode, lumiSlider, lumiSetEventMode, lumiSwitchMode, lumiVibrationT1,
+    lumiClickMode, lumiSlider, lumiSetEventMode, lumiSwitchMode, lumiVibration,
 } = lumi.modernExtend;
 import {Definition} from '../lib/types';
 const {manufacturerCode} = lumi;
@@ -1768,7 +1768,7 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Vibration sensor T1',
         extend: [
-            lumiVibrationT1(),
+            lumiVibration(),
             numeric({
                 name: 'vibration_sensetivity',
                 cluster: 'manuSpecificLumi',
