@@ -2,12 +2,11 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
-import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
-    temperature, humidity, occupancy, illuminance,
+    temperature, humidity, occupancy, illuminance, windowCovering,
 } from '../lib/modernExtend';
 import {
     ikeaConfigureRemote, fromZigbee, ikeaLight, ikeaOta,
@@ -650,16 +649,9 @@ const definitions: Definition[] = [
         model: 'E1757',
         vendor: 'IKEA',
         description: 'FYRTUR roller blind, block-out',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-        },
-        exposes: [e.cover_position()],
         extend: [
             ikeaConfigureGenPollCtrl(),
+            windowCovering({controls: ['lift']}),
             identify(),
             ikeaBattery(),
             ikeaOta(),
@@ -670,16 +662,9 @@ const definitions: Definition[] = [
         model: 'E1926',
         vendor: 'IKEA',
         description: 'KADRILJ roller blind',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-        },
-        exposes: [e.cover_position()],
         extend: [
             ikeaConfigureGenPollCtrl(),
+            windowCovering({controls: ['lift']}),
             identify(),
             ikeaBattery(),
             ikeaOta(),
@@ -690,16 +675,9 @@ const definitions: Definition[] = [
         model: 'E2102',
         vendor: 'IKEA',
         description: 'PRAKTLYSING cellular blind',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-        },
-        exposes: [e.cover_position()],
         extend: [
             ikeaConfigureGenPollCtrl(),
+            windowCovering({controls: ['lift']}),
             identify(),
             ikeaBattery(),
             ikeaOta(),
@@ -710,16 +688,9 @@ const definitions: Definition[] = [
         model: 'E2103',
         vendor: 'IKEA',
         description: 'TREDANSEN cellular blind, block-out',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-        },
-        exposes: [e.cover_position()],
         extend: [
             ikeaConfigureGenPollCtrl(),
+            windowCovering({controls: ['lift']}),
             identify(),
             battery({dontDividePercentage: true}),
             ikeaOta(),
