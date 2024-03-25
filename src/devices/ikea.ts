@@ -13,6 +13,8 @@ import {
     ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
     ikeaVoc, ikeaConfigureGenPollCtrl, tradfriOccupancy,
     tradfriRequestedBrightness,
+    tradfriCommandsOnOff,
+    tradfriCommandsLevelCtrl,
 } from '../lib/ikea';
 const e = exposes.presets;
 
@@ -749,15 +751,15 @@ const definitions: Definition[] = [
         model: 'E1524/E1810',
         description: 'TRADFRI remote control',
         vendor: 'IKEA',
-        fromZigbee: [fromZigbee.E1524_E1810_levelctrl, fromZigbee.ikea_arrow_click, fromZigbee.ikea_arrow_hold,
+        fromZigbee: [fromZigbee.ikea_arrow_click, fromZigbee.ikea_arrow_hold,
             fromZigbee.ikea_arrow_release],
         exposes: [e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release',
-            'arrow_right_click', 'arrow_right_hold', 'arrow_right_release', 'brightness_down_click', 'brightness_down_hold',
-            'brightness_down_release', 'brightness_up_click', 'brightness_up_hold', 'brightness_up_release'])],
+            'arrow_right_click', 'arrow_right_hold', 'arrow_right_release'])],
         extend: [
             ikeaConfigureRemote(),
             identify(),
-            // commandsOnOff({commands: ['toggle'], bind: false}),
+            tradfriCommandsOnOff(),
+            tradfriCommandsLevelCtrl(),
             ikeaBattery(),
             ikeaOta(),
         ],

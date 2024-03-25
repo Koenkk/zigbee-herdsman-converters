@@ -434,6 +434,47 @@ export function tradfriRequestedBrightness(): ModernExtend {
     return {exposes, fromZigbee, isModernExtend: true};
 }
 
+export function tradfriCommandsOnOff(): ModernExtend {
+    const exposes: Expose[] = [presets.action(['toggle'])];
+
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'genOnOff',
+        type: 'commandToggle',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: postfixWithEndpointName('toggle', msg, model, meta)};
+        },
+    }];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
+
+export function tradfriCommandsLevelCtrl(): ModernExtend {
+    const actionLookup: KeyValueAny = {
+        commandStepWithOnOff: 'brightness_up_click',
+        commandStep: 'brightness_down_click',
+        commandMoveWithOnOff: 'brightness_up_hold',
+        commandStopWithOnOff: 'brightness_up_release',
+        commandMove: 'brightness_down_hold',
+        commandStop: 'brightness_down_release',
+        commandMoveToLevelWithOnOff: 'toggle_hold',
+    };
+
+    const exposes: Expose[] = [presets.action(Object.values(actionLookup))];
+
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'genLevelCtrl',
+        type: [
+            'commandStepWithOnOff', 'commandStep', 'commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop',
+            'commandMoveToLevelWithOnOff',
+        ],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: actionLookup[msg.type]};
+        },
+    }];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
+
 export const fromZigbee = {
     // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
     // https://github.com/Koenkk/zigbee2mqtt/issues/13335
@@ -542,13 +583,6 @@ export const fromZigbee = {
             return {action: `track_${direction}`};
         },
     } satisfies Fz.Converter,
-    E1524_E1810_toggle: {
-        cluster: 'genOnOff',
-        type: 'commandToggle',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: postfixWithEndpointName('toggle', msg, model, meta)};
-        },
-    } satisfies Fz.Converter,
     ikea_arrow_click: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowSingle',
@@ -587,25 +621,6 @@ export const fromZigbee = {
                 if (!isLegacyEnabled(options)) delete result.duration;
                 return result;
             }
-        },
-    } satisfies Fz.Converter,
-    E1524_E1810_levelctrl: {
-        cluster: 'genLevelCtrl',
-        type: [
-            'commandStepWithOnOff', 'commandStep', 'commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop',
-            'commandMoveToLevelWithOnOff',
-        ],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup: KeyValueAny = {
-                commandStepWithOnOff: 'brightness_up_click',
-                commandStep: 'brightness_down_click',
-                commandMoveWithOnOff: 'brightness_up_hold',
-                commandStopWithOnOff: 'brightness_up_release',
-                commandMove: 'brightness_down_hold',
-                commandStop: 'brightness_down_release',
-                commandMoveToLevelWithOnOff: 'toggle_hold',
-            };
-            return {action: lookup[msg.type]};
         },
     } satisfies Fz.Converter,
 };
