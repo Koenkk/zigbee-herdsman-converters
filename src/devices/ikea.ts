@@ -1,13 +1,12 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
     temperature, humidity, occupancy, illuminance, windowCovering,
-    commandsOnOff, commandsLevelCtrl, commandsWindowCovering, pm25,
+    commandsOnOff, commandsLevelCtrl, commandsWindowCovering, pm25, linkquality,
 } from '../lib/modernExtend';
 import {
     ikeaConfigureRemote, fromZigbee, ikeaLight, ikeaOta,
@@ -716,17 +715,11 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['TRADFRI signal repeater'],
         model: 'E1746',
-        description: 'TRADFRI signal repeater',
         vendor: 'IKEA',
-        fromZigbee: [fz.linkquality_from_basic],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400, reportableChange: 0}];
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-            await endpoint.configureReporting('genBasic', payload);
-        },
+        description: 'TRADFRI signal repeater',
         extend: [
             identify(),
+            linkquality({reporting: true}),
             ikeaOta(),
         ],
     },
