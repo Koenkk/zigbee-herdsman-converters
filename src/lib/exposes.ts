@@ -634,7 +634,7 @@ export const presets = {
     switch_: () => new Switch(),
     // Specific
     ac_frequency: () => new Numeric('ac_frequency', access.STATE).withLabel('AC frequency').withUnit('Hz').withDescription('Measured electrical AC frequency'),
-    action: (values: string[]) => new Enum('action', access.STATE, values).withDescription('Triggered action (e.g. a button click)'),
+    action: (values: string[]) => new Enum('action', access.STATE, values).withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic'),
     action_duration: () => new Numeric('action_duration', access.STATE).withUnit('s').withDescription('Triggered action duration in seconds').withCategory('diagnostic'),
     action_group: () => new Numeric('action_group', access.STATE).withDescription('Group where the action was triggered on'),
     angle: (name: string) => new Numeric(name, access.STATE).withValueMin(-360).withValueMax(360).withUnit('°'),
