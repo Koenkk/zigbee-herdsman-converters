@@ -13,7 +13,6 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.humidity, fz.occupancy],
         toZigbee: [],
         exposes: [e.occupancy(), e.temperature(), e.humidity()],
-        meta: {},
     },
 ];
 
