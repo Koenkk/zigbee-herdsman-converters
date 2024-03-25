@@ -1,6 +1,6 @@
 import {Definition} from '../lib/types';
 import fz from '../converters/fromZigbee';
-import {forcePowerSource} from 'src/lib/modernExtend';
+import {forcePowerSource} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
