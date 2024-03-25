@@ -5754,7 +5754,7 @@ const definitions: Definition[] = [
                 [4, 'static_detection_distance', tuya.valueConverter.divideBy100],
                 [2, 'static_detection_sensitivity', tuya.valueConverter.raw],
                 [107, 'indicator', tuya.valueConverter.onOff],
-                [121, 'battery', tuya.valueConverter.raw],   
+                [121, 'battery', tuya.valueConverter.raw],
             ],
         },
     },
