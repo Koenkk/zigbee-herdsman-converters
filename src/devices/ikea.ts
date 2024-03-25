@@ -6,7 +6,8 @@ import * as reporting from '../lib/reporting';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
-    temperature, humidity, occupancy, illuminance, windowCovering, commandsOnOff, commandsLevelCtrl, commandsWindowCovering,
+    temperature, humidity, occupancy, illuminance, windowCovering,
+    commandsOnOff, commandsLevelCtrl, commandsWindowCovering, pm25,
 } from '../lib/modernExtend';
 import {
     ikeaConfigureRemote, fromZigbee, ikeaLight, ikeaOta,
@@ -950,20 +951,14 @@ const definitions: Definition[] = [
         model: 'E2112',
         vendor: 'IKEA',
         description: 'VINDSTYRKA air quality and humidity sensor',
-        fromZigbee: [fz.pm25],
-        exposes: [e.pm25()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint,
-                ['pm25Measurement']);
-            await ep.configureReporting('pm25Measurement', [{
-                attribute: {ID: 0x0000, type: zigbeeHerdsman.Zcl.DataType.singlePrec},
-                minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 2,
-            }]);
-        },
         extend: [
             temperature(),
             humidity(),
+            pm25({
+                // IKEA used conflicting date type on a standart attribute
+                attribute: {ID: 0x0000, type: zigbeeHerdsman.Zcl.DataType.singlePrec},
+                reporting: {min: '1_MINUTE', max: '2_MINUTES', change: 2},
+            }),
             ikeaVoc(),
             identify(),
             ikeaOta(),
