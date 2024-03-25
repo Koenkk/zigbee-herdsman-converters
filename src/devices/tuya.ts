@@ -5734,7 +5734,7 @@ const definitions: Definition[] = [
         exposes: [
             e.presence(),
             e.enum('motion_state', ea.STATE, ['none', 'large', 'small', 'static']).withDescription('Motion state'),
-            e.illuminance_lux(),e.battery(),
+            e.illuminance_lux(), e.battery(),
             e.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(28800).withValueStep(1).withUnit('s')
                 .withDescription('Presence keep time'),
             e.numeric('static_detection_distance', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.01).withUnit('m')
@@ -5755,11 +5755,7 @@ const definitions: Definition[] = [
                 [2, 'static_detection_sensitivity', tuya.valueConverter.raw],
                 [107, 'indicator', tuya.valueConverter.onOff],
                 [121, 'battery', tuya.valueConverter.raw],
-              //  [104, 'small_motion_detection_distance', tuya.valueConverter.divideBy100],
-              //  [105, 'small_motion_detection_sensitivity', tuya.valueConverter.raw],
-              //  [108, 'static_detection_distance', tuya.valueConverter.divideBy100],
-              //  [109, 'static_detection_sensitivity', tuya.valueConverter.raw],
-               
+                
             ],
         },
     },
