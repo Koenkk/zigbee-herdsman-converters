@@ -3566,7 +3566,7 @@ const definitions: Definition[] = [
         model: '442296118491',
         vendor: 'Signify Netherlands B.V.',
         description: 'Hue Secure Camera Floodlight',
-        extend: [philipsLight({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        extend: [philipsLight({colorTemp: {range: [153,500]}, color: {modes: [xy, hs], enhancedHue: true}})],
     },
 ];
 
