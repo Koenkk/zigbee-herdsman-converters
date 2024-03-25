@@ -5362,7 +5362,7 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0225', ['_TZE200_hl0ss9oa']),
         model: 'ZG-205ZL',
         vendor: 'TuYa',
-        description: '24Ghz human presence sensor',
+        description: '24Ghz/5.8GHz human presence sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
@@ -5667,7 +5667,7 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0225', ['_TZE200_2aaelwxk']),
         model: 'ZG-205Z/A',
         vendor: 'TuYa',
-        description: '5.8Ghz Human presence sensor',
+        description: '5.8Ghz/24Ghz Human presence sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
