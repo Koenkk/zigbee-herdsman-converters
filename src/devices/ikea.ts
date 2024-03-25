@@ -743,6 +743,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
         },
         extend: [
+            identify({isSleepy: true}),
             battery({dontDividePercentage: true}),
             ikeaOta(),
         ],
@@ -758,7 +759,7 @@ const definitions: Definition[] = [
             'arrow_right_click', 'arrow_right_hold', 'arrow_right_release'])],
         extend: [
             ikeaConfigureRemote(),
-            identify(),
+            identify({isSleepy: true}),
             tradfriCommandsOnOff(),
             tradfriCommandsLevelCtrl(),
             ikeaBattery(),
@@ -785,7 +786,7 @@ const definitions: Definition[] = [
         },
         extend: [
             ikeaConfigureRemote(),
-            identify(),
+            identify({isSleepy: true}),
             commandsOnOff({commands: ['off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
@@ -804,7 +805,7 @@ const definitions: Definition[] = [
         meta: {disableActionGroup: true},
         extend: [
             ikeaConfigureRemote(),
-            identify(),
+            identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
@@ -819,7 +820,7 @@ const definitions: Definition[] = [
         meta: {disableActionGroup: true},
         extend: [
             ikeaConfigureRemote(),
-            identify(),
+            identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off']}),
             ikeaBattery(),
             ikeaOta(),
@@ -832,6 +833,7 @@ const definitions: Definition[] = [
         description: 'TRADFRI shortcut button',
         meta: {disableActionGroup: true},
         extend: [
+            identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_stop']}),
             ikeaBattery(),
@@ -845,6 +847,7 @@ const definitions: Definition[] = [
         description: 'SYMFONISK sound controller',
         fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_stop, ikeaLegacy.fromZigbee.E1744_play_pause, ikeaLegacy.fromZigbee.E1744_skip],
         extend: [
+            identify({isSleepy: true}),
             commandsOnOff({commands: ['toggle']}),
             commandsLevelCtrl({
                 commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down'],
@@ -861,6 +864,7 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.cover_close, legacy.fz.cover_open, legacy.fz.cover_stop],
         extend: [
             ikeaConfigureRemote(),
+            identify({isSleepy: true}),
             commandsWindowCovering(),
             ikeaBattery(),
             ikeaOta(),
@@ -890,6 +894,7 @@ const definitions: Definition[] = [
             }
         },
         extend: [
+            identify({isSleepy: true}),
             battery({voltage: true}),
             ikeaOta(),
         ],
@@ -905,6 +910,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
         extend: [
+            identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             battery(),
@@ -929,6 +935,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
         },
         extend: [
+            identify({isSleepy: true}),
             battery(),
             ikeaOta(),
         ],
@@ -942,6 +949,7 @@ const definitions: Definition[] = [
             forcePowerSource({powerSource: 'Battery'}),
             tradfriOccupancy(),
             tradfriRequestedBrightness(),
+            identify({isSleepy: true}),
             ikeaBattery(),
             ikeaOta(),
         ],
@@ -972,7 +980,7 @@ const definitions: Definition[] = [
         extend: [
             occupancy(),
             illuminance(),
-            identify(),
+            identify({isSleepy: true}),
             battery(),
             ikeaOta(),
         ],
@@ -990,7 +998,7 @@ const definitions: Definition[] = [
         },
         extend: [
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
-            identify(),
+            identify({isSleepy: true}),
             battery(),
             ikeaOta(),
         ],
@@ -1002,7 +1010,7 @@ const definitions: Definition[] = [
         description: 'BADRING water leakage sensor',
         extend: [
             iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1']}),
-            identify(),
+            identify({isSleepy: true}),
             battery(),
             ikeaOta(),
         ],
