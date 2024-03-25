@@ -4624,23 +4624,18 @@ const converters1 = {
     } satisfies Fz.Converter,
     tuya_multi_action: {
         cluster: 'genOnOff',
-        type: 'raw',
+        type: ['commandTuyaAction', 'commandTuyaAction2'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model, msg.data[1])) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
 
             let action;
-            if (msg.data[2] == 253) {
+            if (msg.type == 'commandTuyaAction') {
                 const lookup: KeyValueAny = {0: 'single', 1: 'double', 2: 'hold'};
-                action = lookup[msg.data[3]];
-            } else if (msg.data[2] == 252) {
+                action = lookup[msg.data.value];
+            } else if (msg.type == 'commandTuyaAction2') {
                 const lookup: KeyValueAny = {0: 'rotate_right', 1: 'rotate_left'};
-                action = lookup[msg.data[3]];
+                action = lookup[msg.data.value];
             }
-
-            // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
-            // Send the defaultResponse here, otherwise the second button click delays.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/8149
-            msg.endpoint.defaultResponse(msg.data[2], 0, 6, msg.data[1]).catch((error) => {});
 
             return {action};
         },
