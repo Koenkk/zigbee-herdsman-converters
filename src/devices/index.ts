@@ -240,6 +240,7 @@ import smart9 from './smart9';
 import smartenit from './smartenit';
 import smartthings from './smartthings';
 import smartwings from './smartwings';
+import smlight from './smlight';
 import sohan_electric from './sohan_electric';
 import solaredge from './solaredge';
 import somfy from './somfy';
@@ -247,7 +248,6 @@ import somgoms from './somgoms';
 import sonoff from './sonoff';
 import sowilo from './sowilo';
 import spotmau from './spotmau';
-import wirenboard from './wirenboard';
 import stelpro from './stelpro';
 import sunricher from './sunricher';
 import swann from './swann';
@@ -274,15 +274,16 @@ import villeroy_boch from './villeroy_boch';
 import vimar from './vimar';
 import visonic from './visonic';
 import vrey from './vrey';
+import lumi from './lumi';
 import wally from './wally';
 import waxman from './waxman';
 import weiser from './weiser';
 import weten from './weten';
+import wirenboard from './wirenboard';
 import wisdom from './wisdom';
 import woolley from './woolley';
 import woox from './woox';
 import wyze from './wyze';
-import lumi from './lumi';
 import xinghuoyuan from './xinghuoyuan';
 import xyzroe from './xyzroe';
 import yale from './yale';
@@ -536,6 +537,7 @@ export default [
     ...smartenit,
     ...smartthings,
     ...smartwings,
+    ...smlight,
     ...sohan_electric,
     ...solaredge,
     ...somfy,
@@ -543,7 +545,6 @@ export default [
     ...sonoff,
     ...sowilo,
     ...spotmau,
-    ...wirenboard,
     ...stelpro,
     ...sunricher,
     ...swann,
@@ -562,6 +563,7 @@ export default [
     ...tuya,
     ...ubisys,
     ...uhome,
+    ...lumi,
     ...universal_electronics_inc,
     ...vbled,
     ...vesternet,
@@ -574,11 +576,11 @@ export default [
     ...waxman,
     ...weiser,
     ...weten,
+    ...wirenboard,
     ...wisdom,
     ...woolley,
     ...woox,
     ...wyze,
-    ...lumi,
     ...xinghuoyuan,
     ...xyzroe,
     ...yale,

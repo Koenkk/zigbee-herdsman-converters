@@ -472,15 +472,15 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 55,
         dataType: UINT8,
         min: 2,
-        max: 254,
-        description: 'Set this level on double-tap UP (if enabled by P53).',
+        max: 255,
+        description: 'Set this level on double-tap UP (if enabled by P53). 255 = send ON command.',
     },
     brightnessLevelForDoubleTapDown: {
         ID: 56,
         dataType: UINT8,
         min: 0,
-        max: 254,
-        description: 'Set this level on double-tap DOWN (if enabled by P54).',
+        max: 255,
+        description: 'Set this level on double-tap DOWN (if enabled by P54). 255 = send OFF command.',
     },
     ledColorWhenOn: {
         ID: 95,
@@ -531,6 +531,68 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 100,
         description: 'Set the intensity of the LED Indicator when the load is off.',
+    },
+    singleTapBehavior: {
+        ID: 120,
+        dataType: UINT8,
+        displayType: 'enum',
+        values: {'Old Behavior': 0, 'New Behavior': 1, 'Down Always Off': 2},
+        description: 'Behavior of single tapping the on or off button. Old behavior turns the switch on or off. ' +
+            'New behavior cycles through the levels set by P131-133. Down Always Off is like the new behavior but ' +
+            'down always turns the switch off instead of going to next lower speed.',
+    },
+    advancedTimerMode: {
+        ID: 121,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Enabled': 1},
+        description: 'Enable or disable advanced timer mode to have the switch act like a bathroom fan timer',
+    },
+    fanControlMode: {
+        ID: 130,
+        dataType: UINT8,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Multi Tap': 1, 'Cycle': 2},
+        description: 'Which mode to use when binding EP3 to a fan module.',
+    },
+    lowLevelForFanControlMode: {
+        ID: 131,
+        dataType: UINT8,
+        min: 2,
+        max: 254,
+        description: 'Level to send to device bound to EP3 when set to low.',
+    },
+    mediumLevelForFanControlMode: {
+        ID: 132,
+        dataType: UINT8,
+        min: 2,
+        max: 254,
+        description: 'Level to send to device bound to EP3 when set to medium.',
+    },
+    highLevelForFanControlMode: {
+        ID: 133,
+        dataType: UINT8,
+        min: 2,
+        max: 254,
+        description: 'Level to send to device bound to EP3 when set to high.',
+    },
+    ledColorForFanControlMode: {
+        ID: 134,
+        dataType: UINT8,
+        min: 0,
+        max: 255,
+        values: {
+            Red: 0,
+            Orange: 21,
+            Yellow: 42,
+            Green: 85,
+            Cyan: 127,
+            Blue: 170,
+            Violet: 212,
+            Pink: 234,
+            White: 255,
+        },
+        description: 'LED color used to display fan control mode.',
     },
     auxSwitchUniqueScenes: {
         ID: 123,
@@ -820,7 +882,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         values: {'Enabled (Default)': 0, 'Disabled': 1},
         displayType: 'enum',
     },
-
+    fanLedLevelType: {
+        ID: 263,
+        dataType: UINT8,
+        min: 0,
+        max: 10,
+        values: {'Limitless (like VZM31)': 0, 'Adaptive LED': 10},
+        description: 'Level display of the LED Strip',
+    },
 };
 
 const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
@@ -906,81 +975,6 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
         min: 42,
         max: 135,
         description: 'Identification value in Non-nuetral, low gear, aux switch',
-    },
-    fanLedLevelType: {
-        ID: 263,
-        dataType: UINT8,
-        min: 0,
-        max: 10,
-        values: {'Limitless (like VZM31)': 0, 'Adaptive LED': 10},
-        description: 'Level display of the LED Strip',
-    },
-    singleTapBehavior: {
-        ID: 120,
-        dataType: UINT8,
-        displayType: 'enum',
-        values: {'Old Behavior': 0, 'New Behavior': 1},
-        description: 'Behavior of single tapping the on or off button. Old behavior turns the switch on or off. ' +
-        'New behavior cycles through the levels set by P131-133.',
-    },
-    fanTimerMode: {
-        ID: 121,
-        dataType: UINT8,
-        displayType: 'enum',
-        values: {'Disabled': 0, 'Enabled': 1},
-        description:
-        'When enabled, then 1x tap up on the paddle turns the fan on, ' +
-        '2x tap up sets a 5 minute timer, 3x tap up sets a 10 minute timer, ' +
-        '4x tap up sets a 15 minute timer, 5x tap up sets a 30 minute timer and ' +
-        'a tap down 1x turns the fan off and the timer is cancelled). ' +
-        'The LED Bar will show how much time is left while active. ' +
-        'By default this feature is set to disabled',
-    },
-    fanControlMode: {
-        ID: 130,
-        dataType: UINT8,
-        displayType: 'enum',
-        values: {'Disabled': 0, 'Multi Tap': 1, 'Cycle': 2},
-        description: 'Which mode to use when binding EP3 to a fan module.',
-    },
-    lowLevelForFanControlMode: {
-        ID: 131,
-        dataType: UINT8,
-        min: 2,
-        max: 254,
-        description: 'Level to send to device bound to EP3 when set to low.',
-    },
-    mediumLevelForFanControlMode: {
-        ID: 132,
-        dataType: UINT8,
-        min: 2,
-        max: 254,
-        description: 'Level to send to device bound to EP3 when set to medium.',
-    },
-    highLevelForFanControlMode: {
-        ID: 133,
-        dataType: UINT8,
-        min: 2,
-        max: 254,
-        description: 'Level to send to device bound to EP3 when set to high.',
-    },
-    ledColorForFanControlMode: {
-        ID: 134,
-        dataType: UINT8,
-        min: 0,
-        max: 255,
-        values: {
-            Red: 0,
-            Orange: 21,
-            Yellow: 42,
-            Green: 85,
-            Cyan: 127,
-            Blue: 170,
-            Violet: 212,
-            Pink: 234,
-            White: 255,
-        },
-        description: 'LED color used to display fan control mode.',
     },
 };
 
