@@ -1736,7 +1736,7 @@ export const lumiModernExtend = {
         powerOutageCountAttribute?: number,
         resetsWhenPairing?: boolean,
     }): ModernExtend => {
-        args = {cluster: 'manuSpecificLumi', deviceTemperatureAttribute: 3, powerOutageCountAttribute: 5, ...args};
+        args = {cluster: 'manuSpecificLumi', deviceTemperatureAttribute: 3, powerOutageCountAttribute: 5, resetsWhenPairing: false, ...args};
         const exposes: Expose[] = [e.device_temperature(), e.power_outage_count(args.resetsWhenPairing)];
 
         const fromZigbee: Fz.Converter[] = [
