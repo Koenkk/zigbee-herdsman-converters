@@ -3561,6 +3561,13 @@ const definitions: Definition[] = [
         description: 'Hue white ambiance Pillar spotlight with Bluetooth (white) + dimmer switch',
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
+    {
+        zigbeeModel: ['442296118491'],
+        model: '442296118491',
+        vendor: 'Signify Netherlands B.V.',
+        description: 'Hue Secure Camera Floodlight',
+        extend: [philipsLight({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    },
 ];
 
 export default definitions;
