@@ -5518,7 +5518,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_qoy0ekbd', '_TZE200_znbl8dj5', '_TZE200_a8sdabtg', '_TZE200_dikkika5','_TZE200_ysm4dsb1']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_qoy0ekbd', '_TZE200_znbl8dj5', '_TZE200_a8sdabtg', '_TZE200_dikkika5']),
         model: 'ZG-227ZL',
         vendor: 'TuYa',
         description: 'Temperature & humidity LCD sensor',
@@ -5530,7 +5530,6 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('TuYa', 'ZG-227Z', 'Temperature and humidity sensor', ['_TZE200_a8sdabtg']),
             tuya.whitelabel('KOJIMA', 'KOJIMA-THS-ZG-LCD', 'Temperature and humidity sensor', ['_TZE200_dikkika5']),
-            tuya.whitelabel('KOJIMA', 'KOJIMA-THS-ZG-LITE', 'Temperature and humidity sensor', ['_TZE200_ysm4dsb1']),
         ],
         meta: {
             tuyaDatapoints: [
@@ -5561,6 +5560,9 @@ const definitions: Definition[] = [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
                 [2, 'humidity', tuya.valueConverter.raw],
                 [4, 'battery', tuya.valueConverter.raw],
+                [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
+                [23, 'temperature_calibration', tuya.valueConverter.divideBy10],
+                [24, 'humidity_calibration', tuya.valueConverter.raw],
             ],
         },
     },
