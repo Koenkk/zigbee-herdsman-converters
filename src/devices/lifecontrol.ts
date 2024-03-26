@@ -1,12 +1,29 @@
-import {Definition} from '../lib/types';
+import {Definition, ModernExtend, Fz, Expose} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
-import {light} from '../lib/modernExtend';
+import {battery, electricityMeter, iasZoneAlarm, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
+
+function lifecontrolAirMonitor(): ModernExtend {
+    const exposes: Expose[] = [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.eco2()];
+
+    const fromZigbee: Fz.Converter[] = [{
+        cluster: 'msTemperatureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+            const humidity = parseFloat(msg.data['minMeasuredValue']) / 100.0;
+            const eco2 = parseFloat(msg.data['maxMeasuredValue']);
+            const voc = parseFloat(msg.data['tolerance']);
+            return {temperature, humidity, eco2, voc};
+        },
+    }];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
 
 const definitions: Definition[] = [
     {
@@ -87,9 +104,8 @@ const definitions: Definition[] = [
         model: 'MCLH-08',
         vendor: 'LifeControl',
         description: 'Air sensor',
-        fromZigbee: [fz.lifecontrolVoc],
-        exposes: [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.eco2()],
         extend: [
+            lifecontrolAirMonitor(),
             battery({dontDividePercentage: true}),
         ],
     },
