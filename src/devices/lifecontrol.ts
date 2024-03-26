@@ -91,7 +91,7 @@ const definitions: Definition[] = [
         description: 'Smart socket',
         extend: [
             onOff({powerOnBehavior: false}),
-            electricityMeter({reporting: false}),
+            electricityMeter({configureReporting: false}),
             electricityMeterPoll(),
         ],
     },
