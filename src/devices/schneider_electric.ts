@@ -8,7 +8,7 @@ import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {onOff, light, electricityMeter, identify, enumLookup, deviceEndpoints} from '../lib/modernExtend';
+import {onOff, commandsOnOff, commandsLevelCtrl, light, battery, electricityMeter, identify, enumLookup, deviceEndpoints} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
