@@ -336,6 +336,16 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    TZE204_dvosyycn: {
+        key: ['value'],
+        convertSet: async (entity, key, value, meta) => {
+            const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name ? `value_${meta.endpoint_name}` : 'value';
+            const datapoints = meta.mapped.meta?.tuyaDatapoints;
+            const dpEntry = datapoints.find((d) => d[1] === convertedKey);
+            const dpId = dpEntry[0];
+            await tuya.sendDataPointValue(entity, dpId, value);
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -522,6 +532,37 @@ const fzLocal = {
                     'under_voltage_breaker': lookup[value[0x04][0]],
                 };
             }
+        },
+    } satisfies Fz.Converter,
+    TZE204_dvosyycn: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            value_192 = meta.state.value_v1;
+            value_193 = meta.state.value_v2;
+            changed = false;
+            payload = {};
+            for (const dpValue of msg.data.dpValues) {
+                const dp = dpValue.dp;
+                switch (dp) {
+                    case 192:
+                        {
+                            value_192 = legacy.getDataValue(dpValue);
+                            changed = true;
+                        };
+                    case 193:
+                        {
+                            value_193 = legacy.getDataValue(dpValue);
+                            changed = true;
+                        };
+                    };
+            };
+            if (changed) {
+                payload['mode_l' + value_192] = value_193;
+                payload['value_v1'] = value_192;
+                payload['value_v2'] = value_193;
+                return payload;
+           };
         },
     } satisfies Fz.Converter,
 };
@@ -6459,7 +6500,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_vmcgja59'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_dvosyycn'},
+//            {modelID: 'TS0601', manufacturerName: '_TZE204_dvosyycn'}, // added new definition below SMY 20240326
         ],
         model: 'TS0601_switch_8',
         vendor: 'TuYa',
@@ -7709,6 +7750,75 @@ const definitions: Definition[] = [
                 [22, null, null], // Forward Energy T2 - don't know what this
                 [23, null, null], // Forward Energy T3 - don't know what this
                 [24, null, null], // Forward Energy T4 - don't know what this
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dvosyycn']),
+        model: 'TS0601',
+        vendor: 'TuYa',
+        description: 'ZXYH 8IN/8OUT',
+        extend: [],
+        fromZigbee: [tuya.fz.datapoints, fzLocal.TZE204_dvosyycn],
+        toZigbee: [tuya.tz.datapoints, tzLocal.TZE204_dvosyycn],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            ...Array.from({ length: 8 }, (_, i) => tuya.exposes.switch().withEndpoint(`l${i + 1}`).withDescription(`Switch l${i + 1}`)),
+            ...Array.from({ length: 8 }, (_, i) => e.numeric('mode', ea.STATE).withEndpoint(`l${i + 1}`).withDescription(`Mode l${i + 1}`)),
+            ...Array.from({ length: 8 }, (_, i) => e.voltage().withEndpoint(`a${i + 1}`).withDescription(`Voltage ${i + 1}`)),
+            e.text('serial', ea.STATE).withDescription('Serial number'),
+            e.text('dp_string_171', ea.STATE).withDescription('DP 171'),
+            e.text('data_9', ea.STATE).withDescription('DP 181'),
+            e.enum('value', ea.STATE_SET, [1, 2, 3, 4, 5, 6, 7, 8]).withDescription('Channel Select').withEndpoint('v1'),
+            e.enum('value', ea.STATE_SET, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).withDescription('Channel Mode').withEndpoint('v2'),
+            e.numeric('value', ea.STATE_SET).withEndpoint(`v3`).withDescription(`Value 3`),
+            e.numeric('mode', ea.STATE_SET).withDescription('Mode'),
+            e.numeric('order', ea.STATE_SET).withDescription('Order'),
+            e.numeric('state', ea.STATE_SET).withDescription('State'),
+        ],
+        endpoint: (device) => {
+            return {
+                'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1, 'l9': 1, 'l10': 1, 'l11': 1, 'l12': 1, 'l13': 1, 'l14': 1, 'l15': 1, 'l16': 1,
+                'v1': 1, 'v2': 1, 'v3': 1,
+                'a1': 1, 'a2': 1, 'a3': 1, 'a4': 1, 'a5': 1, 'a6': 1, 'a7': 1, 'a8': 1,
+            };
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+                [5, 'state_l5', tuya.valueConverter.onOff],
+                [6, 'state_l6', tuya.valueConverter.onOff],
+                [101, 'state_l7', tuya.valueConverter.onOff],
+                [102, 'state_l8', tuya.valueConverter.onOff],
+                [103, 'state_l9', tuya.valueConverter.onOff],
+                [104, 'state_l10', tuya.valueConverter.onOff],
+                [105, 'state_l11', tuya.valueConverter.onOff],
+                [106, 'state_l12', tuya.valueConverter.onOff],
+                [107, 'state_l13', tuya.valueConverter.onOff],
+                [108, 'state_l14', tuya.valueConverter.onOff],
+                [109, 'state_l15', tuya.valueConverter.onOff],
+                [110, 'state_l16', tuya.valueConverter.onOff],
+                [171, 'dp_string_171', tuya.valueConverter.raw],
+                [181, 'data_9', tuya.valueConverter.raw],
+                [182, 'voltage_a8', tuya.valueConverter.divideBy10],
+                [183, 'voltage_a7', tuya.valueConverter.divideBy10],
+                [184, 'voltage_a6', tuya.valueConverter.divideBy10],
+                [185, 'voltage_a5', tuya.valueConverter.divideBy10],
+                [186, 'voltage_a4', tuya.valueConverter.divideBy10],
+                [187, 'voltage_a3', tuya.valueConverter.divideBy10],
+                [188, 'voltage_a2', tuya.valueConverter.divideBy10],
+                [189, 'voltage_a1', tuya.valueConverter.divideBy10],
+                [190, 'mode', tuya.valueConverter.raw],
+                [191, 'order', tuya.valueConverter.raw],
+                [192, 'value_v1', tuya.valueConverter.raw],
+                [193, 'value_v2', tuya.valueConverter.raw],
+                [194, 'value_v3', tuya.valueConverter.raw],
+                [198, 'state', tuya.valueConverter.raw],
+                [199, 'serial', tuya.valueConverter.raw],
             ],
         },
     },
