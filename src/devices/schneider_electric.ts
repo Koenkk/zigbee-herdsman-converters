@@ -1028,18 +1028,17 @@ const definitions: Definition[] = [
     },
     {
        zigbeeModel: ['FLS/SYSTEM-M/4'],
-       model: 'WDE002906/MEG5001-0300',
-       vendor: 'Schneider Electric',
-       description: 'Wiser wireless switch 1-gang or 2-gang',
-       fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-       toZigbee: [],
-       exposes: [e.action(['on_left', 'off_left', 'on_right', 'off_right', 'brightness_move_up_left', 'brightness_stop_left',
-           'brightness_move_down_left', 'brightness_stop_left', 'brightness_move_up_right', 'brightness_stop_right',
-           'brightness_move_down_right', 'brightness_stop_right']), e.battery()],
-       extend: [
+         model: 'WDE002906/MEG5001-0300',
+         vendor: 'Schneider Electric',
+         description: 'Wiser wireless switch 1-gang or 2-gang',
+         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+         toZigbee: [],
+         extend: [
            deviceEndpoints({endpoints: {'right': 21, 'left': 22}}),
-           switchActions('right'), switchActions('left'),
-       ],
+           switchActions('right'), switchActions('left'), battery(),
+           commandsOnOff({endpointNames: ['right', 'left']}),
+           commandsLevelCtrl({endpointNames: ['right', 'left']}),
+         ],
     },
     {
         zigbeeModel: ['SOCKET/OUTLET/2'],
