@@ -30,7 +30,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['Leak_Sensor'],
         model: 'MCLH-07',
         vendor: 'LifeControl',
-        description: 'Water leak switch',
+        description: 'Water leakage sensor',
         extend: [
             iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
             battery({dontDividePercentage: true}),
@@ -40,7 +40,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['Door_Sensor'],
         model: 'MCLH-04',
         vendor: 'LifeControl',
-        description: 'Door sensor',
+        description: 'Open and close sensor',
         extend: [
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
             battery({dontDividePercentage: true}),
@@ -50,7 +50,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['vivi ZLight'],
         model: 'MCLH-02',
         vendor: 'LifeControl',
-        description: 'RGB LED lamp',
+        description: 'Smart light bulb',
         extend: [light({colorTemp: {range: [167, 333]}, color: true})],
     },
     {
@@ -103,7 +103,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['VOC_Sensor'],
         model: 'MCLH-08',
         vendor: 'LifeControl',
-        description: 'Air sensor',
+        description: 'Air quality sensor',
         extend: [
             airQuality(),
             battery({dontDividePercentage: true}),
