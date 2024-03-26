@@ -1150,10 +1150,10 @@ export interface ElectricityMeterArgs {
     power?: false | MultiplierDivisor,
     voltage?: false | MultiplierDivisor,
     energy?: false | MultiplierDivisor
-    reporting?: boolean
+    configureReporting?: boolean
 }
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
-    args = {cluster: 'both', reporting: true, ...args};
+    args = {cluster: 'both', configureReporting: true, ...args};
     if (args.cluster === 'metering' && isObject(args.power) && isObject(args.energy) &&
         (args.power?.divisor !== args.energy?.divisor || args.power?.multiplier !== args.energy?.multiplier)) {
         throw new Error(`When cluster is metering, power and energy divisor/multiplier should be equal`);
@@ -1211,7 +1211,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
 
-    if (args.reporting) {
+    if (args.configureReporting) {
         result.configure = async (device, coordinatorEndpoint, logger) => {
             for (const [cluster, properties] of Object.entries(configureLookup)) {
                 for (const endpoint of getEndpointsWithCluster(device, cluster, 'input')) {
