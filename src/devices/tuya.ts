@@ -340,7 +340,7 @@ const tzLocal = {
         key: ['value'],
         convertSet: async (entity, key, value, meta) => {
             const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name ? `value_${meta.endpoint_name}` : 'value';
-            const datapoints = meta.mapped.meta?.tuyaDatapoints;
+            const datapoints = meta.mapped.meta.tuyaDatapoints;
             const dpEntry = datapoints.find((d) => d[1] === convertedKey);
             const dpId = dpEntry[0];
             await tuya.sendDataPointValue(entity, dpId, value);
