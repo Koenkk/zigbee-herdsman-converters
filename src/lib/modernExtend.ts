@@ -1150,9 +1150,10 @@ export interface ElectricityMeterArgs {
     power?: false | MultiplierDivisor,
     voltage?: false | MultiplierDivisor,
     energy?: false | MultiplierDivisor
+    configureReporting?: boolean
 }
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
-    args = {cluster: 'both', ...args};
+    args = {cluster: 'both', configureReporting: true, ...args};
     if (args.cluster === 'metering' && isObject(args.power) && isObject(args.energy) &&
         (args.power?.divisor !== args.energy?.divisor || args.power?.multiplier !== args.energy?.multiplier)) {
         throw new Error(`When cluster is metering, power and energy divisor/multiplier should be equal`);
@@ -1208,39 +1209,43 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         delete configureLookup.seMetering;
     }
 
-    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
-        for (const [cluster, properties] of Object.entries(configureLookup)) {
-            for (const endpoint of getEndpointsWithCluster(device, cluster, 'input')) {
-                const items: ReportingConfig[] = [];
-                for (const property of Object.values(properties)) {
-                    // In case multiplier or divisor was provided, use that instead of reading from device.
-                    if (property.forced) {
-                        endpoint.saveClusterAttributeKeyValue(cluster, {
-                            [property.divisor]: property.forced.divisor ?? 1,
-                            [property.multiplier]: property.forced.multiplier ?? 1,
-                        });
-                        endpoint.save();
-                    } else {
-                        await endpoint.read(cluster, [property.divisor, property.multiplier]);
-                    }
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
 
-                    const divisor = endpoint.getClusterAttributeValue(cluster, property.divisor);
-                    assertNumber(divisor, property.divisor);
-                    const multiplier = endpoint.getClusterAttributeValue(cluster, property.multiplier);
-                    assertNumber(multiplier, property.multiplier);
-                    let change: number | [number, number] = property.change * (divisor / multiplier);
-                    // currentSummDelivered data type is uint48, so reportableChange also is uint48
-                    if (property.attribute === 'currentSummDelivered') change = [0, change];
-                    items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
-                }
-                if (items.length) {
-                    await setupAttributes(endpoint, coordinatorEndpoint, cluster, items, logger);
+    if (args.configureReporting) {
+        result.configure = async (device, coordinatorEndpoint, logger) => {
+            for (const [cluster, properties] of Object.entries(configureLookup)) {
+                for (const endpoint of getEndpointsWithCluster(device, cluster, 'input')) {
+                    const items: ReportingConfig[] = [];
+                    for (const property of Object.values(properties)) {
+                        // In case multiplier or divisor was provided, use that instead of reading from device.
+                        if (property.forced) {
+                            endpoint.saveClusterAttributeKeyValue(cluster, {
+                                [property.divisor]: property.forced.divisor ?? 1,
+                                [property.multiplier]: property.forced.multiplier ?? 1,
+                            });
+                            endpoint.save();
+                        } else {
+                            await endpoint.read(cluster, [property.divisor, property.multiplier]);
+                        }
+
+                        const divisor = endpoint.getClusterAttributeValue(cluster, property.divisor);
+                        assertNumber(divisor, property.divisor);
+                        const multiplier = endpoint.getClusterAttributeValue(cluster, property.multiplier);
+                        assertNumber(multiplier, property.multiplier);
+                        let change: number | [number, number] = property.change * (divisor / multiplier);
+                        // currentSummDelivered data type is uint48, so reportableChange also is uint48
+                        if (property.attribute === 'currentSummDelivered') change = [0, change];
+                        items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
+                    }
+                    if (items.length) {
+                        await setupAttributes(endpoint, coordinatorEndpoint, cluster, items, logger);
+                    }
                 }
             }
-        }
-    };
+        };
+    }
 
-    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    return result;
 }
 
 // #endregion
