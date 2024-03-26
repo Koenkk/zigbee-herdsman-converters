@@ -1034,10 +1034,10 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
         extend: [
-          deviceEndpoints({endpoints: {'right': 21, 'left': 22}}),
-          switchActions('right'), switchActions('left'), battery(),
-          commandsOnOff({endpointNames: ['right', 'left']}),
-          commandsLevelCtrl({endpointNames: ['right', 'left']}),
+            deviceEndpoints({endpoints: {'right': 21, 'left': 22}}),
+            switchActions('right'), switchActions('left'), battery(),
+            commandsOnOff({endpointNames: ['right', 'left']}),
+            commandsLevelCtrl({endpointNames: ['right', 'left']}),
         ],
     },
     {
