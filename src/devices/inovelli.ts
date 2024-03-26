@@ -999,7 +999,15 @@ const VZM36_ATTRIBUTES : {[s: string]: Attribute} = {
         description:
             'The state the light should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.',
     },
-    higherOutputInNonNeutral_1: {...COMMON_ATTRIBUTES.higherOutputInNonNeutral},
+    higherOutputInNonNeutral_1: {
+        ID: 25,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled (default)': 0, 'Enabled': 1},
+        min: 0,
+        max: 1,
+        description: 'Increase level in non-neutral mode for light.',
+    },
     quickStartTime_1: {
         ID: 23,
         dataType: UINT8,
