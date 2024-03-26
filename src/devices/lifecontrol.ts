@@ -7,7 +7,7 @@ import {battery, electricityMeter, iasZoneAlarm, light, onOff} from '../lib/mode
 
 const e = exposes.presets;
 
-function lifecontrolAirMonitor(): ModernExtend {
+function airQuality(): ModernExtend {
     const exposes: Expose[] = [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.eco2()];
 
     const fromZigbee: Fz.Converter[] = [{
@@ -105,7 +105,7 @@ const definitions: Definition[] = [
         vendor: 'LifeControl',
         description: 'Air sensor',
         extend: [
-            lifecontrolAirMonitor(),
+            airQuality(),
             battery({dontDividePercentage: true}),
         ],
     },
