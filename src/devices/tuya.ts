@@ -5554,7 +5554,7 @@ const definitions: Definition[] = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
         },
-         exposes: [e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), tuya.exposes.temperatureCalibration(),
+        exposes: [e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), tuya.exposes.temperatureCalibration(),
             tuya.exposes.humidityCalibration(), e.battery()],
         meta: {
             tuyaDatapoints: [
