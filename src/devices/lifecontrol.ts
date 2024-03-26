@@ -1,6 +1,5 @@
-import {Definition, ModernExtend, Fz, Expose} from '../lib/types';
+import {Definition, ModernExtend, Fz, Expose, Configure, OnEvent} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
 import * as globalStore from '../lib/store';
 import * as reporting from '../lib/reporting';
 import {battery, electricityMeter, iasZoneAlarm, light, onOff} from '../lib/modernExtend';
@@ -23,6 +22,38 @@ function airQuality(): ModernExtend {
     }];
 
     return {exposes, fromZigbee, isModernExtend: true};
+}
+
+function electricityMeterPoll(): ModernExtend {
+    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+        const endpoint = device.getEndpoint(1);
+        await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+        await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+        await reporting.readMeteringMultiplierDivisor(endpoint);
+        await reporting.currentSummDelivered(endpoint);
+    };
+
+    const onEvent: OnEvent = async (type, data, device) => {
+        // This device doesn't support reporting correctly.
+        // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
+        const endpoint = device.getEndpoint(1);
+        if (type === 'stop') {
+            clearInterval(globalStore.getValue(device, 'interval'));
+            globalStore.clearValue(device, 'interval');
+        } else if (!globalStore.hasValue(device, 'interval')) {
+            const interval = setInterval(async () => {
+                try {
+                    await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
+                    await endpoint.read('seMetering', ['currentSummDelivered', 'multiplier', 'divisor']);
+                } catch (error) {
+                    // Do nothing
+                }
+            }, 10*1000); // Every 10 seconds
+            globalStore.putValue(device, 'interval', interval);
+        }
+    };
+
+    return {configure, onEvent, isModernExtend: true};
 }
 
 const definitions: Definition[] = [
