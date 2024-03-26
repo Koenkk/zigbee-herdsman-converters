@@ -3227,17 +3227,6 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    lifecontrolVoc: {
-        cluster: 'msTemperatureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-            const humidity = parseFloat(msg.data['minMeasuredValue']) / 100.0;
-            const eco2 = parseFloat(msg.data['maxMeasuredValue']);
-            const voc = parseFloat(msg.data['tolerance']);
-            return {temperature, humidity, eco2, voc};
-        },
-    } satisfies Fz.Converter,
     _8840100H_water_leak_alarm: {
         cluster: 'haApplianceEventsAlerts',
         type: 'commandAlertsNotification',
