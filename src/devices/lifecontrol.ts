@@ -14,20 +14,20 @@ const definitions: Definition[] = [
         model: 'MCLH-07',
         vendor: 'LifeControl',
         description: 'Water leak switch',
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
+        extend: [
+            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({dontDividePercentage: true}),
+        ],
     },
     {
         zigbeeModel: ['Door_Sensor'],
         model: 'MCLH-04',
         vendor: 'LifeControl',
         description: 'Door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
-        toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
+        extend: [
+            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({dontDividePercentage: true}),
+        ],
     },
     {
         zigbeeModel: ['vivi ZLight'],
@@ -77,20 +77,21 @@ const definitions: Definition[] = [
         model: 'MCLH-05',
         vendor: 'LifeControl',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
-        toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        extend: [
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({dontDividePercentage: true}),
+        ],
     },
     {
         zigbeeModel: ['VOC_Sensor'],
         model: 'MCLH-08',
         vendor: 'LifeControl',
         description: 'Air sensor',
-        fromZigbee: [fz.lifecontrolVoc, fz.battery],
-        toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.eco2(), e.battery()],
+        fromZigbee: [fz.lifecontrolVoc],
+        exposes: [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.eco2()],
+        extend: [
+            battery({dontDividePercentage: true}),
+        ],
     },
 ];
 
