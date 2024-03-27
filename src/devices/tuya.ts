@@ -3033,6 +3033,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_xby0s3ta'}, // Sandy Beach HY367
             {modelID: 'TS0601', manufacturerName: '_TZE200_7fqkphoq'}, // AFINTEK
             {modelID: 'TS0601', manufacturerName: '_TZE200_rufdtfyv'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_lpwgshtl'},
         ],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',
