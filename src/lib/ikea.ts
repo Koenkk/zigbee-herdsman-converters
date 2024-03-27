@@ -593,23 +593,6 @@ export function ikeaArrowClick(args?: {styrbar: boolean}): ModernExtend {
 }
 
 export const fromZigbee = {
-    styrbar_arrow_release: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowRelease',
-        options: [options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
-            const direction = globalStore.getValue(msg.endpoint, 'direction');
-            if (direction) {
-                globalStore.clearValue(msg.endpoint, 'direction');
-                const duration = msg.data.value / 1000;
-                const result = {action: `arrow_${direction}_release`, duration, action_duration: duration};
-                if (!isLegacyEnabled(options)) delete result.duration;
-                return result;
-            }
-        },
-    } satisfies Fz.Converter,
     ikea_volume_click: {
         cluster: 'genLevelCtrl',
         type: 'commandMoveWithOnOff',
@@ -635,46 +618,6 @@ export const fromZigbee = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'previous' : 'next';
             return {action: `track_${direction}`};
-        },
-    } satisfies Fz.Converter,
-    ikea_arrow_click: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowSingle',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            if (msg.data.value === 2) {
-                // This is send on toggle hold, ignore it as a toggle_hold is already handled above.
-                return;
-            }
-
-            const direction = msg.data.value === 257 ? 'left' : 'right';
-            return {action: `arrow_${direction}_click`};
-        },
-    } satisfies Fz.Converter,
-    ikea_arrow_hold: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowHold',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = msg.data.value === 3329 ? 'left' : 'right';
-            globalStore.putValue(msg.endpoint, 'direction', direction);
-            return {action: `arrow_${direction}_hold`};
-        },
-    } satisfies Fz.Converter,
-    ikea_arrow_release: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowRelease',
-        options: [options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = globalStore.getValue(msg.endpoint, 'direction');
-            if (direction) {
-                globalStore.clearValue(msg.endpoint, 'direction');
-                const duration = msg.data.value / 1000;
-                const result: KeyValueAny = {action: `arrow_${direction}_release`, duration, action_duration: duration};
-                if (!isLegacyEnabled(options)) delete result.duration;
-                return result;
-            }
         },
     } satisfies Fz.Converter,
 };
