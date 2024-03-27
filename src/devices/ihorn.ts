@@ -59,6 +59,15 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
+    {
+        zigbeeModel: ['LH03121'],
+        model: 'LH03121',
+        vendor: 'iHORN',
+        description: 'Door Contact DNAKE SH-DM-S01',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
+    },   
 ];
 
 export default definitions;
