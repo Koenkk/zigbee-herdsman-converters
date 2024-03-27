@@ -1556,4 +1556,9 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
     return {fromZigbee, isModernExtend: true};
 }
 
+export function bindCluster(args: {cluster: string | number, endpointNames?: string[]}): ModernExtend {
+    const configure: Configure = setupConfigureForBinding(args.cluster, args.endpointNames);
+    return {configure, isModernExtend: true};
+}
+
 // #endregion
