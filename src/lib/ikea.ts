@@ -547,6 +547,51 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue, dotsPrefix?: boole
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
 
+export function ikeaArrowClick(args?: {styrbar: boolean}): ModernExtend {
+    args = {
+        styrbar: false,
+        ...args,
+    };
+    const actions = ['arrow_left_click', 'arrow_left_hold', 'arrow_left_release',
+        'arrow_right_click', 'arrow_right_hold', 'arrow_right_release'];
+    const exposes: Expose[] = [presets.action(actions)];
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'genScenes',
+            type: 'commandTradfriArrowSingle',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                if (msg.data.value === 2) return; // This is send on toggle hold
+
+                const direction = msg.data.value === 257 ? 'left' : 'right';
+                return {action: `arrow_${direction}_click`};
+            },
+        },
+        {
+            cluster: 'genScenes',
+            type: 'commandTradfriArrowRelease',
+            options: [options.legacy()],
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                if (args.styrbar) globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
+                const direction = globalStore.getValue(msg.endpoint, 'direction');
+                if (direction) {
+                    globalStore.clearValue(msg.endpoint, 'direction');
+                    const duration = msg.data.value / 1000;
+                    const result = {action: `arrow_${direction}_release`, duration, action_duration: duration};
+                    if (!isLegacyEnabled(options)) delete result.duration;
+                    return result;
+                }
+            },
+        },
+    ];
+
+    const configure: Configure = setupConfigureForBinding('genScenes');
+
+    return {exposes, fromZigbee, configure, isModernExtend: true};
+}
+
 export const fromZigbee = {
     styrbar_arrow_release: {
         cluster: 'genScenes',
