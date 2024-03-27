@@ -5727,7 +5727,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_2aaelwxk']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_2aaelwxk','_TZE200_kb5noeto']),
         model: 'ZG-204ZM',
         vendor: 'TuYa',
         description: 'PIR 24Ghz human presence sensor',
