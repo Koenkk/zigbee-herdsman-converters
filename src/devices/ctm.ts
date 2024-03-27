@@ -641,7 +641,7 @@ const tzLocal = {
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['mTouch Dim'],
+        zigbeeModel: ['mTouch Dim', 'DimmerPille'],
         model: 'mTouch_Dim',
         vendor: 'CTM Lyng',
         description: 'mTouch Dim OP, touch dimmer',
@@ -680,47 +680,9 @@ const definitions: Definition[] = [
                 .withDescription('Specifies the maximum brightness value'),
             e.numeric('ballast_power_on_level', ea.ALL).withValueMin(1).withValueMax(99)
                 .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"')],
-    },
-    {
-        zigbeeModel: ['DimmerPille'],
-        model: 'CTM_DimmerPille',
-        vendor: 'CTM Lyng',
-        description: 'CTM Lyng DimmerPille',
-        fromZigbee: [fz.on_off, fz.brightness, fz.lighting_ballast_configuration],
-        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness_move, tz.ballast_config],
-        meta: {disableDefaultResponse: true},
-        ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
-            await endpoint.read('genOnOff', ['onOff']);
-            await reporting.onOff(endpoint);
-            await endpoint.read('genLevelCtrl', ['currentLevel']);
-            await reporting.brightness(endpoint);
-            await endpoint.read('lightingBallastCfg', ['minLevel', 'maxLevel', 'powerOnLevel']);
-            await endpoint.configureReporting('lightingBallastCfg', [{
-                attribute: 'minLevel',
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}]);
-            await endpoint.configureReporting('lightingBallastCfg', [{
-                attribute: 'maxLevel',
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}]);
-            await endpoint.configureReporting('lightingBallastCfg', [{
-                attribute: 'powerOnLevel',
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}]);
-        },
-        exposes: [e.light_brightness(),
-            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(99)
-                .withDescription('Specifies the minimum brightness value'),
-            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(99)
-                .withDescription('Specifies the maximum brightness value'),
-            e.numeric('ballast_power_on_level', ea.ALL).withValueMin(1).withValueMax(99)
-                .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"')],
+        whiteLabel: [
+            {vendor: 'CTM Lyng', model: 'CTM_DimmerPille', description: 'CTM Lyng DimmerPille', fingerprint: [{modelID: 'DimmerPille'}]},
+        ],
     },
     {
         zigbeeModel: ['mTouch Bryter'],
