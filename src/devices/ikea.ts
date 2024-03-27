@@ -6,7 +6,8 @@ import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
     temperature, humidity, occupancy, illuminance, windowCovering,
-    commandsOnOff, commandsLevelCtrl, commandsWindowCovering, pm25, linkquality,
+    commandsOnOff, commandsLevelCtrl, commandsWindowCovering, pm25,
+    linkquality, deviceEndpoints,
 } from '../lib/modernExtend';
 import {
     ikeaConfigureRemote, fromZigbee, ikeaLight, ikeaOta,
@@ -16,6 +17,7 @@ import {
     tradfriCommandsOnOff,
     tradfriCommandsLevelCtrl,
     styrbarCommandOn,
+    ikeaDotsClick,
 } from '../lib/ikea';
 const e = exposes.presets;
 
@@ -879,25 +881,17 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 2',
         fromZigbee: [ikeaLegacy.fromZigbee.E1744_play_pause, fromZigbee.ikea_track_click, fromZigbee.ikea_volume_click,
-            fromZigbee.ikea_volume_hold, fromZigbee.ikea_dots_click_v1, fromZigbee.ikea_dots_click_v2],
+            fromZigbee.ikea_volume_hold],
         exposes: [e.action(['toggle', 'track_previous', 'track_next', 'volume_up',
-            'volume_down', 'volume_up_hold', 'volume_down_hold', 'dots_1_initial_press', 'dots_2_initial_press',
-            'dots_1_long_press', 'dots_2_long_press', 'dots_1_short_release', 'dots_2_short_release', 'dots_1_long_release',
-            'dots_2_long_release', 'dots_1_double_press', 'dots_2_double_press'])],
+            'volume_down', 'volume_up_hold', 'volume_down_hold'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPollCtrl']);
-            if (endpoint2) {
-                await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
-            }
-            if (endpoint3) {
-                await reporting.bind(endpoint3, coordinatorEndpoint, ['tradfriButton']);
-            }
         },
         extend: [
+            deviceEndpoints({endpoints: {'1': 2, '2': 3}}),
             identify({isSleepy: true}),
+            ikeaDotsClick({endpointNames: ['1', '2'], dotsPrefix: true}),
             battery({voltage: true}),
             ikeaOta(),
         ],
@@ -925,20 +919,14 @@ const definitions: Definition[] = [
         model: 'E2213',
         vendor: 'IKEA',
         description: 'SOMRIG shortcut button',
-        fromZigbee: [fromZigbee.ikea_dots_click_v2_somrig],
-        exposes: [
-            e.action(['1_initial_press', '2_initial_press',
-                '1_long_press', '2_long_press', '1_short_release', '2_short_release',
-                '1_long_release', '2_long_release', '1_double_press', '2_double_press']),
-        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['tradfriButton', 'genPollCtrl']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['tradfriButton']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPollCtrl']);
         },
         extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             identify({isSleepy: true}),
+            ikeaDotsClick({endpointNames: ['1', '2']}),
             battery(),
             ikeaOta(),
         ],

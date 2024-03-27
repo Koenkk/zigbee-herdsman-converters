@@ -2,11 +2,11 @@ import {Fz, Tz, OnEvent, Configure, KeyValue, Range, ModernExtend, Expose, KeyVa
 import {presets, access, options} from '../lib/exposes';
 import {
     postfixWithEndpointName, precisionRound, isObject, replaceInArray, isLegacyEnabled, hasAlreadyProcessedMessage,
-    getFromLookup, mapNumberRange,
+    getFromLookup, mapNumberRange, getEndpointName,
 } from '../lib/utils';
 import {
     LightArgs, light as lightDontUse, ota, setupAttributes, ReportingConfigWithoutAttribute,
-    timeLookup, numeric, NumericArgs,
+    timeLookup, numeric, NumericArgs, setupConfigureForBinding,
 } from '../lib/modernExtend';
 import {tradfri as ikea} from '../lib/ota';
 
@@ -495,6 +495,58 @@ export function styrbarCommandOn(): ModernExtend {
     return {exposes, fromZigbee, isModernExtend: true};
 }
 
+export function ikeaDotsClick(args: {actionLookup?: KeyValue, dotsPrefix?: boolean, endpointNames: string[]}): ModernExtend {
+    args = {
+        actionLookup: {
+            'commandAction1': 'initial_press',
+            'commandAction2': 'long_press',
+            'commandAction3': 'short_release',
+            'commandAction4': 'long_release',
+            'commandAction6': 'double_press',
+        },
+        dotsPrefix: false,
+        ...args,
+    };
+    const actions = args.endpointNames.map(
+        (b) => Object.values(args.actionLookup).map((a) => args.dotsPrefix ? `dots_${b}_${a}` : `${b}_${a}`),
+    ).flat();
+    const exposes: Expose[] = [presets.action(actions)];
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            // For remotes with firmware 1.0.012 (20211214)
+            cluster: 64639,
+            type: 'raw',
+            convert: (model, msg, publish, options, meta) => {
+                if (!Buffer.isBuffer(msg.data)) return;
+                let action;
+                const button = msg.data[5];
+                switch (msg.data[6]) {
+                case 1: action = 'initial_press'; break;
+                case 2: action = 'double_press'; break;
+                case 3: action = 'long_press'; break;
+                }
+
+                return {action: args.dotsPrefix ? `dots_${button}_${action}` : `${button}_${action}`};
+            },
+        },
+        {
+            // For remotes with firmware 1.0.32 (20221219) an SOMRIG
+            cluster: 'tradfriButton',
+            type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
+            convert: (model, msg, publish, options, meta) => {
+                const button = getEndpointName(msg, model, meta);
+                const action = getFromLookup(msg.type, args.actionLookup);
+                return {action: args.dotsPrefix ? `dots_${button}_${action}` : `${button}_${action}`};
+            },
+        },
+    ];
+
+    const configure: Configure = setupConfigureForBinding('tradfriButton', args.endpointNames);
+
+    return {exposes, fromZigbee, configure, isModernExtend: true};
+}
+
 export const fromZigbee = {
     styrbar_arrow_release: {
         cluster: 'genScenes',
@@ -511,56 +563,6 @@ export const fromZigbee = {
                 if (!isLegacyEnabled(options)) delete result.duration;
                 return result;
             }
-        },
-    } satisfies Fz.Converter,
-    ikea_dots_click_v1: {
-        // For remotes with firmware 1.0.012 (20211214)
-        cluster: 64639,
-        type: 'raw',
-        convert: (model, msg, publish, options, meta) => {
-            if (!Buffer.isBuffer(msg.data)) return;
-            let action;
-            const button = msg.data[5];
-            switch (msg.data[6]) {
-            case 1: action = 'initial_press'; break;
-            case 2: action = 'double_press'; break;
-            case 3: action = 'long_press'; break;
-            }
-
-            return {action: `dots_${button}_${action}`};
-        },
-    } satisfies Fz.Converter,
-    ikea_dots_click_v2: {
-        // For remotes with firmware 1.0.32 (20221219)
-        cluster: 'tradfriButton',
-        type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = getFromLookup(msg.endpoint.ID, {2: '1', 3: '2'});
-            const lookup = {
-                commandAction1: 'initial_press',
-                commandAction2: 'long_press',
-                commandAction3: 'short_release',
-                commandAction4: 'long_release',
-                commandAction6: 'double_press',
-            };
-            const action = getFromLookup(msg.type, lookup);
-            return {action: `dots_${button}_${action}`};
-        },
-    } satisfies Fz.Converter,
-    ikea_dots_click_v2_somrig: {
-        cluster: 'tradfriButton',
-        type: ['commandAction1', 'commandAction2', 'commandAction3', 'commandAction4', 'commandAction6'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = getFromLookup(msg.endpoint.ID, {1: '1', 2: '2'});
-            const lookup = {
-                commandAction1: 'initial_press',
-                commandAction2: 'long_press',
-                commandAction3: 'short_release',
-                commandAction4: 'long_release',
-                commandAction6: 'double_press',
-            };
-            const action = getFromLookup(msg.type, lookup);
-            return {action: `${button}_${action}`};
         },
     } satisfies Fz.Converter,
     ikea_volume_click: {
