@@ -21,6 +21,9 @@ import {
 } from '../lib/ikea';
 
 const definitions: Definition[] = [
+    // #region light
+    // lights naming convention: type, light capabilities, form, diffuser type, brightness
+    // #region E26/E27/B22
     {
         zigbeeModel: [
             'TRADFRI bulb E27 WS opal 980lm',
@@ -231,6 +234,7 @@ const definitions: Definition[] = [
         description: 'TRADFRI bulb B22, white spectrum, globe, opal, 1055 lm',
         extend: [ikeaLight({colorTemp: true}), identify()],
     },
+    // #endregion E26/E27/B22
     {
         zigbeeModel: [
             'TRADFRI bulb E27 CWS opal 600lm',
@@ -247,6 +251,7 @@ const definitions: Definition[] = [
             identify(),
         ],
     },
+    // #region E12/E14/E17
     {
         zigbeeModel: ['TRADFRI bulb E14 WS candle 470lm'],
         model: 'LED2107C4',
@@ -371,6 +376,8 @@ const definitions: Definition[] = [
         description: 'TRADFRI bulb E14, color/white spectrum, globe, opal, 806 lm',
         extend: [ikeaLight({colorTemp: true, color: true}), identify()],
     },
+    // #endregion E12/E14/E17
+    // #region GU10
     {
         zigbeeModel: [
             '\u001aTRADFRI bulb GU10 WW 345lm',
@@ -436,6 +443,8 @@ const definitions: Definition[] = [
         description: 'TRADFRI bulb GU10, white spectrum, 345 lm',
         extend: [ikeaLight({colorTemp: true}), identify()],
     },
+    // #endregion GU10
+    // #region light panels
     {
         zigbeeModel: ['LEPTITER Recessed spot light'],
         model: 'T1820',
@@ -548,6 +557,8 @@ const definitions: Definition[] = [
         description: 'OSVALLA panel round',
         extend: [ikeaLight({colorTemp: true}), identify()],
     },
+    // #endregion light panels
+    // #region other lights
     {
         zigbeeModel: ['NYMANE PENDANT'],
         model: '90504044',
@@ -611,6 +622,9 @@ const definitions: Definition[] = [
         description: 'SILVERGLANS LED driver, 30 w, IP44',
         extend: [ikeaLight({turnsOffAtBrightness1: true}), identify()],
     },
+    // #endregion other lights
+    // #endregion light
+    // #region on/off controls
     {
         zigbeeModel: ['TRADFRI control outlet'],
         model: 'E1603/E1702/E1708',
@@ -656,6 +670,8 @@ const definitions: Definition[] = [
             ikeaOta(),
         ],
     },
+    // #endregion on/off controls
+    // #region blinds
     {
         zigbeeModel: ['FYRTUR block-out roller blind'],
         model: 'E1757',
@@ -708,6 +724,8 @@ const definitions: Definition[] = [
             ikeaOta(),
         ],
     },
+    // #endregion blinds
+    // #region appliances
     {
         zigbeeModel: [
             'STARKVIND Air purifier',
@@ -733,6 +751,8 @@ const definitions: Definition[] = [
             ikeaOta(),
         ],
     },
+    // #endregion appliances
+    // #region remotes
     {
         zigbeeModel: ['TRADFRI wireless dimmer'],
         model: 'ICTC-G-1',
@@ -906,6 +926,8 @@ const definitions: Definition[] = [
             ikeaOta(),
         ],
     },
+    // #endregion remotes
+    // #region sensors
     {
         zigbeeModel: ['TRADFRI motion sensor'],
         model: 'E1525/E1745',
@@ -978,6 +1000,7 @@ const definitions: Definition[] = [
             ikeaOta(),
         ],
     },
+    // #endregion sensors
 ];
 
 export default definitions;
