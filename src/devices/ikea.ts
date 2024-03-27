@@ -1,5 +1,4 @@
 import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
@@ -10,7 +9,7 @@ import {
     linkquality, deviceEndpoints, bindCluster,
 } from '../lib/modernExtend';
 import {
-    ikeaConfigureRemote, fromZigbee, ikeaLight, ikeaOta,
+    ikeaConfigureRemote, ikeaLight, ikeaOta,
     ikeaBattery, ikeaAirPurifier, legacy as ikeaLegacy,
     ikeaVoc, ikeaConfigureGenPollCtrl, tradfriOccupancy,
     tradfriRequestedBrightness,
@@ -19,8 +18,8 @@ import {
     styrbarCommandOn,
     ikeaDotsClick,
     ikeaArrowClick,
+    ikeaMediaCommands,
 } from '../lib/ikea';
-const e = exposes.presets;
 
 const definitions: Definition[] = [
     {
@@ -867,19 +866,14 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 2',
         fromZigbee: [ // DEPRECATED
-            ikeaLegacy.fromZigbee.E1744_play_pause, fromZigbee.ikea_track_click, fromZigbee.ikea_volume_click,
-            fromZigbee.ikea_volume_hold,
+            ikeaLegacy.fromZigbee.E1744_play_pause,
         ],
-        exposes: [e.action(['toggle', 'track_previous', 'track_next', 'volume_up',
-            'volume_down', 'volume_up_hold', 'volume_down_hold'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
         extend: [
             bindCluster({cluster: 'genPollCtrl'}),
             deviceEndpoints({endpoints: {'1': 2, '2': 3}}),
             identify({isSleepy: true}),
+            commandsOnOff({commands: ['toggle']}),
+            ikeaMediaCommands(),
             ikeaDotsClick({endpointNames: ['1', '2'], dotsPrefix: true}),
             battery({voltage: true}),
             ikeaOta(),
