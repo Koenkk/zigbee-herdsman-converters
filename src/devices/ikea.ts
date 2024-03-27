@@ -1,6 +1,5 @@
 import {Definition} from '../lib/types';
 import * as legacy from '../lib/legacy';
-import * as reporting from '../lib/reporting';
 import * as zigbeeHerdsman from 'zigbee-herdsman/dist';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
@@ -957,12 +956,10 @@ const definitions: Definition[] = [
         model: 'E2013',
         vendor: 'IKEA',
         description: 'PARASOLL door/window sensor',
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genBasic', 'ssIasZone']);
-        },
         extend: [
             bindCluster({cluster: 'genPollCtrl'}),
+            bindCluster({cluster: 'genBasic'}), // Questionable binds
+            bindCluster({cluster: 'ssIasZone'}), //
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
             identify({isSleepy: true}),
             battery(),
