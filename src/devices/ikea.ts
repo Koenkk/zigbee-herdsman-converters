@@ -15,7 +15,7 @@ import {
     tradfriRequestedBrightness,
     tradfriCommandsOnOff,
     tradfriCommandsLevelCtrl,
-    styrbarCommandOff,
+    styrbarCommandOn,
 } from '../lib/ikea';
 const e = exposes.presets;
 
@@ -789,7 +789,7 @@ const definitions: Definition[] = [
         extend: [
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
-            styrbarCommandOff(),
+            styrbarCommandOn(),
             commandsOnOff({commands: ['off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),

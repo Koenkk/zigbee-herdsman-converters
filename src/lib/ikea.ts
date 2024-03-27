@@ -475,7 +475,7 @@ export function tradfriCommandsLevelCtrl(): ModernExtend {
     return {exposes, fromZigbee, isModernExtend: true};
 }
 
-export function styrbarCommandOff(): ModernExtend {
+export function styrbarCommandOn(): ModernExtend {
     // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
     // https://github.com/Koenkk/zigbee2mqtt/issues/13335
     const exposes: Expose[] = [presets.action(['on'])];
