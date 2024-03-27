@@ -4,7 +4,7 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import {battery, deviceEndpoints, humidity, numeric, onOff, temperature} from '../lib/modernExtend';
+import {battery, deviceEndpoints, enumLookup, humidity, numeric, onOff, temperature} from '../lib/modernExtend';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
@@ -38,6 +38,60 @@ const definitions: Definition[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             await reporting.currentPositionTiltPercentage(endpoint);
         },
+        extend: [
+            enumLookup({
+                name: 'calibration',
+                lookup: {'stop': 0, 'start': 2},
+                cluster: 'closuresWindowCovering',
+                attribute: 'windowCoveringMode',
+                access: 'ALL',
+                description: 'Calibration of the roller shutter.',
+            }),
+            numeric({
+                name: 'calibration_vertical_run_time_up',
+                unit: '10 ms',
+                cluster: 'closuresWindowCovering',
+                attribute: {ID: 0x0001, type: dataType.uint16},
+                valueMin: 0,
+                valueMax: 65535,
+                scale: 1,
+                description: 'Set vertical run time up of the roller shutter.',
+                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+            }),
+            numeric({
+                name: 'calibration_vertical_run_time_down',
+                unit: '10 ms',
+                cluster: 'closuresWindowCovering',
+                attribute: {ID: 0x0002, type: dataType.uint16},
+                valueMin: 0,
+                valueMax: 65535,
+                scale: 1,
+                description: 'Set vertical run time down of the roller shutter.',
+                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+            }),
+            numeric({
+                name: 'calibration_rotation_run_time_up',
+                unit: '10 ms',
+                cluster: 'closuresWindowCovering',
+                attribute: {ID: 0x0003, type: dataType.uint16},
+                valueMin: 0,
+                valueMax: 65535,
+                scale: 1,
+                description: 'Set rotation run time up of the roller shutter.',
+                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+            }),
+            numeric({
+                name: 'calibration_rotation_run_time_down',
+                unit: '10 ms',
+                cluster: 'closuresWindowCovering',
+                attribute: {ID: 0x0004, type: dataType.uint16},
+                valueMin: 0,
+                valueMax: 65535,
+                scale: 1,
+                description: 'Set rotation run time down of the roller shutter.',
+                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+            }),
+        ],
         exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },
@@ -54,6 +108,60 @@ const definitions: Definition[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             await reporting.currentPositionTiltPercentage(endpoint);
         },
+        extend: [
+            enumLookup({
+                name: 'calibration',
+                lookup: {'stop': 0, 'start': 2},
+                cluster: 'closuresWindowCovering',
+                attribute: 'windowCoveringMode',
+                access: 'ALL',
+                description: 'Calibration of the roller shutter.',
+            }),
+            numeric({
+                name: 'calibration_vertical_run_time_up',
+                unit: '10 ms',
+                cluster: 'closuresWindowCovering',
+                attribute: {ID: 0x0001, type: dataType.uint16},
+                valueMin: 0,
+                valueMax: 65535,
+                scale: 1,
+                description: 'Set vertical run time up of the roller shutter.',
+                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+            }),
+            numeric({
+                name: 'calibration_vertical_run_time_down',
+                unit: '10 ms',
+                cluster: 'closuresWindowCovering',
+                attribute: {ID: 0x0002, type: dataType.uint16},
+                valueMin: 0,
+                valueMax: 65535,
+                scale: 1,
+                description: 'Set vertical run time down of the roller shutter.',
+                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+            }),
+            numeric({
+                name: 'calibration_rotation_run_time_up',
+                unit: '10 ms',
+                cluster: 'closuresWindowCovering',
+                attribute: {ID: 0x0003, type: dataType.uint16},
+                valueMin: 0,
+                valueMax: 65535,
+                scale: 1,
+                description: 'Set rotation run time up of the roller shutter.',
+                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+            }),
+            numeric({
+                name: 'calibration_rotation_run_time_down',
+                unit: '10 ms',
+                cluster: 'closuresWindowCovering',
+                attribute: {ID: 0x0004, type: dataType.uint16},
+                valueMin: 0,
+                valueMax: 65535,
+                scale: 1,
+                description: 'Set rotation run time down of the roller shutter.',
+                zigbeeCommandOptions: {manufacturerCode: 0x128B},
+            }),
+        ],
         exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },
