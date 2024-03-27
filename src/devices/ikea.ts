@@ -845,7 +845,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SYMFONISK Sound Controller'],
         model: 'E1744',
         vendor: 'IKEA',
-        description: 'SYMFONISK sound controller',
+        description: 'SYMFONISK sound remote, gen 1',
         fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_stop, ikeaLegacy.fromZigbee.E1744_play_pause, ikeaLegacy.fromZigbee.E1744_skip],
         extend: [
             identify({isSleepy: true}),
@@ -875,7 +875,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['SYMFONISK sound remote gen2'],
         model: 'E2123',
         vendor: 'IKEA',
-        description: 'SYMFONISK sound remote gen2',
+        description: 'SYMFONISK sound remote, gen 2',
         fromZigbee: [ikeaLegacy.fromZigbee.E1744_play_pause, fromZigbee.ikea_track_click, fromZigbee.ikea_volume_click,
             fromZigbee.ikea_volume_hold, fromZigbee.ikea_dots_click_v1, fromZigbee.ikea_dots_click_v2],
         exposes: [e.action(['toggle', 'track_previous', 'track_next', 'volume_up',
