@@ -592,35 +592,45 @@ export function ikeaArrowClick(args?: {styrbar: boolean}): ModernExtend {
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
 
-export const fromZigbee = {
-    ikea_volume_click: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = msg.data.movemode === 1 ? 'down' : 'up';
-            return {action: `volume_${direction}`};
+export function ikeaMediaCommands(): ModernExtend {
+    const actions = ['track_previous', 'track_next', 'volume_up',
+        'volume_down', 'volume_up_hold', 'volume_down_hold'];
+    const exposes: Expose[] = [presets.action(actions)];
+
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'genLevelCtrl',
+            type: 'commandMoveWithOnOff',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const direction = msg.data.movemode === 1 ? 'down' : 'up';
+                return {action: `volume_${direction}`};
+            },
         },
-    } satisfies Fz.Converter,
-    ikea_volume_hold: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = msg.data.movemode === 1 ? 'down_hold' : 'up_hold';
-            return {action: `volume_${direction}`};
+        {
+            cluster: 'genLevelCtrl',
+            type: 'commandMove',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const direction = msg.data.movemode === 1 ? 'down_hold' : 'up_hold';
+                return {action: `volume_${direction}`};
+            },
         },
-    } satisfies Fz.Converter,
-    ikea_track_click: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = msg.data.stepmode === 1 ? 'previous' : 'next';
-            return {action: `track_${direction}`};
+        {
+            cluster: 'genLevelCtrl',
+            type: 'commandStep',
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                const direction = msg.data.stepmode === 1 ? 'previous' : 'next';
+                return {action: `track_${direction}`};
+            },
         },
-    } satisfies Fz.Converter,
-};
+    ];
+
+    const configure: Configure = setupConfigureForBinding('genLevelCtrl');
+
+    return {exposes, fromZigbee, configure, isModernExtend: true};
+}
 
 export const legacy = {
     fromZigbee: {
