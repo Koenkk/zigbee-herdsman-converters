@@ -740,13 +740,10 @@ const definitions: Definition[] = [
         model: 'ICTC-G-1',
         vendor: 'IKEA',
         description: 'TRADFRI wireless dimmer',
-        fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop, legacy.fz.cmd_stop_with_onoff,
-            legacy.fz.cmd_move_to_level_with_onoff],
-        exposes: [e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
-        },
+        fromZigbee: [ // DEPRECATED
+            legacy.fz.cmd_move, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop, legacy.fz.cmd_stop_with_onoff,
+            legacy.fz.cmd_move_to_level_with_onoff,
+        ],
         extend: [
             identify({isSleepy: true}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level']}),
@@ -837,7 +834,9 @@ const definitions: Definition[] = [
         model: 'E1744',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 1',
-        fromZigbee: [legacy.fz.cmd_move, legacy.fz.cmd_stop, ikeaLegacy.fromZigbee.E1744_play_pause, ikeaLegacy.fromZigbee.E1744_skip],
+        fromZigbee: [ // DEPRECATED
+            legacy.fz.cmd_move, legacy.fz.cmd_stop, ikeaLegacy.fromZigbee.E1744_play_pause, ikeaLegacy.fromZigbee.E1744_skip,
+        ],
         extend: [
             identify({isSleepy: true}),
             commandsOnOff({commands: ['toggle']}),
@@ -853,7 +852,7 @@ const definitions: Definition[] = [
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        fromZigbee: [legacy.fz.cover_close, legacy.fz.cover_open, legacy.fz.cover_stop],
+        fromZigbee: [legacy.fz.cover_close, legacy.fz.cover_open, legacy.fz.cover_stop], // DEPRECATED
         extend: [
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
@@ -867,8 +866,10 @@ const definitions: Definition[] = [
         model: 'E2123',
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 2',
-        fromZigbee: [ikeaLegacy.fromZigbee.E1744_play_pause, fromZigbee.ikea_track_click, fromZigbee.ikea_volume_click,
-            fromZigbee.ikea_volume_hold],
+        fromZigbee: [ // DEPRECATED
+            ikeaLegacy.fromZigbee.E1744_play_pause, fromZigbee.ikea_track_click, fromZigbee.ikea_volume_click,
+            fromZigbee.ikea_volume_hold,
+        ],
         exposes: [e.action(['toggle', 'track_previous', 'track_next', 'volume_up',
             'volume_down', 'volume_up_hold', 'volume_down_hold'])],
         configure: async (device, coordinatorEndpoint, logger) => {
