@@ -749,6 +749,7 @@ const definitions: Definition[] = [
         },
         extend: [
             identify({isSleepy: true}),
+            commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level']}),
             battery({dontDividePercentage: true}),
             ikeaOta(),
         ],
