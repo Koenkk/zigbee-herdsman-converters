@@ -475,10 +475,12 @@ export function tradfriCommandsLevelCtrl(): ModernExtend {
     return {exposes, fromZigbee, isModernExtend: true};
 }
 
-export const fromZigbee = {
+export function styrbarCommandOff(): ModernExtend {
     // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
     // https://github.com/Koenkk/zigbee2mqtt/issues/13335
-    styrbar_on: {
+    const exposes: Expose[] = [presets.action(['on'])];
+
+    const fromZigbee: Fz.Converter[] = [{
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
@@ -488,7 +490,12 @@ export const fromZigbee = {
                 return {action: 'on'};
             }
         },
-    } satisfies Fz.Converter,
+    }];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
+
+export const fromZigbee = {
     styrbar_arrow_release: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowRelease',

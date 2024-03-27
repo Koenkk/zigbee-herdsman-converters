@@ -15,6 +15,7 @@ import {
     tradfriRequestedBrightness,
     tradfriCommandsOnOff,
     tradfriCommandsLevelCtrl,
+    styrbarCommandOff,
 } from '../lib/ikea';
 const e = exposes.presets;
 
@@ -772,7 +773,7 @@ const definitions: Definition[] = [
         model: 'E2001/E2002',
         vendor: 'IKEA',
         description: 'STYRBAR remote control',
-        fromZigbee: [fromZigbee.styrbar_on, fromZigbee.ikea_arrow_click,
+        fromZigbee: [fromZigbee.ikea_arrow_click,
             fromZigbee.ikea_arrow_hold, fromZigbee.styrbar_arrow_release],
         exposes: [e.action(['arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
@@ -788,6 +789,7 @@ const definitions: Definition[] = [
         extend: [
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
+            styrbarCommandOff(),
             commandsOnOff({commands: ['off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
