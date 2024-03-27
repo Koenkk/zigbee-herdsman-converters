@@ -7,7 +7,7 @@ import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
     temperature, humidity, occupancy, illuminance, windowCovering,
     commandsOnOff, commandsLevelCtrl, commandsWindowCovering, pm25,
-    linkquality, deviceEndpoints,
+    linkquality, deviceEndpoints, bindCluster,
 } from '../lib/modernExtend';
 import {
     ikeaConfigureRemote, fromZigbee, ikeaLight, ikeaOta,
@@ -874,9 +874,10 @@ const definitions: Definition[] = [
             'volume_down', 'volume_up_hold', 'volume_down_hold'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPollCtrl']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
         extend: [
+            bindCluster({cluster: 'genPollCtrl'}),
             deviceEndpoints({endpoints: {'1': 2, '2': 3}}),
             identify({isSleepy: true}),
             ikeaDotsClick({endpointNames: ['1', '2'], dotsPrefix: true}),
@@ -889,12 +890,8 @@ const definitions: Definition[] = [
         model: 'E2201',
         vendor: 'IKEA',
         description: 'RODRET wireless dimmer/power switch',
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ['genPollCtrl'];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-        },
         extend: [
+            bindCluster({cluster: 'genPollCtrl'}),
             identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
@@ -907,11 +904,8 @@ const definitions: Definition[] = [
         model: 'E2213',
         vendor: 'IKEA',
         description: 'SOMRIG shortcut button',
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPollCtrl']);
-        },
         extend: [
+            bindCluster({cluster: 'genPollCtrl'}),
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             identify({isSleepy: true}),
             ikeaDotsClick({endpointNames: ['1', '2']}),
@@ -970,12 +964,11 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'PARASOLL door/window sensor',
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPollCtrl']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genBasic', 'ssIasZone']);
         },
         extend: [
+            bindCluster({cluster: 'genPollCtrl'}),
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
             identify({isSleepy: true}),
             battery(),
