@@ -6,6 +6,7 @@ import {KeyValue, Definition, Tz, Fz} from '../lib/types';
 import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import * as utils from '../lib/utils';
+import * as ota from '../lib/ota';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -344,6 +345,16 @@ const tzLocal = {
             await entity.read('genOnOff', ['onOff']);
         },
     } satisfies Tz.Converter,
+    ctm_mbd_brightness: {
+        key: ['brightness'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command(
+                'genLevelCtrl', 'moveToLevel', {level: value, transtime: 1}, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['currentLevel']);
+        },
+    } satisfies Tz.Converter,
     ctm_device_mode: {
         key: ['device_mode'],
         convertGet: async (entity, key, meta) => {
@@ -630,13 +641,14 @@ const tzLocal = {
 
 const definitions: Definition[] = [
     {
-        zigbeeModel: ['mTouch Dim'],
+        zigbeeModel: ['mTouch Dim', 'DimmerPille'],
         model: 'mTouch_Dim',
         vendor: 'CTM Lyng',
         description: 'mTouch Dim OP, touch dimmer',
         fromZigbee: [fz.on_off, fz.brightness, fz.lighting_ballast_configuration],
         toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness_move, tz.ballast_config],
         meta: {disableDefaultResponse: true},
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
@@ -668,6 +680,9 @@ const definitions: Definition[] = [
                 .withDescription('Specifies the maximum brightness value'),
             e.numeric('ballast_power_on_level', ea.ALL).withValueMin(1).withValueMax(99)
                 .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"')],
+        whiteLabel: [
+            {vendor: 'CTM Lyng', model: 'CTM_DimmerPille', description: 'CTM Lyng DimmerPille', fingerprint: [{modelID: 'DimmerPille'}]},
+        ],
     },
     {
         zigbeeModel: ['mTouch Bryter'],
@@ -700,6 +715,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.thermostat, fzLocal.ctm_thermostat],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tzLocal.ctm_thermostat,
             tzLocal.ctm_thermostat_preset, tzLocal.ctm_thermostat_child_lock, tzLocal.ctm_thermostat_gets],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
@@ -802,6 +818,7 @@ const definitions: Definition[] = [
         description: 'mStikk OP, wall socket',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -997,6 +1014,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.illuminance, fz.occupancy, fzLocal.ctm_mbd_device_enabled, fzLocal.ctm_relay_state],
         toZigbee: [tzLocal.ctm_mbd_device_enabled, tzLocal.ctm_relay_state],
         meta: {disableDefaultResponse: true},
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'msIlluminanceMeasurement', 'msOccupancySensing']);
@@ -1017,6 +1035,62 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.illuminance(), e.illuminance_lux(), e.occupancy(),
             e.binary('device_enabled', ea.ALL, 'ON', 'OFF')
                 .withDescription('Turn the device on or off'),
+        ],
+    },
+    {
+        zigbeeModel: ['MBD Dim'],
+        model: 'CTM_MBD_Dim',
+        vendor: 'CTM Lyng',
+        description: 'MBD Dim, motion detector with dimmer',
+        fromZigbee: [fz.illuminance, fz.occupancy, fzLocal.ctm_mbd_device_enabled, fzLocal.ctm_relay_state,
+            fz.brightness, fz.lighting_ballast_configuration],
+        toZigbee: [tzLocal.ctm_mbd_device_enabled, tzLocal.ctm_relay_state, tzLocal.ctm_mbd_brightness, tz.ballast_config],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg',
+                'msIlluminanceMeasurement', 'msOccupancySensing']);
+            await endpoint.read('genOnOff', ['onOff']);
+            await reporting.onOff(endpoint);
+            await endpoint.read('genLevelCtrl', ['currentLevel']);
+            await reporting.brightness(endpoint);
+            await endpoint.read('lightingBallastCfg', ['minLevel', 'maxLevel', 'powerOnLevel']);
+            await endpoint.configureReporting('lightingBallastCfg', [{
+                attribute: 'minLevel',
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}]);
+            await endpoint.configureReporting('lightingBallastCfg', [{
+                attribute: 'maxLevel',
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}]);
+            await endpoint.configureReporting('lightingBallastCfg', [{
+                attribute: 'powerOnLevel',
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}]);
+            await endpoint.read('msIlluminanceMeasurement', ['measuredValue']);
+            await reporting.illuminance(endpoint);
+            await endpoint.read('msOccupancySensing', ['occupancy']);
+            await reporting.occupancy(endpoint);
+            // Relay State
+            await endpoint.read('genOnOff', [0x5001], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
+            await endpoint.configureReporting('genOnOff', [{
+                attribute: {ID: 0x5001, type: dataType.boolean},
+                minimumReportInterval: 1,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 0}], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
+        },
+        exposes: [e.light_brightness(), e.illuminance(), e.illuminance_lux(), e.occupancy(),
+            e.binary('device_enabled', ea.ALL, 'ON', 'OFF')
+                .withDescription('Turn the device on or off'),
+            e.numeric('ballast_minimum_level', ea.ALL).withValueMin(10).withValueMax(97)
+                .withDescription('Specifies the minimum brightness value'),
+            e.numeric('ballast_maximum_level', ea.ALL).withValueMin(10).withValueMax(97)
+                .withDescription('Specifies the maximum brightness value'),
+            e.numeric('ballast_power_on_level', ea.ALL).withValueMin(10).withValueMax(97)
+                .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"'),
         ],
     },
 ];
