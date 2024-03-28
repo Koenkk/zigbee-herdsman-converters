@@ -1,6 +1,7 @@
 import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
 import {Definition} from '../lib/types';
 import {
+    deviceEndpoints,
     temperature,
     humidity,
     enumLookup,
@@ -19,6 +20,7 @@ const definitions: Definition[] = [
         vendor: 'EFEKTA',
         description: 'CO2 Monitor with IPS TFT Display, outdoor temperature and humidity, date and time',
         extend: [
+            deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             co2(defaultReporting),
             temperature({
                 endpointNames: ['1'],
@@ -55,10 +57,12 @@ const definitions: Definition[] = [
                 cluster: 'genAnalogInput',
                 attribute: {ID: 0x0065, type: dataType.singlePrec},
                 description: 'SRAW_VOC, digital raw value',
-                access: 'STATE_GET',
+                access: 'STATE',
+            }),
+            illuminance({
+                access: 'STATE',
                 ...defaultReporting,
             }),
-            illuminance(defaultReporting),
             binary({
                 name: 'auto_brightness',
                 valueOn: ['ON', 1],
@@ -95,7 +99,7 @@ const definitions: Definition[] = [
             }),
             enumLookup({
                 name: 'rotate',
-                lookup: {'0': 0, '90': 1, '180': 3, '270': 4},
+                lookup: {'0': 0, '90': 90, '180': 180, '270': 270},
                 cluster: 'msCO2',
                 attribute: {ID: 0x0285, type: dataType.uint16},
                 description: 'Display rotation angle',
