@@ -122,7 +122,7 @@ const definitions: Definition[] = [
         exposes: [e.smoke(), e.battery_low(), e.battery()],
     },
     {
-        zigbeeModel: ['GASSensor-N', 'GASSensor-N-3.0'],
+        zigbeeModel: ['GASSensor-N', 'GASSensor-N-3.0', 'd90d7c61c44d468a8e906ca0841e0a0c'],
         model: 'HS3CG',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
