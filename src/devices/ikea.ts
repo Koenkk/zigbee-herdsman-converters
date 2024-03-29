@@ -426,21 +426,15 @@ const definitions: Definition[] = [
         ],
     },
     {
-        zigbeeModel: ['TRADFRIbulbGU10WS380lm'],
-        model: 'LED2005R5',
-        vendor: 'IKEA',
-        description: 'TRADFRI bulb GU10, white spectrum, 380 lm',
-        extend: [ikeaLight({colorTemp: true}), identify()],
-    },
-    {
         zigbeeModel: [
             'TRADFRI_bulb_GU10_WS_345lm',
             'TRADFRIbulbGU10WS345lm',
             'TRADFRI bulb GU10 WS 345lm',
+            'TRADFRIbulbGU10WS380lm',
         ],
-        model: 'LED2106R3',
+        model: 'LED2005R5/LED2106R3',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb GU10, white spectrum, 345 lm',
+        description: 'TRADFRI bulb GU10, white spectrum, 345/380 lm',
         extend: [ikeaLight({colorTemp: true}), identify()],
     },
     // #endregion GU10
