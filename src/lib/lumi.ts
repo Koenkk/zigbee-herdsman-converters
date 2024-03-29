@@ -2530,13 +2530,6 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
-    lumi_vibration: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'vibration'};
-        },
-    } satisfies Fz.Converter,
     lumi_vibration_analog: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
