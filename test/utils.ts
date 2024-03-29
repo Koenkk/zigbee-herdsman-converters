@@ -67,7 +67,7 @@ const MockLogger: Logger = {info: jest.fn(), error: jest.fn(), warn: jest.fn(), 
 
 const DefaultTz = [
     tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, 
-    tz.scene_rename, tz.read, tz.write, tz.command, tz.factory_reset
+    tz.scene_rename, tz.read, tz.write, tz.command, tz.factory_reset, tz.zcl_command,
 ];
 
 export type AssertDefinitionArgs = {

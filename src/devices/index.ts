@@ -65,6 +65,7 @@ import ecolink from './ecolink';
 import ecosmart from './ecosmart';
 import ecozy from './ecozy';
 import edp from './edp';
+import efekta from './efekta';
 import eglo from './eglo';
 import elko from './elko';
 import enbrighten from './enbrighten';
@@ -252,6 +253,7 @@ import stelpro from './stelpro';
 import sunricher from './sunricher';
 import swann from './swann';
 import sylvania from './sylvania';
+import tapestry from './tapestry';
 import tci from './tci';
 import technicolor from './technicolor';
 import terncy from './terncy';
@@ -361,6 +363,7 @@ export default [
     ...ecosmart,
     ...ecozy,
     ...edp,
+    ...efekta,
     ...eglo,
     ...elko,
     ...enbrighten,
@@ -548,6 +551,7 @@ export default [
     ...sunricher,
     ...swann,
     ...sylvania,
+    ...tapestry,
     ...tci,
     ...technicolor,
     ...terncy,

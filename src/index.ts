@@ -1,6 +1,7 @@
 import * as configureKey from './lib/configureKey';
-import * as exposes from './lib/exposes';
+import * as exposesLib from './lib/exposes';
 import type {Feature, Numeric, Enum, Binary, Text, Composite, List, Light, Climate, Switch, Lock, Cover, Fan} from './lib/exposes';
+import {Enum as EnumClass} from './lib/exposes';
 import toZigbee from './converters/toZigbee';
 import fromZigbee from './converters/fromZigbee';
 import assert from 'assert';
@@ -103,9 +104,10 @@ function processExtensions(definition: Definition): Definition {
             assert.fail(`'${definition.model}' has function exposes which is not allowed`);
         }
 
+        exposes = [...exposes ?? []]
         toZigbee = [...toZigbee ?? []];
         fromZigbee = [...fromZigbee ?? []];
-        exposes = [...exposes ?? []];
+
         const configures: Configure[] = definitionConfigure ? [definitionConfigure] : [];
 
         for (const ext of extend) {
@@ -137,6 +139,22 @@ function processExtensions(definition: Definition): Definition {
             }
         }
 
+        // Filtering out action exposes to combine them one
+        const actionExposes = exposes.filter((e) => e.name === 'action');
+        exposes = exposes.filter((e) => e.name !== 'action');
+        if (actionExposes.length > 0) {
+            const actions: string[] = [];
+            for (const expose of actionExposes) {
+                if (expose instanceof EnumClass) {
+                    for (const action of expose.values) {
+                        actions.push(action.toString())
+                    } 
+                }
+            } 
+            const uniqueActions = actions.filter((value, index, array) => array.indexOf(value) === index);
+            exposes.push(exposesLib.presets.action(uniqueActions));
+        }
+
         let configure: Configure = null;
         if (configures.length !== 0) {
             configure = async (device, coordinatorEndpoint, logger) => {
@@ -157,10 +175,10 @@ function prepareDefinition(definition: Definition): Definition {
     definition.toZigbee.push(
         toZigbee.scene_store, toZigbee.scene_recall, toZigbee.scene_add, toZigbee.scene_remove, toZigbee.scene_remove_all, 
         toZigbee.scene_rename, toZigbee.read, toZigbee.write,
-        toZigbee.command, toZigbee.factory_reset);
+        toZigbee.command, toZigbee.factory_reset, toZigbee.zcl_command);
 
     if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
-        definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);
+        definition.exposes = definition.exposes.concat([exposesLib.presets.linkquality()]);
     }
 
     validateDefinition(definition);
@@ -175,9 +193,9 @@ function prepareDefinition(definition: Definition): Definition {
             // Battery voltage is not calibratable
             if (expose.name === 'voltage' && expose.unit === 'mV') continue;
             const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? 'percentual' : 'absolute';
-            definition.options.push(exposes.options.calibration(expose.name, type));
+            definition.options.push(exposesLib.options.calibration(expose.name, type));
             if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
-                definition.options.push(exposes.options.precision(expose.name));
+                definition.options.push(exposesLib.options.precision(expose.name));
             }
             optionKeys.push(expose.name);
         }

@@ -2866,6 +2866,32 @@ const converters1 = {
             return result;
         },
     } satisfies Fz.Converter,
+    danfoss_icon_floor_sensor: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.hasOwnProperty('danfossRoomFloorSensorMode')) {
+                result[postfixWithEndpointName('room_floor_sensor_mode', msg, model, meta)] =
+                    constants.danfossRoomFloorSensorMode.hasOwnProperty(msg.data['danfossRoomFloorSensorMode']) ?
+                        constants.danfossRoomFloorSensorMode[msg.data['danfossRoomFloorSensorMode']] :
+                        msg.data['danfossRoomFloorSensorMode'];
+            }
+            if (msg.data.hasOwnProperty('danfossFloorMinSetpoint')) {
+                const value = precisionRound(msg.data['danfossFloorMinSetpoint'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('floor_min_setpoint', msg, model, meta)] = value;
+                }
+            }
+            if (msg.data.hasOwnProperty('danfossFloorMaxSetpoint')) {
+                const value = precisionRound(msg.data['danfossFloorMaxSetpoint'], 2) / 100;
+                if (value >= -273.15) {
+                    result[postfixWithEndpointName('floor_max_setpoint', msg, model, meta)] = value;
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
     danfoss_icon_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -3225,17 +3251,6 @@ const converters1 = {
             } else {
                 return {action: lookup[ID]};
             }
-        },
-    } satisfies Fz.Converter,
-    lifecontrolVoc: {
-        cluster: 'msTemperatureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-            const humidity = parseFloat(msg.data['minMeasuredValue']) / 100.0;
-            const eco2 = parseFloat(msg.data['maxMeasuredValue']);
-            const voc = parseFloat(msg.data['tolerance']);
-            return {temperature, humidity, eco2, voc};
         },
     } satisfies Fz.Converter,
     _8840100H_water_leak_alarm: {
