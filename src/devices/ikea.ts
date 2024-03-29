@@ -980,8 +980,6 @@ const definitions: Definition[] = [
         description: 'PARASOLL door/window sensor',
         extend: [
             bindCluster({cluster: 'genPollCtrl'}),
-            bindCluster({cluster: 'genBasic'}), // Questionable binds
-            bindCluster({cluster: 'ssIasZone'}), //
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
             identify({isSleepy: true}),
             battery(),
