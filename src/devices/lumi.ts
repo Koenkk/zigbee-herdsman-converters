@@ -19,7 +19,6 @@ const {
     lumiOverloadProtection, lumiLedIndicator, lumiButtonLock, lumiMotorSpeed,
     lumiOnOff, lumiLedDisabledNight, lumiFlipIndicatorLight, lumiPreventReset,
     lumiClickMode, lumiSlider, lumiSetEventMode, lumiSwitchMode, lumiVibration,
-    lumiMiscellaneous,
 } = lumi.modernExtend;
 import {Definition} from '../lib/types';
 const {manufacturerCode} = lumi;
@@ -1770,7 +1769,9 @@ const definitions: Definition[] = [
         description: 'Vibration sensor T1',
         extend: [
             lumiVibration(),
-            lumiMiscellaneous(),
+            // Doesn't seem to be working at all
+            // https://github.com/Koenkk/zigbee2mqtt/issues/21731
+            // lumiMiscellaneous(),
             battery({voltageToPercentage: '3V_2850_3000', voltage: true}),
             lumiZigbeeOTA(),
             quirkCheckinInterval('1_HOUR'),
