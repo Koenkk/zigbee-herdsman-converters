@@ -351,10 +351,11 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {modelID: '0x0210', manufacturerName: 'Danfoss'}, // Main Controller
-            {modelID: '0x8040', manufacturerName: 'Danfoss'}, // RT Zigbee - Display
-            {modelID: '0x8041', manufacturerName: 'Danfoss'}, // RT Zigbee - Featured (Infrared)
-            {modelID: '0x8042', manufacturerName: 'Danfoss'}, // RT Zigbee - Sensor
+            {modelID: '0x0210', manufacturerName: 'Danfoss'}, // Icon2 Basic Main Controller
+            {modelID: '0x0211', manufacturerName: 'Danfoss'}, // Icon2 Advanced Main Controller
+            {modelID: '0x8040', manufacturerName: 'Danfoss'}, // Icon2 Room Thermostat
+            {modelID: '0x8041', manufacturerName: 'Danfoss'}, // Icon2 Featured (Infrared) Room Thermostat
+            {modelID: '0x0042', manufacturerName: 'Danfoss'}, // Icon2 Sensor
         ],
         model: 'Icon2',
         vendor: 'Danfoss',
