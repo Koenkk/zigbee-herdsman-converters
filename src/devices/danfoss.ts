@@ -381,6 +381,7 @@ const definitions: Definition[] = [
             tz.danfoss_floor_min_setpoint,
             tz.danfoss_floor_max_setpoint,
             tz.temperature,
+            tz.humidity,
             tz.danfoss_system_status_code,
             tz.danfoss_multimaster_role,
             tz.thermostat_keypad_lockout,
@@ -392,7 +393,6 @@ const definitions: Definition[] = [
                 const epName = `${i}`;
                 if (i < 16) {
                     features.push(e.battery().withEndpoint(epName));
-                    features.push(e.humidity().withEndpoint(epName));
                     features.push(e.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
                         .withLocalTemperature().withRunningState(['idle', 'heat']).withSystemMode(['heat']).withEndpoint(epName));
                     features.push(e.numeric('min_heat_setpoint_limit', ea.ALL)
@@ -424,6 +424,11 @@ const definitions: Definition[] = [
                         .withUnit('°C')
                         .withEndpoint(epName)
                         .withDescription('Floor temperature'));
+
+                    features.push(e.numeric('humidity', ea.STATE_GET)
+                        .withUnit('%')
+                        .withEndpoint(epName)
+                        .withDescription('Humidity'));
                 } else {
                     features.push(e.enum('system_status_code', ea.STATE_GET, ['no_error', 'missing_expansion_board',
                         'missing_radio_module', 'missing_command_module', 'missing_master_rail', 'missing_slave_rail_no_1',
