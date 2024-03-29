@@ -588,31 +588,23 @@ const definitions: Definition[] = [
         extend: [ikeaLight({colorTemp: true, color: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI transformer 10W'],
-        model: 'ICPSHC24-10EU-IL-1',
+        zigbeeModel: [
+            'TRADFRI transformer 10W',
+            'TRADFRI Driver 10W',
+        ],
+        model: 'ICPSHC24-10EU-IL-1/ICPSHC24-10EU-IL-2',
         vendor: 'IKEA',
-        description: 'TRADFRI LED driver, 10 w, gen 1',
+        description: 'TRADFRI LED driver, 10 w',
         extend: [ikeaLight({turnsOffAtBrightness1: true}), identify()],
     },
     {
-        zigbeeModel: ['TRADFRI transformer 30W'],
-        model: 'ICPSHC24-30EU-IL-1',
+        zigbeeModel: [
+            'TRADFRI transformer 30W',
+            'TRADFRI Driver 30W',
+        ],
+        model: 'ICPSHC24-30EU-IL-1/ICPSHC24-10EU-IL-2',
         vendor: 'IKEA',
-        description: 'TRADFRI LED driver, 30 w, gen 1',
-        extend: [ikeaLight({turnsOffAtBrightness1: true}), identify()],
-    },
-    {
-        zigbeeModel: ['TRADFRI Driver 10W'],
-        model: 'ICPSHC24-10EU-IL-2',
-        vendor: 'IKEA',
-        description: 'TRADFRI LED driver, 10 w, gen 2',
-        extend: [ikeaLight({turnsOffAtBrightness1: true}), identify()],
-    },
-    {
-        zigbeeModel: ['TRADFRI Driver 30W'],
-        model: 'ICPSHC24-30EU-IL-2',
-        vendor: 'IKEA',
-        description: 'TRADFRI LED driver, 30 w, gen 2',
+        description: 'TRADFRI LED driver, 30 w',
         extend: [ikeaLight({turnsOffAtBrightness1: true}), identify()],
     },
     {
