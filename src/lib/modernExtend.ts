@@ -262,11 +262,17 @@ export function battery(args?: BatteryArgs): ModernExtend {
         {
             key: ['battery', 'voltage'],
             convertGet: async (entity, key, meta) => {
+                // Don't fail GET reqest if reading fails
+                // Split reading is needed for more clear debug logs
                 try {
-                    // Don't fail GET reqest if reading this attribute fails
-                    await entity.read('genPowerCfg', ['batteryPercentageRemaining', 'batteryVoltage']);
+                    await entity.read('genPowerCfg', ['batteryPercentageRemaining']);
                 } catch (e) {
-                    meta.logger.debug(`Reading attribute failed: ${e}, device probably doesn't support it`);
+                    meta.logger.debug(`Reading batteryPercentageRemaining failed: ${e}, device probably doesn't support it`);
+                }
+                try {
+                    await entity.read('genPowerCfg', ['batteryVoltage']);
+                } catch (e) {
+                    meta.logger.debug(`Reading batteryVoltage failed: ${e}, device probably doesn't support it`);
                 }
             },
         },
