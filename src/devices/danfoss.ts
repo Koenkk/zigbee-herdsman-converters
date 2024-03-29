@@ -456,11 +456,11 @@ const definitions: Definition[] = [
                 }
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'msRelativeHumidity', 'hvacUserInterfaceCfg']);
 
-                await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: constants.repInterval.MAX, change: 1});
-                await reporting.thermostatTemperature(endpoint, {min: constants.repInterval.SECONDS_5, max: constants.repInterval.HOUR, change: 50});
-                await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MAX, change: 1});
+                await reporting.batteryPercentageRemaining(endpoint);
+                await reporting.thermostatTemperature(endpoint);
+                await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
                 await reporting.temperature(endpoint, {change: 10});
-                await reporting.humidity(endpoint, {min: constants.repInterval.SECONDS_5, max: constants.repInterval.HOUR, change: 1});
+                await reporting.humidity(endpoint);
 
                 await endpoint.read('hvacThermostat', ['localTemp',
                     'occupiedHeatingSetpoint',
@@ -487,7 +487,7 @@ const definitions: Definition[] = [
                     await endpoint.configureReporting('hvacThermostat', [{
                         attribute: 'danfossOutputStatus',
                         minimumReportInterval: 0,
-                        maximumReportInterval: constants.repInterval.MINUTES_10,
+                        maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: 1,
                     }], options);
 
