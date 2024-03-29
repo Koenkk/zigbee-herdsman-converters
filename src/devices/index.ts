@@ -93,6 +93,7 @@ import giderwel from './giderwel';
 import giex from './giex';
 import girier from './girier';
 import gledopto from './gledopto';
+import gmmts from "./gmmts";
 import gmy from './gmy';
 import gs from './gs';
 import halemeier from './halemeier';
@@ -391,6 +392,7 @@ export default [
     ...giex,
     ...girier,
     ...gledopto,
+    ...gmmts,
     ...gmy,
     ...gs,
     ...halemeier,
