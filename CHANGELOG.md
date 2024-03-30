@@ -1,5 +1,19 @@
 # Changelog
 
+## [19.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.9.0...v19.10.0) (2024-03-29)
+
+
+### Features
+
+* **add:** EFEKTA_iAQ3 ([#7279](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7279)) ([a517008](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a5170089dde9e054683377c75fdbb9df1e693616))
+* **add:** WS-K01D ([#7282](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7282)) ([e6f46bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e6f46bc04163f691ea0227aeecea005acc9914ab))
+* Improve Danfoss Icon2 support ([#7281](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7281)) ([690b8b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/690b8b736d13db3325e3f072d57ab69d623426b2))
+
+
+### Bug Fixes
+
+* **detect:** Detect `d90d7c61c44d468a8e906ca0841e0a0c`as HEIMAN HS3CG ([#7278](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7278)) ([7eb5b1f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7eb5b1fbfe7db01e0ef535701f7680c178499a09))
+
 ## [19.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.8.0...v19.9.0) (2024-03-27)
 
 

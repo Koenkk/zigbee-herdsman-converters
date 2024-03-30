@@ -1811,6 +1811,12 @@ const converters2 = {
             await entity.read('msTemperatureMeasurement', ['measuredValue']);
         },
     } satisfies Tz.Converter,
+    humidity: {
+        key: ['humidity'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msRelativeHumidity', ['measuredValue']);
+        },
+    } satisfies Tz.Converter,
     illuminance: {
         key: ['illuminance', 'illuminance_lux'],
         convertGet: async (entity, key, meta) => {
@@ -2497,6 +2503,36 @@ const converters2 = {
         key: ['room_status_code'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossRoomStatusCode'], manufacturerOptions.danfoss);
+        },
+    } satisfies Tz.Converter,
+    danfoss_floor_sensor_mode: {
+        key: ['room_floor_sensor_mode'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossRoomFloorSensorMode'], manufacturerOptions.danfoss);
+        },
+    } satisfies Tz.Converter,
+    danfoss_floor_min_setpoint: {
+        key: ['floor_min_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            const danfossFloorMinSetpoint = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
+            await entity.write('hvacThermostat', {danfossFloorMinSetpoint}, manufacturerOptions.danfoss);
+            return {state: {floor_min_setpoint: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossFloorMinSetpoint'], manufacturerOptions.danfoss);
+        },
+    } satisfies Tz.Converter,
+    danfoss_floor_max_setpoint: {
+        key: ['floor_max_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            const danfossFloorMaxSetpoint = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
+            await entity.write('hvacThermostat', {danfossFloorMaxSetpoint}, manufacturerOptions.danfoss);
+            return {state: {floor_max_setpoint: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossFloorMaxSetpoint'], manufacturerOptions.danfoss);
         },
     } satisfies Tz.Converter,
     danfoss_system_status_code: {

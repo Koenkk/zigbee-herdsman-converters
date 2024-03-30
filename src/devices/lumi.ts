@@ -3049,6 +3049,23 @@ const definitions: Definition[] = [
         ],
     },
     {
+        zigbeeModel: ['lumi.switch.acn061'],
+        model: 'WS-K01D',
+        vendor: 'Aqara',
+        description: 'Smart 20A Switch H1 (single rocker)',
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            lumiOnOff({operationMode: true, powerOutageMemory: 'binary'}),
+            lumiAction({actionLookup: {'single': 1, 'double': 2}}),
+            lumiElectricityMeter(),
+            lumiPower(),
+            lumiLedDisabledNight(),
+            lumiSetEventMode(),
+            lumiFlipIndicatorLight(),
+        ],
+    },
+    {
         zigbeeModel: ['lumi.remote.cagl02'],
         model: 'CTP-R01',
         vendor: 'Aqara',
