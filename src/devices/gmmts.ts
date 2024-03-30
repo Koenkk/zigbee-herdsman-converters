@@ -378,10 +378,11 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
   logger.info(`TICMeter: Polling Duration: ${end - start} ms`);
 }
 
-function init_config(device: Device, name: string, value: string) {
+function init_config(device: Device, name: string, value: any) {
   if (!globalStore.hasValue(device, name)) {
     globalStore.putValue(device, name, value);
   }
+  return globalStore.getValue(device, name);
 }
 
 const definitions: Definition[] = [
@@ -482,6 +483,18 @@ const definitions: Definition[] = [
         }
       }
 
+      if (options && options.hasOwnProperty("producer") && options.producer != "AUTO") {
+        current_producer = options.producer;
+        logger.info(`TICMeter: Manual producer: ${current_producer}`);
+      } else {
+        current_producer = globalStore.getValue(device, "producer");
+        logger.info(`TICMeter: Producer: ${current_producer}`);
+        if (current_producer == undefined) {
+          logger.info("TICMeter: Force producer to AUTO");
+          current_producer = false;
+        }
+      }
+
       ticmeter_data.forEach((item: any) => {
         let contract_ok = false;
         let elec_ok = false;
@@ -536,13 +549,36 @@ const definitions: Definition[] = [
       device.save();
       const endpoint = device.getEndpoint(1);
 
-      init_config(device, "tic_mode", "AUTO");
-      init_config(device, "contract_type", "AUTO");
-      init_config(device, "elec_mode", "AUTO");
-      init_config(device, "refresh_rate", "60");
+      const tic_mode = init_config(device, "tic_mode", "AUTO");
+      const contract_type = init_config(device, "contract_type", "AUTO");
+      const elec_mode = init_config(device, "elec_mode", "AUTO");
+      const producer = init_config(device, "producer", false);
+      const refresh_rate = init_config(device, "refresh_rate", "60");
 
       endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", { acCurrentDivisor: 1, acCurrentMultiplier: 1 });
       endpoint.saveClusterAttributeKeyValue("seMetering", { divisor: 1, multiplier: 1 });
+
+      await reporting.bind(endpoint, coordinatorEndpoint, [
+        TICMETER_CLUSTER,
+        ELEC_MES_CLUSTER,
+        METERING_CLUSTER,
+        METER_ID_CLUSTER,
+      ]);
+  
+
+      const reporting_config = [];
+
+      // const wanted = [];
+      // for (const item of ticmeter_data) {
+      //   if (!item.poll && (item.tic == tic_mode || item.tic == T.ANY) && (item.contract == contract_type || item.contract == C.ANY) && (item.elec == elec_mode || item.elec == E.ANY)) {
+      //     wanted.push(item);
+      //   }
+      // }
+
+      // const remove_old = endpoint.configuredReportings.filter((reporting) => {
+      //   return !wanted.some((item) => reporting.cluster.name == item.cluster && reporting.attribute.name == item.attribute);
+      // });
+
     },
     options: ticmeter_options,
     onEvent: async (type, data, device, options) => {

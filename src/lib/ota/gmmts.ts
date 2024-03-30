@@ -62,6 +62,7 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
         url: app_url.ota,
     };
 
+    logger.debug(`GMMTS OTA: Image header  ${JSON.stringify(image.header)}`);
     logger.info(`GMMTS OTA: Image metadata for ${device.modelID}: ${JSON.stringify(ret)}`);
 
     return ret;
