@@ -790,14 +790,14 @@ const fzLocal = {
                 }
             }
             if (msg.data.hasOwnProperty('airpurity')) {
-                result.co2 = msg.data['airpurity'] * 10.0 + 500.0;
-                result.voc = msg.data['airpurity'] * 71.22;
+                result.co2 = utils.precisionRound((msg.data['airpurity'] * 10.0 + 500.0), 2);
+                result.voc = utils.precisionRound((msg.data['airpurity'] * 71.22), 2);
             }
             if (msg.data.hasOwnProperty('temperature')) {
                 result.temperature = parseFloat(msg.data['temperature']) / 100.0;
             }
             if (msg.data.hasOwnProperty('illuminance_lux')) {
-                result.illuminance_lux = utils.precisionRound((msg.data['illuminance_lux']) / 2), 2);
+                result.illuminance_lux = utils.precisionRound((msg.data['illuminance_lux'] / 2), 2);
             }
             if (msg.data.hasOwnProperty('battery')) {
                 result.battery = utils.precisionRound((msg.data['battery'] / 2), 2);
