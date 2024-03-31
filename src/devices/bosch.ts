@@ -791,6 +791,7 @@ const fzLocal = {
             }
             if (msg.data.hasOwnProperty('airpurity')) {
                 result.co2 = msg.data['airpurity'] * 10.0 + 500.0;
+                result.voc = msg.data['airpurity'] * 71.22;
             }
             if (msg.data.hasOwnProperty('temperature')) {
                 result.temperature = parseFloat(msg.data['temperature']) / 100.0;
@@ -1327,7 +1328,7 @@ const definitions: Definition[] = [
             await device.getEndpoint(12).read('manuSpecificBosch7', ['heartbeat'], manufacturerOptions);
         },
         exposes: [
-            e.smoke(), e.temperature(), e.humidity(), e.co2(), e.illuminance_lux(), e.battery(),
+            e.smoke(), e.temperature(), e.humidity(), e.voc(), e.co2(), e.illuminance_lux(), e.battery(),
             e.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
             e.text('siren_state', ea.STATE).withDescription('Siren state'),
             e.binary('self_test', ea.ALL, true, false).withDescription('Initiate self-test'),
