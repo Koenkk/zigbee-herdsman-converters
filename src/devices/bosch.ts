@@ -786,7 +786,7 @@ const fzLocal = {
             if (msg.data.hasOwnProperty('humidity')) {
                 const humidity = parseFloat(msg.data['humidity']) / 100.0;
                 if (humidity >= 0 && humidity <= 100) {
-                    return result.humidity = humidity;
+                    result.humidity = humidity;
                 }
             }
             if (msg.data.hasOwnProperty('airpurity')) {
