@@ -137,10 +137,11 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
     // It is possible to better check if device should be considered multiEndpoint
     // based, for example, on generator arguments(i.e. presence of "endpointNames"),
     // but this will be enough for now.
-    const multiEndpoint = device.endpoints.length > 1;
+    const endpointsWithoutGreenPower = device.endpoints.filter((e) => e.ID !== 242);
+    const multiEndpoint = endpointsWithoutGreenPower.length > 1;
     if (multiEndpoint) {
         const endpoints: {[n: string]: number} = {};
-        for (const endpoint of device.endpoints) {
+        for (const endpoint of endpointsWithoutGreenPower) {
             endpoints[endpoint.ID.toString()] = endpoint.ID;
         }
         // Add to beginning for better visibility.
