@@ -11,9 +11,9 @@ const fzLocal = {
         cluster: 'tunneling',
         type: ['transferDataResp'],
         convert: (model, msg, publish, options, meta) => {
-            meta.logger.debug(`"easyiot_ir_recv_command" received (msg:${JSON.stringify(msg.data)})`);
+            meta.logger.debug(`"easyiot_ir_recv_command" received (msg:${JSON.stringify(msg.data)})`, 'zhc:easyiot');
             const hexString = msg.data.data.toString('hex');
-            meta.logger.debug(`"easyiot_ir_recv_command" received command ${hexString}`);
+            meta.logger.debug(`"easyiot_ir_recv_command" received command ${hexString}`, 'zhc:easyiot');
             return {last_received_command: hexString};
         },
     } satisfies Fz.Converter,
@@ -22,9 +22,9 @@ const fzLocal = {
         cluster: 'tunneling',
         type: ['transferDataResp'],
         convert: (model, msg, publish, options, meta) => {
-            meta.logger.debug(`"easyiot_tts_recv_status" received (msg:${JSON.stringify(msg.data)})`);
+            meta.logger.debug(`"easyiot_tts_recv_status" received (msg:${JSON.stringify(msg.data)})`, 'zhc:easyiot');
             const hexString = msg.data.data.toString('hex');
-            meta.logger.debug(`"easyiot_tts_recv_status" received status ${hexString}`);
+            meta.logger.debug(`"easyiot_tts_recv_status" received status ${hexString}`, 'zhc:easyiot');
             return {last_received_status: hexString};
         },
     } satisfies Fz.Converter,
@@ -38,14 +38,14 @@ const tzLocal = {
                 throw new Error(`There is no IR code to send`);
             }
 
-            meta.logger.debug(`Sending IR code: ${value}`);
+            meta.logger.debug(`Sending IR code: ${value}`, 'zhc:easyiot');
             await entity.command('tunneling', 'transferData',
                 {
                     'tunnelID': 0x0000,
                     'data': Buffer.from(value as string, 'hex'),
                 },
                 {disableDefaultResponse: true});
-            meta.logger.debug(`Sending IR command success.`);
+            meta.logger.debug(`Sending IR command success.`, 'zhc:easyiot');
         },
     } as Tz.Converter,
 
@@ -56,7 +56,7 @@ const tzLocal = {
                 throw new Error(`There is no text to send`);
             }
 
-            meta.logger.debug(`Sending IR code: ${value}`);
+            meta.logger.debug(`Sending IR code: ${value}`, 'zhc:easyiot');
             const frameHeader = Buffer.from([0xFD]);
 
             const gb2312Buffer = iconv.encode(value as string, 'GB2312');
@@ -72,7 +72,7 @@ const tzLocal = {
                     'data': protocolFrame,
                 },
                 {disableDefaultResponse: true});
-            meta.logger.debug(`Sending IR command success.`);
+            meta.logger.debug(`Sending IR command success.`, 'zhc:easyiot');
         },
     } as Tz.Converter,
 };

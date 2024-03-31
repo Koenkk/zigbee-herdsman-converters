@@ -109,7 +109,7 @@ const ubisys = {
             key: ['configure_j1'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const log = (message: string) => {
-                    meta.logger.warn(`ubisys: ${message}`);
+                    meta.logger.warning(`ubisys: ${message}`, 'zhc:ubisys');
                 };
                 const sleepSeconds = async (s: number) => {
                     return new Promise((resolve) => setTimeout(resolve, s * 1000));
@@ -231,7 +231,7 @@ const ubisys = {
             },
             convertGet: async (entity, key, meta) => {
                 const log = (json: unknown) => {
-                    meta.logger.warn(`ubisys: Cover configuration read: ${JSON.stringify(json)}`);
+                    meta.logger.warning(`ubisys: Cover configuration read: ${JSON.stringify(json)}`, 'zhc:ubisys');
                 };
                 log(await entity.read('closuresWindowCovering', [
                     'windowCoveringType',
@@ -319,7 +319,7 @@ const ubisys = {
                     useWriteStruct = semver.gte(meta.device.softwareBuildID, '1.9.0', true);
                 }
                 if (useWriteStruct) {
-                    meta.logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`);
+                    meta.logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`, 'zhc:ubisys');
                 }
 
                 if (value.hasOwnProperty('input_configurations')) {
@@ -544,7 +544,7 @@ const ubisys = {
                         }
                         resultingInputActions = resultingInputActions.concat(inputActions);
 
-                        meta.logger.warn(`ubisys: Using input(s) ${input} and endpoint ${endpoint} for '${template.type}'.`);
+                        meta.logger.warning(`ubisys: Using input(s) ${input} and endpoint ${endpoint} for '${template.type}'.`, 'zhc:ubisys');
                         // input might by now be an array (in case of double inputs)
                         input = (Array.isArray(input) ? Math.max(...input) : input) + 1;
                         endpoint += 1;

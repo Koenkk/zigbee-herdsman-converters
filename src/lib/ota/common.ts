@@ -395,7 +395,7 @@ export async function isUpdateAvailable(device: Zh.Device, logger: Logger, reque
     const availableResult = await isNewImageAvailable(requestPayload, logger, device, getImageMeta);
     logger.debug(`OTA: Update available for '${device.ieeeAddr}' (${device.modelID}): ${availableResult.available < 0 ? 'YES' : 'NO'}`);
     if (availableResult.available > 0) {
-        logger.warn(`OTA: Firmware on '${device.ieeeAddr}' (${device.modelID}) is newer than latest firmware online.`);
+        logger.warning(`OTA: Firmware on '${device.ieeeAddr}' (${device.modelID}) is newer than latest firmware online.`);
     }
     return {...availableResult, available: availableResult.available < 0};
 }
@@ -408,7 +408,7 @@ export async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger
     // Soft-fail because no images in repo/URL for specified device
     if (!meta) {
         const metaS = `device '${device.modelID}', hardwareVersion '${device.hardwareVersion}', manufacturerName ${device.manufacturerName}`;
-        logger.warn(`OTA: Images currently unavailable for ${metaS}, ${currentS}'`);
+        logger.warning(`OTA: Images currently unavailable for ${metaS}, ${currentS}'`);
 
         return {
             available: 0,

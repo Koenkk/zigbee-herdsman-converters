@@ -440,7 +440,7 @@ export function customTimeResponse(start: '1970_UTC' | '2000_LOCAL'): ModernExte
                         payload.time = secondsUTC - (new Date()).getTimezoneOffset() * 60;
                     }
                     endpoint.readResponse('genTime', frame.Header.transactionSequenceNumber, payload).catch((e) => {
-                        logger.logger.warn(`Custom time response failed for '${device.ieeeAddr}': ${e}`);
+                        logger.logger.warning(`Custom time response failed for '${device.ieeeAddr}': ${e}`);
                     });
                     return true;
                 }

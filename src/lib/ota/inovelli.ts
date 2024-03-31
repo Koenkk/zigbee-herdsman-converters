@@ -44,7 +44,7 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
         .pop();
 
     if (!image) {
-        logger.warn(`OTA: No image found in the ${useBetaChannel ? 'beta' : 'production'} channel for device '${device.modelID}'`);
+        logger.warning(`OTA: No image found in the ${useBetaChannel ? 'beta' : 'production'} channel for device '${device.modelID}'`);
 
         return null;
     }

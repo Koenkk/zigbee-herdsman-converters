@@ -157,11 +157,11 @@ const sonoffExtend = {
             convert: (model, msg, publish, options, meta) => {
                 const attributeKey = 0x5008;// attr
                 if (attributeKey in msg.data ) {
-                    // meta.logger.debug(` from zigbee 0x5008 cluster ${msg.data[attributeKey]} `);
+                    // meta.logger.debug(` from zigbee 0x5008 cluster ${msg.data[attributeKey]} `, 'zhc:sonoff');
                     // meta.logger.debug(msg.data[attributeKey]);
                     const buffer = Buffer.from(msg.data[attributeKey]);
-                    // meta.logger.debug(`buffer====> ${buffer[0]} ${buffer[1]} ${buffer[2]} ${buffer[3]} ${buffer[4]} ${buffer[5]} `);
-                    // meta.logger.debug(`buffer====> ${buffer[6]} ${buffer[7]} ${buffer[8]} ${buffer[9]} `);
+                    // meta.logger.debug(`buffer====> ${buffer[0]} ${buffer[1]} ${buffer[2]} ${buffer[3]} ${buffer[4]} ${buffer[5]} `, 'zhc:sonoff');
+                    // meta.logger.debug(`buffer====> ${buffer[6]} ${buffer[7]} ${buffer[8]} ${buffer[9]} `, 'zhc:sonoff');
                     const currentCountBuffer = buffer[0];
                     const totalNumberBuffer = buffer[1];
 
@@ -169,10 +169,10 @@ const sonoffExtend = {
 
                     const irrigationIntervalBuffer = (buffer[6] <<24) | (buffer[7] << 16) | (buffer[8] << 8)|buffer[9];
 
-                    // meta.logger.debug(`currentCountBuffer ${currentCountBuffer}`);
-                    // meta.logger.debug(`totalNumberOfTimesBuffer ${totalNumberBuffer}`);
-                    // meta.logger.debug(`irrigationDurationBuffer ${irrigationDurationBuffer}`);
-                    // meta.logger.debug(`irrigationIntervalBuffer ${irrigationIntervalBuffer}`);
+                    // meta.logger.debug(`currentCountBuffer ${currentCountBuffer}`, 'zhc:sonoff');
+                    // meta.logger.debug(`totalNumberOfTimesBuffer ${totalNumberBuffer}`, 'zhc:sonoff');
+                    // meta.logger.debug(`irrigationDurationBuffer ${irrigationDurationBuffer}`, 'zhc:sonoff');
+                    // meta.logger.debug(`irrigationIntervalBuffer ${irrigationIntervalBuffer}`, 'zhc:sonoff');
 
                     return {
                         cyclic_timed_irrigation: {
@@ -188,15 +188,15 @@ const sonoffExtend = {
         const toZigbee: Tz.Converter[] = [{
             key: ['cyclic_timed_irrigation'],
             convertSet: async (entity, key, value, meta) => {
-                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${key}`);
+                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${key}`, 'zhc:sonoff');
                 // const currentCount:string = 'current_count';
-                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[currentCount as keyof typeof value]}`);
+                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[currentCount as keyof typeof value]}`, 'zhc:sonoff');
                 const totalNumber:string = 'total_number';
-                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[totalNumber as keyof typeof value]}`);
+                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[totalNumber as keyof typeof value]}`, 'zhc:sonoff');
                 const irrigationDuration:string = 'irrigation_duration';
-                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[irrigationDuration as keyof typeof value]}`);
+                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[irrigationDuration as keyof typeof value]}`, 'zhc:sonoff');
                 const irrigationInterval:string = 'irrigation_interval';
-                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[irrigationInterval as keyof typeof value]}`);
+                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[irrigationInterval as keyof typeof value]}`, 'zhc:sonoff');
 
                 const payloadValue = [];
                 payloadValue[0] = 0x0A;
@@ -245,11 +245,11 @@ const sonoffExtend = {
             convert: (model, msg, publish, options, meta) => {
                 const attributeKey = 0x5009;// attr
                 if (attributeKey in msg.data ) {
-                    // meta.logger.debug(` from zigbee 0x5009 cluster ${msg.data[attributeKey]} `);
+                    // meta.logger.debug(` from zigbee 0x5009 cluster ${msg.data[attributeKey]} `, 'zhc:sonoff');
                     // meta.logger.debug(msg.data[attributeKey]);
                     const buffer = Buffer.from(msg.data[attributeKey]);
-                    // meta.logger.debug(`buffer====> ${buffer[0]} ${buffer[1]} ${buffer[2]} ${buffer[3]} ${buffer[4]} ${buffer[5]} `);
-                    // meta.logger.debug(`buffer====> ${buffer[6]} ${buffer[7]} ${buffer[8]} ${buffer[9]} `);
+                    // meta.logger.debug(`buffer====> ${buffer[0]} ${buffer[1]} ${buffer[2]} ${buffer[3]} ${buffer[4]} ${buffer[5]} `, 'zhc:sonoff');
+                    // meta.logger.debug(`buffer====> ${buffer[6]} ${buffer[7]} ${buffer[8]} ${buffer[9]} `, 'zhc:sonoff');
                     const currentCountBuffer = buffer[0];
                     const totalNumberBuffer = buffer[1];
 
@@ -257,10 +257,10 @@ const sonoffExtend = {
 
                     const irrigationIntervalBuffer = (buffer[6] <<24) | (buffer[7] << 16) | (buffer[8] << 8)|buffer[9];
 
-                    // meta.logger.debug(`currentCountBuffer ${currentCountBuffer}`);
-                    // meta.logger.debug(`totalNumberBuffer ${totalNumberBuffer}`);
-                    // meta.logger.debug(`irrigationCapacityBuffer ${irrigationCapacityBuffer}`);
-                    // meta.logger.debug(`irrigationIntervalBuffer ${irrigationIntervalBuffer}`);
+                    // meta.logger.debug(`currentCountBuffer ${currentCountBuffer}`, 'zhc:sonoff');
+                    // meta.logger.debug(`totalNumberBuffer ${totalNumberBuffer}`, 'zhc:sonoff');
+                    // meta.logger.debug(`irrigationCapacityBuffer ${irrigationCapacityBuffer}`, 'zhc:sonoff');
+                    // meta.logger.debug(`irrigationIntervalBuffer ${irrigationIntervalBuffer}`, 'zhc:sonoff');
 
                     return {
                         cyclic_quantitative_irrigation: {
@@ -276,15 +276,15 @@ const sonoffExtend = {
         const toZigbee: Tz.Converter[] = [{
             key: ['cyclic_quantitative_irrigation'],
             convertSet: async (entity, key, value, meta) => {
-                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${key}`);
+                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${key}`, 'zhc:sonoff');
                 // const currentCount:string = 'current_count';
-                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[currentCount as keyof typeof value]}`);
+                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[currentCount as keyof typeof value]}`, 'zhc:sonoff');
                 const totalNumber:string = 'total_number';
-                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[totalNumber as keyof typeof value]}`);
+                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[totalNumber as keyof typeof value]}`, 'zhc:sonoff');
                 const irrigationCapacity:string = 'irrigation_capacity';
-                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[irrigationCapacity as keyof typeof value]}`);
+                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[irrigationCapacity as keyof typeof value]}`, 'zhc:sonoff');
                 const irrigationInterval:string = 'irrigation_interval';
-                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[irrigationInterval as keyof typeof value]}`);
+                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[irrigationInterval as keyof typeof value]}`, 'zhc:sonoff');
 
                 const payloadValue = [];
                 payloadValue[0] = 0x0A;

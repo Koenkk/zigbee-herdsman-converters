@@ -8,7 +8,7 @@ const axios = common.getAxios();
  */
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`LixeeOTA: call getImageMeta for ${device.modelID}`);
+    logger.debug(`LixeeOTA: call getImageMeta for ${device.modelID}`, 'zhc:lixee');
     const {data: releases} = await axios.get(firmwareOrigin);
 
     if (!releases?.length) {

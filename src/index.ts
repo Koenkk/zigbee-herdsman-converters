@@ -378,7 +378,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
                 const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
                 const payload = {0xf00: {value: 23, type: 35}};
                 endpoint.readResponse('genBasic', frame.Header.transactionSequenceNumber, payload, options).catch((e) => {
-                    logger.logger.warn(`Legrand security read response failed: ${e}`);
+                    logger.logger.warning(`Legrand security read response failed: ${e}`);
                 })
                 return true;
             }
@@ -395,7 +395,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
                 const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
                 const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
                 endpoint.readResponse('genTime', frame.Header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
-                    logger.logger.warn(`ZNCWWSQ01LM custom time response failed: ${e}`);
+                    logger.logger.warning(`ZNCWWSQ01LM custom time response failed: ${e}`);
                 })
                 return true;
             }

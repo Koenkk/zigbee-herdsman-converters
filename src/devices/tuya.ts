@@ -253,7 +253,7 @@ const tzLocal = {
                 break;
             }
             default: // Unknown key
-                meta.logger.warn(`Unhandled key ${key}`);
+                meta.logger.warning(`Unhandled key ${key}`, 'zhc:tuya');
             }
         },
     } satisfies Tz.Converter,
@@ -332,7 +332,7 @@ const tzLocal = {
                 break;
             }
             default: // Unknown key
-                meta.logger.warn(`Unhandled key ${key}`);
+                meta.logger.warning(`Unhandled key ${key}`, 'zhc:tuya');
             }
         },
     } satisfies Tz.Converter,
@@ -2460,7 +2460,7 @@ const definitions: Definition[] = [
                             }, []);
                         }
 
-                        meta.logger.warn('Ignoring invalid or incomplete schedule');
+                        meta.logger.warning('Ignoring invalid or incomplete schedule');
                     },
                     from: (v: number[], meta) => {
                         let r = '';

@@ -154,7 +154,7 @@ function gledoptoConfigureReadModelID(): ModernExtend {
         const oldModel = device.modelID;
         const newModel = (await endpoint.read('genBasic', ['modelId'])).modelId;
         if (oldModel != newModel) {
-            logger.info(`Detected Gledopto device mode change, from '${oldModel}' to '${newModel}'`);
+            logger.info(`Detected Gledopto device mode change, from '${oldModel}' to '${newModel}'`, 'zhc:gledopto');
         }
     };
     return {configure, isModernExtend: true};

@@ -873,7 +873,7 @@ const fzLocal = {
             if (options.hasOwnProperty('led_response')) {
                 buffer = Buffer.from(options.led_response as string, 'hex');
                 if (buffer.length !== 9) {
-                    meta.logger.error(`Invalid length of led_response: ${buffer.length} (should be 9)`);
+                    meta.logger.error(`Invalid length of led_response: ${buffer.length} (should be 9)`, 'zhc:bosch');
                     buffer = Buffer.from('30ff00000102010001', 'hex');
                 }
             } else {
@@ -897,7 +897,7 @@ const fzLocal = {
                 }
                 return {action: `button_${buttons[buttonId]}_${command}`};
             } else {
-                meta.logger.error(`Received message with unknown command ID ${buttonId}. Data: 0x${msg.data.toString('hex')}`);
+                meta.logger.error(`Received message with unknown command ID ${buttonId}. Data: 0x${msg.data.toString('hex')}`, 'zhc:bosch');
             }
         },
     } satisfies Fz.Converter,

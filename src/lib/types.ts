@@ -13,10 +13,10 @@ import type {
 import * as exposes from './exposes';
 
 export interface Logger {
-    info: (message: string) => void;
-    warn: (message: string) => void;
-    error: (message: string) => void;
-    debug: (message: string) => void;
+    debug: (message: string, namespace: string) => void;
+    info: (message: string, namespace: string) => void;
+    warning: (message: string, namespace: string) => void;
+    error: (message: string | Error, namespace: string) => void;
 }
 
 export type Range = [number, number];

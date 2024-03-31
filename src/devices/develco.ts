@@ -280,7 +280,7 @@ const develco = {
             convertSet: async (entity, key, value, meta) => {
                 let timeoutValue = utils.toNumber(value, 'occupancy_timeout');
                 if (timeoutValue < 5) {
-                    meta.logger.warn(`Minimum occupancy_timeout is 5, using 5 instead of ${timeoutValue}!`);
+                    meta.logger.warning(`Minimum occupancy_timeout is 5, using 5 instead of ${timeoutValue}!`, 'zhc:develco');
                     timeoutValue = 5;
                 }
                 await entity.write('ssIasZone', {'develcoAlarmOffDelay': timeoutValue}, manufacturerOptions);

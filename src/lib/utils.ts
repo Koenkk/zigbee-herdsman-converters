@@ -134,7 +134,7 @@ export function getEndpointName(msg: Fz.Message, definition: Definition, meta: F
 export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
-        meta.logger.warn(`No meta passed to postfixWithEndpointName, update your external converter!`);
+        meta.logger.warning(`No meta passed to postfixWithEndpointName, update your external converter!`, 'zhc:utils');
         // @ts-expect-error
         meta = {device: null};
     }
@@ -505,12 +505,6 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
     return numbers.map((v) => v.toString(16).padStart(hexLength, '0')).join(':');
 }
 
-// Note: this is valid typescript-flavored JSDoc
-// eslint-disable-next-line valid-jsdoc
-export const createLogger = (logger: Logger, vendor: string, key: string) => (level: 'debug' | 'info' | 'warn' | 'error', message: string) => {
-    logger[level](`zigbee-herdsman-converters:${vendor}:${key}: ${message}`);
-};
-
 // eslint-disable-next-line
 export function assertObject(value: unknown, property?: string): asserts value is {[s: string]: any} {
     const isObject = typeof value === 'object' && !Array.isArray(value) && value !== null;
@@ -663,5 +657,4 @@ exports.getSceneState = getSceneState;
 exports.attachOutputCluster = attachOutputCluster;
 exports.printNumberAsHex = printNumberAsHex;
 exports.printNumbersAsHexSequence = printNumbersAsHexSequence;
-exports.createLogger = createLogger;
 exports.getFromLookup = getFromLookup;

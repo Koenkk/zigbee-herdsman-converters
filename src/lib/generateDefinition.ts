@@ -247,7 +247,7 @@ const outputExtenders: Extender[] = [
 async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
-        logger.warn('extenderLock can accept only one endpoint');
+        logger.warning('extenderLock can accept only one endpoint');
     }
 
     const endpoint = endpoints[0];
@@ -307,7 +307,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
 async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
-        logger.warn('extenderElectricityMeter can accept only one endpoint');
+        logger.warning('extenderElectricityMeter can accept only one endpoint');
     }
 
     const endpoint = endpoints[0];

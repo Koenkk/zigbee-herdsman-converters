@@ -1549,7 +1549,7 @@ const definitions: Definition[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             } catch (e) {
-                logger.warn(`SP-EUC01 failed to setup electricity measurements (${e.message})`);
+                logger.warning(`SP-EUC01 failed to setup electricity measurements (${e.message})`);
                 logger.debug(e.stack);
             }
             try {
@@ -1557,7 +1557,7 @@ const definitions: Definition[] = [
                 await reporting.readMeteringMultiplierDivisor(endpoint);
                 await reporting.currentSummDelivered(endpoint, {change: 0});
             } catch (e) {
-                logger.warn(`SP-EUC01 failed to setup metering (${e.message})`);
+                logger.warning(`SP-EUC01 failed to setup metering (${e.message})`);
                 logger.debug(e.stack);
             }
         },

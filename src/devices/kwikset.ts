@@ -77,8 +77,6 @@ const definitions: Definition[] = [
         meta: {pinCodeCount: 30},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
-            console.log(device);
-            console.log(endpoint.clusters);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -110,8 +108,6 @@ const definitions: Definition[] = [
         meta: {pinCodeCount: 30},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
-            console.log(device);
-            console.log(endpoint.clusters);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);

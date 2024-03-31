@@ -76,7 +76,7 @@ const fzLocal = {
             try {
                 await msg.endpoint.read('manuSpecificAssaDoorLock', ['batteryLevel']);
             } catch (error) {
-                meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: failed to read lock attributes`);
+                meta.logger.warning(`zigbee-herdsman-converters:Yale Lock: failed to read lock attributes`, 'zhc:yale');
             }
             return result;
         },

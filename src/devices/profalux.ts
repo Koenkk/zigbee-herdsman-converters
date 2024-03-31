@@ -58,7 +58,7 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(2);
             await endpoint.read('manuSpecificProfalux1', ['motorCoverType'])
                 .catch((e) => {
-                    console.warn(`Failed to read zigbee attributes: ${e}`);
+                    logger.warning(`Failed to read zigbee attributes: ${e}`);
                 });
             const coverType = endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType');
             // logger.debug(`Profalux '${device.ieeeAddr}' setup as cover type '${coverType)}'`);
