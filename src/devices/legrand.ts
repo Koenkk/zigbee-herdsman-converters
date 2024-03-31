@@ -659,6 +659,23 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: [' Remote fan controller\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: '067761A',
+        vendor: 'Legrand',
+        description: 'Exhaust wireless switch',
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.battery],
+        toZigbee: [],
+        exposes: [
+            e.battery(),
+            e.action(['identify', 'on', 'off']),
+        ],
+        onEvent: readInitialBatteryState,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
+        },
+    },
 ];
 
 export default definitions;
