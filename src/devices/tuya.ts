@@ -2705,7 +2705,10 @@ const definitions: Definition[] = [
             deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
             onOff({endpointNames: ['left', 'center', 'right'], powerOnBehavior: false}),
         ],
-        whiteLabel: [{vendor: 'BSEED', model: 'TS0003', description: 'Zigbee switch'}],
+        whiteLabel: [
+            {vendor: 'BSEED', model: 'TS0003', description: 'Zigbee switch'},
+            tuya.whitelabel('TuYa', 'TS0003_1', '3 gang switch', ['_TZ3000_ouwfc1qj']),
+        ],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
