@@ -1328,7 +1328,12 @@ const definitions: Definition[] = [
             await device.getEndpoint(12).read('manuSpecificBosch7', ['heartbeat'], manufacturerOptions);
         },
         exposes: [
-            e.smoke(), e.temperature(), e.humidity(), e.voc(), e.co2(), e.illuminance_lux(), e.battery(),
+            e.smoke(),
+            e.temperature().withValueMin(0).withValueMax(65).withValueStep(0.1),
+            e.humidity().withValueMin(0).withValueMax(100).withValueStep(0.1),
+            e.voc().withValueMin(0).withValueMax(35610).withValueStep(1),
+            e.co2().withValueMin(500).withValueMax(5500).withValueStep(1),
+            e.illuminance_lux(), e.battery(),
             e.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
             e.text('siren_state', ea.STATE).withDescription('Siren state'),
             e.binary('self_test', ea.ALL, true, false).withDescription('Initiate self-test'),
