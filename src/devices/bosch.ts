@@ -784,19 +784,22 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty('humidity')) {
-                result.humidity = msg.data['humidity'] / 100.0;
+                const humidity = parseFloat(msg.data['humidity']) / 100.0;
+                if (humidity >= 0 && humidity <= 100) {
+                    return result.humidity = humidity;
+                }
             }
             if (msg.data.hasOwnProperty('airpurity')) {
                 result.co2 = msg.data['airpurity'] * 10.0 + 500.0;
             }
             if (msg.data.hasOwnProperty('temperature')) {
-                result.temperature = msg.data['temperature'] / 100.0;
+                result.temperature = parseFloat(msg.data['temperature']) / 100.0;
             }
             if (msg.data.hasOwnProperty('illuminance_lux')) {
-                result.illuminance_lux = msg.data['illuminance_lux'] / 2.0;
+                result.illuminance_lux = parseFloat(msg.data['illuminance_lux']) / 2.0;
             }
             if (msg.data.hasOwnProperty('battery')) {
-                result.battery = msg.data['battery'] / 2.0;
+                result.battery = utils.precisionRound((msg.data['battery'] / 2), 2);
             }
             return result;
         },
