@@ -6,7 +6,7 @@ import * as reporting from '../lib/reporting';
 import {
     light, numeric, binary, enumLookup, forceDeviceType,
     temperature, humidity, forcePowerSource, quirkAddEndpointCluster,
-    quirkCheckinInterval, customTimeResponse, deviceEndpoints,
+    quirkCheckinInterval, customTimeResponse, deviceEndpoints, battery,
 } from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -18,7 +18,7 @@ const {
     lumiOutageCountRestoreBindReporting, lumiElectricityMeter, lumiPower,
     lumiOverloadProtection, lumiLedIndicator, lumiButtonLock, lumiMotorSpeed,
     lumiOnOff, lumiLedDisabledNight, lumiFlipIndicatorLight, lumiPreventReset,
-    lumiClickMode, lumiSlider, lumiSetEventMode, lumiSwitchMode,
+    lumiClickMode, lumiSlider, lumiSetEventMode, lumiSwitchMode, lumiVibration,
 } = lumi.modernExtend;
 import {Definition} from '../lib/types';
 const {manufacturerCode} = lumi;
@@ -1767,10 +1767,15 @@ const definitions: Definition[] = [
         model: 'DJT12LM',
         vendor: 'Aqara',
         description: 'Vibration sensor T1',
-        fromZigbee: [lumi.fromZigbee.lumi_vibration],
-        exposes: [e.action(['vibration'])],
-        toZigbee: [],
-        extend: [quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
+        extend: [
+            lumiVibration(),
+            // Doesn't seem to be working at all
+            // https://github.com/Koenkk/zigbee2mqtt/issues/21731
+            // lumiMiscellaneous(),
+            battery({voltageToPercentage: '3V_2850_3000', voltage: true}),
+            lumiZigbeeOTA(),
+            quirkCheckinInterval('1_HOUR'),
+        ],
     },
     {
         zigbeeModel: ['lumi.curtain'],

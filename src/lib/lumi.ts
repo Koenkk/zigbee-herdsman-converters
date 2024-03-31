@@ -1713,6 +1713,55 @@ export const lumiModernExtend = {
         zigbeeCommandOptions: {manufacturerCode},
         ...args,
     }),
+    lumiVibration: (): ModernExtend => {
+        const exposes: Expose[] = [e.action(['shake', 'triple_strike'])];
+
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'ssIasZone',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty(45)) {
+                    const zoneStatus = msg.data[45];
+                    const actionLookup: KeyValueNumberString = {1: 'shake', 2: 'triple_strike'};
+                    return {action: actionLookup[zoneStatus]};
+                }
+            },
+        }];
+
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
+    lumiMiscellaneous: (args?: {
+        cluster: 'genBasic' | 'manuSpecificLumi',
+        deviceTemperatureAttribute?: number,
+        powerOutageCountAttribute?: number,
+        resetsWhenPairing?: boolean,
+    }): ModernExtend => {
+        args = {cluster: 'manuSpecificLumi', deviceTemperatureAttribute: 3, powerOutageCountAttribute: 5, resetsWhenPairing: false, ...args};
+        const exposes: Expose[] = [e.device_temperature(), e.power_outage_count(args.resetsWhenPairing)];
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: args.cluster,
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    const payload: KeyValueAny = {};
+                    if (msg.data.hasOwnProperty(args.deviceTemperatureAttribute)) {
+                        const value = msg.data[args.deviceTemperatureAttribute];
+                        assertNumber(value);
+                        payload['device_temperature'] = value;
+                    }
+                    if (msg.data.hasOwnProperty(args.powerOutageCountAttribute)) {
+                        const value = msg.data[args.powerOutageCountAttribute];
+                        assertNumber(value);
+                        payload['power_outage_count'] = value - 1;
+                    }
+                    return payload;
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
 };
 
 export {lumiModernExtend as modernExtend};
@@ -2479,13 +2528,6 @@ export const fromZigbee = {
             } else if (msg.data.hasOwnProperty('curtainCalibrated')) {
                 return {limits_calibration: (msg.data['curtainCalibrated'] === 1) ? 'calibrated' : 'recalibrate'};
             }
-        },
-    } satisfies Fz.Converter,
-    lumi_vibration: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: 'vibration'};
         },
     } satisfies Fz.Converter,
     lumi_vibration_analog: {
