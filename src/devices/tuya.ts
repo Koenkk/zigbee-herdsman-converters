@@ -7486,7 +7486,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_kyhbrfyl']),
-        model: 'NAS-PS09B2 ',
+        model: 'NAS-PS09B2',
         vendor: 'Neo',
         description: 'Human presence sensor',
         fromZigbee: [tuya.fz.datapoints],
