@@ -390,7 +390,7 @@ const tzLocal = {
                 await entity.read(0xFCAC, [0x0003], manufacturerOptions);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bosch_bwa1.convertGet ${key}`);
             }
         },
     } satisfies Tz.Converter,
@@ -590,6 +590,10 @@ const tzLocal = {
             case 'heartbeat':
                 await meta.device.getEndpoint(12).read('manuSpecificBosch7', [0x5005], manufacturerOptions);
                 break;
+            case 'alarm':
+            case 'self_test':
+                await meta.device.getEndpoint(12).read('manuSpecificBosch8', [0x5000], manufacturerOptions);
+                break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
             }
@@ -780,19 +784,23 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty('humidity')) {
-                result.humidity = msg.data['humidity'] / 100.0;
+                const humidity = parseFloat(msg.data['humidity']) / 100.0;
+                if (humidity >= 0 && humidity <= 100) {
+                    result.humidity = humidity;
+                }
             }
             if (msg.data.hasOwnProperty('airpurity')) {
-                result.co2 = msg.data['airpurity'] * 10.0 + 500.0;
+                result.co2 = utils.precisionRound((msg.data['airpurity'] * 10.0 + 500.0), 2);
+                result.voc = utils.precisionRound((msg.data['airpurity'] * 71.22), 2);
             }
             if (msg.data.hasOwnProperty('temperature')) {
-                result.temperature = msg.data['temperature'] / 100.0;
+                result.temperature = parseFloat(msg.data['temperature']) / 100.0;
             }
             if (msg.data.hasOwnProperty('illuminance_lux')) {
-                result.illuminance_lux = msg.data['illuminance_lux'] / 2.0;
+                result.illuminance_lux = utils.precisionRound((msg.data['illuminance_lux'] / 2), 2);
             }
             if (msg.data.hasOwnProperty('battery')) {
-                result.battery = msg.data['battery'] / 2.0;
+                result.battery = utils.precisionRound((msg.data['battery'] / 2), 2);
             }
             return result;
         },
@@ -1320,7 +1328,12 @@ const definitions: Definition[] = [
             await device.getEndpoint(12).read('manuSpecificBosch7', ['heartbeat'], manufacturerOptions);
         },
         exposes: [
-            e.smoke(), e.temperature(), e.humidity(), e.co2(), e.illuminance_lux(), e.battery(),
+            e.smoke(),
+            e.temperature().withValueMin(0).withValueMax(65).withValueStep(0.1),
+            e.humidity().withValueMin(0).withValueMax(100).withValueStep(0.1),
+            e.voc().withValueMin(0).withValueMax(35610).withValueStep(1),
+            e.co2().withValueMin(500).withValueMax(5500).withValueStep(1),
+            e.illuminance_lux(), e.battery(),
             e.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
             e.text('siren_state', ea.STATE).withDescription('Siren state'),
             e.binary('self_test', ea.ALL, true, false).withDescription('Initiate self-test'),
