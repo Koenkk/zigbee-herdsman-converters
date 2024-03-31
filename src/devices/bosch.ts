@@ -797,7 +797,7 @@ const fzLocal = {
                 result.temperature = parseFloat(msg.data['temperature']) / 100.0;
             }
             if (msg.data.hasOwnProperty('illuminance_lux')) {
-                result.illuminance_lux = parseFloat(msg.data['illuminance_lux']) / 2.0;
+                result.illuminance_lux = utils.precisionRound((msg.data['illuminance_lux']) / 2), 2);
             }
             if (msg.data.hasOwnProperty('battery')) {
                 result.battery = utils.precisionRound((msg.data['battery'] / 2), 2);
