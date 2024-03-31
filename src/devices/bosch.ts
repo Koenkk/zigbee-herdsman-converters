@@ -390,7 +390,7 @@ const tzLocal = {
                 await entity.read(0xFCAC, [0x0003], manufacturerOptions);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bosch_bwa1.convertGet ${key}`);
             }
         },
     } satisfies Tz.Converter,
@@ -589,6 +589,10 @@ const tzLocal = {
                 break;
             case 'heartbeat':
                 await meta.device.getEndpoint(12).read('manuSpecificBosch7', [0x5005], manufacturerOptions);
+                break;
+            case 'alarm':
+            case 'self_test':
+                await meta.device.getEndpoint(12).read('manuSpecificBosch8', [0x5000], manufacturerOptions);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
