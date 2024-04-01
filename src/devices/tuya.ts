@@ -7688,15 +7688,16 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [{modelID: 'TS1002', manufacturerName: '_TZ3000_zwszqdpy'}],
-            model: 'YK-16',
-            vendor: 'Ledron',
-            description: 'RGB+CCT Remote',
-            fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.command_step_color_temperature, fz.command_step],
-            toZigbee: [],
-            exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
-            configure: async (device, coordinatorEndpoint, logger) => {
-                const endpoint = device.getEndpoint(1);
-                await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        model: 'YK-16',
+        vendor: 'Ledron',
+        description: 'RGB+CCT Remote',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp,
+                 fz.command_step_color_temperature, fz.command_step],
+        toZigbee: [],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
                 await endpoint.command('genGroups', 'miboxerSetZones', {zones: [
                     {zoneNum: 1, groupId: 101},
                     {zoneNum: 2, groupId: 102},
