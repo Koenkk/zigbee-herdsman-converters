@@ -4861,6 +4861,29 @@ const definitions: Definition[] = [
                 .withDescription('Sensitivty of the sensor, press button on the device right before changing this')],
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8ply8mjj']),
+        model: 'COZIGVS',
+        vendor: 'Conecto',
+        description: 'Vibration sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.vibration(),
+            e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(2)
+                .withDescription('Sensitivity of the sensor (single press the button when muted to switch between' +
+                    ' low (one beep), medium (two beeps) and max (three beeps))'),
+            e.text('buzzer_mute', ea.STATE).withDescription('ON when buzzer is muted (double press the button on device to toggle)'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'vibration', tuya.valueConverter.trueFalse1],
+                [101, 'sensitivity', tuya.valueConverter.raw],
+                [103, 'buzzer_mute', tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8bxrzyxz'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ky0fq4ho'}],
         model: 'TS011F_din_smart_relay',
