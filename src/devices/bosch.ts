@@ -1,4 +1,4 @@
-import {identify, light, onOff, ota, quirkCheckinInterval} from '../lib/modernExtend';
+import {identify, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -1406,6 +1406,7 @@ const definitions: Definition[] = [
         model: 'BMCT-DZ',
         vendor: 'Bosch',
         description: 'Phase-cut dimmer',
+        ota: ota.zigbeeOTA,
         extend: [identify(), ota(), light({configureReporting: true, effect: false})],
     },
     {
