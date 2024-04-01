@@ -698,24 +698,16 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE200_mfamvsdb",
-            }
-        ],
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_mfamvsdb"}],
         model: 'F00MB00-04-1',
         vendor: 'FORIA',
         description: '4 scenes switch',
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints,],
+        toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [
-    
-            e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4'])
-    
+        exposes: [    
+            e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4'])    
         ],
-    
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
@@ -723,7 +715,6 @@ const definitions: Definition[] = [
                 [2, 'action', tuya.valueConverter.static('scene_2')],
                 [3, 'action', tuya.valueConverter.static('scene_3')],
                 [4, 'action', tuya.valueConverter.static('scene_4')],
-    
             ],
         },
     },
