@@ -705,9 +705,7 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [    
-            e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4'])    
-        ],
+        exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4'])],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
