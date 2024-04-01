@@ -698,7 +698,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_mfamvsdb"}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_mfamvsdb'}],
         model: 'F00MB00-04-1',
         vendor: 'FORIA',
         description: '4 scenes switch',
