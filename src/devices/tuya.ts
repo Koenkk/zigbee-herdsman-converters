@@ -706,7 +706,8 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [e.battery(), e.battery_voltage(), e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6',
-            'scene_7', 'scene_8', 'scene_9', 'scene_10', 'scene_11', 'scene_12', 'scene_13', 'scene_14', 'scene_15', 'scene_16', 'scene_17', 'scene_18']),
+            'scene_7', 'scene_8', 'scene_9', 'scene_10', 'scene_11', 'scene_12', 'scene_13', 'scene_14', 'scene_15', 'scene_16',
+            'scene_17', 'scene_18']),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1, 'l9': 1,
