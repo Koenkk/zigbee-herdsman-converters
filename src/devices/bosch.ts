@@ -1402,6 +1402,13 @@ const definitions: Definition[] = [
         exposes: [e.battery_low(), e.contact(), e.vibration(), e.action(['single', 'long'])],
     },
     {
+        zigbeeModel: ['RBSH-MMD-ZB-EU'],
+        model: 'BMCT-DZ',
+        vendor: 'Bosch',
+        description: 'Phase-cut dimmer',
+        extend: [identify(), ota(), light({configureReporting: true, effect: false})],
+    },
+    {
         zigbeeModel: ['RBSH-MMR-ZB-EU'],
         model: 'BMCT-RZ',
         vendor: 'Bosch',
