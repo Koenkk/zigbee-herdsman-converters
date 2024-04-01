@@ -698,6 +698,36 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: [
+            {
+                modelID: "TS0601",
+                manufacturerName: "_TZE200_mfamvsdb",
+            }
+        ],
+        model: 'F00MB00-04-1',
+        vendor: 'FORIA',
+        description: '4 scenes switch',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints,],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+    
+            e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4'])
+    
+        ],
+    
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'action', tuya.valueConverter.static('scene_1')],
+                [2, 'action', tuya.valueConverter.static('scene_2')],
+                [3, 'action', tuya.valueConverter.static('scene_3')],
+                [4, 'action', tuya.valueConverter.static('scene_4')],
+    
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq', '_TZE200_9yapgbuv', '_TZE200_utkemkbs', '_TZE204_utkemkbs', '_TZE204_9yapgbuv',
             '_TZE204_upagmta9', '_TZE200_cirvgep4', '_TZE200_upagmta9', '_TZE204_yjjdcqsq']),
         model: 'TS0601_temperature_humidity_sensor_2',
