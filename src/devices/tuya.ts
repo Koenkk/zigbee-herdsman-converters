@@ -734,7 +734,7 @@ const definitions: Definition[] = [
             [102, 'action', tuya.valueConverter.static('scene_18')],
 
         ],
-    },
+    }
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq', '_TZE200_9yapgbuv', '_TZE200_utkemkbs', '_TZE204_utkemkbs', '_TZE204_9yapgbuv',
             '_TZE204_upagmta9', '_TZE200_cirvgep4', '_TZE200_upagmta9', '_TZE204_yjjdcqsq']),
