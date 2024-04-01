@@ -1407,7 +1407,7 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Phase-cut dimmer',
         ota: ota.zigbeeOTA,
-        extend: [identify(), ota(), light({configureReporting: true, effect: false})],
+        extend: [identify(), light({configureReporting: true, effect: false})],
     },
     {
         zigbeeModel: ['RBSH-MMR-ZB-EU'],
