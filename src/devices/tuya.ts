@@ -699,22 +699,14 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE200_dhke3p9w",
-            }
-        ],
+            {modelID: "TS0601", manufacturerName: "_TZE200_dhke3p9w",}],
         model: 'F00YK04-18-1',
         vendor: 'FORIA',
         description: '18 scenes remote',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints,],
         configure: tuya.configureMagicPacket,
-        exposes: [e.battery(), e.battery_voltage(),
-
-            e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6', 'scene_7', 'scene_8', 'scene_9', 'scene_10', 'scene_11', 'scene_12', 'scene_13', 'scene_14', 'scene_15', 'scene_16', 'scene_17', 'scene_18'])
-
-        ],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6', 'scene_7', 'scene_8', 'scene_9', 'scene_10', 'scene_11', 'scene_12', 'scene_13', 'scene_14', 'scene_15', 'scene_16', 'scene_17', 'scene_18'])],
         endpoint: (device) => {
             return {
                 'l1': 1,
@@ -758,7 +750,6 @@ const definitions: Definition[] = [
                 [16, 'action', tuya.valueConverter.static('scene_16')],
                 [101, 'action', tuya.valueConverter.static('scene_17')],
                 [102, 'action', tuya.valueConverter.static('scene_18')],
-
             ],
         },
     },
