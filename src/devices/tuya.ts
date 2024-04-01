@@ -698,6 +698,71 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: [
+            {
+                modelID: "TS0601",
+                manufacturerName: "_TZE200_dhke3p9w",
+            }
+        ],
+        model: 'F00YK04-18-1',
+        vendor: 'FORIA',
+        description: '18 scenes remote',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints,],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.battery_voltage(),
+
+            e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6', 'scene_7', 'scene_8', 'scene_9', 'scene_10', 'scene_11', 'scene_12', 'scene_13', 'scene_14', 'scene_15', 'scene_16', 'scene_17', 'scene_18'])
+
+        ],
+        endpoint: (device) => {
+            return {
+                'l1': 1,
+                'l2': 1,
+                'l3': 1,
+                'l4': 1,
+                'l5': 1,
+                'l6': 1,
+                'l7': 1,
+                'l8': 1,
+                'l9': 1,
+                'l10': 1,
+                'l11': 1,
+                'l12': 1,
+                'l13': 1,
+                'l14': 1,
+                'l15': 1,
+                'l16': 1,
+                'l17': 101,
+                'l18': 102
+            };
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'action', tuya.valueConverter.static('scene_1')],
+                [2, 'action', tuya.valueConverter.static('scene_2')],
+                [3, 'action', tuya.valueConverter.static('scene_3')],
+                [4, 'action', tuya.valueConverter.static('scene_4')],
+                [5, 'action', tuya.valueConverter.static('scene_5')],
+                [6, 'action', tuya.valueConverter.static('scene_6')],
+                [7, 'action', tuya.valueConverter.static('scene_7')],
+                [8, 'action', tuya.valueConverter.static('scene_8')],
+                [9, 'action', tuya.valueConverter.static('scene_9')],
+                [10, 'action', tuya.valueConverter.static('scene_10')],
+                [11, 'action', tuya.valueConverter.static('scene_11')],
+                [12, 'action', tuya.valueConverter.static('scene_12')],
+                [13, 'action', tuya.valueConverter.static('scene_13')],
+                [14, 'action', tuya.valueConverter.static('scene_14')],
+                [15, 'action', tuya.valueConverter.static('scene_15')],
+                [16, 'action', tuya.valueConverter.static('scene_16')],
+                [101, 'action', tuya.valueConverter.static('scene_17')],
+                [102, 'action', tuya.valueConverter.static('scene_18')],
+
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq', '_TZE200_9yapgbuv', '_TZE200_utkemkbs', '_TZE204_utkemkbs', '_TZE204_9yapgbuv',
             '_TZE204_upagmta9', '_TZE200_cirvgep4', '_TZE200_upagmta9', '_TZE204_yjjdcqsq']),
         model: 'TS0601_temperature_humidity_sensor_2',
