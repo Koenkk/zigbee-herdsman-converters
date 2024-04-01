@@ -7707,10 +7707,10 @@ const definitions: Definition[] = [
                 {zoneNum: 6, groupId: 106},
                 {zoneNum: 7, groupId: 107},
                 {zoneNum: 8, groupId: 108},
-                ]});
-                await endpoint.command('genBasic', 'tuyaSetup', {}, {disableDefaultResponse: true});
-            },
+            ]});
+            await endpoint.command('genBasic', 'tuyaSetup', {}, {disableDefaultResponse: true});
         },
+    },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_l6llgoxq']),
         model: 'EA4161C-BI',
