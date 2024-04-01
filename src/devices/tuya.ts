@@ -709,10 +709,7 @@ const definitions: Definition[] = [
             'scene_7', 'scene_8', 'scene_9', 'scene_10', 'scene_11', 'scene_12', 'scene_13', 'scene_14', 'scene_15', 'scene_16',
             'scene_17', 'scene_18']),
         ],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1, 'l7': 1, 'l8': 1, 'l9': 1,
-                'l10': 1, 'l11': 1, 'l12': 1, 'l13': 1, 'l14': 1, 'l15': 1, 'l16': 1, 'l17': 101, 'l18': 102};
-        },
+
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
