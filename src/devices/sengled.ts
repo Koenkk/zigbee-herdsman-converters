@@ -3,7 +3,11 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {onOff, LightArgs, light as lightDontUse, electricityMeter, forcePowerSource, light, ota} from '../lib/modernExtend';
+import {
+    onOff, LightArgs, light as lightDontUse, electricityMeter, forcePowerSource, light, ota,
+    iasZoneAlarm,
+    battery,
+} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -17,10 +21,9 @@ const definitions: Definition[] = [
         model: 'E13-N11',
         vendor: 'Sengled',
         description: 'Flood light with motion sensor light outdoor',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
-        exposes: [e.occupancy()],
         extend: [
             sengledLight(),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1']}),
             ota(),
         ],
     },
@@ -210,15 +213,9 @@ const definitions: Definition[] = [
         model: 'E1D-G73WNA',
         vendor: 'Sengled',
         description: 'Smart window and door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
-        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage(), e.tamper()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
         extend: [
+            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({voltage: true, voltageReporting: true}),
             ota(),
         ],
     },
@@ -227,15 +224,9 @@ const definitions: Definition[] = [
         model: 'E2D-G73',
         vendor: 'Sengled',
         description: 'Smart window and door sensor G2',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
-        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage(), e.tamper()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
         extend: [
+            iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            battery({voltage: true, voltageReporting: true}),
             ota(),
         ],
     },
