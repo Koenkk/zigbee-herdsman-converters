@@ -1,7 +1,7 @@
 import {Definition, Expose, ModernExtend, Fz, KeyValueAny} from '../lib/types';
 import {presets} from '../lib/exposes';
 import {
-    onOff, LightArgs, light as lightDontUse, electricityMeter, forcePowerSource, light, ota,
+    onOff, LightArgs, light as lightDontUse, electricityMeter, forcePowerSource, ota,
     iasZoneAlarm,
     battery,
 } from '../lib/modernExtend';
@@ -72,7 +72,7 @@ const definitions: Definition[] = [
         vendor: 'Sengled',
         description: 'Smart LED multicolor A19 bulb',
         extend: [
-            sengledLight({colorTemp: {range: [154, 500]}, color: {modes: ['xy']}}),
+            sengledLight({colorTemp: {range: [154, 500]}, color: true}),
             electricityMeter({cluster: 'metering'}),
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             ota(),
@@ -84,7 +84,7 @@ const definitions: Definition[] = [
         vendor: 'Sengled',
         description: 'Smart LED multicolor (BR30)',
         extend: [
-            sengledLight({colorTemp: {range: [154, 500]}}),
+            sengledLight({colorTemp: {range: [154, 500]}, color: true}),
             electricityMeter({cluster: 'metering'}),
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             ota(),
@@ -96,7 +96,7 @@ const definitions: Definition[] = [
         vendor: 'Sengled',
         description: 'Multicolor light strip (2M)',
         extend: [
-            light({colorTemp: {range: undefined}, color: true}),
+            sengledLight({colorTemp: {range: undefined}, color: true}),
             ota(),
         ],
     },
@@ -158,7 +158,7 @@ const definitions: Definition[] = [
         vendor: 'Sengled',
         description: 'Element plus (A19)',
         extend: [
-            sengledLight({colorTemp: {range: [154, 500]}}),
+            sengledLight({colorTemp: {range: [154, 500]}, color: true}),
             electricityMeter({cluster: 'metering'}),
             ota(),
         ],
@@ -169,7 +169,7 @@ const definitions: Definition[] = [
         vendor: 'Sengled',
         description: 'Element Plus (A60)',
         extend: [
-            light({colorTemp: {range: undefined}}),
+            sengledLight({colorTemp: {range: undefined}}),
             ota(),
         ],
     },
@@ -179,7 +179,7 @@ const definitions: Definition[] = [
         vendor: 'Sengled',
         description: 'Element plus color (A19)',
         extend: [
-            sengledLight({colorTemp: {range: [154, 500]}}),
+            sengledLight({colorTemp: {range: [154, 500]}, color: true}),
             electricityMeter({cluster: 'metering'}),
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             ota(),
@@ -191,7 +191,7 @@ const definitions: Definition[] = [
         vendor: 'Sengled',
         description: 'Element color plus E27',
         extend: [
-            light({colorTemp: {range: undefined}, color: true}),
+            sengledLight({colorTemp: {range: undefined}, color: true}),
             ota(),
         ],
     },
@@ -201,7 +201,7 @@ const definitions: Definition[] = [
         vendor: 'Sengled',
         description: 'Element color plus B22',
         extend: [
-            light({colorTemp: {range: undefined}, color: true}),
+            sengledLight({colorTemp: {range: undefined}, color: true}),
             ota(),
         ],
     },
@@ -211,7 +211,7 @@ const definitions: Definition[] = [
         vendor: 'Sengled',
         description: 'Element color plus E12',
         extend: [
-            sengledLight({colorTemp: {range: [154, 500]}}),
+            sengledLight({colorTemp: {range: [154, 500]}, color: true}),
             electricityMeter({cluster: 'metering'}),
             forcePowerSource({powerSource: 'Mains (single phase)'}),
             ota(),
