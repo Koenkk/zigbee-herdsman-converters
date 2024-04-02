@@ -7715,7 +7715,7 @@ const definitions: Definition[] = [
         model: 'F00XN00-04-1',
         vendor: 'FORIA',
         description: 'Dimmer 4 scenes',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp,       
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp,
             fz.command_step_color_temperature, fz.command_step],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
