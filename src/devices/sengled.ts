@@ -1,8 +1,6 @@
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as reporting from '../lib/reporting';
 import {
     onOff, LightArgs, light as lightDontUse, electricityMeter, forcePowerSource, light, ota,
     iasZoneAlarm,
@@ -245,16 +243,10 @@ const definitions: Definition[] = [
         model: 'E1C-NB7',
         vendor: 'Sengled',
         description: 'Smart plug with energy tracker',
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-        },
-        exposes: [e.switch(), e.power(), e.energy()],
+        extend: [
+            onOff({powerOnBehavior: false}),
+            electricityMeter({cluster: 'metering'}),
+        ],
     },
     {
         zigbeeModel: ['E1E-G7F'],
