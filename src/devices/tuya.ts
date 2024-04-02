@@ -1426,11 +1426,11 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [tuya.exposes.lightBrightnessWithMinMax(), tuya.exposes.countdown(), tuya.exposes.lightType(),
-        e.power_on_behavior().withAccess(ea.STATE_SET),
-        tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET)],
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET)],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverter.onOff, { skip: tuya.skip.stateOnAndBrightnessPresent }],
+                [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
                 [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
                 [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
                 [4, 'light_type', tuya.valueConverter.lightType],
