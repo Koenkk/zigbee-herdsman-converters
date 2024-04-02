@@ -19,9 +19,6 @@ const definitions: Definition[] = [
         description: 'RGB+CCT Remote',
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
         toZigbee: [],
-        whiteLabel: [
-            tuya.whitelabel('Ledron', 'YK-16', 'RGB+CCT Remote', ['_TZ3000_zwszqdpy']),
-        ],
         exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
