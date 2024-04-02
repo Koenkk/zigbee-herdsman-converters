@@ -699,6 +699,25 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_mfamvsdb'}],
+        model: 'F00MB00-04-1',
+        vendor: 'FORIA',
+        description: '4 scenes switch',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4'])],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'action', tuya.valueConverter.static('scene_1')],
+                [2, 'action', tuya.valueConverter.static('scene_2')],
+                [3, 'action', tuya.valueConverter.static('scene_3')],
+                [4, 'action', tuya.valueConverter.static('scene_4')],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq', '_TZE200_9yapgbuv', '_TZE200_utkemkbs', '_TZE204_utkemkbs', '_TZE204_9yapgbuv',
             '_TZE204_upagmta9', '_TZE200_cirvgep4', '_TZE200_upagmta9', '_TZE204_yjjdcqsq']),
         model: 'TS0601_temperature_humidity_sensor_2',
@@ -1397,45 +1416,6 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_whpb9yts'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ctq0k47x'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9i9dt8is'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_dfxkcots'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_w4cryh2i'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ojzhk75b'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_3p5ydos3'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9cxuhakf'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_a0syesf5'},
-        ],
-        model: 'TS0601_dimmer',
-        vendor: 'TuYa',
-        description: 'Zigbee smart dimmer',
-        fromZigbee: [legacy.fromZigbee.tuya_dimmer, fz.ignore_basic_report],
-        toZigbee: [legacy.toZigbee.tuya_dimmer_state, legacy.toZigbee.tuya_dimmer_level],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        exposes: [e.light_brightness().withMinBrightness().withMaxBrightness().setAccess(
-            'state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET).setAccess(
-            'min_brightness', ea.STATE_SET).setAccess('max_brightness', ea.STATE_SET)],
-        whiteLabel: [
-            {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
-            {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
-            {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
-            {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
-            {vendor: 'Mercator Ikuü', model: 'SSWD01'},
-            {vendor: 'Moes', model: 'ZS-USD'},
-            {vendor: 'Moes', model: 'EDM-1ZBB-EU'},
-            tuya.whitelabel('Mercator Ikuü', 'SSWM-DIMZ', 'Switch Mechanism', ['_TZE200_9cxuhakf']),
-            tuya.whitelabel('Mercator Ikuü', 'SSWRM-ZB', 'Rotary dimmer mechanism', ['_TZE200_a0syesf5']),
-        ],
-    },
-    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu', '_TZE200_ga1maeof']),
         model: 'TS0601_soil',
         vendor: 'TuYa',
@@ -1456,7 +1436,9 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems', '_TZE200_la2c2uo9', '_TZE200_579lguh2',
-            '_TZE200_vucankjx', '_TZE200_4mh6tyyo', '_TZE204_hlx9tnzb', '_TZE204_n9ctkb6j', '_TZE204_9qhuzgo0']),
+            '_TZE200_vucankjx', '_TZE200_4mh6tyyo', '_TZE204_hlx9tnzb', '_TZE204_n9ctkb6j', '_TZE204_9qhuzgo0', '_TZE200_9cxuhakf',
+            '_TZE200_a0syesf5', '_TZE200_3p5ydos3', '_TZE200_swaamsoy', '_TZE200_ojzhk75b', '_TZE200_w4cryh2i', '_TZE200_dfxkcots',
+            '_TZE200_9i9dt8is', '_TZE200_ctq0k47x', '_TZE200_ebwgzdqq', '_TZE200_whpb9yts']),
         model: 'TS0601_dimmer_1',
         vendor: 'TuYa',
         description: '1 gang smart dimmer',
@@ -1481,8 +1463,17 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'Lerlink', model: 'X706U'},
             {vendor: 'Moes', model: 'ZS-EUD_1gang'},
+            {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
+            {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
+            {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
+            {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
+            {vendor: 'Mercator Ikuü', model: 'SSWD01'},
+            {vendor: 'Moes', model: 'ZS-USD'},
+            {vendor: 'Moes', model: 'EDM-1ZBB-EU'},
             tuya.whitelabel('Moes', 'ZS-SR-EUD-1', 'Star ring smart dimmer switch 1 gang', ['_TZE204_hlx9tnzb']),
             tuya.whitelabel('Moes', 'MS-105Z', 'Smart Dimmer module', ['_TZE200_la2c2uo9']),
+            tuya.whitelabel('Mercator Ikuü', 'SSWM-DIMZ', 'Switch Mechanism', ['_TZE200_9cxuhakf']),
+            tuya.whitelabel('Mercator Ikuü', 'SSWRM-ZB', 'Rotary dimmer mechanism', ['_TZE200_a0syesf5']),
         ],
     },
     {
@@ -2706,7 +2697,10 @@ const definitions: Definition[] = [
             deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
             onOff({endpointNames: ['left', 'center', 'right'], powerOnBehavior: false}),
         ],
-        whiteLabel: [{vendor: 'BSEED', model: 'TS0003', description: 'Zigbee switch'}],
+        whiteLabel: [
+            {vendor: 'BSEED', model: 'TS0003', description: 'Zigbee switch'},
+            tuya.whitelabel('TuYa', 'TS0003_1', '3 gang switch', ['_TZ3000_ouwfc1qj']),
+        ],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -2875,6 +2869,7 @@ const definitions: Definition[] = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_n1aauwb4'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xu4a5rhj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjzrowv2'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_bjzrowv2'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_axgvo9jh'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_gaj531w3'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_yia0p3tr'},
@@ -4857,6 +4852,29 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.battery_voltage(), e.vibration(),
             e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(50)
                 .withDescription('Sensitivty of the sensor, press button on the device right before changing this')],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8ply8mjj']),
+        model: 'COZIGVS',
+        vendor: 'Conecto',
+        description: 'Vibration sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.vibration(),
+            e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(2)
+                .withDescription('Sensitivity of the sensor (single press the button when muted to switch between' +
+                    ' low (one beep), medium (two beeps) and max (three beeps))'),
+            e.text('buzzer_mute', ea.STATE).withDescription('ON when buzzer is muted (double press the button on device to toggle)'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'vibration', tuya.valueConverter.trueFalse1],
+                [101, 'sensitivity', tuya.valueConverter.raw],
+                [103, 'buzzer_mute', tuya.valueConverter.onOff],
+            ],
+        },
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8bxrzyxz'},
@@ -7484,7 +7502,7 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_kyhbrfyl']),
-        model: 'NAS-PS09B2 ',
+        model: 'NAS-PS09B2',
         vendor: 'Neo',
         description: 'Human presence sensor',
         fromZigbee: [tuya.fz.datapoints],
@@ -7683,6 +7701,27 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('AVATTO', 'ZWSM16-4-Zigbee', '4 gang switch module', ['_TZ3000_5ajpkyq6']),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS1002', manufacturerName: '_TZ3000_etufnltx'}],
+        model: 'F00XN00-04-1',
+        vendor: 'FORIA',
+        description: 'Dimmer 4 scenes',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp,
+            fz.command_step_color_temperature, fz.command_step],
+        toZigbee: [],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await endpoint.command('genGroups', 'miboxerSetZones', {zones: [
+                {zoneNum: 1, groupId: 101},
+                {zoneNum: 2, groupId: 102},
+                {zoneNum: 3, groupId: 103},
+                {zoneNum: 4, groupId: 104},
+            ]});
+            await endpoint.command('genBasic', 'tuyaSetup', {}, {disableDefaultResponse: true});
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_l6llgoxq']),

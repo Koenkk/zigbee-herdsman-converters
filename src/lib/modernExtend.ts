@@ -30,12 +30,13 @@ function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, ty
     return endpoints;
 }
 
-const timeLookup = {
+export const timeLookup = {
     'MAX': 65000,
     '4_HOURS': 14400,
     '1_HOUR': 3600,
     '30_MINUTES': 1800,
     '5_MINUTES': 300,
+    '2_MINUTES': 120,
     '1_MINUTE': 60,
     '10_SECONDS': 10,
     '1_SECOND': 1,
@@ -56,7 +57,7 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
     }
 }
 
-async function setupAttributes(
+export async function setupAttributes(
     entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string | number, config: ReportingConfig[], logger: Logger,
     configureReporting: boolean=true, read: boolean=true,
 ) {
@@ -149,11 +150,11 @@ export function forcePowerSource(args: {powerSource: 'Mains (single phase)' | 'B
     return {configure, isModernExtend: true};
 }
 
-export interface LinkqualityArgs {
+export interface LinkQualityArgs {
     reporting?: boolean, attribute?: string | {ID: number, type: number}, reportingConfig?: ReportingConfigWithoutAttribute
 }
-export function linkquality(args?: LinkqualityArgs): ModernExtend {
-    args = {reporting: false, attribute: 'modelId', reportingConfig: {min: '1_HOUR', max: '4_HOURS', change: 0}};
+export function linkQuality(args?: LinkQualityArgs): ModernExtend {
+    args = {reporting: false, attribute: 'modelId', reportingConfig: {min: '1_HOUR', max: '4_HOURS', change: 0}, ...args};
 
     const exposes: Expose[] = [
         e.numeric('linkquality', ea.STATE).withUnit('lqi').withDescription('Link quality (signal strength)')
@@ -265,11 +266,17 @@ export function battery(args?: BatteryArgs): ModernExtend {
         {
             key: ['battery', 'voltage'],
             convertGet: async (entity, key, meta) => {
+                // Don't fail GET reqest if reading fails
+                // Split reading is needed for more clear debug logs
                 try {
-                    // Don't fail GET reqest if reading this attribute fails
-                    await entity.read('genPowerCfg', ['batteryPercentageRemaining', 'batteryVoltage']);
+                    await entity.read('genPowerCfg', ['batteryPercentageRemaining']);
                 } catch (e) {
-                    meta.logger.debug(`Reading attribute failed: ${e}, device probably doesn't support it`, 'zhc:battery');
+                    logger.logger.debug(`Reading batteryPercentageRemaining failed: ${e}, device probably doesn't support it`, 'zhc:setupattribute');
+                }
+                try {
+                    await entity.read('genPowerCfg', ['batteryVoltage']);
+                } catch (e) {
+                    logger.logger.debug(`Reading batteryVoltage failed: ${e}, device probably doesn't support it`, 'zhc:setupattribute');
                 }
             },
         },
@@ -1561,6 +1568,11 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
     }];
 
     return {fromZigbee, isModernExtend: true};
+}
+
+export function bindCluster(args: {cluster: string | number, endpointNames?: string[]}): ModernExtend {
+    const configure: Configure = setupConfigureForBinding(args.cluster, args.endpointNames);
+    return {configure, isModernExtend: true};
 }
 
 // #endregion

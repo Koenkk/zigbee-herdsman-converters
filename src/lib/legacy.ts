@@ -2109,36 +2109,6 @@ const fromZigbee1 = {
             }
         },
     } satisfies Fz.Converter,
-    E1743_brightness_down: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMove',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: 'brightness_down'};
-            }
-        },
-    } satisfies Fz.Converter,
-    E1743_brightness_up: {
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: 'brightness_up'};
-            }
-        },
-    } satisfies Fz.Converter,
-    E1743_brightness_stop: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStopWithOnOff',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.isLegacyEnabled(options)) {
-                return {click: 'brightness_stop'};
-            }
-        },
-    } satisfies Fz.Converter,
     genOnOff_cmdOn: {
         cluster: 'genOnOff',
         type: 'commandOn',
@@ -2231,37 +2201,6 @@ const fromZigbee1 = {
                 return {action: `${button}_stop`};
             } else {
                 return fromZigbeeConverters.command_stop.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    E1744_play_pause: {
-        cluster: 'genOnOff',
-        type: 'commandToggle',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            if (utils.isLegacyEnabled(options)) {
-                return {action: 'play_pause'};
-            } else {
-                return fromZigbeeConverters.command_toggle.convert(model, msg, publish, options, meta);
-            }
-        },
-    } satisfies Fz.Converter,
-    E1744_skip: {
-        cluster: 'genLevelCtrl',
-        type: 'commandStep',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            if (utils.isLegacyEnabled(options)) {
-                const direction = msg.data.stepmode === 1 ? 'backward' : 'forward';
-                return {
-                    action: `skip_${direction}`,
-                    step_size: msg.data.stepsize,
-                    transition_time: msg.data.transtime,
-                };
-            } else {
-                return fromZigbeeConverters.command_step.convert(model, msg, publish, options, meta);
             }
         },
     } satisfies Fz.Converter,
