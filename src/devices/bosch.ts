@@ -790,6 +790,8 @@ const fzLocal = {
                 }
             }
             if (msg.data.hasOwnProperty('airpurity')) {
+                const iaq = parseInt(msg.data['airpurity'];
+                result.aqi = iaq;
                 result.co2 = utils.precisionRound((msg.data['airpurity'] * 10.0 + 500.0), 2);
                 result.voc = utils.precisionRound((msg.data['airpurity'] * 71.22), 2);
             }
@@ -1333,6 +1335,7 @@ const definitions: Definition[] = [
             e.humidity().withValueMin(0).withValueMax(100).withValueStep(0.1),
             e.voc().withValueMin(0).withValueMax(35610).withValueStep(1),
             e.co2().withValueMin(500).withValueMax(5500).withValueStep(1),
+            e.aqi().withValueMin(0).withValueMax(500).withValueStep(1),
             e.illuminance_lux(), e.battery(),
             e.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
             e.text('siren_state', ea.STATE).withDescription('Siren state'),
