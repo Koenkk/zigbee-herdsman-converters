@@ -796,17 +796,13 @@ const fzLocal = {
                 let factor = 6;
                 if ((iaq >= 51) && (iaq <= 100)) {
                     factor = 10;
-                }
-                else if ((iaq >= 101) && (iaq <= 150)) {
+                } else if ((iaq >= 101) && (iaq <= 150)) {
                     factor = 20;
-                }
-                else if ((iaq >= 151) && (iaq <= 200)) {
+                } else if ((iaq >= 151) && (iaq <= 200)) {
                     factor = 50;
-                }
-                else if ((iaq >= 201) && (iaq <= 250)) {
+                } else if ((iaq >= 201) && (iaq <= 250)) {
                     factor = 100;
-                }
-                else if (iaq >= 251) {
+                } else if (iaq >= 251) {
                     factor = 100;
                 }
                 result.voc = (iaq * factor);
