@@ -123,7 +123,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_7eue9vhc', '_TZE200_bv1jcqqu']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_7eue9vhc', '_TZE200_bv1jcqqu', '_TZE200_wehza30a']),
         model: 'ZM25RX-08/30',
         vendor: 'Zemismart',
         description: 'Tubular motor',
@@ -164,6 +164,7 @@ const definitions: Definition[] = [
                 [101, 'click_control', tuya.valueConverterBasic.lookup((options) => options.invert_cover ?
                     {'lower': tuya.enum(2), 'upper': tuya.enum(3), 'lower_micro': tuya.enum(5), 'upper_micro': tuya.enum(6)} :
                     {'lower': tuya.enum(3), 'upper': tuya.enum(2), 'lower_micro': tuya.enum(6), 'upper_micro': tuya.enum(5)}, null)],
+                [103, 'battery', tuya.valueConverter.raw],
             ],
         },
     },
