@@ -7715,7 +7715,8 @@ const definitions: Definition[] = [
         model: 'F00XN00-04-1',
         vendor: 'FORIA',
         description: 'Dimmer 4 scenes',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.command_step_color_temperature, fz.command_step],
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp,
+             fz.command_step_color_temperature, fz.command_step],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -7726,10 +7727,10 @@ const definitions: Definition[] = [
                 {zoneNum: 2, groupId: 102},
                 {zoneNum: 3, groupId: 103},
                 {zoneNum: 4, groupId: 104},
-                ]});
+            ]});
             await endpoint.command('genBasic', 'tuyaSetup', {}, {disableDefaultResponse: true});
-            },
         },
+    },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_l6llgoxq']),
         model: 'EA4161C-BI',
