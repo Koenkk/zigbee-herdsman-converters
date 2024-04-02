@@ -709,7 +709,7 @@ const definitions: Definition[] = [
             'scene_7', 'scene_8', 'scene_9', 'scene_10', 'scene_11', 'scene_12', 'scene_13', 'scene_14', 'scene_15', 'scene_16',
             'scene_17', 'scene_18']),
         ],
-
+        
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
