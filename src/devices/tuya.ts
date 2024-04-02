@@ -7688,8 +7688,7 @@ const definitions: Definition[] = [
                 [103, 'fading_time', tuya.valueConverter.raw],
             ],
         },
-    },
-    {
+    },    {
         fingerprint: tuya.fingerprint('TS0004', ['_TZ3000_5ajpkyq6']),
         model: 'TS0004_switch_module_2',
         vendor: 'TuYa',
@@ -7716,7 +7715,7 @@ const definitions: Definition[] = [
         vendor: 'FORIA',
         description: 'Dimmer 4 scenes',
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp,
-             fz.command_step_color_temperature, fz.command_step],
+            fz.command_step_color_temperature, fz.command_step],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
         configure: async (device, coordinatorEndpoint, logger) => {
