@@ -1,4 +1,4 @@
-import {onOff, quirkCheckinInterval} from '../lib/modernExtend';
+import {identify, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -1400,6 +1400,14 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.bosch_contact],
         toZigbee: [],
         exposes: [e.battery_low(), e.contact(), e.vibration(), e.action(['single', 'long'])],
+    },
+    {
+        zigbeeModel: ['RBSH-MMD-ZB-EU'],
+        model: 'BMCT-DZ',
+        vendor: 'Bosch',
+        description: 'Phase-cut dimmer',
+        ota: ota.zigbeeOTA,
+        extend: [identify(), light({configureReporting: true, effect: false})],
     },
     {
         zigbeeModel: ['RBSH-MMR-ZB-EU'],
