@@ -2,6 +2,8 @@ const updateCheckUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/newe
 const updateDownloadUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/download';
 import * as common from './common';
 import {Zh, Logger, Ota} from '../types';
+
+const NS = 'zhc:ota:ledvance';
 const axios = common.getAxios();
 
 /**
@@ -9,7 +11,7 @@ const axios = common.getAxios();
  */
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`LedvanceOTA: call getImageMeta for ${device.modelID}`);
+    logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
     const url = `${updateCheckUrl}?company=${current.manufacturerCode}&product=${current.imageType}&version=0.0.0`;
     const {data} = await axios.get(url);
 

@@ -7,6 +7,8 @@ import * as utils from './utils';
 import * as modernExtend from './modernExtend';
 import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString} from './types';
 // import {Color} from './color';
+
+const NS = 'zhc:tuya';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -379,7 +381,7 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
         // Fails for some TuYa devices with UNSUPPORTED_ATTRIBUTE, ignore that.
         // e.g. https://github.com/Koenkk/zigbee2mqtt/issues/14857
         if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
-            logger.debug('TuYa configureMagicPacket failed, ignoring...');
+            logger.debug('configureMagicPacket failed, ignoring...', NS);
         } else {
             throw e;
         }
@@ -1330,8 +1332,7 @@ const tuyaFz = {
                         Object.assign(result, dpEntry[2].from(value, meta, options, publish));
                     }
                 } else {
-                    meta.logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' ` +
-                        `with value ${value}`);
+                    meta.logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' with value ${value}`, NS);
                 }
             }
             return result;

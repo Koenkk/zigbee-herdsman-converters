@@ -2,6 +2,8 @@ const productionURL = 'http://fw.ota.homesmart.ikea.net/feed/version_info.json';
 const testURL = 'http://fw.test.ota.homesmart.ikea.net/feed/version_info.json';
 import {Ota, Logger, Zh, KeyValue} from '../types';
 import * as common from './common';
+
+const NS = 'zhc:ota:tradfri';
 const axios = common.getAxios();
 let useTestURL = false;
 
@@ -10,7 +12,7 @@ let useTestURL = false;
  */
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`TradfriOTA: call getImageMeta for ${device.modelID}`);
+    logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
     const url = useTestURL ? testURL : productionURL;
     const {data: images} = await axios.get(url);
 

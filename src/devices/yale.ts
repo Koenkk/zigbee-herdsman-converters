@@ -6,6 +6,8 @@ import {Definition, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
 import {getFromLookup} from '../lib/utils';
 import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
 import {battery, lock} from '../lib/modernExtend';
+
+const NS = 'zhc:yale';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -76,7 +78,7 @@ const fzLocal = {
             try {
                 await msg.endpoint.read('manuSpecificAssaDoorLock', ['batteryLevel']);
             } catch (error) {
-                meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: failed to read lock attributes`);
+                meta.logger.warning(`zigbee-herdsman-converters:Yale Lock: failed to read lock attributes`, NS);
             }
             return result;
         },

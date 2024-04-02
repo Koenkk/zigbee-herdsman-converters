@@ -3,6 +3,8 @@ const imageRegex = /10F2-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{8})
 import url from 'url';
 import * as common from './common';
 import {Ota, Logger, Zh} from '../types';
+
+const NS = 'zhc:ota:ubisys';
 const axios = common.getAxios();
 
 /**
@@ -20,21 +22,21 @@ const axios = common.getAxios();
  */
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`UbisysOTA: call getImageMeta for ${device.modelID}`);
+    logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
     const {status, data: pageHtml} = await axios.get(firmwareHtmlPageUrl, {maxContentLength: -1});
 
     if (status !== 200 || !pageHtml?.length) {
         throw new Error(`UbisysOTA: Error getting firmware page at ${firmwareHtmlPageUrl}`);
     }
 
-    logger.debug(`UbisysOTA: got firmware page, status: ${status}, data.length: ${pageHtml.length}`);
+    logger.debug(`Got firmware page, status: ${status}, data.length: ${pageHtml.length}`, NS);
 
     imageRegex.lastIndex = 0; // reset (global) regex for next exec to match from the beginning again
     let imageMatch = imageRegex.exec(pageHtml);
     let highestMatch = null;
 
     while (imageMatch != null) {
-        logger.debug(`UbisysOTA: image found: ${imageMatch[0]}`);
+        logger.debug(`Image found: ${imageMatch[0]}`, NS);
         if (parseInt(imageMatch[1], 16) === current.imageType &&
             parseInt(imageMatch[2], 16) <= device.hardwareVersion && device.hardwareVersion <= parseInt(imageMatch[3], 16)) {
             if (highestMatch === null || parseInt(highestMatch[4], 16) < parseInt(imageMatch[4], 16)) {

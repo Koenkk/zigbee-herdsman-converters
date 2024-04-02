@@ -63,7 +63,7 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
     };
 }
 
-const MockLogger: Logger = {info: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn()};
+const MockLogger: Logger = {info: jest.fn(), error: jest.fn(), warning: jest.fn(), debug: jest.fn()};
 
 const DefaultTz = [
     tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, 

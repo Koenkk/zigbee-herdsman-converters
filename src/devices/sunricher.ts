@@ -10,6 +10,7 @@ import * as utils from '../lib/utils';
 import {Definition, Fz, Zh} from '../lib/types';
 import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
 
+const NS = 'zhc:sunricher';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -37,7 +38,7 @@ const fzLocal = {
                 0x40: 'rgb_release',
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Sunricher: missing command '0x${commandID.toString(16)}'`);
+                meta.logger.error(`Missing command '0x${commandID.toString(16)}'`, NS);
             } else {
                 return {action: utils.getFromLookup(commandID, lookup)};
             }
@@ -441,7 +442,7 @@ const definitions: Definition[] = [
             } catch (error) {
                 // Fails for some
                 // https://github.com/Koenkk/zigbee2mqtt/issues/15025
-                logger.debug(`Failed to setup keypadLockout reporting`);
+                logger.debug(`Failed to setup keypadLockout reporting`, NS);
             }
 
             await endpoint.configureReporting('hvacThermostat', [{

@@ -2,6 +2,8 @@ const baseurl = 'https://fw.jethome.ru';
 const deviceurl = `${baseurl}/api/devices/`;
 import * as common from './common';
 import {Logger, Zh, Ota} from '../types';
+
+const NS = 'zhc:ota:jethome';
 const axios = common.getAxios();
 
 let overrideIndexFileName: string = null;
@@ -12,7 +14,7 @@ let overrideIndexFileName: string = null;
 
 async function getIndex(logger: Logger, modelID: string) {
     if (overrideIndexFileName) {
-        logger.debug(`JetHomeOTA: Loading override index ${overrideIndexFileName}`);
+        logger.debug(`Loading override index ${overrideIndexFileName}`, NS);
         const overrideIndex = await common.getOverrideIndexFile(overrideIndexFileName);
 
         return overrideIndex;
@@ -24,13 +26,13 @@ async function getIndex(logger: Logger, modelID: string) {
             throw new Error(`JetHomeOTA: Error getting firmware page at ${url}`);
         }
 
-        logger.debug(`JetHomeOTA: downloaded index for ${modelID}`);
+        logger.debug(`Downloaded index for ${modelID}`, NS);
         return index;
     }
 }
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`JetHomeOTA: call getImageMeta for ${device.modelID}`);
+    logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
     const images = await getIndex(logger, device.modelID);
 
     // XXX: this is assumed to always be present even for devices that support OTA but without images yet available?
@@ -45,7 +47,7 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
         return null;
     }
 
-    logger.debug(`JetHomeOTA: version: ${images.latest_firmware.release.version} size: ${jetimage.filesize} url: ${baseurl + jetimage.url}`);
+    logger.debug(`Version: ${images.latest_firmware.release.version} size: ${jetimage.filesize} url: ${baseurl + jetimage.url}`, NS);
 
     return {
         fileVersion: Number(images.latest_firmware.release.version),

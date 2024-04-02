@@ -10,6 +10,8 @@ import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
 import {ubisysModernExtend} from '../lib/ubisys';
 import * as semver from 'semver';
+
+const NS = 'zhc:ubisys';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -109,7 +111,7 @@ const ubisys = {
             key: ['configure_j1'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const log = (message: string) => {
-                    meta.logger.warn(`ubisys: ${message}`);
+                    meta.logger.warning(`ubisys: ${message}`, NS);
                 };
                 const sleepSeconds = async (s: number) => {
                     return new Promise((resolve) => setTimeout(resolve, s * 1000));
@@ -231,7 +233,7 @@ const ubisys = {
             },
             convertGet: async (entity, key, meta) => {
                 const log = (json: unknown) => {
-                    meta.logger.warn(`ubisys: Cover configuration read: ${JSON.stringify(json)}`);
+                    meta.logger.warning(`ubisys: Cover configuration read: ${JSON.stringify(json)}`, NS);
                 };
                 log(await entity.read('closuresWindowCovering', [
                     'windowCoveringType',
@@ -319,7 +321,7 @@ const ubisys = {
                     useWriteStruct = semver.gte(meta.device.softwareBuildID, '1.9.0', true);
                 }
                 if (useWriteStruct) {
-                    meta.logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`);
+                    meta.logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`, NS);
                 }
 
                 if (value.hasOwnProperty('input_configurations')) {
@@ -544,14 +546,14 @@ const ubisys = {
                         }
                         resultingInputActions = resultingInputActions.concat(inputActions);
 
-                        meta.logger.warn(`ubisys: Using input(s) ${input} and endpoint ${endpoint} for '${template.type}'.`);
+                        meta.logger.warning(`ubisys: Using input(s) ${input} and endpoint ${endpoint} for '${template.type}'.`, NS);
                         // input might by now be an array (in case of double inputs)
                         input = (Array.isArray(input) ? Math.max(...input) : input) + 1;
                         endpoint += 1;
                     }
 
                     meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendly_name}': ` +
-                        JSON.stringify(resultingInputActions));
+                        JSON.stringify(resultingInputActions), NS);
                     if (useWriteStruct) {
                         await devMgmtEp.writeStructured(
                             'manuSpecificUbisysDeviceSetup',

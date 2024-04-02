@@ -6,7 +6,6 @@ import {
     assertNumber,
     getFromLookup,
     getKey,
-    createLogger,
     printNumbersAsHexSequence,
     toNumber,
     assertEndpoint,
@@ -30,6 +29,8 @@ import {
 } from './types';
 import * as modernExtend from './modernExtend';
 import * as exposes from './exposes';
+
+const NS = 'zhc:lumi';
 const legacyFromZigbeeStore: KeyValueAny = {};
 const e = exposes.presets;
 const ea = exposes.access;
@@ -150,16 +151,16 @@ export const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buff
                 break;
             case 66:
                 // 0x42 unknown, length taken from what seems correct in the logs, maybe is wrong
-                if (meta.logger) meta.logger.debug(`${model.model}: unknown vtype=${buffer[i+1]}, pos=${i+1}, moving length 1`);
+                if (meta.logger) meta.logger.debug(`${model.model}: unknown vtype=${buffer[i+1]}, pos=${i+1}, moving length 1`, NS);
                 i += 2;
                 break;
             case 95:
                 // 0x5f unknown, length taken from what seems correct in the logs, maybe is wrong
-                if (meta.logger) meta.logger.debug(`${model.model}: unknown vtype=${buffer[i+1]}, pos=${i+1}, moving length 4`);
+                if (meta.logger) meta.logger.debug(`${model.model}: unknown vtype=${buffer[i+1]}, pos=${i+1}, moving length 4`, NS);
                 i += 5;
                 break;
             default:
-                if (meta.logger) meta.logger.debug(`${model.model}: unknown vtype=${buffer[i + 1]}, pos=${i + 1}`);
+                if (meta.logger) meta.logger.debug(`${model.model}: unknown vtype=${buffer[i + 1]}, pos=${i + 1}`, NS);
             }
 
             if (value != null) {
@@ -169,8 +170,11 @@ export const buffer2DataObject = (meta: Fz.Meta, model: Definition, buffer: Buff
     }
 
     if (meta.logger) {
-        meta.logger.debug(`${model.model}: Processed buffer into data ${JSON.stringify(dataObject,
-            (key, value) => typeof value === 'bigint' ? value.toString() : value)}`);
+        meta.logger.debug(
+            `${model.model}: Processed buffer into data \
+                ${JSON.stringify(dataObject, (key, value) => typeof value === 'bigint' ? value.toString() : value)}`,
+            NS,
+        );
     }
 
 
@@ -823,11 +827,11 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             // Use lumiAirQuality modernExtend, but we add it here to not shown an unknown key in the log
             break;
         default:
-            if (meta.logger) meta.logger.debug(`${model.model}: unknown key ${key} with value ${value}`);
+            if (meta.logger) meta.logger.debug(`${model.model}: unknown key ${key} with value ${value}`, NS);
         }
     }
 
-    if (meta.logger) meta.logger.debug(`${model.model}: Processed data into payload ${JSON.stringify(payload)}`);
+    if (meta.logger) meta.logger.debug(`${model.model}: Processed data into payload ${JSON.stringify(payload)}`, NS);
 
     return payload;
 };
@@ -1486,7 +1490,7 @@ export const lumiModernExtend = {
                         const previousOutageCount = meta.device?.meta?.outageCount ? meta.device.meta.outageCount : 0;
 
                         if (currentOutageCount > previousOutageCount) {
-                            meta.logger.debug('Restoring binding and reporting, device came back after losing power.');
+                            meta.logger.debug('Restoring binding and reporting, device came back after losing power.', NS);
                             for (const endpoint of meta.device.endpoints) {
                                 // restore bindings
                                 for (const b of endpoint.binds) {
@@ -1958,7 +1962,7 @@ export const fromZigbee = {
                         action_from_side: Math.floor((value - 64) / 8) + 1,
                     };
                 } else {
-                    meta.logger.debug(`${model.model}: unknown action with value ${value}`);
+                    meta.logger.debug(`${model.model}: unknown action with value ${value}`, NS);
                 }
                 return payload;
             }
@@ -2093,7 +2097,7 @@ export const fromZigbee = {
                 case 0xfff1: {
                     // @ts-expect-error
                     if (value.length < 8) {
-                        meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: cannot handle ${value}, frame too small`);
+                        meta.logger.debug(`Cannot handle ${value}, frame too small`, 'zhc:lumi:feeder');
                         return;
                     }
                     // @ts-expect-error
@@ -2155,20 +2159,20 @@ export const fromZigbee = {
                         break;
                     case 0x080007d1: // ? 64
                     case 0x0d090055: // ? 00
-                        meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unhandled attribute ${attr} = ${val}`);
+                        meta.logger.debug(`Unhandled attribute ${attr} = ${val}`, 'zhc:lumi:feeder');
                         break;
                     default:
-                        meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unknown attribute ${attr} = ${val}`);
+                        meta.logger.debug(`Unknown attribute ${attr} = ${val}`, 'zhc:lumi:feeder');
                     }
                     break;
                 }
                 case 0x00ff: // 80:13:58:91:24:33:20:24:58:53:44:07:05:97:75:17
                 case 0x0007: // 00:00:00:00:1d:b5:a6:ed
                 case 0x00f7: // 05:21:14:00:0d:23:21:25:00:00:09:21:00:01
-                    meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key} = ${value}`);
+                    meta.logger.debug(`Unhandled key ${key} = ${value}`, 'zhc:lumi:feeder');
                     break;
                 default:
-                    meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unknown key ${key} = ${value}`);
+                    meta.logger.debug(`Unknown key ${key} = ${value}`, 'zhc:lumi:feeder');
                 }
             });
             return result;
@@ -2220,7 +2224,7 @@ export const fromZigbee = {
                     // @ts-expect-error
                     const heartbeat = trv.decodeHeartbeat(meta, model, value);
 
-                    meta.logger.debug(`${model.model}: Processed heartbeat message into payload ${JSON.stringify(heartbeat)}`);
+                    meta.logger.debug(`${model.model}: Processed heartbeat message into payload ${JSON.stringify(heartbeat)}`, 'zhc:lumi:trv');
 
                     if (heartbeat.firmware_version) {
                         // Overwrite the "placeholder" version `0.0.0_0025` advertised by `genBasic`
@@ -2258,10 +2262,10 @@ export const fromZigbee = {
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
                 case 0x027c: // 0x00
                 case 0x0280: // 0x00/0x01
-                    meta.logger.debug(`zigbee-herdsman-converters:lumi_trv: Unhandled key ${key} = ${value}`);
+                    meta.logger.debug(`Unhandled key ${key} = ${value}`, 'zhc:lumi:trv');
                     break;
                 default:
-                    meta.logger.warn(`zigbee-herdsman-converters:lumi_trv: Unknown key ${key} = ${value}`);
+                    meta.logger.warning(`Unknown key ${key} = ${value}`, 'zhc:lumi:trv');
                 }
             });
             return result;
@@ -2272,7 +2276,6 @@ export const fromZigbee = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValue = {};
-            const log = createLogger(meta.logger, 'lumi', 'lumi_presence');
 
             Object.entries(msg.data).forEach(([key, value]) => {
                 const eventKey = parseInt(key);
@@ -2284,7 +2287,7 @@ export const fromZigbee = {
                         !(typeof value[0] === 'string' || typeof value[0] === 'number') ||
                         !(typeof value[1] === 'string' || typeof value[1] === 'number')
                     ) {
-                        log('warn', `action: Unrecognized payload structure '${JSON.stringify(value)}'`);
+                        meta.logger.warning(`Action: Unrecognized payload structure '${JSON.stringify(value)}'`, NS);
                         break;
                     }
 
@@ -2295,16 +2298,16 @@ export const fromZigbee = {
                     const eventTypeCode = parseInt(eventTypeCodeRaw, 10);
 
                     if (Number.isNaN(regionId)) {
-                        log('warn', `action: Invalid regionId "${regionIdRaw}"`);
+                        meta.logger.warning(`Action: Invalid regionId "${regionIdRaw}"`, NS);
                         break;
                     }
                     if (!Object.values(presence.constants.region_event_types).includes(eventTypeCode)) {
-                        log('warn', `action: Unknown region event type "${eventTypeCode}"`);
+                        meta.logger.warning(`Action: Unknown region event type "${eventTypeCode}"`, NS);
                         break;
                     }
 
                     const eventTypeName = presence.mappers.lumi_presence.region_event_type_names[eventTypeCode];
-                    log('debug', `action: Triggered event (region "${regionId}", type "${eventTypeName}")`);
+                    meta.logger.debug(`Action: Triggered event (region "${regionId}", type "${eventTypeName}")`, NS);
                     payload.action = `region_${regionId}_${eventTypeName}`;
                     break;
                 }
@@ -3241,7 +3244,7 @@ export const toZigbee = {
                 await sendAttr(0x0e5f0055, value, 4);
                 break;
             default: // Unknown key
-                meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key}`);
+                meta.logger.warning(`Unhandled key ${key}`, 'zhc:lumi:feeder');
             }
             return {state: {[key]: value}};
         },
@@ -3390,7 +3393,7 @@ export const toZigbee = {
                 break;
             }
             default: // Unknown key
-                meta.logger.warn(`zigbee-herdsman-converters:lumi_trv: Unhandled key ${key}`);
+                meta.logger.warning(`Unhandled key ${key}`, 'zhc:lumi:trv');
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -3406,14 +3409,14 @@ export const toZigbee = {
     lumi_presence_region_upsert: {
         key: ['region_upsert'],
         convertSet: async (entity, key, value, meta) => {
-            const log = createLogger(meta.logger, 'lumi', 'lumi_presence:region_upsert');
+            // const log = createLogger(meta.logger, 'lumi', 'lumi_presence:region_upsert');
             const commandWrapper = presence.parseAqaraFp1RegionUpsertInput(value);
 
             if (!commandWrapper.isSuccess) {
-                log('warn',
-                    // @ts-expect-error
-                    `encountered an error (${commandWrapper.error.reason}) ` +
-                    `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                meta.logger.warning(
+                    // @ts-expect-error untyped
+                    `Encountered an error (${commandWrapper.error.reason}) while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                    NS,
                 );
 
                 return;
@@ -3421,7 +3424,7 @@ export const toZigbee = {
 
             const command = commandWrapper.payload.command;
 
-            log('debug', `trying to create region ${command.region_id}`);
+            meta.logger.debug(`Trying to create region ${command.region_id}`, NS);
 
             const sortedZonesAccumulator = {};
             const sortedZonesWithSets: {[s: number]: [number]} = command.zones
@@ -3458,7 +3461,7 @@ export const toZigbee = {
             deviceConfig[4] |= presence.encodeXCellsDefinition(sortedZones['6']) << 4;
             deviceConfig[5] |= presence.encodeXCellsDefinition(sortedZones['7']);
 
-            log('info', `create region ${command.region_id} ${printNumbersAsHexSequence([...deviceConfig], 2)}`);
+            meta.logger.info( `Create region ${command.region_id} ${printNumbersAsHexSequence([...deviceConfig], 2)}`, NS);
 
             const payload = {
                 [presence.constants.region_config_write_attribute]: {
@@ -3473,20 +3476,19 @@ export const toZigbee = {
     lumi_presence_region_delete: {
         key: ['region_delete'],
         convertSet: async (entity, key, value, meta) => {
-            const log = createLogger(meta.logger, 'lumi', 'lumi_presence:region_delete');
             const commandWrapper = presence.parseAqaraFp1RegionDeleteInput(value);
 
             if (!commandWrapper.isSuccess) {
-                log('warn',
+                meta.logger.warning(
                     // @ts-expect-error
-                    `encountered an error (${commandWrapper.error.reason}) ` +
-                    `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                    `Encountered an error (${commandWrapper.error.reason}) while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                    NS,
                 );
                 return;
             }
             const command = commandWrapper.payload.command;
 
-            log('debug', `trying to delete region ${command.region_id}`);
+            meta.logger.debug(`trying to delete region ${command.region_id}`, NS);
 
             const deviceConfig = new Uint8Array(7);
 
@@ -3500,10 +3502,7 @@ export const toZigbee = {
             deviceConfig[4] = 0;
             deviceConfig[5] = 0;
 
-            log('info',
-                `delete region ${command.region_id} ` +
-                `(${printNumbersAsHexSequence([...deviceConfig], 2)})`,
-            );
+            meta.logger.info(`Delete region ${command.region_id} (${printNumbersAsHexSequence([...deviceConfig], 2)})`, NS);
 
             const payload = {
                 [presence.constants.region_config_write_attribute]: {
@@ -3528,10 +3527,10 @@ export const toZigbee = {
                     {0x0148: {value: getFromLookup(value, lookup), type: 0x20}},
                     {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
                 );
-                meta.logger.info('operation_mode switch success!');
+                meta.logger.info('operation_mode switch success!', 'zhc:lumi:cube');
             };
             globalStore.putValue(meta.device, 'opModeSwitchTask', {callback, newMode: value});
-            meta.logger.info('Now give your cube a forceful throw motion (Careful not to drop it)!');
+            meta.logger.info('Now give your cube a forceful throw motion (Careful not to drop it)!', 'zhc:lumi:cube');
         },
     } satisfies Tz.Converter,
     lumi_switch_operation_mode_basic: {

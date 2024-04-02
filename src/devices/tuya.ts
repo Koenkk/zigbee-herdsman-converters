@@ -13,6 +13,7 @@ import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
 import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm} from '../lib/modernExtend';
 
+const NS = 'zhc:tuya';
 const {tuyaLight} = tuya.modernExtend;
 
 const e = exposes.presets;
@@ -253,7 +254,7 @@ const tzLocal = {
                 break;
             }
             default: // Unknown key
-                meta.logger.warn(`Unhandled key ${key}`);
+                meta.logger.warning(`Unhandled key ${key}`, NS);
             }
         },
     } satisfies Tz.Converter,
@@ -332,7 +333,7 @@ const tzLocal = {
                 break;
             }
             default: // Unknown key
-                meta.logger.warn(`Unhandled key ${key}`);
+                meta.logger.warning(`Unhandled key ${key}`, NS);
             }
         },
     } satisfies Tz.Converter,
@@ -2451,7 +2452,7 @@ const definitions: Definition[] = [
                             }, []);
                         }
 
-                        meta.logger.warn('Ignoring invalid or incomplete schedule');
+                        meta.logger.warning('Ignoring invalid or incomplete schedule', NS);
                     },
                     from: (v: number[], meta) => {
                         let r = '';

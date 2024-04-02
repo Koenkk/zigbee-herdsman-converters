@@ -3,6 +3,8 @@ import {presets as e, access as ea} from './exposes';
 import {numeric, NumericArgs, setupConfigureForReporting} from './modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 
+const NS = 'zhc:ubisys';
+
 export const ubisysModernExtend = {
     localTemperatureOffset: (args?: Partial<NumericArgs>) => numeric({
         name: 'local_temperature_offset',
@@ -68,7 +70,7 @@ export const ubisysModernExtend = {
                     await entity.write(clusterName, {[writeableAttributeName]: value ? 1 : 0},
                         {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH});
                 } else {
-                    meta.logger.error(`${propertyName} must be a boolean!`);
+                    meta.logger.error(`${propertyName} must be a boolean!`, NS);
                 }
             },
             convertGet: async (entity, key, meta) => {
