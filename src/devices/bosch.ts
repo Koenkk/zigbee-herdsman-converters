@@ -1322,14 +1322,14 @@ const definitions: Definition[] = [
         toZigbee: [tzLocal.bosch_twinguard],
         configure: async (device, coordinatorEndpoint, logger) => {
             const coordinatorEndpointB = coordinatorEndpoint.getDevice().getEndpoint(1);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, [0x0009]);
-            await reporting.bind(device.getEndpoint(7), coordinatorEndpointB, [0x0019]);
-            await reporting.bind(device.getEndpoint(7), coordinatorEndpointB, [0x0020]);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, [0xe000]);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpointB, [0xe002]);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, [0xe004]);
-            await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, [0xe006]);
-            await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, [0xe007]);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, ['genAlarms']);
+            await reporting.bind(device.getEndpoint(7), coordinatorEndpointB, ['genOta']);
+            await reporting.bind(device.getEndpoint(7), coordinatorEndpointB, ['genPollCtrl']);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, ['manuSpecificBosch']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpointB, ['manuSpecificBosch3']);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, ['manuSpecificBosch5']);
+            await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, ['manuSpecificBosch7']);
+            await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, ['manuSpecificBosch8']);
             await device.getEndpoint(1).read('manuSpecificBosch5', ['unknown_attribute'], manufacturerOptions); // Needed for pairing
             await device.getEndpoint(12).command('manuSpecificBosch7', 'pairingCompleted', manufacturerOptions); // Needed for pairing
             await device.getEndpoint(1).write('manuSpecificBosch',
