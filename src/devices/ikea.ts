@@ -5,7 +5,7 @@ import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
     temperature, humidity, occupancy, illuminance, windowCovering,
     commandsOnOff, commandsLevelCtrl, commandsWindowCovering, pm25,
-    linkquality, deviceEndpoints, bindCluster,
+    linkQuality, deviceEndpoints, bindCluster,
 } from '../lib/modernExtend';
 import {
     ikeaConfigureRemote, ikeaLight, ikeaOta,
@@ -733,7 +733,7 @@ const definitions: Definition[] = [
         description: 'TRADFRI signal repeater',
         extend: [
             identify(),
-            linkquality({reporting: true}),
+            linkQuality({reporting: true}),
             ikeaOta(),
         ],
     },
