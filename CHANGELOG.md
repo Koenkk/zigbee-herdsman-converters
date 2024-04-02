@@ -1,5 +1,12 @@
 # Changelog
 
+## [19.11.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.11.1...v19.11.2) (2024-04-01)
+
+
+### Bug Fixes
+
+* Fix `XX has multiple 'ota'` when generating definition https://github.com/Koenkk/zigbee-herdsman-converters/pull/7287 ([daf21b5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/daf21b51ac618c11da8ee720e518e8883742dc1c))
+
 ## [19.11.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.11.0...v19.11.1) (2024-03-31)
 
 
