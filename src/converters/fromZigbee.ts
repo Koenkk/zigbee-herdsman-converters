@@ -3073,72 +3073,6 @@ const converters1 = {
             }
         },
     } satisfies Fz.Converter,
-    E1524_E1810_toggle: {
-        cluster: 'genOnOff',
-        type: 'commandToggle',
-        convert: (model, msg, publish, options, meta) => {
-            return {action: postfixWithEndpointName('toggle', msg, model, meta)};
-        },
-    } satisfies Fz.Converter,
-    ikea_arrow_click: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowSingle',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            if (msg.data.value === 2) {
-                // This is send on toggle hold, ignore it as a toggle_hold is already handled above.
-                return;
-            }
-
-            const direction = msg.data.value === 257 ? 'left' : 'right';
-            return {action: `arrow_${direction}_click`};
-        },
-    } satisfies Fz.Converter,
-    ikea_arrow_hold: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowHold',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = msg.data.value === 3329 ? 'left' : 'right';
-            globalStore.putValue(msg.endpoint, 'direction', direction);
-            return {action: `arrow_${direction}_hold`};
-        },
-    } satisfies Fz.Converter,
-    ikea_arrow_release: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowRelease',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const direction = globalStore.getValue(msg.endpoint, 'direction');
-            if (direction) {
-                globalStore.clearValue(msg.endpoint, 'direction');
-                const duration = msg.data.value / 1000;
-                const result: KeyValueAny = {action: `arrow_${direction}_release`, duration, action_duration: duration};
-                if (!isLegacyEnabled(options)) delete result.duration;
-                return result;
-            }
-        },
-    } satisfies Fz.Converter,
-    E1524_E1810_levelctrl: {
-        cluster: 'genLevelCtrl',
-        type: [
-            'commandStepWithOnOff', 'commandStep', 'commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop',
-            'commandMoveToLevelWithOnOff',
-        ],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup: KeyValueAny = {
-                commandStepWithOnOff: 'brightness_up_click',
-                commandStep: 'brightness_down_click',
-                commandMoveWithOnOff: 'brightness_up_hold',
-                commandStopWithOnOff: 'brightness_up_release',
-                commandMove: 'brightness_down_hold',
-                commandStop: 'brightness_down_release',
-                commandMoveToLevelWithOnOff: 'toggle_hold',
-            };
-            return {action: lookup[msg.type]};
-        },
-    } satisfies Fz.Converter,
     ewelink_action: {
         cluster: 'genOnOff',
         type: ['commandOn', 'commandOff', 'commandToggle'],
@@ -3631,35 +3565,6 @@ const converters1 = {
             return payload;
         },
     } satisfies Fz.Converter,
-    tradfri_occupancy: {
-        cluster: 'genOnOff',
-        type: 'commandOnWithTimedOff',
-        options: [exposes.options.occupancy_timeout(), exposes.options.illuminance_below_threshold_check()],
-        convert: (model, msg, publish, options, meta) => {
-            const onlyWhenOnFlag = (msg.data.ctrlbits & 1) != 0;
-            if (onlyWhenOnFlag &&
-                (!options || !options.hasOwnProperty('illuminance_below_threshold_check') ||
-                  options.illuminance_below_threshold_check) &&
-                !globalStore.hasValue(msg.endpoint, 'timer')) return;
-
-            const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
-                Number(options.occupancy_timeout) : msg.data.ontime / 10;
-
-            // Stop existing timer because motion is detected and set a new one.
-            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
-            globalStore.clearValue(msg.endpoint, 'timer');
-
-            if (timeout !== 0) {
-                const timer = setTimeout(() => {
-                    publish({occupancy: false});
-                    globalStore.clearValue(msg.endpoint, 'timer');
-                }, timeout * 1000);
-                globalStore.putValue(msg.endpoint, 'timer', timer);
-            }
-
-            return {occupancy: true, illuminance_above_threshold: onlyWhenOnFlag};
-        },
-    } satisfies Fz.Converter,
     almond_click: {
         cluster: 'ssIasAce',
         type: ['commandArm'],
@@ -3819,17 +3724,6 @@ const converters1 = {
             globalStore.putValue(msg.endpoint, 'timer', timer);
 
             return {presence: true};
-        },
-    } satisfies Fz.Converter,
-    E1745_requested_brightness: {
-        // Possible values are 76 (30%) or 254 (100%)
-        cluster: 'genLevelCtrl',
-        type: 'commandMoveToLevelWithOnOff',
-        convert: (model, msg, publish, options, meta) => {
-            return {
-                requested_brightness_level: msg.data.level,
-                requested_brightness_percent: mapNumberRange(msg.data.level, 0, 254, 0, 100),
-            };
         },
     } satisfies Fz.Converter,
     heiman_scenes: {

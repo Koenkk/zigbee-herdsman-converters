@@ -30,12 +30,13 @@ function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, ty
     return endpoints;
 }
 
-const timeLookup = {
+export const timeLookup = {
     'MAX': 65000,
     '4_HOURS': 14400,
     '1_HOUR': 3600,
     '30_MINUTES': 1800,
     '5_MINUTES': 300,
+    '2_MINUTES': 120,
     '1_MINUTE': 60,
     '10_SECONDS': 10,
     '1_SECOND': 1,
@@ -56,7 +57,7 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
     }
 }
 
-async function setupAttributes(
+export async function setupAttributes(
     entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string | number, config: ReportingConfig[], logger: Logger,
     configureReporting: boolean=true, read: boolean=true,
 ) {
@@ -1564,6 +1565,11 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
     }];
 
     return {fromZigbee, isModernExtend: true};
+}
+
+export function bindCluster(args: {cluster: string | number, endpointNames?: string[]}): ModernExtend {
+    const configure: Configure = setupConfigureForBinding(args.cluster, args.endpointNames);
+    return {configure, isModernExtend: true};
 }
 
 // #endregion
