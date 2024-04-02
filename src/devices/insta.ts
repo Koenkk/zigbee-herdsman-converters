@@ -33,7 +33,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'default': 6};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await utils.sleep(10000); // https://github.com/Koenkk/zigbee-herdsman-converters/issues/2493
             await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.bind(device.getEndpoint(7), coordinatorEndpoint, ['closuresWindowCovering']);
@@ -65,7 +65,7 @@ const definitions: Definition[] = [
         exposes: [e.switch()],
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -98,7 +98,7 @@ const definitions: Definition[] = [
             'on_e2', 'off_e2', 'toggle_e2', 'recall_*_e2', 'brightness_stop_e2', 'brightness_move_*_e2',
             'close_cover', 'open_cover', 'stop_cover',
         ])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             // Has Unknown power source, force it here.
             device.powerSource = 'Mains (single phase)';
             device.save();

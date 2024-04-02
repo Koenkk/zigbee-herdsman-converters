@@ -181,7 +181,7 @@ const definitions: Definition[] = [
                 'l3': 7,
             };
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             if (device != null) {
                 const controlEp = device.getEndpoint(zigfredEndpoint);
                 const relayEp = device.getEndpoint(6);
@@ -352,7 +352,7 @@ const definitions: Definition[] = [
                 'l7': 12,
             };
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             if (device != null) {
                 // Bind Control EP (LED)
                 const controlEp = device.getEndpoint(zigfredEndpoint);

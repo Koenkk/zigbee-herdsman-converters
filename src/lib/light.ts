@@ -1,4 +1,5 @@
-import {Zh, Tz, Logger} from './types';
+import {logger} from './logger';
+import {Zh, Tz} from './types';
 import * as utils from './utils';
 
 const NS = 'zhc:light';
@@ -47,7 +48,7 @@ export function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Met
     return [...attributes, ...additionalAttributes];
 }
 
-export function findColorTempRange(entity: Zh.Endpoint | Zh.Group, logger: Logger) {
+export function findColorTempRange(entity: Zh.Endpoint | Zh.Group) {
     let colorTempMin;
     let colorTempMax;
     if (utils.isGroup(entity)) {
@@ -72,7 +73,7 @@ export function findColorTempRange(entity: Zh.Endpoint | Zh.Group, logger: Logge
     return [colorTempMin, colorTempMax];
 }
 
-export function clampColorTemp(colorTemp: number, colorTempMin: number, colorTempMax: number, logger: Logger) {
+export function clampColorTemp(colorTemp: number, colorTempMin: number, colorTempMax: number) {
     if ((colorTempMin != null) && (colorTemp < colorTempMin)) {
         logger.debug(`Requested color_temp ${colorTemp} is lower than minimum supported ${colorTempMin}, using minimum!`, NS);
         return colorTempMin;
@@ -83,7 +84,7 @@ export function clampColorTemp(colorTemp: number, colorTempMin: number, colorTem
     }
     return colorTemp;
 }
-export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger, readColorTempMinMaxAttribute: boolean) {
+export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, readColorTempMinMaxAttribute: boolean) {
     if (device.powerSource === 'Unknown') {
         device.powerSource = 'Mains (single phase)';
         device.save();

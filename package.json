@@ -28,8 +28,8 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "test": "ZHC_TEST=true jest test",
-    "test-watch": "ZHC_TEST=true jest test --watch",
+    "test": "ZHC_TEST=true jest test --silent",
+    "test-watch": "ZHC_TEST=true jest test --silent --watch",
     "clean": "rimraf --glob index* devices lib converters tsconfig.tsbuildinfo",
     "build": "tsc",
     "build-watch": "tsc --watch",

@@ -16,7 +16,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.lock, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 20},
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);

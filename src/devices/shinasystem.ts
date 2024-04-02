@@ -238,7 +238,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery, fz.sihas_people_cnt],
         toZigbee: [tz.sihas_set_people],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'genAnalogInput'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -259,7 +259,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: 'Add_1V_42V_CSM300z2v2'}},
         fromZigbee: [fz.battery, fz.sihas_people_cnt],
         toZigbee: [tz.sihas_set_people, tzLocal.CSM300_SETUP],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'genAnalogInput'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -291,7 +291,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.occupancy, fz.illuminance],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -372,7 +372,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery, fz.sihas_action],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -387,7 +387,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
             await reporting.temperature(endpoint, {min: 30, max: 300, change: 30});
@@ -404,7 +404,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'genPowerCfg']);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
@@ -422,7 +422,7 @@ const definitions: Definition[] = [
         exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long',
             '3_single', '3_double', '3_long', '4_single', '4_double', '4_long']), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
@@ -439,7 +439,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery, fz.sihas_action],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -455,7 +455,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long']), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
@@ -473,7 +473,7 @@ const definitions: Definition[] = [
         exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long',
             '3_single', '3_double', '3_long']), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
@@ -492,7 +492,7 @@ const definitions: Definition[] = [
         exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long',
             '3_single', '3_double', '3_long', '4_single', '4_double', '4_long']), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
@@ -510,7 +510,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery, fz.sihas_action],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -527,7 +527,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long']), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
@@ -545,7 +545,7 @@ const definitions: Definition[] = [
         exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long',
             '3_single', '3_double', '3_long']), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
@@ -564,7 +564,7 @@ const definitions: Definition[] = [
         exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long',
             '3_single', '3_double', '3_long', '4_single', '4_double', '4_long']), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
@@ -581,7 +581,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.electrical_measurement, fz.metering],
         toZigbee: [tz.electrical_measurement_power],
         exposes: [e.power().withAccess(ea.STATE_GET), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
             await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});
@@ -602,7 +602,7 @@ const definitions: Definition[] = [
             e.temperature().withAccess(ea.STATE_GET).withDescription('temperature of device internal mcu'),
             e.numeric('power_factor', ea.STATE_GET).withDescription('Measured electrical power factor'),
             e.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
@@ -636,7 +636,7 @@ const definitions: Definition[] = [
             e.temperature().withAccess(ea.STATE_GET).withDescription('temperature of device internal mcu'),
             e.numeric('power_factor', ea.STATE_GET).withDescription('Measured electrical power factor'),
             e.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
@@ -666,7 +666,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response],
         toZigbee: [tz.lock, tz.pincode_lock],
         meta: {pinCodeCount: 4},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint, {min: 0, max: 3600, change: 0});
@@ -689,7 +689,7 @@ const definitions: Definition[] = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery, fzLocal.DMS300_OUT, fzLocal.DMS300_IN, fz.occupancy_timeout],
         toZigbee: [tz.occupancy_timeout],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'msOccupancySensing', 'ssIasZone'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -727,7 +727,7 @@ const definitions: Definition[] = [
             return {l1: 1, l2: 2, l3: 3};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await device.getEndpoint(1).read('genOnOff', [0x9000]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
@@ -792,7 +792,7 @@ const definitions: Definition[] = [
                 access: 'STATE_GET',
             }),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
             await reporting.onOff(endpoint);

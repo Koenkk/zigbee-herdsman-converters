@@ -128,7 +128,7 @@ const definitions: Definition[] = [
                     .withValueMin(-25).withValueMax(25)];
         },
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
@@ -298,7 +298,7 @@ const definitions: Definition[] = [
 
             return features;
         })(16)),
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
 
             for (let i = 1; i <= 15; i++) {
@@ -464,7 +464,7 @@ const definitions: Definition[] = [
             }
             return features;
         })(16)),
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
 
             // Danfoss Icon2 Main Controller Specific Endpoint

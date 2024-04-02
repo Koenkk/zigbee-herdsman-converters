@@ -1,6 +1,6 @@
 import {findByDevice} from '../src/index';
 import * as utils from '../src/lib/utils';
-import {Zh, Logger, DefinitionMeta, Fz, Definition} from '../src/lib/types';
+import {Zh, DefinitionMeta, Fz, Definition} from '../src/lib/types';
 import tz from '../src/converters/toZigbee';
 import { Device } from 'zigbee-herdsman/dist/controller/model';
 import {Cluster} from 'zigbee-herdsman/dist/zcl'
@@ -63,8 +63,6 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
     };
 }
 
-const MockLogger: Logger = {info: jest.fn(), error: jest.fn(), warning: jest.fn(), debug: jest.fn()};
-
 const DefaultTz = [
     tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, 
     tz.scene_rename, tz.read, tz.write, tz.command, tz.factory_reset, tz.zcl_command,
@@ -87,7 +85,7 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
     const coordinatorEndpoint = mockEndpoint({}, undefined);
     const definition = await args.findByDeviceFn(args.device);
 
-    await definition.configure?.(args.device, coordinatorEndpoint, MockLogger);
+    await definition.configure?.(args.device, coordinatorEndpoint);
 
     const logIfNotEqual = (expected: string[], actual: string[]) => {
         if (JSON.stringify(expected) !== JSON.stringify(actual)) {

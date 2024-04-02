@@ -1,7 +1,8 @@
 const baseurl = 'https://fw.jethome.ru';
 const deviceurl = `${baseurl}/api/devices/`;
 import * as common from './common';
-import {Logger, Zh, Ota} from '../types';
+import {Zh, Ota} from '../types';
+import {logger} from '../logger';
 
 const NS = 'zhc:ota:jethome';
 const axios = common.getAxios();
@@ -12,7 +13,7 @@ let overrideIndexFileName: string = null;
  * Helper functions
  */
 
-async function getIndex(logger: Logger, modelID: string) {
+async function getIndex(modelID: string) {
     if (overrideIndexFileName) {
         logger.debug(`Loading override index ${overrideIndexFileName}`, NS);
         const overrideIndex = await common.getOverrideIndexFile(overrideIndexFileName);
@@ -31,9 +32,9 @@ async function getIndex(logger: Logger, modelID: string) {
     }
 }
 
-export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
+export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): Promise<Ota.ImageMeta> {
     logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
-    const images = await getIndex(logger, device.modelID);
+    const images = await getIndex(device.modelID);
 
     // XXX: this is assumed to always be present even for devices that support OTA but without images yet available?
     if (!images?.latest_firmware?.release?.images) {
@@ -60,12 +61,12 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
-    return common.isUpdateAvailable(device, logger, requestPayload, common.isNewImageAvailable, getImageMeta);
+export async function isUpdateAvailable(device: Zh.Device, requestPayload:Ota.ImageInfo=null) {
+    return common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 
-export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, common.getFirmwareFile);
+export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
+    return common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta, common.getFirmwareFile);
 }
 
 export const useIndexOverride = (indexFileName: string) => {

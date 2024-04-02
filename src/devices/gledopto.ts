@@ -6,6 +6,7 @@ import * as ota from '../lib/ota';
 import tz from '../converters/toZigbee';
 import * as libColor from '../lib/color';
 import {light, LightArgs, OnOffArgs, onOff} from '../lib/modernExtend';
+import {logger} from '../lib/logger';
 
 const NS = 'zhc:gledopto';
 const e = exposes.presets;
@@ -149,7 +150,7 @@ function gledoptoOnOff(args?: OnOffArgs) {
 }
 
 function gledoptoConfigureReadModelID(): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+    const configure: Configure = async (device, coordinatorEndpoint) => {
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3016#issuecomment-1027726604
         const endpoint = device.endpoints[0];
         const oldModel = device.modelID;

@@ -2,6 +2,7 @@ import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {logger} from '../lib/logger';
 const e = exposes.presets;
 
 const NS = 'zhc:ewelink';
@@ -46,7 +47,7 @@ const definitions: Definition[] = [
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             try {
                 await device.getEndpoint(1).bind('genOnOff', coordinatorEndpoint);
             } catch (error) {

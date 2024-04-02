@@ -19,7 +19,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.battery()],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -32,7 +32,7 @@ const definitions: Definition[] = [
         description: 'Roller shutter relay switch',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
@@ -48,7 +48,7 @@ const definitions: Definition[] = [
         description: 'Roller shutter relay switch',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
@@ -134,7 +134,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
         toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [e.power(), e.energy(), e.pilot_wire_mode()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
@@ -153,7 +153,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering, fz.nodon_pilot_wire_mode],
         toZigbee: [tz.on_off, tz.nodon_pilot_wire_mode],
         exposes: [e.power(), e.energy(), e.pilot_wire_mode()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
@@ -185,7 +185,7 @@ const definitions: Definition[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
             }),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});

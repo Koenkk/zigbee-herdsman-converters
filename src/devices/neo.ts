@@ -29,7 +29,7 @@ const definitions: Definition[] = [
             e.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb']),
         ],
         onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.command('manuSpecificTuya', 'dataQuery', {});
             await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
@@ -52,7 +52,7 @@ const definitions: Definition[] = [
             e.numeric('battpercentage', ea.STATE).withUnit('%'),
         ],
         onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.command('manuSpecificTuya', 'dataQuery', {});
             await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
@@ -78,9 +78,9 @@ const definitions: Definition[] = [
             // e.binary('unknown_111', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown datapoint 111 (default: ON)'),
             // e.binary('unknown_112', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown datapoint 112 (default: ON)')
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
         },
     },

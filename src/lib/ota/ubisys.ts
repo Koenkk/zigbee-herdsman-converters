@@ -2,7 +2,8 @@ const firmwareHtmlPageUrl = 'http://fwu.ubisys.de/smarthome/OTA/release/index';
 const imageRegex = /10F2-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{8})\S*ota1?\.zigbee/gi;
 import url from 'url';
 import * as common from './common';
-import {Ota, Logger, Zh} from '../types';
+import {Ota, Zh} from '../types';
+import {logger} from '../logger';
 
 const NS = 'zhc:ota:ubisys';
 const axios = common.getAxios();
@@ -21,7 +22,7 @@ const axios = common.getAxios();
  * Helper functions
  */
 
-export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
+export async function getImageMeta(current: Ota.ImageInfo, device: Zh.Device): Promise<Ota.ImageMeta> {
     logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
     const {status, data: pageHtml} = await axios.get(firmwareHtmlPageUrl, {maxContentLength: -1});
 
@@ -62,12 +63,12 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
  * Interface implementation
  */
 
-export async function isUpdateAvailable(device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo=null) {
-    return common.isUpdateAvailable(device, logger, requestPayload, common.isNewImageAvailable, getImageMeta);
+export async function isUpdateAvailable(device: Zh.Device, requestPayload:Ota.ImageInfo=null) {
+    return common.isUpdateAvailable(device, requestPayload, common.isNewImageAvailable, getImageMeta);
 }
 
-export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta);
+export async function updateToLatest(device: Zh.Device, onProgress: Ota.OnProgress) {
+    return common.updateToLatest(device, onProgress, common.getNewImage, getImageMeta);
 }
 
 exports.isUpdateAvailable = isUpdateAvailable;

@@ -24,7 +24,7 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fz.dimmer_passthru_brightness],
         toZigbee: [],
         exposes: [e.action(['brightness']), e.numeric('brightness', ea.STATE)],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
         },

@@ -13,7 +13,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.metering, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering', 'genPowerCfg']);
         },
