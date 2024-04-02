@@ -7717,7 +7717,7 @@ const definitions: Definition[] = [
         description: 'Dimmer 4 scenes',
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp,
             
-            fz.ommand_step_color_temperature, fz.command_step],
+            fz.command_step_color_temperature, fz.command_step],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
         configure: async (device, coordinatorEndpoint, logger) => {
