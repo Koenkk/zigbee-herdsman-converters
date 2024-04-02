@@ -63,7 +63,10 @@ async function setupAttributes(
     const endpoints = isEndpoint(entity) ? [entity] : getEndpointsWithCluster(entity, cluster, 'input');
     const ieeeAddr = isEndpoint(entity) ? entity.deviceIeeeAddress : entity.ieeeAddr;
     for (const endpoint of endpoints) {
-        logger.debug(`Configure reporting: ${configureReporting}, read: ${read} for ${ieeeAddr}/${endpoint.ID} ${cluster} ${JSON.stringify(config)}`);
+        logger.debug(
+            `Configure reporting: ${configureReporting}, read: ${read} for ${ieeeAddr}/${endpoint.ID} ${cluster} ${JSON.stringify(config)}`,
+            'zhc:setupattribute',
+        );
         if (configureReporting) {
             await endpoint.bind(cluster, coordinatorEndpoint);
             await endpoint.configureReporting(cluster, config.map((a) => ({
@@ -79,7 +82,7 @@ async function setupAttributes(
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
                 await endpoint.read(cluster, config.map((a) => isString(a) ? a : (isObject(a.attribute) ? a.attribute.ID : a.attribute)));
             } catch (e) {
-                logger.debug(`Reading attribute failed: ${e}`);
+                logger.debug(`Reading attribute failed: ${e}`, 'zhc:setupattribute');
             }
         }
     }
@@ -266,7 +269,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
                     // Don't fail GET reqest if reading this attribute fails
                     await entity.read('genPowerCfg', ['batteryPercentageRemaining', 'batteryVoltage']);
                 } catch (e) {
-                    meta.logger.debug(`Reading attribute failed: ${e}, device probably doesn't support it`);
+                    meta.logger.debug(`Reading attribute failed: ${e}, device probably doesn't support it`, 'zhc:battery');
                 }
             },
         },
@@ -371,7 +374,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
                         [{attribute: 'startUpOnOff', min: 'MIN', max: 'MAX', change: 1}], logger, false);
                 } catch (e) {
                     if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
-                        logger.debug('Reading startUpOnOff failed, this features is unsupported');
+                        logger.debug('Reading startUpOnOff failed, this features is unsupported', 'zhc:onoff');
                     } else {
                         throw e;
                     }
@@ -440,7 +443,7 @@ export function customTimeResponse(start: '1970_UTC' | '2000_LOCAL'): ModernExte
                         payload.time = secondsUTC - (new Date()).getTimezoneOffset() * 60;
                     }
                     endpoint.readResponse('genTime', frame.Header.transactionSequenceNumber, payload).catch((e) => {
-                        logger.logger.warning(`Custom time response failed for '${device.ieeeAddr}': ${e}`);
+                        logger.logger.warning(`Custom time response failed for '${device.ieeeAddr}': ${e}`, 'zhc:customtimeresponse');
                     });
                     return true;
                 }
@@ -1480,7 +1483,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
         const endpoint = device.getEndpoint(endpointID);
 
         if (endpoint == undefined) {
-            logger.error(`Quirk: cannot add clusters to endpoint ${endpointID}, endpoint does not exist!`);
+            logger.error(`Quirk: cannot add clusters to endpoint ${endpointID}, endpoint does not exist!`, 'zhc:quirkaddendpointcluster');
             return;
         }
 
@@ -1490,7 +1493,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
                 cluster;
 
             if (!endpoint.inputClusters.includes(clusterID)) {
-                logger.debug(`Quirk: adding input cluster ${clusterID} to endpoint ${endpointID}.`);
+                logger.debug(`Quirk: adding input cluster ${clusterID} to endpoint ${endpointID}.`, 'zhc:quirkaddendpointcluster');
                 endpoint.inputClusters.push(clusterID);
             }
         });
@@ -1501,7 +1504,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
                 cluster;
 
             if (!endpoint.outputClusters.includes(clusterID)) {
-                logger.debug(`Quirk: adding output cluster ${clusterID} to endpoint ${endpointID}.`);
+                logger.debug(`Quirk: adding output cluster ${clusterID} to endpoint ${endpointID}.`, 'zhc:quirkaddendpointcluster');
                 endpoint.outputClusters.push(clusterID);
             }
         });

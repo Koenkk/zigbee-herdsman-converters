@@ -3,6 +3,8 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
+
+const NS = 'zhc:profalux';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -58,10 +60,10 @@ const definitions: Definition[] = [
             const endpoint = device.getEndpoint(2);
             await endpoint.read('manuSpecificProfalux1', ['motorCoverType'])
                 .catch((e) => {
-                    logger.warning(`Failed to read zigbee attributes: ${e}`);
+                    logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
                 });
             const coverType = endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType');
-            // logger.debug(`Profalux '${device.ieeeAddr}' setup as cover type '${coverType)}'`);
+            // logger.debug(`Profalux '${device.ieeeAddr}' setup as cover type '${coverType)}'`, NS);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
             if (coverType == 1) {

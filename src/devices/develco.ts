@@ -11,6 +11,7 @@ import * as ota from '../lib/ota';
 const e = exposes.presets;
 const ea = exposes.access;
 
+const NS = 'zhc:develco';
 // develco specific cosntants
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
@@ -280,7 +281,7 @@ const develco = {
             convertSet: async (entity, key, value, meta) => {
                 let timeoutValue = utils.toNumber(value, 'occupancy_timeout');
                 if (timeoutValue < 5) {
-                    meta.logger.warning(`Minimum occupancy_timeout is 5, using 5 instead of ${timeoutValue}!`, 'zhc:develco');
+                    meta.logger.warning(`Minimum occupancy_timeout is 5, using 5 instead of ${timeoutValue}!`, NS);
                     timeoutValue = 5;
                 }
                 await entity.write('ssIasZone', {'develcoAlarmOffDelay': timeoutValue}, manufacturerOptions);

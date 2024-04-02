@@ -7,6 +7,7 @@ import tz from '../converters/toZigbee';
 import * as libColor from '../lib/color';
 import {light, LightArgs, OnOffArgs, onOff} from '../lib/modernExtend';
 
+const NS = 'zhc:gledopto';
 const e = exposes.presets;
 
 const tzLocal1 = {
@@ -154,7 +155,7 @@ function gledoptoConfigureReadModelID(): ModernExtend {
         const oldModel = device.modelID;
         const newModel = (await endpoint.read('genBasic', ['modelId'])).modelId;
         if (oldModel != newModel) {
-            logger.info(`Detected Gledopto device mode change, from '${oldModel}' to '${newModel}'`, 'zhc:gledopto');
+            logger.info(`Detected Gledopto device mode change, from '${oldModel}' to '${newModel}'`, NS);
         }
     };
     return {configure, isModernExtend: true};

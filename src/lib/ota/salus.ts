@@ -2,6 +2,8 @@ const url = 'https://eu.salusconnect.io/demo/default/status/firmware?timestamp=0
 import * as common from './common';
 import tar from 'tar-stream';
 import {Zh, Logger, Ota, KeyValue, KeyValueAny} from '../types';
+
+const NS = 'zhc:ota:salus';
 const axios = common.getAxios();
 
 /**
@@ -9,7 +11,7 @@ const axios = common.getAxios();
  */
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`SalusOTA: call getImageMeta for ${device.modelID}`);
+    logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
     const {data} = await axios.get(url);
 
     if (!data?.versions?.length) {

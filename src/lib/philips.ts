@@ -9,6 +9,8 @@ import * as globalStore from './store';
 import {Fz, KeyValue, KeyValueAny, Tz} from './types';
 import * as modernExtend from './modernExtend';
 import {isObject} from './utils';
+
+const NS = 'zhc:philips';
 const ea = exposes.access;
 const e = exposes.presets;
 
@@ -182,7 +184,7 @@ export const philipsTz = {
                         meta.message.hasOwnProperty('hue_power_on_color_temperature') &&
                         meta.message.hasOwnProperty('hue_power_on_color')
                     ) {
-                        meta.logger.error(`Provide either color temperature or color, not both`);
+                        meta.logger.error(`Provide either color temperature or color, not both`, NS);
                     } else if (meta.message.hasOwnProperty('hue_power_on_color_temperature')) {
                         const colortemp = meta.message.hue_power_on_color_temperature;
                         await entity.write('lightingColorCtrl', {0x4010: {value: colortemp, type: 0x21}});

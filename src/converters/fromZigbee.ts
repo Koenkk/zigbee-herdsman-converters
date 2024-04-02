@@ -9,6 +9,7 @@ import * as libColor from '../lib/color';
 import * as utils from '../lib/utils';
 import * as exposes from '../lib/exposes';
 
+const NS = 'zhc:fz';
 const defaultSimulatedBrightness = 255;
 const e = exposes.presets;
 const ea = exposes.access;
@@ -2354,7 +2355,7 @@ const converters1 = {
                 default:
                     // Unknown dps
                     meta.logger.debug(`Unhandled DP ${dp} for ${meta.device.manufacturerName}: \
-                     ${msg.data.toString('hex')}`, 'zhc:fromZigbee');
+                     ${msg.data.toString('hex')}`, NS);
                 }
             }
         },
@@ -2400,7 +2401,7 @@ const converters1 = {
             if (value) {
                 return {action: value};
             } else {
-                meta.logger.warning('Unknown lock status with source ' + msg.data[3] + ' and event code ' + msg.data[4], 'zhc:fromZigbee');
+                meta.logger.warning('Unknown lock status with source ' + msg.data[3] + ' and event code ' + msg.data[4], NS);
             }
         },
     } satisfies Fz.Converter,
@@ -2467,7 +2468,7 @@ const converters1 = {
                     meta.device.save();
                 }*/
                 if (msg.data.includes(Buffer.from([19, 5, 0]), 13)) {
-                    if (meta.logger) meta.logger.debug('Detected Livolo Curtain Switch', 'zhc:fromZigbee');
+                    if (meta.logger) meta.logger.debug('Detected Livolo Curtain Switch', NS);
                     // curtain switch, hack
                     meta.device.modelID = 'TI0001-curtain-switch';
                     meta.device.save();
@@ -2482,7 +2483,7 @@ const converters1 = {
                     meta.device.save();
                 }
                 if (msg.data.includes(Buffer.from([19, 13, 0]), 13)) {
-                    if (meta.logger) meta.logger.debug('Detected Livolo Pir Sensor', 'zhc:fromZigbee');
+                    if (meta.logger) meta.logger.debug('Detected Livolo Pir Sensor', NS);
                     meta.device.modelID = 'TI0001-pir';
                     meta.device.save();
                 }
@@ -3219,7 +3220,7 @@ const converters1 = {
             };
 
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`PTM 215ZE: missing command '${commandID}'`, 'zhc:fromZigbee');
+                meta.logger.error(`PTM 215ZE: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
             }
@@ -3247,7 +3248,7 @@ const converters1 = {
 
             const ID = `${commandID}_${msg.data.commandFrame.raw?.slice(0, 1).join('_') ?? ''}`;
             if (!lookup.hasOwnProperty(ID)) {
-                meta.logger.error(`PTM 216Z: missing command '${ID}'`, 'zhc:fromZigbee');
+                meta.logger.error(`PTM 216Z: missing command '${ID}'`, NS);
             } else {
                 return {action: lookup[ID]};
             }
@@ -3449,7 +3450,7 @@ const converters1 = {
             else if (mode === 0x04) payload.pilot_wire_mode = 'frost_protection';
             else if (mode === 0x05) payload.pilot_wire_mode = 'off';
             else {
-                meta.logger.warning(`Bad mode : ${mode}`, 'zhc:fromZigbee');
+                meta.logger.warning(`Bad mode : ${mode}`, NS);
                 payload.pilot_wire_mode = 'unknown';
             }
             return payload;
@@ -3493,7 +3494,7 @@ const converters1 = {
                 0x34: 'stop', 0x35: 'up', 0x36: 'down', // 600087l
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Legrand GreenPower: missing command '${commandID}'`, 'zhc:fromZigbee');
+                meta.logger.error(`Legrand GreenPower: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
             }
@@ -3731,7 +3732,7 @@ const converters1 = {
                 if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] == 50 ) {
                     if ((entry.CurrentPosition == -1 && entry.lastPreviousAction == -1) ||
                         entry.lastPreviousAction == 50 ) {
-                        meta.logger.warning(`ZMCSW032D ignore action`, 'zhc:fromZigbee');
+                        meta.logger.warning(`ZMCSW032D ignore action`, NS);
                         return;
                     }
                 }
@@ -4312,7 +4313,7 @@ const converters1 = {
                 0x62: 'press_3_and_4', 0x63: 'release_3_and_4', 0x64: 'press_1_and_2', 0x65: 'release_1_and_2',
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Hue Tap: missing command '${commandID}'`, 'zhc:fromZigbee');
+                meta.logger.error(`Hue Tap: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
             }
@@ -4506,7 +4507,7 @@ const converters1 = {
 
             result['occupied_heating_setpoint'] = parseFloat(msg.data['setpoint']) / 100.0;
 
-            meta.logger.debug(`received wiser setpoint command with value: '${msg.data['setpoint']}'`, 'zhc:fromZigbee');
+            meta.logger.debug(`received wiser setpoint command with value: '${msg.data['setpoint']}'`, NS);
             return result;
         },
     } satisfies Fz.Converter,
@@ -4594,7 +4595,7 @@ const converters1 = {
             if (commandID === 224) return;
             const lookup: KeyValueAny = {0x21: 'press_on', 0x20: 'press_off', 0x34: 'release', 0x35: 'hold_on', 0x36: 'hold_off'};
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Sunricher: missing command '${commandID}'`, 'zhc:fromZigbee');
+                meta.logger.error(`Sunricher: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
             }
@@ -4617,7 +4618,7 @@ const converters1 = {
                 0x34: 'release',
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Sunricher: missing command '${commandID}'`, 'zhc:fromZigbee');
+                meta.logger.error(`Sunricher: missing command '${commandID}'`, NS);
             } else {
                 return {action: lookup[commandID]};
             }
@@ -5231,7 +5232,7 @@ const converters2 = {
                             {srcEndpoint: 11, disableDefaultResponse: true});
 
                         meta.logger.debug(`syncing vact setpoint was: '${result.occupied_heating_setpoint}'` +
-                        ` now: '${meta.state.occupied_heating_setpoint}'`, 'zhc:fromZigbee');
+                        ` now: '${meta.state.occupied_heating_setpoint}'`, NS);
                     }
                 } else {
                     publish(result);
@@ -5253,7 +5254,7 @@ const converters2 = {
             else if (mode === 0x04) payload.pilot_wire_mode = 'comfort_-1';
             else if (mode === 0x05) payload.pilot_wire_mode = 'comfort_-2';
             else {
-                meta.logger.warning(`wrong mode : ${mode}`, 'zhc:fromZigbee');
+                meta.logger.warning(`wrong mode : ${mode}`, NS);
                 payload.pilot_wire_mode = 'unknown';
             }
             return payload;

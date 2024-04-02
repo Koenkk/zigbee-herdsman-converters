@@ -7,6 +7,8 @@ import {philipsLight} from './philips';
 import {Endpoint} from 'zigbee-herdsman/dist/controller/model';
 import {logger} from './logger';
 
+const NS = 'zhc:gendef';
+
 interface GeneratedExtend {
     getExtend(): ModernExtend,
     getSource(): string,
@@ -247,7 +249,7 @@ const outputExtenders: Extender[] = [
 async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
-        logger.warning('extenderLock can accept only one endpoint');
+        logger.warning('extenderLock can accept only one endpoint', NS);
     }
 
     const endpoint = endpoints[0];
@@ -307,7 +309,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
 async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
-        logger.warning('extenderElectricityMeter can accept only one endpoint');
+        logger.warning('extenderElectricityMeter can accept only one endpoint', NS);
     }
 
     const endpoint = endpoints[0];

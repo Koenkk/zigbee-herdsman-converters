@@ -13,6 +13,8 @@ import {generateDefinition} from './lib/generateDefinition';
 import {Zcl} from 'zigbee-herdsman';
 import * as logger from './lib/logger';
 
+const NS = 'zhc';
+
 export {
     Definition as Definition,
     OnEventType as OnEventType,
@@ -216,7 +218,7 @@ function prepareDefinition(definition: Definition): Definition {
     return definition
 }
 
-export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue, logger: Logger) {
+export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue) {
     // Apply calibration/precision options
     for (const [key, value] of Object.entries(payload)) {
         const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null);
@@ -225,7 +227,7 @@ export function postProcessConvertedFromZigbeeMessage(definition: Definition, pa
             try {
                 payload[key] = utils.calibrateAndPrecisionRoundOptions(value, options, expose.name);
             } catch (error) {
-                logger.error(`Failed to apply calibration to '${expose.name}': ${error.message}`);
+                logger.logger.error(`Failed to apply calibration to '${expose.name}': ${error.message}`, NS);
             }
         }
     }
@@ -378,7 +380,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
                 const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
                 const payload = {0xf00: {value: 23, type: 35}};
                 endpoint.readResponse('genBasic', frame.Header.transactionSequenceNumber, payload, options).catch((e) => {
-                    logger.logger.warning(`Legrand security read response failed: ${e}`);
+                    logger.logger.warning(`Legrand security read response failed: ${e}`, NS);
                 })
                 return true;
             }
@@ -395,7 +397,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
                 const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
                 const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
                 endpoint.readResponse('genTime', frame.Header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
-                    logger.logger.warning(`ZNCWWSQ01LM custom time response failed: ${e}`);
+                    logger.logger.warning(`ZNCWWSQ01LM custom time response failed: ${e}`, NS);
                 })
                 return true;
             }

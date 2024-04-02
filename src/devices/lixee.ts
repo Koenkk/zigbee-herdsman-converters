@@ -13,6 +13,7 @@ import * as ota from '../lib/ota';
 import {Buffer} from 'buffer';
 import {logger} from '../lib/logger';
 
+const NS = 'zhc:lixee';
 /* Start ZiPulses */
 
 const unitsZiPulses = [
@@ -826,7 +827,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     try {
         endpoint = device.getEndpoint(1);
     } catch (error) {
-        logger.debug(error);
+        logger.debug(error, NS);
     }
     // @ts-expect-error
     function getConfig(targetOption, bitLinkyMode, valueTrue, valueFalse) {
@@ -846,7 +847,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
             // @ts-expect-error
             return (lMode >> bitLinkyMode & 1) == 1 ? valueTrue : valueFalse;
         } catch (err) {
-            logger.warning(`Was not able to detect the Linky ` + targetOption + `. Default to ` + valueDefault);
+            logger.warning(`Was not able to detect the Linky ` + targetOption + `. Default to ` + valueDefault, NS);
             return valueDefault; // default value in the worst case
         }
     }
@@ -877,11 +878,11 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
             // @ts-expect-error
             currentTarf = fzLocal.lixee_private_fz.convert({}, {data: lixAtts}).current_tarif;
         } catch (error) {
-            logger.warning(`Not able to detect the current tarif. Not filtering any expose...`, 'zhc:lixee');
+            logger.warning(`Not able to detect the current tarif. Not filtering any expose...`, NS);
         }
     }
 
-    logger.debug(`zlinky config: ` + linkyMode + `, ` + linkyPhase + `, ` + linkyProduction.toString() + `, ` + currentTarf);
+    logger.debug(`zlinky config: ` + linkyMode + `, ` + linkyPhase + `, ` + linkyProduction.toString() + `, ` + currentTarf, NS);
 
     switch (currentTarf) {
     case linkyMode == linkyModeDef.legacy && tarifsDef.histo_BASE.currentTarf:
@@ -989,7 +990,7 @@ const definitions: Definition[] = [
             await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
                 .catch((e) => {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                    logger.warning(`Failed to read zigbee attributes: ${e}`, 'zhc:lixee');
+                    logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
                 });
 
             const configReportings = [];
@@ -1037,7 +1038,7 @@ const definitions: Definition[] = [
                 endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
                     .catch((e) => {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                        logger.warning(`Failed to read zigbee attributes: ${e}`, 'zhc:lixee');
+                        logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
                     });
             } else if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
@@ -1067,7 +1068,7 @@ const definitions: Definition[] = [
                                                 .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
                                                 .catch((e) => {
                                                     // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                                                    logger.warning(`Failed to read zigbee attributes: ${e}`, 'zhc:lixee');
+                                                    logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
                                                 });
                                         }
                                     }
