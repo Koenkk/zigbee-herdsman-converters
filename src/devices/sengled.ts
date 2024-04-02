@@ -1,13 +1,10 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
+import {Definition, Expose, ModernExtend, Fz, KeyValueAny} from '../lib/types';
+import {presets} from '../lib/exposes';
 import {
     onOff, LightArgs, light as lightDontUse, electricityMeter, forcePowerSource, light, ota,
     iasZoneAlarm,
     battery,
 } from '../lib/modernExtend';
-
-const e = exposes.presets;
 
 export function sengledLight(args?: LightArgs) {
     return lightDontUse({effect: false, powerOnBehavior: false, ...args});
@@ -287,9 +284,8 @@ const definitions: Definition[] = [
         model: 'E1E-G7F',
         vendor: 'Sengled',
         description: 'Smart switch',
-        fromZigbee: [fz.E1E_G7F_action],
-        exposes: [e.action(['on', 'up', 'down', 'off', 'on_double', 'on_long', 'off_double', 'off_long'])],
         extend: [
+            sengledSwitchAction(),
             ota(),
         ],
     },
