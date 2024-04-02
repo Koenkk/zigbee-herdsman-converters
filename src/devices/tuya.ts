@@ -1396,45 +1396,6 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_whpb9yts'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ctq0k47x'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9i9dt8is'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_dfxkcots'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_w4cryh2i'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ojzhk75b'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_3p5ydos3'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9cxuhakf'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_a0syesf5'},
-        ],
-        model: 'TS0601_dimmer',
-        vendor: 'TuYa',
-        description: 'Zigbee smart dimmer',
-        fromZigbee: [legacy.fromZigbee.tuya_dimmer, fz.ignore_basic_report],
-        toZigbee: [legacy.toZigbee.tuya_dimmer_state, legacy.toZigbee.tuya_dimmer_level],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        exposes: [e.light_brightness().withMinBrightness().withMaxBrightness().setAccess(
-            'state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET).setAccess(
-            'min_brightness', ea.STATE_SET).setAccess('max_brightness', ea.STATE_SET)],
-        whiteLabel: [
-            {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
-            {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
-            {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
-            {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
-            {vendor: 'Mercator Ikuü', model: 'SSWD01'},
-            {vendor: 'Moes', model: 'ZS-USD'},
-            {vendor: 'Moes', model: 'EDM-1ZBB-EU'},
-            tuya.whitelabel('Mercator Ikuü', 'SSWM-DIMZ', 'Switch Mechanism', ['_TZE200_9cxuhakf']),
-            tuya.whitelabel('Mercator Ikuü', 'SSWRM-ZB', 'Rotary dimmer mechanism', ['_TZE200_a0syesf5']),
-        ],
-    },
-    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu', '_TZE200_ga1maeof']),
         model: 'TS0601_soil',
         vendor: 'TuYa',
@@ -1455,7 +1416,9 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems', '_TZE200_la2c2uo9', '_TZE200_579lguh2',
-            '_TZE200_vucankjx', '_TZE200_4mh6tyyo', '_TZE204_hlx9tnzb', '_TZE204_n9ctkb6j', '_TZE204_9qhuzgo0']),
+            '_TZE200_vucankjx', '_TZE200_4mh6tyyo', '_TZE204_hlx9tnzb', '_TZE204_n9ctkb6j', '_TZE204_9qhuzgo0', '_TZE200_9cxuhakf',
+            '_TZE200_a0syesf5', '_TZE200_3p5ydos3', '_TZE200_swaamsoy', '_TZE200_ojzhk75b', '_TZE200_w4cryh2i', '_TZE200_dfxkcots',
+            '_TZE200_9i9dt8is', '_TZE200_ctq0k47x', '_TZE200_ebwgzdqq', '_TZE200_whpb9yts']),
         model: 'TS0601_dimmer_1',
         vendor: 'TuYa',
         description: '1 gang smart dimmer',
@@ -1463,11 +1426,11 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [tuya.exposes.lightBrightnessWithMinMax(), tuya.exposes.countdown(), tuya.exposes.lightType(),
-            e.power_on_behavior().withAccess(ea.STATE_SET),
-            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET)],
+        e.power_on_behavior().withAccess(ea.STATE_SET),
+        tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET)],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [1, 'state', tuya.valueConverter.onOff, { skip: tuya.skip.stateOnAndBrightnessPresent }],
                 [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
                 [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
                 [4, 'light_type', tuya.valueConverter.lightType],
@@ -1480,8 +1443,17 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'Lerlink', model: 'X706U'},
             {vendor: 'Moes', model: 'ZS-EUD_1gang'},
+            {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
+            {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
+            {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
+            {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
+            {vendor: 'Mercator Ikuü', model: 'SSWD01'},
+            {vendor: 'Moes', model: 'ZS-USD'},
+            {vendor: 'Moes', model: 'EDM-1ZBB-EU'},
             tuya.whitelabel('Moes', 'ZS-SR-EUD-1', 'Star ring smart dimmer switch 1 gang', ['_TZE204_hlx9tnzb']),
             tuya.whitelabel('Moes', 'MS-105Z', 'Smart Dimmer module', ['_TZE200_la2c2uo9']),
+            tuya.whitelabel('Mercator Ikuü', 'SSWM-DIMZ', 'Switch Mechanism', ['_TZE200_9cxuhakf']),
+            tuya.whitelabel('Mercator Ikuü', 'SSWRM-ZB', 'Rotary dimmer mechanism', ['_TZE200_a0syesf5']),
         ],
     },
     {
