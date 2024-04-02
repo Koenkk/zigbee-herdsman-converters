@@ -1,5 +1,12 @@
 # Changelog
 
+## [19.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.12.1...v19.13.0) (2024-04-02)
+
+
+### Features
+
+* Improve logging ([#7289](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7289)) ([5fa8327](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5fa8327da80fc9eb85d284f67cef970c30939079))
+
 ## [19.12.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.12.0...v19.12.1) (2024-04-02)
 
 
