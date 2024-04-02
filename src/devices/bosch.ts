@@ -790,9 +790,9 @@ const fzLocal = {
                 }
             }
             if (msg.data.hasOwnProperty('airpurity')) {
-                const iaq = parseInt(msg.data['airpurity'];
+                const iaq = parseInt(msg.data['airpurity']);
                 result.aqi = iaq;
-                result.co2 = utils.precisionRound((msg.data['airpurity'] * 10.0 + 500.0), 2);
+                result.co2 = ((iaq * 10) + 500);
                 let factor = 6;
                 if ((iaq >= 51) && (iaq <= 100)) {
                     factor = 10;
