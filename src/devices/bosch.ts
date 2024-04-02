@@ -793,7 +793,23 @@ const fzLocal = {
                 const iaq = parseInt(msg.data['airpurity'];
                 result.aqi = iaq;
                 result.co2 = utils.precisionRound((msg.data['airpurity'] * 10.0 + 500.0), 2);
-                result.voc = utils.precisionRound((msg.data['airpurity'] * 71.22), 2);
+                let factor = 6;
+                if ((iaq >= 51) && (iaq <= 100)) {
+                    factor = 10;
+                }
+                else if ((iaq >= 101) && (iaq <= 150)) {
+                    factor = 20;
+                }
+                else if ((iaq >= 151) && (iaq <= 200)) {
+                    factor = 50;
+                }
+                else if ((iaq >= 201) && (iaq <= 250)) {
+                    factor = 100;
+                }
+                else if (iaq >= 251) {
+                    factor = 100;
+                }
+                result.voc = (iaq * factor);
             }
             if (msg.data.hasOwnProperty('temperature')) {
                 result.temperature = parseFloat(msg.data['temperature']) / 100.0;
