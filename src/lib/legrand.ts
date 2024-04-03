@@ -2,6 +2,7 @@ import {Zcl} from 'zigbee-herdsman';
 import {Fz, Tz, OnEvent, KeyValueString, KeyValueAny} from '../lib/types';
 import * as exposes from './exposes';
 import * as utils from '../lib/utils';
+import {logger} from './logger';
 
 const NS = 'zhc:legrand';
 const e = exposes.presets;
@@ -134,7 +135,7 @@ export const fzLegrand = {
                 else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
                 else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
                 else {
-                    meta.logger.warning(`Device_mode ${option0} not recognized, please fix me!`, NS);
+                    logger.warning(`Device_mode ${option0} not recognized, please fix me!`, NS);
                     payload.device_mode = 'unknown';
                 }
             }

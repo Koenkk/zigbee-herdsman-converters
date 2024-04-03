@@ -2,6 +2,7 @@ import {Fz, Tz, ModernExtend} from './types';
 import {presets as e, access as ea} from './exposes';
 import {numeric, NumericArgs, setupConfigureForReporting} from './modernExtend';
 import {Zcl} from 'zigbee-herdsman';
+import {logger} from './logger';
 
 const NS = 'zhc:ubisys';
 
@@ -70,7 +71,7 @@ export const ubisysModernExtend = {
                     await entity.write(clusterName, {[writeableAttributeName]: value ? 1 : 0},
                         {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH});
                 } else {
-                    meta.logger.error(`${propertyName} must be a boolean!`, NS);
+                    logger.error(`${propertyName} must be a boolean!`, NS);
                 }
             },
             convertGet: async (entity, key, meta) => {

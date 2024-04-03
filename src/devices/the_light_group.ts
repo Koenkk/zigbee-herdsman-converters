@@ -16,7 +16,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.electrical_measurement],
         toZigbee: [tz.light_onoff_brightness, tz.level_config],
         exposes: [e.light_brightness().withLevelConfig()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             // Endpoint 1
             const endpoint1 = device.getEndpoint(1);
             const binds1 = ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering'];

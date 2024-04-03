@@ -15,7 +15,7 @@ const definitions: Definition[] = [
         description: 're:dy plug',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(85);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             // await reporting.readMeteringMultiplierDivisor(endpoint);

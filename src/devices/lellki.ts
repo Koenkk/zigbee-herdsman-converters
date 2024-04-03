@@ -31,7 +31,7 @@ const definitions: Definition[] = [
         description: 'Smart plug (without power monitoring)',
         vendor: 'LELLKI',
         extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
@@ -69,7 +69,7 @@ const definitions: Definition[] = [
         description: 'Touch switch 1 gang (with power monitoring)',
         vendor: 'LELLKI',
         extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
@@ -85,9 +85,9 @@ const definitions: Definition[] = [
         description: 'Power socket EU (with power monitoring)',
         vendor: 'LELLKI',
         extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
@@ -104,9 +104,9 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off_force_multiendpoint, fz.electrical_measurement, fz.metering, fz.ignore_basic_report,
             tuya.fz.power_outage_memory],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const ep of [1, 2, 3]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
                 await reporting.onOff(device.getEndpoint(ep));

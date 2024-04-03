@@ -25,7 +25,7 @@ const definitions: Definition[] = [
             .withSetpoint('occupied_cooling_setpoint', 10, 31, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat', 'cool', 'emergency_heating']).withRunningState(['idle', 'heat', 'cool'])
             .withLocalTemperatureCalibration().withFanMode(['auto', 'on'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genPowerCfg', 'genTime', 'hvacThermostat', 'hvacUserInterfaceCfg', 'hvacFanCtrl'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);

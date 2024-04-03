@@ -23,9 +23,9 @@ const definitions: Definition[] = [
             tuya.whitelabel('Ledron', 'YK-16', 'RGB+CCT Remote', ['_TZ3000_zwszqdpy']),
         ],
         exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await endpoint.command('genGroups', 'miboxerSetZones', {zones: [
                 {zoneNum: 1, groupId: 101},
                 {zoneNum: 2, groupId: 102},

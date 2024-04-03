@@ -174,7 +174,7 @@ const definitions: Definition[] = [
             e.numeric('brightness_standby', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1)
                 .withDescription('Display brightness in standby mode').withEndpoint('l1'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             await endpoint2.read('msRelativeHumidity', ['measuredValue']);
@@ -231,7 +231,7 @@ const definitions: Definition[] = [
                 .withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1).withDescription('Display brightness in standby mode')
                 .withEndpoint('l1'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint3);
@@ -275,7 +275,7 @@ const definitions: Definition[] = [
             e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l3'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint3);
@@ -330,7 +330,7 @@ const definitions: Definition[] = [
             e.numeric('brightness_standby', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1)
                 .withDescription('Display brightness in standby mode').withEndpoint('l1'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             await endpoint2.read('msRelativeHumidity', ['measuredValue']);
@@ -407,7 +407,7 @@ const definitions: Definition[] = [
             e.numeric('brightness_standby', ea.ALL).withUnit('%').withValueMax(100).withValueMin(0).withValueStep(1)
                 .withDescription('Display brightness in standby mode').withEndpoint('l1'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint3);
@@ -474,7 +474,7 @@ const definitions: Definition[] = [
             e.binary('target_temp_first', ea.ALL, true, false).withDescription('Display current temperature or target temperature')
                 .withEndpoint('l4'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint3);

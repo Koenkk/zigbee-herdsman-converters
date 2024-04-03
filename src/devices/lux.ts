@@ -25,7 +25,7 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat', 'cool'])
                 .withFanMode(['on', 'auto']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genPowerCfg', 'genTime', 'hvacThermostat', 'hvacUserInterfaceCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);

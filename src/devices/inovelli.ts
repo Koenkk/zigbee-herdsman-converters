@@ -2241,7 +2241,7 @@ const definitions: Definition[] = [
             fzLocal.inovelli(VZM31_ATTRIBUTES),
         ],
         ota: ota.inovelli,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'seMetering',
@@ -2292,7 +2292,7 @@ const definitions: Definition[] = [
         ],
         exposes: exposesListVZM35,
         ota: ota.inovelli,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genOnOff',
@@ -2330,7 +2330,7 @@ const definitions: Definition[] = [
         ota: ota.inovelli,
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
