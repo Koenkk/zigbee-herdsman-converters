@@ -5147,7 +5147,7 @@ const definitions: Definition[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_pcqjmcud'}],
+        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_g9g2xnch', '_TZ3000_pcqjmcud']),
         model: 'YSR-MINI-Z',
         vendor: 'TuYa',
         description: '2 in 1 dimming remote control and scene control',
