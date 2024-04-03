@@ -1787,6 +1787,7 @@ const tuyaModernExtend = {
             cluster: 'genOnOff',
             commands: ['commandTuyaAction'],
             attribute: 'value',
+            actionTemplate: 'endpoint_action',
         });
     },
 };
