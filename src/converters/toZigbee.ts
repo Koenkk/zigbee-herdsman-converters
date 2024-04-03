@@ -823,7 +823,7 @@ const converters2 = {
                 }
             }
             if (key === 'ballast_config') {
-                logger.warning(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`, NS);
+                logger.debug(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`, NS);
             }
         },
     } satisfies Tz.Converter,

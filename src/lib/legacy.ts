@@ -68,13 +68,13 @@ function getTypeName(dpValue: any) {
 }
 
 function logUnexpectedDataPoint(where: string, msg: KeyValueAny, dpValue: any, meta: Fz.Meta) {
-    logger.warning(`Received unexpected Tuya DataPoint #${dpValue.dp} from ${meta.device.ieeeAddr} with raw data '${JSON.stringify(dpValue)}': \
+    logger.debug(`Received unexpected Tuya DataPoint #${dpValue.dp} from ${meta.device.ieeeAddr} with raw data '${JSON.stringify(dpValue)}': \
         type='${msg.type}', datatype='${getTypeName(dpValue)}', value='${getDataValue(dpValue)}', known DP# usage: \
         ${JSON.stringify(getDataPointNames(dpValue))}`, `zhc:${where}`);
 }
 
 function logUnexpectedDataType(where: any, msg: any, dpValue: any, meta: Fz.Meta, expectedDataType?: any) {
-    logger.warning(`Received Tuya DataPoint #${dpValue.dp} with unexpected datatype from ${meta.device.ieeeAddr} with raw data \
+    logger.debug(`Received Tuya DataPoint #${dpValue.dp} with unexpected datatype from ${meta.device.ieeeAddr} with raw data \
         '${JSON.stringify(dpValue)}': type='${msg.type}', datatype='${getTypeName(dpValue)}' (instead of '${expectedDataType}'), \
         value='${getDataValue(dpValue)}', known DP# usage: ${JSON.stringify(getDataPointNames(dpValue))}`, `zhc:${where}`);
 }
@@ -478,18 +478,18 @@ function logUnexpectedDataValue(where: string, msg: KeyValueAny, dpValue: any, m
     expectedMinValue:any=null, expectedMaxValue:any=null) {
     if (expectedMinValue === null) {
         if (expectedMaxValue === null) {
-            logger.warning(`Received Tuya DataPoint #${dpValue.dp} with invalid value ${getDataValue(dpValue)} for ${valueKind} \
+            logger.debug(`Received Tuya DataPoint #${dpValue.dp} with invalid value ${getDataValue(dpValue)} for ${valueKind} \
                 from ${meta.device.ieeeAddr}`, `zhc:${where}`);
         } else {
-            logger.warning(`Received Tuya DataPoint #${dpValue.dp} with invalid value ${getDataValue(dpValue)} for ${valueKind} \
+            logger.debug(`Received Tuya DataPoint #${dpValue.dp} with invalid value ${getDataValue(dpValue)} for ${valueKind} \
                 from ${meta.device.ieeeAddr} which is higher than the expected maximum of ${expectedMaxValue}`, `zhc:${where}`);
         }
     } else {
         if (expectedMaxValue === null) {
-            logger.warning(`Received Tuya DataPoint #${dpValue.dp} with invalid value ${getDataValue(dpValue)} for ${valueKind} \
+            logger.debug(`Received Tuya DataPoint #${dpValue.dp} with invalid value ${getDataValue(dpValue)} for ${valueKind} \
                 from ${meta.device.ieeeAddr} which is lower than the expected minimum of ${expectedMinValue}`, `zhc:${where}`);
         } else {
-            logger.warning(`Received Tuya DataPoint #${dpValue.dp} with invalid value ${getDataValue(dpValue)} for ${valueKind} \
+            logger.debug(`Received Tuya DataPoint #${dpValue.dp} with invalid value ${getDataValue(dpValue)} for ${valueKind} \
                 from ${meta.device.ieeeAddr} which is outside the expected range from ${expectedMinValue} to ${expectedMaxValue}`, `zhc:${where}`);
         }
     }
@@ -1275,7 +1275,7 @@ const fromZigbee1 = {
                     result.battery = value;
                     break;
                 default:
-                    logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:ts0222');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:ts0222');
                 }
             }
             return result;
@@ -1447,7 +1447,7 @@ const fromZigbee1 = {
             case 101:
                 return {battery: value};
             default:
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:woox_r7060');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:woox_r7060');
             }
         },
     } satisfies Fz.Converter,
@@ -1653,7 +1653,7 @@ const fromZigbee1 = {
                 return {output_reverse: value};
             }
             default: {
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:x5h_thermostat');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:x5h_thermostat');
             }
             }
         },
@@ -1757,7 +1757,7 @@ const fromZigbee1 = {
                 ret.away_preset_days = (value[6]<<8)+value[7];
                 return ret;
             default:
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:zs_thermostat');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:zs_thermostat');
             }
         },
     } satisfies Fz.Converter,
@@ -1794,7 +1794,7 @@ const fromZigbee1 = {
                 case dataPoints.giexWaterValve.currentTemperature:
                     return; // Do Nothing - value ignored because it isn't a valid temperature reading (misdocumented and usage unclear)
                 default: // Unknown data point warning
-                    logger.warning(`Unrecognized DP #${dp} with VALUE = ${value}`, 'legacy:fz:giex_water_valve');
+                    logger.debug(`Unrecognized DP #${dp} with VALUE = ${value}`, 'legacy:fz:giex_water_valve');
                 }
             }
         },
@@ -1829,7 +1829,7 @@ const fromZigbee1 = {
             case dataPoints.alectoSilence:
                 return {silence: value};
             default:
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(msg.data)}`, 'zhc:legacy:fz:tuya_alecto_smoke');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(msg.data)}`, 'zhc:legacy:fz:tuya_alecto_smoke');
             }
         },
     } satisfies Fz.Converter,
@@ -3687,7 +3687,7 @@ const fromZigbee1 = {
             case dataPoints.tuyaSahkFormaldehyd:
                 return {formaldehyd: value};
             default:
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_air_quality');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_air_quality');
             }
         },
     } satisfies Fz.Converter,
@@ -3704,7 +3704,7 @@ const fromZigbee1 = {
             case dataPoints.tuyaSabCOalarm:
                 return {carbon_monoxide: value ? 'OFF' : 'ON'};
             default:
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_co');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_co');
             }
         },
     } satisfies Fz.Converter,
@@ -3753,7 +3753,7 @@ const fromZigbee1 = {
             case dataPoints.connecteMaxProtectTemp:
                 return {max_temperature_protection: value};
             default:
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:connecte_thermostat');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:connecte_thermostat');
             }
         },
     } satisfies Fz.Converter,
@@ -3876,7 +3876,7 @@ const fromZigbee1 = {
             case dataPoints.saswellAntiScaling:
                 return {anti_scaling: value ? 'ON' : 'OFF'};
             default:
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:saswell_thermostat');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:saswell_thermostat');
             }
         },
     } satisfies Fz.Converter,
@@ -3917,7 +3917,7 @@ const fromZigbee1 = {
                     }
                     break;
                 default:
-                    logger.warning(`Unrecognized DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:evanell_thermostat');
+                    logger.debug(`Unrecognized DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:evanell_thermostat');
                 }
             }
             return result;
@@ -3967,7 +3967,7 @@ const fromZigbee1 = {
             case dataPoints.runningState:
                 return {running_state: value ? 'heat' : 'idle'};
             default:
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:etop_thermostat');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:etop_thermostat');
             }
         },
     } satisfies Fz.Converter,
@@ -4075,7 +4075,7 @@ const fromZigbee1 = {
             case dataPoints.weekFormat: // Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
                 return {week: thermostatWeekFormat[value]};
             default: // The purpose of the dps 17 & 19 is still unknown
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_thermostat');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_thermostat');
             }
         },
     } satisfies Fz.Converter,
@@ -4190,7 +4190,7 @@ const fromZigbee1 = {
                     result.vibration = Boolean(value);
                     break;
                 default:
-                    logger.warning(
+                    logger.debug(
                         `Unrecognized DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`,
                         'zhc:legacy:fz:tuya_smart_vibration_sensor',
                     );
@@ -4718,7 +4718,7 @@ const fromZigbee1 = {
             case dataPoints.tthBattery:
                 return {battery: value};
             default:
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_temperature_humidity_sensor');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_temperature_humidity_sensor');
             }
         },
     } satisfies Fz.Converter,
@@ -4777,7 +4777,7 @@ const fromZigbee1 = {
                     result.humidity_report_interval = value;
                     break;
                 default:
-                    logger.warning(
+                    logger.debug(
                         `Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`,
                         'zhc:legacy:fz:nous_lcd_temperature_humidity_sensor',
                     );
@@ -4803,7 +4803,7 @@ const fromZigbee1 = {
             case dataPoints.thitIlluminanceLux:
                 return {illuminance_lux: value};
             default:
-                logger.warning(
+                logger.debug(
                     `Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`,
                     'zhc:legacy:fz:tuya_illuminance_temperature_humidity_sensor',
                 );
@@ -4830,7 +4830,7 @@ const fromZigbee1 = {
                 case dataPoints.tIlluminanceLux:
                     return {illuminance_lux: value};
                 default:
-                    logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_illuminance_sensor');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_illuminance_sensor');
                 }
             };
         })(),
@@ -4916,7 +4916,7 @@ const fromZigbee1 = {
             case dataPoints.hyAlarm: // [16] [0]
                 return {alarm: (value > 0) ? true : false};
             default: // The purpose of the codes 17 & 19 are still unknown
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:hy_thermostat');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:hy_thermostat');
             }
         },
     } satisfies Fz.Converter,
@@ -5282,7 +5282,7 @@ const fromZigbee1 = {
             case dataPoints.wooxSmokeTest:
                 return {smoke: value};
             default:
-                logger.warning(`Unrecognized DP #${ dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_smoke');
+                logger.debug(`Unrecognized DP #${ dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_smoke');
             }
         },
     } satisfies Fz.Converter,
@@ -5610,7 +5610,7 @@ const fromZigbee1 = {
                     break;
                 }
             default:
-                logger.warning(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:javis_microwave_sensor');
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:javis_microwave_sensor');
             }
         },
     } satisfies Fz.Converter,
