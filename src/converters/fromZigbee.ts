@@ -3198,33 +3198,6 @@ const converters1 = {
             };
         },
     } satisfies Fz.Converter,
-    E1E_G7F_action: {
-        cluster: 64528,
-        type: ['raw'],
-        convert: (model, msg, publish, options, meta) => {
-            // A list of commands the sixth digit in the raw data can map to
-            const lookup: KeyValueAny = {
-                1: 'on',
-                2: 'up',
-                // Two outputs for long press. The eighth digit outputs 1 for initial press then 2 for each
-                // LED blink (approx 1 second, repeating until release)
-                3: 'down', // Same as above
-                4: 'off',
-                5: 'on_double',
-                6: 'on_long',
-                7: 'off_double',
-                8: 'off_long',
-            };
-
-            if (msg.data[7] === 2) { // If the 8th digit is 2 (implying long press)
-                // Append '_long' to the end of the action so the user knows it was a long press.
-                // This only applies to the up and down action
-                return {action: `${lookup[msg.data[5]]}_long`};
-            } else {
-                return {action: lookup[msg.data[5]]}; // Just output the data from the above lookup list
-            }
-        },
-    } satisfies Fz.Converter,
     diyruz_freepad_clicks: {
         cluster: 'genMultistateInput',
         type: ['readResponse', 'attributeReport'],
