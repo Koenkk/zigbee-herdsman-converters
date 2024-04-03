@@ -1781,6 +1781,14 @@ const tuyaModernExtend = {
     tuyaMagicPacket(): ModernExtend {
         return {configure: configureMagicPacket, isModernExtend: true};
     },
+    tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs>): ModernExtend {
+        return modernExtend.actionEnumLookup({
+            actionLookup: {0: 'single', 1: 'double', 2: 'hold'},
+            cluster: 'genOnOff',
+            commands: ['commandTuyaAction'],
+            attribute: 'value',
+        });
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
