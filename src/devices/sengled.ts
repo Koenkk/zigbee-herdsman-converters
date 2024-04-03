@@ -117,7 +117,7 @@ const definitions: Definition[] = [
         description: 'Element classic (A19)',
         extend: [
             forcePowerSource({powerSource: 'Mains (single phase)'}),
-            sengledLight({colorTemp: {range: [154, 500]}}),
+            sengledLight(),
             electricityMeter({cluster: 'metering'}),
             ota(),
         ],
