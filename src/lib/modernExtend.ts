@@ -1465,11 +1465,17 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
             if (attributeKey in msg.data) {
                 let value = getFromLookupByValue(msg.data[attributeKey], lookup);
                 // endpointNames is used when action endpoint names don't overlap with other endpoint names
-                if (args.endpointNames) value = addEndpointName(value, msg, model, meta, 'postfix');
+                if (args.endpointNames) {
+                    value = addEndpointName(value, msg, model, meta, args.actionTemplate === 'action_endpoint' ? 'postfix' : 'prefix');
+                }
                 // buttonLookup is used when action endpoint names overlap with other endpoint names
                 if (args.buttonLookup) {
                     const endpointName = getFromLookupByValue(msg.endpoint.ID, buttonLookup);
-                    value =`${value}_${endpointName}`;
+                    if (args.actionTemplate === 'action_endpoint') {
+                        value =`${value}_${endpointName}`;
+                    } else {
+                        value =`${endpointName}_${value}`;
+                    }
                 }
                 return {[expose.property]: value};
             }
