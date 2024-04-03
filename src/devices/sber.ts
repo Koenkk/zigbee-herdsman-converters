@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import {battery, iasZoneAlarm, ignoreClusterReport} from 'src/lib/modernExtend';
+import {battery, humidity, iasZoneAlarm, ignoreClusterReport, temperature} from 'src/lib/modernExtend';
 import {modernExtend as tuyaModernExtend} from 'src/lib/tuya';
 const {tuyaMagicPacket, tuyaOnOffAction} = tuyaModernExtend;
 
@@ -42,8 +42,18 @@ const definitions: Definition[] = [
             */
         ],
     },
-    // Sber SBDV-00079 Smart temperature and humidity sensor
-    // Sber SBDV-00154 Smart leak sensor
+    {
+        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_zfirri2d'}],
+        model: 'SBDV-00079',
+        vendor: 'Sber',
+        description: 'Smart temperature and humidity sensor',
+        extend: [
+            temperature(),
+            humidity(),
+            battery({voltage: true, voltageReporting: true}),
+        ],
+    },
+    // Sber SBDV-00154 Smart leak sensor (fingerprint unknown)
 ];
 
 export default definitions;
