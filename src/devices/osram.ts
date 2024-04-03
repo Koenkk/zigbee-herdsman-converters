@@ -259,7 +259,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 1900, max: 3000}}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -291,7 +291,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
@@ -316,7 +316,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
@@ -419,7 +419,7 @@ const definitions: Definition[] = [
             e.action(['hold', 'release', 'toggle']).withEndpoint('l4'),
         ],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genLevelCtrl']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genLevelCtrl']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genLevelCtrl']);

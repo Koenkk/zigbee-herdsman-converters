@@ -145,6 +145,12 @@ export const danfossRoomStatusCode: KeyValueNumberString = {
     0x0801: 'floor_sensor_disconnected',
 };
 
+export const danfossRoomFloorSensorMode: KeyValueNumberString = {
+    0: 'comfort',
+    1: 'floor_only',
+    2: 'dual_mode',
+};
+
 export const danfossOutputStatus: KeyValueNumberString = {
     0: 'inactive',
     1: 'active',
@@ -310,6 +316,7 @@ exports.danfossAdaptionRunControl = danfossAdaptionRunControl;
 exports.danfossAdaptionRunStatus = danfossAdaptionRunStatus;
 exports.danfossWindowOpen = danfossWindowOpen;
 exports.danfossRoomStatusCode = danfossRoomStatusCode;
+exports.danfossRoomFloorSensorMode = danfossRoomFloorSensorMode;
 exports.danfossOutputStatus = danfossOutputStatus;
 exports.danfossSystemStatusWater = danfossSystemStatusWater;
 exports.danfossSystemStatusCode = danfossSystemStatusCode;

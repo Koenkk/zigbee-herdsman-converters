@@ -16,7 +16,7 @@ const definitions: Definition[] = [
         toZigbee: [legacy.tz.evanell_thermostat_current_heating_setpoint, legacy.tz.evanell_thermostat_system_mode,
             legacy.tz.evanell_thermostat_child_lock],
         onEvent: tuya.onEventSetTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },

@@ -82,7 +82,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pressure, fz.illuminance, fz.kmpcil_res005_occupancy,
             fz.kmpcil_res005_on_off],
         toZigbee: [tz.kmpcil_res005_on_off, tz.illuminance],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
             const binds = ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement',
                 'msIlluminanceMeasurement', 'genBinaryInput', 'genBinaryOutput'];
@@ -123,7 +123,7 @@ const definitions: Definition[] = [
             e.occupancy(), e.vibration(), e.temperature()],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             for (const cluster of ['msTemperatureMeasurement', 'genPowerCfg', 'genBinaryInput']) {
                 // This sleep here(and the sleep) after is to allow the command to be

@@ -37,7 +37,7 @@ const definitions: Definition[] = [
         description: 'Zigbee 3.0 smart plug',
         fromZigbee: [fz.on_off_skip_duplicate_transaction, fzLocal.BSD29],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);

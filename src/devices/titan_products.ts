@@ -13,7 +13,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.humidity, fz.temperature, fz.co2],
         exposes: [e.battery_voltage(), e.battery_low(), e.humidity(), e.temperature(), e.co2()],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msCO2']);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);

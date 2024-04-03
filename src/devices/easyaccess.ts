@@ -14,7 +14,7 @@ const definitions: Definition[] = [
         description: 'EasyFinger V2',
         fromZigbee: [fz.lock, fz.easycode_action, fz.battery],
         toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);

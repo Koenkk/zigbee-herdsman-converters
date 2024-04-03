@@ -52,7 +52,7 @@ const definitions: Definition[] = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, fz.metering, fz.ignore_basic_report],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -69,7 +69,7 @@ const definitions: Definition[] = [
         description: 'Temperature & humidity sensor',
         fromZigbee: [fz.temperature, fz.humidity],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             await reporting.temperature(endpoint);
@@ -85,7 +85,7 @@ const definitions: Definition[] = [
         description: 'Smart siren',
         fromZigbee: [fz.battery, fz.ias_wd, fz.ias_enroll, fz.ias_siren],
         toZigbee: [tz.warning_simple, tz.ias_max_duration, tz.warning, tz.squawk],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'ssIasZone', 'ssIasWd']);
             await endpoint.read('ssIasZone', ['zoneState', 'iasCieAddr', 'zoneId']);

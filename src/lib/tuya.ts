@@ -5,8 +5,11 @@ import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import * as utils from './utils';
 import * as modernExtend from './modernExtend';
-import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Logger, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString} from './types';
+import {Tuya, OnEventType, OnEventData, Zh, KeyValue, Tz, Fz, Expose, OnEvent, ModernExtend, Range, KeyValueNumberString} from './types';
+import {logger} from './logger';
 // import {Color} from './color';
+
+const NS = 'zhc:tuya';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -371,7 +374,7 @@ export const skip = {
     },
 };
 
-export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => {
+export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
     try {
         const endpoint = device.endpoints[0];
         await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
@@ -379,7 +382,7 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
         // Fails for some TuYa devices with UNSUPPORTED_ATTRIBUTE, ignore that.
         // e.g. https://github.com/Koenkk/zigbee2mqtt/issues/14857
         if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
-            logger.debug('TuYa configureMagicPacket failed, ignoring...');
+            logger.debug('configureMagicPacket failed, ignoring...', NS);
         } else {
             throw e;
         }
@@ -1330,8 +1333,7 @@ const tuyaFz = {
                         Object.assign(result, dpEntry[2].from(value, meta, options, publish));
                     }
                 } else {
-                    meta.logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' ` +
-                        `with value ${value}`);
+                    logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' with value ${value}`, NS);
                 }
             }
             return result;
@@ -1364,14 +1366,14 @@ function getHandlersForDP(name: string, dp: number, type: number, converter: Tuy
             for (const [attr, value] of Object.entries(meta.message)) {
                 const convertedKey: string = meta.mapped.meta && meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ?
                     `${attr}_${meta.endpoint_name}` : attr;
-                // meta.logger.debug(`key: ${key}, convertedKey: ${convertedKey}, keyName: ${keyName}`);
+                // logger.debug(`key: ${key}, convertedKey: ${convertedKey}, keyName: ${keyName}`);
                 if (convertedKey !== keyName) continue;
                 if (skip && skip(meta)) continue;
 
                 const convertedValue = await converter.to(value, meta);
                 const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
                 const seq = (useGlobalSequence) ? undefined : 1;
-                // meta.logger.debug(`dp: ${dp}, value: ${value}, convertedValue: ${convertedValue}`);
+                // logger.debug(`dp: ${dp}, value: ${value}, convertedValue: ${convertedValue}`);
 
                 if (convertedValue === undefined) {
                     // conversion done inside converter, ignore.

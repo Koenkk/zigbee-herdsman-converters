@@ -262,7 +262,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l4: 4, l5: 5};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
         },

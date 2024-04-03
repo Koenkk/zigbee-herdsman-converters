@@ -65,6 +65,7 @@ import ecolink from './ecolink';
 import ecosmart from './ecosmart';
 import ecozy from './ecozy';
 import edp from './edp';
+import efekta from './efekta';
 import eglo from './eglo';
 import elko from './elko';
 import enbrighten from './enbrighten';
@@ -362,6 +363,7 @@ export default [
     ...ecosmart,
     ...ecozy,
     ...edp,
+    ...efekta,
     ...eglo,
     ...elko,
     ...enbrighten,

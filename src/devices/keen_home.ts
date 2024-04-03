@@ -18,7 +18,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_temperature, fz.humidity, fz.keen_home_smart_vent_pressure],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             device.powerSource = 'Battery';
             device.save();
         },
@@ -34,7 +34,7 @@ const definitions: Definition[] = [
             fz.ignore_onoff_report],
         toZigbee: [tz.cover_via_brightness],
         meta: {battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genLevelCtrl', 'genPowerCfg', 'msTemperatureMeasurement', 'msPressureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -54,7 +54,7 @@ const definitions: Definition[] = [
             fz.ignore_onoff_report],
         toZigbee: [tz.cover_via_brightness],
         meta: {battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genLevelCtrl', 'genPowerCfg', 'msTemperatureMeasurement', 'msPressureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -71,7 +71,7 @@ const definitions: Definition[] = [
         vendor: 'Keen Home',
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400, reportableChange: 1}];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
@@ -87,7 +87,7 @@ const definitions: Definition[] = [
         vendor: 'Keen Home',
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400, reportableChange: 1}];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);

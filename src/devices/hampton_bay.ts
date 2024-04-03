@@ -18,7 +18,7 @@ const definitions: Definition[] = [
         exposes: [e.fan().withModes(['low', 'medium', 'high', 'on', 'smart'])],
         meta: {disableDefaultResponse: true},
         extend: [light({configureReporting: true}), forcePowerSource({powerSource: 'Mains (single phase)'})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
             await reporting.fanMode(endpoint);

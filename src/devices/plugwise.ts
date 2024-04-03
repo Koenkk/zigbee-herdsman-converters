@@ -103,7 +103,7 @@ const definitions: Definition[] = [
         description: 'Plug power socket on/off with power consumption monitoring',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -126,7 +126,7 @@ const definitions: Definition[] = [
             tzLocal.plugwise_radio_strength,
             tzLocal.plugwise_calibrate_valve,
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'hvacThermostat']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -158,7 +158,7 @@ const definitions: Definition[] = [
             tz.thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'hvacThermostat']);
             await reporting.batteryPercentageRemaining(endpoint);

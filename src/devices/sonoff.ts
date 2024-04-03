@@ -8,7 +8,9 @@ import {binary, enumLookup, forcePowerSource, numeric, onOff, customTimeResponse
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
+import {logger} from '../lib/logger';
 
+const NS = 'zhc:sonoff';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -27,6 +29,67 @@ const fzLocal = {
 
 const sonoffPrivateCluster = 0xFC11;
 const sonoffExtend = {
+    inchingControlSet: (): ModernExtend => {
+        const exposes = e.composite('inching_control_set', 'inching_control_set', ea.SET)
+            .withDescription('Device Inching function Settings. The device will automatically turn off (turn on) '+
+            'after each turn on (turn off) for a specified period of time.')
+            .withFeature(e.binary('inching_control', ea.SET, 'ENABLE', 'DISABLE').withDescription('Enable/disable inching function.'))
+            .withFeature(e.numeric('inching_time', ea.SET).withDescription('Delay time for executing a inching action.')
+                .withUnit('seconds').withValueMin(0.5).withValueMax(3599.5).withValueStep(0.5))
+            .withFeature(e.binary('inching_mode', ea.SET, 'ON', 'OFF').withDescription('Set inching off or inching on mode.').withValueToggle('ON'));
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: sonoffPrivateCluster.toString(),
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+            },
+        }];
+        const toZigbee: Tz.Converter[] = [{
+            key: ['inching_control_set'],
+            convertSet: async (entity, key, value, meta) => {
+                const inchingControl:string = 'inching_control';
+                const inchingTime:string = 'inching_time';
+                const inchingMode:string = 'inching_mode';
+
+                const tmpTime = Number((Math.round(Number((value[inchingTime as keyof typeof value] * 2).toFixed(1)))).toFixed(1));
+
+                const payloadValue = [];
+                payloadValue[0] = 0x01; // Cmd
+                payloadValue[1] = 0x17; // SubCmd
+                payloadValue[2] = 0x07; // Length
+                payloadValue[3] = 0x80; // SeqNum
+
+                payloadValue[4] = 0x00; // Mode
+                if (value[inchingControl as keyof typeof value] != 'DISABLE') {
+                    payloadValue[4] |= 0x80;
+                }
+                if (value[inchingMode as keyof typeof value] != 'OFF') {
+                    payloadValue[4] |= 0x01;
+                }
+
+                payloadValue[5] = 0x00; // Channel
+
+                payloadValue[6] = tmpTime; // Timeout
+                payloadValue[7] = tmpTime >> 8;
+
+                payloadValue[8] = 0x00; // Reserve
+                payloadValue[9] = 0x00;
+
+                payloadValue[10] = 0x00; // CheckCode
+                for (let i = 0; i < (payloadValue[2] + 3); i++) {
+                    payloadValue[10] ^= payloadValue[i];
+                }
+
+                await entity.command(sonoffPrivateCluster, 0x01, {data: payloadValue}, {manufacturerCode: 0x1286});
+                return {state: {[key]: value}};
+            },
+        }];
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
     weeklySchedule: (): ModernExtend => {
         const exposes = e.composite('schedule', 'weekly_schedule', ea.STATE_SET)
             .withDescription('The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
@@ -157,11 +220,11 @@ const sonoffExtend = {
             convert: (model, msg, publish, options, meta) => {
                 const attributeKey = 0x5008;// attr
                 if (attributeKey in msg.data ) {
-                    // meta.logger.debug(` from zigbee 0x5008 cluster ${msg.data[attributeKey]} `);
-                    // meta.logger.debug(msg.data[attributeKey]);
+                    // logger.debug(` from zigbee 0x5008 cluster ${msg.data[attributeKey]} `, NS);
+                    // logger.debug(msg.data[attributeKey]);
                     const buffer = Buffer.from(msg.data[attributeKey]);
-                    // meta.logger.debug(`buffer====> ${buffer[0]} ${buffer[1]} ${buffer[2]} ${buffer[3]} ${buffer[4]} ${buffer[5]} `);
-                    // meta.logger.debug(`buffer====> ${buffer[6]} ${buffer[7]} ${buffer[8]} ${buffer[9]} `);
+                    // logger.debug(`buffer====> ${buffer[0]} ${buffer[1]} ${buffer[2]} ${buffer[3]} ${buffer[4]} ${buffer[5]} `, NS);
+                    // logger.debug(`buffer====> ${buffer[6]} ${buffer[7]} ${buffer[8]} ${buffer[9]} `, NS);
                     const currentCountBuffer = buffer[0];
                     const totalNumberBuffer = buffer[1];
 
@@ -169,10 +232,10 @@ const sonoffExtend = {
 
                     const irrigationIntervalBuffer = (buffer[6] <<24) | (buffer[7] << 16) | (buffer[8] << 8)|buffer[9];
 
-                    // meta.logger.debug(`currentCountBuffer ${currentCountBuffer}`);
-                    // meta.logger.debug(`totalNumberOfTimesBuffer ${totalNumberBuffer}`);
-                    // meta.logger.debug(`irrigationDurationBuffer ${irrigationDurationBuffer}`);
-                    // meta.logger.debug(`irrigationIntervalBuffer ${irrigationIntervalBuffer}`);
+                    // logger.debug(`currentCountBuffer ${currentCountBuffer}`, NS);
+                    // logger.debug(`totalNumberOfTimesBuffer ${totalNumberBuffer}`, NS);
+                    // logger.debug(`irrigationDurationBuffer ${irrigationDurationBuffer}`, NS);
+                    // logger.debug(`irrigationIntervalBuffer ${irrigationIntervalBuffer}`, NS);
 
                     return {
                         cyclic_timed_irrigation: {
@@ -188,15 +251,15 @@ const sonoffExtend = {
         const toZigbee: Tz.Converter[] = [{
             key: ['cyclic_timed_irrigation'],
             convertSet: async (entity, key, value, meta) => {
-                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${key}`);
+                // logger.debug(`to zigbee cyclic_timed_irrigation ${key}`, NS);
                 // const currentCount:string = 'current_count';
-                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[currentCount as keyof typeof value]}`);
+                // logger.debug(`to zigbee cyclic_timed_irrigation ${value[currentCount as keyof typeof value]}`, NS);
                 const totalNumber:string = 'total_number';
-                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[totalNumber as keyof typeof value]}`);
+                // logger.debug(`to zigbee cyclic_timed_irrigation ${value[totalNumber as keyof typeof value]}`, NS);
                 const irrigationDuration:string = 'irrigation_duration';
-                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[irrigationDuration as keyof typeof value]}`);
+                // logger.debug(`to zigbee cyclic_timed_irrigation ${value[irrigationDuration as keyof typeof value]}`, NS);
                 const irrigationInterval:string = 'irrigation_interval';
-                // meta.logger.debug(`to zigbee cyclic_timed_irrigation ${value[irrigationInterval as keyof typeof value]}`);
+                // logger.debug(`to zigbee cyclic_timed_irrigation ${value[irrigationInterval as keyof typeof value]}`, NS);
 
                 const payloadValue = [];
                 payloadValue[0] = 0x0A;
@@ -245,11 +308,11 @@ const sonoffExtend = {
             convert: (model, msg, publish, options, meta) => {
                 const attributeKey = 0x5009;// attr
                 if (attributeKey in msg.data ) {
-                    // meta.logger.debug(` from zigbee 0x5009 cluster ${msg.data[attributeKey]} `);
-                    // meta.logger.debug(msg.data[attributeKey]);
+                    // logger.debug(` from zigbee 0x5009 cluster ${msg.data[attributeKey]} `, NS);
+                    // logger.debug(msg.data[attributeKey]);
                     const buffer = Buffer.from(msg.data[attributeKey]);
-                    // meta.logger.debug(`buffer====> ${buffer[0]} ${buffer[1]} ${buffer[2]} ${buffer[3]} ${buffer[4]} ${buffer[5]} `);
-                    // meta.logger.debug(`buffer====> ${buffer[6]} ${buffer[7]} ${buffer[8]} ${buffer[9]} `);
+                    // logger.debug(`buffer====> ${buffer[0]} ${buffer[1]} ${buffer[2]} ${buffer[3]} ${buffer[4]} ${buffer[5]} `, NS);
+                    // logger.debug(`buffer====> ${buffer[6]} ${buffer[7]} ${buffer[8]} ${buffer[9]} `, NS);
                     const currentCountBuffer = buffer[0];
                     const totalNumberBuffer = buffer[1];
 
@@ -257,10 +320,10 @@ const sonoffExtend = {
 
                     const irrigationIntervalBuffer = (buffer[6] <<24) | (buffer[7] << 16) | (buffer[8] << 8)|buffer[9];
 
-                    // meta.logger.debug(`currentCountBuffer ${currentCountBuffer}`);
-                    // meta.logger.debug(`totalNumberBuffer ${totalNumberBuffer}`);
-                    // meta.logger.debug(`irrigationCapacityBuffer ${irrigationCapacityBuffer}`);
-                    // meta.logger.debug(`irrigationIntervalBuffer ${irrigationIntervalBuffer}`);
+                    // logger.debug(`currentCountBuffer ${currentCountBuffer}`, NS);
+                    // logger.debug(`totalNumberBuffer ${totalNumberBuffer}`, NS);
+                    // logger.debug(`irrigationCapacityBuffer ${irrigationCapacityBuffer}`, NS);
+                    // logger.debug(`irrigationIntervalBuffer ${irrigationIntervalBuffer}`, NS);
 
                     return {
                         cyclic_quantitative_irrigation: {
@@ -276,15 +339,15 @@ const sonoffExtend = {
         const toZigbee: Tz.Converter[] = [{
             key: ['cyclic_quantitative_irrigation'],
             convertSet: async (entity, key, value, meta) => {
-                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${key}`);
+                // logger.debug(`to zigbee cyclic_Quantitative_irrigation ${key}`, NS);
                 // const currentCount:string = 'current_count';
-                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[currentCount as keyof typeof value]}`);
+                // logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[currentCount as keyof typeof value]}`, NS);
                 const totalNumber:string = 'total_number';
-                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[totalNumber as keyof typeof value]}`);
+                // logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[totalNumber as keyof typeof value]}`, NS);
                 const irrigationCapacity:string = 'irrigation_capacity';
-                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[irrigationCapacity as keyof typeof value]}`);
+                // logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[irrigationCapacity as keyof typeof value]}`, NS);
                 const irrigationInterval:string = 'irrigation_interval';
-                // meta.logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[irrigationInterval as keyof typeof value]}`);
+                // logger.debug(`to zigbee cyclic_Quantitative_irrigation ${value[irrigationInterval as keyof typeof value]}`, NS);
 
                 const payloadValue = [];
                 payloadValue[0] = 0x0A;
@@ -344,7 +407,7 @@ const definitions: Definition[] = [
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
         extend: [onOff()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
             // to poll slower.
@@ -361,7 +424,7 @@ const definitions: Definition[] = [
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
         extend: [onOff()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
             // to poll slower.
@@ -384,7 +447,7 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
         extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             // Device does not support configureReporting for onOff, therefore just bind here.
             // https://github.com/Koenkk/zigbee2mqtt/issues/20618
             const endpoint = device.getEndpoint(1);
@@ -409,7 +472,7 @@ const definitions: Definition[] = [
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
@@ -425,7 +488,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.action(['single', 'double', 'long']), e.battery_voltage()],
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
@@ -460,7 +523,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         fromZigbee: [fz.SNZB02_temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             try {
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
@@ -470,7 +533,7 @@ const definitions: Definition[] = [
                 await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
                 await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
-                logger.error(`Configure failed: ${e}`);
+                logger.error(`Configure failed: ${e}`, NS);
             }
         },
     },
@@ -482,7 +545,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.temperature(), e.humidity()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
@@ -514,7 +577,7 @@ const definitions: Definition[] = [
         description: 'Motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
@@ -547,7 +610,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.linkquality_from_basic, fzLocal.router_config],
         toZigbee: [],
         exposes: [e.numeric('light_indicator_level', ea.STATE).withDescription('Brightness of the indicator light').withAccess(ea.STATE)],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
@@ -578,7 +641,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
@@ -594,7 +657,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             try {
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
@@ -603,7 +666,7 @@ const definitions: Definition[] = [
                 await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 100});
                 await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
-                logger.error(`Configure failed: ${e}`);
+                logger.error(`Configure failed: ${e}`, NS);
             }
         },
     },
@@ -628,7 +691,7 @@ const definitions: Definition[] = [
                 access: 'STATE_GET',
             }),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
@@ -663,7 +726,7 @@ const definitions: Definition[] = [
                 access: 'STATE',
             }),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
@@ -803,7 +866,7 @@ const definitions: Definition[] = [
             sonoffExtend.weeklySchedule(),
             customTimeResponse('1970_UTC'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatTemperature(endpoint);
@@ -858,12 +921,32 @@ const definitions: Definition[] = [
             sonoffExtend.cyclicTimedIrrigation(),
             sonoffExtend.cyclicQuantitativeIrrigation(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msFlowMeasurement']);
             await endpoint.read(0xFC11, [0x500C]);
         },
+    },
+    {
+        zigbeeModel: ['ZBMicro'],
+        model: 'ZBMicro',
+        vendor: 'SONOFF',
+        description: 'Zigbee USB repeater plug',
+        ota: ota.zigbeeOTA,
+        extend: [
+            onOff(),
+            binary({
+                name: 'rf_turbo_mode',
+                cluster: 0xFC11,
+                attribute: {ID: 0x0012, type: 0x29},
+                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+                description: 'Enable/disable Radio power turbo mode',
+                valueOff: [false, 0x09],
+                valueOn: [true, 0x14],
+            }),
+            sonoffExtend.inchingControlSet(),
+        ],
     },
 ];
 

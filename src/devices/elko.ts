@@ -25,7 +25,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_toggle, fz.command_step],
         toZigbee: [],
         exposes: [e.action(['toggle', 'brightness_step_up', 'brightness_step_down'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -74,7 +74,7 @@ const definitions: Definition[] = [
             e.binary('night_switching', ea.ALL, 'on', 'off')
                 .withDescription('Turn on or off night setting.'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'genBasic', 'genIdentify']);
 

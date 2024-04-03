@@ -75,7 +75,7 @@ const definitions: Definition[] = [
             return features;
         })(20)),
         toZigbee: [tz.diyruz_freepad_on_off_config],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             if (device.applicationVersion < 3) { // Legacy PM2 firmwares
@@ -118,7 +118,7 @@ const definitions: Definition[] = [
             return features;
         })(8)),
         toZigbee: [tz.diyruz_freepad_on_off_config],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             if (device.applicationVersion < 3) { // Legacy PM2 firmwares
@@ -159,7 +159,7 @@ const definitions: Definition[] = [
             e.numeric('sensitivity', ea.ALL).withDescription('This is applicable if tubes type is set to other')
                 .withValueMin(0).withValueMax(100)],
         toZigbee: [tz.diyruz_geiger_config],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement', 'genOnOff']);
 
@@ -202,7 +202,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'bme': 1, 'ds': 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const firstEndpoint = device.getEndpoint(1);
             const secondEndpoint = device.getEndpoint(2);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
@@ -233,7 +233,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.humidity, fz.co2, fz.pressure, fz.diyruz_airsense_config_co2,
             fz.diyruz_airsense_config_temp, fz.diyruz_airsense_config_pres, fz.diyruz_airsense_config_hum],
         toZigbee: [tz.diyruz_airsense_config],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement', 'msCO2'];
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
@@ -265,7 +265,7 @@ const definitions: Definition[] = [
         description: 'Matrix intercom auto opener',
         fromZigbee: [fz.battery, fz.diyruz_zintercom_config],
         toZigbee: [tz.diyruz_zintercom_config],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             const payload1 = [

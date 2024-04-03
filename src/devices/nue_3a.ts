@@ -163,7 +163,7 @@ const definitions: Definition[] = [
             deviceEndpoints({endpoints: {'top': 11, 'bottom': 12}}),
             onOff({endpointNames: ['top', 'bottom'], configureReporting: false}),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             // ConfigureReporting for onOff fails
             // https://github.com/Koenkk/zigbee2mqtt/issues/20867
             await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genOnOff']);
@@ -238,7 +238,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {disableDefaultResponse: true},
         exposes: [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);

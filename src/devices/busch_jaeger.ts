@@ -63,7 +63,7 @@ const definitions: Definition[] = [
             return expose;
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints for
             // the rockers. If the module is installed on a dimmer or relay, there is an additional endpoint (18).
             const endpoint18 = device.getEndpoint(0x12);
