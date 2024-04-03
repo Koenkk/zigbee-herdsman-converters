@@ -1,4 +1,4 @@
-import {onOff, quirkCheckinInterval} from '../lib/modernExtend';
+import {identify, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
@@ -12,6 +12,7 @@ import {Tz, Fz, Definition, KeyValue} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
+const NS = 'zhc:bosch';
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH};
 
 const sirenVolume = {
@@ -301,12 +302,19 @@ const tzLocal = {
             'child_lock',
             'calibration', 'calibration_closing_time', 'calibration_opening_time',
             'state',
+            'on_time',
+            'off_wait_time',
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state') {
                 if ('ID' in entity && entity.ID === 1) {
                     await tz.cover_state.convertSet(entity, key, value, meta);
                 } else {
+                    await tz.on_off.convertSet(entity, key, value, meta);
+                }
+            }
+            if (key === 'on_time' || key === 'on_wait_time') {
+                if ('ID' in entity && entity.ID !== 1) {
                     await tz.on_off.convertSet(entity, key, value, meta);
                 }
             }
@@ -342,7 +350,11 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'state':
-                await entity.read('genOnOff', ['onOff']);
+            case 'on_time':
+            case 'off_wait_time':
+                if ('ID' in entity && entity.ID !== 1) {
+                    await entity.read('genOnOff', ['onOff']);
+                }
                 break;
             case 'device_mode':
                 await entity.read('manuSpecificBosch10', ['deviceMode']);
@@ -379,17 +391,17 @@ const tzLocal = {
                 await entity.read(0xFCAC, [0x0003], manufacturerOptions);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bosch_bwa1.convertGet ${key}`);
             }
         },
     } satisfies Tz.Converter,
     bosch_thermostat: {
-        key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature', 'valve_adapt_process'],
+        key: ['window_detection', 'boost', 'system_mode', 'pi_heating_demand', 'remote_temperature', 'valve_adapt_process'],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'window_open') {
+            if (key === 'window_detection') {
                 const index = utils.getFromLookup(value, stateOffOn);
                 await entity.write('hvacThermostat', {0x4042: {value: index, type: Zcl.DataType.enum8}}, manufacturerOptions);
-                return {state: {window_open: value}};
+                return {state: {window_detection: value}};
             }
             if (key === 'boost') {
                 const index = utils.getFromLookup(value, stateOffOn);
@@ -447,7 +459,7 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
-            case 'window_open':
+            case 'window_detection':
                 await entity.read('hvacThermostat', [0x4042], manufacturerOptions);
                 break;
             case 'boost':
@@ -579,6 +591,10 @@ const tzLocal = {
             case 'heartbeat':
                 await meta.device.getEndpoint(12).read('manuSpecificBosch7', [0x5005], manufacturerOptions);
                 break;
+            case 'alarm':
+            case 'self_test':
+                await meta.device.getEndpoint(12).read('manuSpecificBosch8', [0x5000], manufacturerOptions);
+                break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
             }
@@ -699,7 +715,7 @@ const fzLocal = {
                 result.remote_temperature = utils.precisionRound(data[0x4040] / 100, 1);
             }
             if (data.hasOwnProperty(0x4042)) {
-                result.window_open = (Object.keys(stateOffOn)[data[0x4042]]);
+                result.window_detection = (Object.keys(stateOffOn)[data[0x4042]]);
             }
             if (data.hasOwnProperty(0x4043)) {
                 result.boost = (Object.keys(stateOffOn)[data[0x4043]]);
@@ -769,19 +785,37 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty('humidity')) {
-                result.humidity = msg.data['humidity'] / 100.0;
+                const humidity = parseFloat(msg.data['humidity']) / 100.0;
+                if (humidity >= 0 && humidity <= 100) {
+                    result.humidity = humidity;
+                }
             }
             if (msg.data.hasOwnProperty('airpurity')) {
-                result.co2 = msg.data['airpurity'] * 10.0 + 500.0;
+                const iaq = parseInt(msg.data['airpurity']);
+                result.aqi = iaq;
+                result.co2 = ((iaq * 10) + 500);
+                let factor = 6;
+                if ((iaq >= 51) && (iaq <= 100)) {
+                    factor = 10;
+                } else if ((iaq >= 101) && (iaq <= 150)) {
+                    factor = 20;
+                } else if ((iaq >= 151) && (iaq <= 200)) {
+                    factor = 50;
+                } else if ((iaq >= 201) && (iaq <= 250)) {
+                    factor = 100;
+                } else if (iaq >= 251) {
+                    factor = 100;
+                }
+                result.voc = (iaq * factor);
             }
             if (msg.data.hasOwnProperty('temperature')) {
-                result.temperature = msg.data['temperature'] / 100.0;
+                result.temperature = parseFloat(msg.data['temperature']) / 100.0;
             }
             if (msg.data.hasOwnProperty('illuminance_lux')) {
-                result.illuminance_lux = msg.data['illuminance_lux'] / 2.0;
+                result.illuminance_lux = utils.precisionRound((msg.data['illuminance_lux'] / 2), 2);
             }
             if (msg.data.hasOwnProperty('battery')) {
-                result.battery = msg.data['battery'] / 2.0;
+                result.battery = utils.precisionRound((msg.data['battery'] / 2), 2);
             }
             return result;
         },
@@ -862,7 +896,7 @@ const fzLocal = {
             if (options.hasOwnProperty('led_response')) {
                 buffer = Buffer.from(options.led_response as string, 'hex');
                 if (buffer.length !== 9) {
-                    meta.logger.error(`Invalid length of led_response: ${buffer.length} (should be 9)`);
+                    meta.logger.error(`Invalid length of led_response: ${buffer.length} (should be 9)`, NS);
                     buffer = Buffer.from('30ff00000102010001', 'hex');
                 }
             } else {
@@ -886,7 +920,7 @@ const fzLocal = {
                 }
                 return {action: `button_${buttons[buttonId]}_${command}`};
             } else {
-                meta.logger.error(`Received message with unknown command ID ${buttonId}. Data: 0x${msg.data.toString('hex')}`);
+                meta.logger.error(`Received message with unknown command ID ${buttonId}. Data: 0x${msg.data.toString('hex')}`, NS);
             }
         },
     } satisfies Fz.Converter,
@@ -1051,12 +1085,12 @@ const definitions: Definition[] = [
                     'This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 minutes).')
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSystemMode(['off', 'heat'])
+                .withSystemMode(['off', 'heat', 'auto'])
                 .withPiHeatingDemand(ea.ALL)
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.binary('boost', ea.ALL, 'ON', 'OFF')
                 .withDescription('Activate boost heating'),
-            e.binary('window_open', ea.ALL, 'ON', 'OFF')
+            e.binary('window_detection', ea.ALL, 'ON', 'OFF')
                 .withDescription('Window open'),
             e.enum('display_orientation', ea.ALL, Object.keys(displayOrientation))
                 .withDescription('Display orientation')
@@ -1131,7 +1165,7 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR * 12,
                 reportableChange: null,
             }], manufacturerOptions);
-            // report window_open
+            // report window_detection
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
@@ -1160,15 +1194,18 @@ const definitions: Definition[] = [
         description: 'Room thermostat II (Battery model)',
         fromZigbee: [fz.humidity, fz.thermostat, fz.battery, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tzLocal.bosch_thermostat, tzLocal.bosch_userInterface],
+            tz.thermostat_local_temperature, tz.thermostat_keypad_lockout, tz.thermostat_running_state,
+            tzLocal.bosch_thermostat, tzLocal.bosch_userInterface],
         exposes: [
             e.climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'auto']),
+                .withSystemMode(['off', 'heat', 'auto'])
+                .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.humidity(),
-            e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
+            e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
+            e.binary('window_detection', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
             e.child_lock().setAccess('state', ea.ALL),
             e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
             e.numeric('display_brightness', ea.ALL).withValueMin(0).withValueMax(10).withDescription('Specifies the brightness value of the display'),
@@ -1182,14 +1219,27 @@ const definitions: Definition[] = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.humidity(endpoint);
 
-            // report is window_open
+            // report operating_mode (system_mode)
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4007, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], manufacturerOptions);
+            // report window_detection
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
-
+            // report boost as it's disabled by thermostat after 5 minutes
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4043, type: Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], manufacturerOptions);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], manufacturerOptions);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
@@ -1214,7 +1264,7 @@ const definitions: Definition[] = [
                 .withRunningState(['idle', 'heat'], ea.STATE_GET),
             e.humidity(),
             e.binary('boost', ea.ALL, 'ON', 'OFF').withDescription('Activate Boost heating'),
-            e.binary('window_open', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
+            e.binary('window_detection', ea.ALL, 'ON', 'OFF').withDescription('Window open'),
             e.child_lock().setAccess('state', ea.ALL),
             e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
             e.numeric('display_brightness', ea.ALL).withValueMin(0).withValueMax(10).withDescription('Specifies the brightness value of the display'),
@@ -1241,7 +1291,7 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], manufacturerOptions);
-            // report window_open
+            // report window_detection
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4042, type: Zcl.DataType.enum8},
                 minimumReportInterval: 0,
@@ -1293,7 +1343,13 @@ const definitions: Definition[] = [
             await device.getEndpoint(12).read('manuSpecificBosch7', ['heartbeat'], manufacturerOptions);
         },
         exposes: [
-            e.smoke(), e.temperature(), e.humidity(), e.co2(), e.illuminance_lux(), e.battery(),
+            e.smoke(),
+            e.temperature().withValueMin(0).withValueMax(65).withValueStep(0.1),
+            e.humidity().withValueMin(0).withValueMax(100).withValueStep(0.1),
+            e.voc().withValueMin(0).withValueMax(35610).withValueStep(1),
+            e.co2().withValueMin(500).withValueMax(5500).withValueStep(1),
+            e.aqi().withValueMin(0).withValueMax(500).withValueStep(1),
+            e.illuminance_lux(), e.battery(),
             e.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
             e.text('siren_state', ea.STATE).withDescription('Siren state'),
             e.binary('self_test', ea.ALL, true, false).withDescription('Initiate self-test'),
@@ -1362,6 +1418,14 @@ const definitions: Definition[] = [
         exposes: [e.battery_low(), e.contact(), e.vibration(), e.action(['single', 'long'])],
     },
     {
+        zigbeeModel: ['RBSH-MMD-ZB-EU'],
+        model: 'BMCT-DZ',
+        vendor: 'Bosch',
+        description: 'Phase-cut dimmer',
+        ota: ota.zigbeeOTA,
+        extend: [identify(), light({configureReporting: true, effect: false})],
+    },
+    {
         zigbeeModel: ['RBSH-MMR-ZB-EU'],
         model: 'BMCT-RZ',
         vendor: 'Bosch',
@@ -1374,7 +1438,7 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Light/shutter control unit II',
         fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.on_off, fz.power_on_behavior],
-        toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.on_off, tz.power_on_behavior],
+        toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.power_on_behavior],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
@@ -1395,9 +1459,12 @@ const definitions: Definition[] = [
             await reporting.onOff(endpoint3);
         },
         exposes: (device, options) => {
-            const lightExposes = [
+            const commonExposes = [
                 e.enum('switch_type', ea.ALL, Object.keys(stateSwitchType))
                     .withDescription('Module controlled by a rocker switch or a button'),
+                e.linkquality(),
+            ];
+            const lightExposes = [
                 e.switch().withEndpoint('left'),
                 e.switch().withEndpoint('right'),
                 e.power_on_behavior().withEndpoint('right'),
@@ -1423,9 +1490,9 @@ const definitions: Definition[] = [
                 const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 
                 if (deviceMode === 'light') {
-                    return [...lightExposes, e.linkquality()];
+                    return [...commonExposes, ...lightExposes];
                 } else if (deviceMode === 'shutter') {
-                    return [...coverExposes, e.linkquality()];
+                    return [...commonExposes, ...coverExposes];
                 }
             }
             return [e.enum('device_mode', ea.ALL, Object.keys(stateDeviceMode)).withDescription('Device mode'),

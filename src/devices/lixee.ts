@@ -1,4 +1,4 @@
-import {Definition, Fz, Tz, KeyValue, Logger, Zh} from '../lib/types';
+import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
 /* eslint-disable camelcase */
 /* eslint-disable max-len */
 import * as exposes from '../lib/exposes';
@@ -11,7 +11,9 @@ const e = exposes.presets;
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
 import {Buffer} from 'buffer';
+import {logger} from '../lib/logger';
 
+const NS = 'zhc:lixee';
 /* Start ZiPulses */
 
 const unitsZiPulses = [
@@ -191,7 +193,7 @@ const fzLocal = {
                         // @ts-expect-error
                         val = utils.precisionRound(val / 1000, kWh_p); // from Wh to kWh
                         break;
-                    case 'relais':
+                    case 'relais': {
                         // relais is a decimal value representing the bits
                         // of 8 virtual dry contacts.
                         // 0 for an open relay
@@ -204,143 +206,152 @@ const fzLocal = {
                         // relais6 Storage or injection
                         // relais7 Unassigned
                         // relais8 Unassigned
+                        const relais_breakout: KeyValue = {};
                         for (let i = 0; i < 8; i++) {
-                            result[at_snake + (i+1)] = (val & (1<<i)) >>> i;
+                            relais_breakout[at_snake + (i+1)] = (val & (1<<i)) >>> i;
                         }
+                        result[at_snake + '_breakout'] = relais_breakout;
                         break;
-                    case 'statusRegister':
+                    }
+                    case 'statusRegister': {
+                        // val is a String representing hex.
+                        // Must convert
+                        const valhex = Number('0x' + val);
+                        const statusRegister_breakout: KeyValue = {};
                         // contact sec
-                        result[at_snake + '_contact_sec'] = (val & 0x1) == 1 ? 'ouvert' : 'ferme';
+                        statusRegister_breakout['contact_sec'] = (valhex & 0x1) == 1 ? 'ouvert' : 'ferme';
                         // organe de coupure
-                        switch ((val >>> 1) & 0x7) {
+                        switch ((valhex >>> 1) & 0x7) {
                         case 0:
-                            result[at_snake + '_organe_coupure'] = 'ferme';
+                            statusRegister_breakout['organe_coupure'] = 'ferme';
                             break;
                         case 1:
-                            result[at_snake + '_organe_coupure'] = 'surpuissance';
+                            statusRegister_breakout['organe_coupure'] = 'surpuissance';
                             break;
                         case 2:
-                            result[at_snake + '_organe_coupure'] = 'surtension';
+                            statusRegister_breakout['organe_coupure'] = 'surtension';
                             break;
                         case 3:
-                            result[at_snake + '_organe_coupure'] = 'delestage';
+                            statusRegister_breakout['organe_coupure'] = 'delestage';
                             break;
                         case 4:
-                            result[at_snake + '_organe_coupure'] = 'ordre_CPL_Euridis';
+                            statusRegister_breakout['organe_coupure'] = 'ordre_CPL_Euridis';
                             break;
                         case 5:
-                            result[at_snake + '_organe_coupure'] = 'surchauffe_surcourant';
+                            statusRegister_breakout['organe_coupure'] = 'surchauffe_surcourant';
                             break;
                         case 6:
-                            result[at_snake + '_organe_coupure'] = 'surchauffe_simple';
+                            statusRegister_breakout['organe_coupure'] = 'surchauffe_simple';
                             break;
                         }
                         // etat cache borne distributeur
-                        result[at_snake + '_cache_borne_dist'] = ((val >>> 4) & 0x1) == 0 ? 'ferme' : 'ouvert';
+                        statusRegister_breakout['cache_borne_dist'] = ((valhex >>> 4) & 0x1) == 0 ? 'ferme' : 'ouvert';
                         // bit 5 inutilise
                         // surtension sur une des phases
-                        result[at_snake + '_surtension_phase'] = (val >>> 6) & 0x1;
+                        statusRegister_breakout['surtension_phase'] = (valhex >>> 6) & 0x1;
                         // depassement puissance de reference
-                        result[at_snake + '_depassement_ref_pow'] = (val >>> 7) & 0x1;
+                        statusRegister_breakout['depassement_ref_pow'] = (valhex >>> 7) & 0x1;
                         // consommateur ou producteur
-                        result[at_snake + '_producteur'] = (val >>> 8) & 0x1;
+                        statusRegister_breakout['producteur'] = (valhex >>> 8) & 0x1;
                         // sens de l'energie active
-                        result[at_snake + '_sens_energie_active'] = ((val >>> 9) & 0x1) == 0 ? 'positive' : 'negative';
+                        statusRegister_breakout['sens_energie_active'] = ((valhex >>> 9) & 0x1) == 0 ? 'positive' : 'negative';
                         // tarif en cours sur le contrat fourniture
-                        result[at_snake + '_tarif_four'] = 'index_' + (((val >>> 10) & 0xF) + 1);
+                        statusRegister_breakout['tarif_four'] = 'index_' + (((valhex >>> 10) & 0xF) + 1);
                         // tarif en cours sur le contrat distributeur
-                        result[at_snake + '_tarif_dist'] = 'index_' + (((val >>> 14) & 0x3) + 1);
+                        statusRegister_breakout['tarif_dist'] = 'index_' + (((valhex >>> 14) & 0x3) + 1);
                         // mode degrade de l'horloge
-                        result[at_snake + '_horloge'] = ((val >>> 16) & 0x1) == 0 ? 'correcte' : 'degradee';
+                        statusRegister_breakout['horloge'] = ((valhex >>> 16) & 0x1) == 0 ? 'correcte' : 'degradee';
                         // TIC historique ou standard
-                        result[at_snake + '_type_tic'] = ((val >>> 17) & 0x1) == 0 ? 'historique' : 'standard';
+                        statusRegister_breakout['type_tic'] = ((valhex >>> 17) & 0x1) == 0 ? 'historique' : 'standard';
                         // bit 18 inutilise
                         // etat sortie communicateur Euridis
-                        switch ((val >>> 19) & 0x3) {
+                        switch ((valhex >>> 19) & 0x3) {
                         case 0:
-                            result[at_snake + '_comm_euridis'] = 'desactivee';
+                            statusRegister_breakout['comm_euridis'] = 'desactivee';
                             break;
                         case 1:
-                            result[at_snake + '_comm_euridis'] = 'activee sans securite';
+                            statusRegister_breakout['comm_euridis'] = 'activee sans securite';
                             break;
                         case 3:
-                            result[at_snake + '_comm_euridis'] = 'activee avec securite';
+                            statusRegister_breakout['comm_euridis'] = 'activee avec securite';
                             break;
                         }
                         // etat CPL
-                        switch ((val >>> 21) & 0x3) {
+                        switch ((valhex >>> 21) & 0x3) {
                         case 0:
-                            result[at_snake + '_etat_cpl'] = 'nouveau_deverrouille';
+                            statusRegister_breakout['etat_cpl'] = 'nouveau_deverrouille';
                             break;
                         case 1:
-                            result[at_snake + '_etat_cpl'] = 'nouveau_verrouille';
+                            statusRegister_breakout['etat_cpl'] = 'nouveau_verrouille';
                             break;
                         case 2:
-                            result[at_snake + '_etat_cpl'] = 'enregistre';
+                            statusRegister_breakout['etat_cpl'] = 'enregistre';
                             break;
                         }
                         // synchronisation CPL
-                        result[at_snake + '_sync_cpl'] = ((val >>> 23) & 0x1) == 0 ? 'non_synchronise' : 'synchronise';
+                        statusRegister_breakout['sync_cpl'] = ((valhex >>> 23) & 0x1) == 0 ? 'non_synchronise' : 'synchronise';
                         // couleur du jour contrat TEMPO historique
-                        switch ((val >>> 24) & 0x3) {
+                        switch ((valhex >>> 24) & 0x3) {
                         case 0:
-                            result[at_snake + '_tempo_jour'] = 'UNDEF';
+                            statusRegister_breakout['tempo_jour'] = 'UNDEF';
                             break;
                         case 1:
-                            result[at_snake + '_tempo_jour'] = 'BLEU';
+                            statusRegister_breakout['tempo_jour'] = 'BLEU';
                             break;
                         case 2:
-                            result[at_snake + '_tempo_jour'] = 'BLANC';
+                            statusRegister_breakout['tempo_jour'] = 'BLANC';
                             break;
                         case 3:
-                            result[at_snake + '_tempo_jour'] = 'ROUGE';
+                            statusRegister_breakout['tempo_jour'] = 'ROUGE';
                             break;
                         }
                         // couleur demain contrat TEMPO historique
-                        switch ((val >>> 26) & 0x3) {
+                        switch ((valhex >>> 26) & 0x3) {
                         case 0:
-                            result[at_snake + '_tempo_demain'] = 'UNDEF';
+                            statusRegister_breakout['tempo_demain'] = 'UNDEF';
                             break;
                         case 1:
-                            result[at_snake + '_tempo_demain'] = 'BLEU';
+                            statusRegister_breakout['tempo_demain'] = 'BLEU';
                             break;
                         case 2:
-                            result[at_snake + '_tempo_demain'] = 'BLANC';
+                            statusRegister_breakout['tempo_demain'] = 'BLANC';
                             break;
                         case 3:
-                            result[at_snake + '_tempo_demain'] = 'ROUGE';
+                            statusRegister_breakout['tempo_demain'] = 'ROUGE';
                             break;
                         }
                         // preavis pointe mobile
-                        switch ((val >>> 28) & 0x3) {
+                        switch ((valhex >>> 28) & 0x3) {
                         case 0:
-                            result[at_snake + '_preavis_pointe_mobile'] = 'AUCUN';
+                            statusRegister_breakout['preavis_pointe_mobile'] = 'AUCUN';
                             break;
                         case 1:
-                            result[at_snake + '_preavis_pointe_mobile'] = 'PM1';
+                            statusRegister_breakout['preavis_pointe_mobile'] = 'PM1';
                             break;
                         case 2:
-                            result[at_snake + '_preavis_pointe_mobile'] = 'PM2';
+                            statusRegister_breakout['preavis_pointe_mobile'] = 'PM2';
                             break;
                         case 3:
-                            result[at_snake + '_preavis_pointe_mobile'] = 'PM3';
+                            statusRegister_breakout['preavis_pointe_mobile'] = 'PM3';
                             break;
                         }
                         // pointe mobile
-                        switch ((val >>> 30) & 0x3) {
+                        switch ((valhex >>> 30) & 0x3) {
                         case 0:
-                            result[at_snake + '_pointe_mobile'] = 'AUCUN';
+                            statusRegister_breakout['pointe_mobile'] = 'AUCUN';
                             break;
                         case 1:
-                            result[at_snake + '_pointe_mobile'] = 'PM1';
+                            statusRegister_breakout['pointe_mobile'] = 'PM1';
                             break;
                         case 2:
-                            result[at_snake + '_pointe_mobile'] = 'PM2';
+                            statusRegister_breakout['pointe_mobile'] = 'PM2';
                             break;
                         case 3:
-                            result[at_snake + '_pointe_mobile'] = 'PM3';
+                            statusRegister_breakout['pointe_mobile'] = 'PM3';
                             break;
                         }
+                        result[at_snake + '_breakout'] = statusRegister_breakout;
+                    }
                     }
                     result[at_snake] = val;
                 }
@@ -811,12 +822,12 @@ const legacyData = [
 
 const exposedData = [allPhaseData, singlePhaseData, threePhasesData, legacyData].flat();
 
-function getCurrentConfig(device: Zh.Device, options: KeyValue, logger: Logger = console) {
+function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     let endpoint: Zh.Endpoint;
     try {
         endpoint = device.getEndpoint(1);
     } catch (error) {
-        logger.debug(error);
+        logger.debug(error, NS);
     }
     // @ts-expect-error
     function getConfig(targetOption, bitLinkyMode, valueTrue, valueFalse) {
@@ -836,7 +847,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue, logger: Logger =
             // @ts-expect-error
             return (lMode >> bitLinkyMode & 1) == 1 ? valueTrue : valueFalse;
         } catch (err) {
-            logger.warn(`Was not able to detect the Linky ` + targetOption + `. Default to ` + valueDefault);
+            logger.warning(`Was not able to detect the Linky ` + targetOption + `. Default to ` + valueDefault, NS);
             return valueDefault; // default value in the worst case
         }
     }
@@ -867,11 +878,11 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue, logger: Logger =
             // @ts-expect-error
             currentTarf = fzLocal.lixee_private_fz.convert({}, {data: lixAtts}).current_tarif;
         } catch (error) {
-            logger.warn(`Not able to detect the current tarif. Not filtering any expose...`);
+            logger.warning(`Not able to detect the current tarif. Not filtering any expose...`, NS);
         }
     }
 
-    logger.debug(`zlinky config: ` + linkyMode + `, ` + linkyPhase + `, ` + linkyProduction.toString() + `, ` + currentTarf);
+    logger.debug(`zlinky config: ` + linkyMode + `, ` + linkyPhase + `, ` + linkyProduction.toString() + `, ` + currentTarf, NS);
 
     switch (currentTarf) {
     case linkyMode == linkyModeDef.legacy && tarifsDef.histo_BASE.currentTarf:
@@ -979,11 +990,11 @@ const definitions: Definition[] = [
             await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
                 .catch((e) => {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                    logger.warn(`Failed to read zigbee attributes: ${e}`);
+                    logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
                 });
 
             const configReportings = [];
-            const suscribeNew = getCurrentConfig(device, {}, logger).filter((e) => e.reportable);
+            const suscribeNew = getCurrentConfig(device, {}).filter((e) => e.reportable);
 
             const unsuscribe = endpoint.configuredReportings
                 .filter((e) => !suscribeNew.some((r) => e.cluster.name == r.cluster && e.attribute.name == r.att));
@@ -1027,7 +1038,7 @@ const definitions: Definition[] = [
                 endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
                     .catch((e) => {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                        console.warn(`Failed to read zigbee attributes: ${e}`);
+                        logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
                     });
             } else if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
@@ -1057,7 +1068,7 @@ const definitions: Definition[] = [
                                                 .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
                                                 .catch((e) => {
                                                     // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                                                    console.warn(`Failed to read zigbee attributes: ${e}`);
+                                                    logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
                                                 });
                                         }
                                     }

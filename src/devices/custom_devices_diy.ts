@@ -1,25 +1,25 @@
+import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
-import {Definition, Tz, Fz, KeyValueAny, KeyValue, Zh, Expose} from '../lib/types';
+import {Definition, Tz, Fz, KeyValue, Zh, Expose} from '../lib/types';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import extend from '../lib/extend';
-import * as constants from '../lib/constants';
 const e = exposes.presets;
 const ea = exposes.access;
 import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib/utils';
 import {
     light,
     onOff,
-    batteryPercentage,
+    battery,
     temperature,
     humidity,
     enumLookup,
     binary,
     numeric,
     quirkAddEndpointCluster,
+    deviceEndpoints,
 } from '../lib/modernExtend';
 
 const switchTypesList = {
@@ -36,133 +36,6 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genBasic', [0x1337]);
-        },
-    } satisfies Tz.Converter,
-    node_config: {
-        key: ['report_delay'],
-        convertSet: async (entity, key, rawValue, meta) => {
-            const lookup = {'OFF': 0x00, 'ON': 0x01};
-            // @ts-expect-error
-            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
-            const payloads: KeyValueAny = {
-                report_delay: ['genPowerCfg', {0x0201: {value, type: 0x21}}],
-            };
-            await entity.write(payloads[key][0], payloads[key][1]);
-            return {
-                state: {[key]: rawValue},
-            };
-        },
-    } satisfies Tz.Converter,
-    local_time: {
-        key: ['local_time'],
-        convertSet: async (entity, key, value, meta) => {
-            const firstEndpoint = meta.device.getEndpoint(1);
-            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date())
-                .getTimezoneOffset() * -1) * 60);
-            await firstEndpoint.write('genTime', {time: time});
-            return {state: {local_time: time}};
-        },
-    } satisfies Tz.Converter,
-    co2_config: {
-        key: ['auto_brightness', 'forced_recalibration', 'factory_reset_co2', 'long_chart_period', 'set_altitude',
-            'manual_forced_recalibration', 'light_indicator', 'light_indicator_level'],
-        convertSet: async (entity, key, rawValue, meta) => {
-            const lookup = {'OFF': 0x00, 'ON': 0x01};
-            // @ts-expect-error
-            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
-            const payloads: KeyValueAny = {
-                auto_brightness: ['msCO2', {0x0203: {value, type: 0x10}}],
-                forced_recalibration: ['msCO2', {0x0202: {value, type: 0x10}}],
-                factory_reset_co2: ['msCO2', {0x0206: {value, type: 0x10}}],
-                long_chart_period: ['msCO2', {0x0204: {value, type: 0x10}}],
-                set_altitude: ['msCO2', {0x0205: {value, type: 0x21}}],
-                manual_forced_recalibration: ['msCO2', {0x0207: {value, type: 0x21}}],
-                light_indicator: ['msCO2', {0x0211: {value, type: 0x10}}],
-                light_indicator_level: ['msCO2', {0x0209: {value, type: 0x20}}],
-            };
-            await entity.write(payloads[key][0], payloads[key][1]);
-            return {
-                state: {[key]: rawValue},
-            };
-        },
-    } satisfies Tz.Converter,
-    temperature_config: {
-        key: ['temperature_offset'],
-        convertSet: async (entity, key, rawValue, meta) => {
-            // @ts-expect-error
-            const value = parseInt(rawValue, 10);
-            const payloads: KeyValueAny = {
-                temperature_offset: ['msTemperatureMeasurement', {0x0210: {value, type: 0x29}}],
-            };
-            await entity.write(payloads[key][0], payloads[key][1]);
-            return {
-                state: {[key]: rawValue},
-            };
-        },
-    } satisfies Tz.Converter,
-    humidity_config: {
-        key: ['humidity_offset'],
-        convertSet: async (entity, key, rawValue, meta) => {
-            // @ts-expect-error
-            const value = parseInt(rawValue, 10);
-            const payloads: KeyValueAny = {
-                humidity_offset: ['msRelativeHumidity', {0x0210: {value, type: 0x29}}],
-            };
-            await entity.write(payloads[key][0], payloads[key][1]);
-            return {
-                state: {[key]: rawValue},
-            };
-        },
-    } satisfies Tz.Converter,
-    thermostat_config: {
-        key: ['high_temperature', 'low_temperature', 'enable_temperature'],
-        convertSet: async (entity, key, rawValue, meta) => {
-            const lookup = {'OFF': 0x00, 'ON': 0x01};
-            // @ts-expect-error
-            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
-            const payloads: KeyValueAny = {
-                high_temperature: ['msTemperatureMeasurement', {0x0221: {value, type: 0x29}}],
-                low_temperature: ['msTemperatureMeasurement', {0x0222: {value, type: 0x29}}],
-                enable_temperature: ['msTemperatureMeasurement', {0x0220: {value, type: 0x10}}],
-            };
-            await entity.write(payloads[key][0], payloads[key][1]);
-            return {
-                state: {[key]: rawValue},
-            };
-        },
-    } satisfies Tz.Converter,
-    hydrostat_config: {
-        key: ['high_humidity', 'low_humidity', 'enable_humidity'],
-        convertSet: async (entity, key, rawValue, meta) => {
-            const lookup = {'OFF': 0x00, 'ON': 0x01};
-            // @ts-expect-error
-            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
-            const payloads: KeyValueAny = {
-                high_humidity: ['msRelativeHumidity', {0x0221: {value, type: 0x21}}],
-                low_humidity: ['msRelativeHumidity', {0x0222: {value, type: 0x21}}],
-                enable_humidity: ['msRelativeHumidity', {0x0220: {value, type: 0x10}}],
-            };
-            await entity.write(payloads[key][0], payloads[key][1]);
-            return {
-                state: {[key]: rawValue},
-            };
-        },
-    } satisfies Tz.Converter,
-    co2_gasstat_config: {
-        key: ['high_gas', 'low_gas', 'enable_gas'],
-        convertSet: async (entity, key, rawValue, meta) => {
-            const lookup = {'OFF': 0x00, 'ON': 0x01};
-            // @ts-expect-error
-            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
-            const payloads: KeyValueAny = {
-                high_gas: ['msCO2', {0x0221: {value, type: 0x21}}],
-                low_gas: ['msCO2', {0x0222: {value, type: 0x21}}],
-                enable_gas: ['msCO2', {0x0220: {value, type: 0x10}}],
-            };
-            await entity.write(payloads[key][0], payloads[key][1]);
-            return {
-                state: {[key]: rawValue},
-            };
         },
     } satisfies Tz.Converter,
     multi_zig_sw_switch_type: {
@@ -199,132 +72,6 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {linkquality: msg.linkquality};
             if (msg.data['4919']) result['transmit_power'] = msg.data['4919'];
-            return result;
-        },
-    } satisfies Fz.Converter,
-    node_config: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            if (msg.data.hasOwnProperty(0x0201)) {
-                result.report_delay = msg.data[0x0201];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    co2: {
-        cluster: 'msCO2',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('measuredValue')) {
-                const co2 = msg.data['measuredValue'];
-                return {co2};
-            }
-        },
-    } satisfies Fz.Converter,
-    co2_config: {
-        cluster: 'msCO2',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            if (msg.data.hasOwnProperty(0x0203)) {
-                result.auto_brightness = ['OFF', 'ON'][msg.data[0x0203]];
-            }
-            if (msg.data.hasOwnProperty(0x0202)) {
-                result.forced_recalibration = ['OFF', 'ON'][msg.data[0x0202]];
-            }
-            if (msg.data.hasOwnProperty(0x0206)) {
-                result.factory_reset_co2 = ['OFF', 'ON'][msg.data[0x0206]];
-            }
-            if (msg.data.hasOwnProperty(0x0204)) {
-                result.long_chart_period = ['OFF', 'ON'][msg.data[0x0204]];
-            }
-            if (msg.data.hasOwnProperty(0x0205)) {
-                result.set_altitude = msg.data[0x0205];
-            }
-            if (msg.data.hasOwnProperty(0x0207)) {
-                result.manual_forced_recalibration = msg.data[0x0207];
-            }
-            if (msg.data.hasOwnProperty(0x0211)) {
-                result.light_indicator = ['OFF', 'ON'][msg.data[0x0211]];
-            }
-            if (msg.data.hasOwnProperty(0x0209)) {
-                result.light_indicator_level = msg.data[0x0209];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    temperature_config: {
-        cluster: 'msTemperatureMeasurement',
-        type: 'readResponse',
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            if (msg.data.hasOwnProperty(0x0210)) {
-                result.temperature_offset = msg.data[0x0210];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    humidity_config: {
-        cluster: 'msRelativeHumidity',
-        type: 'readResponse',
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            if (msg.data.hasOwnProperty(0x0210)) {
-                result.humidity_offset = msg.data[0x0210];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_config: {
-        cluster: 'msTemperatureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            if (msg.data.hasOwnProperty(0x0221)) {
-                result.high_temperature = msg.data[0x0221];
-            }
-            if (msg.data.hasOwnProperty(0x0222)) {
-                result.low_temperature = msg.data[0x0222];
-            }
-            if (msg.data.hasOwnProperty(0x0220)) {
-                result.enable_temperature = ['OFF', 'ON'][msg.data[0x0220]];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    hydrostat_config: {
-        cluster: 'msRelativeHumidity',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            if (msg.data.hasOwnProperty(0x0221)) {
-                result.high_humidity = msg.data[0x0221];
-            }
-            if (msg.data.hasOwnProperty(0x0222)) {
-                result.low_humidity = msg.data[0x0222];
-            }
-            if (msg.data.hasOwnProperty(0x0220)) {
-                result.enable_humidity = ['OFF', 'ON'][msg.data[0x0220]];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    co2_gasstat_config: {
-        cluster: 'msCO2',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            if (msg.data.hasOwnProperty(0x0221)) {
-                result.high_gas = msg.data[0x0221];
-            }
-            if (msg.data.hasOwnProperty(0x0222)) {
-                result.low_gas = msg.data[0x0222];
-            }
-            if (msg.data.hasOwnProperty(0x0220)) {
-                result.enable_gas = ['OFF', 'ON'][msg.data[0x0220]];
-            }
             return result;
         },
     } satisfies Fz.Converter,
@@ -498,7 +245,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['lumi.router'],
         model: 'CC2530.ROUTER',
         vendor: 'Custom devices (DiY)',
-        description: '[CC2530 router](http://ptvo.info/cc2530-based-zigbee-coordinator-and-router-112/)',
+        description: 'CC2530 router',
         fromZigbee: [fz.CC2530ROUTER_led, fz.CC2530ROUTER_meta, fz.ignore_basic_report],
         toZigbee: [tz.ptvo_switch_trigger],
         exposes: [e.binary('led', ea.STATE, true, false)],
@@ -507,7 +254,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['cc2538.router.v1'],
         model: 'CC2538.ROUTER.V1',
         vendor: 'Custom devices (DiY)',
-        description: '[MODKAM stick СС2538 router](https://github.com/jethome-ru/zigbee-firmware/tree/master/ti/router/cc2538_cc2592)',
+        description: 'MODKAM stick СС2538 router',
         fromZigbee: [fz.ignore_basic_report],
         toZigbee: [],
         exposes: [],
@@ -516,8 +263,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['cc2538.router.v2'],
         model: 'CC2538.ROUTER.V2',
         vendor: 'Custom devices (DiY)',
-        description: '[MODKAM stick СС2538 router with temperature sensor]' +
-            '(https://github.com/jethome-ru/zigbee-firmware/tree/master/ti/router/cc2538_cc2592)',
+        description: 'MODKAM stick СС2538 router with temperature sensor',
         fromZigbee: [fz.ignore_basic_report, fz.device_temperature],
         toZigbee: [],
         exposes: [e.device_temperature()],
@@ -526,8 +272,8 @@ const definitions: Definition[] = [
         zigbeeModel: ['ptvo.switch'],
         model: 'ptvo.switch',
         vendor: 'Custom devices (DiY)',
-        description: '[Multi-functional device](https://ptvo.info/zigbee-configurable-firmware-features/)',
-        fromZigbee: [fz.on_off, fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fz.ptvo_switch_uart,
+        description: 'Multi-functional device',
+        fromZigbee: [fz.battery, fz.on_off, fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report, fz.temperature,
             fzLocal.humidity2, fzLocal.pressure2, fzLocal.illuminance2],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tzLocal.ptvo_on_off],
@@ -612,7 +358,7 @@ const definitions: Definition[] = [
                         default: // 'c'
                             exposeObj = e.contact();
                         }
-                        expose.push(exposeObj.withEndpoint(epName));
+                        expose.push(exposeObj.withProperty('state').withEndpoint(epName));
                     } else if (valueConfigItems.length > 0) {
                         let valueName = undefined; // name in Z2M
                         let valueNumIndex = undefined;
@@ -749,67 +495,54 @@ const definitions: Definition[] = [
         zigbeeModel: ['DNCKAT_D001'],
         model: 'DNCKATSD001',
         vendor: 'Custom devices (DiY)',
-        description: '[DNCKAT single key wired wall dimmable light switch](https://github.com/dzungpv/dnckatsw00x/)',
+        description: 'DNCKAT single key wired wall dimmable light switch',
         extend: [light()],
     },
     {
         zigbeeModel: ['DNCKAT_S001'],
         model: 'DNCKATSW001',
         vendor: 'Custom devices (DiY)',
-        description: '[DNCKAT single key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
+        description: 'DNCKAT single key wired wall light switch',
         extend: [onOff()],
     },
     {
         zigbeeModel: ['DNCKAT_S002'],
         model: 'DNCKATSW002',
         vendor: 'Custom devices (DiY)',
-        description: '[DNCKAT double key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        fromZigbee: [fz.on_off, fz.DNCKAT_S00X_buttons],
-        meta: {multiEndpoint: true},
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.action(['release_left', 'hold_left', 'release_right', 'hold_right'])],
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2};
-        },
+        description: 'DNCKAT double key wired wall light switch',
+        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        extend: [deviceEndpoints({endpoints: {left: 1, right: 2}}), onOff({endpointNames: ['left', 'right']})],
+        exposes: [e.action(['release_left', 'hold_left', 'release_right', 'hold_right'])],
     },
     {
         zigbeeModel: ['DNCKAT_S003'],
         model: 'DNCKATSW003',
         vendor: 'Custom devices (DiY)',
-        description: '[DNCKAT triple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        fromZigbee: [fz.on_off, fz.DNCKAT_S00X_buttons],
-        meta: {multiEndpoint: true},
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.switch().withEndpoint('center'),
-            e.action(['release_left', 'hold_left', 'release_right', 'hold_right', 'release_center', 'hold_center'])],
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
+        description: 'DNCKAT triple key wired wall light switch',
+        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        extend: [deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), onOff({endpointNames: ['left', 'center', 'right']})],
+        exposes: [e.action(['release_left', 'hold_left', 'release_right', 'hold_right', 'release_center', 'hold_center'])],
     },
     {
         zigbeeModel: ['DNCKAT_S004'],
         model: 'DNCKATSW004',
         vendor: 'Custom devices (DiY)',
-        description: '[DNCKAT quadruple key wired wall light switch](https://github.com/dzungpv/dnckatsw00x/)',
-        fromZigbee: [fz.on_off, fz.DNCKAT_S00X_buttons],
-        meta: {multiEndpoint: true},
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('bottom_left'), e.switch().withEndpoint('bottom_right'),
-            e.switch().withEndpoint('top_left'), e.switch().withEndpoint('top_right'),
+        description: 'DNCKAT quadruple key wired wall light switch',
+        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        extend: [
+            deviceEndpoints({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4}}),
+            onOff({endpointNames: ['bottom_left', 'bottom_right', 'top_left', 'top_right']})],
+        exposes: [
             e.action([
                 'release_bottom_left', 'hold_bottom_left', 'release_bottom_right', 'hold_bottom_right',
                 'release_top_left', 'hold_top_left', 'release_top_right', 'hold_top_right',
             ])],
-        endpoint: (device) => {
-            return {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4};
-        },
     },
     {
         zigbeeModel: ['ZigUP'],
         model: 'ZigUP',
         vendor: 'Custom devices (DiY)',
-        description: '[CC2530 based ZigBee relais, switch, sensor and router](https://github.com/formtapez/ZigUP/)',
+        description: 'CC2530 based ZigBee relais, switch, sensor and router',
         fromZigbee: [fz.ZigUP],
         toZigbee: [tz.on_off, tz.light_color, tz.ZigUP_lock],
         exposes: [e.switch()],
@@ -818,7 +551,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['ZWallRemote0'],
         model: 'ZWallRemote0',
         vendor: 'Custom devices (DiY)',
-        description: '[Matts Wall Switch Remote](https://github.com/mattlokes/ZWallRemote)',
+        description: 'Matts Wall Switch Remote',
         fromZigbee: [fz.command_toggle],
         toZigbee: [],
         exposes: [e.action(['toggle'])],
@@ -845,392 +578,6 @@ const definitions: Definition[] = [
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature()],
     },
     {
-        zigbeeModel: ['EFEKTA_PWS'],
-        model: 'EFEKTA_PWS',
-        vendor: 'Custom devices (DiY)',
-        description: '[Plant Wattering Sensor, CR2450, CR2477 batteries, temperature ]',
-        fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery, fzLocal.node_config],
-        toZigbee: [tzLocal.node_config],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const firstEndpoint = device.getEndpoint(1);
-            await reporting.bind(firstEndpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
-            const overrides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overrides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
-            await reporting.temperature(firstEndpoint, overrides);
-            await reporting.soil_moisture(firstEndpoint, overrides);
-            const payload1 = [{attribute: {ID: 0x0201, type: 0x21},
-                minimumReportInterval: 0, maximumReportInterval: 21600, reportableChange: 0}];
-            await firstEndpoint.configureReporting('genPowerCfg', payload1);
-        },
-        exposes: [e.soil_moisture(), e.battery(), e.temperature(),
-            e.numeric('report_delay', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(240)
-                .withDescription('Adjust Report Delay. Setting the time in minutes, by default 15 minutes')],
-    },
-    {
-        zigbeeModel: ['EFEKTA_THP_LR'],
-        model: 'EFEKTA_THP_LR',
-        vendor: 'Custom devices (DiY)',
-        description: 'DIY outdoor long-range sensor for temperature, humidity and atmospheric pressure',
-        fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement']);
-            const overrides = {min: 0, max: 64800, change: 0};
-            await reporting.batteryVoltage(endpoint, overrides);
-            await reporting.batteryPercentageRemaining(endpoint, overrides);
-            await reporting.temperature(endpoint, overrides);
-            await reporting.humidity(endpoint, overrides);
-            await reporting.pressureExtended(endpoint, overrides);
-            await endpoint.read('msPressureMeasurement', ['scale']);
-        },
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
-    },
-    {
-        zigbeeModel: ['EFEKTA_ePWS'],
-        model: 'EFEKTA_ePWS',
-        vendor: 'Custom devices (DiY)',
-        description: '[Plant wattering sensor with e-ink display](https://efektalab.com/epws102)',
-        fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const firstEndpoint = device.getEndpoint(1);
-            await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
-            const overrides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overrides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
-            await reporting.temperature(firstEndpoint, overrides);
-            await reporting.soil_moisture(firstEndpoint, overrides);
-        },
-        exposes: [e.soil_moisture(), e.battery(), e.temperature()],
-    },
-    {
-        zigbeeModel: ['EFEKTA_eON213z'],
-        model: 'EFEKTA_eON213z',
-        vendor: 'Custom devices (DiY)',
-        description: '[Temperature and humidity sensor with e-ink2.13](http://efektalab.com/eON213z)',
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
-            const overrides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overrides);
-            await reporting.batteryPercentageRemaining(endpoint, overrides);
-            await reporting.temperature(endpoint, overrides);
-            await reporting.humidity(endpoint, overrides);
-        },
-        exposes: [e.battery(), e.temperature(), e.humidity()],
-    },
-    {
-        zigbeeModel: ['EFEKTA_miniPWS'],
-        model: 'EFEKTA_miniPWS',
-        vendor: 'Custom devices (DiY)',
-        description: '[Mini plant wattering sensor](http://efektalab.com/miniPWS)',
-        fromZigbee: [fz.soil_moisture, fz.battery, fzLocal.node_config],
-        toZigbee: [tzLocal.node_config],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const firstEndpoint = device.getEndpoint(1);
-            await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msSoilMoisture']);
-        },
-        exposes: [e.soil_moisture(), e.battery(),
-            e.numeric('report_delay', ea.STATE_SET).withUnit('min').withDescription('Adjust Report Delay, by default 60 minutes')
-                .withValueMin(1).withValueMax(180)],
-    },
-    {
-        zigbeeModel: ['EFEKTA_eON213wz'],
-        model: 'EFEKTA_eON213wz',
-        vendor: 'Custom devices (DiY)',
-        description: '[Mini weather station, digital barometer, forecast, charts, temperature, humidity](http://efektalab.com/eON213wz)',
-        fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement']);
-            const overrides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overrides);
-            await reporting.batteryPercentageRemaining(endpoint, overrides);
-            await reporting.temperature(endpoint, overrides);
-            await reporting.humidity(endpoint, overrides);
-            await reporting.pressureExtended(endpoint, overrides);
-            await endpoint.read('msPressureMeasurement', ['scale']);
-        },
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
-    },
-    {
-        zigbeeModel: ['EFEKTA_THP'],
-        model: 'EFEKTA_THP',
-        vendor: 'Custom devices (DiY)',
-        description: '[DIY temperature, humidity and atmospheric pressure sensor, long battery life](http://efektalab.com/eON_THP)',
-        fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement']);
-            const overrides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overrides);
-            await reporting.batteryPercentageRemaining(endpoint, overrides);
-            await reporting.temperature(endpoint, overrides);
-            await reporting.humidity(endpoint, overrides);
-            await reporting.pressureExtended(endpoint, overrides);
-            await endpoint.read('msPressureMeasurement', ['scale']);
-        },
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
-    },
-    {
-        zigbeeModel: ['EFEKTA_PWS_Max'],
-        model: 'EFEKTA_PWS_Max',
-        vendor: 'Custom devices (DiY)',
-        description: '[Plant watering sensor EFEKTA PWS max](http://efektalab.com/PWS_Max)',
-        fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const firstEndpoint = device.getEndpoint(1);
-            await reporting.bind(firstEndpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement', 'msSoilMoisture']);
-            const overrides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overrides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
-            await reporting.temperature(firstEndpoint, overrides);
-            await reporting.humidity(firstEndpoint, overrides);
-            await reporting.illuminance(firstEndpoint, overrides);
-            await reporting.soil_moisture(firstEndpoint, overrides);
-        },
-        exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature(), e.humidity()],
-    },
-    {
-        zigbeeModel: ['EFEKTA_PWS_MaxPro'],
-        model: 'EFEKTA_PWS_MaxPro',
-        vendor: 'Custom devices (DiY)',
-        description: '[Plant watering sensor EFEKTA PWS Max Pro,  long battery life](http://efektalab.com/PWS_MaxPro)',
-        fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const firstEndpoint = device.getEndpoint(1);
-            await reporting.bind(firstEndpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement', 'msSoilMoisture']);
-            const overrides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overrides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
-            await reporting.temperature(firstEndpoint, overrides);
-            await reporting.humidity(firstEndpoint, overrides);
-            await reporting.illuminance(firstEndpoint, overrides);
-            await reporting.soil_moisture(firstEndpoint, overrides);
-        },
-        exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature(), e.humidity()],
-    },
-    {
-        zigbeeModel: ['EFEKTA_eON29wz'],
-        model: 'EFEKTA_eON29wz',
-        vendor: 'Custom devices (DiY)',
-        description: '[Mini weather station, barometer, forecast, charts, temperature, humidity, light](http://efektalab.com/eON290wz)',
-        fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.illuminance, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement', 'msIlluminanceMeasurement']);
-            const overrides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overrides);
-            await reporting.batteryPercentageRemaining(endpoint, overrides);
-            await reporting.temperature(endpoint, overrides);
-            await reporting.humidity(endpoint, overrides);
-            await reporting.illuminance(endpoint, overrides);
-            await reporting.pressureExtended(endpoint, overrides);
-            await endpoint.read('msPressureMeasurement', ['scale']);
-        },
-        exposes: [e.battery(), e.illuminance(), e.temperature(), e.humidity(), e.pressure()],
-    },
-    {
-        zigbeeModel: ['EFEKTA_eFlower_Pro'],
-        model: 'EFEKTA_eFlower_Pro',
-        vendor: 'Custom devices (DiY)',
-        description: '[Plant Wattering Sensor with e-ink display 2.13](https://efektalab.com/eFlowerPro)',
-        fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const firstEndpoint = device.getEndpoint(1);
-            await reporting.bind(firstEndpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement', 'msSoilMoisture']);
-            const overrides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overrides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
-            await reporting.temperature(firstEndpoint, overrides);
-            await reporting.humidity(firstEndpoint, overrides);
-            await reporting.illuminance(firstEndpoint, overrides);
-            await reporting.soil_moisture(firstEndpoint, overrides);
-        },
-        exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature(), e.humidity()],
-    },
-    {
-        zigbeeModel: ['EFEKTA_eTH102'],
-        model: 'EFEKTA_eTH102',
-        vendor: 'Custom devices (DiY)',
-        description: '[Mini digital thermometer & hygrometer with e-ink1.02](http://efektalab.com/eTH102)',
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
-            const overrides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overrides);
-            await reporting.batteryPercentageRemaining(endpoint, overrides);
-            await reporting.temperature(endpoint, overrides);
-            await reporting.humidity(endpoint, overrides);
-        },
-        exposes: [e.battery(), e.temperature(), e.humidity()],
-    },
-    {
-        zigbeeModel: ['EFEKTA_iAQ'],
-        model: 'EFEKTA_iAQ',
-        vendor: 'Custom devices (DiY)',
-        description: '[CO2 Monitor with IPS TFT Display, outdoor temperature and humidity, date and time](http://efektalab.com/iAQ)',
-        fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fzLocal.co2, fzLocal.co2_config,
-            fzLocal.temperature_config, fzLocal.humidity_config],
-        toZigbee: [tzLocal.co2_config, tzLocal.temperature_config, tzLocal.humidity_config, tzLocal.local_time],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const clusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement', 'msCO2'];
-            await reporting.bind(endpoint, coordinatorEndpoint, clusters);
-            for (const cluster of clusters) {
-                await endpoint.configureReporting(cluster, [
-                    {attribute: 'measuredValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
-                ]);
-            }
-            const payload1 = [{attribute: {ID: 0x0203, type: 0x10},
-                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-            await endpoint.configureReporting('msCO2', payload1);
-            const payload2 = [{attribute: {ID: 0x0202, type: 0x10},
-                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-            await endpoint.configureReporting('msCO2', payload2);
-            const payload3 = [{attribute: {ID: 0x0204, type: 0x10},
-                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-            await endpoint.configureReporting('msCO2', payload3);
-            const payload4 = [{attribute: {ID: 0x0205, type: 0x21},
-                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-            await endpoint.configureReporting('msCO2', payload4);
-            const payload5 = [{attribute: {ID: 0x0206, type: 0x10},
-                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-            await endpoint.configureReporting('msCO2', payload5);
-            const payload6 = [{attribute: {ID: 0x0207, type: 0x21},
-                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-            await endpoint.configureReporting('msCO2', payload6);
-            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date())
-                .getTimezoneOffset() * -1) * 60);
-            const values = {time: time};
-            endpoint.write('genTime', values);
-        },
-        exposes: [e.co2(), e.temperature(), e.humidity(), e.illuminance(),
-            e.binary('auto_brightness', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Enable or Disable Auto Brightness of the Display'),
-            e.binary('long_chart_period', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('The period of plotting the CO2 level(OFF - 1H | ON - 24H)'),
-            e.numeric('set_altitude', ea.STATE_SET).withUnit('meters')
-                .withDescription('Setting the altitude above sea level (for high accuracy of the CO2 sensor)')
-                .withValueMin(0).withValueMax(3000),
-            e.enum('local_time', ea.STATE_SET, ['set']).withDescription('Set date and time'),
-            e.numeric('temperature_offset', ea.STATE_SET).withUnit('°C').withDescription('Adjust temperature')
-                .withValueMin(-30).withValueMax(60),
-            e.numeric('humidity_offset', ea.STATE_SET).withUnit('%').withDescription('Adjust humidity')
-                .withValueMin(0).withValueMax(99),
-            e.binary('forced_recalibration', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Start FRC (Perform Forced Recalibration of the CO2 Sensor)'),
-            e.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
-            e.numeric('manual_forced_recalibration', ea.STATE_SET).withUnit('ppm')
-                .withDescription('Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)')
-                .withValueMin(0).withValueMax(5000)],
-    },
-    {
-        zigbeeModel: ['EFEKTA_CO2_Smart_Monitor'],
-        model: 'EFEKTA_CO2_Smart_Monitor',
-        vendor: 'Custom devices (DiY)',
-        description: '[EFEKTA CO2 Smart Monitor, ws2812b indicator, can control the relay, binding](https://efektalab.com/CO2_Monitor)',
-        fromZigbee: [fz.temperature, fz.humidity, fzLocal.co2, fzLocal.co2_config, fzLocal.temperature_config,
-            fzLocal.humidity_config, fzLocal.thermostat_config, fzLocal.hydrostat_config, fzLocal.co2_gasstat_config],
-        toZigbee: [tzLocal.co2_config, tzLocal.temperature_config, tzLocal.humidity_config,
-            tzLocal.thermostat_config, tzLocal.hydrostat_config, tzLocal.co2_gasstat_config],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const clusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msCO2'];
-            await reporting.bind(endpoint, coordinatorEndpoint, clusters);
-            for (const cluster of clusters) {
-                await endpoint.configureReporting(cluster, [
-                    {attribute: 'measuredValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
-                ]);
-            }
-        },
-        exposes: [e.co2(), e.temperature(), e.humidity(),
-            e.binary('light_indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or Disable light_indicator'),
-            e.numeric('light_indicator_level', ea.STATE_SET).withUnit('%').withDescription('light_indicator_level')
-                .withValueMin(0).withValueMax(100),
-            e.numeric('set_altitude', ea.STATE_SET).withUnit('meters')
-                .withDescription('Setting the altitude above sea level (for high accuracy of the CO2 sensor)')
-                .withValueMin(0).withValueMax(3000),
-            e.numeric('temperature_offset', ea.STATE_SET).withUnit('°C').withDescription('Adjust temperature')
-                .withValueMin(-30).withValueMax(60),
-            e.numeric('humidity_offset', ea.STATE_SET).withUnit('%').withDescription('Adjust humidity')
-                .withValueMin(0).withValueMax(99),
-            e.binary('forced_recalibration', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Start FRC (Perform Forced Recalibration of the CO2 Sensor)'),
-            e.numeric('manual_forced_recalibration', ea.STATE_SET)
-                .withUnit('ppm').withDescription('Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)')
-                .withValueMin(0).withValueMax(5000),
-            e.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
-            e.binary('enable_gas', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable CO2 Gas Control'),
-            e.numeric('high_gas', ea.STATE_SET).withUnit('ppm').withDescription('Setting High CO2 Gas Border')
-                .withValueMin(400).withValueMax(2000),
-            e.numeric('low_gas', ea.STATE_SET).withUnit('ppm').withDescription('Setting Low CO2 Gas Border')
-                .withValueMin(400).withValueMax(2000),
-            e.binary('enable_temperature', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
-            e.numeric('high_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
-                .withValueMin(-5).withValueMax(50),
-            e.numeric('low_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting Low Temperature Border')
-                .withValueMin(-5).withValueMax(50),
-            e.binary('enable_humidity', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Humidity Control'),
-            e.numeric('high_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting High Humidity Border')
-                .withValueMin(0).withValueMax(99),
-            e.numeric('low_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
-                .withValueMin(0).withValueMax(99)],
-    },
-    {
-        zigbeeModel: ['SNZB-02_EFEKTA'],
-        model: 'SNZB-02_EFEKTA',
-        vendor: 'Custom devices (DiY)',
-        description: 'Alternative firmware for the SONOFF SNZB-02 sensor from EfektaLab, DIY',
-        fromZigbee: [fz.SNZB02_temperature, fz.SNZB02_humidity, fz.battery, fzLocal.thermostat_config,
-            fzLocal.hydrostat_config, fzLocal.node_config],
-        toZigbee: [tzLocal.thermostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
-            const overrides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(endpoint, overrides);
-            await reporting.batteryPercentageRemaining(endpoint, overrides);
-        },
-        exposes: [e.battery(), e.temperature(), e.humidity(),
-            e.numeric('report_delay', ea.STATE_SET).withUnit('min')
-                .withDescription('Adjust Report Delay. Setting the time in minutes, by default 5 minutes')
-                .withValueMin(1).withValueMax(60),
-            e.binary('enable_temperature', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
-            e.numeric('high_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
-                .withValueMin(-5).withValueMax(50),
-            e.numeric('low_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting Low Temperature Border')
-                .withValueMin(-5).withValueMax(50),
-            e.binary('enable_humidity', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Humidity Control'),
-            e.numeric('high_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting High Humidity Border')
-                .withValueMin(0).withValueMax(99),
-            e.numeric('low_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
-                .withValueMin(0).withValueMax(99)],
-    },
-    {
         zigbeeModel: ['UT-02'],
         model: 'EFR32MG21.Router',
         vendor: 'Custom devices (DiY)',
@@ -1243,7 +590,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['b-parasite'],
         model: 'b-parasite',
         vendor: 'Custom devices (DiY)',
-        description: '[b-parasite open source soil moisture sensor](https://github.com/rbaron/b-parasite)',
+        description: 'b-parasite open source soil moisture sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture, fz.illuminance],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance_lux()],
@@ -1262,7 +609,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['MULTI-ZIG-SW'],
         model: 'MULTI-ZIG-SW',
         vendor: 'smarthjemmet.dk',
-        description: '[Multi switch from Smarthjemmet.dk](https://smarthjemmet.dk)',
+        description: 'Multi switch from Smarthjemmet.dk',
         fromZigbee: [fz.ignore_basic_report, fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
         exposes: [
@@ -1282,6 +629,7 @@ const definitions: Definition[] = [
         },
     },
     {
+        // https://github.com/devbis/z03mmc/
         zigbeeModel: ['LYWSD03MMC'],
         model: 'LYWSD03MMC',
         vendor: 'Custom devices (DiY)',
@@ -1289,9 +637,7 @@ const definitions: Definition[] = [
         extend: [
             quirkAddEndpointCluster({
                 endpointID: 1,
-                outputClusters: [
-                    'hvacUserInterfaceCfg',
-                ],
+                outputClusters: [],
                 inputClusters: [
                     'genPowerCfg',
                     'msTemperatureMeasurement',
@@ -1299,11 +645,9 @@ const definitions: Definition[] = [
                     'hvacUserInterfaceCfg',
                 ],
             }),
-            batteryPercentage(),
+            battery(),
             temperature({reporting: {min: 10, max: 300, change: 10}}),
             humidity({reporting: {min: 10, max: 300, change: 50}}),
-            // Temperature display and show smile.
-            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issue-2033984519
             enumLookup({
                 name: 'temperature_display_mode',
                 lookup: {'celsius': 0, 'fahrenheit': 1},
@@ -1312,77 +656,100 @@ const definitions: Definition[] = [
                 description: 'The units of the temperature displayed on the device screen.',
             }),
             binary({
-                name: 'show_smile',
-                valueOn: ['HIDE', 1],
-                valueOff: ['SHOW', 0],
+                name: 'show_smiley',
+                valueOn: ['SHOW', 1],
+                valueOff: ['HIDE', 0],
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: 'programmingVisibility',
-                description: 'Whether to show a smile on the device screen.',
+                attribute: {ID: 0x0010, type: dataType.boolean},
+                description: 'Whether to show a smiley on the device screen.',
             }),
-            // Setting offsets for temperature and humidity.
-            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/30
+            binary({
+                name: 'enable_display',
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                cluster: 'hvacUserInterfaceCfg',
+                attribute: {ID: 0x0011, type: dataType.boolean},
+                description: 'Whether to turn display on/off.',
+            }),
             numeric({
                 name: 'temperature_calibration',
-                unit: 'C',
-                cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0100, type: 40},
-                valueMin: -12.7,
-                valueMax: 12.7,
-                valueStep: 0.1,
-                scale: 10,
-                description: 'The temperature calibration, in 0.1° steps. Requires v0.1.1.6 or newer.',
+                unit: '°C',
+                cluster: 'msTemperatureMeasurement',
+                attribute: {ID: 0x0010, type: dataType.int16},
+                valueMin: -100.0,
+                valueMax: 100.0,
+                valueStep: 0.01,
+                scale: 100,
+                description: 'The temperature calibration offset is set in 0.01° steps.',
             }),
             numeric({
                 name: 'humidity_calibration',
                 unit: '%',
-                cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0101, type: 40},
-                valueMin: -12.7,
-                valueMax: 12.7,
-                valueStep: 0.1,
-                scale: 10,
-                description: 'The humidity offset is set in 0.1 % steps. Requires v0.1.1.6 or newer.',
+                cluster: 'msRelativeHumidity',
+                attribute: {ID: 0x0010, type: dataType.int16},
+                valueMin: -100.0,
+                valueMax: 100.0,
+                valueStep: 0.01,
+                scale: 100,
+                description: 'The humidity calibration offset is set in 0.01 % steps.',
             }),
-            // Comfort parameters.
-            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issuecomment-1855763432
             numeric({
                 name: 'comfort_temperature_min',
-                unit: 'C',
+                unit: '°C',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0102, type: 40},
-                valueMin: -127,
-                valueMax: 127,
-                description: 'Comfort parameters/Temperature minimum, in 1° steps. Requires v0.1.1.7 or newer.',
+                attribute: {ID: 0x0102, type: dataType.int16},
+                valueMin: -100.0,
+                valueMax: 100.0,
+                scale: 100,
+                description: 'Comfort parameters/Temperature minimum, in 0.01°C steps.',
             }),
             numeric({
                 name: 'comfort_temperature_max',
-                unit: 'C',
+                unit: '°C',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0103, type: 40},
-                valueMin: -127,
-                valueMax: 127,
-                description: 'Comfort parameters/Temperature maximum, in 1° steps. Requires v0.1.1.7 or newer.',
+                attribute: {ID: 0x0103, type: dataType.int16},
+                valueMin: -100.0,
+                valueMax: 100.0,
+                scale: 100,
+                description: 'Comfort parameters/Temperature maximum, in 0.01°C steps.',
             }),
             numeric({
                 name: 'comfort_humidity_min',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0104, type: 32},
-                valueMin: 0,
-                valueMax: 100,
-                description: 'Comfort parameters/Humidity minimum, in 1% steps. Requires v0.1.1.7 or newer.',
+                attribute: {ID: 0x0104, type: dataType.uint16},
+                valueMin: 0.0,
+                valueMax: 100.0,
+                scale: 100,
+                description: 'Comfort parameters/Humidity minimum, in 0.01% steps.',
             }),
             numeric({
                 name: 'comfort_humidity_max',
                 unit: '%',
                 cluster: 'hvacUserInterfaceCfg',
-                attribute: {ID: 0x0105, type: 32},
-                valueMin: 0,
-                valueMax: 100,
-                description: 'Comfort parameters/Humidity maximum, in 1% steps. Requires v0.1.1.7 or newer.',
+                attribute: {ID: 0x0105, type: dataType.uint16},
+                valueMin: 0.0,
+                valueMax: 100.0,
+                scale: 100,
+                description: 'Comfort parameters/Humidity maximum, in 0.01% steps.',
             }),
         ],
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.temperature(endpoint, {min: 10, max: 300, change: 10});
+            await reporting.humidity(endpoint, {min: 10, max: 300, change: 50});
+            await reporting.batteryPercentageRemaining(endpoint);
+            try {
+                await endpoint.read('hvacThermostat', [0x0010, 0x0011, 0x0102, 0x0103, 0x0104, 0x0105]);
+                await endpoint.read('msTemperatureMeasurement', [0x0010]);
+                await endpoint.read('msRelativeHumidity', [0x0010]);
+            } catch (e) {
+                /* backward compatibility */
+            }
+        },
     },
     {
         zigbeeModel: ['MHO-C401N'],
@@ -1402,7 +769,7 @@ const definitions: Definition[] = [
                     'hvacUserInterfaceCfg',
                 ],
             }),
-            batteryPercentage(),
+            battery(),
             temperature({reporting: {min: 10, max: 300, change: 10}}),
             humidity({reporting: {min: 10, max: 300, change: 50}}),
             // Temperature display and show smile.
@@ -1491,7 +858,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['QUAD-ZIG-SW'],
         model: 'QUAD-ZIG-SW',
         vendor: 'smarthjemmet.dk',
-        description: '[FUGA compatible switch from Smarthjemmet.dk](https://smarthjemmet.dk)',
+        description: 'FUGA compatible switch from Smarthjemmet.dk',
         fromZigbee: [fz.ignore_basic_report, fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
         exposes: [

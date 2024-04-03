@@ -2,6 +2,8 @@ const url = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.js
 const caBundleUrl = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/cacerts.pem';
 import * as common from './common';
 import {Logger, Zh, Ota, KeyValueAny} from '../types';
+
+const NS = 'zhc:ota';
 const axios = common.getAxios();
 
 let overrideIndexFileName: string = null;
@@ -41,10 +43,10 @@ async function getIndex(logger: Logger) {
     if (!mainIndex) {
         throw new Error(`ZigbeeOTA: Error getting firmware page at '${url}'`);
     }
-    logger.debug(`ZigbeeOTA: Downloaded main index`);
+    logger.debug(`Downloaded main index`, NS);
 
     if (overrideIndexFileName) {
-        logger.debug(`ZigbeeOTA: Loading override index '${overrideIndexFileName}'`);
+        logger.debug(`Loading override index '${overrideIndexFileName}'`, NS);
         const localIndex = await common.getOverrideIndexFile(overrideIndexFileName);
 
         // Resulting index will have overridden items first
@@ -54,7 +56,7 @@ async function getIndex(logger: Logger) {
 }
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`ZigbeeOTA: Getting image metadata for '${device.modelID}'`);
+    logger.debug(`Getting image metadata for '${device.modelID}'`, NS);
     const images = await getIndex(logger);
     // NOTE: Officially an image can be determined with a combination of manufacturerCode and imageType.
     // However Gledopto pro products use the same imageType (0) for every device while the image is different.
@@ -78,13 +80,14 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
 }
 
 async function isNewImageAvailable(current: Ota.ImageInfo, logger: Logger, device: Zh.Device, getImageMeta: Ota.GetImageMeta) {
-    if (device.modelID === 'lumi.airrtc.agl001') {
+    if (['lumi.airrtc.agl001', 'lumi.curtain.acn003', 'lumi.curtain.agl001'].includes(device.modelID)) {
         // The current.fileVersion which comes from the device is wrong.
-        // Use the `aqaraFileVersion` which comes from the aqaraOpple.attributeReport instead.
+        // Use the `lumiFileVersion` which comes from the manuSpecificLumi.attributeReport instead.
         // https://github.com/Koenkk/zigbee2mqtt/issues/16345#issuecomment-1454835056
         // https://github.com/Koenkk/zigbee2mqtt/issues/16345 doesn't seem to be needed for all
-        if (device.meta.aqaraFileVersion) {
-            current = {...current, fileVersion: device.meta.aqaraFileVersion};
+        // https://github.com/Koenkk/zigbee2mqtt/issues/15745
+        if (device.meta.lumiFileVersion) {
+            current = {...current, fileVersion: device.meta.lumiFileVersion};
         }
     }
     return common.isNewImageAvailable(current, logger, device, getImageMeta);
@@ -95,13 +98,13 @@ export async function getFirmwareFile(image: KeyValueAny, logger: Logger) {
 
     // First try to download firmware file with the URL provided
     if (common.isValidUrl(urlOrName)) {
-        logger.debug(`OTA: Downloading firmware image from '${urlOrName}' using the zigbeeOTA custom CA certificates`);
+        logger.debug(`Downloading firmware image from '${urlOrName}' using the zigbeeOTA custom CA certificates`, NS);
         const otaCaBundle = await common.processCustomCaBundle(caBundleUrl);
         const response = await common.getAxios(otaCaBundle).get(urlOrName, {responseType: 'arraybuffer'});
         return response;
     }
 
-    logger.debug(`OTA: Trying to read firmware image from local file '${urlOrName}'`);
+    logger.debug(`Trying to read firmware image from local file '${urlOrName}'`, NS);
     return {data: common.readLocalFile(urlOrName, logger)};
 }
 

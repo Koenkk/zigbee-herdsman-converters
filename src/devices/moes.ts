@@ -6,10 +6,10 @@ import * as legacy from '../lib/legacy';
 import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as zosung from '../lib/zosung';
+import {onOff, deviceEndpoints, actionEnumLookup} from '../lib/modernExtend';
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -28,7 +28,7 @@ const definitions: Definition[] = [
         model: 'ZP-LZ-FR2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
-        extend: tuya.extend.switch({powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ['l1', 'l2']}),
+        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ['l1', 'l2']})],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -47,7 +47,7 @@ const definitions: Definition[] = [
         model: 'MS-104Z',
         description: 'Smart light switch module (1 gang)',
         vendor: 'Moes',
-        extend: tuya.extend.switch(),
+        extend: [tuya.modernExtend.tuyaOnOff()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -65,7 +65,7 @@ const definitions: Definition[] = [
         model: 'MS-104BZ',
         description: 'Smart light switch module (2 gang)',
         vendor: 'Moes',
-        extend: tuya.extend.switch({endpoints: ['l1', 'l2']}),
+        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2']})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -87,16 +87,11 @@ const definitions: Definition[] = [
         model: 'ZK-EU-2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        extend: [onOff({endpointNames: ['l1', 'l2']})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             const hasEndpoint2 = !!device.getEndpoint(2);
             return {l1: 1, l2: hasEndpoint2 ? 2 : 7};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -302,11 +297,11 @@ const definitions: Definition[] = [
             legacy.tz.moesS_thermostat_system_mode],
         exposes: [
             e.battery(), e.child_lock(), e.eco_mode(),
-            e.eco_temperature().withValueMin(5), e.max_temperature().withValueMax(45), e.min_temperature().withValueMin(5),
+            e.eco_temperature().withValueMin(5), e.max_temperature().withValueMax(45), e.min_temperature().withValueMin(0),
             e.valve_state(), e.position(), e.window_detection(),
             e.binary('window', ea.STATE, 'OPEN', 'CLOSED').withDescription('Window status closed or open '),
             e.climate()
-                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 35, 1, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withSystemMode(['heat'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
@@ -326,8 +321,8 @@ const definitions: Definition[] = [
             e.numeric('boost_heating_countdown', ea.STATE).withUnit('min').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(15),
             e.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('s')
-                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100)
-                .withValueMax(900).withValueStep(100)],
+                .withDescription('Boost Time Setting 0 sec - 900 sec, (default = 300 sec)').withValueMin(0)
+                .withValueMax(900).withValueStep(1)],
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
@@ -357,6 +352,7 @@ const definitions: Definition[] = [
             {modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'},
             {modelID: 'TS1201', manufacturerName: '_TZ3290_ot6ewjvmejq5ekhl'},
             {modelID: 'TS1201', manufacturerName: '_TZ3290_xjpbcxn92aaxvmlz'},
+            {modelID: 'TS1201', manufacturerName: '_TZ3290_gnl5a6a5xvql7c2a'},
         ],
         model: 'UFO-R11',
         vendor: 'Moes',
@@ -375,13 +371,16 @@ const definitions: Definition[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'iH-F8260', 'Universal smart IR remote control', ['_TZ3290_gnl5a6a5xvql7c2a']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_hhiodade'}],
         model: 'ZS-EUB_1gang',
         vendor: 'Moes',
         description: 'Wall light switch (1 gang)',
-        extend: tuya.extend.switch({backlightModeOffNormalInverted: true}),
+        extend: [tuya.modernExtend.tuyaOnOff({backlightModeOffNormalInverted: true})],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
@@ -467,6 +466,51 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_srmahpwl']),
+        model: 'ZS-SR-EUC',
+        vendor: 'Moes',
+        description: 'Star ring - smart curtain switch',
+        options: [exposes.options.invert_cover()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            e.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'calibration', tuya.valueConverterBasic.lookup({'START': tuya.enum(0), 'END': tuya.enum(1)})],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})],
+            ],
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0726', manufacturerName: '_TZ3002_vaq2bfcu'}],
+        model: 'SR-ZS',
+        vendor: 'Moes',
+        description: 'Smart switch (light + sence)',
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3'], powerOnBehavior2: true, switchMode: true}),
+            actionEnumLookup({
+                cluster: 'genOnOff',
+                commands: ['commandTuyaAction'],
+                attribute: 'value',
+                actionLookup: {'button': 0},
+                buttonLookup: {
+                    '1_up': 4, '1_down': 1,
+                    '2_up': 5, '2_down': 2,
+                    '3_up': 6, '3_down': 3,
+                },
+            }),
+            tuya.modernExtend.tuyaLedIndicator(),
+        ],
     },
 ];
 

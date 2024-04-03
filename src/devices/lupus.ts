@@ -6,7 +6,7 @@ import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as ota from '../lib/ota';
-import {onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -55,7 +55,10 @@ const definitions: Definition[] = [
         model: '12127',
         vendor: 'Lupus',
         description: '2 channel relay',
-        extend: [onOff({endpoints: {l1: 1, l2: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            onOff({endpointNames: ['l1', 'l2']}),
+        ],
     },
 ];
 

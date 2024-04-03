@@ -26,7 +26,7 @@ const definitions: Definition[] = [
         model: 'R9077',
         vendor: 'Woox',
         description: 'RGB+CCT LED',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color(),
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: undefined}, color: true})],
         meta: {applyRedFix: true},
     },
     {
@@ -48,7 +48,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aycxwiau'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aycxwiau', '_TZE200_bxdyeaa9']),
         model: 'R7049',
         vendor: 'Woox',
         description: 'Smart smoke alarm',

@@ -1,7 +1,5 @@
 import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import {onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -9,12 +7,9 @@ const definitions: Definition[] = [
         model: 'SP-PS1-02',
         vendor: 'Spotmau',
         description: 'Smart wall switch - 1 gang',
-        extend: extend.switch(),
+        extend: [onOff()],
         endpoint: (device) => {
             return {default: 16};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff', 'genBasic']);
         },
     },
     {
@@ -22,7 +17,10 @@ const definitions: Definition[] = [
         model: 'SP-PS2-02',
         vendor: 'Spotmau',
         description: 'Smart wall switch - 2 gang',
-        extend: [onOff({endpoints: {left: 16, right: 17}})],
+        extend: [
+            deviceEndpoints({endpoints: {'left': 16, 'right': 17}}),
+            onOff({endpointNames: ['left', 'right']}),
+        ],
     },
 ];
 

@@ -44,6 +44,14 @@ export const thermostatSystemModes: KeyValueNumberString = {
     9: 'sleep',
 };
 
+export const acovaThermostatSystemModes: KeyValueNumberString = {
+    0: 'off',
+    1: 'heat',
+    3: 'auto',
+    4: 'away_or_vacation',
+};
+
+
 export const thermostatRunningMode: KeyValueNumberString= {
     0: 'off',
     3: 'cool',
@@ -135,6 +143,12 @@ export const danfossRoomStatusCode: KeyValueNumberString = {
     0x0201: 'rt_touch_error',
     0x0401: 'floor_sensor_short_circuit',
     0x0801: 'floor_sensor_disconnected',
+};
+
+export const danfossRoomFloorSensorMode: KeyValueNumberString = {
+    0: 'comfort',
+    1: 'floor_only',
+    2: 'dual_mode',
 };
 
 export const danfossOutputStatus: KeyValueNumberString = {
@@ -302,6 +316,7 @@ exports.danfossAdaptionRunControl = danfossAdaptionRunControl;
 exports.danfossAdaptionRunStatus = danfossAdaptionRunStatus;
 exports.danfossWindowOpen = danfossWindowOpen;
 exports.danfossRoomStatusCode = danfossRoomStatusCode;
+exports.danfossRoomFloorSensorMode = danfossRoomFloorSensorMode;
 exports.danfossOutputStatus = danfossOutputStatus;
 exports.danfossSystemStatusWater = danfossSystemStatusWater;
 exports.danfossSystemStatusCode = danfossSystemStatusCode;

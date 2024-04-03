@@ -1,6 +1,9 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Fz, Tz, OnEvent, KeyValueString, KeyValueAny} from '../lib/types';
 import * as exposes from './exposes';
 import * as utils from '../lib/utils';
+
+const NS = 'zhc:legrand';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -23,7 +26,7 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
         .map((e) => [e[0], e[1].description]));
 };
 
-export const legrandOptions = {manufacturerCode: 0x1021, disableDefaultResponse: true};
+export const legrandOptions = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
 
 export const _067776 = {
     getCover: () => {
@@ -131,7 +134,7 @@ export const fzLegrand = {
                 else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
                 else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
                 else {
-                    meta.logger.warn(`Device_mode ${option0} not recognized, please fix me!`);
+                    meta.logger.warning(`Device_mode ${option0} not recognized, please fix me!`, NS);
                     payload.device_mode = 'unknown';
                 }
             }

@@ -65,12 +65,14 @@ import ecolink from './ecolink';
 import ecosmart from './ecosmart';
 import ecozy from './ecozy';
 import edp from './edp';
+import efekta from './efekta';
 import eglo from './eglo';
 import elko from './elko';
 import enbrighten from './enbrighten';
 import enocean from './enocean';
 import envilar from './envilar';
 import essentialb from './essentialb';
+import eucontrols from './eucontrols';
 import eurotronic from './eurotronic';
 import evanell from './evanell';
 import evn from './evn';
@@ -100,7 +102,6 @@ import heiman from './heiman';
 import heimgard_technologies from './heimgard_technologies';
 import hej from './hej';
 import hfh from './hfh';
-import hgkg from './hgkg';
 import hilux from './hilux';
 import hive from './hive';
 import hommyn from './hommyn';
@@ -117,6 +118,7 @@ import iluminize from './iluminize';
 import ilux from './ilux';
 import imhotepcreation from './imhotepcreation';
 import immax from './immax';
+import imou from './imou';
 import innr from './innr';
 import inovelli from './inovelli';
 import insta from './insta';
@@ -239,6 +241,7 @@ import smart9 from './smart9';
 import smartenit from './smartenit';
 import smartthings from './smartthings';
 import smartwings from './smartwings';
+import smlight from './smlight';
 import sohan_electric from './sohan_electric';
 import solaredge from './solaredge';
 import somfy from './somfy';
@@ -246,11 +249,11 @@ import somgoms from './somgoms';
 import sonoff from './sonoff';
 import sowilo from './sowilo';
 import spotmau from './spotmau';
-import wirenboard from './wirenboard';
 import stelpro from './stelpro';
 import sunricher from './sunricher';
 import swann from './swann';
 import sylvania from './sylvania';
+import tapestry from './tapestry';
 import tci from './tci';
 import technicolor from './technicolor';
 import terncy from './terncy';
@@ -272,16 +275,18 @@ import villeroy_boch from './villeroy_boch';
 import vimar from './vimar';
 import visonic from './visonic';
 import vrey from './vrey';
+import lumi from './lumi';
 import wally from './wally';
 import waxman from './waxman';
 import weiser from './weiser';
 import weten from './weten';
+import wirenboard from './wirenboard';
 import wisdom from './wisdom';
 import woolley from './woolley';
 import woox from './woox';
 import wyze from './wyze';
-import xiaomi from './xiaomi';
 import xinghuoyuan from './xinghuoyuan';
+import xyzroe from './xyzroe';
 import yale from './yale';
 import ynoa from './ynoa';
 import yookee from './yookee';
@@ -358,12 +363,14 @@ export default [
     ...ecosmart,
     ...ecozy,
     ...edp,
+    ...efekta,
     ...eglo,
     ...elko,
     ...enbrighten,
     ...enocean,
     ...envilar,
     ...essentialb,
+    ...eucontrols,
     ...eurotronic,
     ...evanell,
     ...evn,
@@ -393,7 +400,6 @@ export default [
     ...heimgard_technologies,
     ...hej,
     ...hfh,
-    ...hgkg,
     ...hilux,
     ...hive,
     ...hommyn,
@@ -410,6 +416,7 @@ export default [
     ...ilux,
     ...imhotepcreation,
     ...immax,
+    ...imou,
     ...innr,
     ...inovelli,
     ...insta,
@@ -532,6 +539,7 @@ export default [
     ...smartenit,
     ...smartthings,
     ...smartwings,
+    ...smlight,
     ...sohan_electric,
     ...solaredge,
     ...somfy,
@@ -539,11 +547,11 @@ export default [
     ...sonoff,
     ...sowilo,
     ...spotmau,
-    ...wirenboard,
     ...stelpro,
     ...sunricher,
     ...swann,
     ...sylvania,
+    ...tapestry,
     ...tci,
     ...technicolor,
     ...terncy,
@@ -557,6 +565,7 @@ export default [
     ...tuya,
     ...ubisys,
     ...uhome,
+    ...lumi,
     ...universal_electronics_inc,
     ...vbled,
     ...vesternet,
@@ -569,12 +578,13 @@ export default [
     ...waxman,
     ...weiser,
     ...weten,
+    ...wirenboard,
     ...wisdom,
     ...woolley,
     ...woox,
     ...wyze,
-    ...xiaomi,
     ...xinghuoyuan,
+    ...xyzroe,
     ...yale,
     ...ynoa,
     ...yookee,

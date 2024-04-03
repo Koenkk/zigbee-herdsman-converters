@@ -4,9 +4,8 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import * as tuya from '../lib/tuya';
-import {light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -67,7 +66,6 @@ const definitions: Definition[] = [
         model: 'X711A',
         vendor: 'Lonsonho',
         description: '1 gang switch',
-        extend: extend.switch(),
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
         fromZigbee: [legacy.fz.tuya_switch, fz.ignore_time_read],
         toZigbee: [legacy.tz.tuya_switch_state],
@@ -77,7 +75,6 @@ const definitions: Definition[] = [
         model: 'X712A',
         vendor: 'Lonsonho',
         description: '2 gang switch',
-        extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
         fromZigbee: [legacy.fz.tuya_switch, fz.ignore_time_read],
@@ -93,7 +90,6 @@ const definitions: Definition[] = [
         model: 'X713A',
         vendor: 'Lonsonho',
         description: '3 gang switch',
-        extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
         fromZigbee: [legacy.fz.tuya_switch, fz.ignore_time_read],
@@ -123,7 +119,10 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-D02-TRIAC-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module with neutral',
-        extend: [tuya.modernExtend.tuyaLight({minBrightness: true, endpoints: {l1: 1, l2: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            tuya.modernExtend.tuyaLight({minBrightness: true, endpointNames: ['l1', 'l2']}),
+        ],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -136,7 +135,10 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-D02-TRIAC-2C-L',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module without neutral',
-        extend: [light({endpoints: {l1: 1, l2: 2}, configureReporting: true})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
+            light({endpointNames: ['l1', 'l2'], configureReporting: true}),
+        ],
     },
     {
         zigbeeModel: ['Plug_01'],
@@ -160,12 +162,12 @@ const definitions: Definition[] = [
         model: 'QS-Zigbee-S04-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang switch module with neutral wire',
-        extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
         toZigbee: [tz.TYZB01_on_off],
+        fromZigbee: [fz.on_off],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);

@@ -10,7 +10,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['openlumi.gw_router.jn5169'],
         model: 'GWRJN5169',
         vendor: 'OpenLumi',
-        description: '[Lumi Router (JN5169)](https://github.com/igo-r/Lumi-Router-JN5169)',
+        description: 'Lumi Router (JN5169)',
         fromZigbee: [fz.ignore_basic_report, fz.device_temperature],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {

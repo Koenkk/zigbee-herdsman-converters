@@ -1,7 +1,9 @@
 import * as globalStore from './store';
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Expose, Fz, KeyValue, KeyValueAny, Logger, Publish, Tz, Zh} from './types';
+import {Definition, Expose, Fz, KeyValue, KeyValueAny, Publish, Tz, Zh} from './types';
 import {Feature, Light, Numeric} from './exposes';
+
+const NS = 'zhc:utils';
 
 export function isLegacyEnabled(options: KeyValue) {
     return !options.hasOwnProperty('legacy') || options.legacy;
@@ -134,7 +136,7 @@ export function getEndpointName(msg: Fz.Message, definition: Definition, meta: F
 export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
-        meta.logger.warn(`No meta passed to postfixWithEndpointName, update your external converter!`);
+        meta.logger.warning(`No meta passed to postfixWithEndpointName, update your external converter!`, NS);
         // @ts-expect-error
         meta = {device: null};
     }
@@ -404,7 +406,7 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
     if (message.hasOwnProperty('transition')) {
         const time = toNumber(message.transition, 'transition');
         return {time: time * 10, specified: true};
-    } else if (options.hasOwnProperty('transition')) {
+    } else if (options.hasOwnProperty('transition') && options.transition !== '') {
         const transition = toNumber(options.transition, 'transition');
         return {time: transition * 10, specified: true};
     } else {
@@ -505,12 +507,6 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
     return numbers.map((v) => v.toString(16).padStart(hexLength, '0')).join(':');
 }
 
-// Note: this is valid typescript-flavored JSDoc
-// eslint-disable-next-line valid-jsdoc
-export const createLogger = (logger: Logger, vendor: string, key: string) => (level: 'debug' | 'info' | 'warn' | 'error', message: string) => {
-    logger[level](`zigbee-herdsman-converters:${vendor}:${key}: ${message}`);
-};
-
 // eslint-disable-next-line
 export function assertObject(value: unknown, property?: string): asserts value is {[s: string]: any} {
     const isObject = typeof value === 'object' && !Array.isArray(value) && value !== null;
@@ -540,6 +536,10 @@ export function isObject(value: unknown): value is {[s: string]: any} {
 
 export function isString(value: unknown): value is string {
     return typeof value === 'string';
+}
+
+export function isBoolean(value: unknown): value is boolean {
+    return typeof value === 'boolean';
 }
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
@@ -659,5 +659,4 @@ exports.getSceneState = getSceneState;
 exports.attachOutputCluster = attachOutputCluster;
 exports.printNumberAsHex = printNumberAsHex;
 exports.printNumbersAsHexSequence = printNumbersAsHexSequence;
-exports.createLogger = createLogger;
 exports.getFromLookup = getFromLookup;

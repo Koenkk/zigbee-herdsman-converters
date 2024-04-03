@@ -1,13 +1,13 @@
 import {Definition} from '../lib/types';
-import {temperature, humidity, co2, batteryPercentage, identify} from '../lib/modernExtend';
+import {temperature, humidity, co2, battery, identify} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
         zigbeeModel: ['Air Quality Sensor Nexelec'],
         model: 'Open\'R',
         vendor: 'Nexelec',
-        description: '3-in-1 room sensor',
-        extend: [temperature(), humidity(), co2(), batteryPercentage(), identify()],
+        description: 'Open\'R CO2, Temperature and Humidity sensor',
+        extend: [temperature(), humidity(), co2(), battery(), identify()],
     },
 ];
 

@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import {light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, light, onOff} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -13,7 +13,10 @@ const definitions: Definition[] = [
         model: 'HOMA1001_RGBW',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver RGBW',
-        extend: [light({endpoints: {white: 10, rgb: 11}, color: true})],
+        extend: [
+            deviceEndpoints({endpoints: {'white': 10, 'rgb': 11}}),
+            light({endpointNames: ['white', 'rgb'], color: true}),
+        ],
     },
     {
         fingerprint: [
@@ -84,7 +87,10 @@ const definitions: Definition[] = [
         model: 'HLC614-ZLL',
         vendor: 'Shenzhen Homa',
         description: '3 channel relay module',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3']}),
+        ],
     },
     {
         zigbeeModel: ['HOMA1064', '012'],

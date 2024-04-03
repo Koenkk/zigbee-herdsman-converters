@@ -617,6 +617,7 @@ export const options = {
     measurement_poll_interval: (extraNote='') => new Numeric(`measurement_poll_interval`, access.SET).withValueMin(-1).withDescription(`This device does not support reporting electric measurements so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.${extraNote}`),
     illuminance_below_threshold_check: () => new Binary(`illuminance_below_threshold_check`, access.SET, true, false).withDescription(`Set to false to also send messages when illuminance is above threshold in night mode (default true).`),
     state_action: () => new Binary(`state_action`, access.SET, true, false).withDescription(`State actions will also be published as 'action' when true (default false).`),
+    identify_timeout: () => new Numeric('identify_timeout', access.SET).withDescription('Sets duration of identification procedure in seconds (i.e., how long device would flash). Value ranges from 1 to 30 seconds (default 3).').withValueMin(1).withValueMax(30),
 };
 
 export const presets = {
@@ -633,7 +634,7 @@ export const presets = {
     switch_: () => new Switch(),
     // Specific
     ac_frequency: () => new Numeric('ac_frequency', access.STATE).withLabel('AC frequency').withUnit('Hz').withDescription('Measured electrical AC frequency'),
-    action: (values: string[]) => new Enum('action', access.STATE, values).withDescription('Triggered action (e.g. a button click)'),
+    action: (values: string[]) => new Enum('action', access.STATE, values).withDescription('Triggered action (e.g. a button click)').withCategory('diagnostic'),
     action_duration: () => new Numeric('action_duration', access.STATE).withUnit('s').withDescription('Triggered action duration in seconds').withCategory('diagnostic'),
     action_group: () => new Numeric('action_group', access.STATE).withDescription('Group where the action was triggered on'),
     angle: (name: string) => new Numeric(name, access.STATE).withValueMin(-360).withValueMax(360).withUnit('°'),
@@ -676,6 +677,7 @@ export const presets = {
     effect: () => new Enum('effect', access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']).withDescription('Triggers an effect on the light (e.g. make light blink for a few seconds)'),
     energy: () => new Numeric('energy', access.STATE).withUnit('kWh').withDescription('Sum of consumed energy'),
     produced_energy: () => new Numeric('produced_energy', access.STATE).withUnit('kWh').withDescription('Sum of produced energy'),
+    energy_produced: () => new Numeric('energy_produced', access.STATE).withUnit('kWh').withDescription('Sum of produced energy'),
     fan: () => new Fan(),
     flip_indicator_light: () => new Binary('flip_indicator_light', access.ALL, 'ON', 'OFF').withDescription('After turn on, the indicator light turns on while switch is off, and vice versa').withCategory('config'),
     force: () => new Enum('force', access.STATE_SET, ['normal', 'open', 'close']).withDescription('Force the valve position'),
@@ -729,12 +731,20 @@ export const presets = {
     pm25: () => new Numeric('pm25', access.STATE).withLabel('PM25').withUnit('µg/m³').withDescription('Measured PM2.5 (particulate matter) concentration'),
     position: () => new Numeric('position', access.STATE).withUnit('%').withDescription('Position'),
     power: () => new Numeric('power', access.STATE).withUnit('W').withDescription('Instantaneous measured power').withCategory('diagnostic'),
+    power_phase_b: () => new Numeric('power_phase_b', access.STATE).withUnit('W').withDescription('Instantaneous measured power on phase B').withCategory('diagnostic'),
+    power_phase_c: () => new Numeric('power_phase_c', access.STATE).withUnit('W').withDescription('Instantaneous measured power on phase C').withCategory('diagnostic'),
     power_factor: () => new Numeric('power_factor', access.STATE).withDescription('Instantaneous measured power factor'),
+    power_factor_phase_b: () => new Numeric('power_factor_phase_b', access.STATE).withDescription('Instantaneous measured power factor on phase B'),
+    power_factor_phase_c: () => new Numeric('power_factor_phase_c', access.STATE).withDescription('Instantaneous measured power factor on phase C'),
     power_apparent: () => new Numeric('power_apparent', access.STATE).withUnit('VA').withDescription('Instantaneous measured apparent power'),
+    power_apparent_phase_b: () => new Numeric('power_apparent_phase_b', access.STATE).withUnit('VA').withDescription('Instantaneous measured apparent power on phase B'),
+    power_apparent_phase_c: () => new Numeric('power_apparent_phase_c', access.STATE).withUnit('VA').withDescription('Instantaneous measured apparent power on phase C'),
     power_on_behavior: (values=['off', 'previous', 'on']) => new Enum('power_on_behavior', access.ALL, values).withLabel('Power-on behavior').withDescription('Controls the behavior when the device is powered on after power loss. If you get an `UNSUPPORTED_ATTRIBUTE` error, the device does not support it.').withCategory('config'),
     power_outage_count: (resetsWhenPairing = true) => new Numeric('power_outage_count', access.STATE).withDescription('Number of power outages' + (resetsWhenPairing ? ' (since last pairing)' : '')).withCategory('diagnostic'),
     power_outage_memory: () => new Binary('power_outage_memory', access.ALL, true, false).withDescription('Enable/disable the power outage memory, this recovers the on/off mode after power failure').withCategory('config'),
     power_reactive: () => new Numeric('power_reactive', access.STATE).withUnit('VAR').withDescription('Instantaneous measured reactive power'),
+    power_reactive_phase_b: () => new Numeric('power_reactive_phase_b', access.STATE).withUnit('VAR').withDescription('Instantaneous measured reactive power on phase B'),
+    power_reactive_phase_c: () => new Numeric('power_reactive_phase_c', access.STATE).withUnit('VAR').withDescription('Instantaneous measured reactive power on phase C'),
     presence: () => new Binary('presence', access.STATE, true, false).withDescription('Indicates whether the device detected presence'),
     pressure: () => new Numeric('pressure', access.STATE).withUnit('hPa').withDescription('The measured atmospheric pressure'),
     programming_operation_mode: (values=['setpoint', 'schedule', 'schedule_with_preheat', 'eco']) => new Enum('programming_operation_mode', access.ALL, ['setpoint', 'schedule', 'schedule_with_preheat', 'eco']).withDescription('Controls how programming affects the thermostat. Possible values: setpoint (only use specified setpoint), schedule (follow programmed setpoint schedule), schedule_with_preheat (follow programmed setpoint schedule with pre-heating). Changing this value does not clear programmed schedules.'),
@@ -758,6 +768,7 @@ export const presets = {
     temperature: () => new Numeric('temperature', access.STATE).withUnit('°C').withDescription('Measured temperature value'),
     temperature_sensor_select: (sensor_names: string[]) => new Enum('sensor', access.STATE_SET, sensor_names).withDescription('Select temperature sensor to use').withCategory('config'),
     test: () => new Binary('test', access.STATE, true, false).withDescription('Indicates whether the device is being tested'),
+    trigger_count: (sinceScheduledReport = true) => new Numeric('trigger_count', exports.access.STATE).withDescription('Indicates how many times the sensor was triggered' + (sinceScheduledReport ? ' (since last scheduled report)' : '')).withCategory('diagnostic'),
     trigger_indicator: () => new Binary('trigger_indicator', access.ALL, true, false).withDescription('Enables trigger indication').withCategory('config'),
     valve_alarm: () => new Binary('valve_alarm', access.STATE, true, false).withCategory('diagnostic'),
     valve_position: () => new Numeric('position', access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of the valve'),
@@ -798,6 +809,10 @@ export const presets = {
         .withFeature(new Enum('state', access.SET, ['system_is_armed', 'system_is_disarmed']).withDescription('Set Squawk state'))
         .withFeature(new Enum('level', access.SET, ['low', 'medium', 'high', 'very_high']).withDescription('Sound level'))
         .withFeature(new Binary('strobe', access.SET, true, false).withDescription('Turn on/off the strobe (light) for Squawk')),
+    identify_duration: () => new Numeric('identify', access.SET).withValueMin(0).withValueMax(30).withUnit('seconds').withDescription('Duration of flashing').withCategory('config'),
+    identify: () => new Enum('identify', access.SET, ['identify']).withDescription('Ititiate device identification').withCategory('config'),
+    min_brightness: () => new Numeric('min_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Minimum light brightness'),
+    max_brightness: () => new Numeric('max_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Maximum light brightness'),
 };
 
 exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);

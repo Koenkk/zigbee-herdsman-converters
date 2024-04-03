@@ -2,6 +2,8 @@ const updateCheckUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/newe
 const updateDownloadUrl = 'https://api.update.ledvance.com/v1/zigbee/firmwares/download';
 import * as common from './common';
 import {Zh, Logger, Ota} from '../types';
+
+const NS = 'zhc:ota:ledvance';
 const axios = common.getAxios();
 
 /**
@@ -9,7 +11,7 @@ const axios = common.getAxios();
  */
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`LedvanceOTA: call getImageMeta for ${device.modelID}`);
+    logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
     const url = `${updateCheckUrl}?company=${current.manufacturerCode}&product=${current.imageType}&version=0.0.0`;
     const {data} = await axios.get(url);
 
@@ -43,7 +45,10 @@ export async function isUpdateAvailable(device: Zh.Device, logger: Logger, reque
 }
 
 export async function updateToLatest(device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) {
-    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta);
+    // Ledvance OTAs are not valid against the Zigbee spec, the last image element fails to parse but the
+    // update succeeds even without sending it. Therefore set suppressElementImageParseFailure to true
+    // https://github.com/Koenkk/zigbee2mqtt/issues/16900
+    return common.updateToLatest(device, logger, onProgress, common.getNewImage, getImageMeta, null, true);
 }
 
 exports.isUpdateAvailable = isUpdateAvailable;

@@ -4,9 +4,8 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
 import {Definition} from '../lib/types';
-import {onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -16,14 +15,17 @@ const definitions: Definition[] = [
         zigbeeModel: ['DIYRuZ_R4_5'],
         model: 'DIYRuZ_R4_5',
         vendor: 'DIYRuZ',
-        description: '[DiY 4 Relays + 4 switches + 1 buzzer](http://modkam.ru/?p=1054)',
-        extend: [onOff({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4, center: 5}})],
+        description: 'DiY 4 Relays + 4 switches + 1 buzzer',
+        extend: [
+            deviceEndpoints({endpoints: {'bottom_left': 1, 'bottom_right': 2, 'top_left': 3, 'top_right': 4, 'center': 5}}),
+            onOff({endpointNames: ['bottom_left', 'bottom_right', 'top_left', 'top_right', 'center']}),
+        ],
     },
     {
         zigbeeModel: ['DIYRuZ_KEYPAD20'],
         model: 'DIYRuZ_KEYPAD20',
         vendor: 'DIYRuZ',
-        description: '[DiY 20 button keypad](http://modkam.ru/?p=1114)',
+        description: 'DiY 20 button keypad',
         fromZigbee: [fz.keypad20states, fz.keypad20_battery],
         toZigbee: [],
         exposes: [e.battery()],
@@ -38,7 +40,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['DIYRuZ_magnet'],
         model: 'DIYRuZ_magnet',
         vendor: 'DIYRuZ',
-        description: '[DIYRuZ contact sensor](https://modkam.ru/?p=1220)',
+        description: 'DIYRuZ contact sensor',
         fromZigbee: [fz.keypad20_battery, fz.diyruz_contact],
         exposes: [e.battery(), e.contact()],
         toZigbee: [],
@@ -47,7 +49,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['DIYRuZ_rspm'],
         model: 'DIYRuZ_rspm',
         vendor: 'DIYRuZ',
-        description: '[DIYRuZ relay switch power meter](https://modkam.ru/?p=1309)',
+        description: 'DIYRuZ relay switch power meter',
         fromZigbee: [fz.diyruz_rspm],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.cpu_temperature(), e.action(['hold', 'release'])],
@@ -59,7 +61,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['DIYRuZ_FreePad', 'FreePadLeTV8'],
         model: 'DIYRuZ_FreePad',
         vendor: 'DIYRuZ',
-        description: '[DiY 8/12/20 button keypad](http://modkam.ru/?p=1114)',
+        description: 'DiY 8/12/20 button keypad',
         fromZigbee: [fz.diyruz_freepad_clicks, fz.diyruz_freepad_config, fz.battery],
         exposes: [e.battery(),
             e.action(['*_single', '*_double', '*_triple', '*_quadruple', '*_release', '*_hold'])].concat(((enpoinsCount) => {
@@ -103,7 +105,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['FreePad_LeTV_8'],
         model: 'FreePad_LeTV_8',
         vendor: 'DIYRuZ',
-        description: '[LeTV 8key FreePad mod](https://modkam.ru/?p=1791)',
+        description: 'LeTV 8key FreePad mod',
         fromZigbee: [fz.diyruz_freepad_clicks, fz.diyruz_freepad_config, fz.battery],
         exposes: [e.battery(), e.action(['*_single', '*_double', '*_triple', '*_quadruple', '*_release'])].concat(((enpoinsCount) => {
             const features = [];
@@ -141,7 +143,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['DIYRuZ_Geiger'],
         model: 'DIYRuZ_Geiger',
         vendor: 'DIYRuZ',
-        description: '[DiY Geiger counter](https://modkam.ru/?p=1591)',
+        description: 'DiY Geiger counter',
         fromZigbee: [fz.diyruz_geiger, fz.command_on, fz.command_off, fz.diyruz_geiger_config],
         exposes: [e.action(['on', 'off']),
             e.numeric('radioactive_events_per_minute', ea.STATE).withUnit('rpm')
@@ -173,24 +175,18 @@ const definitions: Definition[] = [
         zigbeeModel: ['DIYRuZ_R8_8'],
         model: 'DIYRuZ_R8_8',
         vendor: 'DIYRuZ',
-        description: '[DiY 8 Relays + 8 switches](https://modkam.ru/?p=1638)',
-        fromZigbee: [fz.on_off, fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fz.ignore_basic_report],
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6'),
-            e.switch().withEndpoint('l7'), e.switch().withEndpoint('l8')],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {
-                'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6, 'l7': 7, 'l8': 8,
-            };
-        },
+        description: 'DiY 8 Relays + 8 switches',
+        fromZigbee: [fz.ptvo_multistate_action, legacy.fz.ptvo_switch_buttons, fz.ignore_basic_report],
+        extend: [
+            deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8']}),
+        ],
     },
     {
         zigbeeModel: ['DIYRuZ_RT'],
         model: 'DIYRuZ_RT',
         vendor: 'DIYRuZ',
-        description: '[DiY CC2530 Zigbee 3.0 firmware](https://habr.com/ru/company/iobroker/blog/495926/)',
+        description: 'DiY CC2530 Zigbee 3.0 firmware',
         fromZigbee: [fz.on_off, fz.temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.temperature()],
@@ -199,7 +195,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['DIYRuZ_Flower'],
         model: 'DIYRuZ_Flower',
         vendor: 'DIYRuZ',
-        description: '[Flower sensor](http://modkam.ru/?p=1700)',
+        description: 'Flower sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.pressure, fz.battery],
         toZigbee: [],
         meta: {multiEndpoint: true, multiEndpointSkip: ['humidity']},
@@ -233,7 +229,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['DIYRuZ_AirSense'],
         model: 'DIYRuZ_AirSense',
         vendor: 'DIYRuZ',
-        description: '[Air quality sensor](https://modkam.ru/?p=1715)',
+        description: 'Air quality sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.co2, fz.pressure, fz.diyruz_airsense_config_co2,
             fz.diyruz_airsense_config_temp, fz.diyruz_airsense_config_pres, fz.diyruz_airsense_config_hum],
         toZigbee: [tz.diyruz_airsense_config],
@@ -266,7 +262,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['DIY_Zintercom'],
         model: 'DIYRuZ_Zintercom',
         vendor: 'DIYRuZ',
-        description: '[Matrix intercom auto opener](https://diyruz.github.io/posts/zintercom/)',
+        description: 'Matrix intercom auto opener',
         fromZigbee: [fz.battery, fz.diyruz_zintercom_config],
         toZigbee: [tz.diyruz_zintercom_config],
         configure: async (device, coordinatorEndpoint, logger) => {

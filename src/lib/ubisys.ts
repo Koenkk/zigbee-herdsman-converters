@@ -3,6 +3,8 @@ import {presets as e, access as ea} from './exposes';
 import {numeric, NumericArgs, setupConfigureForReporting} from './modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 
+const NS = 'zhc:ubisys';
+
 export const ubisysModernExtend = {
     localTemperatureOffset: (args?: Partial<NumericArgs>) => numeric({
         name: 'local_temperature_offset',
@@ -65,9 +67,10 @@ export const ubisysModernExtend = {
                     // NOTE: DataType is boolean in zcl definition as per the device technical reference
                     //       passing a boolean type 'value' throws INVALID_DATA_TYPE, we need to pass 1 (true) or 0 (false)
                     //       ZCL DataType used does still need to be 0x0010 (Boolean)
-                    await entity.write(clusterName, {[writeableAttributeName]: value ? 1 : 0}, {manufacturerCode: Zcl.ManufacturerCode.UBISYS});
+                    await entity.write(clusterName, {[writeableAttributeName]: value ? 1 : 0},
+                        {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH});
                 } else {
-                    meta.logger.error(`${propertyName} must be a boolean!`);
+                    meta.logger.error(`${propertyName} must be a boolean!`, NS);
                 }
             },
             convertGet: async (entity, key, meta) => {

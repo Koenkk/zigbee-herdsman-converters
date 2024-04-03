@@ -4,7 +4,7 @@ import * as utils from '../lib/utils';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {onOff, numeric, enumLookup} from '../lib/modernExtend';
+import {onOff, numeric, enumLookup, deviceEndpoints} from '../lib/modernExtend';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
 
@@ -309,44 +309,60 @@ const definitions: Definition[] = [
         model: 'SBM300Z1',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 1 gang',
-        extend: [onOff({powerOnBehavior: false, configureReporting: false})],
+        extend: [onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['SBM300Z2'],
         model: 'SBM300Z2',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 2 gang',
-        extend: [onOff({endpoints: {top: 1, bottom: 2}, powerOnBehavior: false, configureReporting: false})],
+        extend: [
+            deviceEndpoints({endpoints: {'top': 1, 'bottom': 2}}),
+            onOff({endpointNames: ['top', 'bottom'], powerOnBehavior: false}),
+        ],
     },
     {
         zigbeeModel: ['SBM300Z3'],
         model: 'SBM300Z3',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 3 gang',
-        extend: [onOff({endpoints: {top: 1, center: 2, bottom: 3}, powerOnBehavior: false, configureReporting: false})],
+        extend: [
+            deviceEndpoints({endpoints: {'top': 1, 'center': 2, 'bottom': 3}}),
+            onOff({endpointNames: ['top', 'center', 'bottom'], powerOnBehavior: false}),
+        ],
     },
     {
         zigbeeModel: ['SBM300Z4'],
         model: 'SBM300Z4',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 4 gang',
-        extend: [onOff({endpoints: {top_left: 1, bottom_left: 2, top_right: 3, bottom_right: 4}, powerOnBehavior: false, configureReporting: false})],
+        extend: [
+            deviceEndpoints({endpoints: {'top_left': 1, 'bottom_left': 2, 'top_right': 3, 'bottom_right': 4}}),
+            onOff({endpointNames: ['top_left', 'bottom_left', 'top_right', 'bottom_right'], powerOnBehavior: false}),
+        ],
     },
     {
         zigbeeModel: ['SBM300Z5'],
         model: 'SBM300Z5',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 5 gang',
-        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, bottom_right: 5}, powerOnBehavior: false,
-            configureReporting: false})],
+        extend: [
+            deviceEndpoints({endpoints: {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'bottom_right': 5}}),
+            onOff({endpointNames: ['top_left', 'center_left', 'bottom_left', 'top_right', 'bottom_right'], powerOnBehavior: false}),
+        ],
     },
     {
         zigbeeModel: ['SBM300Z6'],
         model: 'SBM300Z6',
         vendor: 'ShinaSystem',
         description: 'SiHAS IOT smart switch 6 gang',
-        extend: [onOff({endpoints: {top_left: 1, center_left: 2, bottom_left: 3, top_right: 4, center_right: 5, bottom_right: 6},
-            powerOnBehavior: false, configureReporting: false})],
+        extend: [
+            deviceEndpoints({endpoints: {'top_left': 1, 'center_left': 2, 'bottom_left': 3, 'top_right': 4, 'center_right': 5, 'bottom_right': 6}}),
+            onOff({
+                endpointNames: ['top_left', 'center_left', 'bottom_left', 'top_right', 'center_right', 'bottom_right'],
+                powerOnBehavior: false,
+            }),
+        ],
     },
     {
         zigbeeModel: ['BSM-300Z'],
@@ -784,6 +800,62 @@ const definitions: Definition[] = [
             await utils.sleep(300);
             await endpoint.read('genOnOff', ['onOff']);
         },
+    },
+    {
+        zigbeeModel: ['DIO-300Z'],
+        model: 'DIO-300Z',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS DI/DO Module',
+        fromZigbee: [fz.sihas_action],
+        toZigbee: [],
+        exposes: [e.action(['single', 'double', 'long'])],
+        extend: [
+            enumLookup({
+                name: 'di_status',
+                lookup: {'Close': 0, 'Open': 1},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x9009, type: 0x20},
+                description: 'Indicates whether the DI(Digital Input) is open or closed',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+                access: 'STATE_GET',
+            }),
+            onOff({powerOnBehavior: false}),
+            enumLookup({
+                name: 'di_type',
+                lookup: {'Button': 0, 'Door': 1},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x900A, type: 0x20},
+                description: 'Set the DI(Digital Input) type to either a button or door sensor(latch) type',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+            }),
+            enumLookup({
+                name: 'do_type',
+                lookup: {'Pulse': 0, 'Latch': 1},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x900B, type: 0x20},
+                description: 'Set the DO(Digital Output) type to either a pulse or latch type',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+            }),
+            enumLookup({
+                name: 'di_do_link',
+                lookup: {'Off': 0, 'On': 1},
+                cluster: 'genOnOff',
+                attribute: {ID: 0x900C, type: 0x20},
+                description: 'Configure DO linkage according to DI status. When set to ON, DO is output according to the DI input.',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+            }),
+            numeric({
+                name: 'do_pulse_time',
+                cluster: 'genOnOff',
+                attribute: {ID: 0x900D, type: 0x21},
+                description: 'When the DO output is set to pulse type, you can set the DO pulse time. The unit is milliseconds.',
+                valueMin: 100,
+                valueMax: 3000,
+                valueStep: 100,
+                unit: 'ms',
+                reporting: {min: 0, max: '1_HOUR', change: 1},
+            }),
+        ],
     },
 ];
 

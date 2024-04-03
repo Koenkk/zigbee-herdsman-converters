@@ -7,10 +7,12 @@
 const url = 'https://files.inovelli.com/firmware/firmware.json';
 import * as common from './common';
 import {Zh, Logger, Ota, KeyValueAny} from '../types';
+
+const NS = 'zhc:ota:inovelli';
 const axios = common.getAxios();
 
 export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, device: Zh.Device): Promise<Ota.ImageMeta> {
-    logger.debug(`InovelliOTA: call getImageMeta for ${device.modelID}`);
+    logger.debug(`Call getImageMeta for ${device.modelID}`, NS);
     const {data: images} = await axios.get(url);
 
     if (!images) {
@@ -44,7 +46,7 @@ export async function getImageMeta(current: Ota.ImageInfo, logger: Logger, devic
         .pop();
 
     if (!image) {
-        logger.warn(`OTA: No image found in the ${useBetaChannel ? 'beta' : 'production'} channel for device '${device.modelID}'`);
+        logger.warning(`No image found in the ${useBetaChannel ? 'beta' : 'production'} channel for device '${device.modelID}'`, NS);
 
         return null;
     }

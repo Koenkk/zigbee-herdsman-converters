@@ -11,7 +11,7 @@ export function reportingItem(attribute: string, min: number, max: number, chang
     return {attribute: attribute, minimumReportInterval: min, maximumReportInterval: max, reportableChange: change};
 }
 
-export function mockDevice(args: {modelID: string, manufacturerID?: number, endpoints: MockEndpointArgs[]}): Zh.Device {
+export function mockDevice(args: {modelID: string, manufacturerID?: number, manufacturerName?: string, endpoints: MockEndpointArgs[]}): Zh.Device {
     const ieeeAddr = '0x12345678';
     const device: Zh.Device = {
         // @ts-expect-error
@@ -63,11 +63,11 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
     };
 }
 
-const MockLogger: Logger = {info: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn()};
+const MockLogger: Logger = {info: jest.fn(), error: jest.fn(), warning: jest.fn(), debug: jest.fn()};
 
 const DefaultTz = [
     tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, 
-    tz.scene_rename, tz.read, tz.write, tz.command, tz.factory_reset
+    tz.scene_rename, tz.read, tz.write, tz.command, tz.factory_reset, tz.zcl_command,
 ];
 
 export type AssertDefinitionArgs = {

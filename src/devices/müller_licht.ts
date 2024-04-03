@@ -110,8 +110,8 @@ const definitions: Definition[] = [
         model: '404062',
         vendor: 'Müller Licht',
         description: 'Kea RGB+CCT',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color(
-            {colorTempRange: [153, 500], toZigbee: [tz.tint_scene, tuya.tz.do_not_disturb, tuya.tz.color_power_on_behavior]}),
+        toZigbee: [tz.tint_scene],
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         fingerprint: [{manufacturerName: '_TZ3000_bdbb0fon'}],

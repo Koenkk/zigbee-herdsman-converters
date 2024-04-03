@@ -1,8 +1,10 @@
 import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
-import {onOff} from '../lib/modernExtend';
+import fz from '../converters/fromZigbee';
+import {deviceEndpoints, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 
+const NS = 'zhc:ewelink';
 const fzLocal = {
     WS01_rain: {
         cluster: 'ssIasZone',
@@ -16,6 +18,15 @@ const fzLocal = {
 };
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['CK-BL702-ROUTER-01(7018)'],
+        model: 'CK-BL702-ROUTER-01(7018)',
+        vendor: 'eWeLink',
+        description: 'USB router',
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        exposes: [],
+    },
     {
         zigbeeModel: ['CK-BL702-MSW-01(7010)'],
         model: 'CK-BL702-MSW-01(7010)',
@@ -41,7 +52,7 @@ const definitions: Definition[] = [
             } catch (error) {
                 // This might fail because there are some repeaters which advertise to support genOnOff but don't support it.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/19865
-                logger.debug('Failed to bind genOnOff for SA-003-Zigbee');
+                logger.debug('Failed to bind genOnOff for SA-003-Zigbee', NS);
             }
         },
     },
@@ -90,7 +101,10 @@ const definitions: Definition[] = [
         model: 'ZB-SW02',
         vendor: 'eWeLink',
         description: 'Smart light switch/2 gang relay',
-        extend: [onOff({endpoints: {left: 1, right: 2}})],
+        extend: [
+            deviceEndpoints({endpoints: {'left': 1, 'right': 2}}),
+            onOff({endpointNames: ['left', 'right'], configureReporting: false}),
+        ],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -100,7 +114,10 @@ const definitions: Definition[] = [
         model: 'ZB-SW03',
         vendor: 'eWeLink',
         description: 'Smart light switch - 3 gang',
-        extend: [onOff({endpoints: {left: 1, center: 2, right: 3}})],
+        extend: [
+            deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
+            onOff({endpointNames: ['left', 'center', 'right'], configureReporting: false}),
+        ],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -110,7 +127,10 @@ const definitions: Definition[] = [
         model: 'ZB-SW04',
         vendor: 'eWeLink',
         description: 'Smart light switch - 4 gang',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4'], configureReporting: false}),
+        ],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
@@ -120,7 +140,10 @@ const definitions: Definition[] = [
         model: 'ZB-SW05',
         vendor: 'eWeLink',
         description: 'Smart light switch - 5 gang',
-        extend: [onOff({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}})],
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5}}),
+            onOff({endpointNames: ['l1', 'l2', 'l3', 'l4', 'l5'], configureReporting: false}),
+        ],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
