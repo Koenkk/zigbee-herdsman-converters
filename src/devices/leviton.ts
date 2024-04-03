@@ -16,7 +16,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentLevel')) {
                 const currentLevel = Number(msg.data['currentLevel']);
-                const property = utils.postfixWithEndpointName('state', msg, model, meta);
+                const property = utils.addEndpointName('state', msg, model, meta, 'postfix');
                 return {[property]: currentLevel > 0 ? 'ON' : 'OFF'};
             }
         },

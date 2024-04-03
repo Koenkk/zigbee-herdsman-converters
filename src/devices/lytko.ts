@@ -6,7 +6,7 @@ import * as reporting from '../lib/reporting';
 import * as constants from '../lib/constants';
 import * as ota from '../lib/ota';
 import * as herdsman from 'zigbee-herdsman';
-import {precisionRound, getFromLookup, postfixWithEndpointName, getKey, toNumber} from '../lib/utils';
+import {precisionRound, getFromLookup, addEndpointName, getKey, toNumber} from '../lib/utils';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -25,7 +25,7 @@ const fzLocal = {
             const result: KeyValue = {};
 
             if (msg.data.hasOwnProperty('minSetpointDeadBand')) {
-                result[postfixWithEndpointName('min_setpoint_deadband', msg, model, meta)] =
+                result[addEndpointName('min_setpoint_deadband', msg, model, meta, 'postfix')] =
                     precisionRound(msg.data['minSetpointDeadBand'], 2) / 10;
             }
             // sensor type
@@ -33,7 +33,7 @@ const fzLocal = {
                 result[`sensor_type_${ep}`] = sensorTypes[toNumber(msg.data['30464'])];
             }
             if (msg.data.hasOwnProperty('30465')) {
-                result[postfixWithEndpointName('target_temp_first', msg, model, meta)] = msg.data['30465'] == 1;
+                result[addEndpointName('target_temp_first', msg, model, meta, 'postfix')] = msg.data['30465'] == 1;
             }
             return result;
         },
@@ -44,13 +44,13 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty('30464')) {
-                result[postfixWithEndpointName('brightness', msg, model, meta)] = msg.data['30464'];
+                result[addEndpointName('brightness', msg, model, meta, 'postfix')] = msg.data['30464'];
             }
             if (msg.data.hasOwnProperty('30465')) {
-                result[postfixWithEndpointName('brightness_standby', msg, model, meta)] = msg.data['30465'];
+                result[addEndpointName('brightness_standby', msg, model, meta, 'postfix')] = msg.data['30465'];
             }
             if (msg.data.hasOwnProperty('keypadLockout')) {
-                result[postfixWithEndpointName('keypad_lockout', msg, model, meta)] =
+                result[addEndpointName('keypad_lockout', msg, model, meta, 'postfix')] =
                     getFromLookup(msg.data['keypadLockout'], constants.keypadLockoutMode);
             }
             return result;

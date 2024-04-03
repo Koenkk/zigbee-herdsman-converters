@@ -1,7 +1,7 @@
 import {Fz, Tz, OnEvent, Configure, KeyValue, Range, ModernExtend, Expose, KeyValueAny} from '../lib/types';
 import {presets, access, options} from '../lib/exposes';
 import {
-    postfixWithEndpointName, precisionRound, isObject, replaceInArray, isLegacyEnabled, hasAlreadyProcessedMessage,
+    addEndpointName, precisionRound, isObject, replaceInArray, isLegacyEnabled, hasAlreadyProcessedMessage,
     getFromLookup, mapNumberRange, getEndpointName,
 } from '../lib/utils';
 import {
@@ -179,14 +179,14 @@ export function ikeaAirPurifier(): ModernExtend {
                 const state: KeyValue = {};
 
                 if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
-                    const pm25Property = postfixWithEndpointName('pm25', msg, model, meta);
+                    const pm25Property = addEndpointName('pm25', msg, model, meta, 'postfix');
                     let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
 
                     // Air Quality
                     // Scale based on EU AQI (https://www.eea.europa.eu/themes/air/air-quality-index)
                     // Using German IAQ labels to match the Develco Air Quality Sensor
                     let airQuality;
-                    const airQualityProperty = postfixWithEndpointName('air_quality', msg, model, meta);
+                    const airQualityProperty = addEndpointName('air_quality', msg, model, meta, 'postfix');
                     if (pm25 <= 10) {
                         airQuality = 'excellent';
                     } else if (pm25 <= 20) {
@@ -441,7 +441,7 @@ export function tradfriCommandsOnOff(): ModernExtend {
         cluster: 'genOnOff',
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
-            return {action: postfixWithEndpointName('toggle', msg, model, meta)};
+            return {action: addEndpointName('toggle', msg, model, meta, 'postfix')};
         },
     }];
 

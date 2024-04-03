@@ -1,7 +1,7 @@
 import {Buffer} from 'node:buffer';
 import {
     batteryVoltageToPercentage,
-    postfixWithEndpointName,
+    addEndpointName,
     precisionRound,
     assertNumber,
     getFromLookup,
@@ -666,7 +666,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 payload.button_lock = value === 1 ? 'OFF' : 'ON';
             } else {
                 const mode = getFromLookup(value, {0x01: 'control_relay', 0x00: 'decoupled'});
-                payload[postfixWithEndpointName('operation_mode', msg, model, meta)] = mode;
+                payload[addEndpointName('operation_mode', msg, model, meta, 'postfix')] = mode;
             }
             break;
         case '513':
@@ -2415,12 +2415,12 @@ export const fromZigbee = {
                 const value = msg.data['currentPositionLiftPercentage'];
                 const position = invert ? 100 - value : value;
                 const state = invert ? (position > 0 ? 'CLOSE' : 'OPEN') : (position > 0 ? 'OPEN' : 'CLOSE');
-                result[postfixWithEndpointName('position', msg, model, meta)] = position;
-                result[postfixWithEndpointName('state', msg, model, meta)] = state;
+                result[addEndpointName('position', msg, model, meta, 'postfix')] = position;
+                result[addEndpointName('state', msg, model, meta, 'postfix')] = state;
             }
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
-                result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? 100 - value : value;
+                result[addEndpointName('tilt', msg, model, meta, 'postfix')] = invert ? 100 - value : value;
             }
             return result;
         },
@@ -2470,7 +2470,7 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             // Lumi wall switches use endpoint 4, 5 or 6 to indicate an action on the button so we have to skip that.
             if (msg.data.hasOwnProperty('onOff') && ![4, 5, 6].includes(msg.endpoint.ID)) {
-                const property = postfixWithEndpointName('state', msg, model, meta);
+                const property = addEndpointName('state', msg, model, meta, 'postfix');
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },

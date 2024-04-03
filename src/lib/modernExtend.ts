@@ -11,7 +11,7 @@ import {presets as e, access as ea, options as opt, Cover} from './exposes';
 import {configure as lightConfigure} from './light';
 import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
-    getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
+    getFromLookup, getEndpointName, assertNumber, addEndpointName,
     noOccupancySince, precisionRound, batteryVoltageToPercentage, getOptions,
     hasAlreadyProcessedMessage, addActionGroup,
 } from './utils';
@@ -415,7 +415,7 @@ export function commandsOnOff(args?: {commands?: ('on' | 'off' | 'toggle')[], bi
             type: ['commandOn', 'commandOff', 'commandOffWithEffect', 'commandToggle'],
             convert: (model, msg, publish, options, meta) => {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
-                const payload = {action: postfixWithEndpointName(actionPayloadLookup[msg.type], msg, model, meta)};
+                const payload = {action: addEndpointName(actionPayloadLookup[msg.type], msg, model, meta, 'postfix')};
                 addActionGroup(payload, msg, model);
                 return payload;
             },
@@ -954,7 +954,7 @@ export function commandsWindowCovering(args?: {commands?: ('open' | 'close' | 's
             type: ['commandUpOpen', 'commandDownClose', 'commandStop'],
             convert: (model, msg, publish, options, meta) => {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
-                const payload = {action: postfixWithEndpointName(actionPayloadLookup[msg.type], msg, model, meta)};
+                const payload = {action: addEndpointName(actionPayloadLookup[msg.type], msg, model, meta, 'postfix')};
                 addActionGroup(payload, msg, model);
                 return payload;
             },
@@ -1445,9 +1445,10 @@ export function binary(args: BinaryArgs): ModernExtend {
 
 export interface ActionEnumLookupArgs {
     actionLookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, endpointNames?: string[],
-    buttonLookup?: KeyValue, extraActions?: string[], commands?: string[],
+    buttonLookup?: KeyValue, extraActions?: string[], commands?: string[], actionTemplate?: 'action_endpoint' | 'endpoint_action'
 }
 export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
+    args = {actionTemplate: 'action_endpoint', ...args};
     const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const commands = args.commands || ['attributeReport', 'readResponse'];
@@ -1464,7 +1465,7 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
             if (attributeKey in msg.data) {
                 let value = getFromLookupByValue(msg.data[attributeKey], lookup);
                 // endpointNames is used when action endpoint names don't overlap with other endpoint names
-                if (args.endpointNames) value = postfixWithEndpointName(value, msg, model, meta);
+                if (args.endpointNames) value = addEndpointName(value, msg, model, meta, 'postfix');
                 // buttonLookup is used when action endpoint names overlap with other endpoint names
                 if (args.buttonLookup) {
                     const endpointName = getFromLookupByValue(msg.endpoint.ID, buttonLookup);

@@ -654,7 +654,7 @@ const fzLocal = {
                 result.calibration_closing_time = msg.data['calibrationClosingTime']/10;
             }
             if (data.hasOwnProperty('childLock')) {
-                const property = utils.postfixWithEndpointName('child_lock', msg, model, meta);
+                const property = utils.addEndpointName('child_lock', msg, model, meta, 'postfix');
                 result[property] = msg.data['childLock'] === 1 ? 'ON' : 'OFF';
             }
             if (data.hasOwnProperty('motorState')) {

@@ -17,7 +17,7 @@ export const ledvanceFz = {
                 commandMoveWithOnOff: 'hold', commandMove: 'hold', commandStopWithOnOff: 'release',
                 commandStop: 'release', commandMoveToLevelWithOnOff: 'toggle',
             };
-            return {[utils.postfixWithEndpointName('action', msg, model, meta)]: lookup[msg.type]};
+            return {[utils.addEndpointName('action', msg, model, meta, 'postfix')]: lookup[msg.type]};
         },
     } satisfies Fz.Converter,
 };

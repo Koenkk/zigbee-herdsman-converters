@@ -50,7 +50,7 @@ const fzPerenio = {
                 0x00DC: 'momentary_press',
             };
             if (msg.data.hasOwnProperty('presentValue')) {
-                const property = utils.postfixWithEndpointName('switch_type', msg, model, meta);
+                const property = utils.addEndpointName('switch_type', msg, model, meta, 'postfix');
                 result[property] = switchTypeLookup[msg.data['presentValue']];
             }
             return result;

@@ -134,10 +134,10 @@ export function getEndpointName(msg: Fz.Message, definition: Definition, meta: F
     return getKey(definition.endpoint(meta.device), msg.endpoint.ID);
 }
 
-export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
+export function addEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta, position: 'prefix' | 'postfix') {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
-        logger.warning(`No meta passed to postfixWithEndpointName, update your external converter!`, NS);
+        logger.warning(`No meta passed to addEndpointName, update your external converter!`, NS);
         // @ts-expect-error
         meta = {device: null};
     }
@@ -149,7 +149,13 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message, definiti
 
         // NOTE: endpointName can be undefined if we have a definition.endpoint and the endpoint is
         //       not listed.
-        if (endpointName) return `${value}_${endpointName}`;
+        if (endpointName) {
+            if (position === 'prefix') {
+                return `${endpointName}_${value}`;
+            } else {
+                return `${value}_${endpointName}`;
+            }
+        }
     }
     return value;
 }
@@ -636,7 +642,7 @@ exports.calibrateAndPrecisionRoundOptionsIsPercentual = calibrateAndPrecisionRou
 exports.calibrateAndPrecisionRoundOptionsDefaultPrecision = calibrateAndPrecisionRoundOptionsDefaultPrecision;
 exports.toPercentage = toPercentage;
 exports.addActionGroup = addActionGroup;
-exports.postfixWithEndpointName = postfixWithEndpointName;
+exports.postfixWithEndpointName = addEndpointName;
 exports.enforceEndpoint = enforceEndpoint;
 exports.getKey = getKey;
 exports.getObjectProperty = getObjectProperty;
