@@ -35,7 +35,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: [' Dimmer switch with neutral\u0000\u0000\u0000\u0000'],
-        model: 'L4411C/N4411C/NT4411C',
+        model: '4411C/L4411C/N4411C/NT4411C',
         vendor: 'BTicino',
         description: 'Dimmer switch with neutral',
         ota: ota.zigbeeOTA,
