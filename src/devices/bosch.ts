@@ -9,6 +9,7 @@ import * as constants from '../lib/constants';
 import * as ota from '../lib/ota';
 import * as globalStore from '../lib/store';
 import {Tz, Fz, Definition, KeyValue} from '../lib/types';
+import {logger} from '../lib/logger';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -896,7 +897,7 @@ const fzLocal = {
             if (options.hasOwnProperty('led_response')) {
                 buffer = Buffer.from(options.led_response as string, 'hex');
                 if (buffer.length !== 9) {
-                    meta.logger.error(`Invalid length of led_response: ${buffer.length} (should be 9)`, NS);
+                    logger.error(`Invalid length of led_response: ${buffer.length} (should be 9)`, NS);
                     buffer = Buffer.from('30ff00000102010001', 'hex');
                 }
             } else {
@@ -920,7 +921,7 @@ const fzLocal = {
                 }
                 return {action: `button_${buttons[buttonId]}_${command}`};
             } else {
-                meta.logger.error(`Received message with unknown command ID ${buttonId}. Data: 0x${msg.data.toString('hex')}`, NS);
+                logger.error(`Received message with unknown command ID ${buttonId}. Data: 0x${msg.data.toString('hex')}`, NS);
             }
         },
     } satisfies Fz.Converter,
@@ -948,7 +949,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_alarm_only_alarm_1, fz.battery, fz.power_source],
         toZigbee: [tzLocal.rbshoszbeu, tz.warning],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 4200}}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
@@ -989,7 +990,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fzLocal.bwa1_alarm_on_motion],
         toZigbee: [tzLocal.bwa1],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 64684]);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -1013,7 +1014,7 @@ const definitions: Definition[] = [
         description: 'Smoke alarm detector',
         fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
         toZigbee: [tzLocal.alarm_state],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 64684]);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -1034,7 +1035,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.illuminance],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -1051,7 +1052,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.ignore_iaszone_report],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -1129,7 +1130,7 @@ const definitions: Definition[] = [
                     'is "ready_to_calibrate" or "error".')
                 .withCategory('config'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg']);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR * 12, change: 1});
@@ -1211,7 +1212,7 @@ const definitions: Definition[] = [
             e.numeric('display_brightness', ea.ALL).withValueMin(0).withValueMax(10).withDescription('Specifies the brightness value of the display'),
             e.battery_low(), e.battery_voltage(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity']);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -1269,7 +1270,7 @@ const definitions: Definition[] = [
             e.numeric('display_ontime', ea.ALL).withValueMin(5).withValueMax(30).withDescription('Specifies the display On-time'),
             e.numeric('display_brightness', ea.ALL).withValueMin(0).withValueMax(10).withDescription('Specifies the brightness value of the display'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity']);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -1320,7 +1321,7 @@ const definitions: Definition[] = [
             fzLocal.bosch_twinguard_pre_alarm, fzLocal.bosch_twinguard_alarm_state, fzLocal.bosch_twinguard_smoke_alarm_state,
             fzLocal.bosch_twinguard_heartbeat],
         toZigbee: [tzLocal.bosch_twinguard],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const coordinatorEndpointB = coordinatorEndpoint.getDevice().getEndpoint(1);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, [0x0009]);
             await reporting.bind(device.getEndpoint(7), coordinatorEndpointB, [0x0019]);
@@ -1366,7 +1367,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -1382,7 +1383,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.power_on_behavior],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -1443,7 +1444,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'closuresWindowCovering', 'manuSpecificBosch10']);
             await reporting.currentPositionLiftPercentage(endpoint1);
@@ -1535,7 +1536,7 @@ const definitions: Definition[] = [
                 .withDescription(labelLongPress)
                 .withCategory('config'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
             // Read default LED configuration

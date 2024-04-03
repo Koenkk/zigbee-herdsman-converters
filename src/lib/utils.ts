@@ -2,6 +2,7 @@ import * as globalStore from './store';
 import {Zcl} from 'zigbee-herdsman';
 import {Definition, Expose, Fz, KeyValue, KeyValueAny, Publish, Tz, Zh} from './types';
 import {Feature, Light, Numeric} from './exposes';
+import {logger} from './logger';
 
 const NS = 'zhc:utils';
 
@@ -136,7 +137,7 @@ export function getEndpointName(msg: Fz.Message, definition: Definition, meta: F
 export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
-        meta.logger.warning(`No meta passed to postfixWithEndpointName, update your external converter!`, NS);
+        logger.warning(`No meta passed to postfixWithEndpointName, update your external converter!`, NS);
         // @ts-expect-error
         meta = {device: null};
     }

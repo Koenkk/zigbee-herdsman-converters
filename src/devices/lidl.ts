@@ -208,7 +208,7 @@ const definitions: Definition[] = [
         vendor: 'Lidl',
         description: 'Silvercrest smart plug (EU, CH, FR, BS, DK)',
         extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -221,9 +221,9 @@ const definitions: Definition[] = [
         description: 'Silvercrest smart plug with power monitoring (EU, FR)',
         ota: ota.zigbeeOTA,
         extend: [tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.rmsVoltage(endpoint, {change: 5});
             await reporting.rmsCurrent(endpoint, {change: 50});
@@ -246,7 +246,7 @@ const definitions: Definition[] = [
         description: 'Silvercrest smart button',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery, fz.tuya_on_off_action],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
@@ -268,7 +268,7 @@ const definitions: Definition[] = [
         description: 'Silvercrest smart wireless door bell button',
         fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -283,7 +283,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -301,7 +301,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -341,8 +341,8 @@ const definitions: Definition[] = [
         description: 'Silvercrest 3 gang switch, with 4 USB (EU, FR, CZ, BS)',
         extend: [tuya.modernExtend.tuyaOnOff({endpoints: ['l1', 'l2', 'l3']})],
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const ID of [1, 2, 3]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }
@@ -366,7 +366,7 @@ const definitions: Definition[] = [
         vendor: 'Lidl',
         description: 'Livarno smart LED ceiling light',
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
@@ -395,8 +395,8 @@ const definitions: Definition[] = [
                 }
             }
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
 
             // set reporting interval of genOnOff to max to "disable" it
@@ -476,7 +476,7 @@ const definitions: Definition[] = [
         vendor: 'Lidl',
         description: 'Silvercrest garden spike with 2 sockets',
         extend: [tuya.modernExtend.tuyaOnOff()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -488,7 +488,7 @@ const definitions: Definition[] = [
         vendor: 'Lidl',
         description: 'Silvercrest outdoor plug',
         extend: [tuya.modernExtend.tuyaOnOff()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -514,7 +514,7 @@ const definitions: Definition[] = [
             legacy.toZigbee.zs_thermostat_openwindow_temp, legacy.toZigbee.zs_thermostat_binary_one, legacy.toZigbee.zs_thermostat_binary_two,
             legacy.toZigbee.zs_thermostat_away_setting, legacy.toZigbee.zs_thermostat_local_schedule],
         onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },

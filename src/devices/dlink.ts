@@ -29,7 +29,7 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.DCH_B112, fz.battery],
         toZigbee: [],
         exposes: [e.battery_low(), e.contact(), e.vibration(), e.tamper(), e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);

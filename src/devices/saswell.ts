@@ -46,7 +46,7 @@ const definitions: Definition[] = [
                 weeklyScheduleConversion: 'saswell',
             },
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },

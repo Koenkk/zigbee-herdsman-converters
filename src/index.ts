@@ -8,7 +8,7 @@ import assert from 'assert';
 import * as ota from './lib/ota';
 import allDefinitions from './devices';
 import * as utils from './lib/utils';
-import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, Logger } from './lib/types';
+import {Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue} from './lib/types';
 import {generateDefinition} from './lib/generateDefinition';
 import {Zcl} from 'zigbee-herdsman';
 import * as logger from './lib/logger';
@@ -159,9 +159,9 @@ function processExtensions(definition: Definition): Definition {
 
         let configure: Configure = null;
         if (configures.length !== 0) {
-            configure = async (device, coordinatorEndpoint, logger) => {
+            configure = async (device, coordinatorEndpoint) => {
                 for (const func of configures) {
-                    await func(device, coordinatorEndpoint, logger);
+                    await func(device, coordinatorEndpoint);
                 }
             }
         }

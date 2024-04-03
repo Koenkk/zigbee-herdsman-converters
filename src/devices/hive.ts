@@ -25,7 +25,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report,
             fz.ignore_iaszone_statuschange, fz.ignore_iaszone_attreport],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(6);
             const binds = ['msTemperatureMeasurement', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -42,7 +42,7 @@ const definitions: Definition[] = [
         description: 'Contact sensor',
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(6);
             const binds = ['msTemperatureMeasurement', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -94,7 +94,7 @@ const definitions: Definition[] = [
         description: 'Active plug',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -177,7 +177,7 @@ const definitions: Definition[] = [
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display')],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -208,7 +208,7 @@ const definitions: Definition[] = [
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display')],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -239,7 +239,7 @@ const definitions: Definition[] = [
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display')],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -264,7 +264,7 @@ const definitions: Definition[] = [
             return {'heat': 5, 'water': 6};
         },
         meta: {disableDefaultResponse: true, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const heatEndpoint = device.getEndpoint(5);
             const waterEndpoint = device.getEndpoint(6);
             const binds = [
@@ -316,7 +316,7 @@ const definitions: Definition[] = [
             return {'heat': 5, 'water': 6};
         },
         meta: {disableDefaultResponse: true, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const heatEndpoint = device.getEndpoint(5);
             const waterEndpoint = device.getEndpoint(6);
             const binds = [
@@ -368,7 +368,7 @@ const definitions: Definition[] = [
             return {'heat': 5, 'water': 6};
         },
         meta: {disableDefaultResponse: true, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const heatEndpoint = device.getEndpoint(5);
             const waterEndpoint = device.getEndpoint(6);
             const binds = [
@@ -415,7 +415,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery],
         toZigbee: [],
         exposes: [e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -430,7 +430,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery],
         toZigbee: [],
         exposes: [e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
@@ -444,7 +444,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery],
         toZigbee: [],
         exposes: [e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -458,7 +458,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery],
         toZigbee: [],
         exposes: [e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -472,7 +472,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery],
         toZigbee: [],
         exposes: [e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -486,7 +486,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery],
         toZigbee: [],
         exposes: [e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -524,7 +524,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery],
         toZigbee: [],
         exposes: [e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);

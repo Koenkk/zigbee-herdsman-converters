@@ -39,7 +39,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             const binds = ['closuresWindowCovering'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -63,7 +63,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
         },
@@ -86,7 +86,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature()
                 .withSystemMode(['heat', 'cool']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             const binds = ['genBasic', 'genIdentify', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);

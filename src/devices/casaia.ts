@@ -22,7 +22,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -41,7 +41,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
         meta: {publishDuplicateTransaction: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);

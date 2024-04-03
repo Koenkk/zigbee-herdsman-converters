@@ -79,7 +79,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off', 'color_temperature_step_up', 'color_temperature_step_down',
             'brightness_step_up', 'brightness_step_down', 'brightness_stop'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genOnOff', 'genPowerCfg', 'lightingColorCtrl', 'genLevelCtrl'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);

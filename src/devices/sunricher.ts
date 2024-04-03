@@ -9,6 +9,7 @@ import * as constants from '../lib/constants';
 import * as utils from '../lib/utils';
 import {Definition, Fz, Zh} from '../lib/types';
 import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
+import {logger} from '../lib/logger';
 
 const NS = 'zhc:sunricher';
 const e = exposes.presets;
@@ -38,7 +39,7 @@ const fzLocal = {
                 0x40: 'rgb_release',
             };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Missing command '0x${commandID.toString(16)}'`, NS);
+                logger.error(`Missing command '0x${commandID.toString(16)}'`, NS);
             } else {
                 return {action: utils.getFromLookup(commandID, lookup)};
             }
@@ -88,7 +89,7 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -158,7 +159,7 @@ const definitions: Definition[] = [
             'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4',
             'on_5', 'off_5', 'brightness_move_up_5', 'brightness_move_down_5', 'brightness_stop_5'])],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -178,7 +179,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         whiteLabel: [{vendor: 'RGB Genie', model: 'ZGRC-KEY-013'}],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genScenes']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -313,7 +314,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
@@ -425,7 +426,7 @@ const definitions: Definition[] = [
                 globalStore.putValue(device, 'time', interval);
             }
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'hvacThermostat', 'seMetering', 'haElectricalMeasurement', 'genAlarms',

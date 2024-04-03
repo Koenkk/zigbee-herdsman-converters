@@ -12,6 +12,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
 import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm} from '../lib/modernExtend';
+import {logger} from '../lib/logger';
 
 const NS = 'zhc:tuya';
 const {tuyaLight} = tuya.modernExtend;
@@ -133,7 +134,7 @@ const tzLocal = {
 
             // If we're in white mode, calculate a matching display color for the set color temperature. This also kind
             // of works in the other direction.
-            Object.assign(newState, libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger));
+            Object.assign(newState, libColor.syncColorState(newState, meta.state, entity, meta.options));
 
             return {state: newState};
         },
@@ -218,7 +219,7 @@ const tzLocal = {
                 } else {
                     newState.color = color.rgb.gammaCorrected().toXY().rounded(4);
                 }
-                return {state: libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger) as KeyValue};
+                return {state: libColor.syncColorState(newState, meta.state, entity, meta.options) as KeyValue};
             } else {
                 return await tz.light_color.convertSet(entity, key, value, meta);
             }
@@ -254,7 +255,7 @@ const tzLocal = {
                 break;
             }
             default: // Unknown key
-                meta.logger.warning(`Unhandled key ${key}`, NS);
+                logger.warning(`Unhandled key ${key}`, NS);
             }
         },
     } satisfies Tz.Converter,
@@ -333,7 +334,7 @@ const tzLocal = {
                 break;
             }
             default: // Unknown key
-                meta.logger.warning(`Unhandled key ${key}`, NS);
+                logger.warning(`Unhandled key ${key}`, NS);
             }
         },
     } satisfies Tz.Converter,
@@ -607,7 +608,7 @@ const definitions: Definition[] = [
             exps.push(e.linkquality());
             return exps;
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             try {
                 const endpoint = device.getEndpoint(1);
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -726,8 +727,8 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEvent({queryOnDeviceAnnounce: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             // Required to get the device to start reporting
             await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
         },
@@ -756,8 +757,8 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEvent({queryOnDeviceAnnounce: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             // Required to get the device to start reporting
             await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
         },
@@ -989,8 +990,8 @@ const definitions: Definition[] = [
         ],
         description: 'Wall switch module',
         extend: [tuya.modernExtend.tuyaOnOff({switchType: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -1027,8 +1028,8 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Smart water/gas valve',
         extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genOnOff', ['onOff', 'moesStartUpOnOff']);
         },
@@ -1046,8 +1047,8 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Switch',
         extend: [tuya.modernExtend.tuyaOnOff()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
         whiteLabel: [
@@ -1102,7 +1103,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('MiBoxer', 'FUTC11ZR', 'Outdoor light', ['_TZB210_zmppwawa']),
         ],
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
@@ -1120,7 +1121,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
         exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature('color_temp_startup'), tuya.exposes.doNotDisturb()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
@@ -1194,9 +1195,9 @@ const definitions: Definition[] = [
         description: 'Motion sensor with scene switch',
         fromZigbee: [tuya.fz.datapoints, fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [tuya.tz.datapoints],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
@@ -1226,7 +1227,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.linkquality(), e.battery(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -1260,7 +1261,7 @@ const definitions: Definition[] = [
             exps.push(e.linkquality());
             return exps;
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             try {
@@ -1298,7 +1299,7 @@ const definitions: Definition[] = [
             e.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
             e.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -1320,7 +1321,7 @@ const definitions: Definition[] = [
             e.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
             e.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -1360,7 +1361,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Nous', 'E4', 'Water Leakage Sensor)', ['_TZ3000_0s9gukzt']),
         ],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -1391,7 +1392,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Mercator Ikuü', 'SISW01', 'Inline Switch', ['_TZ3210_2dfy6tol']),
         ],
         extend: [tuya.modernExtend.tuyaOnOff()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -1409,8 +1410,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 7};
         },
         meta: {multiEndpoint: true, disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(7), coordinatorEndpoint, ['genOnOff']);
         },
@@ -1676,8 +1677,8 @@ const definitions: Definition[] = [
         description: 'Socket module',
         extend: [tuya.modernExtend.tuyaOnOff()],
         whiteLabel: [{vendor: 'LoraTap', model: 'RR400ZB'}, {vendor: 'LoraTap', model: 'SP400ZB'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -1702,7 +1703,7 @@ const definitions: Definition[] = [
         description: 'Light sensor',
         fromZigbee: [legacy.fromZigbee.SLUXZB],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
@@ -1753,8 +1754,8 @@ const definitions: Definition[] = [
             {vendor: 'Moes', model: 'WS-EUB1-ZG'},
             {vendor: 'AVATTO', model: 'ZGB-WS-EU'},
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(3)) await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -1836,8 +1837,8 @@ const definitions: Definition[] = [
         description: '6 gang switch',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
@@ -1880,8 +1881,8 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Shawader', 'SMKG-1KNL-US/TZB-W', '1 gang switch', ['_TZE204_ojtqawav']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },
@@ -1913,8 +1914,8 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
         toZigbee: [legacy.toZigbee.tuya_switch_state],
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -1962,8 +1963,8 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
         toZigbee: [legacy.toZigbee.tuya_switch_state],
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -2010,7 +2011,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'BT400B', 'Zigbee Panic Button', ['_TZ3000_0dumfk2z']),
             tuya.whitelabel('Woox', 'R7052', 'Smart SOS button', ['_TZ3000_ssp0maqm']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genTime', 'genBasic', 'ssIasAce', 'ssIasZone']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -2030,7 +2031,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.action(['disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'Woox', model: 'R7054'}, {vendor: 'Nedis', model: 'ZBRC10WT'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genTime', 'genBasic', 'ssIasAce', 'ssIasZone']);
         },
@@ -2064,7 +2065,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Lidl', '14147206L', 'Livarno Lux ceiling light', ['_TZ3000_rylaozuc', '_TZ3000_5fkufhn1']),
             tuya.whitelabel('Lidl', '14153905L', 'Livarno Home LED floor lamp', ['_TZ3000_8uaoilu9']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
     },
@@ -2082,9 +2083,9 @@ const definitions: Definition[] = [
             tuya.whitelabel('Lidl', '14156408L', 'Livarno Lux smart LED ceiling light', ['_TZ3210_c2iwpxf1']),
         ],
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, configureReporting: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
     },
     {
@@ -2118,7 +2119,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Mycket', 'MS-SP-LE27WRGB', 'E27 RGBW bulb', ['_TZ3000_evag0pvn']),
             tuya.whitelabel('Lidl', 'HG06104A', 'Livarno Lux smart LED light strip 2.5m', ['_TZ3000_riwp3k79', '_TZ3000_riwp3k79']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
@@ -2193,8 +2194,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const endpointID of [1, 2, 3, 4]) {
                 const endpoint = device.getEndpoint(endpointID);
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2301,7 +2302,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.tuya_on_off_action, fz.tuya_operation_mode,
             fz.command_on, fz.command_off, fz.command_step, fz.command_move],
         toZigbee: [tz.tuya_operation_mode],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
             await endpoint.write('genOnOff', {'tuyaOperationMode': 1});
@@ -2337,7 +2338,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.tuya_on_off_action, fz.tuya_operation_mode,
             fz.command_on, fz.command_off, fz.command_step, fz.command_move],
         toZigbee: [tz.tuya_operation_mode],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
             await endpoint.write('genOnOff', {'tuyaOperationMode': 1});
@@ -2452,7 +2453,7 @@ const definitions: Definition[] = [
                             }, []);
                         }
 
-                        meta.logger.warning('Ignoring invalid or incomplete schedule', NS);
+                        logger.warning('Ignoring invalid or incomplete schedule', NS);
                     },
                     from: (v: number[], meta) => {
                         let r = '';
@@ -2493,7 +2494,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_raw, legacy.fromZigbee.wls100z_water_leak],
         toZigbee: [],
         onEvent: tuya.onEventSetTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
@@ -2508,8 +2509,8 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report,
             tuya.fz.power_outage_memory, tuya.fz.switch_type],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.switch_type],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
@@ -2536,7 +2537,7 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['energy', 'current', 'voltage', 'power']},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -2562,9 +2563,9 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_on_behavior_1,
             tuya.fz.switch_type],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.switch_type],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
             await reporting.rmsCurrent(endpoint, {change: 50});
@@ -2586,8 +2587,8 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'}, {vendor: 'Lonsonho', model: 'X701'},
             {vendor: 'Bandi', model: 'BDS03G1'},
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },
@@ -2600,8 +2601,8 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('PSMART', 'T441', '1 gang switch module', ['_TZ3000_myaaknbq']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },
@@ -2615,8 +2616,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -2637,8 +2638,8 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('PSMART', 'T442', '2 gang switch module', ['_TZ3000_mufwv0ry']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },
@@ -2652,8 +2653,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -2682,8 +2683,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -2702,8 +2703,8 @@ const definitions: Definition[] = [
             tuya.whitelabel('TuYa', 'TS0003_1', '3 gang switch', ['_TZ3000_ouwfc1qj']),
         ],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
     },
     {
@@ -2717,8 +2718,8 @@ const definitions: Definition[] = [
             tuya.whitelabel('AVATTO', 'ZWSM16-1-Zigbee', '1 gang switch module', ['_TZ3000_4rbqgcuv']),
         ],
         extend: [tuya.modernExtend.tuyaOnOff({switchType: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },
@@ -2739,8 +2740,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -2755,8 +2756,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -2774,8 +2775,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -2795,8 +2796,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -2813,8 +2814,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -3217,7 +3218,7 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Moes', 'AM43-0.45/40-ES-EB', 'Roller blind/shades drive motor', ['_TZE200_zah67ekd', '_TZE200_icka1clh']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
@@ -3704,7 +3705,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_outage_memory,
             tuya.fz.indicator_mode],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.backlight_indicator_mode_1],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
@@ -3758,8 +3759,8 @@ const definitions: Definition[] = [
         extend: [tuya.modernExtend.tuyaOnOff({
             electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
             powerOutageMemory: true, indicatorMode: true, childLock: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
@@ -3785,7 +3786,7 @@ const definitions: Definition[] = [
         description: 'Smart plug (without power monitoring)',
         vendor: 'TuYa',
         extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, childLock: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
@@ -3803,8 +3804,8 @@ const definitions: Definition[] = [
         ],
         ota: ota.zigbeeOTA,
         extend: [tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
@@ -3829,8 +3830,8 @@ const definitions: Definition[] = [
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -3848,8 +3849,8 @@ const definitions: Definition[] = [
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const ep of [1, 2, 3]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
             }
@@ -4185,7 +4186,7 @@ const definitions: Definition[] = [
         description: 'Zigbee smart energy meter DDS238-2 Zigbee',
         fromZigbee: [legacy.fromZigbee.tuya_dinrail_switch],
         toZigbee: [legacy.toZigbee.tuya_switch_state],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
@@ -4208,8 +4209,8 @@ const definitions: Definition[] = [
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
             tuyaLight({minBrightness: true, endpointNames: ['l1', 'l2'], configureReporting: true}),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
     },
     {
@@ -4246,8 +4247,8 @@ const definitions: Definition[] = [
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 7};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -4282,8 +4283,8 @@ const definitions: Definition[] = [
             {vendor: 'Lonsonho', model: 'QS-Zigbee-S05-L', description: '1 gang smart switch module without neutral wire'},
             {vendor: 'Mercator Ikuü', model: 'SSW01'},
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
             device.powerSource = 'Mains (single phase)';
@@ -4299,8 +4300,8 @@ const definitions: Definition[] = [
         extend: [tuya.modernExtend.tuyaOnOff({switchType: true})],
         whiteLabel: [{vendor: 'AVATTO', model: '1gang N-ZLWSM01'}, {vendor: 'SMATRUL', model: 'TMZ02L-16A-W'},
             {vendor: 'Aubess', model: 'TMZ02L-16A-B'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -4320,8 +4321,8 @@ const definitions: Definition[] = [
             return {'left': 1, 'right': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
@@ -4346,8 +4347,8 @@ const definitions: Definition[] = [
             return {'left': 1, 'right': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
@@ -4365,8 +4366,8 @@ const definitions: Definition[] = [
         },
         whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-03TZXD'}],
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             try {
                 for (const ID of [1, 2, 3]) {
                     const endpoint = device.getEndpoint(ID);
@@ -4396,8 +4397,8 @@ const definitions: Definition[] = [
             return {'left': 1, 'center': 2, 'right': 3};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             try {
                 for (const ID of [1, 2, 3]) {
                     const endpoint = device.getEndpoint(ID);
@@ -4422,8 +4423,8 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-04TZXD'}, {vendor: 'Vizo', model: 'VZ-222S'},
             {vendor: 'MakeGood', model: 'MG-ZG04W/B/G'}, {vendor: 'Mercator Ikuü', model: 'SSW04'}],
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             try {
                 for (const ID of [1, 2, 3, 4]) {
                     const endpoint = device.getEndpoint(ID);
@@ -4444,8 +4445,8 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fromZigbee.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.tuya_dimmer_state, legacy.toZigbee.tuya_dimmer_level],
         exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
@@ -4492,8 +4493,8 @@ const definitions: Definition[] = [
             tuya.whitelabel('Avatto', 'TS0004_1', 'Smart light switch - 4 gang with neutral wire', ['_TZ3000_nivavasg', '_TZ3000_gexniqbq']),
         ],
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -4517,8 +4518,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const ep of [1, 2, 3, 4]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
             }
@@ -4536,8 +4537,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -4566,7 +4567,7 @@ const definitions: Definition[] = [
             .withSystemMode(['off', 'auto', 'heat'], ea.ALL)
             .withRunningState(['idle', 'heat', 'cool'], ea.STATE)
             .withLocalTemperatureCalibration(-30, 30, 0.1, ea.ALL).withPiHeatingDemand()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl']);
             await reporting.thermostatTemperature(endpoint);
@@ -4606,8 +4607,8 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -4623,7 +4624,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.binary('alarm', ea.STATE_SET, true, false),
             e.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren')],
         toZigbee: [tz.ts0216_alarm, tz.ts0216_duration, tz.ts0216_volume],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             // Device advertises itself as Router but is an EndDevice
@@ -4887,7 +4888,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
         whiteLabel: [{vendor: 'MatSee Plus', model: 'ATMS1602Z'}],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
@@ -4914,7 +4915,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
         whiteLabel: [tuya.whitelabel('Tongou', 'TO-Q-SY1-JZT', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_qeuvnohg'])],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
@@ -4940,7 +4941,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         fromZigbee: [fz.on_off, fz.ignore_basic_report, tuya.fz.power_outage_memory, fz.tuya_relay_din_led_indicator],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             device.save();
@@ -4959,8 +4960,8 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fromZigbee.matsee_garage_door_opener, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.matsee_garage_door_opener, legacy.toZigbee.tuya_data_point_test],
         whiteLabel: [{vendor: 'MatSee Plus', model: 'PJ-ZGD01'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
@@ -4975,8 +4976,8 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fromZigbee.matsee_garage_door_opener, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.matsee_garage_door_opener, legacy.toZigbee.tuya_data_point_test],
         whiteLabel: [{vendor: 'LoraTap', model: 'GDC311ZBQ1'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
@@ -4991,10 +4992,10 @@ const definitions: Definition[] = [
         description: 'Temperature & humidity & illuminance sensor with display',
         fromZigbee: [fz.battery, fz.illuminance, fz.temperature, fz.humidity, fz.ts0201_temperature_humidity_alarm],
         toZigbee: [tz.ts0201_temperature_humidity_alarm],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             // Enables reporting of measurement state changes
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg',
                 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity', 'manuSpecificTuya_2']);
         },
@@ -5044,10 +5045,10 @@ const definitions: Definition[] = [
         description: 'Human presence sensor with fall function',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.sendDataPointEnum(endpoint, legacy.dataPoints.trsfTumbleSwitch, 0);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
         exposes: [
             e.illuminance_lux(), e.presence(), e.occupancy(),
@@ -5127,7 +5128,7 @@ const definitions: Definition[] = [
             fz.command_step_color_temperature, fz.tuya_on_off_action, fz.tuya_operation_mode],
         toZigbee: [tz.tuya_operation_mode],
         onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
             await endpoint.write('genOnOff', {'tuyaOperationMode': 1});
@@ -5195,7 +5196,7 @@ const definitions: Definition[] = [
             e.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
                 'Operation mode: "command" - for group control, "event" - for clicks'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
             await endpoint.write('genOnOff', {'tuyaOperationMode': 1});
@@ -5263,8 +5264,8 @@ const definitions: Definition[] = [
             deviceEndpoints({endpoints: {'l1': 1, 'l2': 2}}),
             tuyaLight({powerOnBehavior: true, configureReporting: true, switchType: true, minBrightness: true, endpointNames: ['l1', 'l2']}),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
     },
     {
@@ -5441,7 +5442,7 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fromZigbee.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.toZigbee.nous_lcd_temperature_humidity_sensor],
         onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
@@ -5512,7 +5513,7 @@ const definitions: Definition[] = [
             e.temperature(), e.humidity(), e.battery(), e.battery_voltage(),
             e.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
@@ -5571,8 +5572,8 @@ const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEvent({queryOnDeviceAnnounce: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await device.getEndpoint(1).command('manuSpecificTuya', 'dataQuery', {});
         },
         exposes: [e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), tuya.exposes.temperatureCalibration(),
@@ -5806,8 +5807,8 @@ const definitions: Definition[] = [
         exposes: [
             e.light_brightness().withMinBrightness().withMaxBrightness(),
             tuya.exposes.lightType().withAccess(ea.ALL), e.power_on_behavior().withAccess(ea.ALL)],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -5845,8 +5846,8 @@ const definitions: Definition[] = [
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint('l1'),
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint('l2'),
             e.power_on_behavior().withAccess(ea.ALL)],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -6058,8 +6059,8 @@ const definitions: Definition[] = [
             e.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Under-voltage breaker'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             endpoint.command('genBasic', 'tuyaSetup', {});
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
@@ -6084,7 +6085,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Zigbee 3.0 smart light switch module 1 gang',
         extend: [tuya.modernExtend.tuyaOnOff({switchType: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
             device.save();
@@ -6100,7 +6101,7 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -6113,8 +6114,8 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: '1-Gang switch with backlight',
         extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, backlightModeOffOn: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
         whiteLabel: [
@@ -6133,8 +6134,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -6154,8 +6155,8 @@ const definitions: Definition[] = [
             return {'left': 1, 'center': 2, 'right': 3};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -6236,7 +6237,7 @@ const definitions: Definition[] = [
         description: 'Smart blind controller',
         fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options_2],
         toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.TS030F_border, tz.moes_cover_calibration, tz.tuya_cover_reversal],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -6653,8 +6654,8 @@ const definitions: Definition[] = [
             return {l1: 1, l2: 2};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ['energy', 'current', 'voltage', 'power']},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
@@ -6676,8 +6677,8 @@ const definitions: Definition[] = [
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const ID of [1, 2, 3, 4, 5]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }
@@ -6695,7 +6696,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.linkquality(), e.battery(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -6728,8 +6729,8 @@ const definitions: Definition[] = [
             e.binary('reverse', ea.STATE_SET, 'ON', 'OFF').withDescription('Reverse'),
             e.binary('touch', ea.STATE_SET, 'ON', 'OFF').withDescription('Touch controll'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
         meta: {
@@ -7691,8 +7692,8 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -7711,9 +7712,9 @@ const definitions: Definition[] = [
             fz.command_step_color_temperature, fz.command_step],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await endpoint.command('genGroups', 'miboxerSetZones', {zones: [
                 {zoneNum: 1, groupId: 101},
                 {zoneNum: 2, groupId: 102},

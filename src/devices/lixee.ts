@@ -977,7 +977,7 @@ const definitions: Definition[] = [
             e.numeric(`measurement_poll_chunk`, ea.SET).withValueMin(1).withDescription(`During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 1`),
             e.text(`tic_command_whitelist`, ea.SET).withDescription(`List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all`),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -1096,7 +1096,7 @@ const definitions: Definition[] = [
             e.enum('unitOfMeasure', ea.STATE_SET, unitsZiPulses).withDescription('It is necessary to press the link button to update'),
             e.numeric('energy', ea.STATE),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'seMetering', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);

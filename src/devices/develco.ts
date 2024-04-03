@@ -1,5 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Definition, Fz, Logger, Tz, Zh, KeyValue} from '../lib/types';
+import {Definition, Fz, Tz, Zh, KeyValue} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -8,6 +8,7 @@ import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
+import {logger} from '../lib/logger';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -31,7 +32,7 @@ const develcoLedControlMap = {
 // develco specific converters
 const develco = {
     configure: {
-        read_sw_hw_version: async (device: Zh.Device, logger: Logger) => {
+        read_sw_hw_version: async (device: Zh.Device) => {
             for (const ep of device.endpoints) {
                 if (ep.supportsInputCluster('genBasic')) {
                     try {
@@ -281,7 +282,7 @@ const develco = {
             convertSet: async (entity, key, value, meta) => {
                 let timeoutValue = utils.toNumber(value, 'occupancy_timeout');
                 if (timeoutValue < 5) {
-                    meta.logger.warning(`Minimum occupancy_timeout is 5, using 5 instead of ${timeoutValue}!`, NS);
+                    logger.warning(`Minimum occupancy_timeout is 5, using 5 instead of ${timeoutValue}!`, NS);
                     timeoutValue = 5;
                 }
                 await entity.write('ssIasZone', {'develcoAlarmOffDelay': timeoutValue}, manufacturerOptions);
@@ -310,7 +311,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.power_reactive(), e.current(), e.voltage(), e.energy(), e.device_temperature(), e.ac_frequency()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
@@ -338,7 +339,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature(), e.ac_frequency()],
         options: [exposes.options.precision(`ac_frequency`)],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
@@ -366,7 +367,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
@@ -392,7 +393,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -416,7 +417,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
@@ -441,7 +442,7 @@ const definitions: Definition[] = [
         fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.total_power],
         toZigbee: [tz.EMIZB_132_mode],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
 
@@ -463,7 +464,7 @@ const definitions: Definition[] = [
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
             await reporting.currentSummDelivered(endpoint);
             await reporting.currentSummReceived(endpoint);
-            await develco.configure.read_sw_hw_version(device, logger);
+            await develco.configure.read_sw_hw_version(device);
         },
         exposes: [e.numeric('power', ea.STATE).withUnit('W').withDescription('Total active power'),
             e.numeric('power_reactive', ea.STATE).withUnit('VAr').withDescription('Total reactive power'),
@@ -491,7 +492,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
@@ -504,7 +505,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
 
-            await develco.configure.read_sw_hw_version(device, logger);
+            await develco.configure.read_sw_hw_version(device);
         },
         endpoint: (device) => {
             return {default: 35};
@@ -524,7 +525,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -553,7 +554,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
@@ -566,7 +567,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
 
-            await develco.configure.read_sw_hw_version(device, logger);
+            await develco.configure.read_sw_hw_version(device);
         },
         endpoint: (device) => {
             return {default: 35};
@@ -588,7 +589,7 @@ const definitions: Definition[] = [
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint35 = device.getEndpoint(35);
             const endpoint38 = device.getEndpoint(38);
             await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
@@ -596,7 +597,7 @@ const definitions: Definition[] = [
             await reporting.batteryVoltage(endpoint35);
             await reporting.temperature(endpoint38);
 
-            await develco.configure.read_sw_hw_version(device, logger);
+            await develco.configure.read_sw_hw_version(device);
         },
     },
     {
@@ -609,12 +610,12 @@ const definitions: Definition[] = [
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint35 = device.getEndpoint(35);
             await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint35);
 
-            await develco.configure.read_sw_hw_version(device, logger);
+            await develco.configure.read_sw_hw_version(device);
         },
     },
     {
@@ -642,7 +643,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.battery_low(), e.temperature()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint35 = device.getEndpoint(35);
             const endpoint38 = device.getEndpoint(38);
             await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
@@ -650,7 +651,7 @@ const definitions: Definition[] = [
             await reporting.batteryVoltage(endpoint35);
             await reporting.temperature(endpoint38);
 
-            await develco.configure.read_sw_hw_version(device, logger);
+            await develco.configure.read_sw_hw_version(device);
         },
     },
     {
@@ -696,7 +697,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {default: 35};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint39 = device.getEndpoint(39);
             await reporting.bind(endpoint39, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint39,
@@ -712,7 +713,7 @@ const definitions: Definition[] = [
             await reporting.batteryVoltage(endpoint35, {min: constants.repInterval.HOUR, max: 43200, change: 100});
 
             // zigbee2mqtt#14277 some features are not available on older firmwares
-            await develco.configure.read_sw_hw_version(device, logger);
+            await develco.configure.read_sw_hw_version(device);
             if (device && device.softwareBuildID && Number(device.softwareBuildID.split('.')[0]) >= 3) {
                 await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
             }
@@ -742,13 +743,13 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.battery(), e.battery_low(), e.temperature(), e.humidity()],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(38);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
             await reporting.temperature(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
             await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
             await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});
-            await develco.configure.read_sw_hw_version(device, logger);
+            await develco.configure.read_sw_hw_version(device);
         },
     },
     {
@@ -761,7 +762,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'default': 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.instantaneousDemand(endpoint);
@@ -794,7 +795,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'default': 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.instantaneousDemand(endpoint);
@@ -809,7 +810,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_water_leak_alarm_1, develco.fz.temperature, fz.battery],
         toZigbee: [],
         exposes: [e.battery_low(), e.tamper(), e.water_leak(), e.temperature(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint35 = device.getEndpoint(35);
             await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
             const endpoint38 = device.getEndpoint(38);
@@ -834,7 +835,7 @@ const definitions: Definition[] = [
                 'unknown']).withDescription('Measured air quality'),
         ],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(38);
             await reporting.bind(endpoint, coordinatorEndpoint,
                 ['develcoSpecificAirQuality', 'msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
@@ -844,7 +845,7 @@ const definitions: Definition[] = [
             await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
             await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});
 
-            await develco.configure.read_sw_hw_version(device, logger);
+            await develco.configure.read_sw_hw_version(device);
         },
     },
     {
@@ -855,7 +856,7 @@ const definitions: Definition[] = [
         fromZigbee: [develco.fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(43);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
@@ -865,7 +866,7 @@ const definitions: Definition[] = [
             const endpoint2 = device.getEndpoint(1);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
 
-            await develco.configure.read_sw_hw_version(device, logger);
+            await develco.configure.read_sw_hw_version(device);
         },
         endpoint: (device) => {
             return {default: 43};
@@ -892,7 +893,7 @@ const definitions: Definition[] = [
                 'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
         ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '4LR6AA1_5v'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(44);
             const clusters = ['genPowerCfg', 'ssIasZone', 'ssIasAce', 'genIdentify'];
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
@@ -930,7 +931,7 @@ const definitions: Definition[] = [
             e.switch_().withState('state', true, 'On/off state of switch 1').withEndpoint('l11'),
             e.switch_().withState('state', true, 'On/off state of switch 2').withEndpoint('l12'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep2 = device.getEndpoint(112);
             await reporting.bind(ep2, coordinatorEndpoint, ['genBinaryInput', 'genBasic']);
             await reporting.presentValue(ep2, {min: 0});
@@ -955,7 +956,7 @@ const definitions: Definition[] = [
             await reporting.bind(ep7, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(ep7);
 
-            await develco.configure.read_sw_hw_version(device, logger);
+            await develco.configure.read_sw_hw_version(device);
         },
 
         endpoint: (device) => {
@@ -970,7 +971,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(32);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genIdentify']);
             await reporting.batteryVoltage(endpoint);

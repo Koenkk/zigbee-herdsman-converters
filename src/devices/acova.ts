@@ -28,7 +28,7 @@ const definitions: Definition[] = [
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withRunningState(['idle', 'heat']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
             await reporting.thermostatTemperature(endpoint);
@@ -63,7 +63,7 @@ const definitions: Definition[] = [
                 .withLocalTemperatureCalibration(),
             e.occupancy(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);

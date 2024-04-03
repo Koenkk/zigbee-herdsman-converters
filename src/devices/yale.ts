@@ -6,6 +6,7 @@ import {Definition, Fz, ModernExtend, Reporting, Tz} from 'src/lib/types';
 import {getFromLookup} from '../lib/utils';
 import {KeyValue} from 'zigbee-herdsman/dist/controller/tstype';
 import {battery, lock} from '../lib/modernExtend';
+import {logger} from '../lib/logger';
 
 const NS = 'zhc:yale';
 const e = exposes.presets;
@@ -19,7 +20,7 @@ const lockExtend = (meta={}, lockStateOptions: Reporting.Override=null, binds=['
         meta: {pinCodeCount: 250, ...meta},
         exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
             e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume(), e.battery_low()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.lockState(endpoint, lockStateOptions);
@@ -78,7 +79,7 @@ const fzLocal = {
             try {
                 await msg.endpoint.read('manuSpecificAssaDoorLock', ['batteryLevel']);
             } catch (error) {
-                meta.logger.warning(`zigbee-herdsman-converters:Yale Lock: failed to read lock attributes`, NS);
+                logger.warning(`zigbee-herdsman-converters:Yale Lock: failed to read lock attributes`, NS);
             }
             return result;
         },
@@ -380,7 +381,7 @@ const definitions: Definition[] = [
             e.enum('auto_lock_time', ea.ALL, ['off', '30seconds', '60seconds', '2minutes', '3minutes']),
             e.enum('volume', ea.ALL, ['silent', 'low', 'high']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('closuresDoorLock', ['lockState']);
             await endpoint.read('manuSpecificAssaDoorLock', ['autoLockTime', 'wrongCodeAttempts', 'shutdownTime', 'batteryLevel', 'volume']);

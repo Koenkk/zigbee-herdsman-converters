@@ -643,7 +643,7 @@ const definitions: Definition[] = [
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
         ],
 
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
@@ -719,7 +719,7 @@ const definitions: Definition[] = [
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
         ],
 
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
@@ -795,7 +795,7 @@ const definitions: Definition[] = [
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
         ],
 
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
@@ -877,7 +877,7 @@ const definitions: Definition[] = [
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
         ],
 
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
@@ -959,7 +959,7 @@ const definitions: Definition[] = [
             e.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
@@ -1077,7 +1077,7 @@ const definitions: Definition[] = [
                 .withDescription('The power in watts of the heater connected to the auxiliary output of the thermostat'),
         ],
 
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat',
@@ -1142,7 +1142,7 @@ const definitions: Definition[] = [
                 .withDescription('Enables or disables the device’s buttons'),
         ],
 
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups',
@@ -1186,7 +1186,7 @@ const definitions: Definition[] = [
                 .withDescription('Load connected in watt'),
             e.energy(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genOnOff', 'manuSpecificSinope', 'seMetering'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -1270,7 +1270,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.frequency],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -1291,7 +1291,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.frequency],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -1468,7 +1468,7 @@ const definitions: Definition[] = [
         exposes: [e.battery_low(), e.battery(), e.temperature(),
             e.numeric('tank_level', ea.STATE).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Percent volume remaining in tank')],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'msTemperatureMeasurement', 'genAnalogInput'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);

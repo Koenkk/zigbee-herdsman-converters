@@ -105,7 +105,7 @@ const definitions: Definition[] = [
             e.enum('ac_louver_position', ea.STATE_SET, Object.keys(thermostatPositions))
                 .withDescription('Ac louver position of this device'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const binds1 = ['hvacFanCtrl', 'genIdentify', 'hvacFanCtrl', 'hvacThermostat', 'manuSpecificPhilips2'];
             await reporting.bind(endpoint1, coordinatorEndpoint, binds1);

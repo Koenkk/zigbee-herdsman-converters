@@ -14,7 +14,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ignore_basic_report, fz.ias_wd, fz.ias_enroll, fz.ias_siren],
         toZigbee: [tz.warning],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await endpoint.read('ssIasZone', ['zoneState', 'iasCieAddr', 'zoneId', 'zoneStatus']);

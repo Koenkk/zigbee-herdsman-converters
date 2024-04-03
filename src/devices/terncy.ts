@@ -69,7 +69,7 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.action(['single'])],
         fromZigbee: [fz.on_off, fz.terncy_raw, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
