@@ -401,7 +401,7 @@ const definitions: Definition[] = [
         description: 'DIN power consumption module',
         whiteLabel: [
             {vendor: 'Legrand', description: 'DIN power consumption module', model: '412172', fingerprint: [{modelID: ' Smart shedder module'}]},
-            {vendor: 'BTicino', description: 'DIN power consumption module', model: 'FC80GCS', fingerprint: [{modelID: ' Smart shedder module'}]}
+            {vendor: 'BTicino', description: 'DIN power consumption module', model: 'FC80GCS', fingerprint: [{modelID: ' Smart shedder module'}]},
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.ignore_basic_report, fz.ignore_genOta,
