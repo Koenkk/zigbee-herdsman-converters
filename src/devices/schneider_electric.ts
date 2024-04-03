@@ -1027,17 +1027,17 @@ const definitions: Definition[] = [
         },
     },
     {
-      zigbeeModel: ['FLS/SYSTEM-M/4'],
-      model: 'WDE002906/MEG5001-0300',
-      vendor: 'Schneider Electric',
-      description: 'Wiser wireless switch 1-gang or 2-gang',
-      extend: [
-        battery(),
-        deviceEndpoints({endpoints: {'right': 21, 'left': 22}}),
-        switchActions('right'), switchActions('left'),
-        commandsOnOff({endpointNames: ['right', 'left']}),
-        commandsLevelCtrl({endpointNames: ['right', 'left']}),
-      ],
+        zigbeeModel: ['FLS/SYSTEM-M/4'],
+        model: 'WDE002906/MEG5001-0300',
+        vendor: 'Schneider Electric',
+        description: 'Wiser wireless switch 1-gang or 2-gang',
+        extend: [
+            battery(),
+            deviceEndpoints({endpoints: {'right': 21, 'left': 22}}),
+            switchActions('right'), switchActions('left'),
+            commandsOnOff({endpointNames: ['right', 'left']}),
+            commandsLevelCtrl({endpointNames: ['right', 'left']}),
+        ],
     },
     {
         zigbeeModel: ['SOCKET/OUTLET/2'],
