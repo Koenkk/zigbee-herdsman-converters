@@ -583,7 +583,6 @@ const definitions: Definition[] = [
             {vendor: 'Tesla Smart', model: 'TSL-SEN-DOOR'},
             {vendor: 'Cleverio', model: 'SS100'},
             tuya.whitelabel('Niceboy', 'ORBIS Windows & Door Sensor', 'Door sensor', ['_TZ3000_qrldbmfn']),
-            tuya.whitelabel('Sber', 'SBDV-00030', 'Door sensor', ['_TYZB01_epni2jgy']),
             tuya.whitelabel('TuYa', 'ZD08', 'Door sensor', ['_TZ3000_7d8yme6f']),
             tuya.whitelabel('TuYa', 'MC500A', 'Door sensor', ['_TZ3000_2mbfxlzr']),
             tuya.whitelabel('TuYa', '19DZT', 'Door sensor', ['_TZ3000_n2egfsli']),
@@ -2247,7 +2246,6 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Wireless switch with 1 button',
         whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'},
-            tuya.whitelabel('Sber', 'SBDV-00032', 'Wireless switch with 1 button', ['_TYZB01_ub7urdza']),
             tuya.whitelabel('TuYa', 'SH-SC07', 'Button scene switch', ['_TZ3000_mrpevh8p']),
             tuya.whitelabel('TuYa', 'MINI-ZSB', 'Smart button', ['_TZ3000_qgwcxxws']),
         ],
@@ -6742,7 +6740,6 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Cleverio', 'SS200', 'Motion sensor', ['_TYZB01_z2umiwvq']),
             tuya.whitelabel('Marmitek', 'SM0202_1', 'Motion sensor', ['_TYZB01_yr95mpib']),
-            tuya.whitelabel('Sber', 'SBDV-00029', 'Motion sensor', ['_TYZB01_2jzbhomb']),
         ],
     },
     {
