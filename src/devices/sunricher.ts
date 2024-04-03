@@ -8,7 +8,7 @@ import * as globalStore from '../lib/store';
 import * as constants from '../lib/constants';
 import * as utils from '../lib/utils';
 import {Definition, Fz, Zh} from '../lib/types';
-import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, electricityMeter, light, onOff, battery, identify, occupancy, iasZoneAlarm, temperature, humidity, illuminance} from '../lib/modernExtend';
 
 const NS = 'zhc:sunricher';
 const e = exposes.presets;
@@ -55,6 +55,32 @@ async function syncTime(endpoint: Zh.Endpoint) {
 }
 
 const definitions: Definition[] = [
+    {
+        zigbeeModel: ['HK-SENSOR-4IN1-A'],
+        model: 'HK-SENSOR-4IN1-A',
+        vendor: 'Sunricher',
+        description: '4IN1 Sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.humidity, fz.illuminance],
+        toZigbee: [],
+        extend: [
+            deviceEndpoints({'endpoints': {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}}),
+            battery(),
+            identify(),
+            occupancy(),
+            iasZoneAlarm({'zoneType': 'generic', 'zoneAttributes': ['alarm_1', 'alarm_2', 'tamper', 'battery_low']}),
+            temperature({'endpointNames': ['3']}),
+            humidity({'endpointNames': ['4']}),
+            illuminance({'endpointNames': ['5']})],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint3 = device.getEndpoint(3);
+            const endpoint4 = device.getEndpoint(4);
+            const endpoint5 = device.getEndpoint(5);
+            await endpoint3.bind('msTemperatureMeasurement', coordinatorEndpoint);
+            await endpoint4.bind('msRelativeHumidity', coordinatorEndpoint);
+            await endpoint5.bind('msIlluminanceMeasurement', coordinatorEndpoint);
+        },
+        meta: {'multiEndpoint': true},
+    },
     {
         zigbeeModel: ['SR-ZG9023A-EU'],
         model: 'SR-ZG9023A-EU',
