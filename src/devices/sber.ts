@@ -1,6 +1,6 @@
 import {Definition} from '../lib/types';
-import {battery, humidity, iasZoneAlarm, ignoreClusterReport, temperature} from 'src/lib/modernExtend';
-import {modernExtend as tuyaModernExtend} from 'src/lib/tuya';
+import {battery, humidity, iasZoneAlarm, ignoreClusterReport, temperature} from '../lib/modernExtend';
+import {modernExtend as tuyaModernExtend} from '../lib/tuya';
 const {tuyaMagicPacket, tuyaOnOffAction} = tuyaModernExtend;
 
 const definitions: Definition[] = [
