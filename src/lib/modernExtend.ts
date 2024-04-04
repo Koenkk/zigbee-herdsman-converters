@@ -114,7 +114,7 @@ export function setupConfigureForReporting(
     }
 }
 
-export function setupConfigureForBinding(cluster: string | number, endpointNames?: string[]) {
+export function setupConfigureForBinding(cluster: string | number, clusterType: 'input' | 'output', endpointNames?: string[]) {
     const configure: Configure = async (device, coordinatorEndpoint) => {
         if (endpointNames) {
             const endpointsMap = new Map<string, boolean>(endpointNames.map((e) => [e, true]));
@@ -123,7 +123,7 @@ export function setupConfigureForBinding(cluster: string | number, endpointNames
                 await endpoint.bind(cluster, coordinatorEndpoint);
             }
         } else {
-            const endpoints = getEndpointsWithCluster(device, cluster, 'output');
+            const endpoints = getEndpointsWithCluster(device, cluster, clusterType);
             for (const endpoint of endpoints) {
                 await endpoint.bind(cluster, coordinatorEndpoint);
             }
@@ -424,7 +424,7 @@ export function commandsOnOff(args?: {commands?: ('on' | 'off' | 'toggle')[], bi
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = setupConfigureForBinding('genOnOff', args.endpointNames);
+    if (args.bind) result.configure = setupConfigureForBinding('genOnOff', 'output', args.endpointNames);
 
     return result;
 }
@@ -781,7 +781,7 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = setupConfigureForBinding('genLevelCtrl', args.endpointNames);
+    if (args.bind) result.configure = setupConfigureForBinding('genLevelCtrl', 'output', args.endpointNames);
 
     return result;
 }
@@ -855,7 +855,7 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = setupConfigureForBinding('lightingColorCtrl', args.endpointNames);
+    if (args.bind) result.configure = setupConfigureForBinding('lightingColorCtrl', 'output', args.endpointNames);
 
     return result;
 }
@@ -963,7 +963,7 @@ export function commandsWindowCovering(args?: {commands?: ('open' | 'close' | 's
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = setupConfigureForBinding('closuresWindowCovering', args.endpointNames);
+    if (args.bind) result.configure = setupConfigureForBinding('closuresWindowCovering', 'output', args.endpointNames);
 
     return result;
 }
@@ -1568,8 +1568,8 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
     return {fromZigbee, isModernExtend: true};
 }
 
-export function bindCluster(args: {cluster: string | number, endpointNames?: string[]}): ModernExtend {
-    const configure: Configure = setupConfigureForBinding(args.cluster, args.endpointNames);
+export function bindCluster(args: {cluster: string | number, clusterType: 'input' | 'output', endpointNames?: string[]}): ModernExtend {
+    const configure: Configure = setupConfigureForBinding(args.cluster, args.clusterType, args.endpointNames);
     return {configure, isModernExtend: true};
 }
 
