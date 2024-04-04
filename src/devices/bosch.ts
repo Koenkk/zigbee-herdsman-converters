@@ -175,6 +175,7 @@ const tzLocal = {
         key: ['intruder_alarm_state', 'smoke_alarm_state'],
         convertSet: async (entity, key, value: string, meta) => {
             const dataToSend = {cluster: 'ssIasZone', command: 'boschSmokeDetectorSiren', payload: {data: ''}};
+            const result: KeyValue = {};
             if (key === 'smoke_alarm_state' || key === 'intruder_alarm_state') {
                 let convertedValue = '';
                 if (key === 'smoke_alarm_state') {
@@ -642,10 +643,11 @@ const fzLocal = {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('zoneStatus')) {
+            const result: KeyValue = {};
+            const data = msg.data;
+            if (data.hasOwnProperty('zoneStatus')) {
                 const zoneStatus = utils.toNumber(msg.data['zoneStatus']); 
-                result.zone_status = zoneStatus
+                result.zone_status = zoneStatus;
                 if ((zoneStatus === zoneStatusAlarmState.intruder_on) || (zoneStatus === zoneStatusAlarmState.both_on)) {
                     result.intruder_alarm_state = 'ON';
                 }
@@ -1056,6 +1058,9 @@ const definitions: Definition[] = [
         exposes: [e.smoke(), e.battery(), e.battery_low(), e.test(),
             e.binary('intruder_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
             e.binary('smoke_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
+        ],
+        extend: [
+            batteryPercentage()
         ],
     },
     {
