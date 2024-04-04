@@ -59,7 +59,7 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
 
 export async function setupAttributes(
     entity: Zh.Device | Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint, cluster: string | number, config: ReportingConfig[],
-    configureReporting: boolean=true, read: boolean=true,
+    configureReporting: boolean=true, read: boolean=true, options?: {manufacturerCode?: number, disableDefaultResponse?: boolean},
 ) {
     const endpoints = isEndpoint(entity) ? [entity] : getEndpointsWithCluster(entity, cluster, 'input');
     const ieeeAddr = isEndpoint(entity) ? entity.deviceIeeeAddress : entity.ieeeAddr;
@@ -81,7 +81,7 @@ export async function setupAttributes(
             try {
                 // Don't fail configuration if reading this attribute fails
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
-                await endpoint.read(cluster, config.map((a) => isString(a) ? a : (isObject(a.attribute) ? a.attribute.ID : a.attribute)));
+                await endpoint.read(cluster, config.map((a) => isString(a) ? a : (isObject(a.attribute) ? a.attribute.ID : a.attribute)), options);
             } catch (e) {
                 logger.debug(`Reading attribute failed: ${e}`, 'zhc:setupattribute');
             }
@@ -91,7 +91,7 @@ export async function setupAttributes(
 
 export function setupConfigureForReporting(
     cluster: string | number, attribute: ReportingConfigAttribute, config: ReportingConfigWithoutAttribute, access: Access,
-    endpointNames?: string[],
+    endpointNames?: string[], options?: {manufacturerCode?: number, disableDefaultResponse?: boolean},
 ) {
     const configureReporting = !!config;
     const read = !!(access & ea.GET);
@@ -105,7 +105,7 @@ export function setupConfigureForReporting(
             }
 
             for (const entity of entities) {
-                await setupAttributes(entity, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
+                await setupAttributes(entity, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read, options);
             }
         };
         return configure;
@@ -1305,7 +1305,8 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
         } : undefined,
     }];
 
-    const configure = setupConfigureForReporting(cluster, attribute, reporting, access);
+    const configure = setupConfigureForReporting(cluster, attribute, reporting, access,
+        endpointName ? [endpointName] : undefined, zigbeeCommandOptions);
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
