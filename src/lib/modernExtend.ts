@@ -1468,7 +1468,7 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
                 // buttonLookup is used when action endpoint names overlap with other endpoint names
                 if (args.buttonLookup) {
                     const endpointName = getFromLookupByValue(msg.endpoint.ID, buttonLookup);
-                    value =`${endpointName}_${value}`;
+                    value =`${value}_${endpointName}`;
                 }
                 return {[expose.property]: value};
             }
