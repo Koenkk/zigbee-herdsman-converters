@@ -221,6 +221,13 @@ const definitions: Definition[] = [
         extend: [lockExtend()],
     },
     {
+        zigbeeModel: ['YRD256-TSDB'],
+        model: 'YAYRD256HA2619',
+        vendor: 'Yale',
+        description: 'Assure lock SL',
+        extend: [lockExtend()],
+    },
+    {
         zigbeeModel: ['YRD652 TSDB', 'YRD652L TSDB'],
         model: 'YRD652HA20BP',
         vendor: 'Yale',
