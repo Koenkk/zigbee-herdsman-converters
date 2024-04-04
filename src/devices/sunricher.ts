@@ -311,6 +311,7 @@ const definitions: Definition[] = [
         model: 'SR-ZG9080A',
         vendor: 'Sunricher',
         description: 'Curtain motor controller',
+        meta: {coverInverted: true},
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
