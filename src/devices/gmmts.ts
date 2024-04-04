@@ -255,7 +255,7 @@ const fzLocal = {
                     }
                     result[toSnakeCase(found.attribute)] = value;
                 } else {
-                    logger.warn(`TICMeter: key not found: ${key}`);
+                    logger.warning(`TICMeter: key not found: ${key}`, 'TICMeter');
                 }
             });
             return result;
@@ -332,12 +332,12 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
     const current_elec = globalStore.getValue(device, 'elec_mode');
     const current_tic = globalStore.getValue(device, 'tic_mode');
     const current_producer = globalStore.getValue(device, 'producer');
-    logger.info(`TICMeter: Polling: ${current_contract} ${current_elec} ${current_tic} ${current_producer}`);
-    const start: any = new Date();
+    // logger.info(`TICMeter: Polling: ${current_contract} ${current_elec} ${current_tic} ${current_producer}`);
+    // const start: any = new Date();
 
     let to_read = [];
     for (const item of ticmeter_data) {
-        if (item.poll && (item.tic == current_tic || item.tic == T.ANY) && (item.contract == current_contract || item.contract == C.ANY) && (item.elec == current_elec || item.elec == E.ANY)) {
+        if (item.poll && (item.tic == current_tic || item.tic == T.ANY) && (item.contract == current_contract || item.contract == C.ANY) && (item.elec == current_elec || item.elec == E.ANY) && (item.producer == current_producer || item.producer == false)) {
             to_read.push(item);
         }
     }
@@ -364,13 +364,13 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
             await endpoint
                 .read(item.cluster, attr)
                 .catch((e) => {
-                    logger.warn(`TICMeter: Polling Error: ${attr} ${e}`);
+                    logger.warning(`TICMeter: Polling Error: ${attr} ${e}`, 'TICMeter');
                 })
                 .then((result) => {});
         }
     }
-    const end: any = new Date();
-    logger.info(`TICMeter: Polling Duration: ${end - start} ms`);
+    // const end: any = new Date();
+    // logger.info(`TICMeter: Polling Duration: ${end - start} ms`);
 }
 
 function init_config(device: Device, name: string, value: any) {
@@ -404,7 +404,7 @@ const definitions: Definition[] = [
             try {
                 endpoint = device.getEndpoint(1);
             } catch (error) {
-                logger.warn('TICMeter: Exposes: No endpoint');
+                logger.warning('TICMeter: Exposes: No endpoint', 'TICMeter');
             }
             if (endpoint != null && endpoint.hasOwnProperty('clusters') && endpoint.clusters[TICMETER_CLUSTER] != undefined) {
                 if (endpoint.clusters[TICMETER_CLUSTER].hasOwnProperty('attributes') && endpoint.clusters[TICMETER_CLUSTER].attributes != undefined) {
@@ -412,14 +412,14 @@ const definitions: Definition[] = [
 
                     if (globalStore.getValue(device, 'tic_mode') == undefined) {
                         if (attr.hasOwnProperty('ticMode') && attr.ticMode != null) {
-                            logger.info(`TICMeter: Load ticMode: ${attr.ticMode}`);
+                            logger.info(`TICMeter: Load ticMode: ${attr.ticMode}`, 'TICMeter');
                             globalStore.putValue(device, 'tic_mode', mode_tic_enum[Number(attr.ticMode)]);
                         }
                     }
 
                     if (globalStore.getValue(device, 'elec_mode') == undefined) {
                         if (attr.hasOwnProperty('elecMode') && attr.elecMode != null) {
-                            logger.info(`TICMeter: Load elecMode: ${attr.elecMode}`);
+                            logger.info(`TICMeter: Load elecMode: ${attr.elecMode}`, 'TICMeter');
                             globalStore.putValue(device, 'elec_mode', mode_elec_enum[Number(attr.elecMode)]);
                         }
                     }
@@ -430,13 +430,13 @@ const definitions: Definition[] = [
                             if (Buffer.isBuffer(string)) {
                                 string = string.toString();
                             }
-                            logger.info(`TICMeter: Load contractType: ${string}`);
+                            logger.info(`TICMeter: Load contractType: ${string}`, 'TICMeter');
                             globalStore.putValue(device, 'contract_type', string);
                         }
                     }
 
                     if (attr.hasOwnProperty('powerInjected') && attr.powerInjected != null) {
-                        logger.info(`TICMeter: Load powerInjected: ${attr.powerInjected}`);
+                        logger.info(`TICMeter: Load powerInjected: ${attr.powerInjected}`, 'TICMeter');
                         globalStore.putValue(device, 'producer', 'ON');
                     }
                 }
@@ -444,47 +444,47 @@ const definitions: Definition[] = [
 
             if (options && options.hasOwnProperty('contract_type') && options.contract_type != 'AUTO') {
                 current_contract = options.contract_type;
-                logger.debug(`TICMeter: contract: ${current_contract}`);
+                logger.debug(`TICMeter: contract: ${current_contract}`, 'TICMeter');
             } else {
                 current_contract = globalStore.getValue(device, 'contract_type');
-                logger.debug(`TICMeter: contract: ${current_contract}`);
+                logger.debug(`TICMeter: contract: ${current_contract}`, 'TICMeter');
                 if (current_contract == undefined) {
-                    logger.debug('TICMeter: Force contract to AUTO');
+                    logger.debug('TICMeter: Force contract to AUTO', 'TICMeter');
                     current_contract = 'AUTO';
                 }
             }
 
             if (options && options.hasOwnProperty('linky_elec') && options.linky_elec != 'AUTO') {
                 current_elec = options.linky_elec;
-                logger.debug(`TICMeter: Manual elec: ${current_elec}`);
+                logger.debug(`TICMeter: Manual elec: ${current_elec}`, 'TICMeter');
             } else {
                 current_elec = globalStore.getValue(device, 'elec_mode');
-                logger.debug(`TICMeter: AUTO elec: ${current_elec}`);
+                logger.debug(`TICMeter: AUTO elec: ${current_elec}`, 'TICMeter');
                 if (current_elec == undefined) {
-                    logger.debug('TICMeter: Force elec to AUTO');
+                    logger.debug('TICMeter: Force elec to AUTO', 'TICMeter');
                     current_elec = 'AUTO';
                 }
             }
 
             if (options && options.hasOwnProperty('tic_mode') && options.tic_mode != 'AUTO') {
                 current_tic = options.tic_mode;
-                logger.debug(`TICMeter: Manual tic: ${current_tic}`);
+                logger.debug(`TICMeter: Manual tic: ${current_tic}`, 'TICMeter');
             } else {
-                current_tic = globalStore.getValue(device, 'tic_mode');
-                logger.debug(`TICMeter: TIC: ${current_tic}`);
+                current_tic = globalStore.getValue(device, 'tic_mode', 'TICMeter');
+                logger.debug(`TICMeter: TIC: ${current_tic}`, 'TICMeter');
                 if (current_tic == undefined) {
-                    logger.debug('TICMeter: Force TIC to AUTO');
+                    logger.debug('TICMeter: Force TIC to AUTO', 'TICMeter');
                     current_tic = 'AUTO';
                 }
             }
 
             if (options && options.hasOwnProperty('producer') && options.producer != 'AUTO') {
                 current_producer = options.producer;
-                logger.debug(`TICMeter: Manual producer: ${current_producer}`);
+                logger.debug(`TICMeter: Manual producer: ${current_producer}`, 'TICMeter');
             } else {
                 current_producer = globalStore.getValue(device, 'producer');
                 if (current_producer == undefined) {
-                    logger.debug('TICMeter: Force producer to AUTO');
+                    logger.debug('TICMeter: Force producer to AUTO', 'TICMeter');
                     current_producer = 'OFF';
                 }
             }
@@ -505,7 +505,7 @@ const definitions: Definition[] = [
                         contract_ok = true;
                     }
                 } else {
-                    logger.warn(`TICMeter: No contract for ${item.name}`);
+                    logger.warning(`TICMeter: No contract for ${item.name}`, 'TICMeter');
                 }
 
                 if (item.hasOwnProperty('elec')) {
@@ -513,7 +513,7 @@ const definitions: Definition[] = [
                         elec_ok = true;
                     }
                 } else {
-                    logger.warn(`TICMeter: No elec for ${item.name}`);
+                    logger.warning(`TICMeter: No elec for ${item.name}`, 'TICMeter');
                 }
 
                 if (item.hasOwnProperty('tic')) {
@@ -521,7 +521,7 @@ const definitions: Definition[] = [
                         tic_ok = true;
                     }
                 } else {
-                    logger.warn(`TICMeter: No tic for ${item.name}`);
+                    logger.warning(`TICMeter: No tic for ${item.name}`, 'TICMeter');
                 }
 
                 if (item.hasOwnProperty('producer')) {
@@ -529,7 +529,7 @@ const definitions: Definition[] = [
                         producer_ok = false;
                     }
                 } else {
-                    logger.warn(`TICMeter: No producer for ${item.name}`);
+                    logger.warning(`TICMeter: No producer for ${item.name}`, 'TICMeter');
                 }
 
                 if (contract_ok && elec_ok && tic_ok && producer_ok) {
@@ -549,14 +549,14 @@ const definitions: Definition[] = [
                     }
                 }
             });
-            logger.info(`TICMeter: Exposes ${exposes.length} attributes`);
+            logger.info(`TICMeter: Exposes ${exposes.length} attributes`, 'TICMeter');
 
             exposes.push(e.linkquality());
 
             return exposes;
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            logger.info('TICMeter: Configure');
+        configure: async (device, coordinatorEndpoint) => {
+            logger.info('TICMeter: Configure', 'TICMeter');
             device.powerSource = 'Battery';
             device.save();
             const endpoint = device.getEndpoint(1);
@@ -567,7 +567,7 @@ const definitions: Definition[] = [
             const producer = init_config(device, 'producer', false);
             init_config(device, 'refresh_rate', '60');
             
-            logger.info(`TICMeter: Configure: ${tic_mode} ${contract_type} ${elec_mode} ${producer}`);
+            logger.info(`TICMeter: Configure: ${tic_mode} ${contract_type} ${elec_mode} ${producer}`, 'TICMeter');
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', { acCurrentDivisor: 1, acCurrentMultiplier: 1 });
             endpoint.saveClusterAttributeKeyValue('seMetering', { divisor: 1, multiplier: 1 });
 
@@ -587,7 +587,7 @@ const definitions: Definition[] = [
                 }
             }
 
-            logger.info(`TICMeter: Configure wanted ${wanted.length}`);
+            logger.info(`TICMeter: Configure wanted ${wanted.length}`, 'TICMeter');
 
             endpoint.configuredReportings.forEach(async (r) => {
                 await endpoint.configureReporting(r.cluster.name, reporting.payload(r.attribute.name, r.minimumReportInterval, 65535, r.reportableChange), { manufacturerCode: null });
@@ -607,7 +607,7 @@ const definitions: Definition[] = [
                         ...item.report,
                     };
                 }
-                logger.info(`TICMeter: Configure ${item.name} ${item.cluster} ${item.attribute} ${conf.min} ${conf.max} ${conf.change}`);
+                logger.info(`TICMeter: Configure ${item.name} ${item.cluster} ${item.attribute} ${conf.min} ${conf.max} ${conf.change}`, 'TICMeter');
                 reporting_config.push(endpoint.configureReporting(item.cluster, reporting.payload(item.attribute, conf.min, conf.max, conf.change), { manufacturerCode: null }));
             }
 
@@ -615,7 +615,7 @@ const definitions: Definition[] = [
                 try {
                     await config;
                 } catch (error) {
-                    logger.warn(`TICMeter: Configure failed: ${error}`);
+                    logger.warning(`TICMeter: Configure failed: ${error}`, 'TICMeter');
                     throw error;
                 }
             }));
