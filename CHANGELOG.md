@@ -1,5 +1,23 @@
 # Changelog
 
+## [19.15.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.14.0...v19.15.0) (2024-04-04)
+
+
+### Features
+
+* **add:** 98424072 ([#7333](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7333)) ([01adf2a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/01adf2a5a5a4d40a17af026ec075ecaff0ef1188))
+* **add:** E21-N14A ([#7327](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7327)) ([354d695](https://github.com/Koenkk/zigbee-herdsman-converters/commit/354d695d13aaff80c41869d9a5813370e384c43a))
+* **add:** YAYRD256HA2619 ([#7330](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7330)) ([e437ee0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e437ee0665324c93245a222bf3d3c65f0190688a))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_zwszqdpy` as Ledron YK-16 https://github.com/Koenkk/zigbee2mqtt/issues/22067 ([d11578d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d11578d018a67e587e84f3a36a0db3a4c698af69))
+* Expose `identify` for Climax PRL-1ZBS-12/24V ([#7332](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7332)) ([3d91c57](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3d91c57c830ed8feac56f2f127a2fd37b4e6cb2b))
+* Fix `sensor` expose for TuYa MTG075-ZB-RL @BKuba65 https://github.com/Koenkk/zigbee-herdsman-converters/issues/7331 ([12fead2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/12fead2d455ac3524b8a91db74e8c951af18f29f))
+* Invert cover state for Sunricher SR-ZG9080A ([#7334](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7334)) ([7e14233](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7e14233241be3a174b3eb881deaba65f2a2ce4f9))
+* Updates for Schneider Electric WDE002906/MEG5001-0300 ([#7268](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7268)) ([f9a025c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f9a025c041c8dfc47d10e46bb65075c983a50696))
+
 ## [19.14.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.13.0...v19.14.0) (2024-04-03)
 
 
