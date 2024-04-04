@@ -3,7 +3,7 @@ import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
-import {forcePowerSource, onOff} from '../lib/modernExtend';
+import {forcePowerSource, identify, onOff} from '../lib/modernExtend';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -128,7 +128,7 @@ const definitions: Definition[] = [
         model: 'PRL-1ZBS-12/24V',
         vendor: 'Climax',
         description: 'Zigbee 12-24V relay controller',
-        extend: [onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
+        extend: [identify(), onOff(), forcePowerSource({powerSource: 'Mains (single phase)'})],
     },
 ];
 
