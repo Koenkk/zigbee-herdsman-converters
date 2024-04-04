@@ -26,7 +26,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0041', manufacturerName: '_TYZB01_ub7urdza'}],
+        fingerprint: [{modelID: 'TS0041A', manufacturerName: '_TYZB01_ub7urdza'}],
         model: 'SBDV-00032',
         vendor: 'Sber',
         description: 'Smart button',

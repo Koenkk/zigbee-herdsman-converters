@@ -2241,7 +2241,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['TS0041'],
-        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}, {modelID: 'TS0041A', manufacturerName: '_TYZB01_ub7urdza'}],
+        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}],
         model: 'TS0041',
         vendor: 'TuYa',
         description: 'Wireless switch with 1 button',
