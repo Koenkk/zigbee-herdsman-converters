@@ -1,7 +1,7 @@
 import {Definition} from '../lib/types';
 import {battery, humidity, iasZoneAlarm, ignoreClusterReport, temperature} from '../lib/modernExtend';
 import {modernExtend as tuyaModernExtend} from '../lib/tuya';
-const {tuyaMagicPacket, tuyaOnOffAction} = tuyaModernExtend;
+const {tuyaMagicPacket, tuyaOnOffActionLegacy} = tuyaModernExtend;
 
 const definitions: Definition[] = [
     {
@@ -32,7 +32,7 @@ const definitions: Definition[] = [
         description: 'Smart button',
         extend: [
             tuyaMagicPacket(),
-            tuyaOnOffAction(),
+            tuyaOnOffActionLegacy({actions: ['single', 'double', 'hold']}),
             battery({percentageReporting: false}),
             /*
             * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network

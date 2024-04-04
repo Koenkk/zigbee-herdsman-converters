@@ -1790,6 +1790,13 @@ const tuyaModernExtend = {
             actionTemplate: 'endpoint_action',
         });
     },
+    tuyaOnOffActionLegacy(args: {actions: ('single' | 'double' | 'hold')[], endpointNames?: string[]}): ModernExtend {
+        // For new devices use tuyaOnOffAction instead
+        const actions = args.actions.map((a) => args.endpointNames ? args.endpointNames.map((e) => `${e}_${a}`) : [a]).flat();
+        const exposes: Expose[] = [e.action(actions)];
+        const fromZigbee: Fz.Converter[] = [tuyaFz.on_off_action];
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
