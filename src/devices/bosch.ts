@@ -110,7 +110,7 @@ const smokeDetectorAlarmState = {
 };
 
 // Smoke detector II bsd-2
-const smokeDetectorZoneStatusAlarmState = {
+const zoneStatusAlarmState = {
     clear: 48, //0x0030
     smoke_on: 50, //0x0032
     intruder_on: 176, //0x00b0
@@ -176,28 +176,27 @@ const tzLocal = {
         convertSet: async (entity, key, value: string, meta) => {
             const dataToSend = {cluster: 'ssIasZone', command: 'boschSmokeDetectorSiren', payload: {data: ''}};
             if (key === 'smoke_alarm_state' || key === 'intruder_alarm_state') {
-                let convertedValue='';
+                let convertedValue = '';
                 if (key === 'smoke_alarm_state') {
                     if (value === 'ON') {
-                        convertedValue=smokeDetectorAlarmState.smoke_on.toString();
+                        convertedValue = smokeDetectorAlarmState.smoke_on.toString();
                     }
                     if (value === 'OFF') {
-                        convertedValue=smokeDetectorAlarmState.smoke_off.toString();
+                        convertedValue = smokeDetectorAlarmState.smoke_off.toString();
                     }
                     result.smoke_alarm_state = value;
                 }
                 if (key === 'intruder_alarm_state') {
                     if (value === 'ON') {
-                        convertedValue=smokeDetectorAlarmState.intruder_on.toString();
+                        convertedValue = smokeDetectorAlarmState.intruder_on.toString();
                     }
                     if (value === 'OFF') {
-                        convertedValue=smokeDetectorAlarmState.intruder_off.toString();
+                        convertedValue = smokeDetectorAlarmState.intruder_off.toString();
                     }
                     result.intruder_alarm_state = value;
                 }
                 dataToSend.payload.data = convertedValue;
             }
-
             //
             // the data of the payload can either be decimal:
             // 1: this disables the intruder alarm state
@@ -639,6 +638,30 @@ const tzLocal = {
 
 
 const fzLocal = {
+    bsd2_alarm_state: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('zoneStatus')) {
+                const zoneStatus = utils.toNumber(msg.data['zoneStatus']); 
+                result.zone_status = zoneStatus
+                if ((zoneStatus === zoneStatusAlarmState.intruder_on) || (zoneStatus === zoneStatusAlarmState.both_on)) {
+                    result.intruder_alarm_state = 'ON';
+                }
+                else if (zoneStatus === zoneStatusAlarmState.clear) {
+                    result.intruder_alarm_state = 'OFF';                
+                }
+                if ((zoneStatus === zoneStatusAlarmState.smoke_on) || (zoneStatus === zoneStatusAlarmState.both_on)) {
+                    result.smoke_alarm_state = 'ON';
+                }
+                else if (zoneStatus === zoneStatusAlarmState.clear) {
+                    result.smoke_alarm_state = 'OFF';                
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
     bmct: {
         cluster: 'manuSpecificBosch10',
         type: ['attributeReport', 'readResponse'],
@@ -1021,13 +1044,13 @@ const definitions: Definition[] = [
         model: 'BSD-2',
         vendor: 'Bosch',
         description: 'Smoke alarm detector',
-        fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
+        fromZigbee: [fz.battery, fz.ias_smoke_alarm_1, fzLocal.bsd2_alarm_state],
         toZigbee: [tzLocal.bsd2_alarm_state],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 64684]);
             await reporting.batteryPercentageRemaining(endpoint);
-            device.save();
+            await endpoint.configureReporting('ssIasZone', ['zoneStatus'], manufacturerOptions);
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
         exposes: [e.smoke(), e.battery(), e.battery_low(), e.test(),
