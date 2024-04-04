@@ -13,7 +13,7 @@ const definitions: Definition[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        fingerprint: [{modelID: 'TS1002', manufacturerName: '_TZ3000_xwh1e22x'}],
+        fingerprint: tuya.fingerprint('TS1002', ['_TZ3000_xwh1e22x', '_TZ3000_zwszqdpy']),
         model: 'FUT089Z',
         vendor: 'MiBoxer',
         description: 'RGB+CCT Remote',
