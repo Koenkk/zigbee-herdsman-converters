@@ -111,10 +111,10 @@ const smokeDetectorAlarmState = {
 
 // Smoke detector II bsd-2
 const zoneStatusAlarmState = {
-    clear: 48, //0x0030
-    smoke_on: 50, //0x0032
-    intruder_on: 176, //0x00b0
-    both_on: 178 //0x00b2
+    clear: 48, // 0x0030
+    smoke_on: 50, // 0x0032
+    intruder_on: 176, // 0x00b0
+    both_on: 178, // 0x00b2
 };
 
 // Radiator Thermostat II
@@ -646,19 +646,17 @@ const fzLocal = {
             const result: KeyValue = {};
             const data = msg.data;
             if (data.hasOwnProperty('zoneStatus')) {
-                const zoneStatus = utils.toNumber(msg.data['zoneStatus']); 
+                const zoneStatus = utils.toNumber(msg.data['zoneStatus']);
                 result.zone_status = zoneStatus;
                 if ((zoneStatus === zoneStatusAlarmState.intruder_on) || (zoneStatus === zoneStatusAlarmState.both_on)) {
                     result.intruder_alarm_state = 'ON';
-                }
-                else if (zoneStatus === zoneStatusAlarmState.clear) {
-                    result.intruder_alarm_state = 'OFF';                
+                } else if (zoneStatus === zoneStatusAlarmState.clear) {
+                    result.intruder_alarm_state = 'OFF';
                 }
                 if ((zoneStatus === zoneStatusAlarmState.smoke_on) || (zoneStatus === zoneStatusAlarmState.both_on)) {
                     result.smoke_alarm_state = 'ON';
-                }
-                else if (zoneStatus === zoneStatusAlarmState.clear) {
-                    result.smoke_alarm_state = 'OFF';                
+                } else if (zoneStatus === zoneStatusAlarmState.clear) {
+                    result.smoke_alarm_state = 'OFF';
                 }
             }
             return result;
