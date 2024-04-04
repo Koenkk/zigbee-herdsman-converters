@@ -7337,6 +7337,10 @@ const definitions: Definition[] = [
                 .withDescription('Illumination threshold for local (automatic) switching mode operation'),
             e.enum('status_indication', ea.STATE_SET, ['OFF', 'ON'])
                 .withDescription('Indicator light will flash when human presence is detected'),
+            e.enum('sensor', ea.STATE_SET, ['on', 'off', 'occupied', 'unoccupied'])
+                .withDescription(`The radar sensor can be set in four states: on, off, occupied and unoccupied. For example, if set to occupied, ` +
+                    `it will continue to maintain presence regardless of whether someone is present or not. If set to unoccupied, the unoccupied ` +
+                    `state will be maintained permanently.`),
         ],
         meta: {
             tuyaDatapoints: [
@@ -7360,7 +7364,8 @@ const definitions: Definition[] = [
                 [112, 'block_time', tuya.valueConverter.divideBy10],
                 [113, 'parameter_setting_result', tuya.valueConverter.raw],
                 [114, 'factory_parameters', tuya.valueConverter.raw],
-                [115, 'sensor', tuya.valueConverter.onOff],
+                [115, 'sensor', tuya.valueConverterBasic.lookup({
+                    'on': tuya.enum(0), 'off': tuya.enum(1), 'occupied': tuya.enum(2), 'unoccupied': tuya.enum(3)})],
             ],
         },
     },

@@ -8,7 +8,7 @@ import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
 import * as utils from '../lib/utils';
 import * as ota from '../lib/ota';
-import {onOff, light, electricityMeter, identify, enumLookup, deviceEndpoints} from '../lib/modernExtend';
+import {onOff, commandsOnOff, commandsLevelCtrl, light, battery, electricityMeter, identify, enumLookup, deviceEndpoints} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -1028,26 +1028,16 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['FLS/SYSTEM-M/4'],
-        model: 'WDE002906',
+        model: 'WDE002906/MEG5001-0300',
         vendor: 'Schneider Electric',
         description: 'Wiser wireless switch 1-gang or 2-gang',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        toZigbee: [],
-        endpoint: (device) => {
-            return {'right': 21, 'left': 22};
-        },
-        meta: {multiEndpoint: true},
-        exposes: [e.action(['on_left', 'off_left', 'on_right', 'off_right', 'brightness_move_up_left', 'brightness_stop_left',
-            'brightness_move_down_left', 'brightness_stop_left', 'brightness_move_up_right', 'brightness_stop_right',
-            'brightness_move_down_right', 'brightness_stop_right']), e.battery()],
-        configure: async (device, coordinatorEndpoint) => {
-            // When in 2-gang operation mode, unit operates out of endpoints 21 and 22, otherwise just 21
-            const leftButtonsEndpoint = device.getEndpoint(21);
-            await reporting.bind(leftButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
-            const rightButtonsEndpoint = device.getEndpoint(22);
-            await reporting.bind(rightButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.batteryPercentageRemaining(leftButtonsEndpoint);
-        },
+        extend: [
+            battery(),
+            deviceEndpoints({endpoints: {'right': 21, 'left': 22}}),
+            switchActions('right'), switchActions('left'),
+            commandsOnOff({endpointNames: ['right', 'left']}),
+            commandsLevelCtrl({endpointNames: ['right', 'left']}),
+        ],
     },
     {
         zigbeeModel: ['SOCKET/OUTLET/2'],

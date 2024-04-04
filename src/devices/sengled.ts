@@ -309,6 +309,17 @@ const definitions: Definition[] = [
             ota(),
         ],
     },
+    {
+        zigbeeModel: ['E21-N14A'],
+        model: 'E21-N14A',
+        vendor: 'Sengled',
+        description: 'Smart light bulb, dimmable 5000K, E26/A19',
+        extend: [
+            sengledLight(),
+            electricityMeter({cluster: 'metering'}),
+            ota(),
+        ],
+    },
 ];
 
 export default definitions;
