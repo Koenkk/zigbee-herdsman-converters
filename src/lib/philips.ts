@@ -9,6 +9,9 @@ import * as globalStore from './store';
 import {Fz, KeyValue, KeyValueAny, Tz} from './types';
 import * as modernExtend from './modernExtend';
 import {isObject} from './utils';
+import {logger} from './logger';
+
+const NS = 'zhc:philips';
 const ea = exposes.access;
 const e = exposes.presets;
 
@@ -78,8 +81,8 @@ export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolea
                     .withDescription('List of RGB HEX colors'),
             );
             const configure = result.configure;
-            result.configure = async (device, coordinatorEndpoint, logger) => {
-                await configure(device, coordinatorEndpoint, logger);
+            result.configure = async (device, coordinatorEndpoint) => {
+                await configure(device, coordinatorEndpoint);
                 for (const ep of device.endpoints) {
                     await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
                 }
@@ -182,7 +185,7 @@ export const philipsTz = {
                         meta.message.hasOwnProperty('hue_power_on_color_temperature') &&
                         meta.message.hasOwnProperty('hue_power_on_color')
                     ) {
-                        meta.logger.error(`Provide either color temperature or color, not both`);
+                        logger.error(`Provide either color temperature or color, not both`, NS);
                     } else if (meta.message.hasOwnProperty('hue_power_on_color_temperature')) {
                         const colortemp = meta.message.hue_power_on_color_temperature;
                         await entity.write('lightingColorCtrl', {0x4010: {value: colortemp, type: 0x21}});

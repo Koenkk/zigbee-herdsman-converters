@@ -31,7 +31,6 @@ describe('Sonoff TRVZB', () => {
 
                 meta = {
                     state: {},
-                    logger: null,
                     device: null,
                     deviceExposesChanged: null
                 };
@@ -158,7 +157,6 @@ describe('Sonoff TRVZB', () => {
 
                 meta = {
                     state: {},
-                    logger: null,
                     device: null,
                     message: null,
                     mapped: null,

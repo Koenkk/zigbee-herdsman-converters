@@ -111,7 +111,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.humidity, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
             const endpoint2 = device.getEndpoint(2);
@@ -131,7 +131,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
             const endpoint2 = device.getEndpoint(2);
@@ -258,7 +258,7 @@ const definitions: Definition[] = [
         description: 'Smart blind controller',
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);

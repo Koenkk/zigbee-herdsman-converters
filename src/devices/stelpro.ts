@@ -41,7 +41,7 @@ const definitions: Definition[] = [
         exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.energy(),
             e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -67,7 +67,7 @@ const definitions: Definition[] = [
         exposes: [e.local_temperature(), e.keypad_lockout(),
             e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -99,7 +99,7 @@ const definitions: Definition[] = [
         exposes: [e.local_temperature(), e.keypad_lockout(), e.humidity(),
             e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -131,7 +131,7 @@ const definitions: Definition[] = [
         exposes: [e.local_temperature(), e.keypad_lockout(), e.humidity(),
             e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity',
                 'msTemperatureMeasurement'];
@@ -163,7 +163,7 @@ const definitions: Definition[] = [
         exposes: [e.local_temperature(), e.keypad_lockout(),
             e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -194,7 +194,7 @@ const definitions: Definition[] = [
         exposes: [e.local_temperature(), e.keypad_lockout(), e.humidity(),
             e.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msRelativeHumidity',
                 'msTemperatureMeasurement'];

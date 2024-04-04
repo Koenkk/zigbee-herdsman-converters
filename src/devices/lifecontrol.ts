@@ -25,7 +25,7 @@ function airQuality(): ModernExtend {
 }
 
 function electricityMeterPoll(): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint, logger) => {
+    const configure: Configure = async (device, coordinatorEndpoint) => {
         const endpoint = device.getEndpoint(1);
         await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
         await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);

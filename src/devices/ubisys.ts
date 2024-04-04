@@ -10,6 +10,9 @@ import {Zcl} from 'zigbee-herdsman';
 import {Definition, Fz, OnEventType, Tz, OnEventData, Zh, KeyValue, KeyValueAny} from '../lib/types';
 import {ubisysModernExtend} from '../lib/ubisys';
 import * as semver from 'semver';
+import {logger} from '../lib/logger';
+
+const NS = 'zhc:ubisys';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -109,7 +112,7 @@ const ubisys = {
             key: ['configure_j1'],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const log = (message: string) => {
-                    meta.logger.warn(`ubisys: ${message}`);
+                    logger.warning(`ubisys: ${message}`, NS);
                 };
                 const sleepSeconds = async (s: number) => {
                     return new Promise((resolve) => setTimeout(resolve, s * 1000));
@@ -231,7 +234,7 @@ const ubisys = {
             },
             convertGet: async (entity, key, meta) => {
                 const log = (json: unknown) => {
-                    meta.logger.warn(`ubisys: Cover configuration read: ${JSON.stringify(json)}`);
+                    logger.warning(`ubisys: Cover configuration read: ${JSON.stringify(json)}`, NS);
                 };
                 log(await entity.read('closuresWindowCovering', [
                     'windowCoveringType',
@@ -319,7 +322,7 @@ const ubisys = {
                     useWriteStruct = semver.gte(meta.device.softwareBuildID, '1.9.0', true);
                 }
                 if (useWriteStruct) {
-                    meta.logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`);
+                    logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`, NS);
                 }
 
                 if (value.hasOwnProperty('input_configurations')) {
@@ -544,14 +547,14 @@ const ubisys = {
                         }
                         resultingInputActions = resultingInputActions.concat(inputActions);
 
-                        meta.logger.warn(`ubisys: Using input(s) ${input} and endpoint ${endpoint} for '${template.type}'.`);
+                        logger.warning(`ubisys: Using input(s) ${input} and endpoint ${endpoint} for '${template.type}'.`, NS);
                         // input might by now be an array (in case of double inputs)
                         input = (Array.isArray(input) ? Math.max(...input) : input) + 1;
                         endpoint += 1;
                     }
 
-                    meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendly_name}': ` +
-                        JSON.stringify(resultingInputActions));
+                    logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendly_name}': ` +
+                        JSON.stringify(resultingInputActions), NS);
                     if (useWriteStruct) {
                         await devMgmtEp.writeStructured(
                             'manuSpecificUbisysDeviceSetup',
@@ -613,7 +616,7 @@ const definitions: Definition[] = [
             return {'l1': 1, 's1': 2, 'meter': 3};
         },
         meta: {multiEndpointEnforce: {'power': 3, 'energy': 3}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -662,7 +665,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 4};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -712,7 +715,7 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4, 'meter': 5};
         },
         meta: {multiEndpoint: true, multiEndpointEnforce: {'power': 5, 'energy': 5}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -816,7 +819,7 @@ const definitions: Definition[] = [
                 .withDescription('The dimmer\'s reactance discriminator had detected an inductive load.'),
             e.enum('mode_phase_control', ea.ALL, ['automatic', 'forward', 'reverse'])
                 .withDescription('Configures the dimming technique.')],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -882,7 +885,7 @@ const definitions: Definition[] = [
                 e.linkquality(),
             ];
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['seMetering']);
@@ -931,7 +934,7 @@ const definitions: Definition[] = [
                 'cover_open_s6', 'cover_close_s6', 'cover_stop_s6',
             ]),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             for (const ep of [1, 2, 3, 4]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genScenes', 'genOnOff', 'genLevelCtrl']);
             }
@@ -976,7 +979,7 @@ const definitions: Definition[] = [
             ubisysModernExtend.occupiedHeatingSetpointDefault(),
             ubisysModernExtend.remoteTemperatureDuration(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genPowerCfg', 'genTime', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -1041,7 +1044,7 @@ const definitions: Definition[] = [
             e.switch().withEndpoint('l7'), e.switch().withEndpoint('l8'),
             e.switch().withEndpoint('l9'), e.switch().withEndpoint('l10'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             // setup ep 11-20 as on/off switches
             const heaterCoolerBinds = ['genOnOff'];
             for (let ep = 11; ep <= 20; ep++) {

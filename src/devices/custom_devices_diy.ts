@@ -234,7 +234,7 @@ const definitions: Definition[] = [
         exposes: [e.numeric('transmit_power', ea.ALL).withValueMin(-20).withValueMax(20).withValueStep(1).withUnit('dBm')
             .withDescription('Transmit power, supported from firmware 20221102. The max for CC1352 is 20 dBm and 5 dBm for CC2652' +
                             ' (any higher value is converted to 5dBm)')],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
             const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
@@ -475,7 +475,7 @@ const definitions: Definition[] = [
             endpointList['action'] = 1;
             return endpointList;
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             if (device != null) {
                 const controlEp = device.getEndpoint(1);
                 if (controlEp != null) {
@@ -564,7 +564,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.illuminance, fz.soil_moisture, fz.battery],
         toZigbee: [],
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
                 'genPowerCfg', 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msSoilMoisture']);
@@ -594,7 +594,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture, fz.illuminance],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture(), e.illuminance_lux()],
-        configure: async (device, coordinatorEndpoint, _logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg',
                 'msTemperatureMeasurement', 'msRelativeHumidity', 'msSoilMoisture', 'msIlluminanceMeasurement']);
@@ -623,7 +623,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {button_1: 2, button_2: 3, button_3: 4, button_4: 5};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
         },
@@ -735,7 +735,7 @@ const definitions: Definition[] = [
             }),
         ],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
@@ -872,7 +872,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {button_1: 2, button_2: 3, button_3: 4, button_4: 5};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', ['modelId', 'swBuildId', 'powerSource']);
         },

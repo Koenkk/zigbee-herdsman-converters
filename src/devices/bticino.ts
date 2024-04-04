@@ -28,14 +28,14 @@ const definitions: Definition[] = [
             e.enum('identify', ea.SET, ['blink'])
                 .withDescription('Blinks the built-in LED to make it easier to find the device'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genBinaryInput']);
         },
     },
     {
         zigbeeModel: [' Dimmer switch with neutral\u0000\u0000\u0000\u0000'],
-        model: 'L4411C/N4411C/NT4411C',
+        model: '4411C/L4411C/N4411C/NT4411C',
         vendor: 'BTicino',
         description: 'Dimmer switch with neutral',
         ota: ota.zigbeeOTA,
@@ -84,7 +84,7 @@ const definitions: Definition[] = [
             e.voltage(),
             e.current(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);

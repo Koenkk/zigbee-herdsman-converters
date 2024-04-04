@@ -649,7 +649,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness_move, tz.ballast_config],
         meta: {disableDefaultResponse: true},
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
             await endpoint.read('genOnOff', ['onOff']);
@@ -693,7 +693,7 @@ const definitions: Definition[] = [
             fz.command_move, fz.command_stop, fzLocal.ctm_group_config],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
             await reporting.batteryVoltage(endpoint);
@@ -716,7 +716,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tzLocal.ctm_thermostat,
             tzLocal.ctm_thermostat_preset, tzLocal.ctm_thermostat_child_lock, tzLocal.ctm_thermostat_gets],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
             await endpoint.read('hvacThermostat', ['localTemp', 'occupiedHeatingSetpoint']);
@@ -819,7 +819,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
@@ -842,7 +842,7 @@ const definitions: Definition[] = [
         description: 'mKomfy, stove guard',
         fromZigbee: [fz.temperature, fz.battery, fzLocal.ctm_sove_guard],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 0xFFC9]);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -885,7 +885,7 @@ const definitions: Definition[] = [
             fzLocal.ctm_child_lock, fzLocal.ctm_group_config],
         toZigbee: [tz.on_off, tzLocal.ctm_device_enabled],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await endpoint.read('genOnOff', ['onOff']);
@@ -930,7 +930,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.ias_enroll, fzLocal.ctm_water_leak_alarm],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone']);
             await reporting.batteryVoltage(endpoint);
@@ -949,7 +949,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.ias_enroll, fzLocal.ctm_water_leak_alarm],
         toZigbee: [tz.on_off],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await endpoint.read('genOnOff', ['onOff']);
@@ -972,7 +972,7 @@ const definitions: Definition[] = [
             fzLocal.ctm_group_config],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'msTemperatureMeasurement']);
             await reporting.batteryVoltage(endpoint);
@@ -995,7 +995,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
             await reporting.batteryVoltage(endpoint);
@@ -1015,7 +1015,7 @@ const definitions: Definition[] = [
         toZigbee: [tzLocal.ctm_mbd_device_enabled, tzLocal.ctm_relay_state],
         meta: {disableDefaultResponse: true},
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'msIlluminanceMeasurement', 'msOccupancySensing']);
             await endpoint.read('genOnOff', ['onOff']);
@@ -1046,7 +1046,7 @@ const definitions: Definition[] = [
             fz.brightness, fz.lighting_ballast_configuration],
         toZigbee: [tzLocal.ctm_mbd_device_enabled, tzLocal.ctm_relay_state, tzLocal.ctm_mbd_brightness, tz.ballast_config],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg',
                 'msIlluminanceMeasurement', 'msOccupancySensing']);

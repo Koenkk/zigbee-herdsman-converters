@@ -13,7 +13,7 @@ const definitions: Definition[] = [
         description: 'Home connect smart lock conversion kit',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -28,7 +28,7 @@ const definitions: Definition[] = [
         description: 'Home connect smart lock conversion kit',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -43,7 +43,7 @@ const definitions: Definition[] = [
         description: 'SmartCode traditional electronic deadbolt',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -59,7 +59,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.lock_pin_code_response],
         toZigbee: [tz.lock, tz.pincode_lock],
         meta: {pinCodeCount: 30},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -75,10 +75,8 @@ const definitions: Definition[] = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.lock_pin_code_response],
         toZigbee: [tz.lock, tz.pincode_lock],
         meta: {pinCodeCount: 30},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
-            console.log(device);
-            console.log(endpoint.clusters);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -92,7 +90,7 @@ const definitions: Definition[] = [
         description: '910 SmartCode traditional electronic deadbolt',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
@@ -108,10 +106,8 @@ const definitions: Definition[] = [
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event, fz.lock_pin_code_response],
         toZigbee: [tz.lock, tz.pincode_lock],
         meta: {pinCodeCount: 30},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
-            console.log(device);
-            console.log(endpoint.clusters);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);

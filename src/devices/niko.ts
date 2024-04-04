@@ -178,7 +178,7 @@ const definitions: Definition[] = [
             tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered,
             local.tz.outlet_child_lock, local.tz.outlet_led_enable,
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -213,7 +213,7 @@ const definitions: Definition[] = [
         description: 'Smart plug with side earthing pin',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior, tz.electrical_measurement_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -236,7 +236,7 @@ const definitions: Definition[] = [
         description: 'Smart plug with earthing pin',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior, tz.electrical_measurement_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -260,7 +260,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
@@ -275,7 +275,7 @@ const definitions: Definition[] = [
         description: 'Single connectable switch',
         fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action, local.fz.switch_status_led],
         toZigbee: [tz.on_off, local.tz.switch_operation_mode, local.tz.switch_led_enable, local.tz.switch_led_state],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -303,7 +303,7 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpointEnforce: {'operation_mode': 1}, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep1 = device.getEndpoint(1);
             const ep2 = device.getEndpoint(2);
             await reporting.bind(ep1, coordinatorEndpoint, ['genOnOff']);
@@ -336,7 +336,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.command_move, fz.command_stop],
         toZigbee: [tz.light_onoff_brightness, tz.level_config],
         exposes: [e.light_brightness().withLevelConfig()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
@@ -351,7 +351,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {coverInverted: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
@@ -365,7 +365,7 @@ const definitions: Definition[] = [
         description: 'Battery switch with 1 button',
         fromZigbee: [fz.command_on, fz.command_off, fz.identify, fz.battery, fz.command_move, fz.command_stop],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genGroups', 'genOnOff', 'genLevelCtrl']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -383,7 +383,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep1 = device.getEndpoint(1);
             await reporting.bind(ep1, coordinatorEndpoint, ['genGroups', 'genOnOff', 'genLevelCtrl']);
             await reporting.batteryPercentageRemaining(ep1);
@@ -407,7 +407,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {top_left: 1, bottom_left: 2, top_right: 3, bottom_right: 4};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep1 = device.getEndpoint(1);
             await reporting.bind(ep1, coordinatorEndpoint, ['genGroups', 'genOnOff', 'genLevelCtrl']);
             await reporting.batteryPercentageRemaining(ep1);

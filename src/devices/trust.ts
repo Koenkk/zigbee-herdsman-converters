@@ -15,7 +15,7 @@ const definitions: Definition[] = [
         description: 'Smoke detector',
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -29,7 +29,7 @@ const definitions: Definition[] = [
         description: 'Water leakage detector',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.ignore_basic_report, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -93,7 +93,7 @@ const definitions: Definition[] = [
         description: 'Motion Sensor',
         fromZigbee: [fz.ias_occupancy_alarm_2, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -107,7 +107,7 @@ const definitions: Definition[] = [
         description: 'Wireless contact sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);

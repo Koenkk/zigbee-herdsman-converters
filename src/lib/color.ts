@@ -1,7 +1,7 @@
 import kelvinToXyLookup from './kelvinToXy';
 import {precisionRound} from './utils';
 import {findColorTempRange, clampColorTemp} from './light';
-import {KeyValueAny, Tz, Zh, KeyValue, Logger} from './types';
+import {KeyValueAny, Tz, Zh, KeyValue} from './types';
 
 
 /**
@@ -629,17 +629,16 @@ export class Color {
  * @param oldState - state from the cache with all the old attributes set
  * @param endpoint - with lightingColorCtrl cluster
  * @param options - meta.options for the device or group
- * @param logger - used for logging
  * @returns state with color, color_temp, and color_mode set and synchronized from newState's attributes
  *          (other attributes are not included make sure to merge yourself)
  */
 export function syncColorState(
-    newState: KeyValueAny, oldState: KeyValueAny, endpoint: Zh.Endpoint | Zh.Group, options: KeyValue, logger: Logger,
+    newState: KeyValueAny, oldState: KeyValueAny, endpoint: Zh.Endpoint | Zh.Group, options: KeyValue,
 ): KeyValueAny {
     const colorTargets = [];
     const colorSync = (options && options.hasOwnProperty('color_sync')) ? options.color_sync : true;
     const result: KeyValueAny = {};
-    const [colorTempMin, colorTempMax] = findColorTempRange(endpoint, logger);
+    const [colorTempMin, colorTempMax] = findColorTempRange(endpoint);
 
     // check if color sync is enabled
     if (!colorSync) {
@@ -699,8 +698,7 @@ export function syncColorState(
         if (result.color.hasOwnProperty('hue') && result.color.hasOwnProperty('saturation')) {
             const hsv = new ColorHSV(result.color.hue, result.color.saturation);
             if (colorTargets.includes('color_temp')) {
-                result.color_temp = clampColorTemp(precisionRound(hsv.toMireds(), 0),
-                    colorTempMin, colorTempMax, logger);
+                result.color_temp = clampColorTemp(precisionRound(hsv.toMireds(), 0), colorTempMin, colorTempMax);
             }
             if (colorTargets.includes('xy')) {
                 Object.assign(result.color, hsv.toXY().rounded(4).toObject());
@@ -722,8 +720,7 @@ export function syncColorState(
         if (result.color.hasOwnProperty('x') && result.color.hasOwnProperty('y')) {
             const xy = new ColorXY(result.color.x, result.color.y);
             if (colorTargets.includes('color_temp')) {
-                result.color_temp = clampColorTemp(precisionRound(xy.toMireds(), 0),
-                    colorTempMin, colorTempMax, logger);
+                result.color_temp = clampColorTemp(precisionRound(xy.toMireds(), 0), colorTempMin, colorTempMax);
             }
             if (colorTargets.includes('hs')) {
                 Object.assign(result.color, xy.toHSV().rounded(0).toObject(false, false));

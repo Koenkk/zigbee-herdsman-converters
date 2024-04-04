@@ -15,7 +15,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.ac_frequency(), e.power(), e.power_reactive(), e.power_apparent(), e.current(),
             e.voltage(), e.power_factor(), e.energy(), e.produced_energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
             await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
@@ -37,7 +37,7 @@ const definitions: Definition[] = [
             e.voltage(), e.voltage_phase_b(), e.voltage_phase_c(),
             e.power_factor(), e.power_factor_phase_b(), e.power_factor_phase_c(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
             await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {

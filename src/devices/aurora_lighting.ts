@@ -48,7 +48,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
     toZigbee: [] as Tz.Converter[], // TODO: Needs documented reasoning for asserting this as a type it isn't
     exposes: [e.battery(), e.action([
         'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
-    configure: (async (device, coordinatorEndpoint, logger) => {
+    configure: (async (device, coordinatorEndpoint) => {
         const endpoints = endpointsIds.map((endpoint) => device.getEndpoint(endpoint));
 
         // Battery level is only reported on first endpoint
@@ -161,7 +161,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_recall, fz.command_store],
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'recall_1', 'store_1'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg', 'genScenes']);
         },
@@ -173,7 +173,7 @@ const definitions: Definition[] = [
         description: 'AOne PIR sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(39);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint);
@@ -188,7 +188,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -228,7 +228,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint1);
@@ -248,7 +248,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'default': 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genIdentify', 'haElectricalMeasurement', 'seMetering',
                 'genDeviceTempCfg']);

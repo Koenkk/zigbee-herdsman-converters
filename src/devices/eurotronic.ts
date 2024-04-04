@@ -34,7 +34,7 @@ const definitions: Definition[] = [
             .withDescription('Directly control the radiator valve when `trv_mode` is set to 1. The values range from 0 (valve '+
             'closed) to 255 (valve fully open)')],
         ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS};
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);

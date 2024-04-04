@@ -22,7 +22,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['identify', 'recall_1_1'])],
         onEvent: readInitialBatteryState,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
         },
@@ -41,7 +41,7 @@ const definitions: Definition[] = [
             e.power().withAccess(ea.STATE_GET), e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -84,7 +84,7 @@ const definitions: Definition[] = [
             e.power().withAccess(ea.STATE_GET), e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on teleruptor with buttons'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'haElectricalMeasurement']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
@@ -108,7 +108,7 @@ const definitions: Definition[] = [
                 await endpoint.command('genPollCtrl', 'fastPollStop', {}, legrandOptions);
             }
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
         },
@@ -133,7 +133,7 @@ const definitions: Definition[] = [
                 .withDescription('Enables the LED on activity'),
             _067776.getCalibrationModes(false),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
             let p = reporting.payload('currentPositionLiftPercentage', 1, 120, 1);
@@ -162,7 +162,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt, fzLegrand.cluster_fc01],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tzLegrand.led_mode],
         exposes: [e.cover_position()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
             await reporting.currentPositionLiftPercentage(endpoint);
@@ -194,7 +194,7 @@ const definitions: Definition[] = [
                 .withDescription('Enables the LED on activity'),
             _067776.getCalibrationModes(true),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
             let p = reporting.payload('currentPositionLiftPercentage', 1, 120, 1);
@@ -219,7 +219,7 @@ const definitions: Definition[] = [
             e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
         ],
         onEvent: readInitialBatteryState,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
         },
@@ -238,7 +238,7 @@ const definitions: Definition[] = [
             e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
         ],
         onEvent: readInitialBatteryState,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
             const endpoint2 = device.getEndpoint(2);
@@ -261,7 +261,7 @@ const definitions: Definition[] = [
             e.action(['identify', 'on', 'off', 'toggle']),
         ],
         onEvent: readInitialBatteryState,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
         },
@@ -287,7 +287,7 @@ const definitions: Definition[] = [
                 .withDescription('Enables the LED when the light is turned on'),
         ],
         extend: [light({configureReporting: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genBinaryInput', 'lightingBallastCfg']);
         },
@@ -313,7 +313,7 @@ const definitions: Definition[] = [
                 .withDescription('Enables the LED when the light is turned on'),
         ],
         extend: [light({configureReporting: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genBinaryInput', 'lightingBallastCfg']);
         },
@@ -337,7 +337,7 @@ const definitions: Definition[] = [
                 .withDescription('Enables the LED when the device is turned on'),
             e.power_on_behavior(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -361,7 +361,7 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify],
         toZigbee: [tz.legrand_identify],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput']);
         },
@@ -389,7 +389,7 @@ const definitions: Definition[] = [
                 await endpoint.command('genPollCtrl', 'fastPollStop', {}, legrandOptions);
             }
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
@@ -401,6 +401,7 @@ const definitions: Definition[] = [
         description: 'DIN power consumption module',
         whiteLabel: [
             {vendor: 'Legrand', description: 'DIN power consumption module', model: '412172', fingerprint: [{modelID: ' Smart shedder module'}]},
+            {vendor: 'BTicino', description: 'DIN power consumption module', model: 'FC80GCS', fingerprint: [{modelID: ' Smart shedder module'}]},
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.ignore_basic_report, fz.ignore_genOta,
@@ -430,7 +431,7 @@ const definitions: Definition[] = [
                 }
             }
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'genIdentify']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
@@ -459,7 +460,7 @@ const definitions: Definition[] = [
             e.battery(),
             e.action(['enter', 'leave', 'sleep', 'wakeup', 'center']),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
@@ -513,7 +514,7 @@ const definitions: Definition[] = [
             e.power_on_behavior()
                 .withDescription('Controls the behavior when the device is powered on. Works only when the pilot wire is deactivated'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'manuSpecificLegrandDevices2']);
             await reporting.onOff(endpoint);
@@ -563,7 +564,7 @@ const definitions: Definition[] = [
             e.action(['identify']),
             e.power(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
@@ -585,7 +586,7 @@ const definitions: Definition[] = [
             e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enables the LED when the light is turned on'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
@@ -611,7 +612,7 @@ const definitions: Definition[] = [
                 .withDescription('Enables the LED when the light is turned on'),
         ],
         extend: [light({configureReporting: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genBinaryInput', 'lightingBallastCfg']);
         },
@@ -630,7 +631,7 @@ const definitions: Definition[] = [
             e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
         ],
         onEvent: readInitialBatteryState,
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl']);
         },
@@ -653,7 +654,7 @@ const definitions: Definition[] = [
                 .withDescription('Enables the LED when the device is turned on'),
             e.power_on_behavior(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
             await reporting.onOff(endpoint);

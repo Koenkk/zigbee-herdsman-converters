@@ -175,7 +175,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.instantaneousDemand(endpoint);
@@ -272,7 +272,7 @@ const definitions: Definition[] = [
             return dynExposes;
         },
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
@@ -305,7 +305,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_recall],
         toZigbee: [],
         exposes: [e.action(['recall_*'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genScenes']);
         },

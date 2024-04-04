@@ -30,7 +30,6 @@ describe("ota/common.js", () => {
         const start = data.indexOf(common.upgradeFileIdentifier);
         const image = common.parseImage(data.slice(start));
 
-        const mockLogger = { debug: jest.fn() }
         const mockGetImageMeta = jest.fn().mockResolvedValue({
             fileVersion: image.header.fileVersion,
             sha512: hash.digest('hex'),
@@ -45,7 +44,6 @@ describe("ota/common.js", () => {
                     imageType: image.header.imageType,
                     fileVersion: image.header.fileVersion - 1,
                 },
-                mockLogger,
                 device,
                 mockGetImageMeta,
                 mockDownloadImage
@@ -57,7 +55,6 @@ describe("ota/common.js", () => {
 
             await expect(common.getNewImage(
                 { fileVersion: image.header.fileVersion - 1 },
-                mockLogger,
                 { ieeeAddr: '0x000000000000000' },
                 mockGetImageMeta,
                 mockDownloadImage

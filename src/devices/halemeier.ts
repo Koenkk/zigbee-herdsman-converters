@@ -50,7 +50,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.battery_percentage_remaining],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'recall_1', 'recall_2', 'recall_3', 'recall_4',
             'color_temperature_step_up', 'color_temperature_step_down', 'brightness_step_up', 'brightness_step_down'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);

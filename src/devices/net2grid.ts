@@ -15,7 +15,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_on, legacy.fz.genOnOff_cmdOn, fz.command_off, legacy.fz.genOnOff_cmdOff, fz.on_off, fz.metering],
         exposes: [e.switch(), e.power(), e.energy()],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);

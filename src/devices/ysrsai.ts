@@ -16,7 +16,7 @@ const definitions: Definition[] = [
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (WW/CW)',
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}})],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 0x10});
         },
     },

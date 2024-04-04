@@ -18,8 +18,8 @@ const definitions: Definition[] = [
         vendor: 'Immax',
         extend: [tuya.modernExtend.tuyaOnOff({
             electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ['l1', 'l2']})],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
@@ -112,7 +112,7 @@ const definitions: Definition[] = [
         description: 'NEO SMART plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -160,7 +160,7 @@ const definitions: Definition[] = [
         description: 'Intelligent motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.illuminance, fz.humidity, fz.ignore_iaszone_report],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);

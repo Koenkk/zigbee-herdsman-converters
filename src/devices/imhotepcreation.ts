@@ -34,7 +34,7 @@ const definitions: Definition[] = [
                 .withValueMin(5).withValueMax(30).withValueStep(0.5),
             e.occupancy(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device?.getEndpoint(1);
 
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'msOccupancySensing']);
@@ -105,7 +105,7 @@ const definitions: Definition[] = [
 
             return features;
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             for (let i = 1; i <= 20; i++) {
                 const endpoint = device?.getEndpoint(i);
                 if (typeof endpoint !== 'undefined') {

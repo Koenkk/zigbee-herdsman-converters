@@ -7,7 +7,9 @@ import * as utils from '../lib/utils';
 import * as light from '../lib/light';
 import * as legacy from '../lib/legacy';
 import * as exposes from '../lib/exposes';
+import {logger} from '../lib/logger';
 
+const NS = 'zhc:tz';
 const manufacturerOptions = {
     sunricher: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD},
     lumi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECHOLOGY_LTD_SHENZHEN, disableDefaultResponse: true},
@@ -144,7 +146,7 @@ const converters1 = {
             }
 
             await entity.command('lightingColorCtrl', command, zclData, utils.getOptions(meta.mapped, entity));
-            return {state: libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger),
+            return {state: libColor.syncColorState(newState, meta.state, entity, meta.options),
                 readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
@@ -155,7 +157,7 @@ const converters1 = {
         key: ['color_temp', 'color_temp_percent'],
         options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity);
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin};
 
             if (key === 'color_temp_percent') {
@@ -174,13 +176,13 @@ const converters1 = {
 
             // ensure value within range
             utils.assertNumber(value);
-            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+            value = light.clampColorTemp(value, colorTempMin, colorTempMax);
 
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
             return {
                 state: libColor.syncColorState({'color_mode': constants.colorModeLookup[2], 'color_temp': value}, meta.state,
-                    entity, meta.options, meta.logger), readAfterWriteTime: payload.transtime * 100,
+                    entity, meta.options), readAfterWriteTime: payload.transtime * 100,
             };
         },
         convertGet: async (entity, key, meta) => {
@@ -196,7 +198,7 @@ const converters2 = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertObject(value, key);
             const result = await entity.read(value.cluster, value.attributes, (value.hasOwnProperty('options') ? value.options : {}));
-            meta.logger.info(`Read result of '${value.cluster}': ${JSON.stringify(result)}`);
+            logger.info(`Read result of '${value.cluster}': ${JSON.stringify(result)}`, NS);
             if (value.hasOwnProperty('state_property')) {
                 return {state: {[value.state_property]: result}};
             }
@@ -211,7 +213,7 @@ const converters2 = {
                 Object.assign(options, value.options);
             }
             await entity.write(value.cluster, value.payload, options);
-            meta.logger.info(`Wrote '${JSON.stringify(value.payload)}' to '${value.cluster}'`);
+            logger.info(`Wrote '${JSON.stringify(value.payload)}' to '${value.cluster}'`, NS);
         },
     } satisfies Tz.Converter,
     command: {
@@ -220,7 +222,7 @@ const converters2 = {
             utils.assertObject(value, key);
             const options = utils.getOptions(meta.mapped, entity);
             await entity.command(value.cluster, value.command, (value.hasOwnProperty('payload') ? value.payload : {}), options);
-            meta.logger.info(`Invoked '${value.cluster}.${value.command}' with payload '${JSON.stringify(value.payload)}'`);
+            logger.info(`Invoked '${value.cluster}.${value.command}' with payload '${JSON.stringify(value.payload)}'`, NS);
         },
     } satisfies Tz.Converter,
     factory_reset: {
@@ -245,7 +247,7 @@ const converters2 = {
             const payload = (value.hasOwnProperty('payload') ? value.payload : {});
             utils.assertEndpoint(entity);
             await entity.zclCommand(value.cluster, value.command, payload, (value.hasOwnProperty('options') ? value.options : {}));
-            meta.logger.info(`Invoked ZCL command ${value.cluster}.${value.command} with payload '${JSON.stringify(payload)}'`);
+            logger.info(`Invoked ZCL command ${value.cluster}.${value.command} with payload '${JSON.stringify(payload)}'`, NS);
         },
     } satisfies Tz.Converter,
     arm_mode: {
@@ -821,7 +823,7 @@ const converters2 = {
                 }
             }
             if (key === 'ballast_config') {
-                meta.logger.warn(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`);
+                logger.debug(`ballast_config attribute results received: ${JSON.stringify(utils.toSnakeCase(result))}`, NS);
             }
         },
     } satisfies Tz.Converter,
@@ -967,7 +969,7 @@ const converters2 = {
                 await entity.command('lightingColorCtrl', 'moveToColor', payload, utils.getOptions(meta.mapped, entity));
                 return {
                     state: libColor.syncColorState({'color_mode': constants.colorModeLookup[2], 'color_temp': value}, meta.state,
-                        entity, meta.options, meta.logger), readAfterWriteTime: payload.transtime * 100,
+                        entity, meta.options), readAfterWriteTime: payload.transtime * 100,
                 };
             }
         },
@@ -1174,7 +1176,7 @@ const converters2 = {
     light_colortemp_startup: {
         key: ['color_temp_startup'],
         convertSet: async (entity, key, value, meta) => {
-            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
+            const [colorTempMin, colorTempMax] = light.findColorTempRange(entity);
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin, 'previous': 65535};
 
             if (utils.isString(value) && value in preset) {
@@ -1187,7 +1189,7 @@ const converters2 = {
             // ensure value within range
             // we do allow one exception for 0xffff, which is to restore the previous value
             if (value != 65535) {
-                value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+                value = light.clampColorTemp(value, colorTempMin, colorTempMax);
             }
 
             await entity.write('lightingColorCtrl', {startUpColorTemperature: value}, utils.getOptions(meta.mapped, entity));
@@ -1295,18 +1297,18 @@ const converters2 = {
             if (Array.isArray(payload.transitions)) {
                 // calculate numoftrans
                 if (typeof value.numoftrans !== 'undefined') {
-                    meta.logger.warn(
+                    logger.warning(
                         `weekly_schedule: ignoring provided numoftrans value (${JSON.stringify(value.numoftrans)}), ` +
-                        'this is now calculated automatically',
+                        'this is now calculated automatically', NS,
                     );
                 }
                 payload.numoftrans = payload.transitions.length;
 
                 // mode is calculated below
                 if (typeof value.mode !== 'undefined') {
-                    meta.logger.warn(
+                    logger.warning(
                         `weekly_schedule: ignoring provided mode value (${JSON.stringify(value.mode)}), ` +
-                        'this is now calculated automatically',
+                        'this is now calculated automatically', NS,
                     );
                 }
                 payload.mode = [];
@@ -1336,8 +1338,8 @@ const converters2 = {
                         const timeMinute = parseInt(time[1]);
 
                         if ((time.length != 2) || isNaN(timeHour) || isNaN(timeMinute)) {
-                            meta.logger.warn(
-                                `weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem['transitionTime']}'!`,
+                            logger.warning(
+                                `weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem['transitionTime']}'!`, NS,
                             );
                         } else {
                             elem['transitionTime'] = (timeHour + timeMinute);
@@ -1366,7 +1368,7 @@ const converters2 = {
                     }
                 }
             } else {
-                meta.logger.error('weekly_schedule: transitions is not an array!');
+                logger.error('weekly_schedule: transitions is not an array!', NS);
                 return;
             }
 
@@ -2757,7 +2759,7 @@ const converters2 = {
                     color_temp: meta.message.color_temp,
                 };
 
-                return {state: libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger),
+                return {state: libColor.syncColorState(newState, meta.state, entity, meta.options),
                     readAfterWriteTime: zclData.transtime * 100};
             }
 
@@ -2776,7 +2778,7 @@ const converters2 = {
                     color_temp: value,
                 };
 
-                return {state: libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger),
+                return {state: libColor.syncColorState(newState, meta.state, entity, meta.options),
                     readAfterWriteTime: zclData.transtime * 100};
             }
 
@@ -2847,7 +2849,7 @@ const converters2 = {
                 color_mode: constants.colorModeLookup[0],
             };
 
-            return {state: libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger),
+            return {state: libColor.syncColorState(newState, meta.state, entity, meta.options),
                 readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
@@ -2951,7 +2953,7 @@ const converters2 = {
                     bitValue |= 1 << 7;
                 }
 
-                meta.logger.debug(`eurotronic: host_flags object converted to ${bitValue}`);
+                logger.debug(`eurotronic: host_flags object converted to ${bitValue}`, NS);
                 value = bitValue;
             }
             const payload = {0x4008: {value, type: 0x22}};
@@ -3465,7 +3467,7 @@ const converters2 = {
                 break;
             }
             default: // Unknown key
-                meta.logger.warn(`Unhandled key ${key}`);
+                logger.warning(`Unhandled key ${key}`, NS);
             }
         },
     } satisfies Tz.Converter,
@@ -3541,7 +3543,7 @@ const converters2 = {
                 // @ts-expect-error
                 throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
             }
-            meta.logger.info('Successfully stored scene');
+            logger.info('Successfully stored scene', NS);
             return {state: {}};
         },
     } satisfies Tz.Converter,
@@ -3577,14 +3579,14 @@ const converters2 = {
                             recalledState = addColorMode(recalledState);
                         }
 
-                        Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, entity, meta.options, meta.logger));
+                        Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, entity, meta.options));
                         membersState[member.getDevice().ieeeAddr] = recalledState;
                     } else {
-                        meta.logger.warn(`Unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`);
+                        logger.warning(`Unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`, NS);
                         membersState[member.getDevice().ieeeAddr] = {};
                     }
                 }
-                meta.logger.info('Successfully recalled group scene');
+                logger.info('Successfully recalled group scene', NS);
                 return {membersState};
             } else {
                 let recalledState = utils.getSceneState(entity, sceneid, groupid);
@@ -3594,11 +3596,11 @@ const converters2 = {
                         recalledState = addColorMode(recalledState);
                     }
 
-                    Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, entity, meta.options, meta.logger));
-                    meta.logger.info('Successfully recalled scene');
+                    Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, entity, meta.options));
+                    logger.info('Successfully recalled scene', NS);
                     return {state: recalledState};
                 } else {
-                    meta.logger.warn(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
+                    logger.warning(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`, NS);
                     return {state: {}};
                 }
             }
@@ -3657,8 +3659,8 @@ const converters2 = {
                      *
                      * See https://github.com/Koenkk/zigbee2mqtt/issues/4926#issuecomment-735947705
                      */
-                    const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
-                    val = light.clampColorTemp(val, colorTempMin, colorTempMax, meta.logger);
+                    const [colorTempMin, colorTempMax] = light.findColorTempRange(entity);
+                    val = light.clampColorTemp(val, colorTempMin, colorTempMax);
 
                     const xy = libColor.ColorXY.fromMireds(val);
                     const xScaled = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
@@ -3758,7 +3760,7 @@ const converters2 = {
                 const status = utils.isObject(removeresp) ? Zcl.Status[removeresp.status] : 'unknown';
                 throw new Error(`Scene add unable to remove existing scene ('${status}')`);
             }
-            meta.logger.info('Successfully added scene');
+            logger.info('Successfully added scene', NS);
             return {state: {}};
         },
     } satisfies Tz.Converter,
@@ -3785,7 +3787,7 @@ const converters2 = {
                 // @ts-expect-error
                 throw new Error(`Scene remove not successful ('${Zcl.Status[response.status]}')`);
             }
-            meta.logger.info('Successfully removed scene');
+            logger.info('Successfully removed scene', NS);
         },
     } satisfies Tz.Converter,
     scene_remove_all: {
@@ -3807,7 +3809,7 @@ const converters2 = {
             } else {
                 throw new Error(`Scene remove all not successful ('${Zcl.Status[response.status]}')`);
             }
-            meta.logger.info('Successfully removed all scenes');
+            logger.info('Successfully removed all scenes', NS);
         },
     } satisfies Tz.Converter,
     scene_rename: {
@@ -3835,7 +3837,7 @@ const converters2 = {
                 }
                 utils.saveSceneState(entity, sceneid, groupid, state, scenename);
             }
-            meta.logger.info('Successfully renamed scene');
+            logger.info('Successfully renamed scene', NS);
         },
     } satisfies Tz.Converter,
     TS0003_curtain_switch: {
@@ -3970,7 +3972,7 @@ const converters2 = {
                 await entity.write('hvacThermostat', {'viessmannWindowOpenForce': value}, manufacturerOptions.viessmann);
                 return {readAfterWriteTime: 200, state: {'window_open_force': value}};
             } else {
-                meta.logger.error('window_open_force must be a boolean!');
+                logger.error('window_open_force must be a boolean!', NS);
             }
         },
         convertGet: async (entity, key, meta) => {
