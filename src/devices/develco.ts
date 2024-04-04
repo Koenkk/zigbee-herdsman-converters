@@ -69,11 +69,11 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
                 if (msg.data.hasOwnProperty('totalActivePower') && msg.data['totalActivePower'] !== -0x80000000) {
-                    result[utils.addEndpointName('power', msg, model, meta, 'postfix')] =
+                    result[utils.postfixWithEndpointName('power', msg, model, meta)] =
                         msg.data['totalActivePower'];
                 }
                 if (msg.data.hasOwnProperty('totalReactivePower') && msg.data['totalReactivePower'] !== -0x80000000) {
-                    result[utils.addEndpointName('power_reactive', msg, model, meta, 'postfix')] =
+                    result[utils.postfixWithEndpointName('power_reactive', msg, model, meta)] =
                         msg.data['totalReactivePower'];
                 }
                 return result;
@@ -109,7 +109,7 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
                 if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
-                    result[utils.addEndpointName('pulse_configuration', msg, model, meta, 'postfix')] =
+                    result[utils.postfixWithEndpointName('pulse_configuration', msg, model, meta)] =
                         msg.data['develcoPulseConfiguration'];
                 }
 
@@ -122,7 +122,7 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
                 if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
-                    result[utils.addEndpointName('interface_mode', msg, model, meta, 'postfix')] =
+                    result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] =
                         constants.develcoInterfaceMode.hasOwnProperty(msg.data['develcoInterfaceMode']) ?
                             constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
                             msg.data['develcoInterfaceMode'];
@@ -159,12 +159,12 @@ const develco = {
                 // 1 ppb TVOC corresponds to 4.5 μg/m3."
                 const vocPpb = parseFloat(msg.data['measuredValue']);
                 const voc = vocPpb * 4.5;
-                const vocProperty = utils.addEndpointName('voc', msg, model, meta, 'postfix');
+                const vocProperty = utils.postfixWithEndpointName('voc', msg, model, meta);
 
                 // from aqszb-110-technical-manual-air-quality-sensor-04-08-20.pdf page 6, section 2.2 voc
                 // this contains a ppb to level mapping table.
                 let airQuality;
-                const airQualityProperty = utils.addEndpointName('air_quality', msg, model, meta, 'postfix');
+                const airQualityProperty = utils.postfixWithEndpointName('air_quality', msg, model, meta);
                 if (vocPpb <= 65) {
                     airQuality = 'excellent';
                 } else if (vocPpb <= 220) {
@@ -231,7 +231,7 @@ const develco = {
                 const result: KeyValue = {};
                 if (msg.data.hasOwnProperty('presentValue')) {
                     const value = msg.data['presentValue'];
-                    result[utils.addEndpointName('input', msg, model, meta, 'postfix')] = value == 1;
+                    result[utils.postfixWithEndpointName('input', msg, model, meta)] = value == 1;
                 }
                 return result;
             },

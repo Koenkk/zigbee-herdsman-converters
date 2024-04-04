@@ -48,7 +48,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
-                const property = utils.addEndpointName('state', msg, model, meta, 'postfix');
+                const property = utils.postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             } else if (msg.data.hasOwnProperty(0x9000)) {
                 const value = msg.data[0x9000];

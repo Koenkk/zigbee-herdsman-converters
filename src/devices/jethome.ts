@@ -18,7 +18,7 @@ const jetHome = {
                     1025: 'single', 1026: 'double', 1027: 'triple', 1028: 'hold'};
                 const value = msg.data['presentValue'];
                 const action = utils.getFromLookup(value, actionLookup);
-                return {action: utils.addEndpointName(action, msg, model, meta, 'postfix')};
+                return {action: utils.postfixWithEndpointName(action, msg, model, meta)};
             },
         } satisfies Fz.Converter,
     },

@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
 const e = exposes.presets;
 const ea = exposes.access;
-import {getFromLookup, getKey, addEndpointName, isEndpoint} from '../lib/utils';
+import {getFromLookup, getKey, postfixWithEndpointName, isEndpoint} from '../lib/utils';
 import {
     light,
     onOff,
@@ -87,7 +87,7 @@ const fzLocal = {
             // in the 0 - 100 range, don't produce messages beyond these values.
             if (humidity >= 0 && humidity <= 100) {
                 const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
-                const property = (multiEndpoint)? addEndpointName('humidity', msg, model, meta, 'postfix'): 'humidity';
+                const property = (multiEndpoint)? postfixWithEndpointName('humidity', msg, model, meta): 'humidity';
                 return {[property]: humidity};
             }
         },
@@ -101,8 +101,8 @@ const fzLocal = {
             const illuminance = msg.data['measuredValue'];
             const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
             const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
-            const property1 = (multiEndpoint)? addEndpointName('illuminance', msg, model, meta, 'postfix'): 'illuminance';
-            const property2 = (multiEndpoint)? addEndpointName('illuminance_lux', msg, model, meta, 'postfix'): 'illuminance_lux';
+            const property1 = (multiEndpoint)? postfixWithEndpointName('illuminance', msg, model, meta): 'illuminance';
+            const property2 = (multiEndpoint)? postfixWithEndpointName('illuminance_lux', msg, model, meta): 'illuminance_lux';
             return {[property1]: illuminance, [property2]: illuminanceLux};
         },
     } satisfies Fz.Converter,
@@ -119,7 +119,7 @@ const fzLocal = {
                 pressure = parseFloat(msg.data['measuredValue']);
             }
             const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
-            const property = (multiEndpoint)? addEndpointName('pressure', msg, model, meta, 'postfix'): 'pressure';
+            const property = (multiEndpoint)? postfixWithEndpointName('pressure', msg, model, meta): 'pressure';
             return {[property]: pressure};
         },
     } satisfies Fz.Converter,

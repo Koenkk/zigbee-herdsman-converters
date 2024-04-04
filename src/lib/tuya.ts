@@ -1195,7 +1195,7 @@ const tuyaFz = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('61440')) {
-                const property = utils.addEndpointName('brightness', msg, model, meta, 'postfix');
+                const property = utils.postfixWithEndpointName('brightness', msg, model, meta);
                 return {[property]: msg.data['61440']};
             }
         },
@@ -1218,7 +1218,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
                 const lookup: KeyValue = {0: 'off', 1: 'on', 2: 'previous'};
-                const property = utils.addEndpointName('power_on_behavior', msg, model, meta, 'postfix');
+                const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
             }
         },
@@ -1230,7 +1230,7 @@ const tuyaFz = {
             const attribute = 'powerOnBehavior';
             const lookup: KeyValue = {0: 'off', 1: 'on', 2: 'previous'};
             if (msg.data.hasOwnProperty(attribute)) {
-                const property = utils.addEndpointName('power_on_behavior', msg, model, meta, 'postfix');
+                const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
@@ -1241,7 +1241,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
                 const lookup: KeyValue = {0x00: 'off', 0x01: 'on', 0x02: 'restore'};
-                const property = utils.addEndpointName('power_outage_memory', msg, model, meta, 'postfix');
+                const property = utils.postfixWithEndpointName('power_outage_memory', msg, model, meta);
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
             }
         },
@@ -1309,7 +1309,7 @@ const tuyaFz = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(0xfc00)) {
-                const property = utils.addEndpointName('min_brightness', msg, model, meta, 'postfix');
+                const property = utils.postfixWithEndpointName('min_brightness', msg, model, meta);
                 const value = parseInt(msg.data[0xfc00].toString(16).slice(0, 2), 16);
                 return {[property]: value};
             }

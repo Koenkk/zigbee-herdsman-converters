@@ -392,7 +392,7 @@ const fzLocal = {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty('64514')) {
                 const lookup: KeyValue = {0: 'momentary', 1: 'toggle', 2: 'state'};
-                const propertyName = utils.addEndpointName('switch_type', msg, model, meta, 'postfix');
+                const propertyName = utils.postfixWithEndpointName('switch_type', msg, model, meta);
                 result[propertyName] = lookup[msg.data['64514']];
             }
             return result;

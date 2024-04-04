@@ -11,7 +11,7 @@ import {presets as e, access as ea, options as opt, Cover} from './exposes';
 import {configure as lightConfigure} from './light';
 import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
-    getFromLookup, getEndpointName, assertNumber, addEndpointName,
+    getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
     noOccupancySince, precisionRound, batteryVoltageToPercentage, getOptions,
     hasAlreadyProcessedMessage, addActionGroup,
 } from './utils';
@@ -415,7 +415,7 @@ export function commandsOnOff(args?: {commands?: ('on' | 'off' | 'toggle')[], bi
             type: ['commandOn', 'commandOff', 'commandOffWithEffect', 'commandToggle'],
             convert: (model, msg, publish, options, meta) => {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
-                const payload = {action: addEndpointName(actionPayloadLookup[msg.type], msg, model, meta, 'postfix')};
+                const payload = {action: postfixWithEndpointName(actionPayloadLookup[msg.type], msg, model, meta)};
                 addActionGroup(payload, msg, model);
                 return payload;
             },
@@ -954,7 +954,7 @@ export function commandsWindowCovering(args?: {commands?: ('open' | 'close' | 's
             type: ['commandUpOpen', 'commandDownClose', 'commandStop'],
             convert: (model, msg, publish, options, meta) => {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
-                const payload = {action: addEndpointName(actionPayloadLookup[msg.type], msg, model, meta, 'postfix')};
+                const payload = {action: postfixWithEndpointName(actionPayloadLookup[msg.type], msg, model, meta)};
                 addActionGroup(payload, msg, model);
                 return payload;
             },
@@ -1464,9 +1464,7 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
             if (attributeKey in msg.data) {
                 let value = getFromLookupByValue(msg.data[attributeKey], lookup);
                 // endpointNames is used when action endpoint names don't overlap with other endpoint names
-                if (args.endpointNames) {
-                    value = addEndpointName(value, msg, model, meta, 'postfix');
-                }
+                if (args.endpointNames) value = postfixWithEndpointName(value, msg, model, meta);
                 // buttonLookup is used when action endpoint names overlap with other endpoint names
                 if (args.buttonLookup) {
                     const endpointName = getFromLookupByValue(msg.endpoint.ID, buttonLookup);

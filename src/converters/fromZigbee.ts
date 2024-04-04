@@ -1,6 +1,6 @@
 import {
     precisionRound, mapNumberRange, isLegacyEnabled, toLocalISOString, numberWithinRange, hasAlreadyProcessedMessage,
-    addActionGroup, addEndpointName, getKey, batteryVoltageToPercentage,
+    addActionGroup, postfixWithEndpointName, getKey, batteryVoltageToPercentage,
 } from '../lib/utils';
 import {Fz, KeyValueAny, KeyValueNumberString} from '../lib/types';
 import * as globalStore from '../lib/store';
@@ -36,141 +36,141 @@ const converters1 = {
             if (msg.data.hasOwnProperty('localTemp')) {
                 const value = precisionRound(msg.data['localTemp'], 2) / 100;
                 if (value >= -273.15) {
-                    result[addEndpointName('local_temperature', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('local_temperature', msg, model, meta)] = value;
                 }
             }
             if (msg.data.hasOwnProperty('localTemperatureCalibration')) {
-                result[addEndpointName('local_temperature_calibration', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('local_temperature_calibration', msg, model, meta)] =
                     precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
             if (msg.data.hasOwnProperty('outdoorTemp')) {
                 const value = precisionRound(msg.data['outdoorTemp'], 2) / 100;
                 if (value >= -273.15) {
-                    result[addEndpointName('outdoor_temperature', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('outdoor_temperature', msg, model, meta)] = value;
                 }
             }
             if (msg.data.hasOwnProperty('occupancy')) {
-                result[addEndpointName('occupancy', msg, model, meta, 'postfix')] = (msg.data.occupancy % 2) > 0;
+                result[postfixWithEndpointName('occupancy', msg, model, meta)] = (msg.data.occupancy % 2) > 0;
             }
             if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
                 const value = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
                 // Stelpro will return -325.65 when set to off, value is not realistic anyway
                 if (value >= -273.15) {
-                    result[addEndpointName('occupied_heating_setpoint', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('occupied_heating_setpoint', msg, model, meta)] = value;
                 }
             }
             if (msg.data.hasOwnProperty('unoccupiedHeatingSetpoint')) {
-                result[addEndpointName('unoccupied_heating_setpoint', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('unoccupied_heating_setpoint', msg, model, meta)] =
                     precisionRound(msg.data['unoccupiedHeatingSetpoint'], 2) / 100;
             }
             if (msg.data.hasOwnProperty('occupiedCoolingSetpoint')) {
-                result[addEndpointName('occupied_cooling_setpoint', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('occupied_cooling_setpoint', msg, model, meta)] =
                     precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
             }
             if (msg.data.hasOwnProperty('unoccupiedCoolingSetpoint')) {
-                result[addEndpointName('unoccupied_cooling_setpoint', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('unoccupied_cooling_setpoint', msg, model, meta)] =
                     precisionRound(msg.data['unoccupiedCoolingSetpoint'], 2) / 100;
             }
             if (msg.data.hasOwnProperty('setpointChangeAmount')) {
-                result[addEndpointName('setpoint_change_amount', msg, model, meta, 'postfix')] = msg.data['setpointChangeAmount'] / 100;
+                result[postfixWithEndpointName('setpoint_change_amount', msg, model, meta)] = msg.data['setpointChangeAmount'] / 100;
             }
             if (msg.data.hasOwnProperty('setpointChangeSource')) {
                 const lookup: KeyValueAny = {0: 'manual', 1: 'schedule', 2: 'externally'};
-                result[addEndpointName('setpoint_change_source', msg, model, meta, 'postfix')] = lookup[msg.data['setpointChangeSource']];
+                result[postfixWithEndpointName('setpoint_change_source', msg, model, meta)] = lookup[msg.data['setpointChangeSource']];
             }
             if (msg.data.hasOwnProperty('setpointChangeSourceTimeStamp')) {
                 const date = new Date(2000, 0, 1);
                 date.setSeconds(msg.data['setpointChangeSourceTimeStamp']);
                 const value = toLocalISOString(date);
-                result[addEndpointName('setpoint_change_source_timestamp', msg, model, meta, 'postfix')] = value;
+                result[postfixWithEndpointName('setpoint_change_source_timestamp', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('remoteSensing')) {
                 const value = msg.data['remoteSensing'];
-                result[addEndpointName('remote_sensing', msg, model, meta, 'postfix')] = {
+                result[postfixWithEndpointName('remote_sensing', msg, model, meta)] = {
                     local_temperature: ((value & 1) > 0) ? 'remotely' : 'internally',
                     outdoor_temperature: ((value & 1<<1) > 0) ? 'remotely' : 'internally',
                     occupancy: ((value & 1<<2) > 0) ? 'remotely' : 'internally',
                 };
             }
             if (msg.data.hasOwnProperty('ctrlSeqeOfOper')) {
-                result[addEndpointName('control_sequence_of_operation', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('control_sequence_of_operation', msg, model, meta)] =
                     constants.thermostatControlSequenceOfOperations[msg.data['ctrlSeqeOfOper']];
             }
             if (msg.data.hasOwnProperty('programingOperMode')) {
-                result[addEndpointName('programming_operation_mode', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('programming_operation_mode', msg, model, meta)] =
                     constants.thermostatProgrammingOperationModes[msg.data['programingOperMode']];
             }
             if (msg.data.hasOwnProperty('systemMode')) {
-                result[addEndpointName('system_mode', msg, model, meta, 'postfix')] = constants.thermostatSystemModes[msg.data['systemMode']];
+                result[postfixWithEndpointName('system_mode', msg, model, meta)] = constants.thermostatSystemModes[msg.data['systemMode']];
             }
             if (msg.data.hasOwnProperty('runningMode')) {
-                result[addEndpointName('running_mode', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('running_mode', msg, model, meta)] =
                     constants.thermostatRunningMode[msg.data['runningMode']];
             }
             if (msg.data.hasOwnProperty('runningState')) {
-                result[addEndpointName('running_state', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('running_state', msg, model, meta)] =
                     constants.thermostatRunningStates[msg.data['runningState']];
             }
             if (msg.data.hasOwnProperty('pIHeatingDemand')) {
-                result[addEndpointName('pi_heating_demand', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('pi_heating_demand', msg, model, meta)] =
                     mapNumberRange(msg.data['pIHeatingDemand'], 0, (dontMapPIHeatingDemand ? 100: 255), 0, 100);
             }
             if (msg.data.hasOwnProperty('pICoolingDemand')) {
                 // we assume the behavior is consistent for pIHeatingDemand + pICoolingDemand for the same vendor
-                result[addEndpointName('pi_cooling_demand', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('pi_cooling_demand', msg, model, meta)] =
                     mapNumberRange(msg.data['pICoolingDemand'], 0, (dontMapPIHeatingDemand ? 100: 255), 0, 100);
             }
             if (msg.data.hasOwnProperty('tempSetpointHold')) {
-                result[addEndpointName('temperature_setpoint_hold', msg, model, meta, 'postfix')] = msg.data['tempSetpointHold'] == 1;
+                result[postfixWithEndpointName('temperature_setpoint_hold', msg, model, meta)] = msg.data['tempSetpointHold'] == 1;
             }
             if (msg.data.hasOwnProperty('tempSetpointHoldDuration')) {
-                result[addEndpointName('temperature_setpoint_hold_duration', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('temperature_setpoint_hold_duration', msg, model, meta)] =
                     msg.data['tempSetpointHoldDuration'];
             }
             if (msg.data.hasOwnProperty('minHeatSetpointLimit')) {
                 const value = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
-                    result[addEndpointName('min_heat_setpoint_limit', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('min_heat_setpoint_limit', msg, model, meta)] = value;
                 }
             }
             if (msg.data.hasOwnProperty('maxHeatSetpointLimit')) {
                 const value = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
-                    result[addEndpointName('max_heat_setpoint_limit', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('max_heat_setpoint_limit', msg, model, meta)] = value;
                 }
             }
             if (msg.data.hasOwnProperty('absMinHeatSetpointLimit')) {
                 const value = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
-                    result[addEndpointName('abs_min_heat_setpoint_limit', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('abs_min_heat_setpoint_limit', msg, model, meta)] = value;
                 }
             }
             if (msg.data.hasOwnProperty('absMaxHeatSetpointLimit')) {
                 const value = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
-                    result[addEndpointName('abs_max_heat_setpoint_limit', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('abs_max_heat_setpoint_limit', msg, model, meta)] = value;
                 }
             }
             if (msg.data.hasOwnProperty('absMinCoolSetpointLimit')) {
                 const value = precisionRound(msg.data['absMinCoolSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
-                    result[addEndpointName('abs_min_cool_setpoint_limit', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('abs_min_cool_setpoint_limit', msg, model, meta)] = value;
                 }
             }
             if (msg.data.hasOwnProperty('absMaxCoolSetpointLimit')) {
                 const value = precisionRound(msg.data['absMaxCoolSetpointLimit'], 2) / 100;
                 if (value >= -273.15) {
-                    result[addEndpointName('abs_max_cool_setpoint_limit', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('abs_max_cool_setpoint_limit', msg, model, meta)] = value;
                 }
             }
             if (msg.data.hasOwnProperty('minSetpointDeadBand')) {
                 const value = precisionRound(msg.data['minSetpointDeadBand'], 2) / 100;
                 if (value >= -273.15) {
-                    result[addEndpointName('min_setpoint_dead_band', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('min_setpoint_dead_band', msg, model, meta)] = value;
                 }
             }
             if (msg.data.hasOwnProperty('acLouverPosition')) {
-                result[addEndpointName('ac_louver_position', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('ac_louver_position', msg, model, meta)] =
                 constants.thermostatAcLouverPositions[msg.data['acLouverPosition']];
             }
             return result;
@@ -199,7 +199,7 @@ const converters1 = {
                 transitions.push(entry);
             }
 
-            return {[addEndpointName('weekly_schedule', msg, model, meta, 'postfix')]: {days, transitions}};
+            return {[postfixWithEndpointName('weekly_schedule', msg, model, meta)]: {days, transitions}};
         },
     } satisfies Fz.Converter,
     hvac_user_interface: {
@@ -400,7 +400,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('measuredValue')) {
                 const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-                const property = addEndpointName('temperature', msg, model, meta, 'postfix');
+                const property = postfixWithEndpointName('temperature', msg, model, meta);
                 return {[property]: temperature};
             }
         },
@@ -420,7 +420,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
-            const property = addEndpointName('humidity', msg, model, meta, 'postfix');
+            const property = postfixWithEndpointName('humidity', msg, model, meta);
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
             // Sometimes the sensor publishes non-realistic vales, it should only publish message
@@ -444,7 +444,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const flow = parseFloat(msg.data['measuredValue']) / 10.0;
-            const property = addEndpointName('flow', msg, model, meta, 'postfix');
+            const property = postfixWithEndpointName('flow', msg, model, meta);
             if (msg.data.hasOwnProperty('measuredValue')) {
                 return {[property]: flow};
             }
@@ -551,7 +551,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentLevel')) {
-                const property = addEndpointName('brightness', msg, model, meta, 'postfix');
+                const property = postfixWithEndpointName('brightness', msg, model, meta);
                 return {[property]: msg.data['currentLevel']};
             }
         },
@@ -778,7 +778,7 @@ const converters1 = {
             for (const entry of lookup) {
                 if (msg.data.hasOwnProperty(entry.key)) {
                     const factor = getFactor(entry.factor);
-                    const property = addEndpointName(entry.name, msg, model, meta, 'postfix');
+                    const property = postfixWithEndpointName(entry.name, msg, model, meta);
                     const value = msg.data[entry.key] * factor;
                     payload[property] = value;
                 }
@@ -802,11 +802,11 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
                 const payload: KeyValueAny = {};
-                const property = addEndpointName('state', msg, model, meta, 'postfix');
+                const property = postfixWithEndpointName('state', msg, model, meta);
                 const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
                 payload[property] = state;
                 if (options && options.state_action) {
-                    payload['action'] = addEndpointName(state.toLowerCase(), msg, model, meta, 'postfix');
+                    payload['action'] = postfixWithEndpointName(state.toLowerCase(), msg, model, meta);
                 }
                 return payload;
             }
@@ -843,11 +843,11 @@ const converters1 = {
             // https://github.com/Koenkk/zigbee2mqtt/issues/3687
             if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg, model)) {
                 const payload: KeyValueAny = {};
-                const property = addEndpointName('state', msg, model, meta, 'postfix');
+                const property = postfixWithEndpointName('state', msg, model, meta);
                 const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
                 payload[property] = state;
                 if (options && options.state_action) {
-                    payload['action'] = addEndpointName(state.toLowerCase(), msg, model, meta, 'postfix');
+                    payload['action'] = postfixWithEndpointName(state.toLowerCase(), msg, model, meta);
                 }
                 return payload;
             }
@@ -859,7 +859,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const lookup: KeyValueAny = {0: 'off', 1: 'on', 2: 'toggle', 255: 'previous'};
             if (msg.data.hasOwnProperty('startUpOnOff')) {
-                const property = addEndpointName('power_on_behavior', msg, model, meta, 'postfix');
+                const property = postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data['startUpOnOff']]};
             }
         },
@@ -1003,9 +1003,9 @@ const converters1 = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-            const contactProperty = addEndpointName('contact', msg, model, meta, 'postfix');
-            const tamperProperty = addEndpointName('tamper', msg, model, meta, 'postfix');
-            const batteryLowProperty = addEndpointName('battery_low', msg, model, meta, 'postfix');
+            const contactProperty = postfixWithEndpointName('contact', msg, model, meta);
+            const tamperProperty = postfixWithEndpointName('tamper', msg, model, meta);
+            const batteryLowProperty = postfixWithEndpointName('battery_low', msg, model, meta);
 
             return {
                 [contactProperty]: !((zoneStatus & 1) > 0),
@@ -1151,7 +1151,7 @@ const converters1 = {
         type: 'commandStore',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const payload = {action: addEndpointName(`store_${msg.data.sceneid}`, msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName(`store_${msg.data.sceneid}`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1161,7 +1161,7 @@ const converters1 = {
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const payload = {action: addEndpointName(`recall_${msg.data.sceneid}`, msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName(`recall_${msg.data.sceneid}`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1171,7 +1171,7 @@ const converters1 = {
         type: 'commandPanic',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const payload = {action: addEndpointName(`panic`, msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName(`panic`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1182,7 +1182,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload: KeyValueAny = {
-                action: addEndpointName(constants.armMode[msg.data['armmode']], msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(constants.armMode[msg.data['armmode']], msg, model, meta),
                 action_code: msg.data.code,
                 action_zone: msg.data.zoneid,
             };
@@ -1195,7 +1195,7 @@ const converters1 = {
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const payload = {action: addEndpointName('stop', msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName('stop', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1205,7 +1205,7 @@ const converters1 = {
         type: 'commandUpOpen',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const payload = {action: addEndpointName('open', msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName('open', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1215,7 +1215,7 @@ const converters1 = {
         type: 'commandDownClose',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const payload = {action: addEndpointName('close', msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName('close', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1225,7 +1225,7 @@ const converters1 = {
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const payload = {action: addEndpointName('on', msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName('on', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1235,7 +1235,7 @@ const converters1 = {
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const payload = {action: addEndpointName('off', msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName('off', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1245,7 +1245,7 @@ const converters1 = {
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const payload = {action: addEndpointName(`off`, msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName(`off`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1255,7 +1255,7 @@ const converters1 = {
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const payload = {action: addEndpointName('toggle', msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName('toggle', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1267,7 +1267,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload: KeyValueAny = {
-                action: addEndpointName(`brightness_move_to_level`, msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(`brightness_move_to_level`, msg, model, meta),
                 action_level: msg.data.level,
                 action_transition_time: msg.data.transtime / 100,
             };
@@ -1276,9 +1276,9 @@ const converters1 = {
             if (options.simulated_brightness) {
                 const currentBrightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
-                const property = addEndpointName('brightness', msg, model, meta, 'postfix');
+                const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = msg.data.level;
-                const deltaProperty = addEndpointName('action_brightness_delta', msg, model, meta, 'postfix');
+                const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
                 payload[deltaProperty] = msg.data.level - currentBrightness;
             }
 
@@ -1292,7 +1292,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
-            const action = addEndpointName(`brightness_move_${direction}`, msg, model, meta, 'postfix');
+            const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model, meta);
             const payload = {action, action_rate: msg.data.rate};
             addActionGroup(payload, msg, model);
 
@@ -1310,8 +1310,8 @@ const converters1 = {
                         brightness += delta;
                         brightness = numberWithinRange(brightness, 0, 255);
                         globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
-                        const property = addEndpointName('brightness', msg, model, meta, 'postfix');
-                        const deltaProperty = addEndpointName('action_brightness_delta', msg, model, meta, 'postfix');
+                        const property = postfixWithEndpointName('brightness', msg, model, meta);
+                        const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
                         publish({[property]: brightness, [deltaProperty]: delta});
                     }, intervalOpts);
 
@@ -1330,7 +1330,7 @@ const converters1 = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
             const payload: KeyValueAny = {
-                action: addEndpointName(`brightness_step_${direction}`, msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(`brightness_step_${direction}`, msg, model, meta),
                 action_step_size: msg.data.stepsize,
                 action_transition_time: msg.data.transtime / 100,
             };
@@ -1342,9 +1342,9 @@ const converters1 = {
                 brightness += delta;
                 brightness = numberWithinRange(brightness, 0, 255);
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
-                const property = addEndpointName('brightness', msg, model, meta, 'postfix');
+                const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = brightness;
-                const deltaProperty = addEndpointName('action_brightness_delta', msg, model, meta, 'postfix');
+                const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
                 payload[deltaProperty] = delta;
             }
 
@@ -1362,7 +1362,7 @@ const converters1 = {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', undefined);
             }
 
-            const payload = {action: addEndpointName(`brightness_stop`, msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName(`brightness_stop`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1373,7 +1373,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = utils.getFromLookup(msg.data.movemode, {0: 'stop', 1: 'up', 3: 'down'});
-            const action = addEndpointName(`color_temperature_move_${direction}`, msg, model, meta, 'postfix');
+            const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model, meta);
             const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1386,7 +1386,7 @@ const converters1 = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload: KeyValueAny = {
-                action: addEndpointName(`color_temperature_step_${direction}`, msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model, meta),
                 action_step_size: msg.data.stepsize,
             };
 
@@ -1404,7 +1404,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
-                action: addEndpointName(`enhanced_move_to_hue_and_saturation`, msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(`enhanced_move_to_hue_and_saturation`, msg, model, meta),
                 action_enhanced_hue: msg.data.enhancehue,
                 action_hue: mapNumberRange(msg.data.enhancehue, 0, 65535, 0, 360, 1),
                 action_saturation: msg.data.saturation,
@@ -1422,7 +1422,7 @@ const converters1 = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
-                action: addEndpointName(`color_hue_step_${direction}`, msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model, meta),
                 action_step_size: msg.data.stepsize,
                 action_transition_time: msg.data.transtime/100,
             };
@@ -1437,7 +1437,7 @@ const converters1 = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
-                action: addEndpointName(`color_saturation_step_${direction}`, msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model, meta),
                 action_step_size: msg.data.stepsize,
                 action_transition_time: msg.data.transtime/100,
             };
@@ -1458,7 +1458,7 @@ const converters1 = {
             };
 
             const payload = {
-                action: addEndpointName(`color_loop_set`, msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(`color_loop_set`, msg, model, meta),
                 action_update_flags: {
                     action: (updateFlags & 1 << 0) > 0,
                     direction: (updateFlags & 1 << 1) > 0,
@@ -1481,7 +1481,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
-                action: addEndpointName(`color_temperature_move`, msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(`color_temperature_move`, msg, model, meta),
                 action_color_temperature: msg.data.colortemp,
                 action_transition_time: msg.data.transtime,
             };
@@ -1495,7 +1495,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
-                action: addEndpointName(`color_move`, msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(`color_move`, msg, model, meta),
                 action_color: {
                     x: precisionRound(msg.data.colorx / 65535, 3),
                     y: precisionRound(msg.data.colory / 65535, 3),
@@ -1512,7 +1512,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const movestop = msg.data.movemode == 1 ? 'move' : 'stop';
-            const action = addEndpointName(`hue_${movestop}`, msg, model, meta, 'postfix');
+            const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
             const payload = {action, action_rate: msg.data.rate};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1524,7 +1524,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
-                action: addEndpointName('move_to_saturation', msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName('move_to_saturation', msg, model, meta),
                 action_saturation: msg.data.saturation,
                 action_transition_time: msg.data.transtime,
             };
@@ -1538,7 +1538,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
-                action: addEndpointName(`move_to_hue`, msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(`move_to_hue`, msg, model, meta),
                 action_hue: msg.data.hue,
                 action_transition_time: msg.data.transtime / 100,
                 action_direction: msg.data.direction === 0 ? 'decrement' : 'increment',
@@ -1552,7 +1552,7 @@ const converters1 = {
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const payload = {action: addEndpointName(`emergency`, msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName(`emergency`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -1562,7 +1562,7 @@ const converters1 = {
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const property = addEndpointName('state', msg, model, meta, 'postfix');
+            const property = postfixWithEndpointName('state', msg, model, meta);
             return {[property]: 'ON'};
         },
     } satisfies Fz.Converter,
@@ -1571,7 +1571,7 @@ const converters1 = {
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
-            const property = addEndpointName('state', msg, model, meta, 'postfix');
+            const property = postfixWithEndpointName('state', msg, model, meta);
             return {[property]: 'OFF'};
         },
     } satisfies Fz.Converter,
@@ -1579,7 +1579,7 @@ const converters1 = {
         cluster: 'genIdentify',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {action: addEndpointName(`identify`, msg, model, meta, 'postfix')};
+            return {action: postfixWithEndpointName(`identify`, msg, model, meta)};
         },
     } satisfies Fz.Converter,
     cover_position_tilt: {
@@ -1597,17 +1597,17 @@ const converters1 = {
             const coverStateFromTilt = model.meta && model.meta.coverStateFromTilt;
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
                 const value = msg.data['currentPositionLiftPercentage'];
-                result[addEndpointName('position', msg, model, meta, 'postfix')] = invert ? value : 100 - value;
+                result[postfixWithEndpointName('position', msg, model, meta)] = invert ? value : 100 - value;
                 if (!coverStateFromTilt) {
-                    result[addEndpointName('state', msg, model, meta, 'postfix')] =
+                    result[postfixWithEndpointName('state', msg, model, meta)] =
                         metaInvert ? (value === 0 ? 'CLOSE' : 'OPEN') : (value === 100 ? 'CLOSE' : 'OPEN');
                 }
             }
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
-                result[addEndpointName('tilt', msg, model, meta, 'postfix')] = invert ? value : 100 - value;
+                result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? value : 100 - value;
                 if (coverStateFromTilt) {
-                    result[addEndpointName('state', msg, model, meta, 'postfix')] =
+                    result[postfixWithEndpointName('state', msg, model, meta)] =
                         metaInvert ? (value === 100 ? 'OPEN' : 'CLOSE') : (value === 0 ? 'OPEN' : 'CLOSE');
                 }
             }
@@ -2132,12 +2132,12 @@ const converters1 = {
             const result: KeyValueAny = {};
             if (msg.data.hasOwnProperty('moesCalibrationTime')) {
                 const value = parseFloat(msg.data['moesCalibrationTime']) / 100;
-                result[addEndpointName('calibration_time', msg, model, meta, 'postfix')] = value;
+                result[postfixWithEndpointName('calibration_time', msg, model, meta)] = value;
             }
             if (msg.data.hasOwnProperty('tuyaMotorReversal')) {
                 const value = msg.data['tuyaMotorReversal'];
                 const reversalLookup: KeyValueAny = {0: 'OFF', 1: 'ON'};
-                result[addEndpointName('motor_reversal', msg, model, meta, 'postfix')] = reversalLookup[value];
+                result[postfixWithEndpointName('motor_reversal', msg, model, meta)] = reversalLookup[value];
             }
             return result;
         },
@@ -2150,21 +2150,21 @@ const converters1 = {
             if (msg.data.hasOwnProperty('tuyaMovingState')) {
                 const value = msg.data['tuyaMovingState'];
                 const movingLookup: KeyValueAny = {0: 'UP', 1: 'STOP', 2: 'DOWN'};
-                result[addEndpointName('moving', msg, model, meta, 'postfix')] = movingLookup[value];
+                result[postfixWithEndpointName('moving', msg, model, meta)] = movingLookup[value];
             }
             if (msg.data.hasOwnProperty('tuyaCalibration')) {
                 const value = msg.data['tuyaCalibration'];
                 const calibrationLookup: KeyValueAny = {0: 'ON', 1: 'OFF'};
-                result[addEndpointName('calibration', msg, model, meta, 'postfix')] = calibrationLookup[value];
+                result[postfixWithEndpointName('calibration', msg, model, meta)] = calibrationLookup[value];
             }
             if (msg.data.hasOwnProperty('tuyaMotorReversal')) {
                 const value = msg.data['tuyaMotorReversal'];
                 const reversalLookup: KeyValueAny = {0: 'OFF', 1: 'ON'};
-                result[addEndpointName('motor_reversal', msg, model, meta, 'postfix')] = reversalLookup[value];
+                result[postfixWithEndpointName('motor_reversal', msg, model, meta)] = reversalLookup[value];
             }
             if (msg.data.hasOwnProperty('moesCalibrationTime')) {
                 const value = parseFloat(msg.data['moesCalibrationTime']) / 10.0;
-                result[addEndpointName('calibration_time', msg, model, meta, 'postfix')] = value;
+                result[postfixWithEndpointName('calibration_time', msg, model, meta)] = value;
             }
             return result;
         },
@@ -2739,104 +2739,104 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.hasOwnProperty('danfossWindowOpenFeatureEnable')) {
-                result[addEndpointName('window_open_feature', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('window_open_feature', msg, model, meta)] =
                     (msg.data['danfossWindowOpenFeatureEnable'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossWindowOpenInternal')) {
-                result[addEndpointName('window_open_internal', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('window_open_internal', msg, model, meta)] =
                     constants.danfossWindowOpen.hasOwnProperty(msg.data['danfossWindowOpenInternal']) ?
                         constants.danfossWindowOpen[msg.data['danfossWindowOpenInternal']] :
                         msg.data['danfossWindowOpenInternal'];
             }
             if (msg.data.hasOwnProperty('danfossWindowOpenExternal')) {
-                result[addEndpointName('window_open_external', msg, model, meta, 'postfix')] = (msg.data['danfossWindowOpenExternal'] === 1);
+                result[postfixWithEndpointName('window_open_external', msg, model, meta)] = (msg.data['danfossWindowOpenExternal'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossDayOfWeek')) {
-                result[addEndpointName('day_of_week', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('day_of_week', msg, model, meta)] =
                     constants.thermostatDayOfWeek.hasOwnProperty(msg.data['danfossDayOfWeek']) ?
                         constants.thermostatDayOfWeek[msg.data['danfossDayOfWeek']] :
                         msg.data['danfossDayOfWeek'];
             }
             if (msg.data.hasOwnProperty('danfossTriggerTime')) {
-                result[addEndpointName('trigger_time', msg, model, meta, 'postfix')] = msg.data['danfossTriggerTime'];
+                result[postfixWithEndpointName('trigger_time', msg, model, meta)] = msg.data['danfossTriggerTime'];
             }
             if (msg.data.hasOwnProperty('danfossMountedModeActive')) {
-                result[addEndpointName('mounted_mode_active', msg, model, meta, 'postfix')] = (msg.data['danfossMountedModeActive'] === 1);
+                result[postfixWithEndpointName('mounted_mode_active', msg, model, meta)] = (msg.data['danfossMountedModeActive'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossMountedModeControl')) {
-                result[addEndpointName('mounted_mode_control', msg, model, meta, 'postfix')] = (msg.data['danfossMountedModeControl'] === 1);
+                result[postfixWithEndpointName('mounted_mode_control', msg, model, meta)] = (msg.data['danfossMountedModeControl'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossThermostatOrientation')) {
-                result[addEndpointName('thermostat_vertical_orientation', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('thermostat_vertical_orientation', msg, model, meta)] =
                     (msg.data['danfossThermostatOrientation'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossExternalMeasuredRoomSensor')) {
-                result[addEndpointName('external_measured_room_sensor', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('external_measured_room_sensor', msg, model, meta)] =
                     msg.data['danfossExternalMeasuredRoomSensor'];
             }
             if (msg.data.hasOwnProperty('danfossRadiatorCovered')) {
-                result[addEndpointName('radiator_covered', msg, model, meta, 'postfix')] = (msg.data['danfossRadiatorCovered'] === 1);
+                result[postfixWithEndpointName('radiator_covered', msg, model, meta)] = (msg.data['danfossRadiatorCovered'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossViewingDirection')) {
-                result[addEndpointName('viewing_direction', msg, model, meta, 'postfix')] = (msg.data['danfossViewingDirection'] === 1);
+                result[postfixWithEndpointName('viewing_direction', msg, model, meta)] = (msg.data['danfossViewingDirection'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossAlgorithmScaleFactor')) {
-                result[addEndpointName('algorithm_scale_factor', msg, model, meta, 'postfix')] = msg.data['danfossAlgorithmScaleFactor'];
+                result[postfixWithEndpointName('algorithm_scale_factor', msg, model, meta)] = msg.data['danfossAlgorithmScaleFactor'];
             }
             if (msg.data.hasOwnProperty('danfossHeatAvailable')) {
-                result[addEndpointName('heat_available', msg, model, meta, 'postfix')] = (msg.data['danfossHeatAvailable'] === 1);
+                result[postfixWithEndpointName('heat_available', msg, model, meta)] = (msg.data['danfossHeatAvailable'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossHeatRequired')) {
                 if (msg.data['danfossHeatRequired'] === 1) {
-                    result[addEndpointName('heat_required', msg, model, meta, 'postfix')] = true;
-                    result[addEndpointName('running_state', msg, model, meta, 'postfix')] = 'heat';
+                    result[postfixWithEndpointName('heat_required', msg, model, meta)] = true;
+                    result[postfixWithEndpointName('running_state', msg, model, meta)] = 'heat';
                 } else {
-                    result[addEndpointName('heat_required', msg, model, meta, 'postfix')] = false;
-                    result[addEndpointName('running_state', msg, model, meta, 'postfix')] = 'idle';
+                    result[postfixWithEndpointName('heat_required', msg, model, meta)] = false;
+                    result[postfixWithEndpointName('running_state', msg, model, meta)] = 'idle';
                 }
             }
             if (msg.data.hasOwnProperty('danfossLoadBalancingEnable')) {
-                result[addEndpointName('load_balancing_enable', msg, model, meta, 'postfix')] = (msg.data['danfossLoadBalancingEnable'] === 1);
+                result[postfixWithEndpointName('load_balancing_enable', msg, model, meta)] = (msg.data['danfossLoadBalancingEnable'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossLoadRoomMean')) {
-                result[addEndpointName('load_room_mean', msg, model, meta, 'postfix')] = msg.data['danfossLoadRoomMean'];
+                result[postfixWithEndpointName('load_room_mean', msg, model, meta)] = msg.data['danfossLoadRoomMean'];
             }
             if (msg.data.hasOwnProperty('danfossLoadEstimate')) {
-                result[addEndpointName('load_estimate', msg, model, meta, 'postfix')] = msg.data['danfossLoadEstimate'];
+                result[postfixWithEndpointName('load_estimate', msg, model, meta)] = msg.data['danfossLoadEstimate'];
             }
             if (msg.data.hasOwnProperty('danfossPreheatStatus')) {
-                result[addEndpointName('preheat_status', msg, model, meta, 'postfix')] = (msg.data['danfossPreheatStatus'] === 1);
+                result[postfixWithEndpointName('preheat_status', msg, model, meta)] = (msg.data['danfossPreheatStatus'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossAdaptionRunStatus')) {
-                result[addEndpointName('adaptation_run_status', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('adaptation_run_status', msg, model, meta)] =
                     constants.danfossAdaptionRunStatus[msg.data['danfossAdaptionRunStatus']];
             }
             if (msg.data.hasOwnProperty('danfossAdaptionRunSettings')) {
-                result[addEndpointName('adaptation_run_settings', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('adaptation_run_settings', msg, model, meta)] =
                     (msg.data['danfossAdaptionRunSettings'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossAdaptionRunControl')) {
-                result[addEndpointName('adaptation_run_control', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('adaptation_run_control', msg, model, meta)] =
                     constants.danfossAdaptionRunControl[msg.data['danfossAdaptionRunControl']];
             }
             if (msg.data.hasOwnProperty('danfossRegulationSetpointOffset')) {
-                result[addEndpointName('regulation_setpoint_offset', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('regulation_setpoint_offset', msg, model, meta)] =
                     msg.data['danfossRegulationSetpointOffset'];
             }
             // Danfoss Icon Converters
             if (msg.data.hasOwnProperty('danfossRoomStatusCode')) {
-                result[addEndpointName('room_status_code', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('room_status_code', msg, model, meta)] =
                     constants.danfossRoomStatusCode.hasOwnProperty(msg.data['danfossRoomStatusCode']) ?
                         constants.danfossRoomStatusCode[msg.data['danfossRoomStatusCode']] :
                         msg.data['danfossRoomStatusCode'];
             }
             if (msg.data.hasOwnProperty('danfossOutputStatus')) {
                 if (msg.data['danfossOutputStatus'] === 1) {
-                    result[addEndpointName('output_status', msg, model, meta, 'postfix')] = 'active';
-                    result[addEndpointName('running_state', msg, model, meta, 'postfix')] = 'heat';
+                    result[postfixWithEndpointName('output_status', msg, model, meta)] = 'active';
+                    result[postfixWithEndpointName('running_state', msg, model, meta)] = 'heat';
                 } else {
-                    result[addEndpointName('output_status', msg, model, meta, 'postfix')] = 'inactive';
-                    result[addEndpointName('running_state', msg, model, meta, 'postfix')] = 'idle';
+                    result[postfixWithEndpointName('output_status', msg, model, meta)] = 'inactive';
+                    result[postfixWithEndpointName('running_state', msg, model, meta)] = 'idle';
                 }
             }
             return result;
@@ -2848,7 +2848,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
-                result[addEndpointName('occupied_heating_setpoint_scheduled', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('occupied_heating_setpoint_scheduled', msg, model, meta)] =
                     precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
             }
             return result;
@@ -2860,7 +2860,7 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.hasOwnProperty('danfossRoomFloorSensorMode')) {
-                result[addEndpointName('room_floor_sensor_mode', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('room_floor_sensor_mode', msg, model, meta)] =
                     constants.danfossRoomFloorSensorMode.hasOwnProperty(msg.data['danfossRoomFloorSensorMode']) ?
                         constants.danfossRoomFloorSensorMode[msg.data['danfossRoomFloorSensorMode']] :
                         msg.data['danfossRoomFloorSensorMode'];
@@ -2868,13 +2868,13 @@ const converters1 = {
             if (msg.data.hasOwnProperty('danfossFloorMinSetpoint')) {
                 const value = precisionRound(msg.data['danfossFloorMinSetpoint'], 2) / 100;
                 if (value >= -273.15) {
-                    result[addEndpointName('floor_min_setpoint', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('floor_min_setpoint', msg, model, meta)] = value;
                 }
             }
             if (msg.data.hasOwnProperty('danfossFloorMaxSetpoint')) {
                 const value = precisionRound(msg.data['danfossFloorMaxSetpoint'], 2) / 100;
                 if (value >= -273.15) {
-                    result[addEndpointName('floor_max_setpoint', msg, model, meta, 'postfix')] = value;
+                    result[postfixWithEndpointName('floor_max_setpoint', msg, model, meta)] = value;
                 }
             }
             return result;
@@ -2892,7 +2892,7 @@ const converters1 = {
                 let percentage = msg.data['batteryPercentageRemaining'];
                 percentage = dontDividePercentage ? percentage : percentage / 2;
 
-                result[addEndpointName('battery', msg, model, meta, 'postfix')] = precisionRound(percentage, 2);
+                result[postfixWithEndpointName('battery', msg, model, meta)] = precisionRound(percentage, 2);
             }
             return result;
         },
@@ -2903,19 +2903,19 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.hasOwnProperty('danfossSystemStatusCode')) {
-                result[addEndpointName('system_status_code', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('system_status_code', msg, model, meta)] =
                 constants.danfossSystemStatusCode.hasOwnProperty(msg.data['danfossSystemStatusCode']) ?
                     constants.danfossSystemStatusCode[msg.data['danfossSystemStatusCode']] :
                     msg.data['danfossSystemStatusCode'];
             }
             if (msg.data.hasOwnProperty('danfossSystemStatusWater')) {
-                result[addEndpointName('system_status_water', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('system_status_water', msg, model, meta)] =
                 constants.danfossSystemStatusWater.hasOwnProperty(msg.data['danfossSystemStatusWater']) ?
                     constants.danfossSystemStatusWater[msg.data['danfossSystemStatusWater']] :
                     msg.data['danfossSystemStatusWater'];
             }
             if (msg.data.hasOwnProperty('danfossMultimasterRole')) {
-                result[addEndpointName('multimaster_role', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('multimaster_role', msg, model, meta)] =
                 constants.danfossMultimasterRole.hasOwnProperty(msg.data['danfossMultimasterRole']) ?
                     constants.danfossMultimasterRole[msg.data['danfossMultimasterRole']] :
                     msg.data['danfossMultimasterRole'];
@@ -2929,13 +2929,13 @@ const converters1 = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.hasOwnProperty('keypadLockout')) {
-                result[addEndpointName('keypad_lockout', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('keypad_lockout', msg, model, meta)] =
                     constants.keypadLockoutMode.hasOwnProperty(msg.data['keypadLockout']) ?
                         constants.keypadLockoutMode[msg.data['keypadLockout']] :
                         msg.data['keypadLockout'];
             }
             if (msg.data.hasOwnProperty('tempDisplayMode')) {
-                result[addEndpointName('temperature_display_mode', msg, model, meta, 'postfix')] =
+                result[postfixWithEndpointName('temperature_display_mode', msg, model, meta)] =
                     constants.temperatureDisplayMode.hasOwnProperty(msg.data['tempDisplayMode']) ?
                         constants.temperatureDisplayMode[msg.data['tempDisplayMode']] :
                         msg.data['tempDisplayMode'];
@@ -3039,7 +3039,7 @@ const converters1 = {
             }
 
             const payload = {
-                action: addEndpointName(`color_temperature_move`, msg, model, meta, 'postfix'),
+                action: postfixWithEndpointName(`color_temperature_move`, msg, model, meta),
                 action_color_temperature: msg.data.colortemp,
                 action_transition_time: msg.data.transtime,
                 action_color_temperature_direction: direction,
@@ -3298,7 +3298,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const multiEndpoint = model.meta && model.meta.multiEndpoint;
-            const property = multiEndpoint ? addEndpointName('state', msg, model, meta, 'postfix') : 'state';
+            const property = multiEndpoint ? postfixWithEndpointName('state', msg, model, meta) : 'state';
             return {[property]: msg.data.presentValue ? 'ON' : 'OFF'};
         },
     } satisfies Fz.Converter,
@@ -3419,7 +3419,7 @@ const converters1 = {
             const actionLookup: KeyValueAny = {0: 'release', 1: 'single', 2: 'double', 3: 'tripple', 4: 'hold'};
             const value = msg.data['presentValue'];
             const action = actionLookup[value];
-            return {action: addEndpointName(action, msg, model, meta, 'postfix')};
+            return {action: postfixWithEndpointName(action, msg, model, meta)};
         },
     } satisfies Fz.Converter,
     konke_action: {
@@ -3521,7 +3521,7 @@ const converters1 = {
         cluster: 'lightingColorCtrl',
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: addEndpointName(`color_stop`, msg, model, meta, 'postfix')};
+            const payload = {action: postfixWithEndpointName(`color_stop`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -3915,7 +3915,7 @@ const converters1 = {
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const action = msg.data['onOff'] === 1 ? 'release' : 'hold';
-            const payload: KeyValueAny = {action: addEndpointName(action, msg, model, meta, 'postfix')};
+            const payload: KeyValueAny = {action: postfixWithEndpointName(action, msg, model, meta)};
 
             if (isLegacyEnabled(options)) {
                 const key = `button_${getKey(model.endpoint(msg.device), msg.endpoint.ID)}`;
@@ -4184,7 +4184,7 @@ const converters1 = {
                 const value = msg.data[property];
 
                 if (dict.hasOwnProperty(value)) {
-                    return {[addEndpointName('indicator_mode', msg, model, meta, 'postfix')]: dict[value]};
+                    return {[postfixWithEndpointName('indicator_mode', msg, model, meta)]: dict[value]};
                 }
             }
         },
@@ -4329,7 +4329,7 @@ const converters1 = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-            const property = addEndpointName('local_temperature', msg, model, meta, 'postfix');
+            const property = postfixWithEndpointName('local_temperature', msg, model, meta);
             return {[property]: temperature};
         },
     } satisfies Fz.Converter,
@@ -4486,7 +4486,7 @@ const converters1 = {
             if (msg.data[2] !== 71) return;
             if (hasAlreadyProcessedMessage(msg, model)) return;
             const movestop = 'stop';
-            const action = addEndpointName(`hue_${movestop}`, msg, model, meta, 'postfix');
+            const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
             const payload = {action};
             addActionGroup(payload, msg, model);
             return payload;
@@ -4539,7 +4539,7 @@ const converters1 = {
             // https://github.com/Koenkk/zigbee2mqtt/issues/13640
             // SNZB-02 reports stranges values sometimes
             if (temperature > -33 && temperature < 100) {
-                const property = addEndpointName('temperature', msg, model, meta, 'postfix');
+                const property = postfixWithEndpointName('temperature', msg, model, meta);
                 return {[property]: temperature};
             }
         },
