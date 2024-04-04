@@ -1048,7 +1048,7 @@ const definitions: Definition[] = [
         toZigbee: [tzLocal.bsd2_alarm_state],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 64684]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd']);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.configureReporting('ssIasZone', [{
                 attribute: 'zoneStatus',
