@@ -1787,7 +1787,6 @@ const tuyaModernExtend = {
             cluster: 'genOnOff',
             commands: ['commandTuyaAction'],
             attribute: 'value',
-            actionTemplate: 'endpoint_action',
         });
     },
     tuyaOnOffActionLegacy(args: {actions: ('single' | 'double' | 'hold')[], endpointNames?: string[]}): ModernExtend {

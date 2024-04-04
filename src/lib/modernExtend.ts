@@ -1445,10 +1445,9 @@ export function binary(args: BinaryArgs): ModernExtend {
 
 export interface ActionEnumLookupArgs {
     actionLookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, endpointNames?: string[],
-    buttonLookup?: KeyValue, extraActions?: string[], commands?: string[], actionTemplate?: 'action_endpoint' | 'endpoint_action'
+    buttonLookup?: KeyValue, extraActions?: string[], commands?: string[],
 }
 export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
-    args = {actionTemplate: 'action_endpoint', ...args};
     const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const commands = args.commands || ['attributeReport', 'readResponse'];
@@ -1466,16 +1465,12 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
                 let value = getFromLookupByValue(msg.data[attributeKey], lookup);
                 // endpointNames is used when action endpoint names don't overlap with other endpoint names
                 if (args.endpointNames) {
-                    value = addEndpointName(value, msg, model, meta, args.actionTemplate === 'action_endpoint' ? 'postfix' : 'prefix');
+                    value = addEndpointName(value, msg, model, meta, 'postfix');
                 }
                 // buttonLookup is used when action endpoint names overlap with other endpoint names
                 if (args.buttonLookup) {
                     const endpointName = getFromLookupByValue(msg.endpoint.ID, buttonLookup);
-                    if (args.actionTemplate === 'action_endpoint') {
-                        value =`${value}_${endpointName}`;
-                    } else {
-                        value =`${endpointName}_${value}`;
-                    }
+                    value =`${endpointName}_${value}`;
                 }
                 return {[expose.property]: value};
             }
