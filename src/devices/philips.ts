@@ -3571,7 +3571,7 @@ const definitions: Definition[] = [
     {
         zigbeeModel: ['442296118491'],
         model: '442296118491',
-        vendsor: 'Philips',
+        vendor: 'Philips',
         description: 'Hue Secure Camera Floodlight',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
