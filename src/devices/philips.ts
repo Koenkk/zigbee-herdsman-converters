@@ -3580,7 +3580,7 @@ const definitions: Definition[] = [
         model: '929003555701',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance Play Gradient Light Tube Compact',
-        extend: [philipsLight({colorTemp: {range: [153,500]}, color: true})],
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
 ];
 
