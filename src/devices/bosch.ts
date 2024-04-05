@@ -1048,7 +1048,7 @@ const definitions: Definition[] = [
         toZigbee: [tzLocal.bsd2_alarm_state],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone']);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.configureReporting('ssIasZone', [{
                 attribute: 'zoneStatus',
@@ -1058,7 +1058,8 @@ const definitions: Definition[] = [
             }], manufacturerOptions);
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
-        exposes: [e.smoke(), e.battery(), e.battery_low(), e.test(),
+        exposes: [
+            e.smoke(), e.battery(), e.battery_low(), e.test(),
             e.binary('intruder_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
             e.binary('smoke_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
         ],
