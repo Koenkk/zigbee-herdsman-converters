@@ -3575,6 +3575,14 @@ const definitions: Definition[] = [
         description: 'Hue Secure Camera Floodlight',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
+    {
+        zigbeeModel: ['929003555701'],
+        model: '929003555701',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance Play Gradient Light Tube Compact',
+        extend: [identify(), philipsLight({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        meta: {},
+    };
 ];
 
 export default definitions;
