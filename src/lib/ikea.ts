@@ -627,7 +627,7 @@ export function ikeaMediaCommands(): ModernExtend {
         },
     ];
 
-    const configure: Configure = setupConfigureForBinding('genLevelCtrl', 'input');
+    const configure: Configure = setupConfigureForBinding('genLevelCtrl', 'output');
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
