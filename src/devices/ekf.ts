@@ -5,6 +5,7 @@ import fz from '../converters/fromZigbee';
 import * as legacy from '../lib/legacy';
 const e = exposes.presets;
 const ea = exposes.access;
+import * as tuya from '../lib/tuya';
 
 const definitions: Definition[] = [
     {
@@ -32,6 +33,23 @@ const definitions: Definition[] = [
             // eslint-disable-next-line
             e.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240', '480'])
                 .withDescription('PIR keep time in seconds')],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nus5kk3n7']),
+        model: 'is-ga-zb',
+        vendor: 'EKF',
+        description: 'Smart gas sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.gas(), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(), tuya.exposes.faultAlarm(), tuya.exposes.silence()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'gas', tuya.valueConverter.trueFalse0],
+                [9, 'self_test_result', tuya.valueConverter.selfTestResult],
+                [11, 'fault_alarm', tuya.valueConverter.trueFalse1],
+            ],
+        },
     },
 ];
 
