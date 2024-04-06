@@ -1789,6 +1789,16 @@ const tuyaModernExtend = {
             ...args,
         });
     },
+    dpFaultAlarm(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
+        return tuyaModernExtend.dpBinary({
+            name: 'fault_alarm',
+            type: dataTypes.bool,
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            expose: tuyaExposes.faultAlarm(),
+            ...args,
+        });
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
