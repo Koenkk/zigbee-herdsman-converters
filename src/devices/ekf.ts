@@ -64,7 +64,7 @@ const alarmConverter = {
 
 const definitions: Definition[] = [
     {
-        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_0aqbrnts']),
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_0aqbrnts', '_TZ3210_oekbi7o4']),
         model: 'is-thpl-zb',
         vendor: 'EKF',
         description: 'Smart sensor 4 in 1',
