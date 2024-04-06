@@ -391,14 +391,14 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'alarm_on_motion') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write(0xFCAC, {0x0003: {value: index, type: 0x10}}, manufacturerOptions);
+                await entity.write('manuSpecificBosch11', {alarmOnMotion: {value: index, type: Zcl.DataType.boolean}}, manufacturerOptions);
                 return {state: {alarm_on_motion: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'alarm_on_motion':
-                await entity.read(0xFCAC, [0x0003], manufacturerOptions);
+                await entity.read('manuSpecificBosch11', ['alarmOnMotion'], manufacturerOptions);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bwa1_alarm_on_motion.convertGet ${key}`);
@@ -696,13 +696,13 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     bwa1_alarm_on_motion: {
-        cluster: '64684',
+        cluster: 'manuSpecificBosch11',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
-            if (data.hasOwnProperty(0x0003)) {
-                result.alarm_on_motion = (Object.keys(stateOffOn)[msg.data[0x0003]]);
+            if (data.hasOwnProperty('alarmOnMotion')) {
+                result.alarm_on_motion = (Object.keys(stateOffOn)[data['alarmOnMotion']]);
             }
             return result;
         },
@@ -1022,22 +1022,33 @@ const definitions: Definition[] = [
         fromZigbee: [
             fz.battery,
             fz.ias_water_leak_alarm_1,
+            fz.bwa1_alarm_on_motion,
         ],
-        toZigbee: [],
+        toZigbee: [
+            tz.bwa1_alarm_on_motion,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg',
                 'genPollCtrl',
                 'ssIasZone',
+                'manuSpecificBosch11',
             ]);
             await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.configureReporting('manuSpecificBosch11', [{
+                attribute: 'alarmOnMotion',
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.MAX,
+                reportableChange: null,
+            }], manufacturerOptions);
         },
         exposes: [
             e.water_leak(),
             e.tamper(),
             e.battery(),
             e.battery_low(),
+            e.binary('alarm_on_motion', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable sound alarm on motion'),
         ],
     },
     {
