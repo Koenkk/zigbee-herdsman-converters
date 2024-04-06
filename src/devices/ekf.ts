@@ -1,5 +1,5 @@
 import {Definition, Tz} from '../lib/types';
-import {} from '../lib/modernExtend';
+import { battery, humidity, identify, temperature } from '../lib/modernExtend';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -144,7 +144,19 @@ const definitions: Definition[] = [
                 [16, 'silence', tuya.valueConverter.onOff],
             ],
         },
-    }
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0201', ['_TZ3000_acklt5lf']),
+        model: 'is-th-nd-zb',
+        vendor: 'EKF',
+        description: 'Smart temperature and humidity sensor',
+        extend: [
+            temperature(),
+            humidity(),
+            identify({isSleepy: true}),
+            battery({voltage: true, voltageReporting: true}),
+        ],
+    },
 ];
 
 export default definitions;
