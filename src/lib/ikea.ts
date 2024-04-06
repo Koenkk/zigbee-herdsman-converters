@@ -10,7 +10,6 @@ import {
 } from '../lib/modernExtend';
 import {tradfri as ikea} from '../lib/ota';
 
-import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
@@ -642,8 +641,6 @@ export const legacy = {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
                 if (isLegacyEnabled(options)) {
                     return {action: 'play_pause'};
-                } else {
-                    return fz.command_toggle.convert(model, msg, publish, options, meta);
                 }
             },
         } satisfies Fz.Converter,
@@ -660,8 +657,6 @@ export const legacy = {
                         step_size: msg.data.stepsize,
                         transition_time: msg.data.transtime,
                     };
-                } else {
-                    return fz.command_step.convert(model, msg, publish, options, meta);
                 }
             },
         } satisfies Fz.Converter,
