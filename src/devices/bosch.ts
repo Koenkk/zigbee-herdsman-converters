@@ -1022,10 +1022,10 @@ const definitions: Definition[] = [
         fromZigbee: [
             fz.battery,
             fz.ias_water_leak_alarm_1,
-            //fz.bwa1_alarm_on_motion,
+            // fz.bwa1_alarm_on_motion,
         ],
         toZigbee: [
-            //tz.bwa1_alarm_on_motion,
+            // tz.bwa1_alarm_on_motion,
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1033,15 +1033,15 @@ const definitions: Definition[] = [
                 'genPowerCfg',
                 'genPollCtrl',
                 'ssIasZone',
-                //'manuSpecificBosch11',
+                // 'manuSpecificBosch11',
             ]);
             await reporting.batteryPercentageRemaining(endpoint);
-            //await endpoint.configureReporting('manuSpecificBosch11', [{
-                //attribute: 'alarmOnMotion',
-                //minimumReportInterval: 0,
-                //maximumReportInterval: constants.repInterval.MAX,
-                //reportableChange: null,
-            //}], manufacturerOptions);
+            // await endpoint.configureReporting('manuSpecificBosch11', [{
+                // attribute: 'alarmOnMotion',
+                // minimumReportInterval: 0,
+                // maximumReportInterval: constants.repInterval.MAX,
+                // reportableChange: null,
+            // }], manufacturerOptions);
         },
         exposes: [
             e.water_leak(),
@@ -1049,7 +1049,7 @@ const definitions: Definition[] = [
             e.battery(),
             e.battery_low(),
             e.test(),
-            //e.binary('alarm_on_motion', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable sound alarm on motion'),
+            // e.binary('alarm_on_motion', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable sound alarm on motion'),
         ],
     },
     {
