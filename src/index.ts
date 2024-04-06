@@ -122,7 +122,7 @@ function processExtensions(definition: Definition): Definition {
             if (ext.meta) meta = {...ext.meta, ...meta};
             if (ext.configure) configures.push(ext.configure);
             if (ext.ota) {
-                if (ota) {
+                if (ota && ext.ota !== ota) {
                     assert.fail(`'${definition.model}' has multiple 'ota', this is not allowed`);
                 }
                 ota = ext.ota;
