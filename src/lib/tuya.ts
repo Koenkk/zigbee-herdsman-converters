@@ -1799,6 +1799,16 @@ const tuyaModernExtend = {
             ...args,
         });
     },
+    dpSilence(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
+        return tuyaModernExtend.dpBinary({
+            name: 'silence',
+            type: dataTypes.bool,
+            valueOn: [true, true],
+            valueOff: [false, false],
+            expose: tuyaExposes.silence(),
+            ...args,
+        });
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
