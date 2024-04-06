@@ -1022,10 +1022,10 @@ const definitions: Definition[] = [
         fromZigbee: [
             fz.battery,
             fz.ias_water_leak_alarm_1,
-            fz.bwa1_alarm_on_motion,
+            fz!ocal.bwa1_alarm_on_motion,
         ],
         toZigbee: [
-            tz.bwa1_alarm_on_motion,
+            tzLocal.bwa1_alarm_on_motion,
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
