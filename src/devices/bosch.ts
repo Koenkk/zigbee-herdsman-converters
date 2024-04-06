@@ -1038,7 +1038,6 @@ const definitions: Definition[] = [
             e.tamper(),
             e.battery(),
             e.battery_low(),
-            e.test(),
         ],
     },
     {
@@ -1383,7 +1382,6 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const coordinatorEndpointB = coordinatorEndpoint.getDevice().getEndpoint(1);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, ['genAlarms']);
-            await reporting.bind(device.getEndpoint(7), coordinatorEndpointB, ['genOta']);
             await reporting.bind(device.getEndpoint(7), coordinatorEndpointB, ['genPollCtrl']);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, ['manuSpecificBosch']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpointB, ['manuSpecificBosch3']);
