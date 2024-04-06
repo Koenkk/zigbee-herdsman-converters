@@ -1019,19 +1019,19 @@ const definitions: Definition[] = [
         model: 'BWA-1',
         vendor: 'Bosch',
         description: 'Zigbee smart water leak detector',
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fzLocal.bwa1_alarm_on_motion],
+        fromZigbee: [fz.battery, fz.ias_water_leak_alarm_1, fzLocal.bwa1_alarm_on_motion],
         toZigbee: [tzLocal.bwa1],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 64684]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'manuSpecificBosch11']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.configureReporting(0xFCAC, [{
-                attribute: {ID: 0x0003, type: Zcl.DataType.boolean},
+            await endpoint.configureReporting('manuSpecificBosch11', [{
+                attribute: 'alarmOnMotion',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1,
+                reportableChange: null,
             }], manufacturerOptions);
         },
         exposes: [
@@ -1053,7 +1053,7 @@ const definitions: Definition[] = [
             await endpoint.configureReporting('ssIasZone', [{
                 attribute: 'zoneStatus',
                 minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
+                maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: 1,
             }], manufacturerOptions);
             await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
