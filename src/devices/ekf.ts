@@ -1,5 +1,5 @@
 import {Definition, Tz} from '../lib/types';
-import { battery, humidity, identify, temperature } from '../lib/modernExtend';
+import { battery, humidity, iasZoneAlarm, identify, ignoreClusterReport, illuminance, temperature } from '../lib/modernExtend';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -70,10 +70,9 @@ const definitions: Definition[] = [
         model: 'is-thpl-zb',
         vendor: 'EKF',
         description: 'Smart sensor 4 in 1',
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
+        fromZigbee: [legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
-        exposes: [e.occupancy(), e.tamper(), e.illuminance_lux(), e.illuminance(), e.temperature(), e.humidity(),
-            e.battery(), e.battery_voltage(),
+        exposes: [e.tamper(),
             e.numeric('battery2', ea.STATE).withUnit('%').withDescription('Remaining battery 2 in %'),
             e.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration in lux')
                 .withValueMin(-20).withValueMax(20),
@@ -92,7 +91,13 @@ const definitions: Definition[] = [
                 .withDescription('PIR keep time in seconds'),
         ],
         extend: [
+            ignoreClusterReport({cluster: 'genBasic'}),
             tuyaMagicPacket(),
+            temperature(),
+            humidity(),
+            iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1']}), // tamper is on bit 4 instead of bit 3
+            illuminance(),
+            battery({voltage: true, percentageReporting: false}), // First of 2 batteries
         ],
     },
     {
