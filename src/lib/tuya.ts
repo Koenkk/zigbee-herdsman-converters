@@ -1779,6 +1779,16 @@ const tuyaModernExtend = {
     tuyaMagicPacket(): ModernExtend {
         return {configure: configureMagicPacket, isModernExtend: true};
     },
+    dpSelfTestResult(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        return tuyaModernExtend.dpEnumLookup({
+            name: 'self_test_result',
+            type: dataTypes.enum,
+            lookup: {'checking': 0, 'success': 1, 'failure': 2, 'others': 3},
+            readOnly: true,
+            expose: tuyaExposes.selfTestResult(),
+            ...args,
+        });
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
