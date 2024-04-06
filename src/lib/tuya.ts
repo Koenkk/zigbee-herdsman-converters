@@ -1795,6 +1795,7 @@ const tuyaModernExtend = {
             type: dataTypes.bool,
             valueOn: [true, 1],
             valueOff: [false, 0],
+            readOnly: true,
             expose: tuyaExposes.faultAlarm(),
             ...args,
         });
