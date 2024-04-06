@@ -11,7 +11,7 @@ const ea = exposes.access;
 import * as tuya from '../lib/tuya';
 import {modernExtend as tuyaModernExtend} from '../lib/tuya';
 const {
-    tuyaMagicPacket, dpGas, dpSmoke, dpEnumLookup, dpBinary, dpBatteryState,
+    tuyaMagicPacket, dpGas, dpSmoke, dpSilence, dpBatteryState,
     dpBattery, dpSelfTestResult, dpFaultAlarm,
 } = tuyaModernExtend;
 
@@ -172,10 +172,10 @@ const definitions: Definition[] = [
         extend: [
             tuyaMagicPacket(),
             dpSmoke({dp: 1}),
-            dpEnumLookup({dp: 9, name: 'self_test', lookup: {'checking': 0, 'check_success': 1, 'check_failure': 2}}),
-            dpBatteryState({dp: 14}),
-            dpBattery({dp: 15}),
-            dpBinary({dp: 16, name: 'silence', valueOn: [true, true], valueOff: [false, false]}),
+            dpSelfTestResult({dp: 9}), // Strange results
+            dpBatteryState({dp: 14}), // No data
+            dpBattery({dp: 15}), // No data
+            dpSilence({dp: 16}), // Untested
         ],
     },
     {
