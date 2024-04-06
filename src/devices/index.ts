@@ -67,6 +67,7 @@ import ecozy from './ecozy';
 import edp from './edp';
 import efekta from './efekta';
 import eglo from './eglo';
+import ekf from './ekf';
 import elko from './elko';
 import enbrighten from './enbrighten';
 import enocean from './enocean';
@@ -365,6 +366,7 @@ export default [
     ...edp,
     ...efekta,
     ...eglo,
+    ...ekf,
     ...elko,
     ...enbrighten,
     ...enocean,

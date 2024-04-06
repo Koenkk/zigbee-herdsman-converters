@@ -1586,6 +1586,17 @@ const tuyaModernExtend = {
             valueOn: (invert) ? [true, 1] : [true, 0], valueOff: (invert) ? [false, 0] : [false, 1],
             readOnly: true, expose: e.gas(), ...args});
     },
+    dpSmoke(args?: Partial<TuyaDPBinaryArgs>, invert?: boolean): ModernExtend {
+        return tuyaModernExtend.dpBinary({
+            name: 'smoke',
+            type: dataTypes.enum,
+            valueOn: (invert) ? [true, 1] : [true, 0],
+            valueOff: (invert) ? [false, 0] : [false, 1],
+            readOnly: true,
+            expose: e.smoke(),
+            ...args,
+        });
+    },
     dpOnOff(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
         const {readOnly} = args;
         return tuyaModernExtend.dpBinary({name: 'state', type: dataTypes.bool,
@@ -1767,6 +1778,37 @@ const tuyaModernExtend = {
     },
     tuyaMagicPacket(): ModernExtend {
         return {configure: configureMagicPacket, isModernExtend: true};
+    },
+    dpSelfTestResult(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
+        return tuyaModernExtend.dpEnumLookup({
+            name: 'self_test_result',
+            type: dataTypes.enum,
+            lookup: {'checking': 0, 'success': 1, 'failure': 2, 'others': 3},
+            readOnly: true,
+            expose: tuyaExposes.selfTestResult(),
+            ...args,
+        });
+    },
+    dpFaultAlarm(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
+        return tuyaModernExtend.dpBinary({
+            name: 'fault_alarm',
+            type: dataTypes.bool,
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            readOnly: true,
+            expose: tuyaExposes.faultAlarm(),
+            ...args,
+        });
+    },
+    dpSilence(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
+        return tuyaModernExtend.dpBinary({
+            name: 'silence',
+            type: dataTypes.bool,
+            valueOn: [true, true],
+            valueOff: [false, false],
+            expose: tuyaExposes.silence(),
+            ...args,
+        });
     },
 };
 export {tuyaModernExtend as modernExtend};
