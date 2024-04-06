@@ -7,6 +7,8 @@ import * as legacy from '../lib/legacy';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
+import {modernExtend as tuyaModernExtend} from '../lib/tuya';
+const {tuyaMagicPacket} = tuyaModernExtend;
 
 const tzLocal = {
     TS0219: {
@@ -87,7 +89,11 @@ const definitions: Definition[] = [
             e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
             // eslint-disable-next-line
             e.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240', '480'])
-                .withDescription('PIR keep time in seconds')],
+                .withDescription('PIR keep time in seconds'),
+        ],
+        extend: [
+            tuyaMagicPacket(),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nus5kk3n7']),
@@ -96,7 +102,6 @@ const definitions: Definition[] = [
         description: 'Smart gas sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
         exposes: [e.gas(), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(), tuya.exposes.faultAlarm(), tuya.exposes.silence()],
         meta: {
             tuyaDatapoints: [
@@ -105,6 +110,9 @@ const definitions: Definition[] = [
                 [11, 'fault_alarm', tuya.valueConverter.trueFalse1],
             ],
         },
+        extend: [
+            tuyaMagicPacket(),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0219', ['_TYZB01_fbo1dpof']),
@@ -129,7 +137,6 @@ const definitions: Definition[] = [
         description: 'Smart smoke detector',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
         exposes: [
             e.smoke(), e.battery(), tuya.exposes.batteryState(),
             e.binary('silence', ea.STATE_SET, 'ON', 'OFF'),
@@ -144,6 +151,9 @@ const definitions: Definition[] = [
                 [16, 'silence', tuya.valueConverter.onOff],
             ],
         },
+        extend: [
+            tuyaMagicPacket(),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0201', ['_TZ3000_acklt5lf']),
@@ -151,6 +161,7 @@ const definitions: Definition[] = [
         vendor: 'EKF',
         description: 'Smart temperature and humidity sensor',
         extend: [
+            tuyaMagicPacket(),
             temperature(),
             humidity(),
             identify({isSleepy: true}),
