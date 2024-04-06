@@ -874,7 +874,7 @@ const definitions: Definition[] = [
             ikeaLegacy.fromZigbee.E1744_play_pause,
         ],
         extend: [
-            bindCluster({cluster: 'genPollCtrl'}),
+            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
             deviceEndpoints({endpoints: {'1': 2, '2': 3}}),
             identify({isSleepy: true}),
             commandsOnOff({commands: ['toggle']}),
@@ -890,7 +890,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'RODRET wireless dimmer/power switch',
         extend: [
-            bindCluster({cluster: 'genPollCtrl'}),
+            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
             identify({isSleepy: true}),
             commandsOnOff({commands: ['on', 'off']}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
@@ -904,7 +904,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'SOMRIG shortcut button',
         extend: [
-            bindCluster({cluster: 'genPollCtrl'}),
+            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
             deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
             identify({isSleepy: true}),
             ikeaDotsClick({endpointNames: ['1', '2']}),
@@ -965,7 +965,7 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'PARASOLL door/window sensor',
         extend: [
-            bindCluster({cluster: 'genPollCtrl'}),
+            bindCluster({cluster: 'genPollCtrl', clusterType: 'input'}),
             iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1']}),
             identify({isSleepy: true}),
             battery(),

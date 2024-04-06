@@ -542,7 +542,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue, dotsPrefix?: boole
         },
     ];
 
-    const configure: Configure = setupConfigureForBinding('tradfriButton', args.endpointNames);
+    const configure: Configure = setupConfigureForBinding('tradfriButton', 'output', args.endpointNames);
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
@@ -587,7 +587,7 @@ export function ikeaArrowClick(args?: {styrbar: boolean}): ModernExtend {
         },
     ];
 
-    const configure: Configure = setupConfigureForBinding('genScenes');
+    const configure: Configure = setupConfigureForBinding('genScenes', 'output');
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
@@ -627,7 +627,7 @@ export function ikeaMediaCommands(): ModernExtend {
         },
     ];
 
-    const configure: Configure = setupConfigureForBinding('genLevelCtrl');
+    const configure: Configure = setupConfigureForBinding('genLevelCtrl', 'input');
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
