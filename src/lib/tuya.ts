@@ -1586,6 +1586,17 @@ const tuyaModernExtend = {
             valueOn: (invert) ? [true, 1] : [true, 0], valueOff: (invert) ? [false, 0] : [false, 1],
             readOnly: true, expose: e.gas(), ...args});
     },
+    dpSmoke(args?: Partial<TuyaDPBinaryArgs>, invert?: boolean): ModernExtend {
+        return tuyaModernExtend.dpBinary({
+            name: 'smoke',
+            type: dataTypes.enum,
+            valueOn: (invert) ? [true, 1] : [true, 0],
+            valueOff: (invert) ? [false, 0] : [false, 1],
+            readOnly: true,
+            expose: e.smoke(),
+            ...args,
+        });
+    },
     dpOnOff(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
         const {readOnly} = args;
         return tuyaModernExtend.dpBinary({name: 'state', type: dataTypes.bool,
