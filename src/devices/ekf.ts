@@ -8,7 +8,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
 import {modernExtend as tuyaModernExtend} from '../lib/tuya';
-const {tuyaMagicPacket} = tuyaModernExtend;
+const {tuyaMagicPacket, dpGas, dpEnumLookup, dpBinary} = tuyaModernExtend;
 
 const tzLocal = {
     TS0219: {
@@ -107,16 +107,19 @@ const definitions: Definition[] = [
         description: 'Smart gas sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        exposes: [e.gas(), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(), tuya.exposes.faultAlarm(), tuya.exposes.silence()],
+        exposes: [tuya.exposes.selfTest(), tuya.exposes.selfTestResult(), tuya.exposes.faultAlarm(), tuya.exposes.silence()],
         meta: {
             tuyaDatapoints: [
-                [1, 'gas', tuya.valueConverter.trueFalse0],
+                // [1, 'gas', tuya.valueConverter.trueFalse0],
                 [9, 'self_test_result', tuya.valueConverter.selfTestResult],
                 [11, 'fault_alarm', tuya.valueConverter.trueFalse1],
             ],
         },
         extend: [
             tuyaMagicPacket(),
+            dpGas({dp: 1}),
+            // dpEnumLookup({dp: 9, name: 'self_test_result'}),
+            // dpBinary({dp: 11, name: 'fault_alarm'}),
         ],
     },
     {
