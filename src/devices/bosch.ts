@@ -386,8 +386,8 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    bwa1: {
-        key: ['alarm_on_motion', 'test'],
+    bwa1_alarm_on_motion: {
+        key: ['alarm_on_motion'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'alarm_on_motion') {
                 const index = utils.getFromLookup(value, stateOffOn);
@@ -401,7 +401,7 @@ const tzLocal = {
                 await entity.read(0xFCAC, [0x0003], manufacturerOptions);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bosch_bwa1.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bwa1_alarm_on_motion.convertGet ${key}`);
             }
         },
     } satisfies Tz.Converter,
@@ -1019,26 +1019,37 @@ const definitions: Definition[] = [
         model: 'BWA-1',
         vendor: 'Bosch',
         description: 'Zigbee smart water leak detector',
-        fromZigbee: [fz.battery, fz.ias_water_leak_alarm_1],
-        toZigbee: [],
-//        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        fromZigbee: [
+            fz.battery,
+            fz.ias_water_leak_alarm_1,
+            //fz.bwa1_alarm_on_motion,
+        ],
+        toZigbee: [
+            //tz.bwa1_alarm_on_motion,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genPollCtrl', 'ssIasZone']);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg',
+                'genPollCtrl',
+                'ssIasZone',
+                //'manuSpecificBosch11',
+            ]);
             await reporting.batteryPercentageRemaining(endpoint);
-//            await reporting.batteryVoltage(endpoint);
-/**
-            await endpoint.configureReporting('manuSpecificBosch11', [{
-                attribute: 'alarmOnMotion',
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null,
-            }], manufacturerOptions);
-*/
+            //await endpoint.configureReporting('manuSpecificBosch11', [{
+                //attribute: 'alarmOnMotion',
+                //minimumReportInterval: 0,
+                //maximumReportInterval: constants.repInterval.MAX,
+                //reportableChange: null,
+            //}], manufacturerOptions);
         },
         exposes: [
-            e.water_leak(), e.battery(), e.tamper(),
-//            e.binary('alarm_on_motion', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable sound alarm on motion'),
+            e.water_leak(),
+            e.tamper(),
+            e.battery(),
+            e.battery_low(),
+            e.test(),
+            //e.binary('alarm_on_motion', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable sound alarm on motion'),
         ],
     },
     {
@@ -1046,22 +1057,34 @@ const definitions: Definition[] = [
         model: 'BSD-2',
         vendor: 'Bosch',
         description: 'Smoke alarm detector',
-        fromZigbee: [fz.battery, fz.ias_smoke_alarm_1, fzLocal.bsd2_alarm_state],
-        toZigbee: [tzLocal.bsd2_alarm_state],
+        fromZigbee: [
+            fz.battery,
+            fz.ias_smoke_alarm_1,
+            fzLocal.bsd2_alarm_state,
+        ],
+        toZigbee: [
+            tzLocal.bsd2_alarm_state,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone']);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg',
+                'genPollCtrl',
+                'ssIasZone',
+            ]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.configureReporting('ssIasZone', [{
                 attribute: 'zoneStatus',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
-                reportableChange: 1,
+                reportableChange: null,
             }], manufacturerOptions);
-            await endpoint.unbind('genPollCtrl', coordinatorEndpoint);
         },
         exposes: [
-            e.smoke(), e.battery(), e.battery_low(), e.test(),
+            e.smoke(),
+            e.battery(),
+            e.battery_low(),
+            e.test(),
             e.binary('intruder_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
             e.binary('smoke_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
         ],
@@ -1357,10 +1380,17 @@ const definitions: Definition[] = [
         model: '8750001213',
         vendor: 'Bosch',
         description: 'Twinguard',
-        fromZigbee: [fzLocal.bosch_twinguard_measurements, fzLocal.bosch_twinguard_sensitivity,
-            fzLocal.bosch_twinguard_pre_alarm, fzLocal.bosch_twinguard_alarm_state, fzLocal.bosch_twinguard_smoke_alarm_state,
-            fzLocal.bosch_twinguard_heartbeat],
-        toZigbee: [tzLocal.bosch_twinguard],
+        fromZigbee: [
+            fzLocal.bosch_twinguard_measurements,
+            fzLocal.bosch_twinguard_sensitivity,
+            fzLocal.bosch_twinguard_pre_alarm,
+            fzLocal.bosch_twinguard_alarm_state,
+            fzLocal.bosch_twinguard_smoke_alarm_state,
+            fzLocal.bosch_twinguard_heartbeat,
+        ],
+        toZigbee: [
+            tzLocal.bosch_twinguard,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const coordinatorEndpointB = coordinatorEndpoint.getDevice().getEndpoint(1);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, ['genAlarms']);
@@ -1373,12 +1403,15 @@ const definitions: Definition[] = [
             await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, ['manuSpecificBosch8']);
             await device.getEndpoint(1).read('manuSpecificBosch5', ['unknown_attribute'], manufacturerOptions); // Needed for pairing
             await device.getEndpoint(12).command('manuSpecificBosch7', 'pairingCompleted', manufacturerOptions); // Needed for pairing
-            await device.getEndpoint(1).write('manuSpecificBosch',
-                {0x4003: {value: 0x0002, type: 0x21}}, manufacturerOptions); // Setting defaults
-            await device.getEndpoint(1).write('manuSpecificBosch5',
-                {0x4001: {value: 0x01, type: 0x18}}, manufacturerOptions); // Setting defaults
-            await device.getEndpoint(12).write('manuSpecificBosch7',
-                {0x5005: {value: 0x01, type: 0x18}}, manufacturerOptions); // Setting defaults
+            await device.getEndpoint(1).write('manuSpecificBosch', {
+                sensitivity: {value: 0x0002, type: Zcl.DataType.uint16},
+            }, manufacturerOptions); // Setting defaults
+            await device.getEndpoint(1).write('manuSpecificBosch5', {
+                pre_alarm: {value: 0x01, type: Zcl.DataType.bitmap8},
+            }, manufacturerOptions); // Setting defaults
+            await device.getEndpoint(12).write('manuSpecificBosch7', {
+                heartbeat: {value: 0x01, type: Zcl.DataType.bitmap8},
+            }, manufacturerOptions); // Setting defaults
             await device.getEndpoint(1).read('manuSpecificBosch', ['sensitivity'], manufacturerOptions);
             await device.getEndpoint(1).read('manuSpecificBosch5', ['pre_alarm'], manufacturerOptions);
             await device.getEndpoint(12).read('manuSpecificBosch7', ['heartbeat'], manufacturerOptions);
@@ -1390,7 +1423,8 @@ const definitions: Definition[] = [
             e.voc().withValueMin(0).withValueMax(35610).withValueStep(1),
             e.co2().withValueMin(500).withValueMax(5500).withValueStep(1),
             e.aqi().withValueMin(0).withValueMax(500).withValueStep(1),
-            e.illuminance_lux(), e.battery(),
+            e.illuminance_lux(),
+            e.battery(),
             e.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
             e.text('siren_state', ea.STATE).withDescription('Siren state'),
             e.binary('self_test', ea.ALL, true, false).withDescription('Initiate self-test'),
