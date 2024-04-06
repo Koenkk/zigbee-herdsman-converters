@@ -1022,7 +1022,7 @@ const definitions: Definition[] = [
         fromZigbee: [
             fz.battery,
             fz.ias_water_leak_alarm_1,
-            fz!ocal.bwa1_alarm_on_motion,
+            fzLocal.bwa1_alarm_on_motion,
         ],
         toZigbee: [
             tzLocal.bwa1_alarm_on_motion,
