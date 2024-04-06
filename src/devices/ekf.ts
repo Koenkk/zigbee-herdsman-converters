@@ -9,10 +9,10 @@ import * as tuya from '../lib/tuya';
 
 const definitions: Definition[] = [
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_0aqbrnts'}],
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_0aqbrnts']),
         model: 'is-thpl-zb',
         vendor: 'EKF',
-        description: '4 in 1 multi sensor',
+        description: 'Smart sensor 4 in 1',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
         exposes: [e.occupancy(), e.tamper(), e.illuminance_lux(), e.illuminance(), e.temperature(), e.humidity(),
