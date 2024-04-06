@@ -10,7 +10,10 @@ const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
 import {modernExtend as tuyaModernExtend} from '../lib/tuya';
-const {tuyaMagicPacket, dpGas, dpEnumLookup, dpBinary} = tuyaModernExtend;
+const {
+    tuyaMagicPacket, dpGas, dpSmoke, dpEnumLookup, dpBinary, dpBatteryState,
+    dpBattery,
+} = tuyaModernExtend;
 
 // const tzLocal = {
 //     TS0219: {
@@ -150,24 +153,29 @@ const definitions: Definition[] = [
         model: 'is-sm-zb',
         vendor: 'EKF',
         description: 'Smart smoke detector',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        exposes: [
-            e.smoke(), e.battery(), tuya.exposes.batteryState(),
-            e.binary('silence', ea.STATE_SET, 'ON', 'OFF'),
-            e.enum('self_test', ea.STATE, ['checking', 'check_success', 'check_failure']),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, 'smoke', tuya.valueConverter.trueFalse0],
-                [9, 'self_test', tuya.valueConverterBasic.lookup({'checking': 0, 'check_success': 1, 'check_failure': 2})],
-                [14, 'battery_state', tuya.valueConverter.batteryState],
-                [15, 'battery', tuya.valueConverter.raw],
-                [16, 'silence', tuya.valueConverter.onOff],
-            ],
-        },
+        // fromZigbee: [tuya.fz.datapoints],
+        // toZigbee: [tuya.tz.datapoints],
+        // exposes: [
+        //     e.smoke(), e.battery(), tuya.exposes.batteryState(),
+        //     e.binary('silence', ea.STATE_SET, 'ON', 'OFF'),
+        //     e.enum('self_test', ea.STATE, ['checking', 'check_success', 'check_failure']),
+        // ],
+        // meta: {
+        //     tuyaDatapoints: [
+        //         [1, 'smoke', tuya.valueConverter.trueFalse0],
+        //         [9, 'self_test', tuya.valueConverterBasic.lookup({'checking': 0, 'check_success': 1, 'check_failure': 2})],
+        //         [14, 'battery_state', tuya.valueConverter.batteryState],
+        //         [15, 'battery', tuya.valueConverter.raw],
+        //         [16, 'silence', tuya.valueConverter.onOff],
+        //     ],
+        // },
         extend: [
             tuyaMagicPacket(),
+            dpSmoke({dp: 1}),
+            dpEnumLookup({dp: 9, name: 'self_test', lookup: {'checking': 0, 'check_success': 1, 'check_failure': 2}}),
+            dpBatteryState({dp: 14}),
+            dpBattery({dp: 15}),
+            dpBinary({dp: 16, name: 'silence', valueOn: [true, true], valueOff: [false, false]}),
         ],
     },
     {
