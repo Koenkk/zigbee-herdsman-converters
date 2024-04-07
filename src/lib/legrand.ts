@@ -49,18 +49,21 @@ export const _067776 = {
     getCalibrationModes: (isNLLVSwitch: boolean) => {
         const modes = getApplicableCalibrationModes(isNLLVSwitch);
         return e.enum('calibration_mode', ea.ALL, Object.values(modes))
-            .withDescription('Defines the calibration mode of the switch. (Caution: Changing modes requires a recalibration of the shutter switch!)');
+            .withDescription('Defines the calibration mode of the switch. (Caution: Changing modes requires a recalibration of the shutter switch!)')
+            .withCategory('config');
     },
 };
 
 export const eLegrand = {
     ledInDark: () => {
         return e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-            .withDescription('Enables the built-in LED allowing to see the switch in the dark');
+            .withDescription('Enables the built-in LED allowing to see the switch in the dark')
+            .withCategory('config');
     },
     ledIfOn: () => {
         return e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-            .withDescription('Enables the LED on activity');
+            .withDescription('Enables the LED on activity')
+            .withCategory('config');
     },
 };
 
