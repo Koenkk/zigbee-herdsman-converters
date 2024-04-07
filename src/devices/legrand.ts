@@ -5,7 +5,7 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import {tzLegrand, fzLegrand, readInitialBatteryState, _067776, legrandOptions} from '../lib/legrand';
+import {tzLegrand, fzLegrand, readInitialBatteryState, _067776, eLegrand, legrandOptions} from '../lib/legrand';
 import {deviceEndpoints, electricityMeter, light, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -127,10 +127,8 @@ const definitions: Definition[] = [
             e.action(['moving', 'identify']),
             e.enum('identify', ea.SET, ['blink'])
                 .withDescription('Blinks the built-in LED to make it easier to identify the device'),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED on activity'),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
             _067776.getCalibrationModes(false),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -188,10 +186,8 @@ const definitions: Definition[] = [
             e.action(['moving', 'identify']),
             e.enum('identify', ea.SET, ['blink'])
                 .withDescription('Blinks the built-in LED to make it easier to identify the device'),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the built-in LED allowing to see the switch in the dark'),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED on activity'),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
             _067776.getCalibrationModes(true),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -281,10 +277,8 @@ const definitions: Definition[] = [
                 .withDescription('Specifies the maximum brightness value'),
             e.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off')
                 .withDescription('Allow the device to change brightness'),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned on'),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
         ],
         extend: [light({configureReporting: true})],
         configure: async (device, coordinatorEndpoint) => {
@@ -307,10 +301,8 @@ const definitions: Definition[] = [
                 .withDescription('Specifies the maximum brightness value'),
             e.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off')
                 .withDescription('Allow the device to change brightness'),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned on'),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
         ],
         extend: [light({configureReporting: true})],
         configure: async (device, coordinatorEndpoint) => {
@@ -331,11 +323,9 @@ const definitions: Definition[] = [
             e.action(['identify']),
             e.power(),
             e.power_apparent(),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the power socket is turned off, allowing to see it in the dark'),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the device is turned on'),
             e.power_on_behavior(),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -544,10 +534,8 @@ const definitions: Definition[] = [
                 .withDescription('Allow the device to change brightness'),
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned on'),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
         ],
         extend: [deviceEndpoints({endpoints: {'left': 2, 'right': 1}}), light({configureReporting: true, endpointNames: ['left', 'right']})],
     },
@@ -581,10 +569,8 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tzLegrand.led_mode],
         exposes: [
             e.switch(),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned on'),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -606,10 +592,8 @@ const definitions: Definition[] = [
                 .withDescription('Specifies the maximum brightness value'),
             e.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off')
                 .withDescription('Allow the device to change brightness'),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned on'),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
         ],
         extend: [light({configureReporting: true})],
         configure: async (device, coordinatorEndpoint) => {
@@ -648,10 +632,8 @@ const definitions: Definition[] = [
         exposes: [
             e.switch(),
             e.action(['identify']),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the power socket is turned off, allowing to see it in the dark'),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the device is turned on'),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
             e.power_on_behavior(),
         ],
         configure: async (device, coordinatorEndpoint) => {

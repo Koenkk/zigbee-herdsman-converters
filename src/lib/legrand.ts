@@ -53,6 +53,17 @@ export const _067776 = {
     },
 };
 
+export const eLegrand = {
+    ledInDark: () => {
+        return e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
+            .withDescription('Enables the built-in LED allowing to see the switch in the dark');
+    },
+    ledIfOn: () => {
+        return e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
+            .withDescription('Enables the LED on activity');
+    },
+};
+
 export const readInitialBatteryState: OnEvent = async (type, data, device, options) => {
     if (['deviceAnnounce'].includes(type)) {
         const endpoint = device.getEndpoint(1);
