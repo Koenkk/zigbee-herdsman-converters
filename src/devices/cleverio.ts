@@ -30,7 +30,7 @@ const definitions: Definition[] = [
         vendor: 'Cleverio',
         description: 'Wireless switch with 1 button',
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
     },

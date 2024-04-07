@@ -2177,19 +2177,6 @@ const converters1 = {
             return {action: `${clickMapping[msg.data[6]]}`};
         },
     } satisfies Fz.Converter,
-    tuya_on_off_action: {
-        cluster: 'genOnOff',
-        type: 'commandTuyaAction',
-        convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
-            const buttonMapping: KeyValueNumberString = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'};
-            // TS004F has single endpoint, TS0041A/TS0041 can have multiple but have just one button
-            const button = msg.device.endpoints.length == 1 || ['TS0041A', 'TS0041'].includes(msg.device.modelID) ?
-                '' : `${buttonMapping[msg.endpoint.ID]}_`;
-            return {action: `${button}${clickMapping[msg.data.value]}`};
-        },
-    } satisfies Fz.Converter,
     tuya_switch_scene: {
         cluster: 'genOnOff',
         type: 'commandTuyaAction',

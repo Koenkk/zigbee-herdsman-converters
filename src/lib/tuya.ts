@@ -1339,6 +1339,19 @@ const tuyaFz = {
             return result;
         },
     } satisfies Fz.Converter,
+    on_off_action: {
+        cluster: 'genOnOff',
+        type: 'commandTuyaAction',
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
+            const buttonMapping: KeyValueNumberString = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'};
+            // TS004F has single endpoint, TS0041A/TS0041 can have multiple but have just one button
+            const button = msg.device.endpoints.length == 1 || ['TS0041A', 'TS0041'].includes(msg.device.modelID) ?
+                '' : `${buttonMapping[msg.endpoint.ID]}_`;
+            return {action: `${button}${clickMapping[msg.data.value]}`};
+        },
+    } satisfies Fz.Converter,
 };
 export {tuyaFz as fz};
 
@@ -1767,6 +1780,21 @@ const tuyaModernExtend = {
     },
     tuyaMagicPacket(): ModernExtend {
         return {configure: configureMagicPacket, isModernExtend: true};
+    },
+    tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs>): ModernExtend {
+        return modernExtend.actionEnumLookup({
+            actionLookup: {0: 'single', 1: 'double', 2: 'hold'},
+            cluster: 'genOnOff',
+            commands: ['commandTuyaAction'],
+            attribute: 'value',
+        });
+    },
+    tuyaOnOffActionLegacy(args: {actions: ('single' | 'double' | 'hold')[], endpointNames?: string[]}): ModernExtend {
+        // For new devices use tuyaOnOffAction instead
+        const actions = args.actions.map((a) => args.endpointNames ? args.endpointNames.map((e) => `${e}_${a}`) : [a]).flat();
+        const exposes: Expose[] = [e.action(actions)];
+        const fromZigbee: Fz.Converter[] = [tuyaFz.on_off_action];
+        return {exposes, fromZigbee, isModernExtend: true};
     },
 };
 export {tuyaModernExtend as modernExtend};

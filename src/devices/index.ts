@@ -219,6 +219,7 @@ import rtx from './rtx';
 import salus_controls from './salus_controls';
 import samotech from './samotech';
 import saswell from './saswell';
+import sber from './sber';
 import scanproducts from './scanproducts';
 import schlage from './schlage';
 import schneider_electric from './schneider_electric';
@@ -517,6 +518,7 @@ export default [
     ...salus_controls,
     ...samotech,
     ...saswell,
+    ...sber,
     ...scanproducts,
     ...schlage,
     ...schneider_electric,
