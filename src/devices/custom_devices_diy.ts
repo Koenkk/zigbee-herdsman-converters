@@ -921,7 +921,6 @@ const definitions: Definition[] = [
                 endpointNames: ['in1', 'in2', 'in3', 'in4'],
             }),
         ],
-        meta: {'multiEndpoint': true},
     },
 ];
 
