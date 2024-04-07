@@ -18,6 +18,8 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.currentSummReceived(endpoint);
             await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
                 acPowerMultiplier: 1, acPowerDivisor: 1});
         },
@@ -40,6 +42,8 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.currentSummReceived(endpoint);
             await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
                 acPowerMultiplier: 1, acPowerDivisor: 1});
         },
