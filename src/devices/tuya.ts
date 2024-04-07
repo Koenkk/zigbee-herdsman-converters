@@ -343,7 +343,7 @@ const tzLocal = {
 const fzLocal = {
     TS0726_action: {
         cluster: 'genOnOff',
-        type: ['raw'],
+        type: ['commandTuyaAction'],
         convert: (model, msg, publish, options, meta) => {
             return {action: `scene_${msg.endpoint.ID}`};
         },
