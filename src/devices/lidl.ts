@@ -244,7 +244,7 @@ const definitions: Definition[] = [
         model: 'HG08164',
         vendor: 'Lidl',
         description: 'Silvercrest smart button',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery, fz.tuya_on_off_action],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery, tuya.fz.on_off_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

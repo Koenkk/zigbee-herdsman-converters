@@ -233,7 +233,7 @@ const definitions: Definition[] = [
         vendor: 'Immax',
         description: 'NEO Smart outdoor button',
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
-        fromZigbee: [fz.battery, fz.tuya_on_off_action],
+        fromZigbee: [fz.battery, tuya.fz.on_off_action],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
     },

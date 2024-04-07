@@ -583,7 +583,6 @@ const definitions: Definition[] = [
             {vendor: 'Tesla Smart', model: 'TSL-SEN-DOOR'},
             {vendor: 'Cleverio', model: 'SS100'},
             tuya.whitelabel('Niceboy', 'ORBIS Windows & Door Sensor', 'Door sensor', ['_TZ3000_qrldbmfn']),
-            tuya.whitelabel('Sber', 'SBDV-00030', 'Door sensor', ['_TYZB01_epni2jgy']),
             tuya.whitelabel('TuYa', 'ZD08', 'Door sensor', ['_TZ3000_7d8yme6f']),
             tuya.whitelabel('TuYa', 'MC500A', 'Door sensor', ['_TZ3000_2mbfxlzr']),
             tuya.whitelabel('TuYa', '19DZT', 'Door sensor', ['_TZ3000_n2egfsli']),
@@ -2242,17 +2241,16 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['TS0041'],
-        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}, {modelID: 'TS0041A', manufacturerName: '_TYZB01_ub7urdza'}],
+        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}],
         model: 'TS0041',
         vendor: 'TuYa',
         description: 'Wireless switch with 1 button',
         whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'},
-            tuya.whitelabel('Sber', 'SBDV-00032', 'Wireless switch with 1 button', ['_TYZB01_ub7urdza']),
             tuya.whitelabel('TuYa', 'SH-SC07', 'Button scene switch', ['_TZ3000_mrpevh8p']),
             tuya.whitelabel('TuYa', 'MINI-ZSB', 'Smart button', ['_TZ3000_qgwcxxws']),
         ],
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         /*
@@ -2270,7 +2268,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0042'},
             {vendor: 'ClickSmart+', model: 'CSPGM2075PW'}],
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         /*
@@ -2288,7 +2286,7 @@ const definitions: Definition[] = [
         whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0043'}, {vendor: 'LoraTap', model: 'SS600ZB'}],
         exposes: [e.battery(),
             e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold', '3_single', '3_double', '3_hold'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
         /*
@@ -2311,7 +2309,7 @@ const definitions: Definition[] = [
                 ['_TZ3000_dziaict4', '_TZ3000_mh9px7cq', '_TZ3000_wkai4ga5', '_TZ3000_uaa99arv']),
             tuya.whitelabel('TuYa', 'TM-YKQ004', 'Zigbee 4 button remote - 12 scene', ['_TZ3000_u3nv1jwk']),
         ],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
             '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold'])],
         toZigbee: [],
@@ -2336,7 +2334,7 @@ const definitions: Definition[] = [
             e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
                 'brightness_move_down', '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
                 '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold'])],
-        fromZigbee: [fz.battery, fz.tuya_on_off_action, fz.tuya_operation_mode,
+        fromZigbee: [fz.battery, tuya.fz.on_off_action, fz.tuya_operation_mode,
             fz.command_on, fz.command_off, fz.command_step, fz.command_move],
         toZigbee: [tz.tuya_operation_mode],
         configure: async (device, coordinatorEndpoint) => {
@@ -2372,7 +2370,7 @@ const definitions: Definition[] = [
                 'brightness_move_down', '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
                 '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold',
                 '5_single', '5_double', '5_hold', '6_single', '6_double', '6_hold'])],
-        fromZigbee: [fz.battery, fz.tuya_on_off_action, fz.tuya_operation_mode,
+        fromZigbee: [fz.battery, tuya.fz.on_off_action, fz.tuya_operation_mode,
             fz.command_on, fz.command_off, fz.command_step, fz.command_move],
         toZigbee: [tz.tuya_operation_mode],
         configure: async (device, coordinatorEndpoint) => {
@@ -5139,7 +5137,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Wireless switch with 6 buttons',
         whiteLabel: [{vendor: 'LoraTap', model: 'SS9600ZB'}],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
             '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold',
             '5_single', '5_double', '5_hold', '6_single', '6_double', '6_hold'])],
@@ -5163,7 +5161,7 @@ const definitions: Definition[] = [
                 'Operation mode: "command" - for group control, "event" - for clicks'),
         ],
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop,
-            fz.command_step_color_temperature, fz.tuya_on_off_action, fz.tuya_operation_mode],
+            fz.command_step_color_temperature, tuya.fz.on_off_action, fz.tuya_operation_mode],
         toZigbee: [tz.tuya_operation_mode],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint) => {
@@ -6012,7 +6010,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml', '_TZE200_lawxy9e2']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_hmqzfqml']),
         model: 'TS0601_fan_and_light_switch',
         vendor: 'TuYa',
         description: 'Fan & light switch',
@@ -6029,6 +6027,34 @@ const definitions: Definition[] = [
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff],
                 [101, 'fan_speed', tuya.valueConverterBasic.lookup({'minimum': tuya.enum(0), 'medium': tuya.enum(1), 'maximum': tuya.enum(2)})],
+                [11, 'power_on_behavior', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
+                [5, 'status_indication', tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [
+            {vendor: 'Liwokit', model: 'Fan+Light-01'},
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lawxy9e2']),
+        model: 'TS0601_fan_5_levels_and_light_switch',
+        vendor: 'TuYa',
+        description: 'Fan with 5 levels & light switch',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('status_indication', ea.STATE_SET, 'ON', 'OFF').withDescription('Light switch'),
+            tuya.exposes.switch(),
+            e.power_on_behavior(['OFF', 'ON']).withAccess(ea.STATE_SET).withDescription('Fan On Off'),
+            e.numeric('fan_speed', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1)
+                .withDescription('Speed off the fan'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [3, 'fan_speed', tuya.valueConverterBasic
+                    .lookup({'1': tuya.enum(0), '2': tuya.enum(1), '3': tuya.enum(2), '4': tuya.enum(3), '5': tuya.enum(4)})],
                 [11, 'power_on_behavior', tuya.valueConverterBasic.lookup({'OFF': tuya.enum(0), 'ON': tuya.enum(1)})],
                 [5, 'status_indication', tuya.valueConverter.onOff],
             ],
@@ -6058,7 +6084,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Smart button',
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
     },
@@ -6742,7 +6768,6 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('Cleverio', 'SS200', 'Motion sensor', ['_TYZB01_z2umiwvq']),
             tuya.whitelabel('Marmitek', 'SM0202_1', 'Motion sensor', ['_TYZB01_yr95mpib']),
-            tuya.whitelabel('Sber', 'SBDV-00029', 'Motion sensor', ['_TYZB01_2jzbhomb']),
         ],
     },
     {
