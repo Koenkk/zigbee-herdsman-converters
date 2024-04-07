@@ -3302,13 +3302,13 @@ const definitions: Definition[] = [
         vendor: 'Aqara',
         description: 'Aqara knob H1 (with Neutral)',
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_basic,
-                     lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_knob_rotation],
+            lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_knob_rotation],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-                   lumi.toZigbee.lumi_switch_mode_switch],
+            lumi.toZigbee.lumi_switch_mode_switch],
 
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-          return {'left': 1, 'center': 2, 'right': 3};
+            return {'left': 1, 'center': 2, 'right': 3};
         },
 
         exposes: [
