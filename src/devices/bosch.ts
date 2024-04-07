@@ -1494,7 +1494,7 @@ const definitions: Definition[] = [
             e.battery(),
             e.battery_low(),
             e.contact(),
-            e.action(['single', 'long'])
+            e.action(['single', 'long']),
         ],
     },
     {
@@ -1519,7 +1519,7 @@ const definitions: Definition[] = [
             e.battery_low(),
             e.contact(),
             e.vibration(),
-            e.action(['single', 'long'])
+            e.action(['single', 'long']),
         ],
     },
     {
