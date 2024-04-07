@@ -1042,6 +1042,7 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null,
             }], manufacturerOptions);
+            await endpoint.read('manuSpecificBosch11', ['alarmOnMotion'], manufacturerOptions);
         },
         exposes: [
             e.water_leak(),
@@ -1076,8 +1077,9 @@ const definitions: Definition[] = [
                 attribute: 'zoneStatus',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
-                reportableChange: null,
+                reportableChange: 0,
             }], manufacturerOptions);
+            await endpoint.read('ssIasZone', ['zoneStatus'], manufacturerOptions);
         },
         exposes: [
             e.smoke(),
