@@ -20,6 +20,7 @@ import {
     numeric,
     quirkAddEndpointCluster,
     deviceEndpoints,
+    commandsOnOff,
 } from '../lib/modernExtend';
 
 const switchTypesList = {
@@ -896,6 +897,30 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l3: 3, l5: 5, l6: 6};
         },
+    },
+    {
+        zigbeeModel: ['alab.switch'],
+        model: 'alab.switch',
+        vendor: 'Alab',
+        description: 'Four channel relay board with four inputs',
+        extend: [
+            deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'in1': 5, 'in2': 6, 'in3': 7, 'in4': 8}}),
+            onOff({
+                powerOnBehavior: false,
+                configureReporting: false,
+                endpointNames: ['l1', 'l2', 'l3', 'l4']},
+            ),
+            commandsOnOff({endpointNames: ['l1', 'l2', 'l3', 'l4']}),
+            numeric({
+                name: 'input_state',
+                valueMin: 0,
+                valueMax: 1,
+                cluster: 'genAnalogInput',
+                attribute: 'presentValue',
+                description: 'Input state',
+                endpointNames: ['in1', 'in2', 'in3', 'in4'],
+            }),
+        ],
     },
 ];
 
