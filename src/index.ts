@@ -43,7 +43,7 @@ export const getConfigureKey = configureKey.getConfigureKey;
 
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
-const lookup = new Map();
+const lookup = new Map<string, Definition[]>();
 export const definitions: Definition[] = [];
 
 function arrayEquals<T>(as: T[], bs: T[]) {
@@ -277,6 +277,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown: bool
     }
 
     const candidates = getFromLookup(device.modelID);
+
     if (!candidates) {
         if (!generateForUnknown || device.type === 'Coordinator') {
             return null;
@@ -285,15 +286,16 @@ export async function findDefinition(device: Zh.Device, generateForUnknown: bool
         // Do not add this definition to cache,
         // as device configuration might change.
         return prepareDefinition((await generateDefinition(device)).definition);
-    } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
+    } else if (candidates.length === 1 && candidates[0].zigbeeModel) {
         return candidates[0];
     } else {
         // First try to match based on fingerprint, return the first matching one.
         const fingerprintMatch: {priority: number, definition: Definition} = {priority: null, definition: null};
+
         for (const candidate of candidates) {
-            if (candidate.hasOwnProperty('fingerprint')) {
+            if (candidate.fingerprint) {
                 for (const fingerprint of candidate.fingerprint) {
-                    const priority = fingerprint.hasOwnProperty('priority') ? fingerprint.priority : 0;
+                    const priority = fingerprint.priority ?? 0;
                     if (isFingerprintMatch(fingerprint, device) && (!fingerprintMatch.definition || priority > fingerprintMatch.priority)) {
                         fingerprintMatch.definition = candidate;
                         fingerprintMatch.priority = priority;
@@ -308,7 +310,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown: bool
 
         // Match based on fingerprint failed, return first matching definition based on zigbeeModel
         for (const candidate of candidates) {
-            if (candidate.hasOwnProperty('zigbeeModel') && candidate.zigbeeModel.includes(device.modelID)) {
+            if (candidate.zigbeeModel && candidate.zigbeeModel.includes(device.modelID)) {
                 return candidate;
             }
         }
