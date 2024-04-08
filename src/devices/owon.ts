@@ -409,6 +409,24 @@ const definitions: Definition[] = [
             device.save();
         },
     },
+    {
+        zigbeeModel: ['PIR313-P'],
+        model: 'PIR313-P',
+        vendor: 'OWON',
+        description: 'Motion sensor',
+        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.occupancy_timeout],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.tamper(), e.battery_low()],
+    },
+    {
+        zigbeeModel: ['DWS312'],
+        model: 'DWS312',
+        vendor: 'OWON',
+        description: 'Door/window sensor',
+        fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
+        toZigbee: [],
+        exposes: [e.contact(), e.tamper(), e.battery_low()],   
+    },
 ];
 
 export default definitions;
