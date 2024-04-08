@@ -1509,6 +1509,54 @@ const tzLocal = {
             await endpoint.read('genOnOff', ['onOff']);
         },
     } satisfies Tz.Converter,
+    vzm36_breezeMode: {
+        key: ['breezeMode'],
+        convertSet: async (entity, key, values, meta) => {
+            // Calculate the value..
+            let configValue = 0;
+            let term = false;
+            configValue += speedToInt(values.speed1);
+            configValue += Number(values.time1) / 5 * 4;
+            let speed = speedToInt(values.speed2);
+            if (speed !== 0) {
+                configValue += speed * 64;
+                configValue += values.time2 / 5 * 256;
+            }
+            else {
+                term = true;
+            }
+            speed = speedToInt(values.speed3);
+            if (speed !== 0 && !term) {
+                configValue += speed * 4096;
+                configValue += values.time3 / 5 * 16384;
+            }
+            else {
+                term = true;
+            }
+            speed = speedToInt(values.speed4);
+            if (speed !== 0 && !term) {
+                configValue += speed * 262144;
+                configValue += values.time4 / 5 * 1048576;
+            }
+            else {
+                term = true;
+            }
+            speed = speedToInt(values.speed5);
+            if (speed !== 0 && !term) {
+                configValue += speed * 16777216;
+                configValue += values.time5 / 5 * 67108864;
+            }
+            else {
+                term = true;
+            }
+            const endpoint = meta.device.getEndpoint(2);
+            const payload = { breezeMode: configValue.toString() };
+            await endpoint.write('manuSpecificInovelli', payload, {
+                manufacturerCode: INOVELLI,
+            });
+            return { state: { [key]: values } };
+        },
+    },
     breezeMode: {
         key: ['breezeMode'],
         convertSet: async (entity, key, values: BreezeModeValues, meta) => {
@@ -1554,7 +1602,7 @@ const tzLocal = {
                 term = true;
             }
 
-            const endpoint = meta.device.getEndpoint(2);
+            const endpoint = meta.device.getEndpoint(1);
 
             const payload = {breezeMode: configValue.toString()};
             await endpoint.write('manuSpecificInovelli', payload, {
@@ -2324,7 +2372,7 @@ const definitions: Definition[] = [
             tzLocal.light_onoff_brightness_inovelli,
             tzLocal.inovelli_parameters(VZM36_ATTRIBUTES),
             tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES),
-            tzLocal.breezeMode,
+            tzLocal.vzm36_breezeMode,
         ],
         exposes: exposesListVZM36,
         ota: ota.inovelli,
