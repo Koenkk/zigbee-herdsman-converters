@@ -7826,7 +7826,7 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZ3000_kkerjand']),
         model: 'SZT06 V2.0',
         vendor: 'TuYa',
-        description: 'Smart mini temperatue and humuduty sensor',
+        description: 'Smart mini temperature and humidity sensor',
         extend: [
             temperature(),
             humidity(),
