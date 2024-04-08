@@ -11,7 +11,7 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm} from '../lib/modernExtend';
+import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
 
 const NS = 'zhc:tuya';
@@ -7827,6 +7827,18 @@ const definitions: Definition[] = [
                 [24, null, null], // Forward Energy T4 - don't know what this
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZ3000_kkerjand']),
+        model: 'SZT06 V2.0',
+        vendor: 'TuYa',
+        description: 'Smart mini temperature and humidity sensor',
+        extend: [
+            temperature(),
+            humidity(),
+            identify({isSleepy: true}),
+            battery({voltage: true}),
+        ],
     },
 ];
 
