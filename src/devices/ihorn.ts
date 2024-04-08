@@ -65,7 +65,9 @@ const definitions: Definition[] = [
         model: 'LH03121',
         vendor: 'iHORN',
         description: 'Door contact DNAKE SH-DM-S01',
-        extend: [iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']}), battery()],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
 ];
 
