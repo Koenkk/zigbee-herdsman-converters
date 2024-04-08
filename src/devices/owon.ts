@@ -5,6 +5,7 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
+import {battery, iasZoneAlarm} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -414,18 +415,14 @@ const definitions: Definition[] = [
         model: 'PIR313-P',
         vendor: 'OWON',
         description: 'Motion sensor',
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.occupancy_timeout],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.tamper(), e.battery_low()],
+        extend: [battery(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
     },
     {
         zigbeeModel: ['DWS312'],
         model: 'DWS312',
         vendor: 'OWON',
         description: 'Door/window sensor',
-        fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact(), e.tamper(), e.battery_low()],   
+        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
     },
 ];
 
