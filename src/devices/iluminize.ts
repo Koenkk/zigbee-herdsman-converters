@@ -24,7 +24,7 @@ const definitions: Definition[] = [
         extend: [onOff()],
     },
     {
-        zigbeeModel: ['511.050'],
+        zigbeeModel: ['511.050', 'RGBWW Lighting'],
         model: '511.050',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 LED controller for 5in1 RGB+CCT LEDs',
