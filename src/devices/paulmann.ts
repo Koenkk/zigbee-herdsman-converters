@@ -127,12 +127,12 @@ const definitions: Definition[] = [
         extend: [light({colorTemp: {range: undefined}})],
     },
     {
-        fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht'}],
+        fingerprint: [{modelID: 'RGBW', manufacturerName: 'Paulmann Licht GmbH'}],
         zigbeeModel: ['371000002'],
         model: '371000002',
         vendor: 'Paulmann',
         description: 'Amaris LED panels',
-        extend: [light({colorTemp: {range: undefined}, color: {modes: ['xy', 'hs']}})],
+        extend: [light({colorTemp: {range: [153, 370]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
     {
         zigbeeModel: ['371232040'],
