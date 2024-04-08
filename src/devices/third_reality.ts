@@ -4,7 +4,7 @@ import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
 import {Definition, Fz, KeyValue} from '../lib/types';
-import {forcePowerSource, light, onOff} from '../lib/modernExtend';
+import {forcePowerSource, iasZoneAlarm, light, onOff} from '../lib/modernExtend';
 import {temperature, humidity, battery} from '../lib/modernExtend';
 
 const e = exposes.presets;
@@ -132,18 +132,10 @@ const definitions: Definition[] = [
         zigbeeModel: ['3RDTS01056Z'],
         model: '3RDTS01056Z',
         vendor: 'Third Reality',
-        description: 'Garage Door Tilt Sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery], 
-        toZigbee: [],
+        description: 'Garage door tilt sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low']})],
         ota: ota.zigbeeOTA,
-        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
-            device.powerSource = 'Battery';
-            device.save();
-        },
-    }，
+    },
     {
         zigbeeModel: ['3RSP019BZ'],
         model: '3RSP019BZ',
