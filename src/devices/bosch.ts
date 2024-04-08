@@ -1032,6 +1032,7 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg',
                 'genPollCtrl',
+                'ssIasZone',
                 'manuSpecificBosch11',
             ]);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -1039,7 +1040,7 @@ const definitions: Definition[] = [
                 attribute: 'alarmOnMotion',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
-                reportableChange: null,
+                reportableChange: 0,
             }], manufacturerOptions);
             await endpoint.read('manuSpecificBosch11', ['alarmOnMotion'], manufacturerOptions);
         },
