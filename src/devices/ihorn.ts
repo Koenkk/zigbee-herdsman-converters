@@ -2,7 +2,6 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {battery, iasZoneAlarm} from '../lib/modernExtend';
 const e = exposes.presets;
 
 const definitions: Definition[] = [
