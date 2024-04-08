@@ -1040,8 +1040,9 @@ const definitions: Definition[] = [
                 attribute: 'alarmOnMotion',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
-                reportableChange: null,
+                reportableChange: 0,
             }], manufacturerOptions);
+            await endpoint.read('manuSpecificBosch11', ['alarmOnMotion'], manufacturerOptions);
         },
         exposes: [
             e.water_leak(),
@@ -1076,8 +1077,9 @@ const definitions: Definition[] = [
                 attribute: 'zoneStatus',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
-                reportableChange: null,
+                reportableChange: 0,
             }], manufacturerOptions);
+            await endpoint.read('ssIasZone', ['zoneStatus'], manufacturerOptions);
         },
         exposes: [
             e.smoke(),
@@ -1477,18 +1479,49 @@ const definitions: Definition[] = [
         model: 'BSEN-C2',
         vendor: 'Bosch',
         description: 'Door/window contact II',
-        fromZigbee: [fzLocal.bosch_contact],
+        fromZigbee: [
+            fzLocal.bosch_contact,
+        ],
         toZigbee: [],
-        exposes: [e.battery_low(), e.contact(), e.action(['single', 'long'])],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg',
+                'genPollCtrl',
+            ]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [
+            e.battery(),
+            e.battery_low(),
+            e.contact(),
+            e.action(['single', 'long']),
+        ],
     },
     {
         zigbeeModel: ['RBSH-SWDV-ZB'],
         model: 'BSEN-CV',
         vendor: 'Bosch',
         description: 'Door/window contact II plus',
-        fromZigbee: [fzLocal.bosch_contact],
+        fromZigbee: [
+            fzLocal.bosch_contact,
+        ],
         toZigbee: [],
-        exposes: [e.battery_low(), e.contact(), e.vibration(), e.action(['single', 'long'])],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg',
+                'genPollCtrl',
+            ]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [
+            e.battery(),
+            e.battery_low(),
+            e.contact(),
+            e.vibration(),
+            e.action(['single', 'long']),
+        ],
     },
     {
         zigbeeModel: ['RBSH-MMD-ZB-EU'],
