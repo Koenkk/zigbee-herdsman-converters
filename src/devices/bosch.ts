@@ -1078,8 +1078,8 @@ const definitions: Definition[] = [
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: 0,
-            }], manufacturerOptions);
-            await endpoint.read('ssIasZone', ['zoneStatus'], manufacturerOptions);
+            }]);
+            await endpoint.read('ssIasZone', ['zoneStatus']);
         },
         exposes: [
             e.smoke(),
