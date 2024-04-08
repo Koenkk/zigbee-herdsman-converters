@@ -889,8 +889,7 @@ export const presence = {
     mappers: lumiPresenceMappers,
 
     encodeXCellsDefinition: (xCells?: number[]): number => {
-        // @ts-expect-error
-        if (!xCells || !xCells.size) {
+        if (!xCells?.length) {
             return 0;
         }
         return [...xCells.values()].reduce((accumulator, marker) => accumulator + presence.encodeXCellIdx(marker), 0);

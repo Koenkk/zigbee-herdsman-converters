@@ -11,7 +11,7 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm} from '../lib/modernExtend';
+import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
 
 const NS = 'zhc:tuya';
@@ -2306,7 +2306,7 @@ const definitions: Definition[] = [
             {vendor: 'LoraTap', model: 'SS6400ZB'}, {vendor: 'Moes', model: 'ZT-SY-EU-G-4S-WH-MS'},
             tuya.whitelabel('Moes', 'ZT-SR-EU4', 'Star Ring 4 Gang Scene Switch', ['_TZ3000_a4xycprs']),
             tuya.whitelabel('TuYa', 'TS0044_1', 'Zigbee 4 button remote - 12 scene',
-                ['_TZ3000_dziaict4', '_TZ3000_mh9px7cq', '_TZ3000_wkai4ga5', '_TZ3000_uaa99arv']),
+                ['_TZ3000_dziaict4', '_TZ3000_mh9px7cq']),
             tuya.whitelabel('TuYa', 'TM-YKQ004', 'Zigbee 4 button remote - 12 scene', ['_TZ3000_u3nv1jwk']),
         ],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
@@ -5851,6 +5851,24 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ysfo0wla']),
+        model: 'EKAC-T3095Z',
+        vendor: 'Ekaza',
+        description: '1 channel dimmer',
+        fromZigbee: [fzLocal.TS110E, tuya.fz.power_on_behavior_1, fz.on_off],
+        toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
+        exposes: [
+            e.light_brightness().withMinBrightness().withMaxBrightness(),
+            e.power_on_behavior().withAccess(ea.ALL),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_wdexaypg'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_3mpwqzuu'}],
         model: 'TS110E_2gang_1',
         vendor: 'TuYa',
@@ -6173,6 +6191,7 @@ const definitions: Definition[] = [
     {
         fingerprint: [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_bmqxalil'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_w1tcofu8'},
         ],
         model: 'TS0001_switch_1_gang',
         vendor: 'TuYa',
@@ -6184,11 +6203,13 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('Homeetec', '37022454', '1 Gang switch with backlight', ['_TZ3000_bmqxalil']),
+            tuya.whitelabel('RoomsAI', '37022454', '1 Gang switch with backlight', ['_TZ3000_w1tcofu8']),
         ],
     },
     {
         fingerprint: [
             {modelID: 'TS0002', manufacturerName: '_TZ3000_in5qxhtt'},
+            {modelID: 'TS0002', manufacturerName: '_TZ3000_ogpla3lh'},
         ],
         model: 'TS0002_switch_2_gang',
         vendor: 'TuYa',
@@ -6205,11 +6226,13 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('Homeetec', '37022463', '2 Gang switch with backlight', ['_TZ3000_in5qxhtt']),
+            tuya.whitelabel('RoomsAI', '37022463', '2 Gang switch with backlight', ['_TZ3000_ogpla3lh']),
         ],
     },
     {
         fingerprint: [
             {modelID: 'TS0003', manufacturerName: '_TZ3000_pv4puuxi'},
+            {modelID: 'TS0003', manufacturerName: '_TZ3000_avky2mvc'},
         ],
         model: 'TS0003_switch_3_gang',
         vendor: 'TuYa',
@@ -6227,6 +6250,7 @@ const definitions: Definition[] = [
         },
         whiteLabel: [
             tuya.whitelabel('Homeetec', '37022474', '3 Gang switch with backlight', ['_TZ3000_pv4puuxi']),
+            tuya.whitelabel('RoomsAI', '37022474', '3 Gang switch with backlight', ['_TZ3000_avky2mvc']),
         ],
     },
     {
@@ -7821,6 +7845,18 @@ const definitions: Definition[] = [
                 [24, null, null], // Forward Energy T4 - don't know what this
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZ3000_kkerjand']),
+        model: 'SZT06 V2.0',
+        vendor: 'TuYa',
+        description: 'Smart mini temperature and humidity sensor',
+        extend: [
+            temperature(),
+            humidity(),
+            identify({isSleepy: true}),
+            battery({voltage: true}),
+        ],
     },
 ];
 
