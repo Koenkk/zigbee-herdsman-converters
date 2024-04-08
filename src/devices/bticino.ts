@@ -4,7 +4,7 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import {fzLegrand, tzLegrand} from '../lib/legrand';
+import {fzLegrand, tzLegrand, eLegrand} from '../lib/legrand';
 import {electricityMeter, light, onOff} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
@@ -21,12 +21,10 @@ const definitions: Definition[] = [
         exposes: [
             e.switch(),
             e.action(['identify', 'on', 'off']),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned on'),
             e.enum('identify', ea.SET, ['blink'])
                 .withDescription('Blinks the built-in LED to make it easier to find the device'),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -48,12 +46,10 @@ const definitions: Definition[] = [
                 .withDescription('Specifies the maximum brightness value'),
             e.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off')
                 .withDescription('Allow the device to change brightness'),
-            e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned off, allowing to see the switch in the dark'),
-            e.binary('led_if_on', ea.ALL, 'ON', 'OFF')
-                .withDescription('Enables the LED when the light is turned on'),
             e.enum('identify', ea.SET, ['blink'])
                 .withDescription('Blinks the built-in LED to make it easier to find the device'),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
         ],
         extend: [light({configureReporting: true})],
     },
