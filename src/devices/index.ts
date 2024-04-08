@@ -174,6 +174,7 @@ import meazon from './meazon';
 import mercator from './mercator';
 import miboxer from './miboxer';
 import micromatic from './micromatic';
+import modular from './modular';
 import moes from './moes';
 import müller_licht from './müller_licht';
 import namron from './namron';
@@ -473,6 +474,7 @@ export default [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...modular,
     ...moes,
     ...müller_licht,
     ...namron,
