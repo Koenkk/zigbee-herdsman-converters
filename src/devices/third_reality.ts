@@ -129,6 +129,22 @@ const definitions: Definition[] = [
         },
     },
     {
+        zigbeeModel: ['3RDTS01056Z'],
+        model: '3RDTS01056Z',
+        vendor: 'Third Reality',
+        description: 'Garage Door Tilt Sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery], 
+        toZigbee: [],
+        ota: ota.zigbeeOTA,
+        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+            device.powerSource = 'Battery';
+            device.save();
+        },
+    }，
+    {
         zigbeeModel: ['3RSP019BZ'],
         model: '3RSP019BZ',
         vendor: 'Third Reality',
