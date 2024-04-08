@@ -5854,12 +5854,9 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ysfo0wla']),
-        model: 'TS110E_1gang_3',
-        vendor: 'TuYa',
+        model: 'EKAC-T3095Z',
+        vendor: 'Ekaza',
         description: '1 channel dimmer',
-        whiteLabel: [
-            tuya.whitelabel('Ekaza', 'EKAC-T3095Z', '1 channel dimmer', ['_TZ3210_ysfo0wla']),
-        ],
         fromZigbee: [fzLocal.TS110E, tuya.fz.power_on_behavior_1, fz.on_off],
         toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         exposes: [
