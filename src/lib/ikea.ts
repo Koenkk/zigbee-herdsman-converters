@@ -638,7 +638,6 @@ export const legacy = {
             type: 'commandToggle',
             options: [options.legacy()],
             convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
                 if (isLegacyEnabled(options)) {
                     return {action: 'play_pause'};
                 }
@@ -649,7 +648,6 @@ export const legacy = {
             type: 'commandStep',
             options: [options.legacy()],
             convert: (model, msg, publish, options, meta) => {
-                if (hasAlreadyProcessedMessage(msg, model)) return;
                 if (isLegacyEnabled(options)) {
                     const direction = msg.data.stepmode === 1 ? 'backward' : 'forward';
                     return {
