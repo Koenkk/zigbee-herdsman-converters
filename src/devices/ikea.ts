@@ -1,5 +1,4 @@
 import {Definition} from '../lib/types';
-import * as legacy from '../lib/legacy';
 import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
@@ -744,13 +743,12 @@ const definitions: Definition[] = [
         model: 'ICTC-G-1',
         vendor: 'IKEA',
         description: 'TRADFRI wireless dimmer',
-        fromZigbee: [ // DEPRECATED
-            legacy.fz.cmd_move, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop, legacy.fz.cmd_stop_with_onoff,
-            legacy.fz.cmd_move_to_level_with_onoff,
-        ],
         extend: [
             identify({isSleepy: true}),
-            commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level']}),
+            commandsLevelCtrl({
+                commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'],
+                legacyClick: true,
+            }),
             battery({dontDividePercentage: true}),
             ikeaOta(),
         ],
@@ -792,14 +790,14 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI on/off switch',
         fromZigbee: [ // DEPRECATED
-            legacy.fz.genOnOff_cmdOn, legacy.fz.genOnOff_cmdOff, ikeaLegacy.fromZigbee.E1743_brightness_up,
+            ikeaLegacy.fromZigbee.E1743_brightness_up,
             ikeaLegacy.fromZigbee.E1743_brightness_down, ikeaLegacy.fromZigbee.E1743_brightness_stop,
         ],
         meta: {disableActionGroup: true},
         extend: [
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
-            commandsOnOff({commands: ['on', 'off']}),
+            commandsOnOff({commands: ['on', 'off'], legacyClick: true}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
             ikeaOta(),
@@ -839,13 +837,14 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 1',
         fromZigbee: [ // DEPRECATED
-            legacy.fz.cmd_move, legacy.fz.cmd_stop, ikeaLegacy.fromZigbee.E1744_play_pause, ikeaLegacy.fromZigbee.E1744_skip,
+            ikeaLegacy.fromZigbee.E1744_play_pause, ikeaLegacy.fromZigbee.E1744_skip,
         ],
         extend: [
             identify({isSleepy: true}),
             commandsOnOff({commands: ['toggle']}),
             commandsLevelCtrl({
                 commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down'],
+                legacyClick: true,
             }),
             ikeaBattery(),
             ikeaOta(),
@@ -856,11 +855,10 @@ const definitions: Definition[] = [
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        fromZigbee: [legacy.fz.cover_close, legacy.fz.cover_open, legacy.fz.cover_stop], // DEPRECATED
         extend: [
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
-            commandsWindowCovering(),
+            commandsWindowCovering({legacyClick: true}),
             ikeaBattery(),
             ikeaOta(),
         ],
