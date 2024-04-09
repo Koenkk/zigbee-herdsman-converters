@@ -2005,7 +2005,7 @@ const definitions: Definition[] = [
             return {'l1': 1, 'l2': 2};
         },
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.power(), e.current(), e.energy(), e.voltage(), e.device_temperature(),
+            e.power(), e.current(), e.energy_wh(), e.voltage(), e.device_temperature(),
         ],
         extend: [
             lumiSwitchType(),
