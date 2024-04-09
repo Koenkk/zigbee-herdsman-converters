@@ -96,11 +96,16 @@ export function setupConfigureForReporting(
     const configureReporting = !!config;
     const read = !!(access & ea.GET);
     if (configureReporting || read) {
-        const configure: Configure = async (device, coordinatorEndpoint) => {
+        const configure: Configure = async (device, coordinatorEndpoint, definition) => {
             const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
             let entities: (Zh.Device | Zh.Endpoint)[] = [device];
             if (endpointNames) {
-                const endpointsMap = new Map<string, boolean>(endpointNames.map((e) => [e, true]));
+                const definitionEndpoints = definition.endpoint(device);
+                const endpointIds: string[] = [];
+                for (const [key, value] of Object.entries(definitionEndpoints)) {
+                    if (endpointNames.includes(key)) endpointIds.push(value.toString());
+                }
+                const endpointsMap = new Map<string, boolean>(endpointIds.map((e) => [e, true]));
                 entities = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
             }
 
@@ -115,9 +120,14 @@ export function setupConfigureForReporting(
 }
 
 export function setupConfigureForBinding(cluster: string | number, clusterType: 'input' | 'output', endpointNames?: string[]) {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         if (endpointNames) {
-            const endpointsMap = new Map<string, boolean>(endpointNames.map((e) => [e, true]));
+            const definitionEndpoints = definition.endpoint(device);
+            const endpointIds: string[] = [];
+            for (const [key, value] of Object.entries(definitionEndpoints)) {
+                if (endpointNames.includes(key)) endpointIds.push(value.toString());
+            }
+            const endpointsMap = new Map<string, boolean>(endpointIds.map((e) => [e, true]));
             const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
             for (const endpoint of endpoints) {
                 await endpoint.bind(cluster, coordinatorEndpoint);
