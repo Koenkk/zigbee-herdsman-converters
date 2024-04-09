@@ -358,7 +358,7 @@ const definitions: Definition[] = [
         extend: [lockExtend({battery: {dontDividePercentage: true}}, {max: 900}, ['closuresDoorLock'])],
     },
     {
-        zigbeeModel: ['06ffff2027'],
+        zigbeeModel: ['06ffff2027', '06e01d220c'],
         model: 'YMF40A RL',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
