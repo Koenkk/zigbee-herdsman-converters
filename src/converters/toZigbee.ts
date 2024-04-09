@@ -3162,38 +3162,6 @@ const converters2 = {
             await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
         },
     } satisfies Tz.Converter,
-    legrand_identify: {
-        key: ['identify'],
-        convertSet: async (entity, key, value, meta) => {
-            if (utils.isObject(value) && !value.timeout) {
-                const effects = {
-                    'blink3': 0x00,
-                    'fixed': 0x01,
-                    'blinkgreen': 0x02,
-                    'blinkblue': 0x03,
-                };
-                // only works for blink3 & fixed
-                const colors = {
-                    'default': 0x00,
-                    'red': 0x01,
-                    'green': 0x02,
-                    'blue': 0x03,
-                    'lightblue': 0x04,
-                    'yellow': 0x05,
-                    'pink': 0x06,
-                    'white': 0x07,
-                };
-
-                const selectedEffect = utils.getFromLookup(value.effect, effects) | effects['blink3'];
-                const selectedColor = utils.getFromLookup(value.color, colors) | colors['default'];
-
-                const payload = {effectid: selectedEffect, effectvariant: selectedColor};
-                await entity.command('genIdentify', 'triggerEffect', payload, {});
-            } else {
-                await entity.command('genIdentify', 'identify', {identifytime: 10}, {});
-            }
-        },
-    } satisfies Tz.Converter,
     legrand_device_mode: {
         key: ['device_mode'],
         convertSet: async (entity, key, value, meta) => {

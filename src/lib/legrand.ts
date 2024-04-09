@@ -21,6 +21,33 @@ const ledModes:{[k: number]: string} = {
     2: 'led_if_on',
 };
 
+const ledEffects:{[k: number]: string} = {
+    0: 'blink 3',
+    1: 'fixed',
+    2: 'blink green',
+    3: 'blink blue',
+};
+
+const ledColors:{[k: number]: string} = {
+    0: 'default',
+    1: 'red',
+    2: 'green',
+    3: 'blue',
+    4: 'lightblue',
+    5: 'yellow',
+    6: 'pink',
+    7: 'white',
+};
+
+const optsLegrand = {
+    identityEffect: () => {
+        return e.composite('Identity effect', 'identity_effect', ea.SET)
+            .withDescription('Defines the identification effect to simplify the device identification')
+            .withFeature(e.enum('effect', ea.SET, Object.values(ledEffects)).withLabel('Effect'))
+            .withFeature(e.enum('color', ea.SET, Object.values(ledColors)).withLabel('Color'));
+    },
+};
+
 const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString => {
     return Object.fromEntries(Object.entries(shutterCalibrationModes)
         .filter((e) => isNLLVSwitch ? true : e[1].onlyNLLV === false)
@@ -55,6 +82,11 @@ export const _067776 = {
 };
 
 export const eLegrand = {
+    identify: () => {
+        return e.enum('identify', ea.SET, ['identify'])
+            .withDescription('Blinks the built-in LED to make it easier to identify the device')
+            .withCategory('config');
+    },
     ledInDark: () => {
         return e.binary('led_in_dark', ea.ALL, 'ON', 'OFF')
             .withDescription('Enables the built-in LED allowing to see the switch in the dark')
@@ -112,6 +144,24 @@ export const tzLegrand = {
             utils.validateValue(key, Object.values(ledModes));
             const idx = utils.getKey(ledModes, key);
             await entity.read('manuSpecificLegrandDevices', [Number(idx)], legrandOptions);
+        },
+    } satisfies Tz.Converter,
+    identify: {
+        key: ['identify'],
+        options: [optsLegrand.identityEffect()],
+        convertSet: async (entity, key, value, meta) => {
+            const identityEffect = (meta.options.identity_effect as KeyValueAny);
+            const selEffect = identityEffect?.effect ?? ledEffects[0];
+            const selColor = identityEffect?.color ?? ledColors[0];
+
+            const effectID = utils.getFromLookupByValue(selEffect, ledEffects, '0');
+            const effectVariant = utils.getFromLookupByValue(selColor, ledColors, '0');
+
+            // Trigger an effect
+            const payload = {effectid: effectID, effectvariant: effectVariant};
+            await entity.command('genIdentify', 'triggerEffect', payload, {});
+            // Trigger the identification
+            await entity.command('genIdentify', 'identify', {identifytime: 10}, {});
         },
     } satisfies Tz.Converter,
 };
