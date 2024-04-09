@@ -1036,12 +1036,13 @@ const definitions: Definition[] = [
                 'manuSpecificBosch11',
             ]);
             await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.configureReporting('manuSpecificBosch11', [{
-                attribute: 'alarmOnMotion',
+            await endpoint.configureReporting('ssIasZone', [{
+                attribute: 'zoneStatus',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: 0,
-            }], manufacturerOptions);
+            }]);
+            await endpoint.read('ssIasZone', ['zoneStatus']);
             await endpoint.read('manuSpecificBosch11', ['alarmOnMotion'], manufacturerOptions);
         },
         exposes: [
@@ -1078,8 +1079,8 @@ const definitions: Definition[] = [
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: 0,
-            }], manufacturerOptions);
-            await endpoint.read('ssIasZone', ['zoneStatus'], manufacturerOptions);
+            }]);
+            await endpoint.read('ssIasZone', ['zoneStatus']);
         },
         exposes: [
             e.smoke(),
