@@ -394,10 +394,10 @@ export function onOff(args?: OnOffArgs): ModernExtend {
 }
 
 export interface CommandsOnOffArgs {
-    commands?: ('on' | 'off' | 'toggle')[], bind?: boolean, endpointNames?: string[], legacyClick?: boolean,
+    commands?: ('on' | 'off' | 'toggle')[], bind?: boolean, endpointNames?: string[], legacyAction?: boolean,
 }
 export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
-    args = {commands: ['on', 'off', 'toggle'], bind: true, legacyClick: false, ...args};
+    args = {commands: ['on', 'off', 'toggle'], bind: true, legacyAction: false, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -426,7 +426,7 @@ export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
         },
     ];
 
-    if (args.legacyClick) {
+    if (args.legacyAction) {
         fromZigbee.push(...[globalLegacy.fromZigbee.genOnOff_cmdOn, globalLegacy.fromZigbee.genOnOff_cmdOff]);
     }
 
@@ -766,12 +766,12 @@ export interface CommandsLevelCtrl {
     commands?: (
         'brightness_move_to_level' | 'brightness_move_up' | 'brightness_move_down' | 'brightness_step_up' | 'brightness_step_down' | 'brightness_stop'
     )[],
-    bind?: boolean, endpointNames?: string[], legacyClick?: boolean,
+    bind?: boolean, endpointNames?: string[], legacyAction?: boolean,
 }
 export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
     args = {commands: [
         'brightness_move_to_level', 'brightness_move_up', 'brightness_move_down', 'brightness_step_up', 'brightness_step_down', 'brightness_stop',
-    ], bind: true, legacyClick: false, ...args};
+    ], bind: true, legacyAction: false, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -787,7 +787,7 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
         fz.command_stop,
     ];
 
-    if (args.legacyClick) {
+    if (args.legacyAction) {
         // Legacy converters with removed hasAlreadyProcessedMessage and redirects
         const legacyFromZigbee: Fz.Converter[] = [
             {
@@ -983,10 +983,10 @@ export function windowCovering(args: WindowCoveringArgs): ModernExtend {
 }
 
 export interface CommandsWindowCoveringArgs {
-    commands?: ('open' | 'close' | 'stop')[], bind?: boolean, endpointNames?: string[], legacyClick: boolean,
+    commands?: ('open' | 'close' | 'stop')[], bind?: boolean, endpointNames?: string[], legacyAction: boolean,
 }
 export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): ModernExtend {
-    args = {commands: ['open', 'close', 'stop'], bind: true, legacyClick: false, ...args};
+    args = {commands: ['open', 'close', 'stop'], bind: true, legacyAction: false, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -1014,7 +1014,7 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
         },
     ];
 
-    if (args.legacyClick) {
+    if (args.legacyAction) {
         fromZigbee.push(...[globalLegacy.fromZigbee.cover_open, globalLegacy.fromZigbee.cover_close, globalLegacy.fromZigbee.cover_stop]);
     }
 

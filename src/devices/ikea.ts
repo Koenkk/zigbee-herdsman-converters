@@ -747,7 +747,7 @@ const definitions: Definition[] = [
             identify({isSleepy: true}),
             commandsLevelCtrl({
                 commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'],
-                legacyClick: true,
+                legacyAction: true,
             }),
             battery({dontDividePercentage: true}),
             ikeaOta(),
@@ -797,7 +797,7 @@ const definitions: Definition[] = [
         extend: [
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
-            commandsOnOff({commands: ['on', 'off'], legacyClick: true}),
+            commandsOnOff({commands: ['on', 'off'], legacyAction: true}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
             ikeaOta(),
@@ -844,7 +844,7 @@ const definitions: Definition[] = [
             commandsOnOff({commands: ['toggle']}),
             commandsLevelCtrl({
                 commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down'],
-                legacyClick: true,
+                legacyAction: true,
             }),
             ikeaBattery(),
             ikeaOta(),
@@ -858,7 +858,7 @@ const definitions: Definition[] = [
         extend: [
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
-            commandsWindowCovering({legacyClick: true}),
+            commandsWindowCovering({legacyAction: true}),
             ikeaBattery(),
             ikeaOta(),
         ],
