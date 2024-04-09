@@ -17,12 +17,11 @@ const definitions: Definition[] = [
         description: 'Light switch with neutral',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tzLegrand.led_mode, tz.legrand_identify],
+        toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify],
         exposes: [
             e.switch(),
             e.action(['identify', 'on', 'off']),
-            e.enum('identify', ea.SET, ['blink'])
-                .withDescription('Blinks the built-in LED to make it easier to find the device'),
+            eLegrand.identify(),
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
@@ -38,7 +37,7 @@ const definitions: Definition[] = [
         description: 'Dimmer switch with neutral',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
-        toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tz.legrand_identify, tz.ballast_config],
+        toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
         exposes: [
             e.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
@@ -46,8 +45,7 @@ const definitions: Definition[] = [
                 .withDescription('Specifies the maximum brightness value'),
             e.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off')
                 .withDescription('Allow the device to change brightness'),
-            e.enum('identify', ea.SET, ['blink'])
-                .withDescription('Blinks the built-in LED to make it easier to find the device'),
+            eLegrand.identify(),
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
@@ -60,7 +58,7 @@ const definitions: Definition[] = [
         vendor: 'BTicino',
         extend: [onOff(), electricityMeter({cluster: 'electrical'})],
         fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_device_mode, tz.legrand_identify],
+        toZigbee: [tz.legrand_device_mode, tzLegrand.identify],
         exposes: [
             e.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP'),
@@ -72,7 +70,7 @@ const definitions: Definition[] = [
         vendor: 'BTicino',
         description: 'Power socket with power consumption monitoring',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tzLegrand.led_mode, tz.legrand_identify],
+        toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify],
         exposes: [
             e.switch(),
             e.action(['identify']),

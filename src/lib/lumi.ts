@@ -432,7 +432,11 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             break;
         case '149':
             assertNumber(value);
-            payload.energy = value, options; // 0x95
+            payload.energy = value; // 0x95
+            if (['LLKZMK12LM'].includes(model.model)) {
+                assertNumber(payload.energy);
+                payload.energy = payload.energy / 1000;
+            }
             // Consumption is deprecated
             payload.consumption = payload.energy;
             break;
