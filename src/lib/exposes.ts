@@ -676,6 +676,7 @@ export const presets = {
     eco_temperature: () => new Numeric('eco_temperature', access.STATE_SET).withUnit('°C').withDescription('Eco temperature').withValueMin(0).withValueMax(35),
     effect: () => new Enum('effect', access.SET, ['blink', 'breathe', 'okay', 'channel_change', 'finish_effect', 'stop_effect']).withDescription('Triggers an effect on the light (e.g. make light blink for a few seconds)'),
     energy: () => new Numeric('energy', access.STATE).withUnit('kWh').withDescription('Sum of consumed energy'),
+    energy_wh: () => new Numeric('energy', access.STATE).withUnit('Wh').withDescription('Sum of consumed energy'),
     produced_energy: () => new Numeric('produced_energy', access.STATE).withUnit('kWh').withDescription('Sum of produced energy'),
     energy_produced: () => new Numeric('energy_produced', access.STATE).withUnit('kWh').withDescription('Sum of produced energy'),
     fan: () => new Fan(),
