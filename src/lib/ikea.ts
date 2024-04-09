@@ -126,7 +126,7 @@ export function ikeaBattery(): ModernExtend {
 
     const defaultReporting: ReportingConfigWithoutAttribute = {min: '1_HOUR', max: 'MAX', change: 10};
 
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
             {attribute: 'batteryPercentageRemaining', ...defaultReporting},
         ]);
@@ -136,7 +136,7 @@ export function ikeaBattery(): ModernExtend {
 }
 
 export function ikeaConfigureRemote(): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
         // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
         // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
@@ -323,7 +323,7 @@ export function ikeaAirPurifier(): ModernExtend {
         },
     ];
 
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         const endpoint = device.getEndpoint(1);
 
         await reporting.bind(endpoint, coordinatorEndpoint, ['manuSpecificIkeaAirPurifier']);
@@ -361,7 +361,7 @@ export function ikeaVoc(args?: Partial<NumericArgs>) {
 
 export function ikeaConfigureGenPollCtrl(args?: {endpointId: number}): ModernExtend {
     args = {endpointId: 1, ...args};
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         const endpoint = device.getEndpoint(args.endpointId);
         if (Number(device?.softwareBuildID?.split('.')[0]) >= 24) {
             await endpoint.write('genPollCtrl', {'checkinInterval': 172800});

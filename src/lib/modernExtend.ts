@@ -145,7 +145,7 @@ export function setupConfigureForBinding(cluster: string | number, clusterType: 
 // #region General
 
 export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         device.type = args.type;
         device.save();
     };
@@ -153,7 +153,7 @@ export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExt
 }
 
 export function forcePowerSource(args: {powerSource: 'Mains (single phase)' | 'Battery'}): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         device.powerSource = args.powerSource;
         device.save();
     };
@@ -729,7 +729,7 @@ export function light(args?: LightArgs): ModernExtend {
         meta.turnsOffAtBrightness1 = args.turnsOffAtBrightness1;
     }
 
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         await lightConfigure(device, coordinatorEndpoint, true);
 
         if (args.configureReporting) {
@@ -887,7 +887,7 @@ export function lock(args?: LockArgs): ModernExtend {
     const toZigbee = [tz.lock, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume];
     const exposes = [e.lock(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
         e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume()];
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         await setupAttributes(device, coordinatorEndpoint, 'closuresDoorLock', [
             {attribute: 'lockState', min: 'MIN', max: '1_HOUR', change: 0}]);
     };
@@ -1494,7 +1494,7 @@ export interface QuirkAddEndpointClusterArgs {
 export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): ModernExtend {
     const {endpointID, inputClusters, outputClusters} = args;
 
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         const endpoint = device.getEndpoint(endpointID);
 
         if (endpoint == undefined) {
@@ -1531,7 +1531,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
 }
 
 export function quirkCheckinInterval(timeout: number | keyof typeof timeLookup): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         device.checkinInterval = (typeof timeout == 'number') ? timeout : timeLookup[timeout];
         device.save();
     };

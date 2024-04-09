@@ -429,7 +429,7 @@ const sprutModernExtend = {
                 }
             },
         }];
-        const configure: Configure = async (device, coordinatorEndpoint) => {
+        const configure: Configure = async (device, coordinatorEndpoint, definition) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['sprutIrBlaster']);
             device.save();
