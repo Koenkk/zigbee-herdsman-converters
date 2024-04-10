@@ -102,9 +102,9 @@ export function setupConfigureForReporting(
             let entities: (Zh.Device | Zh.Endpoint)[] = [device];
             if (endpointNames) {
                 const definitionEndpoints = definition.endpoint(device);
-                const endpointIds = endpointNames.map((e) => definitionEndpoints[e].toString());
-                const endpointsMap = new Map<string, boolean>(endpointIds.map((e) => [e, true]));
-                entities = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
+                const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
+                const endpointsMap = new Map<number, boolean>(endpointIds.map((e) => [e, true]));
+                entities = device.endpoints.filter((e) => endpointsMap.has(e.ID));
             }
 
             for (const entity of entities) {
@@ -121,9 +121,9 @@ export function setupConfigureForBinding(cluster: string | number, clusterType: 
     const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         if (endpointNames) {
             const definitionEndpoints = definition.endpoint(device);
-            const endpointIds = endpointNames.map((e) => definitionEndpoints[e].toString());
-            const endpointsMap = new Map<string, boolean>(endpointIds.map((e) => [e, true]));
-            const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
+            const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
+            const endpointsMap = new Map<number, boolean>(endpointIds.map((e) => [e, true]));
+            const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID));
             for (const endpoint of endpoints) {
                 await endpoint.bind(cluster, coordinatorEndpoint);
             }
