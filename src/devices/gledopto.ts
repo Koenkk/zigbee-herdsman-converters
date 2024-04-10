@@ -150,7 +150,7 @@ function gledoptoOnOff(args?: OnOffArgs) {
 }
 
 function gledoptoConfigureReadModelID(): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3016#issuecomment-1027726604
         const endpoint = device.endpoints[0];
         const oldModel = device.modelID;
