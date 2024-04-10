@@ -159,9 +159,9 @@ function processExtensions(definition: Definition): Definition {
 
         let configure: Configure = null;
         if (configures.length !== 0) {
-            configure = async (device, coordinatorEndpoint, configure_definition) => {
+            configure = async (device, coordinatorEndpoint, configureDefinition) => {
                 for (const func of configures) {
-                    await func(device, coordinatorEndpoint, configure_definition);
+                    await func(device, coordinatorEndpoint, configureDefinition);
                 }
             }
         }
