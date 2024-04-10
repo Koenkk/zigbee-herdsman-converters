@@ -391,7 +391,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'alarm_on_motion') {
                 const index = utils.getFromLookup(value, stateOffOn);
-                await entity.write('manuSpecificBosch11', {alarmOnMotion: {value: index, type: Zcl.DataType.boolean}}, manufacturerOptions);
+                await entity.write('manuSpecificBosch11', {alarmOnMotion: index}, manufacturerOptions);
                 return {state: {alarm_on_motion: value}};
             }
         },
