@@ -64,6 +64,7 @@ const definitions: Definition[] = [
         zigbeeModel: [
             'TRADFRI bulb E27 WW globe 806lm',
             'TRADFRI bulb E26 WW globe 800lm',
+            'TRADFRI bulb E26 WW globe 806lm',
         ],
         model: 'LED2103G5',
         vendor: 'IKEA',
