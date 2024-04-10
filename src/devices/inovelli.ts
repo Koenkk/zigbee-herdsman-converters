@@ -975,7 +975,7 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
     },
     outputMode: {
         ...COMMON_ATTRIBUTES.outputMode,
-        values: { 'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1 },
+        values: {'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1},
         description: 'Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.',
     },
 };
@@ -1098,13 +1098,13 @@ const VZM36_ATTRIBUTES : {[s: string]: Attribute} = {
     // overheat readonly
     smartBulbMode_2: {
         ...COMMON_ATTRIBUTES.smartBulbMode,
-        values: { 'Disabled': 0, 'Smart Fan Mode': 1 },
+        values: {'Disabled': 0, 'Smart Fan Mode': 1},
         description: 'For use with Smart Fans that need constant power and are controlled via commands rather than power.',
     },
     // remote protection readonly..
     outputMode_2: {
         ...COMMON_ATTRIBUTES.outputMode,
-        values: { 'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1 },
+        values: {'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1},
         description: 'Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.',
     },
 };
