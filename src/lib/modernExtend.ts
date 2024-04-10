@@ -103,8 +103,7 @@ export function setupConfigureForReporting(
             if (endpointNames) {
                 const definitionEndpoints = definition.endpoint(device);
                 const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
-                const endpointsMap = new Map<number, boolean>(endpointIds.map((e) => [e, true]));
-                entities = device.endpoints.filter((e) => endpointsMap.has(e.ID));
+                entities = device.endpoints.filter((e) => endpointIds.includes(e.ID));
             }
 
             for (const entity of entities) {
@@ -122,8 +121,7 @@ export function setupConfigureForBinding(cluster: string | number, clusterType: 
         if (endpointNames) {
             const definitionEndpoints = definition.endpoint(device);
             const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
-            const endpointsMap = new Map<number, boolean>(endpointIds.map((e) => [e, true]));
-            const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID));
+            const endpoints = device.endpoints.filter((e) => endpointIds.includes(e.ID));
             for (const endpoint of endpoints) {
                 await endpoint.bind(cluster, coordinatorEndpoint);
             }
