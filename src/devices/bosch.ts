@@ -504,9 +504,9 @@ const tzLocal = {
             }
             if (key === 'display_ontime') {
                 let onTime = utils.toNumber(value, key);
-                onTime = utils.numberWithinRange(onTime, 5, 30);
-                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: onTime, type: Zcl.DataType.enum8}}, manufacturerOptions);
-                return {state: {display_ontime: onTime}};
+                ontime = utils.numberWithinRange(ontime, 5, 30);
+                await entity.write('hvacUserInterfaceCfg', {0x403a: {value: ontime, type: Zcl.DataType.enum8}}, manufacturerOptions);
+                return {state: {display_ontime: ontime}};
             }
             if (key === 'display_brightness') {
                 let brightness = utils.toNumber(value, key);
