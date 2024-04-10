@@ -102,10 +102,7 @@ export function setupConfigureForReporting(
             let entities: (Zh.Device | Zh.Endpoint)[] = [device];
             if (endpointNames) {
                 const definitionEndpoints = definition.endpoint(device);
-                const endpointIds: string[] = [];
-                for (const [key, value] of Object.entries(definitionEndpoints)) {
-                    if (endpointNames.includes(key)) endpointIds.push(value.toString());
-                }
+                const endpointIds = endpointNames.map((e) => definitionEndpoints[e].toString());
                 const endpointsMap = new Map<string, boolean>(endpointIds.map((e) => [e, true]));
                 entities = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
             }
@@ -124,10 +121,7 @@ export function setupConfigureForBinding(cluster: string | number, clusterType: 
     const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         if (endpointNames) {
             const definitionEndpoints = definition.endpoint(device);
-            const endpointIds: string[] = [];
-            for (const [key, value] of Object.entries(definitionEndpoints)) {
-                if (endpointNames.includes(key)) endpointIds.push(value.toString());
-            }
+            const endpointIds = endpointNames.map((e) => definitionEndpoints[e].toString());
             const endpointsMap = new Map<string, boolean>(endpointIds.map((e) => [e, true]));
             const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
             for (const endpoint of endpoints) {
