@@ -983,7 +983,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nus5kk3n7']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nus5kk3n']),
         model: 'TS0601_gas_sensor_3',
         vendor: 'TuYa',
         description: 'Gas sensor',
