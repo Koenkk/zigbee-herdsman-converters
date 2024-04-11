@@ -1030,17 +1030,8 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg',
                 'genPollCtrl',
-                'ssIasZone',
-                'manuSpecificBosch11',
             ]);
             await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.configureReporting('ssIasZone', [{
-                attribute: 'zoneStatus',
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.MAX,
-                reportableChange: 0,
-            }]);
-            await endpoint.read('ssIasZone', ['zoneStatus']);
             await endpoint.read('manuSpecificBosch11', ['alarmOnMotion'], manufacturerOptions);
         },
         exposes: [
@@ -1069,15 +1060,8 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genPowerCfg',
                 'genPollCtrl',
-                'ssIasZone',
             ]);
             await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.configureReporting('ssIasZone', [{
-                attribute: 'zoneStatus',
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.MAX,
-                reportableChange: 0,
-            }]);
             await endpoint.read('ssIasZone', ['zoneStatus']);
         },
         exposes: [
@@ -1473,6 +1457,7 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Door/window contact II',
         fromZigbee: [
+            fz.battery,
             fzLocal.bosch_contact,
         ],
         toZigbee: [],
@@ -1497,6 +1482,7 @@ const definitions: Definition[] = [
         vendor: 'Bosch',
         description: 'Door/window contact II plus',
         fromZigbee: [
+            fz.battery,
             fzLocal.bosch_contact,
         ],
         toZigbee: [],
