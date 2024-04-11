@@ -81,8 +81,8 @@ export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolea
                     .withDescription('List of RGB HEX colors'),
             );
             const configure = result.configure;
-            result.configure = async (device, coordinatorEndpoint) => {
-                await configure(device, coordinatorEndpoint);
+            result.configure = async (device, coordinatorEndpoint, definition) => {
+                await configure(device, coordinatorEndpoint, definition);
                 for (const ep of device.endpoints) {
                     await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
                 }

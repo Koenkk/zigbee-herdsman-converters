@@ -158,7 +158,7 @@ export interface DefinitionMeta {
     supportsHueAndSaturation?: boolean,
 }
 
-export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => Promise<void>;
+export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
 export type OnEvent = (type: OnEventType, data: OnEventData, device: Zh.Device, settings: KeyValue, state: KeyValue) => Promise<void>;
 
 export interface ModernExtend {
