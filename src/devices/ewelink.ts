@@ -2,8 +2,10 @@ import {Definition, Fz} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {logger} from '../lib/logger';
 const e = exposes.presets;
 
+const NS = 'zhc:ewelink';
 const fzLocal = {
     WS01_rain: {
         cluster: 'ssIasZone',
@@ -45,13 +47,13 @@ const definitions: Definition[] = [
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             try {
                 await device.getEndpoint(1).bind('genOnOff', coordinatorEndpoint);
             } catch (error) {
                 // This might fail because there are some repeaters which advertise to support genOnOff but don't support it.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/19865
-                logger.debug('Failed to bind genOnOff for SA-003-Zigbee');
+                logger.debug('Failed to bind genOnOff for SA-003-Zigbee', NS);
             }
         },
     },

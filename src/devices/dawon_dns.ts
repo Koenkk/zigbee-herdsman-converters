@@ -39,7 +39,7 @@ const definitions: Definition[] = [
         description: 'IOT remote control smart buried-type outlet',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -56,7 +56,7 @@ const definitions: Definition[] = [
         description: 'IOT smart plug 16A',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -73,7 +73,7 @@ const definitions: Definition[] = [
         description: 'IOT smart plug 16A',
         fromZigbee: [fz.device_temperature, fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
@@ -96,7 +96,7 @@ const definitions: Definition[] = [
         description: 'IOT smart plug 10A',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -195,7 +195,7 @@ const definitions: Definition[] = [
         description: 'IOT remote control smart buried-type 16A outlet',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -212,7 +212,7 @@ const definitions: Definition[] = [
         description: 'IOT remote control smart gas lock',
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.dawondns_only_off], // Only support 'Off' command
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.onOff(endpoint);
@@ -227,7 +227,7 @@ const definitions: Definition[] = [
         description: 'IOT Card holder',
         fromZigbee: [fzLocal.dawon_card_holder],
         toZigbee: [tzLocal.dawon_card_holder],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone']);
             const payload = [{
@@ -244,7 +244,7 @@ const definitions: Definition[] = [
         description: 'IOT smart plug 16A',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -262,7 +262,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.humidity, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
             await reporting.temperature(endpoint);

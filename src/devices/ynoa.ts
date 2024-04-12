@@ -30,7 +30,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']), e.battery()],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -53,7 +53,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.battery_low(), e.action(['on', 'off', 'brightness_move_to_level',
             'color_temperature_move', 'color_move'])],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -67,7 +67,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);

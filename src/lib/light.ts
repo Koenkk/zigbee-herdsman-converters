@@ -1,5 +1,8 @@
-import {Zh, Tz, Logger} from './types';
+import {logger} from './logger';
+import {Zh, Tz} from './types';
 import * as utils from './utils';
+
+const NS = 'zhc:light';
 
 async function readColorCapabilities(endpoint: Zh.Endpoint) {
     await endpoint.read('lightingColorCtrl', ['colorCapabilities']);
@@ -45,7 +48,7 @@ export function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Met
     return [...attributes, ...additionalAttributes];
 }
 
-export function findColorTempRange(entity: Zh.Endpoint | Zh.Group, logger: Logger) {
+export function findColorTempRange(entity: Zh.Endpoint | Zh.Group) {
     let colorTempMin;
     let colorTempMax;
     if (utils.isGroup(entity)) {
@@ -65,23 +68,23 @@ export function findColorTempRange(entity: Zh.Endpoint | Zh.Group, logger: Logge
     }
     if ((colorTempMin == null) || (colorTempMax == null)) {
         const entityId = utils.isGroup(entity) ? entity.groupID : entity.deviceIeeeAddress;
-        logger.debug(`Missing colorTempPhysicalMin and/or colorTempPhysicalMax for ${utils.isGroup(entity) ? 'group' : 'endpoint'} ${entityId}!`);
+        logger.debug(`Missing colorTempPhysicalMin and/or colorTempPhysicalMax for ${utils.isGroup(entity) ? 'group' : 'endpoint'} ${entityId}!`, NS);
     }
     return [colorTempMin, colorTempMax];
 }
 
-export function clampColorTemp(colorTemp: number, colorTempMin: number, colorTempMax: number, logger: Logger) {
+export function clampColorTemp(colorTemp: number, colorTempMin: number, colorTempMax: number) {
     if ((colorTempMin != null) && (colorTemp < colorTempMin)) {
-        logger.debug(`Requested color_temp ${colorTemp} is lower than minimum supported ${colorTempMin}, using minimum!`);
+        logger.debug(`Requested color_temp ${colorTemp} is lower than minimum supported ${colorTempMin}, using minimum!`, NS);
         return colorTempMin;
     }
     if ((colorTempMax != null) && (colorTemp > colorTempMax)) {
-        logger.debug(`Requested color_temp ${colorTemp} is higher than maximum supported ${colorTempMax}, using maximum!`);
+        logger.debug(`Requested color_temp ${colorTemp} is higher than maximum supported ${colorTempMax}, using maximum!`, NS);
         return colorTempMax;
     }
     return colorTemp;
 }
-export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger, readColorTempMinMaxAttribute: boolean) {
+export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, readColorTempMinMaxAttribute: boolean) {
     if (device.powerSource === 'Unknown') {
         device.powerSource = 'Mains (single phase)';
         device.save();

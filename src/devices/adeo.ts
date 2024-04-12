@@ -44,7 +44,7 @@ const definitions: Definition[] = [
         toZigbee: [tzLocal.LDSENK08_sensitivity],
         exposes: [e.battery_low(), e.contact(), e.vibration(), e.tamper(), e.battery(),
             e.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(4).withDescription('Sensitivity of the motion sensor')],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
@@ -232,7 +232,7 @@ const definitions: Definition[] = [
         exposes: [e.battery(), e.action(['on', 'off', 'scene_1', 'scene_2', 'scene_3', 'scene_4', 'color_saturation_step_up',
             'color_saturation_step_down', 'color_stop', 'color_hue_step_up', 'color_hue_step_down',
             'color_temperature_step_up', 'color_temperature_step_down', 'brightness_step_up', 'brightness_step_down', 'brightness_stop'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genOnOff', 'genPowerCfg', 'lightingColorCtrl', 'genLevelCtrl'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -278,7 +278,7 @@ const definitions: Definition[] = [
         extend: [
             quirkCheckinInterval(0),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
         },
     },
@@ -329,7 +329,7 @@ const definitions: Definition[] = [
         description: 'Roller shutter controller (Leroy Merlin version)',
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
@@ -357,7 +357,7 @@ const definitions: Definition[] = [
             e.energy(),
             e.pilot_wire_mode(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff', 'seMetering', 'manuSpecificNodOnPilotWire']);
             await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
@@ -376,7 +376,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.adeo_button_65024, fz.battery],
         exposes: [e.action(['single', 'double', 'hold']), e.battery()],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);

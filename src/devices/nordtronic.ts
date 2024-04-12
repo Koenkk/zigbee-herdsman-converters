@@ -1,5 +1,5 @@
 import {Definition} from '../lib/types';
-import {light, onOff} from '../lib/modernExtend';
+import {light, onOff, electricityMeter} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -15,6 +15,13 @@ const definitions: Definition[] = [
         vendor: 'Nordtronic',
         description: 'Zigbee switch 400W',
         extend: [onOff()],
+    },
+    {
+        zigbeeModel: ['RotDIMZ 98424072'],
+        model: '98424072',
+        vendor: 'Nordtronic',
+        description: 'Zigbee rotary dimmer',
+        extend: [light({configureReporting: true}), electricityMeter()],
     },
 ];
 

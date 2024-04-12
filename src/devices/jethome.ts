@@ -38,7 +38,7 @@ const definitions: Definition[] = [
                 ['release_in1', 'single_in1', 'double_in1', 'hold_in1',
                     'release_in2', 'single_in2', 'double_in2', 'hold_in2',
                     'release_in3', 'single_in3', 'double_in3', 'hold_in3'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);

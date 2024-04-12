@@ -2,7 +2,9 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import {Fz, Tz} from '../lib/types';
 import * as iconv from 'iconv-lite';
+import {logger} from '../lib/logger';
 
+const NS = 'zhc:easyiot';
 const ea = exposes.access;
 const e = exposes.presets;
 
@@ -11,9 +13,9 @@ const fzLocal = {
         cluster: 'tunneling',
         type: ['transferDataResp'],
         convert: (model, msg, publish, options, meta) => {
-            meta.logger.debug(`"easyiot_ir_recv_command" received (msg:${JSON.stringify(msg.data)})`);
+            logger.debug(`"easyiot_ir_recv_command" received (msg:${JSON.stringify(msg.data)})`, NS);
             const hexString = msg.data.data.toString('hex');
-            meta.logger.debug(`"easyiot_ir_recv_command" received command ${hexString}`);
+            logger.debug(`"easyiot_ir_recv_command" received command ${hexString}`, NS);
             return {last_received_command: hexString};
         },
     } satisfies Fz.Converter,
@@ -22,9 +24,9 @@ const fzLocal = {
         cluster: 'tunneling',
         type: ['transferDataResp'],
         convert: (model, msg, publish, options, meta) => {
-            meta.logger.debug(`"easyiot_tts_recv_status" received (msg:${JSON.stringify(msg.data)})`);
+            logger.debug(`"easyiot_tts_recv_status" received (msg:${JSON.stringify(msg.data)})`, NS);
             const hexString = msg.data.data.toString('hex');
-            meta.logger.debug(`"easyiot_tts_recv_status" received status ${hexString}`);
+            logger.debug(`"easyiot_tts_recv_status" received status ${hexString}`, NS);
             return {last_received_status: hexString};
         },
     } satisfies Fz.Converter,
@@ -38,14 +40,14 @@ const tzLocal = {
                 throw new Error(`There is no IR code to send`);
             }
 
-            meta.logger.debug(`Sending IR code: ${value}`);
+            logger.debug(`Sending IR code: ${value}`, NS);
             await entity.command('tunneling', 'transferData',
                 {
                     'tunnelID': 0x0000,
                     'data': Buffer.from(value as string, 'hex'),
                 },
                 {disableDefaultResponse: true});
-            meta.logger.debug(`Sending IR command success.`);
+            logger.debug(`Sending IR command success.`, NS);
         },
     } as Tz.Converter,
 
@@ -56,7 +58,7 @@ const tzLocal = {
                 throw new Error(`There is no text to send`);
             }
 
-            meta.logger.debug(`Sending IR code: ${value}`);
+            logger.debug(`Sending IR code: ${value}`, NS);
             const frameHeader = Buffer.from([0xFD]);
 
             const gb2312Buffer = iconv.encode(value as string, 'GB2312');
@@ -72,7 +74,7 @@ const tzLocal = {
                     'data': protocolFrame,
                 },
                 {disableDefaultResponse: true});
-            meta.logger.debug(`Sending IR command success.`);
+            logger.debug(`Sending IR command success.`, NS);
         },
     } as Tz.Converter,
 };

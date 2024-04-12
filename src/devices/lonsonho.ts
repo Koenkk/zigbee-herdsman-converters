@@ -124,7 +124,7 @@ const definitions: Definition[] = [
             tuya.modernExtend.tuyaLight({minBrightness: true, endpointNames: ['l1', 'l2']}),
         ],
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             // Don't do: await reporting.onOff(endpoint); https://github.com/Koenkk/zigbee2mqtt/issues/6041
@@ -169,7 +169,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.TYZB01_on_off],
         fromZigbee: [fz.on_off],
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },

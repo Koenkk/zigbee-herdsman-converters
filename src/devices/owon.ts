@@ -5,6 +5,7 @@ import * as legacy from '../lib/legacy';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
+import {battery, iasZoneAlarm} from '../lib/modernExtend';
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -99,7 +100,7 @@ const fzLocal = {
                 payload.power_reactive = value;
             }
             if (msg.data.hasOwnProperty('owonCurrentSum') || msg.data.hasOwnProperty('12547')) { // 0x3103 -> 12547
-                const data = msg.data['owonCurrentSum'] || msg.data['12547'];
+                const data = msg.data['owonCurrentSum'] || msg.data['12547'] * factor;
                 payload.current = data;
             }
             if (msg.data.hasOwnProperty('owonReactiveEnergySum') || msg.data.hasOwnProperty('16643')) { // 0x4103 -> 16643
@@ -131,7 +132,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -150,7 +151,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -172,7 +173,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
@@ -209,7 +210,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.illuminance(), e.illuminance_lux().withUnit('lx'),
             e.temperature(), e.humidity()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
             if (device.modelID == 'PIR313') {
@@ -235,7 +236,7 @@ const definitions: Definition[] = [
             .withSetpoint('occupied_heating_setpoint', 8, 30, 1).withSetpoint('occupied_cooling_setpoint', 8, 30, 1)
             .withAcLouverPosition(['fully_open', 'fully_closed', 'half_open', 'quarter_open', 'three_quarters_open'])
             .withLocalTemperature(), e.fan().withModes(['low', 'medium', 'high', 'on', 'auto'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
             await reporting.fanMode(endpoint);
@@ -255,7 +256,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -274,7 +275,7 @@ const definitions: Definition[] = [
         fromZigbee: [fzLocal.temperature, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.temperature()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
@@ -291,7 +292,7 @@ const definitions: Definition[] = [
         description: '3-Phase clamp power meter',
         fromZigbee: [fz.metering, fzLocal.PC321_metering],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -350,7 +351,7 @@ const definitions: Definition[] = [
             e.programming_operation_mode(['setpoint', 'eco']), e.keypad_lockout(),
             e.max_heat_setpoint_limit(5, 30, 0.5), e.min_heat_setpoint_limit(5, 30, 0.5),
             e.max_cool_setpoint_limit(7, 35, 0.5), e.min_cool_setpoint_limit(7, 35, 0.5)],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'hvacFanCtrl',
                 'msTemperatureMeasurement', 'msOccupancySensing'];
@@ -385,7 +386,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
             device.powerSource = 'Battery';
@@ -401,13 +402,27 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.battery(), e.battery_low(), e.action(['toggle', 'brightness_step_up', 'brightness_step_down',
             'color_temperature_step_up', 'color_temperature_step_down'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
             device.powerSource = 'Battery';
             device.save();
         },
+    },
+    {
+        zigbeeModel: ['PIR313-P'],
+        model: 'PIR313-P',
+        vendor: 'OWON',
+        description: 'Motion sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
+    },
+    {
+        zigbeeModel: ['DWS312'],
+        model: 'DWS312',
+        vendor: 'OWON',
+        description: 'Door/window sensor',
+        extend: [battery(), iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
     },
 ];
 

@@ -7,6 +7,8 @@ import {philipsLight} from './philips';
 import {Endpoint} from 'zigbee-herdsman/dist/controller/model';
 import {logger} from './logger';
 
+const NS = 'zhc:gendef';
+
 interface GeneratedExtend {
     getExtend(): ModernExtend,
     getSource(): string,
@@ -137,10 +139,11 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
     // It is possible to better check if device should be considered multiEndpoint
     // based, for example, on generator arguments(i.e. presence of "endpointNames"),
     // but this will be enough for now.
-    const multiEndpoint = device.endpoints.length > 1;
+    const endpointsWithoutGreenPower = device.endpoints.filter((e) => e.ID !== 242);
+    const multiEndpoint = endpointsWithoutGreenPower.length > 1;
     if (multiEndpoint) {
         const endpoints: {[n: string]: number} = {};
-        for (const endpoint of device.endpoints) {
+        for (const endpoint of endpointsWithoutGreenPower) {
             endpoints[endpoint.ID.toString()] = endpoint.ID;
         }
         // Add to beginning for better visibility.
@@ -216,16 +219,37 @@ const inputExtenders: Extender[] = [
     [['ssIasWd'], async (d, eps) => [
         new Generator({extend: m.iasWarning, source: 'iasWarning'}),
     ]],
+    [['genDeviceTempCfg'], async (d, eps) => [
+        new Generator({extend: m.deviceTemperature, args: maybeEndpointArgs(d, eps), source: 'deviceTemperature'}),
+    ]],
+    [['pm25Measurement'], async (d, eps) => [new Generator({extend: m.pm25, args: maybeEndpointArgs(d, eps), source: 'pm25'})]],
+    [['msFlowMeasurement'], async (d, eps) => [new Generator({extend: m.flow, args: maybeEndpointArgs(d, eps), source: 'flow'})]],
+    [['msSoilMoisture'], async (d, eps) => [new Generator({extend: m.soilMoisture, args: maybeEndpointArgs(d, eps), source: 'soilMoisture'})]],
+    [['closuresWindowCovering'], async (d, eps) => [
+        new Generator({extend: m.windowCovering, args: {controls: ['lift', 'tilt']}, source: 'windowCovering'}),
+    ]],
+    [['genIdentify'], async (d, eps) => [new Generator({extend: m.identify, source: 'identify'})]],
 ];
 
 const outputExtenders: Extender[] = [
-    [['genIdentify'], async (d, eps) => [new Generator({extend: m.identify, source: 'identify'})]],
+    [['genOnOff'], async (d, eps) => [
+        new Generator({extend: m.commandsOnOff, args: maybeEndpointArgs(d, eps), source: 'commandsOnOff'}),
+    ]],
+    [['genLevelCtrl'], async (d, eps) => [
+        new Generator({extend: m.commandsLevelCtrl, args: maybeEndpointArgs(d, eps), source: 'commandsLevelCtrl'}),
+    ]],
+    [['lightingColorCtrl'], async (d, eps) => [
+        new Generator({extend: m.commandsColorCtrl, args: maybeEndpointArgs(d, eps), source: 'commandsColorCtrl'}),
+    ]],
+    [['closuresWindowCovering'], async (d, eps) => [
+        new Generator({extend: m.commandsWindowCovering, args: maybeEndpointArgs(d, eps), source: 'commandsWindowCovering'}),
+    ]],
 ];
 
 async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
-        logger.warn('extenderLock can accept only one endpoint');
+        logger.warning('extenderLock can accept only one endpoint', NS);
     }
 
     const endpoint = endpoints[0];
@@ -285,7 +309,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
 async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
-        logger.warn('extenderElectricityMeter can accept only one endpoint');
+        logger.warning('extenderElectricityMeter can accept only one endpoint', NS);
     }
 
     const endpoint = endpoints[0];

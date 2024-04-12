@@ -1,16 +1,19 @@
 import * as configureKey from './lib/configureKey';
-import * as exposes from './lib/exposes';
+import * as exposesLib from './lib/exposes';
 import type {Feature, Numeric, Enum, Binary, Text, Composite, List, Light, Climate, Switch, Lock, Cover, Fan} from './lib/exposes';
+import {Enum as EnumClass} from './lib/exposes';
 import toZigbee from './converters/toZigbee';
 import fromZigbee from './converters/fromZigbee';
 import assert from 'assert';
 import * as ota from './lib/ota';
 import allDefinitions from './devices';
 import * as utils from './lib/utils';
-import { Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, Logger } from './lib/types';
+import {Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue} from './lib/types';
 import {generateDefinition} from './lib/generateDefinition';
 import {Zcl} from 'zigbee-herdsman';
 import * as logger from './lib/logger';
+
+const NS = 'zhc';
 
 export {
     Definition as Definition,
@@ -40,7 +43,7 @@ export const getConfigureKey = configureKey.getConfigureKey;
 
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
-const lookup = new Map();
+const lookup = new Map<string, Definition[]>();
 export const definitions: Definition[] = [];
 
 function arrayEquals<T>(as: T[], bs: T[]) {
@@ -103,9 +106,10 @@ function processExtensions(definition: Definition): Definition {
             assert.fail(`'${definition.model}' has function exposes which is not allowed`);
         }
 
+        exposes = [...exposes ?? []]
         toZigbee = [...toZigbee ?? []];
         fromZigbee = [...fromZigbee ?? []];
-        exposes = [...exposes ?? []];
+
         const configures: Configure[] = definitionConfigure ? [definitionConfigure] : [];
 
         for (const ext of extend) {
@@ -118,7 +122,7 @@ function processExtensions(definition: Definition): Definition {
             if (ext.meta) meta = {...ext.meta, ...meta};
             if (ext.configure) configures.push(ext.configure);
             if (ext.ota) {
-                if (ota) {
+                if (ota && ext.ota !== ota) {
                     assert.fail(`'${definition.model}' has multiple 'ota', this is not allowed`);
                 }
                 ota = ext.ota;
@@ -137,11 +141,27 @@ function processExtensions(definition: Definition): Definition {
             }
         }
 
+        // Filtering out action exposes to combine them one
+        const actionExposes = exposes.filter((e) => e.name === 'action');
+        exposes = exposes.filter((e) => e.name !== 'action');
+        if (actionExposes.length > 0) {
+            const actions: string[] = [];
+            for (const expose of actionExposes) {
+                if (expose instanceof EnumClass) {
+                    for (const action of expose.values) {
+                        actions.push(action.toString())
+                    } 
+                }
+            } 
+            const uniqueActions = actions.filter((value, index, array) => array.indexOf(value) === index);
+            exposes.push(exposesLib.presets.action(uniqueActions));
+        }
+
         let configure: Configure = null;
         if (configures.length !== 0) {
-            configure = async (device, coordinatorEndpoint, logger) => {
+            configure = async (device, coordinatorEndpoint, configureDefinition) => {
                 for (const func of configures) {
-                    await func(device, coordinatorEndpoint, logger);
+                    await func(device, coordinatorEndpoint, configureDefinition);
                 }
             }
         }
@@ -157,10 +177,10 @@ function prepareDefinition(definition: Definition): Definition {
     definition.toZigbee.push(
         toZigbee.scene_store, toZigbee.scene_recall, toZigbee.scene_add, toZigbee.scene_remove, toZigbee.scene_remove_all, 
         toZigbee.scene_rename, toZigbee.read, toZigbee.write,
-        toZigbee.command, toZigbee.factory_reset);
+        toZigbee.command, toZigbee.factory_reset, toZigbee.zcl_command);
 
     if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
-        definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);
+        definition.exposes = definition.exposes.concat([exposesLib.presets.linkquality()]);
     }
 
     validateDefinition(definition);
@@ -175,9 +195,9 @@ function prepareDefinition(definition: Definition): Definition {
             // Battery voltage is not calibratable
             if (expose.name === 'voltage' && expose.unit === 'mV') continue;
             const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? 'percentual' : 'absolute';
-            definition.options.push(exposes.options.calibration(expose.name, type));
+            definition.options.push(exposesLib.options.calibration(expose.name, type));
             if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
-                definition.options.push(exposes.options.precision(expose.name));
+                definition.options.push(exposesLib.options.precision(expose.name));
             }
             optionKeys.push(expose.name);
         }
@@ -198,7 +218,7 @@ function prepareDefinition(definition: Definition): Definition {
     return definition
 }
 
-export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue, logger: Logger) {
+export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue) {
     // Apply calibration/precision options
     for (const [key, value] of Object.entries(payload)) {
         const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(null, null);
@@ -207,7 +227,7 @@ export function postProcessConvertedFromZigbeeMessage(definition: Definition, pa
             try {
                 payload[key] = utils.calibrateAndPrecisionRoundOptions(value, options, expose.name);
             } catch (error) {
-                logger.error(`Failed to apply calibration to '${expose.name}': ${error.message}`);
+                logger.logger.error(`Failed to apply calibration to '${expose.name}': ${error.message}`, NS);
             }
         }
     }
@@ -257,6 +277,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown: bool
     }
 
     const candidates = getFromLookup(device.modelID);
+
     if (!candidates) {
         if (!generateForUnknown || device.type === 'Coordinator') {
             return null;
@@ -265,15 +286,16 @@ export async function findDefinition(device: Zh.Device, generateForUnknown: bool
         // Do not add this definition to cache,
         // as device configuration might change.
         return prepareDefinition((await generateDefinition(device)).definition);
-    } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
+    } else if (candidates.length === 1 && candidates[0].zigbeeModel) {
         return candidates[0];
     } else {
         // First try to match based on fingerprint, return the first matching one.
         const fingerprintMatch: {priority: number, definition: Definition} = {priority: null, definition: null};
+
         for (const candidate of candidates) {
-            if (candidate.hasOwnProperty('fingerprint')) {
+            if (candidate.fingerprint) {
                 for (const fingerprint of candidate.fingerprint) {
-                    const priority = fingerprint.hasOwnProperty('priority') ? fingerprint.priority : 0;
+                    const priority = fingerprint.priority ?? 0;
                     if (isFingerprintMatch(fingerprint, device) && (!fingerprintMatch.definition || priority > fingerprintMatch.priority)) {
                         fingerprintMatch.definition = candidate;
                         fingerprintMatch.priority = priority;
@@ -288,7 +310,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown: bool
 
         // Match based on fingerprint failed, return first matching definition based on zigbeeModel
         for (const candidate of candidates) {
-            if (candidate.hasOwnProperty('zigbeeModel') && candidate.zigbeeModel.includes(device.modelID)) {
+            if (candidate.zigbeeModel && candidate.zigbeeModel.includes(device.modelID)) {
                 return candidate;
             }
         }
@@ -360,7 +382,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
                 const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
                 const payload = {0xf00: {value: 23, type: 35}};
                 endpoint.readResponse('genBasic', frame.Header.transactionSequenceNumber, payload, options).catch((e) => {
-                    logger.logger.warn(`Legrand security read response failed: ${e}`);
+                    logger.logger.warning(`Legrand security read response failed: ${e}`, NS);
                 })
                 return true;
             }
@@ -377,7 +399,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
                 const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
                 const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
                 endpoint.readResponse('genTime', frame.Header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
-                    logger.logger.warn(`ZNCWWSQ01LM custom time response failed: ${e}`);
+                    logger.logger.warning(`ZNCWWSQ01LM custom time response failed: ${e}`, NS);
                 })
                 return true;
             }

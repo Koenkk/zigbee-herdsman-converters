@@ -249,18 +249,18 @@ describe('lib/lumi', () => {
         describe('Feeder schedule', () => {
             it('Schedule 0 days', () => {
                 const data = Buffer.from([0,5,43,8,0,8,200,2,47,47]);
-                const result = fromZigbee.lumi_feeder.convert(null, {data: {'65521': data}}, null, null, {logger: {warn: jest.fn(), debug: jest.fn()}});
+                const result = fromZigbee.lumi_feeder.convert(null, {data: {'65521': data}}, null, null);
                 expect(result).toStrictEqual({ schedule: [] });
             });
 
             it('Schedule 1 day', () => {
                 const data = Buffer.from([0,5,9,8,0,8,200,10,55,70,48,49,48,49,48,49,48,48]);
-                const result = fromZigbee.lumi_feeder.convert(null, {data: {'65521': data}}, null, null, {logger: {warn: jest.fn(), debug: jest.fn()}});
+                const result = fromZigbee.lumi_feeder.convert(null, {data: {'65521': data}}, null, null);
                 expect(result).toStrictEqual({ schedule: [ { days: 'everyday', hour: 1, minute: 1, size: 1 } ] });
             });
             it.only('Too small frame', () => {
                 const data = Buffer.from([128,2,2,48]);
-                const result = fromZigbee.lumi_feeder.convert(null, {data: {'65521': data}}, null, null, {logger: {warn: jest.fn(), debug: jest.fn()}});
+                const result = fromZigbee.lumi_feeder.convert(null, {data: {'65521': data}}, null, null);
                 expect(result).toStrictEqual({});
             });
         });

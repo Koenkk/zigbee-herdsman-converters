@@ -13,10 +13,10 @@ import type {
 import * as exposes from './exposes';
 
 export interface Logger {
-    info: (message: string) => void;
-    warn: (message: string) => void;
-    error: (message: string) => void;
-    debug: (message: string) => void;
+    debug: (message: string, namespace: string) => void;
+    info: (message: string, namespace: string) => void;
+    warning: (message: string, namespace: string) => void;
+    error: (message: string | Error, namespace: string) => void;
 }
 
 export type Range = [number, number];
@@ -37,6 +37,7 @@ export interface Fingerprint {
     hardwareVersion?: number, manufacturerName?: string, modelID?: string, powerSource?: 'Battery' | 'Mains (single phase)',
     softwareBuildID?: string, stackVersion?: number, zclVersion?: number, ieeeAddr?: RegExp,
     endpoints?: {ID?: number, profileID?: number, deviceID?: number, inputClusters?: number[], outputClusters?: number[]}[],
+    priority?: number,
 }
 export type WhiteLabel =
     {vendor: string, model: string, description: string, fingerprint: Fingerprint[]} |
@@ -157,7 +158,7 @@ export interface DefinitionMeta {
     supportsHueAndSaturation?: boolean,
 }
 
-export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, logger: Logger) => Promise<void>;
+export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
 export type OnEvent = (type: OnEventType, data: OnEventData, device: Zh.Device, settings: KeyValue, state: KeyValue) => Promise<void>;
 
 export interface ModernExtend {
@@ -181,8 +182,8 @@ export interface OnEventData {
 }
 
 export type DefinitionOta = {
-    isUpdateAvailable: (device: Zh.Device, logger: Logger, requestPayload:Ota.ImageInfo) => Promise<OtaUpdateAvailableResult>;
-    updateToLatest: (device: Zh.Device, logger: Logger, onProgress: Ota.OnProgress) => Promise<number>;
+    isUpdateAvailable: (device: Zh.Device, requestPayload:Ota.ImageInfo) => Promise<OtaUpdateAvailableResult>;
+    updateToLatest: (device: Zh.Device, onProgress: Ota.OnProgress) => Promise<number>;
 }
 
 export type Definition = {
@@ -190,19 +191,23 @@ export type Definition = {
     vendor: string;
     description: string;
     whiteLabel?: WhiteLabel[];
-    endpoint?: (device: Zh.Device) => {[s: string]: number},
-    configure?: Configure,
-    options?: Option[],
-    meta?: DefinitionMeta,
-    onEvent?: OnEvent,
-    ota?: DefinitionOta,
-    generated?: boolean,
-} & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
-    & ({ extend: ModernExtend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
-        exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[])) } |
-    {
-        fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[],
-        exposes: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]))
+    endpoint?: (device: Zh.Device) => {[s: string]: number};
+    configure?: Configure;
+    options?: Option[];
+    meta?: DefinitionMeta;
+    onEvent?: OnEvent;
+    ota?: DefinitionOta;
+    generated?: boolean;
+} & ({ zigbeeModel: string[]; fingerprint?: Fingerprint[]; } | { zigbeeModel?: string[]; fingerprint: Fingerprint[]; })
+    & ({
+        extend: ModernExtend[];
+        fromZigbee?: Fz.Converter[];
+        toZigbee?: Tz.Converter[];
+        exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]));
+    } | {
+        fromZigbee: Fz.Converter[];
+        toZigbee: Tz.Converter[];
+        exposes: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]));
     });
 
 export namespace Fz {
@@ -214,7 +219,7 @@ export namespace Fz {
         groupID: number, type: string,
         cluster: string | number, linkquality: number
     }
-    export interface Meta {state: KeyValue, logger: Logger, device: Zh.Device, deviceExposesChanged: () => void}
+    export interface Meta {state: KeyValue, device: Zh.Device, deviceExposesChanged: () => void}
     export interface Converter {
         cluster: string | number,
         type: string[] | string,
@@ -225,7 +230,6 @@ export namespace Fz {
 
 export namespace Tz {
     export interface Meta {
-        logger: Logger,
         message: KeyValue,
         device: Zh.Device,
         mapped: Definition | Definition[],
@@ -310,7 +314,7 @@ export namespace Ota {
         hardwareVersionMin?: number,
         hardwareVersionMax?: number,
     }
-    export type GetImageMeta = (current: ImageInfo, logger: Logger, device: Zh.Device) => Promise<ImageMeta>;
+    export type GetImageMeta = (current: ImageInfo, device: Zh.Device) => Promise<ImageMeta>;
 }
 export namespace Reporting {
     export interface Override {

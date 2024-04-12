@@ -65,6 +65,7 @@ import ecolink from './ecolink';
 import ecosmart from './ecosmart';
 import ecozy from './ecozy';
 import edp from './edp';
+import efekta from './efekta';
 import eglo from './eglo';
 import elko from './elko';
 import enbrighten from './enbrighten';
@@ -173,6 +174,7 @@ import meazon from './meazon';
 import mercator from './mercator';
 import miboxer from './miboxer';
 import micromatic from './micromatic';
+import modular from './modular';
 import moes from './moes';
 import müller_licht from './müller_licht';
 import namron from './namron';
@@ -218,6 +220,7 @@ import rtx from './rtx';
 import salus_controls from './salus_controls';
 import samotech from './samotech';
 import saswell from './saswell';
+import sber from './sber';
 import scanproducts from './scanproducts';
 import schlage from './schlage';
 import schneider_electric from './schneider_electric';
@@ -252,6 +255,7 @@ import stelpro from './stelpro';
 import sunricher from './sunricher';
 import swann from './swann';
 import sylvania from './sylvania';
+import tapestry from './tapestry';
 import tci from './tci';
 import technicolor from './technicolor';
 import terncy from './terncy';
@@ -361,6 +365,7 @@ export default [
     ...ecosmart,
     ...ecozy,
     ...edp,
+    ...efekta,
     ...eglo,
     ...elko,
     ...enbrighten,
@@ -469,6 +474,7 @@ export default [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...modular,
     ...moes,
     ...müller_licht,
     ...namron,
@@ -514,6 +520,7 @@ export default [
     ...salus_controls,
     ...samotech,
     ...saswell,
+    ...sber,
     ...scanproducts,
     ...schlage,
     ...schneider_electric,
@@ -548,6 +555,7 @@ export default [
     ...sunricher,
     ...swann,
     ...sylvania,
+    ...tapestry,
     ...tci,
     ...technicolor,
     ...terncy,

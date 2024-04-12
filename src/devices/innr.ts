@@ -17,7 +17,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level',
             'color_temperature_move'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
         },
@@ -31,7 +31,7 @@ const definitions: Definition[] = [
         toZigbee: [],
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down',
             'brightness_move_to_level', 'color_temperature_move'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genGroups', 'genScenes',
                 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
@@ -657,7 +657,7 @@ const definitions: Definition[] = [
             return {'all': 1, 'l1': 3, 'l2': 4, 'l3': 5, 'l4': 6, 'l5': 7, 'l6': 8};
         },
         exposes: [e.action(['on_*', 'off_*', 'brightness_*', 'scene_*'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint,
                 ['genBasic', 'genGroups', 'genScenes', 'genOnOff', 'genLevelCtrl']);
             for (const ep of [3, 4, 5, 6, 7, 8]) {

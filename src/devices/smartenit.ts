@@ -16,7 +16,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             const endpoint2 = device.getEndpoint(2);
