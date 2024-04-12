@@ -2616,25 +2616,6 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
-    lumi_knob_rotation: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(570)) {
-                const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
-                const state: KeyValueNumberString = {0: 'released', 128: 'pressed'};
-                return {
-                    action: act[msg.data[570] & ~128],
-                    action_rotation_button_state: state[msg.data[570] & 128],
-                    action_rotation_angle: msg.data[558],
-                    action_rotation_angle_speed: msg.data[560],
-                    action_rotation_percent: msg.data[563],
-                    action_rotation_percent_speed: msg.data[562],
-                    action_rotation_time: msg.data[561],
-                };
-            }
-        },
-    } satisfies Fz.Converter,
     lumi_curtain_status: {
         cluster: 'genMultistateOutput',
         type: ['attributeReport'],
