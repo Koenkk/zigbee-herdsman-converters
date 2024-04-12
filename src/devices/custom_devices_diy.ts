@@ -495,7 +495,7 @@ const definitions: Definition[] = [
                 }
                 for (const endpoint of device.endpoints) {
                     if (endpoint.supportsInputCluster('haElectricalMeasurement')) {
-                        endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {dcCurrentDivisor: 1000, dcCurrentMultiplier: 1, 
+                        endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {dcCurrentDivisor: 1000, dcCurrentMultiplier: 1,
                             dcPowerDivisor: 10, dcPowerMultiplier: 1, dcVoltageDivisor: 100, dcVoltageMultiplier: 1});
                     }
                     if (endpoint.supportsInputCluster('seMetering')) {
