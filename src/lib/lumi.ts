@@ -1807,6 +1807,39 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    lumiCommandMode: (args?: {setEventMode: boolean}): ModernExtend => {
+        args = {setEventMode: true, ...args};
+        const exposes: Expose[] = [
+            e.enum('operation_mode', ea.ALL, ['event', 'command'])
+                .withDescription('Command mode is usefull for binding. Event mode is usefull for processing.'),
+        ];
+
+        const toZigbee: Tz.Converter[] = [{
+            key: ['operation_mode'],
+            convertSet: async (entity, key, value, meta) => {
+                assertString(value);
+                // modes:
+                // 0 - 'command' mode. keys send commands. useful for binding
+                // 1 - 'event' mode. keys send events. useful for handling
+                const lookup = {command: 0, event: 1};
+                const endpoint = meta.device.getEndpoint(1);
+                await endpoint.write('manuSpecificLumi', {'mode': getFromLookup(value.toLowerCase(), lookup)},
+                    {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
+                return {state: {operation_mode: value.toLowerCase()}};
+            },
+            convertGet: async (entity, key, meta) => {
+                const endpoint = meta.device.getEndpoint(1);
+                await endpoint.read('manuSpecificLumi', ['mode'], {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
+            },
+        }];
+        const result: ModernExtend = {exposes, toZigbee, isModernExtend: true};
+
+        if (args.setEventMode) {
+            result.configure = lumiModernExtend.lumiSetEventMode().configure;
+        }
+
+        return result;
+    },
 };
 
 export {lumiModernExtend as modernExtend};
