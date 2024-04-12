@@ -1,7 +1,7 @@
-import {Definition, Fz} from '../lib/types';
+import {Definition, Expose, Fz, ModernExtend, KeyValueAny, Configure} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
-import {deviceEndpoints, onOff} from '../lib/modernExtend';
+import {deviceEndpoints, onOff, setupConfigureForBinding} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
 const e = exposes.presets;
 
@@ -17,6 +17,29 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
 };
+
+export const ewelinkModernExtend = {
+    ewelinkAction: (): ModernExtend => {
+        const exposes: Expose[] = [e.action(['single', 'double', 'long'])];
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'genOnOff',
+                type: ['commandOn', 'commandOff', 'commandToggle'],
+                convert: (model, msg, publish, options, meta) => {
+                    const lookup: KeyValueAny = {'commandToggle': 'single', 'commandOn': 'double', 'commandOff': 'long'};
+                    return {action: lookup[msg.type]};
+                },
+            },
+        ];
+
+        const configure: Configure = setupConfigureForBinding('genOnOff', 'output');
+
+        return {exposes, fromZigbee, configure, isModernExtend: true};
+    },
+};
+
+export {ewelinkModernExtend as modernExtend};
 
 const definitions: Definition[] = [
     {
