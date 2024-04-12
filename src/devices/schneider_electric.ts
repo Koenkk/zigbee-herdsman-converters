@@ -1300,7 +1300,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, fz.command_on, fz.command_off],
         toZigbee: [tz.on_off],
         description: 'Merten MEG5152 switch insert (2fold) with Merten System M push button (2fold)',
-        extend: [deviceEndpoints({"endpoints":{"left":1,"right":2,"commandleft":21,"commandright":22}}), identify(), onOff({"powerOnBehavior":false,"endpointNames":["left","right]}), commandsOnOff({"endpointNames":["commandleft","commandright"]}), commandsLevelCtrl({"endpointNames":["commandleft","commandright"]}), commandsWindowCovering({"endpointNames":["commandleft","commandright"]})],
+        extend: [deviceEndpoints({"endpoints":{"left":1,"right":2,"left":21,"right":22}}), identify(), onOff({"powerOnBehavior":false,"endpointNames":["left","right]}), commandsOnOff({"endpointNames":["left","right"]}), commandsLevelCtrl({"endpointNames":["left","right"]}), commandsWindowCovering({"endpointNames":["left","right"]})],
         meta: {"multiEndpoint":true},
     },
 
