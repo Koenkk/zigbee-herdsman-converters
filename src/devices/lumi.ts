@@ -19,6 +19,7 @@ const {
     lumiOverloadProtection, lumiLedIndicator, lumiButtonLock, lumiMotorSpeed,
     lumiOnOff, lumiLedDisabledNight, lumiFlipIndicatorLight, lumiPreventReset,
     lumiClickMode, lumiSlider, lumiSetEventMode, lumiSwitchMode, lumiVibration,
+    lumiKnobRotation,
 } = lumi.modernExtend;
 import {Definition} from '../lib/types';
 import {logger} from '../lib/logger';
@@ -3300,30 +3301,18 @@ const definitions: Definition[] = [
         zigbeeModel: ['lumi.switch.rkna01'],
         model: 'ZNXNKG01LM',
         vendor: 'Aqara',
-        description: 'Aqara knob H1 (with Neutral)',
-        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_basic,
-            lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_knob_rotation],
-        toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
-            lumi.toZigbee.lumi_switch_mode_switch],
-
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
-
-        exposes: [
-            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            e.device_temperature(),
-            e.action(['single', 'double', 'hold', 'release', 'start_rotating', 'rotation', 'stop_rotating']),
-            e.power_outage_count(), e.energy(), e.voltage(), e.power(),
-            e.enum('action_rotation_button_state', ea.STATE, ['released', 'pressed']).withDescription('Button state during rotation'),
-            e.numeric('action_rotation_angle', ea.STATE).withUnit('*').withDescription('Rotation angle'),
-            e.numeric('action_rotation_angle_speed', ea.STATE).withUnit('*').withDescription('Rotation angle speed'),
-            e.numeric('action_rotation_percent', ea.STATE).withUnit('%').withDescription('Rotation percent'),
-            e.numeric('action_rotation_percent_speed', ea.STATE).withUnit('%').withDescription('Rotation percent speed'),
-            e.numeric('action_rotation_time', ea.STATE).withUnit('ms').withDescription('Rotation time'),
+        description: 'Smart rotary knob H1 (with neutral)',
+        extend: [
+            lumiPreventReset(),
+            deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
+            lumiOnOff({operationMode: true, powerOutageMemory: 'binary', endpointNames: ['left', 'center', 'right']}),
+            lumiSwitchMode(),
+            lumiAction({actionLookup: {'hold': 0, 'single': 1, 'double': 2, 'release': 255}}),
+            lumiKnobRotation(),
+            lumiElectricityMeter(),
+            lumiPower(),
+            lumiZigbeeOTA(),
         ],
-        extend: [lumiZigbeeOTA(), lumiPreventReset()],
     },
 ];
 
