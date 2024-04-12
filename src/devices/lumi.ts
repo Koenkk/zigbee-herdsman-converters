@@ -3305,8 +3305,8 @@ const definitions: Definition[] = [
         extend: [
             lumiPreventReset(),
             deviceEndpoints({endpoints: {'left': 1, 'center': 2, 'right': 3}}),
-            lumiOnOff({operationMode: true, powerOutageMemory: 'binary', endpointNames: ['left', 'center', 'right']}),
-            lumiSwitchMode(),
+            lumiOnOff({powerOutageMemory: 'binary', endpointNames: ['left', 'center', 'right']}),
+            lumiCommandMode(),
             lumiAction({actionLookup: {'hold': 0, 'single': 1, 'double': 2, 'release': 255}}),
             lumiKnobRotation(),
             lumiElectricityMeter(),
