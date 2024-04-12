@@ -1293,14 +1293,15 @@ const definitions: Definition[] = [
             await endpoint1.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
         },
     },
-        {
+    {
         zigbeeModel: ['2GANG/ESWITCH/2'],
         model: 'MEG5126-0300/MEG5152-0000',
         vendor: 'Schneider Electric',
+        fromZigbee: [fz.on_off, fz.command_on, fz.command_off],
+        toZigbee: [tz.on_off],
         description: 'Merten MEG5152 switch insert (2fold) with Merten System M push button (2fold)',
-        extend: [deviceEndpoints({"endpoints":{"1":1,"2":2,"21":21,"22":22}}), identify(), onOff({"powerOnBehavior":false,"endpointNames":["1","2"]}), commandsOnOff({"endpointNames":["21","22"]}), commandsLevelCtrl({"endpointNames":["21","22"]}), commandsWindowCovering({"endpointNames":["21","22"]})],
+        extend: [deviceEndpoints({"endpoints":{"left":1,"right":2,"commandleft":21,"commandright":22}}), identify(), onOff({"powerOnBehavior":false,"endpointNames":["left","right]}), commandsOnOff({"endpointNames":["commandleft","commandright"]}), commandsLevelCtrl({"endpointNames":["commandleft","commandright"]}), commandsWindowCovering({"endpointNames":["commandleft","commandright"]})],
         meta: {"multiEndpoint":true},
-        },
     },
 
 ];
