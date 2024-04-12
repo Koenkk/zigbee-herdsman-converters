@@ -19,7 +19,7 @@ const {
     lumiOverloadProtection, lumiLedIndicator, lumiButtonLock, lumiMotorSpeed,
     lumiOnOff, lumiLedDisabledNight, lumiFlipIndicatorLight, lumiPreventReset,
     lumiClickMode, lumiSlider, lumiSetEventMode, lumiSwitchMode, lumiVibration,
-    lumiKnobRotation,
+    lumiKnobRotation, lumiCommandMode, lumiBattery,
 } = lumi.modernExtend;
 import {Definition} from '../lib/types';
 import {logger} from '../lib/logger';
@@ -2652,25 +2652,14 @@ const definitions: Definition[] = [
         model: 'ZNXNKG02LM',
         vendor: 'Aqara',
         description: 'Smart rotary knob H1 (wireless)',
-        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        extend: [quirkCheckinInterval('1_HOUR'), lumiPreventReset()],
-        exposes: [e.battery(), e.battery_voltage(),
-            e.action(['single', 'double', 'hold', 'release', 'start_rotating', 'rotation', 'stop_rotating']),
-            e.enum('operation_mode', ea.ALL, ['event', 'command']).withDescription('Button mode'),
-            e.enum('action_rotation_button_state', ea.STATE, ['released', 'pressed']).withDescription('Button state during rotation'),
-            e.numeric('action_rotation_angle', ea.STATE).withUnit('*').withDescription('Rotation angle'),
-            e.numeric('action_rotation_angle_speed', ea.STATE).withUnit('*').withDescription('Rotation angle speed'),
-            e.numeric('action_rotation_percent', ea.STATE).withUnit('%').withDescription('Rotation percent'),
-            e.numeric('action_rotation_percent_speed', ea.STATE).withUnit('%').withDescription('Rotation percent speed'),
-            e.numeric('action_rotation_time', ea.STATE).withUnit('ms').withDescription('Rotation time'),
+        extend: [
+            quirkCheckinInterval('1_HOUR'),
+            lumiPreventReset(),
+            lumiCommandMode(),
+            lumiAction({actionLookup: {'hold': 0, 'single': 1, 'double': 2, 'release': 255}}),
+            lumiBattery({voltageToPercentage: '3V_2850_3000'}),
+            lumiKnobRotation(),
         ],
-        fromZigbee: [lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_basic,
-            lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_knob_rotation],
-        toZigbee: [lumi.toZigbee.lumi_operation_mode_opple],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            await endpoint1.write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
-        },
     },
     {
         zigbeeModel: ['lumi.remote.acn003'],
