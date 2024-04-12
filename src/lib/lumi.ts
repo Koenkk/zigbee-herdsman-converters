@@ -839,6 +839,33 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
     return payload;
 };
 
+const numericAttributes2Lookup = async (dataObject: KeyValue) => {
+    let result: KeyValue = {};
+    for (const [key, value] of Object.entries(dataObject)) {
+        switch (key) {
+        case '247':
+            {
+                // @ts-expect-error
+                const dataObject247 = buffer2DataObject(meta, model, value);
+                const result247 = await numericAttributes2Lookup(dataObject247);
+                result = {...result, ...result247};
+            }
+            break;
+        case '65281':
+            {
+                // @ts-expect-error
+                const result65281 = await numericAttributes2Lookup(value);
+                result = {...result, ...result65281};
+            }
+            break;
+        default:
+            result[key] = value;
+        }
+    }
+
+    return result;
+};
+
 type LumiPresenceRegionZone = {x: number, y: number}
 
 const lumiPresenceConstants = {
@@ -1839,6 +1866,45 @@ export const lumiModernExtend = {
         }
 
         return result;
+    },
+    lumiBattery: (args?: {
+        cluster?: 'genBasic' | 'manuSpecificLumi',
+        voltageToPercentage?: string | {min: number, max: number},
+        percentageAtrribute?: number,
+        voltageAttribute?: number,
+    }): ModernExtend => {
+        args = {
+            cluster: 'manuSpecificLumi',
+            percentageAtrribute: 1,
+            voltageAttribute: 1,
+            ...args,
+        };
+        const exposes: Expose[] = [e.battery(), e.battery_voltage()];
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: args.cluster,
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    const payload: KeyValueAny = {};
+                    const lookup: KeyValueAny = numericAttributes2Lookup(msg.data);
+                    if (lookup[args.percentageAtrribute.toString()]) {
+                        const value = lookup[args.percentageAtrribute];
+                        assertNumber(value);
+                        if (!args.voltageToPercentage) payload.battery = value;
+                    }
+                    if (lookup[args.voltageAttribute.toString()]) {
+                        const value = lookup[args.voltageAttribute];
+                        assertNumber(value);
+                        payload.voltage = value;
+                        if (args.voltageToPercentage) payload.battery = batteryVoltageToPercentage(value, args.voltageToPercentage);
+                    }
+                    return payload;
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, isModernExtend: true};
     },
 };
 
