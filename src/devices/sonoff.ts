@@ -4,11 +4,12 @@ import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as constants from '../lib/constants';
 import * as reporting from '../lib/reporting';
-import {binary, enumLookup, forcePowerSource, numeric, onOff, customTimeResponse, battery} from '../lib/modernExtend';
+import {binary, enumLookup, forcePowerSource, numeric, onOff, customTimeResponse, battery, ota} from '../lib/modernExtend';
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
-import * as ota from '../lib/ota';
 import * as utils from '../lib/utils';
 import {logger} from '../lib/logger';
+import {modernExtend as ewelinkModernExtend} from '../devices/ewelink';
+const {ewelinkAction} = ewelinkModernExtend;
 
 const NS = 'zhc:sonoff';
 const e = exposes.presets;
