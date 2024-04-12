@@ -1768,6 +1768,45 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    lumiKnobRotation: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e.action(['start_rotating', 'rotation', 'stop_rotating']),
+            e.enum('action_rotation_button_state', ea.STATE, ['released', 'pressed'])
+                .withDescription('Button state during rotation').withCategory('diagnostic'),
+            e.numeric('action_rotation_angle', ea.STATE)
+                .withUnit('*').withDescription('Rotation angle').withCategory('diagnostic'),
+            e.numeric('action_rotation_angle_speed', ea.STATE)
+                .withUnit('*').withDescription('Rotation angle speed').withCategory('diagnostic'),
+            e.numeric('action_rotation_percent', ea.STATE).withUnit('%')
+                .withDescription('Rotation percent').withCategory('diagnostic'),
+            e.numeric('action_rotation_percent_speed', ea.STATE)
+                .withUnit('%').withDescription('Rotation percent speed').withCategory('diagnostic'),
+            e.numeric('action_rotation_time', ea.STATE)
+                .withUnit('ms').withDescription('Rotation time').withCategory('diagnostic'),
+        ];
+
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'manuSpecificLumi',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty(570)) {
+                    const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
+                    const state: KeyValueNumberString = {0: 'released', 128: 'pressed'};
+                    return {
+                        action: act[msg.data[570] & ~128],
+                        action_rotation_button_state: state[msg.data[570] & 128],
+                        action_rotation_angle: msg.data[558],
+                        action_rotation_angle_speed: msg.data[560],
+                        action_rotation_percent: msg.data[563],
+                        action_rotation_percent_speed: msg.data[562],
+                        action_rotation_time: msg.data[561],
+                    };
+                }
+            },
+        }];
+
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
 };
 
 export {lumiModernExtend as modernExtend};
