@@ -8,7 +8,7 @@ import {binary, enumLookup, forcePowerSource, numeric, onOff, customTimeResponse
 import {Definition, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from '../lib/types';
 import * as utils from '../lib/utils';
 import {logger} from '../lib/logger';
-import {modernExtend as ewelinkModernExtend} from '../devices/ewelink';
+import {modernExtend as ewelinkModernExtend} from '../lib/ewelink';
 const {ewelinkAction} = ewelinkModernExtend;
 
 const NS = 'zhc:sonoff';
