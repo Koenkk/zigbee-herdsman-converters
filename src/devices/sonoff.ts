@@ -405,8 +405,10 @@ const definitions: Definition[] = [
         model: 'ZBMINI-L',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
-        ota: ota.zigbeeOTA,
-        extend: [onOff()],
+        extend: [
+            onOff(),
+            ota(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -422,8 +424,10 @@ const definitions: Definition[] = [
         model: 'ZBMINIL2',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
-        ota: ota.zigbeeOTA,
-        extend: [onOff()],
+        extend: [
+            onOff(),
+            ota(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -600,7 +604,10 @@ const definitions: Definition[] = [
         model: 'S40ZBTPB',
         vendor: 'SONOFF',
         description: '15A Zigbee smart plug',
-        extend: [onOff({powerOnBehavior: false, skipDuplicateTransaction: true, ota: ota.zigbeeOTA})],
+        extend: [
+            onOff({powerOnBehavior: false, skipDuplicateTransaction: true}),
+            ota(),
+        ],
     },
     {
         zigbeeModel: ['DONGLE-E_R'],
@@ -655,8 +662,6 @@ const definitions: Definition[] = [
         description: 'Temperature and humidity sensor',
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_low(), e.battery_voltage()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint) => {
             try {
                 const endpoint = device.getEndpoint(1);
@@ -669,6 +674,9 @@ const definitions: Definition[] = [
                 logger.error(`Configure failed: ${e}`, NS);
             }
         },
+        extend: [
+            ota(),
+        ],
     },
     {
         zigbeeModel: ['SNZB-04P'],
@@ -677,8 +685,6 @@ const definitions: Definition[] = [
         description: 'Contact sensor',
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
         extend: [
             binary({
                 name: 'tamper',
@@ -690,6 +696,7 @@ const definitions: Definition[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 access: 'STATE_GET',
             }),
+            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -704,8 +711,6 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee PIR sensor',
         fromZigbee: [fz.occupancy, fz.battery],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
         exposes: [e.occupancy(), e.battery_low(), e.battery()],
         extend: [
             numeric({
@@ -725,6 +730,7 @@ const definitions: Definition[] = [
                 description: 'Only updated when occupancy is detected',
                 access: 'STATE',
             }),
+            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -739,8 +745,6 @@ const definitions: Definition[] = [
         vendor: 'SONOFF',
         description: 'Zigbee occupancy sensor',
         fromZigbee: [fz.occupancy],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
         exposes: [e.occupancy()],
         extend: [
             numeric({
@@ -767,6 +771,7 @@ const definitions: Definition[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 access: 'STATE',
             }),
+            ota(),
         ],
     },
     {
@@ -795,7 +800,6 @@ const definitions: Definition[] = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
         ],
-        ota: ota.zigbeeOTA,
         extend: [
             binary({
                 name: 'child_lock',
@@ -865,6 +869,7 @@ const definitions: Definition[] = [
             }),
             sonoffExtend.weeklySchedule(),
             customTimeResponse('1970_UTC'),
+            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -898,8 +903,6 @@ const definitions: Definition[] = [
         fromZigbee: [
             fz.flow,
         ],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
         exposes: [
             e.numeric('flow', ea.STATE).withDescription('Current water flow').withUnit('m³/h'),
         ],
@@ -920,6 +923,7 @@ const definitions: Definition[] = [
             }),
             sonoffExtend.cyclicTimedIrrigation(),
             sonoffExtend.cyclicQuantitativeIrrigation(),
+            ota(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -933,7 +937,6 @@ const definitions: Definition[] = [
         model: 'ZBMicro',
         vendor: 'SONOFF',
         description: 'Zigbee USB repeater plug',
-        ota: ota.zigbeeOTA,
         extend: [
             onOff(),
             binary({
@@ -946,6 +949,7 @@ const definitions: Definition[] = [
                 valueOn: [true, 0x14],
             }),
             sonoffExtend.inchingControlSet(),
+            ota(),
         ],
     },
 ];
