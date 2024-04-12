@@ -645,16 +645,17 @@ const definitions: Definition[] = [
         model: 'SNZB-01P',
         vendor: 'SONOFF',
         description: 'Wireless button',
-        exposes: [e.battery(), e.action(['single', 'double', 'long']), e.battery_low(), e.battery_voltage()],
-        fromZigbee: [fz.ewelink_action, fz.battery],
-        toZigbee: [],
-        ota: ota.zigbeeOTA,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
-            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
-        },
+        extend: [
+            forcePowerSource({powerSource: 'Battery'}),
+            ewelinkAction(),
+            battery({
+                percentageReportingConfig: {min: 3600, max: 7200, change: 0},
+                voltage: true,
+                voltageReporting: true,
+                voltageReportingConfig: {min: 3600, max: 7200, change: 0},
+            }),
+            ota(),
+        ],
     },
     {
         zigbeeModel: ['SNZB-02P'],
