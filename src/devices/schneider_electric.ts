@@ -714,7 +714,7 @@ const definitions: Definition[] = [
         ],
         extend: [
             deviceEndpoints({endpoints: {'left': 4, 'right': 3, 'left_btn': 22, 'right_btn': 21}}),
-            light({endpointNames: ['left', 'right'], configureReporting: true}),
+            light({endpointNames: ['left', 'right'], configureReporting: true, levelConfig: {}}),
             switchActions('left_btn'), switchActions('right_btn'), indicatorMode('left_btn'),
         ],
     },
