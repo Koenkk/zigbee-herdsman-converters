@@ -57,7 +57,7 @@ const definitions: Definition[] = [
         model: 'HALIGHTDIMWWE27',
         vendor: 'Hive',
         description: 'Active smart bulb white LED (E27)',
-        extend: [light()],
+        extend: [light({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ['FWCLBulb01UK'],
