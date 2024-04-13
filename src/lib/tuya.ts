@@ -1196,7 +1196,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('61440')) {
                 const property = utils.postfixWithEndpointName('brightness', msg, model, meta);
-                return {[property]: msg.data['61440']};
+                return {[property]: utils.mapNumberRange(msg.data['61440'], 0, 100, 0, 255)};
             }
         },
     } satisfies Fz.Converter,
