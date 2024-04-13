@@ -839,6 +839,33 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
     return payload;
 };
 
+const numericAttributes2Lookup = async (dataObject: KeyValue) => {
+    let result: KeyValue = {};
+    for (const [key, value] of Object.entries(dataObject)) {
+        switch (key) {
+        case '247':
+            {
+                // @ts-expect-error
+                const dataObject247 = buffer2DataObject(meta, model, value);
+                const result247 = await numericAttributes2Lookup(dataObject247);
+                result = {...result, ...result247};
+            }
+            break;
+        case '65281':
+            {
+                // @ts-expect-error
+                const result65281 = await numericAttributes2Lookup(value);
+                result = {...result, ...result65281};
+            }
+            break;
+        default:
+            result[key] = value;
+        }
+    }
+
+    return result;
+};
+
 type LumiPresenceRegionZone = {x: number, y: number}
 
 const lumiPresenceConstants = {
@@ -1768,6 +1795,117 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    lumiKnobRotation: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e.action(['start_rotating', 'rotation', 'stop_rotating']),
+            e.enum('action_rotation_button_state', ea.STATE, ['released', 'pressed'])
+                .withDescription('Button state during rotation').withCategory('diagnostic'),
+            e.numeric('action_rotation_angle', ea.STATE)
+                .withUnit('*').withDescription('Rotation angle').withCategory('diagnostic'),
+            e.numeric('action_rotation_angle_speed', ea.STATE)
+                .withUnit('*').withDescription('Rotation angle speed').withCategory('diagnostic'),
+            e.numeric('action_rotation_percent', ea.STATE).withUnit('%')
+                .withDescription('Rotation percent').withCategory('diagnostic'),
+            e.numeric('action_rotation_percent_speed', ea.STATE)
+                .withUnit('%').withDescription('Rotation percent speed').withCategory('diagnostic'),
+            e.numeric('action_rotation_time', ea.STATE)
+                .withUnit('ms').withDescription('Rotation time').withCategory('diagnostic'),
+        ];
+
+        const fromZigbee: Fz.Converter[] = [{
+            cluster: 'manuSpecificLumi',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty(570)) {
+                    const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
+                    const state: KeyValueNumberString = {0: 'released', 128: 'pressed'};
+                    return {
+                        action: act[msg.data[570] & ~128],
+                        action_rotation_button_state: state[msg.data[570] & 128],
+                        action_rotation_angle: msg.data[558],
+                        action_rotation_angle_speed: msg.data[560],
+                        action_rotation_percent: msg.data[563],
+                        action_rotation_percent_speed: msg.data[562],
+                        action_rotation_time: msg.data[561],
+                    };
+                }
+            },
+        }];
+
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
+    lumiCommandMode: (args?: {setEventMode: boolean}): ModernExtend => {
+        args = {setEventMode: true, ...args};
+        const exposes: Expose[] = [
+            e.enum('operation_mode', ea.ALL, ['event', 'command'])
+                .withDescription('Command mode is usefull for binding. Event mode is usefull for processing.'),
+        ];
+
+        const toZigbee: Tz.Converter[] = [{
+            key: ['operation_mode'],
+            convertSet: async (entity, key, value, meta) => {
+                assertString(value);
+                // modes:
+                // 0 - 'command' mode. keys send commands. useful for binding
+                // 1 - 'event' mode. keys send events. useful for handling
+                const lookup = {command: 0, event: 1};
+                const endpoint = meta.device.getEndpoint(1);
+                await endpoint.write('manuSpecificLumi', {'mode': getFromLookup(value.toLowerCase(), lookup)},
+                    {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
+                return {state: {operation_mode: value.toLowerCase()}};
+            },
+            convertGet: async (entity, key, meta) => {
+                const endpoint = meta.device.getEndpoint(1);
+                await endpoint.read('manuSpecificLumi', ['mode'], {manufacturerCode: manufacturerOptions.lumi.manufacturerCode});
+            },
+        }];
+        const result: ModernExtend = {exposes, toZigbee, isModernExtend: true};
+
+        if (args.setEventMode) {
+            result.configure = lumiModernExtend.lumiSetEventMode().configure;
+        }
+
+        return result;
+    },
+    lumiBattery: (args?: {
+        cluster?: 'genBasic' | 'manuSpecificLumi',
+        voltageToPercentage?: string | {min: number, max: number},
+        percentageAtrribute?: number,
+        voltageAttribute?: number,
+    }): ModernExtend => {
+        args = {
+            cluster: 'manuSpecificLumi',
+            percentageAtrribute: 1,
+            voltageAttribute: 1,
+            ...args,
+        };
+        const exposes: Expose[] = [e.battery(), e.battery_voltage()];
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: args.cluster,
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    const payload: KeyValueAny = {};
+                    const lookup: KeyValueAny = numericAttributes2Lookup(msg.data);
+                    if (lookup[args.percentageAtrribute.toString()]) {
+                        const value = lookup[args.percentageAtrribute];
+                        assertNumber(value);
+                        if (!args.voltageToPercentage) payload.battery = value;
+                    }
+                    if (lookup[args.voltageAttribute.toString()]) {
+                        const value = lookup[args.voltageAttribute];
+                        assertNumber(value);
+                        payload.voltage = value;
+                        if (args.voltageToPercentage) payload.battery = batteryVoltageToPercentage(value, args.voltageToPercentage);
+                    }
+                    return payload;
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, isModernExtend: true};
+    },
 };
 
 export {lumiModernExtend as modernExtend};
@@ -2475,25 +2613,6 @@ export const fromZigbee = {
             if (msg.data.hasOwnProperty('onOff') && ![4, 5, 6].includes(msg.endpoint.ID)) {
                 const property = postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
-            }
-        },
-    } satisfies Fz.Converter,
-    lumi_knob_rotation: {
-        cluster: 'manuSpecificLumi',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(570)) {
-                const act: KeyValueNumberString = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
-                const state: KeyValueNumberString = {0: 'released', 128: 'pressed'};
-                return {
-                    action: act[msg.data[570] & ~128],
-                    action_rotation_button_state: state[msg.data[570] & 128],
-                    action_rotation_angle: msg.data[558],
-                    action_rotation_angle_speed: msg.data[560],
-                    action_rotation_percent: msg.data[563],
-                    action_rotation_percent_speed: msg.data[562],
-                    action_rotation_time: msg.data[561],
-                };
             }
         },
     } satisfies Fz.Converter,
