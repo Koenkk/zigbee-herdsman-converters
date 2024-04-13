@@ -1,5 +1,22 @@
 # Changelog
 
+## [19.21.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.20.0...v19.21.0) (2024-04-13)
+
+
+### Features
+
+* Added levelConfig to MEG5126-0300/MEG5172-0000 ([#7395](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7395)) ([8ca9dd8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ca9dd81ebd470d0cd1602065fbd59d1171d13f3))
+* **add:** SDM01 ([#7384](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7384)) ([04198e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/04198e075782b8361668d370a50fc0bd45e5ffae))
+* ptvo.switch: expose DC power metering ([#7390](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7390)) ([be49ef4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/be49ef4e55eb9cfd82e6a7b03c86e50c94e66445))
+
+
+### Bug Fixes
+
+* Aqara: refactor rotary knobs to modern extend ([#7392](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7392)) ([fedbf7a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fedbf7a80653d999c0d475d9b8e65d50a5da4c3a))
+* Disable unsupported power on behaviour for Hive HALIGHTDIMWWE27 https://github.com/Koenkk/zigbee2mqtt/issues/22183 ([3fc4c50](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3fc4c5053b0ad30671c6c89f5c74304463353ded))
+* Fix brightness out of range for various TuYa devices https://github.com/Koenkk/zigbee2mqtt/issues/22078 ([afc386e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/afc386ed6623b5492d2d3440aa7dbe389ca8d533))
+* Sonoff: force power source for SNZB-01P ([#7393](https://github.com/Koenkk/zigbee-herdsman-converters/issues/7393)) ([13afed5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/13afed5690db216016dc023ab214417544ef63f6))
+
 ## [19.20.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v19.19.1...v19.20.0) (2024-04-11)
 
 
