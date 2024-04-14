@@ -1699,10 +1699,10 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-                tuya.exposes.lightBrightnessWithMinMax(),
-                tuya.exposes.countdown(),
-                tuya.exposes.switchType(),
-                e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.lightBrightnessWithMinMax(),
+            tuya.exposes.countdown(),
+            tuya.exposes.switchType(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1730,13 +1730,13 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-                tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l1'),
-                tuya.exposes.countdown().withEndpoint('l1'),
-                tuya.exposes.switchType().withEndpoint('l1'),
-                tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l2'),
-                tuya.exposes.countdown().withEndpoint('l2'),
-                tuya.exposes.switchType().withEndpoint('l2'),
-                e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l1'),
+            tuya.exposes.countdown().withEndpoint('l1'),
+            tuya.exposes.switchType().withEndpoint('l1'),
+            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l2'),
+            tuya.exposes.countdown().withEndpoint('l2'),
+            tuya.exposes.switchType().withEndpoint('l2'),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
         ],
         meta: {
             multiEndpoint: true,
