@@ -1656,7 +1656,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dcnsggvz', '_TZE204_5cuocqty']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dcnsggvz']),
         model: 'TS0601_dimmer_5',
         vendor: 'TuYa',
         description: '1 gang smart dimmer module',
