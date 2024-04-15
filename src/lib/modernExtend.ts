@@ -459,7 +459,7 @@ export function customTimeResponse(start: '1970_UTC' | '2000_LOCAL'): ModernExte
                         const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
                         payload.time = secondsUTC - (new Date()).getTimezoneOffset() * 60;
                     }
-                    endpoint.readResponse('genTime', frame.Header.transactionSequenceNumber, payload).catch((e) => {
+                    endpoint.readResponse('genTime', frame.header.transactionSequenceNumber, payload).catch((e) => {
                         logger.warning(`Custom time response failed for '${device.ieeeAddr}': ${e}`, 'zhc:customtimeresponse');
                     });
                     return true;

@@ -563,6 +563,7 @@ export const valueConverter = {
     powerOnBehavior: valueConverterBasic.lookup({'off': 0, 'on': 1, 'previous': 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({'off': new Enum(0), 'on': new Enum(1), 'previous': new Enum(2)}),
     switchType: valueConverterBasic.lookup({'momentary': new Enum(0), 'toggle': new Enum(1), 'state': new Enum(2)}),
+    switchType2: valueConverterBasic.lookup({'toggle': new Enum(0), 'state': new Enum(1), 'momentary': new Enum(2)}),
     backlightModeOffNormalInverted: valueConverterBasic.lookup({'off': new Enum(0), 'normal': new Enum(1), 'inverted': new Enum(2)}),
     backlightModeOffLowMediumHigh: valueConverterBasic.lookup({'off': new Enum(0), 'low': new Enum(1), 'medium': new Enum(2), 'high': new Enum(3)}),
     lightType: valueConverterBasic.lookup({'led': 0, 'incandescent': 1, 'halogen': 2}),

@@ -1656,7 +1656,7 @@ const definitions: Definition[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dcnsggvz', '_TZE204_5cuocqty']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_dcnsggvz']),
         model: 'TS0601_dimmer_5',
         vendor: 'TuYa',
         description: '1 gang smart dimmer module',
@@ -1684,6 +1684,81 @@ const definitions: Definition[] = [
         whiteLabel: [
             {vendor: 'Moes', model: 'MS-105-M'},
         ],
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_5cuocqty',
+            },
+        ],
+        model: 'ZDMS16-1',
+        vendor: 'Avatto',
+        description: 'Zigbee 1 channel Dimmer',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.lightBrightnessWithMinMax(),
+            tuya.exposes.countdown(),
+            tuya.exposes.switchType(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
+                [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
+                [4, 'switch_type', tuya.valueConverter.switchType2],
+                [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
+                [6, 'countdown', tuya.valueConverter.countdown],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
+            ],
+        },
+    },
+    {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE204_o9gyszw2',
+            },
+        ],
+        model: 'ZDMS16-2',
+        vendor: 'Avatto',
+        description: 'Zigbee 2 channels Dimmer',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l1'),
+            tuya.exposes.countdown().withEndpoint('l1'),
+            tuya.exposes.switchType().withEndpoint('l1'),
+            tuya.exposes.lightBrightnessWithMinMax().withEndpoint('l2'),
+            tuya.exposes.countdown().withEndpoint('l2'),
+            tuya.exposes.switchType().withEndpoint('l2'),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, 'brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [3, 'min_brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [4, 'switch_type_l1', tuya.valueConverter.switchType2],
+                [5, 'max_brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [6, 'countdown_l1', tuya.valueConverter.countdown],
+                [7, 'state_l2', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [8, 'brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [9, 'min_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [10, 'switch_type_l2', tuya.valueConverter.switchType2],
+                [11, 'max_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [12, 'countdown_l2', tuya.valueConverter.countdown],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
+            ],
+        },
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1};
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_p0gzbqct']),
