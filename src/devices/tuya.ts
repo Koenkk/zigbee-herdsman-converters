@@ -7911,21 +7911,21 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_pl31aqf5']),
-        model: 'TS0601',
+        model: 'ZR360CDB',
         vendor: 'Zorro Alert',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         description: 'Multifunctional CO2 detector',
-        onEvent: tuya.onEventSetTime, 
+        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.humidity(), 
-            e.temperature().withUnit('°C'),
+            e.humidity(),
+            e.temperature(),
             e.co2(),
             e.enum('alarm_ringtone', ea.STATE_SET, ['melody_1', 'melody_2', 'OFF']).withDescription('Ringtone of the alarm'),
             e.numeric('backlight_mode', ea.STATE_SET).withValueMin(1).withValueMax(3).withValueStep(1).withDescription('Backlight'),
             tuya.exposes.batteryState(),
-            e.enum('air_quality', ea.STATE_GET, ['excellent', 'moderate', 'poor'])
+            e.enum('air_quality', ea.STATE_GET, ['excellent', 'moderate', 'poor']),
         ],
         meta: {
             tuyaDatapoints: [
