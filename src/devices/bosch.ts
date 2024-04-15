@@ -109,14 +109,6 @@ const smokeDetectorAlarmState = {
     intruder_off: 1,
 };
 
-// Smoke detector II bsd-2
-const zoneStatusAlarmState = {
-    clear: 48, // 0x0030
-    smoke_on: 50, // 0x0032
-    intruder_on: 176, // 0x00b0
-    both_on: 178, // 0x00b2
-};
-
 // Radiator Thermostat II
 const setpointSource = {
     'manual': 0,
@@ -173,7 +165,7 @@ Example: 30ff00000102010001`;
 const tzLocal = {
     bsd2_alarm_state: {
         key: ['siren_smoke', 'siren_intrudion'],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value: boolean, meta) => {
             const dataToSend = {cluster: 'ssIasZone', command: 'boschSmokeDetectorSiren', payload: {data: ''}};
             const result: KeyValue = {};
             if (key === 'siren_smoke' || key === 'siren_intrudion') {
