@@ -73,10 +73,7 @@ const definitions: Definition[] = [
         model: 'HK-SENSOR-4IN1-A',
         vendor: 'Sunricher',
         description: '4IN1 Sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.temperature, fz.humidity, fz.illuminance],
-        toZigbee: [],
         extend: [
-            deviceEndpoints({'endpoints': {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5}}),
             battery(),
             identify(),
             occupancy(),
