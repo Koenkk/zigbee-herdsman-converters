@@ -1293,6 +1293,17 @@ const definitions: Definition[] = [
             await endpoint1.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
         },
     },
+    {
+        zigbeeModel: ['2GANG/ESWITCH/2'],
+        model: 'MEG5126-0300/MEG5152-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5152 switch insert (2fold) with Merten System M push button (2fold)',
+        extend: [deviceEndpoints({'endpoints': {'left': 1, 'right': 2, 'left_sw': 21, 'right_sw': 22}}), identify(),
+            onOff({'powerOnBehavior': false, 'endpointNames': ['left', 'right']}),
+            commandsOnOff({'endpointNames': ['left_sw', 'right_sw']}),
+        ],
+    },
+
 ];
 
 export default definitions;

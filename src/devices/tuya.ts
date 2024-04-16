@@ -1003,6 +1003,33 @@ const definitions: Definition[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mby4kbtq']),
+        model: 'TS0601_gas_sensor_4', // _TZE200_mby4kbtq looks like TS0601_gas_sensor_2
+        vendor: 'TuYa',
+        description: 'Gas sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.gas(),
+            tuya.exposes.gasValue().withUnit('LEL'),
+            e.binary('preheat', ea.STATE, true, false).withDescription('Indicates sensor preheat is active'),
+            tuya.exposes.faultAlarm(),
+            e.binary('alarm_switch', ea.STATE_SET, true, false),
+            tuya.exposes.silence(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'gas', tuya.valueConverter.trueFalse0],
+                [2, 'gas_value', tuya.valueConverter.divideBy10],
+                [10, 'preheat', tuya.valueConverter.raw],
+                [11, 'fault_alarm', tuya.valueConverter.trueFalse1],
+                [13, 'alarm_switch', tuya.valueConverter.raw],
+                [16, 'silence', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}, {manufacturerName: '_TZ3000_hktqahrq'},
             {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
             {modelID: 'TS000F', manufacturerName: '_TZ3000_mx3vgyea'},
@@ -7275,16 +7302,17 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_86nbew0j', '_TZE200_io0zdqh1', '_TZE200_drs6j6m5', '_TZE200_ywe90lt0']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_86nbew0j', '_TZE200_io0zdqh1', '_TZE200_drs6j6m5', '_TZE200_ywe90lt0', '_TZE200_qyss8gjy']),
         model: 'TS0601_light',
         vendor: 'TuYa',
         description: 'Light',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        exposes: [tuya.exposes.lightBrightness()],
+        exposes: [tuya.exposes.lightBrightness(), e.power_on_behavior().withAccess(ea.STATE_SET)],
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
                 [3, 'brightness', tuya.valueConverter.scale0_254to0_1000],
             ],
         },
@@ -7983,6 +8011,36 @@ const definitions: Definition[] = [
             identify({isSleepy: true}),
             battery({voltage: true}),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_pl31aqf5']),
+        model: 'ZR360CDB',
+        vendor: 'Zorro Alert',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        description: 'Multifunctional CO2 detector',
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.humidity(),
+            e.temperature(),
+            e.co2(),
+            e.enum('alarm_ringtone', ea.STATE_SET, ['melody_1', 'melody_2', 'OFF']).withDescription('Ringtone of the alarm'),
+            e.numeric('backlight_mode', ea.STATE_SET).withValueMin(1).withValueMax(3).withValueStep(1).withDescription('Backlight'),
+            tuya.exposes.batteryState(),
+            e.enum('air_quality', ea.STATE_GET, ['excellent', 'moderate', 'poor']),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'air_quality', tuya.valueConverterBasic.lookup({'excellent': tuya.enum(0), 'moderate': tuya.enum(1), 'poor': tuya.enum(2)})],
+                [2, 'co2', tuya.valueConverter.raw],
+                [5, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'melody_1': tuya.enum(0), 'melody_2': tuya.enum(1), 'OFF': tuya.enum(2)})],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
+                [17, 'backlight_mode', tuya.valueConverter.raw],
+                [18, 'temperature', tuya.valueConverter.raw],
+                [19, 'humidity', tuya.valueConverter.raw],
+            ],
+        },
     },
 ];
 

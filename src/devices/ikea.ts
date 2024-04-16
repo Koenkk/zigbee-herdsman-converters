@@ -489,10 +489,17 @@ const definitions: Definition[] = [
         extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
+        zigbeeModel: ['JETSTROM 3030 wall'],
+        model: 'L2205',
+        vendor: 'IKEA',
+        description: 'JETSTROM wall light panel, color/white spectrum, 30x30 cm',
+        extend: [ikeaLight({colorTemp: true, color: true}), identify()],
+    },
+    {
         zigbeeModel: ['JETSTROM 3030 ceiling'],
         model: 'L2206',
         vendor: 'IKEA',
-        description: 'JETSTROM wall light panel, color/white spectrum, 30x30 cm',
+        description: 'JETSTROM ceiling light panel, color/white spectrum, 30x30 cm',
         extend: [ikeaLight({colorTemp: true, color: true}), identify()],
     },
     {
