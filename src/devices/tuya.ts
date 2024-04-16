@@ -8011,6 +8011,36 @@ const definitions: Definition[] = [
             battery({voltage: true}),
         ],
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_pl31aqf5']),
+        model: 'ZR360CDB',
+        vendor: 'Zorro Alert',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        description: 'Multifunctional CO2 detector',
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.humidity(),
+            e.temperature(),
+            e.co2(),
+            e.enum('alarm_ringtone', ea.STATE_SET, ['melody_1', 'melody_2', 'OFF']).withDescription('Ringtone of the alarm'),
+            e.numeric('backlight_mode', ea.STATE_SET).withValueMin(1).withValueMax(3).withValueStep(1).withDescription('Backlight'),
+            tuya.exposes.batteryState(),
+            e.enum('air_quality', ea.STATE_GET, ['excellent', 'moderate', 'poor']),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'air_quality', tuya.valueConverterBasic.lookup({'excellent': tuya.enum(0), 'moderate': tuya.enum(1), 'poor': tuya.enum(2)})],
+                [2, 'co2', tuya.valueConverter.raw],
+                [5, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'melody_1': tuya.enum(0), 'melody_2': tuya.enum(1), 'OFF': tuya.enum(2)})],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
+                [17, 'backlight_mode', tuya.valueConverter.raw],
+                [18, 'temperature', tuya.valueConverter.raw],
+                [19, 'humidity', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
 
 export default definitions;
