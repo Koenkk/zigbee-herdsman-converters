@@ -72,13 +72,7 @@ const definitions: Definition[] = [
         model: 'HK-SENSOR-4IN1-A',
         vendor: 'Sunricher',
         description: '4IN1 Sensor',
-        extend: [
-            battery(),
-            identify(),
-            occupancy(),
-            temperature(),
-            humidity(),
-            illuminance()],
+        extend: [battery(), identify(), occupancy(), temperature(), humidity(), illuminance()],
     },
     {
         zigbeeModel: ['SR-ZG9023A-EU'],
