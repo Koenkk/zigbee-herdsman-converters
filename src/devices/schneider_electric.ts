@@ -1307,7 +1307,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['1GANG/SWITCH/2'],
         model: 'MEG5116-0300/MEG5162-0000',
         vendor: 'Schneider Electric',
-        description: 'Merten MEG5162 switch insert (2fold) with Merten System M push button (1fold)',
+        description: 'Merten MEG5162 switch (2fold) with Merten System M push button (1fold)',
         extend: [deviceEndpoints({'endpoints': {'left': 1, 'right': 2, 'left_sw': 21}}), identify(),
             onOff({'powerOnBehavior': false, 'endpointNames': ['left', 'right']}),
             commandsOnOff({'endpointNames': ['left_sw']}),
