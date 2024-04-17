@@ -623,28 +623,28 @@ const definitions: Definition[] = [
                 access: 'STATE_GET',
             }),
             numeric({
-                name: 'valve_opening_degree(version >= v1.1.4)',
+                name: 'valve_opening_degree',
                 cluster: 0xFC11,
                 attribute: {ID: 0x600B, type: 0x20},
                 description: 'Valve open position (percentage) control. ' +
                     'If the opening degree is set to 100%, the valve is fully open when it is opened. ' +
                     'If the opening degree is set to 0%, the valve is fully closed when it is opened, ' +
-                    'and the default value is 100%, ' +
-                    'The valve opening degree should be greater than or equal to the valve closing degree.',
+                    'and the default value is 100%. ' +
+                    'Note: only version v1.1.4 or higher is supported.',
                 valueMin: 0.0,
                 valueMax: 100.0,
                 valueStep: 1.0,
                 unit: '%',
             }),
             numeric({
-                name: 'valve_closing_degree(version >= v1.1.4)',
+                name: 'valve_closing_degree',
                 cluster: 0xFC11,
                 attribute: {ID: 0x600C, type: 0x20},
                 description: 'Valve closed position (percentage) control. ' +
                     'If the closing degree is set to 100%, the valve is fully closed when it is closed. ' +
                     'If the closing degree is set to 0%, the valve is fully opened when it is closed, ' +
                     'and the default value is 100%. ' +
-                    'The valve opening degree should be greater than or equal to the valve closing degree.',
+                    'Note: Only version v1.1.4 or higher is supported.',
                 valueMin: 0.0,
                 valueMax: 100.0,
                 valueStep: 1.0,
