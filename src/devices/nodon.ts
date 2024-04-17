@@ -4,7 +4,7 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import {battery, deviceEndpoints, enumLookup, EnumLookupArgs, identify, humidity, numeric, NumericArgs, onOff, temperature} from '../lib/modernExtend';
+import {battery, deviceEndpoints, enumLookup, EnumLookupArgs, humidity, numeric, NumericArgs, onOff, temperature} from '../lib/modernExtend';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
@@ -46,7 +46,7 @@ const nodonModernExtend = {
         zigbeeCommandOptions: {manufacturerCode: 0x128B},
         ...args,
     }),
-    calibrationRotationRunTimeUp: (args?: Partial<NumericArgs>) => numeric({    
+    calibrationRotationRunTimeUp: (args?: Partial<NumericArgs>) => numeric({
         name: 'calibration_rotation_run_time_up',
         unit: 'ms',
         cluster: 'closuresWindowCovering',
@@ -60,7 +60,7 @@ const nodonModernExtend = {
         zigbeeCommandOptions: {manufacturerCode: 0x128B},
         ...args,
     }),
-    calibrationRotationRunTimeDown: (args?: Partial<NumericArgs>) => numeric({    
+    calibrationRotationRunTimeDown: (args?: Partial<NumericArgs>) => numeric({
         name: 'calibration_rotation_run_time_down',
         unit: 'ms',
         cluster: 'closuresWindowCovering',
@@ -74,7 +74,7 @@ const nodonModernExtend = {
         zigbeeCommandOptions: {manufacturerCode: 0x128B},
         ...args,
     }),
-}
+};
 
 const definitions: Definition[] = [
     {
