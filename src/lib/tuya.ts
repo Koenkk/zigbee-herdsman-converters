@@ -811,52 +811,54 @@ export const valueConverter = {
             return payload;
         },
     },
-    thermostatScheduleDayMultiDP4: {
-        from: (v: string) => {
-            const schedule = [];
-            for (let index = 1; index < 17; index = index + 4) {
-                schedule.push(
-                    String(parseInt(v[index+0])).padStart(2, '0') + ':' +
-                    String(parseInt(v[index+1])).padStart(2, '0') + '/' +
-                    // @ts-ignore
-                    (parseFloat((v[index+2] << 8) + v[index+3]) / 10.0).toFixed(1),
-                );
-            }
-            return schedule.join(' ');
-        },
-        to: (v: string) => {
-            const payload = [0];
-            const transitions = v.split(' ');
-            if (transitions.length != 4) {
-                throw new Error('Invalid schedule: there should be 4 transitions');
-            }
-            for (const transition of transitions) {
-                const timeTemp = transition.split('/');
-                if (timeTemp.length != 2) {
-                    throw new Error('Invalid schedule: wrong transition format: ' + transition);
+    thermostatScheduleDayMultiDPN: (numberOfSchedules: number) => {
+        return {
+            from: (v: string) => {
+                const schedule = [];
+                for (let index = 1; index < 17; index = index + 4) {
+                    schedule.push(
+                        String(parseInt(v[index + 0])).padStart(2, '0') + ':' +
+                        String(parseInt(v[index + 1])).padStart(2, '0') + '/' +
+                        // @ts-ignore
+                        (parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1),
+                    );
                 }
-                const hourMin = timeTemp[0].split(':');
-                const hour = parseInt(hourMin[0]);
-                const min = parseInt(hourMin[1]);
-                const temperature = Math.floor(parseFloat(timeTemp[1]) * 10);
-                if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
-                    throw new Error('Invalid hour, minute or temperature of: ' + transition);
+                return schedule.join(' ');
+            },
+            to: (v: string) => {
+                const payload = [0];
+                const transitions = v.split(' ');
+                if (transitions.length != 4) {
+                    throw new Error('Invalid schedule: there should be 4 transitions');
                 }
-                payload.push(
-                    hour,
-                    min,
-                    (temperature & 0xff00) >> 8,
-                    temperature & 0xff,
-                );
-            }
-            return payload;
-        },
+                for (const transition of transitions) {
+                    const timeTemp = transition.split('/');
+                    if (timeTemp.length != 2) {
+                        throw new Error('Invalid schedule: wrong transition format: ' + transition);
+                    }
+                    const hourMin = timeTemp[0].split(':');
+                    const hour = parseInt(hourMin[0]);
+                    const min = parseInt(hourMin[1]);
+                    const temperature = Math.floor(parseFloat(timeTemp[1]) * 10);
+                    if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
+                        throw new Error('Invalid hour, minute or temperature of: ' + transition);
+                    }
+                    payload.push(
+                        hour,
+                        min,
+                        (temperature & 0xff00) >> 8,
+                        temperature & 0xff,
+                    );
+                }
+                return payload;
+            },
+        };
     },
     thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number) => {
         return {
-            from: (v: string) => valueConverter.thermostatScheduleDayMultiDP4.from(v),
+            from: (v: string) => valueConverter.thermostatScheduleDayMultiDPN(4).from(v),
             to: (v: string) => {
-                const data = valueConverter.thermostatScheduleDayMultiDP4.to(v);
+                const data = valueConverter.thermostatScheduleDayMultiDPN(4).to(v);
                 data[0] = dayNum;
                 return data;
             },
