@@ -856,9 +856,9 @@ export const valueConverter = {
     },
     thermostatScheduleDayMultiDPNWithDayNumber: (numberOfSchedules: number, dayNum: number) => {
         return {
-            from: (v: string) => valueConverter.thermostatScheduleDayMultiDPN(4).from(v),
+            from: (v: string) => valueConverter.thermostatScheduleDayMultiDPN(numberOfSchedules).from(v),
             to: (v: string) => {
-                const data = valueConverter.thermostatScheduleDayMultiDPN(4).to(v);
+                const data = valueConverter.thermostatScheduleDayMultiDPN(numberOfSchedules).to(v);
                 data[0] = dayNum;
                 return data;
             },
