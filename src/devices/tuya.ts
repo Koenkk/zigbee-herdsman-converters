@@ -1157,7 +1157,6 @@ const definitions: Definition[] = [
             tuya.whitelabel('Lidl', 'HG08008', 'Livarno Home LED ceiling light', ['_TZ3210_p9ao60da']),
             tuya.whitelabel('Lidl', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
             tuya.whitelabel('Lidl', '399629_2110', 'Livarno Lux Ceiling Panel RGB+CCT', ['_TZ3210_c0s1xloa', '_TZ3210_x13bu7za']),
-            tuya.whitelabel('Skydance', 'WZ5_dim_2', 'Zigbee & RF 5 in 1 LED controller (DIM mode)', ['_TZB210_3zfp8mki']),
             tuya.whitelabel('TuYa', 'TS0505B_1_3', 'Zigbee 10W Downlight RGB CCW', ['_TZ3210_it1u8ahz']),
             tuya.whitelabel('Nous', 'P3Z', 'Smart light bulb', ['_TZ3210_cieijuw1']),
             tuya.whitelabel('Moes', 'ZLD-RCW_1', 'RGB+CCT Zigbee LED controller', ['_TZ3000_7hcgjxpc']),
@@ -1187,6 +1186,19 @@ const definitions: Definition[] = [
         toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
         exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature('color_temp_startup'), tuya.exposes.doNotDisturb()],
+        configure: async (device, coordinatorEndpoint) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZB210_3zfp8mki']),
+        model: 'TS0505B_3',
+        vendor: 'TuYa',
+        description: 'Zigbee RGB+CCT light',
+        whiteLabel: [
+            tuya.whitelabel('Skydance', 'WZ5_dim_2', 'Zigbee & RF 5 in 1 LED controller (DIM mode)', ['_TZB210_3zfp8mki']),
+        ],
+        extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['hs'], applyRedFix: true, enhancedHue: false}})],
         configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
