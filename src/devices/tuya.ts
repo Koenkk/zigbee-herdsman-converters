@@ -3874,10 +3874,10 @@ const definitions: Definition[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
-        //'_TZE200_bvu2wnxz', /* model: 'ME167', vendor: 'AVATTO' */
-        //'_TZE200_6rdj8dzm', /* model: 'ME167', vendor: 'AVATTO' */
-        '_TZE200_p3dbf6qs', /* model: 'ME167', vendor: 'AVATTO' */
-        //'_TZE200_rxntag7i', /* model: 'ME168', vendor: 'AVATTO' */
+            // '_TZE200_bvu2wnxz', /* model: 'ME167', vendor: 'AVATTO' */
+            // '_TZE200_6rdj8dzm', /* model: 'ME167', vendor: 'AVATTO' */
+            '_TZE200_p3dbf6qs', /* model: 'ME167', vendor: 'AVATTO' */
+            // '_TZE200_rxntag7i', /* model: 'ME168', vendor: 'AVATTO' */
         ]),
         model: 'TS0601_thermostat_3',
         vendor: 'TuYa',
@@ -3886,8 +3886,8 @@ const definitions: Definition[] = [
         toZigbee: [tuya.tz.datapoints],
         whiteLabel: [
             tuya.whitelabel('AVATTO', 'ME167', 'Thermostatic radiator valve', ['_TZE200_p3dbf6qs']),
-            //tuya.whitelabel('AVATTO', 'ME167', 'Thermostatic radiator valve', ['_TZE200_bvu2wnxz', '_TZE200_6rdj8dzm', '_TZE200_p3dbf6qs']),
-            //tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_rxntag7i']),
+            // tuya.whitelabel('AVATTO', 'ME167', 'Thermostatic radiator valve', ['_TZE200_bvu2wnxz', '_TZE200_6rdj8dzm', '_TZE200_p3dbf6qs']),
+            // tuya.whitelabel('AVATTO', 'ME168', 'Thermostatic radiator valve', ['_TZE200_rxntag7i']),
         ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
@@ -3898,7 +3898,7 @@ const definitions: Definition[] = [
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(['auto', 'heat', 'off'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
-        .withLocalTemperatureCalibration(-3, 3, 1, ea.STATE_SET),
+                .withLocalTemperatureCalibration(-3, 3, 1, ea.STATE_SET),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
             e.binary('scale_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('If the heat sink is not fully opened within ' +
                 'two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be ' +
@@ -3916,13 +3916,13 @@ const definitions: Definition[] = [
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [7, 'child_lock', tuya.valueConverter.lockUnlock],
-                [28, 'schedule_wednesday', fixedValueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
-                [29, 'schedule_thursday', fixedValueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
-                [30, 'schedule_friday', fixedValueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
-                [31, 'schedule_saturday', fixedValueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [32, 'schedule_sunday', fixedValueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
-                [33, 'schedule_monday', fixedValueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
-                [34, 'schedule_tuesday', fixedValueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [28, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPNWithDayNumber(6, 1)],
+                [29, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPNWithDayNumber(6, 2)],
+                [30, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPNWithDayNumber(6, 3)],
+                [31, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPNWithDayNumber(6, 4)],
+                [32, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPNWithDayNumber(6, 5)],
+                [33, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPNWithDayNumber(6, 6)],
+                [34, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPNWithDayNumber(6, 7)],
                 [35, null, tuya.valueConverter.errorOrBatteryLow],
                 [36, 'frost_protection', tuya.valueConverter.onOff],
                 [39, 'scale_protection', tuya.valueConverter.onOff],
