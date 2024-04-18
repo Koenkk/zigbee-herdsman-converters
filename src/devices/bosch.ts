@@ -165,25 +165,25 @@ Example: 30ff00000102010001`;
 const tzLocal = {
     bsd2_alarm_state: {
         key: ['alarm_smoke', 'alarm_intruder'],
-        convertSet: async (entity, key, value: boolean, meta) => {
+        convertSet: async (entity, key, value: string, meta) => {
             const dataToSend = {cluster: 'ssIasZone', command: 'boschSmokeDetectorSiren', payload: {data: ''}};
             const result: KeyValue = {};
             if (key === 'alarm_smoke' || key === 'alarm_intruder') {
                 let convertedValue = '';
                 if (key === 'alarm_smoke') {
-                    if (value === true) {
+                    if (value === 'ON') {
                         convertedValue = smokeDetectorAlarmState.smoke_on.toString();
                     }
-                    if (value === false) {
+                    if (value === 'OFF') {
                         convertedValue = smokeDetectorAlarmState.smoke_off.toString();
                     }
                     result.alarm_smoke = value;
                 }
                 if (key === 'alarm_intruder') {
-                    if (value === true) {
+                    if (value === 'ON') {
                         convertedValue = smokeDetectorAlarmState.intruder_on.toString();
                     }
-                    if (value === false) {
+                    if (value === 'OFF') {
                         convertedValue = smokeDetectorAlarmState.intruder_off.toString();
                     }
                     result.alarm_intruder = value;
@@ -210,7 +210,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'alarm_smoke':
-            case 'alarm_intrudion':
+            case 'alarm_intruder':
             case 'zone_status':
                 await entity.read('ssIasZone', ['zoneStatus']);
                 break;
@@ -1054,8 +1054,8 @@ const definitions: Definition[] = [
             e.battery(),
             e.battery_low(),
             e.test(),
-            e.binary('alarm_intruder', ea.ALL, true, false).withDescription('Toggle the intruder alarm on or off'),
-            e.binary('alarm_smoke', ea.ALL, true, false).withDescription('Toggle the smoke alarm on or off'),
+            e.binary('alarm_intruder', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
+            e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
         ],
     },
     {
