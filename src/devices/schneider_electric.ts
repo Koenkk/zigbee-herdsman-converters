@@ -1312,9 +1312,17 @@ const definitions: Definition[] = [
             onOff({'powerOnBehavior': false, 'endpointNames': ['left', 'right']}),
             commandsOnOff({'endpointNames': ['left_sw']}),
         ],
-            
     };
-
+    {
+        zigbeeModel: ['1GANG/ESWITCH/1'],
+        model: 'MEG5116-0300/MEG5151-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5151 switch insert with Merten System M push button (1fold)',
+        extend: [deviceEndpoints({'endpoints': {'switch': 1, 'switch_sw': 21}}), identify(),
+            onOff({'powerOnBehavior': false}),
+            commandsOnOff({'endpointNames': ['switch_sw']}),
+        ],
+    };
 ];
 
 export default definitions;
