@@ -3825,9 +3825,9 @@ const definitions: Definition[] = [
                 [22, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
                 [23, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [101, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
-                [102, 'position', tuya.valueConverter.divideBy10]
-            ]
-        }
+                [102, 'position', tuya.valueConverter.divideBy10],
+            ],
+        },
     },
     {
         fingerprint: [
