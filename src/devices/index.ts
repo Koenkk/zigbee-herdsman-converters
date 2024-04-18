@@ -174,6 +174,7 @@ import meazon from './meazon';
 import mercator from './mercator';
 import miboxer from './miboxer';
 import micromatic from './micromatic';
+import modular from './modular';
 import moes from './moes';
 import müller_licht from './müller_licht';
 import namron from './namron';
@@ -219,6 +220,7 @@ import rtx from './rtx';
 import salus_controls from './salus_controls';
 import samotech from './samotech';
 import saswell from './saswell';
+import sber from './sber';
 import scanproducts from './scanproducts';
 import schlage from './schlage';
 import schneider_electric from './schneider_electric';
@@ -472,6 +474,7 @@ export default [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...modular,
     ...moes,
     ...müller_licht,
     ...namron,
@@ -517,6 +520,7 @@ export default [
     ...salus_controls,
     ...samotech,
     ...saswell,
+    ...sber,
     ...scanproducts,
     ...schlage,
     ...schneider_electric,

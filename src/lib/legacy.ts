@@ -8402,4 +8402,5 @@ export {
     convertTimeTo2ByteHexArray,
     getMetaValue,
     tuyaGetDataValue,
+    ictcg1,
 };

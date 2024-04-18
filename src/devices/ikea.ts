@@ -1,5 +1,4 @@
 import {Definition} from '../lib/types';
-import * as legacy from '../lib/legacy';
 import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
@@ -65,6 +64,7 @@ const definitions: Definition[] = [
         zigbeeModel: [
             'TRADFRI bulb E27 WW globe 806lm',
             'TRADFRI bulb E26 WW globe 800lm',
+            'TRADFRI bulb E26 WW globe 806lm',
         ],
         model: 'LED2103G5',
         vendor: 'IKEA',
@@ -489,10 +489,17 @@ const definitions: Definition[] = [
         extend: [ikeaLight({colorTemp: true}), identify()],
     },
     {
+        zigbeeModel: ['JETSTROM 3030 wall'],
+        model: 'L2205',
+        vendor: 'IKEA',
+        description: 'JETSTROM wall light panel, color/white spectrum, 30x30 cm',
+        extend: [ikeaLight({colorTemp: true, color: true}), identify()],
+    },
+    {
         zigbeeModel: ['JETSTROM 3030 ceiling'],
         model: 'L2206',
         vendor: 'IKEA',
-        description: 'JETSTROM wall light panel, color/white spectrum, 30x30 cm',
+        description: 'JETSTROM ceiling light panel, color/white spectrum, 30x30 cm',
         extend: [ikeaLight({colorTemp: true, color: true}), identify()],
     },
     {
@@ -744,13 +751,12 @@ const definitions: Definition[] = [
         model: 'ICTC-G-1',
         vendor: 'IKEA',
         description: 'TRADFRI wireless dimmer',
-        fromZigbee: [ // DEPRECATED
-            legacy.fz.cmd_move, legacy.fz.cmd_move_with_onoff, legacy.fz.cmd_stop, legacy.fz.cmd_stop_with_onoff,
-            legacy.fz.cmd_move_to_level_with_onoff,
-        ],
         extend: [
             identify({isSleepy: true}),
-            commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level']}),
+            commandsLevelCtrl({
+                commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level'],
+                legacyAction: true,
+            }),
             battery({dontDividePercentage: true}),
             ikeaOta(),
         ],
@@ -792,14 +798,14 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'TRADFRI on/off switch',
         fromZigbee: [ // DEPRECATED
-            legacy.fz.genOnOff_cmdOn, legacy.fz.genOnOff_cmdOff, ikeaLegacy.fromZigbee.E1743_brightness_up,
+            ikeaLegacy.fromZigbee.E1743_brightness_up,
             ikeaLegacy.fromZigbee.E1743_brightness_down, ikeaLegacy.fromZigbee.E1743_brightness_stop,
         ],
         meta: {disableActionGroup: true},
         extend: [
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
-            commandsOnOff({commands: ['on', 'off']}),
+            commandsOnOff({commands: ['on', 'off'], legacyAction: true}),
             commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
             ikeaBattery(),
             ikeaOta(),
@@ -839,13 +845,14 @@ const definitions: Definition[] = [
         vendor: 'IKEA',
         description: 'SYMFONISK sound remote, gen 1',
         fromZigbee: [ // DEPRECATED
-            legacy.fz.cmd_move, legacy.fz.cmd_stop, ikeaLegacy.fromZigbee.E1744_play_pause, ikeaLegacy.fromZigbee.E1744_skip,
+            ikeaLegacy.fromZigbee.E1744_play_pause, ikeaLegacy.fromZigbee.E1744_skip,
         ],
         extend: [
             identify({isSleepy: true}),
             commandsOnOff({commands: ['toggle']}),
             commandsLevelCtrl({
                 commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down'],
+                legacyAction: true,
             }),
             ikeaBattery(),
             ikeaOta(),
@@ -856,11 +863,10 @@ const definitions: Definition[] = [
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        fromZigbee: [legacy.fz.cover_close, legacy.fz.cover_open, legacy.fz.cover_stop], // DEPRECATED
         extend: [
             ikeaConfigureRemote(),
             identify({isSleepy: true}),
-            commandsWindowCovering(),
+            commandsWindowCovering({legacyAction: true}),
             ikeaBattery(),
             ikeaOta(),
         ],

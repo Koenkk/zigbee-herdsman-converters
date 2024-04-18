@@ -4,10 +4,77 @@ import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
 import * as ota from '../lib/ota';
-import {battery, deviceEndpoints, humidity, numeric, onOff, temperature} from '../lib/modernExtend';
+import {battery, deviceEndpoints, enumLookup, EnumLookupArgs, humidity, numeric, NumericArgs, onOff, temperature} from '../lib/modernExtend';
 const e = exposes.presets;
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
+
+const nodonModernExtend = {
+    rollerShutterCalibration: (args?: Partial<EnumLookupArgs>) => enumLookup({
+        name: 'calibration',
+        lookup: {'stop': 0, 'start': 2},
+        cluster: 'closuresWindowCovering',
+        attribute: 'windowCoveringMode',
+        access: 'ALL',
+        description: 'Automatic calibration of the roller shutter.',
+    }),
+    calibrationVerticalRunTimeUp: (args?: Partial<NumericArgs>) => numeric({
+        name: 'calibration_vertical_run_time_up',
+        unit: '10 ms',
+        cluster: 'closuresWindowCovering',
+        attribute: {ID: 0x0001, type: dataType.uint16},
+        valueMin: 0,
+        valueMax: 65535,
+        scale: 1,
+        access: 'ALL',
+        description: 'Manuel calibration: Set vertical run time up of the roller shutter. ' +
+        'Do not change it if your roller shutter is already calibrated.',
+        zigbeeCommandOptions: {manufacturerCode: 0x128B},
+        ...args,
+    }),
+    calibrationVerticalRunTimeDowm: (args?: Partial<NumericArgs>) => numeric({
+        name: 'calibration_vertical_run_time_down',
+        unit: '10 ms',
+        cluster: 'closuresWindowCovering',
+        attribute: {ID: 0x0002, type: dataType.uint16},
+        valueMin: 0,
+        valueMax: 65535,
+        scale: 1,
+        access: 'ALL',
+        description: 'Manuel calibration: Set vertical run time down of the roller shutter. ' +
+        'Do not change it if your roller shutter is already calibrated.',
+        zigbeeCommandOptions: {manufacturerCode: 0x128B},
+        ...args,
+    }),
+    calibrationRotationRunTimeUp: (args?: Partial<NumericArgs>) => numeric({
+        name: 'calibration_rotation_run_time_up',
+        unit: 'ms',
+        cluster: 'closuresWindowCovering',
+        attribute: {ID: 0x0003, type: dataType.uint16},
+        valueMin: 0,
+        valueMax: 65535,
+        scale: 1,
+        access: 'ALL',
+        description: 'Manuel calibration: Set rotation run time up of the roller shutter. ' +
+        'Do not change it if your roller shutter is already calibrated.',
+        zigbeeCommandOptions: {manufacturerCode: 0x128B},
+        ...args,
+    }),
+    calibrationRotationRunTimeDown: (args?: Partial<NumericArgs>) => numeric({
+        name: 'calibration_rotation_run_time_down',
+        unit: 'ms',
+        cluster: 'closuresWindowCovering',
+        attribute: {ID: 0x0004, type: dataType.uint16},
+        valueMin: 0,
+        valueMax: 65535,
+        scale: 1,
+        access: 'ALL',
+        description: 'Manuel calibration: Set rotation run time down of the roller shutter. ' +
+        'Do not change it if your roller shutter is already calibrated.',
+        zigbeeCommandOptions: {manufacturerCode: 0x128B},
+        ...args,
+    }),
+};
 
 const definitions: Definition[] = [
     {
@@ -38,6 +105,13 @@ const definitions: Definition[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             await reporting.currentPositionTiltPercentage(endpoint);
         },
+        extend: [
+            nodonModernExtend.rollerShutterCalibration(),
+            nodonModernExtend.calibrationVerticalRunTimeUp(),
+            nodonModernExtend.calibrationVerticalRunTimeDowm(),
+            nodonModernExtend.calibrationRotationRunTimeUp(),
+            nodonModernExtend.calibrationRotationRunTimeDown(),
+        ],
         exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },
@@ -54,6 +128,13 @@ const definitions: Definition[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             await reporting.currentPositionTiltPercentage(endpoint);
         },
+        extend: [
+            nodonModernExtend.rollerShutterCalibration(),
+            nodonModernExtend.calibrationVerticalRunTimeUp(),
+            nodonModernExtend.calibrationVerticalRunTimeDowm(),
+            nodonModernExtend.calibrationRotationRunTimeUp(),
+            nodonModernExtend.calibrationRotationRunTimeDown(),
+        ],
         exposes: [e.cover_position_tilt()],
         ota: ota.zigbeeOTA,
     },

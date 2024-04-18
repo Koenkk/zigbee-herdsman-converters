@@ -304,7 +304,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 255,
         description:
-      'Default level for the dimmer when it is turned on at the switch.' +
+      'Default level for the load when it is turned on at the switch.' +
       ' A setting of 255 means that the switch will return to the level that it was on before it was turned off.',
     },
     defaultLevelRemote: {
@@ -313,7 +313,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 255,
         description:
-      'Default level for the dimmer when it is turned on from the hub.' +
+      'Default level for the load when it is turned on from the hub.' +
       ' A setting of 255 means that the switch will return to the level that it was on before it was turned off.',
     },
     stateAfterPowerRestored: {
@@ -426,14 +426,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: BOOLEAN,
         displayType: 'enum',
         values: {'Disabled': 0, 'Enabled': 1},
-        description: 'Enable or Disable setting brightness to parameter 55 on double-tap UP.',
+        description: 'Enable or Disable setting level to parameter 55 on double-tap UP.',
     },
     doubleTapDownToParam56: {
         ID: 54,
         dataType: BOOLEAN,
         displayType: 'enum',
         values: {'Disabled': 0, 'Enabled': 1},
-        description: 'Enable or Disable setting brightness to parameter 56 on double-tap DOWN.',
+        description: 'Enable or Disable setting level to parameter 56 on double-tap DOWN.',
     },
     brightnessLevelForDoubleTapUp: {
         ID: 55,
@@ -520,7 +520,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: UINT8,
         displayType: 'enum',
         values: {'Disabled': 0, 'Multi Tap': 1, 'Cycle': 2},
-        description: 'Which mode to use when binding EP3 to a fan module.',
+        description: 'Which mode to use when binding EP3 (config button) to another device (like a fan module).',
     },
     lowLevelForFanControlMode: {
         ID: 131,
@@ -588,15 +588,6 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         values: {Disabled: 0, Enabled: 1},
         readOnly: true,
         description: 'Ability to control switch from the hub.',
-        displayType: 'enum',
-    },
-    outputMode: {
-        ID: 258,
-        min: 0,
-        max: 1,
-        values: {'Dimmer': 0, 'On/Off': 1},
-        dataType: BOOLEAN,
-        description: 'Use device as a Dimmer or an On/Off switch.',
         displayType: 'enum',
     },
     onOffLedMode: {
@@ -840,6 +831,15 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         description:
       'Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.',
     },
+    outputMode: {
+        ID: 258,
+        min: 0,
+        max: 1,
+        values: {'Dimmer': 0, 'On/Off': 1},
+        dataType: BOOLEAN,
+        description: 'Use device as a Dimmer or an On/Off switch.',
+        displayType: 'enum',
+    },
     doubleTapClearNotifications: {
         ID: 262,
         dataType: BOOLEAN,
@@ -949,8 +949,8 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
     },
     smartBulbMode: {
         ...COMMON_ATTRIBUTES.smartBulbMode,
-        description: 'Use this mode to synchronize and control other fan switches or controllers.',
-        values: {'Disabled': 0, 'Remote Control Mode': 1},
+        description: 'For use with Smart Fans that need constant power and are controlled via commands rather than power.',
+        values: {'Disabled': 0, 'Smart Fan Mode': 1},
     },
     quickStartTime: {
         ID: 23,
@@ -972,6 +972,11 @@ const VZM35_ATTRIBUTES : {[s: string]: Attribute} = {
         min: 42,
         max: 135,
         description: 'Identification value in Non-nuetral, low gear, aux switch',
+    },
+    outputMode: {
+        ...COMMON_ATTRIBUTES.outputMode,
+        values: {'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1},
+        description: 'Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.',
     },
 };
 
@@ -1094,11 +1099,14 @@ const VZM36_ATTRIBUTES : {[s: string]: Attribute} = {
     smartBulbMode_2: {
         ...COMMON_ATTRIBUTES.smartBulbMode,
         values: {'Disabled': 0, 'Smart Fan Mode': 1},
-        description:
-        'For use with Smart Fans that need constant power and are controlled via commands rather than power.',
+        description: 'For use with Smart Fans that need constant power and are controlled via commands rather than power.',
     },
     // remote protection readonly..
-    outputMode_2: {...COMMON_ATTRIBUTES.outputMode},
+    outputMode_2: {
+        ...COMMON_ATTRIBUTES.outputMode,
+        values: {'Ceiling Fan (3-Speed)': 0, 'Exhaust Fan (On/Off)': 1},
+        description: 'Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.',
+    },
 };
 
 const tzLocal = {
@@ -1509,7 +1517,7 @@ const tzLocal = {
             await endpoint.read('genOnOff', ['onOff']);
         },
     } satisfies Tz.Converter,
-    breezeMode: {
+    vzm36_breezeMode: {
         key: ['breezeMode'],
         convertSet: async (entity, key, values: BreezeModeValues, meta) => {
         // Calculate the value..
@@ -1555,6 +1563,61 @@ const tzLocal = {
             }
 
             const endpoint = meta.device.getEndpoint(2);
+
+            const payload = {breezeMode: configValue.toString()};
+            await endpoint.write('manuSpecificInovelli', payload, {
+                manufacturerCode: INOVELLI,
+            });
+
+            return {state: {[key]: values}};
+        },
+    } satisfies Tz.Converter,
+    breezeMode: {
+        key: ['breezeMode'],
+        convertSet: async (entity, key, values: BreezeModeValues, meta) => {
+        // Calculate the value..
+            let configValue = 0;
+            let term = false;
+            configValue += speedToInt(values.speed1);
+            configValue += Number(values.time1) / 5 * 4;
+
+            let speed = speedToInt(values.speed2);
+
+            if (speed !== 0) {
+                configValue += speed * 64;
+                configValue += values.time2 / 5 * 256;
+            } else {
+                term = true;
+            }
+
+            speed = speedToInt(values.speed3);
+
+            if (speed !== 0 && ! term) {
+                configValue += speed * 4096;
+                configValue += values.time3 / 5 * 16384;
+            } else {
+                term = true;
+            }
+
+            speed = speedToInt(values.speed4);
+
+            if (speed !== 0 && ! term) {
+                configValue += speed * 262144;
+                configValue += values.time4 / 5 * 1048576;
+            } else {
+                term = true;
+            }
+
+            speed = speedToInt(values.speed5);
+
+            if (speed !== 0 && ! term) {
+                configValue += speed * 16777216;
+                configValue += values.time5 / 5 * 67108864;
+            } else {
+                term = true;
+            }
+
+            const endpoint = meta.device.getEndpoint(1);
 
             const payload = {breezeMode: configValue.toString()};
             await endpoint.write('manuSpecificInovelli', payload, {
@@ -2324,7 +2387,7 @@ const definitions: Definition[] = [
             tzLocal.light_onoff_brightness_inovelli,
             tzLocal.inovelli_parameters(VZM36_ATTRIBUTES),
             tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES),
-            tzLocal.breezeMode,
+            tzLocal.vzm36_breezeMode,
         ],
         exposes: exposesListVZM36,
         ota: ota.inovelli,

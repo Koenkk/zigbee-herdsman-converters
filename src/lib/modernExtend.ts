@@ -1,6 +1,7 @@
 import {Zcl} from 'zigbee-herdsman';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
+import * as globalLegacy from '../lib/legacy';
 import {
     Fz, Tz, ModernExtend, Range, Zh, DefinitionOta, OnEvent, Access,
     KeyValueString, KeyValue, Configure, Expose, DefinitionMeta, KeyValueAny,
@@ -13,7 +14,7 @@ import {
     getFromLookupByValue, isString, isNumber, isObject, isEndpoint,
     getFromLookup, getEndpointName, assertNumber, postfixWithEndpointName,
     noOccupancySince, precisionRound, batteryVoltageToPercentage, getOptions,
-    hasAlreadyProcessedMessage, addActionGroup,
+    hasAlreadyProcessedMessage, addActionGroup, isLegacyEnabled,
 } from './utils';
 import {logger} from '../lib/logger';
 
@@ -96,12 +97,13 @@ export function setupConfigureForReporting(
     const configureReporting = !!config;
     const read = !!(access & ea.GET);
     if (configureReporting || read) {
-        const configure: Configure = async (device, coordinatorEndpoint) => {
+        const configure: Configure = async (device, coordinatorEndpoint, definition) => {
             const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
             let entities: (Zh.Device | Zh.Endpoint)[] = [device];
             if (endpointNames) {
-                const endpointsMap = new Map<string, boolean>(endpointNames.map((e) => [e, true]));
-                entities = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
+                const definitionEndpoints = definition.endpoint(device);
+                const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
+                entities = device.endpoints.filter((e) => endpointIds.includes(e.ID));
             }
 
             for (const entity of entities) {
@@ -115,10 +117,11 @@ export function setupConfigureForReporting(
 }
 
 export function setupConfigureForBinding(cluster: string | number, clusterType: 'input' | 'output', endpointNames?: string[]) {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         if (endpointNames) {
-            const endpointsMap = new Map<string, boolean>(endpointNames.map((e) => [e, true]));
-            const endpoints = device.endpoints.filter((e) => endpointsMap.has(e.ID.toString()));
+            const definitionEndpoints = definition.endpoint(device);
+            const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
+            const endpoints = device.endpoints.filter((e) => endpointIds.includes(e.ID));
             for (const endpoint of endpoints) {
                 await endpoint.bind(cluster, coordinatorEndpoint);
             }
@@ -135,7 +138,7 @@ export function setupConfigureForBinding(cluster: string | number, clusterType: 
 // #region General
 
 export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         device.type = args.type;
         device.save();
     };
@@ -143,7 +146,7 @@ export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExt
 }
 
 export function forcePowerSource(args: {powerSource: 'Mains (single phase)' | 'Battery'}): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         device.powerSource = args.powerSource;
         device.save();
     };
@@ -392,8 +395,11 @@ export function onOff(args?: OnOffArgs): ModernExtend {
     return result;
 }
 
-export function commandsOnOff(args?: {commands?: ('on' | 'off' | 'toggle')[], bind?: boolean, endpointNames?: string[]}): ModernExtend {
-    args = {commands: ['on', 'off', 'toggle'], bind: true, ...args};
+export interface CommandsOnOffArgs {
+    commands?: ('on' | 'off' | 'toggle')[], bind?: boolean, endpointNames?: string[], legacyAction?: boolean,
+}
+export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
+    args = {commands: ['on', 'off', 'toggle'], bind: true, legacyAction: false, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -422,6 +428,10 @@ export function commandsOnOff(args?: {commands?: ('on' | 'off' | 'toggle')[], bi
         },
     ];
 
+    if (args.legacyAction) {
+        fromZigbee.push(...[globalLegacy.fromZigbee.genOnOff_cmdOn, globalLegacy.fromZigbee.genOnOff_cmdOff]);
+    }
+
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
     if (args.bind) result.configure = setupConfigureForBinding('genOnOff', 'output', args.endpointNames);
@@ -449,7 +459,7 @@ export function customTimeResponse(start: '1970_UTC' | '2000_LOCAL'): ModernExte
                         const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
                         payload.time = secondsUTC - (new Date()).getTimezoneOffset() * 60;
                     }
-                    endpoint.readResponse('genTime', frame.Header.transactionSequenceNumber, payload).catch((e) => {
+                    endpoint.readResponse('genTime', frame.header.transactionSequenceNumber, payload).catch((e) => {
                         logger.warning(`Custom time response failed for '${device.ieeeAddr}': ${e}`, 'zhc:customtimeresponse');
                     });
                     return true;
@@ -719,7 +729,7 @@ export function light(args?: LightArgs): ModernExtend {
         meta.turnsOffAtBrightness1 = args.turnsOffAtBrightness1;
     }
 
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         await lightConfigure(device, coordinatorEndpoint, true);
 
         if (args.configureReporting) {
@@ -758,12 +768,12 @@ export interface CommandsLevelCtrl {
     commands?: (
         'brightness_move_to_level' | 'brightness_move_up' | 'brightness_move_down' | 'brightness_step_up' | 'brightness_step_down' | 'brightness_stop'
     )[],
-    bind?: boolean, endpointNames?: string[]
+    bind?: boolean, endpointNames?: string[], legacyAction?: boolean,
 }
 export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
     args = {commands: [
         'brightness_move_to_level', 'brightness_move_up', 'brightness_move_down', 'brightness_step_up', 'brightness_step_down', 'brightness_stop',
-    ], bind: true, ...args};
+    ], bind: true, legacyAction: false, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -778,6 +788,48 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
         fz.command_step,
         fz.command_stop,
     ];
+
+    if (args.legacyAction) {
+        // Legacy converters with removed hasAlreadyProcessedMessage and redirects
+        const legacyFromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'genLevelCtrl',
+                type: ['commandMove', 'commandMoveWithOnOff'],
+                options: [opt.legacy(), opt.simulated_brightness(' Note: will only work when legacy: false is set.')],
+                convert: (model, msg, publish, options, meta) => {
+                    if (isLegacyEnabled(options)) {
+                        globalLegacy.ictcg1(model, msg, publish, options, 'move');
+                        const direction = msg.data.movemode === 1 ? 'left' : 'right';
+                        return {action: `rotate_${direction}`, rate: msg.data.rate};
+                    }
+                },
+            },
+            {
+                cluster: 'genLevelCtrl',
+                type: ['commandStop', 'commandStopWithOnOff'],
+                options: [opt.legacy()],
+                convert: (model, msg, publish, options, meta) => {
+                    if (isLegacyEnabled(options)) {
+                        const value = globalLegacy.ictcg1(model, msg, publish, options, 'stop');
+                        return {action: `rotate_stop`, brightness: value};
+                    }
+                },
+            },
+            {
+                cluster: 'genLevelCtrl',
+                type: 'commandMoveToLevelWithOnOff',
+                options: [opt.legacy()],
+                convert: (model, msg, publish, options, meta) => {
+                    if (isLegacyEnabled(options)) {
+                        const value = globalLegacy.ictcg1(model, msg, publish, options, 'level');
+                        const direction = msg.data.level === 0 ? 'left' : 'right';
+                        return {action: `rotate_${direction}_quick`, level: msg.data.level, brightness: value};
+                    }
+                },
+            },
+        ];
+        fromZigbee.push(...legacyFromZigbee);
+    }
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
@@ -877,7 +929,7 @@ export function lock(args?: LockArgs): ModernExtend {
     const toZigbee = [tz.lock, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume];
     const exposes = [e.lock(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
         e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume()];
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         await setupAttributes(device, coordinatorEndpoint, 'closuresDoorLock', [
             {attribute: 'lockState', min: 'MIN', max: '1_HOUR', change: 0}]);
     };
@@ -932,8 +984,11 @@ export function windowCovering(args: WindowCoveringArgs): ModernExtend {
     return result;
 }
 
-export function commandsWindowCovering(args?: {commands?: ('open' | 'close' | 'stop')[], bind?: boolean, endpointNames?: string[]}): ModernExtend {
-    args = {commands: ['open', 'close', 'stop'], bind: true, ...args};
+export interface CommandsWindowCoveringArgs {
+    commands?: ('open' | 'close' | 'stop')[], bind?: boolean, endpointNames?: string[], legacyAction: boolean,
+}
+export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): ModernExtend {
+    args = {commands: ['open', 'close', 'stop'], bind: true, legacyAction: false, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
         actions = args.commands.map((c) => args.endpointNames.map((e) => `${c}_${e}`)).flat();
@@ -960,6 +1015,10 @@ export function commandsWindowCovering(args?: {commands?: ('open' | 'close' | 's
             },
         },
     ];
+
+    if (args.legacyAction) {
+        fromZigbee.push(...[globalLegacy.fromZigbee.cover_open, globalLegacy.fromZigbee.cover_close, globalLegacy.fromZigbee.cover_stop]);
+    }
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
@@ -1484,7 +1543,7 @@ export interface QuirkAddEndpointClusterArgs {
 export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): ModernExtend {
     const {endpointID, inputClusters, outputClusters} = args;
 
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         const endpoint = device.getEndpoint(endpointID);
 
         if (endpoint == undefined) {
@@ -1521,7 +1580,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
 }
 
 export function quirkCheckinInterval(timeout: number | keyof typeof timeLookup): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint) => {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         device.checkinInterval = (typeof timeout == 'number') ? timeout : timeLookup[timeout];
         device.save();
     };

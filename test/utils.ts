@@ -85,7 +85,7 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
     const coordinatorEndpoint = mockEndpoint({}, undefined);
     const definition = await args.findByDeviceFn(args.device);
 
-    await definition.configure?.(args.device, coordinatorEndpoint);
+    await definition.configure?.(args.device, coordinatorEndpoint, definition);
 
     const logIfNotEqual = (expected: string[], actual: string[]) => {
         if (JSON.stringify(expected) !== JSON.stringify(actual)) {

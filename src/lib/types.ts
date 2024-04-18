@@ -37,6 +37,7 @@ export interface Fingerprint {
     hardwareVersion?: number, manufacturerName?: string, modelID?: string, powerSource?: 'Battery' | 'Mains (single phase)',
     softwareBuildID?: string, stackVersion?: number, zclVersion?: number, ieeeAddr?: RegExp,
     endpoints?: {ID?: number, profileID?: number, deviceID?: number, inputClusters?: number[], outputClusters?: number[]}[],
+    priority?: number,
 }
 export type WhiteLabel =
     {vendor: string, model: string, description: string, fingerprint: Fingerprint[]} |
@@ -157,7 +158,7 @@ export interface DefinitionMeta {
     supportsHueAndSaturation?: boolean,
 }
 
-export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => Promise<void>;
+export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
 export type OnEvent = (type: OnEventType, data: OnEventData, device: Zh.Device, settings: KeyValue, state: KeyValue) => Promise<void>;
 
 export interface ModernExtend {
@@ -190,19 +191,23 @@ export type Definition = {
     vendor: string;
     description: string;
     whiteLabel?: WhiteLabel[];
-    endpoint?: (device: Zh.Device) => {[s: string]: number},
-    configure?: Configure,
-    options?: Option[],
-    meta?: DefinitionMeta,
-    onEvent?: OnEvent,
-    ota?: DefinitionOta,
-    generated?: boolean,
-} & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
-    & ({ extend: ModernExtend[], fromZigbee?: Fz.Converter[], toZigbee?: Tz.Converter[],
-        exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[])) } |
-    {
-        fromZigbee: Fz.Converter[], toZigbee: Tz.Converter[],
-        exposes: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]))
+    endpoint?: (device: Zh.Device) => {[s: string]: number};
+    configure?: Configure;
+    options?: Option[];
+    meta?: DefinitionMeta;
+    onEvent?: OnEvent;
+    ota?: DefinitionOta;
+    generated?: boolean;
+} & ({ zigbeeModel: string[]; fingerprint?: Fingerprint[]; } | { zigbeeModel?: string[]; fingerprint: Fingerprint[]; })
+    & ({
+        extend: ModernExtend[];
+        fromZigbee?: Fz.Converter[];
+        toZigbee?: Tz.Converter[];
+        exposes?: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]));
+    } | {
+        fromZigbee: Fz.Converter[];
+        toZigbee: Tz.Converter[];
+        exposes: (Expose[] | ((device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[]));
     });
 
 export namespace Fz {

@@ -3051,7 +3051,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['LTF002'],
+        zigbeeModel: ['LTF002', 'LTC010'],
         model: '6109331C5',
         vendor: 'Philips',
         description: 'Hue white ambiance Apogee round',
