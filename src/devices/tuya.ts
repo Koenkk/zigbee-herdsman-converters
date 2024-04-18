@@ -3878,7 +3878,7 @@ const definitions: Definition[] = [
             '_TZE200_p3dbf6qs', /* model: 'ME167', vendor: 'AVATTO' */
             // '_TZE200_rxntag7i', /* model: 'ME168', vendor: 'AVATTO' */
         ]),
-        model: 'TS0601_thermostat_3',
+        model: 'TS0601_thermostat_5',
         vendor: 'TuYa',
         description: 'Thermostatic radiator valve',
         fromZigbee: [tuya.fz.datapoints],
