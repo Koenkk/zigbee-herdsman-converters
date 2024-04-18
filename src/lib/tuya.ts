@@ -828,8 +828,8 @@ export const valueConverter = {
             to: (v: string) => {
                 const payload = [0];
                 const transitions = v.split(' ');
-                if (transitions.length != 4) {
-                    throw new Error('Invalid schedule: there should be 4 transitions');
+                if (transitions.length != numberOfSchedules) {
+                    throw new Error(`Invalid schedule: there should be ${numberOfSchedules} transitions`);
                 }
                 for (const transition of transitions) {
                     const timeTemp = transition.split('/');
