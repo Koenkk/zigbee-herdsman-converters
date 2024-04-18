@@ -1312,7 +1312,7 @@ const definitions: Definition[] = [
             onOff({'powerOnBehavior': false, 'endpointNames': ['left', 'right']}),
             commandsOnOff({'endpointNames': ['left_sw']}),
         ],
-    };
+    },
     {
         zigbeeModel: ['1GANG/ESWITCH/1'],
         model: 'MEG5116-0300_MEG5151-0000',
@@ -1322,7 +1322,7 @@ const definitions: Definition[] = [
             onOff({'powerOnBehavior': false}),
             commandsOnOff({'endpointNames': ['switch_sw']}),
         ],
-    };
+    },
 ];
 
 export default definitions;
