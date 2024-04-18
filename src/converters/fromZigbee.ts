@@ -772,6 +772,9 @@ const converters1 = {
                 {key: 'rmsVoltagePhB', name: 'voltage_phase_b', factor: 'acVoltage'},
                 {key: 'rmsVoltagePhC', name: 'voltage_phase_c', factor: 'acVoltage'},
                 {key: 'acFrequency', name: 'ac_frequency', factor: 'acFrequency'},
+                {key: 'dcPower', name: 'power', factor: 'dcPower'},
+                {key: 'dcCurrent', name: 'current', factor: 'dcCurrent'},
+                {key: 'dcVoltage', name: 'voltage', factor: 'dcVoltage'},
             ];
 
             const payload: KeyValueAny = {};
