@@ -811,7 +811,7 @@ export const valueConverter = {
             return payload;
         },
     },
-    thermostatScheduleDayMultiDP: {
+    thermostatScheduleDayMultiDP4: {
         from: (v: string) => {
             const schedule = [];
             for (let index = 1; index < 17; index = index + 4) {
@@ -854,9 +854,9 @@ export const valueConverter = {
     },
     thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number) => {
         return {
-            from: (v: string) => valueConverter.thermostatScheduleDayMultiDP.from(v),
+            from: (v: string) => valueConverter.thermostatScheduleDayMultiDP4.from(v),
             to: (v: string) => {
-                const data = valueConverter.thermostatScheduleDayMultiDP.to(v);
+                const data = valueConverter.thermostatScheduleDayMultiDP4.to(v);
                 data[0] = dayNum;
                 return data;
             },
