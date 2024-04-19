@@ -42,7 +42,7 @@ const ledColors:{[k: number]: string} = {
 const optsLegrand = {
     identityEffect: () => {
         return e.composite('Identity effect', 'identity_effect', ea.SET)
-            .withDescription('Defines the identification effect to simplify the device identification')
+            .withDescription('Defines the identification effect to simplify the device identification.')
             .withFeature(e.enum('effect', ea.SET, Object.values(ledEffects)).withLabel('Effect'))
             .withFeature(e.enum('color', ea.SET, Object.values(ledColors)).withLabel('Color'));
     },
