@@ -8054,6 +8054,49 @@ const definitions: Definition[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_edl8pz1k', '_TZE204_edl8pz1k']),
+        model: 'TS0601_floor_thermostat',
+        vendor: 'TuYa',
+        description: 'Zigbee thermostat for electric floors',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.climate()
+                .withSystemMode(['off', 'heat'], ea.STATE_SET)
+                .withPreset(['manual', 'auto'])
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withDescription('Floor temperature')
+                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET).withDescription('Calibration floor temperature sensor'),
+            e.deadzone_temperature().withValueMin(0).withValueMax(5).withValueStep(1).withDescription('Floor temperature'),
+            e.child_lock(),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({'heat': true, 'off': false})],
+                [2, 'preset', tuya.valueConverter.tv02Preset()],
+                [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [24, 'device_temperature', tuya.valueConverter.divideBy10],
+                [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration2],
+                [36, 'running_state', tuya.valueConverterBasic.lookup({'heat': tuya.enum(0), 'idle': tuya.enum(1)})],
+                [40, 'child_lock', tuya.valueConverter.lockUnlock],
+                [102, 'local_temperature', tuya.valueConverter.divideBy10],
+                [103, 'deadzone_temperature', tuya.valueConverter.raw],
+                [110, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [109, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [108, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [107, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [106, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [105, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [101, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDP],
+            ],
+        },
+        whiteLabel: [{vendor: 'ELECTSMART', model: 'EST-120Z'}],
+    },
 ];
 
 export default definitions;
