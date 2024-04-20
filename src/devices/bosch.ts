@@ -113,6 +113,13 @@ const smokeDetectorIntruderState: KeyValue = {
     'ON': 0xb401, // 46081
 };
 
+// Smoke detector II bsd-2
+const smokeDetectorSensitivity: KeyValue = {
+    'low': 0x0,
+    'medium': 0x1,
+    'high': 0x2,
+};
+
 // Radiator Thermostat II
 const setpointSource = {
     'manual': 0,
@@ -181,7 +188,7 @@ const tzLocal = {
                 return {state: {alarm_intruder: value}};
             }
             if (key === 'sensitivity') {
-                const index = utils.getFromLookup(value, {'low': 0, 'medium': 1, 'high': 2});
+                const index = utils.getFromLookup(value, smokeDetectorSensitivity);
                 await entity.write('ssIasZone', {currentZoneSensitivityLevel: index});
                 return {state: {sensitivity: value}};
             }
@@ -1046,7 +1053,7 @@ const definitions: Definition[] = [
             e.test(),
             e.binary('alarm_intruder', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
             e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
-            e.enum('sensitivity', ea.ALL, 'low', 'medium', 'high').withDescription('Sensitivity of the smoke alarm'),
+            e.enum('sensitivity', ea.ALL, Object.keys(smokeDetectorSensitivity)).withDescription('Sensitivity of the smoke alarm'),
         ],
     },
     {
