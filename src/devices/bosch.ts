@@ -113,13 +113,6 @@ const smokeDetectorIntruderState: KeyValue = {
     'ON': 0xb401, // 46081
 };
 
-// Smoke detector II bsd-2
-const smokeDetectorSensitivity: KeyValue = {
-    'low': 0x0,
-    'medium': 0x1,
-    'high': 0x2,
-};
-
 // Radiator Thermostat II
 const setpointSource = {
     'manual': 0,
