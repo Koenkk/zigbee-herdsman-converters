@@ -126,7 +126,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(false)],
         exposes: (device, options) => {
             return [
-                _067776.getCover(options),
+                _067776.getCover(device),
                 e.action(['moving', 'identify']),
                 eLegrand.identify(),
                 eLegrand.ledInDark(),
@@ -187,7 +187,7 @@ const definitions: Definition[] = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
         exposes: (device, options) => {
             return [
-                _067776.getCover(options),
+                _067776.getCover(device),
                 e.action(['moving', 'identify']),
                 eLegrand.identify(),
                 eLegrand.ledInDark(),
