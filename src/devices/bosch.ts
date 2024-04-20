@@ -108,7 +108,7 @@ const smokeDetectorAlarmState: KeyValue = {
 };
 
 // Smoke detector II bsd-2
-const smokeDetectorIntruderState: KeyValue = {
+const smokeDetectorBurglarAlarmState: KeyValue = {
     'OFF': 0x0001,
     'ON': 0xb401, // 46081
 };
@@ -175,15 +175,15 @@ Example: 30ff00000102010001`;
 
 const tzLocal = {
     bsd2: {
-        key: ['alarm_smoke', 'alarm_intruder', 'sensitivity'],
+        key: ['alarm_smoke', 'alarm_burglar', 'sensitivity'],
         convertSet: async (entity, key, value: string, meta) => {
             if (key === 'alarm_smoke') {
                 const index = utils.getFromLookup(value, smokeDetectorAlarmState);
                 await entity.command('ssIasZone', 'boschSmokeDetectorSiren', {data: index}, manufacturerOptions);
                 return {state: {alarm_smoke: value}};
             }
-            if (key === 'alarm_intruder') {
-                const index = utils.getFromLookup(value, smokeDetectorIntruderState);
+            if (key === 'alarm_burglar') {
+                const index = utils.getFromLookup(value, smokeDetectorBurglarAlarmState);
                 await entity.command('ssIasZone', 'boschSmokeDetectorSiren', {data: index}, manufacturerOptions);
                 return {state: {alarm_intruder: value}};
             }
@@ -196,7 +196,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'alarm_smoke':
-            case 'alarm_intruder':
+            case 'alarm_burglar':
             case 'zone_status':
                 await entity.read('ssIasZone', ['zoneStatus']);
                 break;
@@ -204,7 +204,7 @@ const tzLocal = {
                 await entity.read('ssIasZone', ['currentZoneSensitivityLevel']);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bsd2_alarm_state.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bsd2.convertGet ${key}`);
             }
         },
     } satisfies Tz.Converter,
@@ -634,7 +634,7 @@ const fzLocal = {
                     battery_low: (zoneStatus & 1<<3) > 0,
                     supervision_reports: (zoneStatus & 1<<4) > 0,
                     restore_reports: (zoneStatus & 1<<5) > 0,
-                    alarm_intruder: (zoneStatus & 1<<7) > 0,
+                    alarm_burglar: (zoneStatus & 1<<7) > 0,
                     test: (zoneStatus & 1<<8) > 0,
                     alarm_silenced: (zoneStatus & 1<<11) > 0,
                 };
@@ -1051,7 +1051,7 @@ const definitions: Definition[] = [
             e.battery(),
             e.battery_low(),
             e.test(),
-            e.binary('alarm_intruder', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
+            e.binary('alarm_burglar', ea.ALL, 'ON', 'OFF').withDescription('Toggle the burglar alarm on or off'),
             e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
             e.enum('sensitivity', ea.ALL, Object.keys(smokeDetectorSensitivity)).withDescription('Sensitivity of the smoke alarm'),
         ],
