@@ -102,13 +102,13 @@ const displayedTemperature = {
 };
 
 // Smoke detector II bsd-2
-const smokeDetectorAlarmState: KeyValue = {
+const smokeAlarmState: KeyValue = {
     'OFF': 0x0000,
     'ON': 0x3c00, // 15360 or 46080 works
 };
 
 // Smoke detector II bsd-2
-const smokeDetectorBurglarAlarmState: KeyValue = {
+const burglarAlarmState: KeyValue = {
     'OFF': 0x0001,
     'ON': 0xb401, // 46081
 };
@@ -178,14 +178,14 @@ const tzLocal = {
         key: ['alarm_smoke', 'alarm_burglar', 'sensitivity'],
         convertSet: async (entity, key, value: string, meta) => {
             if (key === 'alarm_smoke') {
-                const index = utils.getFromLookup(value, smokeDetectorAlarmState);
+                const index = utils.getFromLookup(value, smokeAlarmState);
                 await entity.command('ssIasZone', 'boschSmokeDetectorSiren', {data: index}, manufacturerOptions);
                 return {state: {alarm_smoke: value}};
             }
             if (key === 'alarm_burglar') {
-                const index = utils.getFromLookup(value, smokeDetectorBurglarAlarmState);
+                const index = utils.getFromLookup(value, burglarAlarmState);
                 await entity.command('ssIasZone', 'boschSmokeDetectorSiren', {data: index}, manufacturerOptions);
-                return {state: {alarm_intruder: value}};
+                return {state: {alarm_burglar: value}};
             }
             if (key === 'sensitivity') {
                 const index = utils.getFromLookup(value, smokeDetectorSensitivity);
