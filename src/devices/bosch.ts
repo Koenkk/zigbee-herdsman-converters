@@ -120,6 +120,14 @@ const smokeDetectorSensitivity: KeyValue = {
     'high': 0x2,
 };
 
+// Smoke detector II bsd-2
+const broadcastAlarmState: KeyValue = {
+    'smoke_off': 0x0000,
+    'smoke_on': 0x3c00,
+    'burglar_off': 0x0001,
+    'burglar_on': 0xb401,
+};
+
 // Radiator Thermostat II
 const setpointSource = {
     'manual': 0,
@@ -174,6 +182,25 @@ Example: 30ff00000102010001`;
 
 
 const tzLocal = {
+    broadcast_alarm: {
+        key: ['broadcast_alarm'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'broadcast_alarm') {
+                const index = utils.getFromLookup(value, broadcastAlarmState);
+                const broadcastFrame = Zcl.ZclFrame.create(
+                    Zcl.FrameType.SPECIFIC,
+                    Zcl.Direction.CLIENT_TO_SERVER,
+                    true,
+                    Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                    71,
+                    'boschSmokeDetectorSiren',
+                    1280,
+                    {data: index});
+                await meta.device.constructor.adapter.sendZclFrameToAll(255, broadcastFrame, 1, 0xFFFF);
+                return {state: {broadcast_alarm: value}};
+            }
+        },
+    } satisfies Tz.Converter,
     bsd2: {
         key: ['alarm_smoke', 'alarm_burglar', 'sensitivity'],
         convertSet: async (entity, key, value: string, meta) => {
@@ -1036,6 +1063,7 @@ const definitions: Definition[] = [
         ],
         toZigbee: [
             tzLocal.bsd2,
+            tzLocal.broadcast_alarm,
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1054,6 +1082,7 @@ const definitions: Definition[] = [
             e.binary('alarm_burglar', ea.ALL, 'ON', 'OFF').withDescription('Toggle the burglar alarm on or off'),
             e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
             e.enum('sensitivity', ea.ALL, Object.keys(smokeDetectorSensitivity)).withDescription('Sensitivity of the smoke alarm'),
+            e.enum('broadcast_alarm', ea.SET, Object.keys(broadcastAlarmState)).withDescription('Set alarm state of all BSD-2 via broadcast'),
         ],
     },
     {
