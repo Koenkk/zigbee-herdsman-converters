@@ -37,7 +37,7 @@ const definitions: Definition[] = [
         model: 'SGPHM-I1',
         vendor: 'GS',
         description: 'Propane gas sensor',
-        extend: [iasZoneAlarm({zoneType: 'gas', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
+        extend: [iasZoneAlarm({zoneType: 'gas', zoneAttributes: ['alarm_2', 'tamper', 'battery_low']})],
     },
     {
         zigbeeModel: ['SKHMP30-I1'],
