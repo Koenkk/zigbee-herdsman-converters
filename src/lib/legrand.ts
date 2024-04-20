@@ -1,5 +1,5 @@
 import {Zcl} from 'zigbee-herdsman';
-import {Fz, Tz, OnEvent, KeyValueString, KeyValueAny} from '../lib/types';
+import {Fz, Tz, OnEvent, KeyValue, KeyValueString, KeyValueAny} from '../lib/types';
 import * as exposes from './exposes';
 import * as utils from '../lib/utils';
 import {logger} from './logger';
@@ -42,9 +42,12 @@ const ledColors:{[k: number]: string} = {
 const optsLegrand = {
     identityEffect: () => {
         return e.composite('Identity effect', 'identity_effect', ea.SET)
-            .withDescription('Defines the identification effect to simplify the device identification')
+            .withDescription('Defines the identification effect to simplify the device identification.')
             .withFeature(e.enum('effect', ea.SET, Object.values(ledEffects)).withLabel('Effect'))
             .withFeature(e.enum('color', ea.SET, Object.values(ledColors)).withLabel('Color'));
+    },
+    tiltControl: () => {
+        return new exposes.Binary('tilt_control', ea.SET, 'Show', 'Hide').withDescription('Defines if this cover shall display a tilt control.');
     },
 };
 
@@ -57,10 +60,12 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
 export const legrandOptions = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
 
 export const _067776 = {
-    getCover: () => {
+    getCover: (options: KeyValue) => {
         const c = e.cover_position();
-        if (c.hasOwnProperty('features')) {
-            c.features.push(new exposes.Numeric('tilt', ea.ALL)
+
+        const showTilt = (options?.tilt_control ?? 'Show') === 'Show' ? true : false;
+        if (showTilt) {
+            c.addFeature(new exposes.Numeric('tilt', ea.ALL)
                 .withValueMin(0).withValueMax(100)
                 .withValueStep(25)
                 .withPreset('Closed', 0, 'Vertical')
@@ -119,6 +124,7 @@ export const tzLegrand = {
     calibration_mode: (isNLLVSwitch: boolean) => {
         return {
             key: ['calibration_mode'],
+            options: [optsLegrand.tiltControl()],
             convertSet: async (entity, key, value, meta) => {
                 const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
                 utils.validateValue(value, Object.values(applicableModes));

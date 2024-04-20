@@ -124,14 +124,17 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
             fzLegrand.cluster_fc01, fzLegrand.calibration_mode(false)],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(false)],
-        exposes: [
-            _067776.getCover(),
-            e.action(['moving', 'identify']),
-            eLegrand.identify(),
-            eLegrand.ledInDark(),
-            eLegrand.ledIfOn(),
-            _067776.getCalibrationModes(false),
-        ],
+        exposes: (device, options) => {
+            return [
+                _067776.getCover(options),
+                e.action(['moving', 'identify']),
+                eLegrand.identify(),
+                eLegrand.ledInDark(),
+                eLegrand.ledIfOn(),
+                _067776.getCalibrationModes(false),
+                e.linkquality(),
+            ];
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
@@ -182,14 +185,17 @@ const definitions: Definition[] = [
         fromZigbee: [fz.ignore_basic_report, fz.cover_position_tilt, fz.legrand_binary_input_moving, fz.identify,
             fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
-        exposes: [
-            _067776.getCover(),
-            e.action(['moving', 'identify']),
-            eLegrand.identify(),
-            eLegrand.ledInDark(),
-            eLegrand.ledIfOn(),
-            _067776.getCalibrationModes(true),
-        ],
+        exposes: (device, options) => {
+            return [
+                _067776.getCover(options),
+                e.action(['moving', 'identify']),
+                eLegrand.identify(),
+                eLegrand.ledInDark(),
+                eLegrand.ledIfOn(),
+                _067776.getCalibrationModes(true),
+                e.linkquality(),
+            ];
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
