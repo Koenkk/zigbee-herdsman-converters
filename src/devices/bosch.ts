@@ -102,19 +102,11 @@ const displayedTemperature = {
 };
 
 // Smoke detector II bsd-2
-const smokeDetectorAlarmState = {
-    smoke_on: 46080,
-    smoke_off: 0,
-    intruder_on: 46081,
-    intruder_off: 1,
-};
-
-// Smoke detector II bsd-2
-const zoneStatusAlarmState = {
-    clear: 48, // 0x0030
-    smoke_on: 50, // 0x0032
-    intruder_on: 176, // 0x00b0
-    both_on: 178, // 0x00b2
+const smokeDetectorAlarmState: KeyValue = {
+    'smoke_on': 0x3c00, // 15360 or 46080 works
+    'smoke_off': 0x0000,
+    'intruder_on': 0xb401, // 46081
+    'intruder_off': 0x0001,
 };
 
 // Radiator Thermostat II
@@ -172,29 +164,29 @@ Example: 30ff00000102010001`;
 
 const tzLocal = {
     bsd2_alarm_state: {
-        key: ['intruder_alarm_state', 'smoke_alarm_state'],
+        key: ['alarm_smoke', 'alarm_intruder'],
         convertSet: async (entity, key, value: string, meta) => {
             const dataToSend = {cluster: 'ssIasZone', command: 'boschSmokeDetectorSiren', payload: {data: ''}};
             const result: KeyValue = {};
-            if (key === 'smoke_alarm_state' || key === 'intruder_alarm_state') {
+            if (key === 'alarm_smoke' || key === 'alarm_intruder') {
                 let convertedValue = '';
-                if (key === 'smoke_alarm_state') {
+                if (key === 'alarm_smoke') {
                     if (value === 'ON') {
                         convertedValue = smokeDetectorAlarmState.smoke_on.toString();
                     }
                     if (value === 'OFF') {
                         convertedValue = smokeDetectorAlarmState.smoke_off.toString();
                     }
-                    result.smoke_alarm_state = value;
+                    result.alarm_smoke = value;
                 }
-                if (key === 'intruder_alarm_state') {
+                if (key === 'alarm_intruder') {
                     if (value === 'ON') {
                         convertedValue = smokeDetectorAlarmState.intruder_on.toString();
                     }
                     if (value === 'OFF') {
                         convertedValue = smokeDetectorAlarmState.intruder_off.toString();
                     }
-                    result.intruder_alarm_state = value;
+                    result.alarm_intruder = value;
                 }
                 dataToSend.payload.data = convertedValue;
             }
@@ -217,8 +209,8 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
-            case 'smoke_alarm_state':
-            case 'intruder_alarm_state':
+            case 'alarm_smoke':
+            case 'alarm_intruder':
             case 'zone_status':
                 await entity.read('ssIasZone', ['zoneStatus']);
                 break;
@@ -639,27 +631,21 @@ const tzLocal = {
 
 
 const fzLocal = {
-    bsd2_alarm_state: {
+    bsd2: {
         cluster: 'ssIasZone',
-        type: ['attributeReport', 'readResponse'],
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const data = msg.data;
-            if (data.hasOwnProperty('zoneStatus')) {
-                const zoneStatus = utils.toNumber(msg.data['zoneStatus']);
-                result.zone_status = zoneStatus;
-                if ((zoneStatus === zoneStatusAlarmState.intruder_on) || (zoneStatus === zoneStatusAlarmState.both_on)) {
-                    result.intruder_alarm_state = 'ON';
-                } else if (zoneStatus === zoneStatusAlarmState.clear) {
-                    result.intruder_alarm_state = 'OFF';
-                }
-                if ((zoneStatus === zoneStatusAlarmState.smoke_on) || (zoneStatus === zoneStatusAlarmState.both_on)) {
-                    result.smoke_alarm_state = 'ON';
-                } else if (zoneStatus === zoneStatusAlarmState.clear) {
-                    result.smoke_alarm_state = 'OFF';
-                }
-            }
-            return result;
+            const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
+            return {
+                smoke: (zoneStatus & 1) > 0,
+                alarm_smoke: (zoneStatus & 1<<1) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                supervision_reports: (zoneStatus & 1<<4) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+                alarm_intruder: (zoneStatus & 1<<7) > 0,
+                test: (zoneStatus & 1<<8) > 0,
+                alarm_silenced: (zoneStatus & 1<<11) > 0,
+            };
         },
     } satisfies Fz.Converter,
     bmct: {
@@ -1049,8 +1035,7 @@ const definitions: Definition[] = [
         description: 'Smoke alarm detector',
         fromZigbee: [
             fz.battery,
-            fz.ias_smoke_alarm_1,
-            fzLocal.bsd2_alarm_state,
+            fzLocal.bsd2,
         ],
         toZigbee: [
             tzLocal.bsd2_alarm_state,
@@ -1069,8 +1054,8 @@ const definitions: Definition[] = [
             e.battery(),
             e.battery_low(),
             e.test(),
-            e.binary('intruder_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
-            e.binary('smoke_alarm_state', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
+            e.binary('alarm_intruder', ea.ALL, 'ON', 'OFF').withDescription('Toggle the intruder alarm on or off'),
+            e.binary('alarm_smoke', ea.ALL, 'ON', 'OFF').withDescription('Toggle the smoke alarm on or off'),
         ],
     },
     {
