@@ -120,9 +120,8 @@ const definitions: Definition[] = [
         zigbeeModel: ['ONOFFRELAY'],
         model: '81898',
         vendor: 'AduroSmart',
-        description: 'AduroSmart On/Off relay',
+        description: 'AduroSmart on/off relay',
         extend: [onOff({powerOnBehavior: false})],
-        meta: {},
     },
 ];
 
