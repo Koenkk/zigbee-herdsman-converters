@@ -121,9 +121,9 @@ const definitions: Definition[] = [
         model: '81898',
         vendor: 'AduroSmart',
         description: 'AduroSmart On/Off relay',
-        extend: [identify(), onOff({"powerOnBehavior":false})],
+        extend: [identify(), onOff({'powerOnBehavior': false})],
         meta: {},
-	}
+    },
 ];
 
 export default definitions;
