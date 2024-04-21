@@ -194,7 +194,7 @@ const tzLocal = {
                     Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                     71,
                     'boschSmokeDetectorSiren',
-                    1280,
+                    1280, // ssIasZone
                     {data: index});
                 await meta.device.constructor.adapter.sendZclFrameToAll(255, broadcastFrame, 1, 0xFFFF);
                 return {state: {broadcast_alarm: value}};
