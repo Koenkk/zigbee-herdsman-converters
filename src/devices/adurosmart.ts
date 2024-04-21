@@ -5,6 +5,7 @@ import tz from '../converters/toZigbee';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import {light, onOff} from '../lib/modernExtend';
+import identify from '../lib/modernExtend';
 
 const e = exposes.presets;
 
