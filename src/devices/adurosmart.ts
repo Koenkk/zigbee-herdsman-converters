@@ -5,6 +5,7 @@ import tz from '../converters/toZigbee';
 import * as legacy from '../lib/legacy';
 import * as reporting from '../lib/reporting';
 import {light, onOff} from '../lib/modernExtend';
+import {identify} from '../lib/modernExtend';
 
 const e = exposes.presets;
 
@@ -114,6 +115,13 @@ const definitions: Definition[] = [
         vendor: 'AduroSmart',
         description: 'Eria tunable white A19/BR30 smart bulb',
         extend: [light({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs']}})],
+    },
+    {
+        zigbeeModel: ['ONOFFRELAY'],
+        model: '81898',
+        vendor: 'AduroSmart',
+        description: 'AduroSmart on/off relay',
+        extend: [onOff({powerOnBehavior: false})],
     },
 ];
 
