@@ -8,7 +8,7 @@ import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as tuya from '../lib/tuya';
-import {light, battery, iasZoneAlarm} from '../lib/modernExtend';
+import {light, battery, iasZoneAlarm, illuminance, occupancy, identify, ota} from '../lib/modernExtend';
 
 const definitions: Definition[] = [
     {
@@ -730,6 +730,28 @@ const definitions: Definition[] = [
         extend: [
             battery({voltageToPercentage: '3V_2500', voltage: true}),
             iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+        ],
+    },
+    {
+        zigbeeModel: [
+            'HS8OS-N-3.0',
+            'HS8OS-EM-3.0',
+            'HS8OS-EF-3.0',
+            'HS8OS-EF1-3.0',
+            'HS8OS-EF2-3.0',
+        ],
+        model: 'HS8OS',
+        vendor: 'HEIMAN',
+        description: 'Ceiling embedded occupancy sensor',
+        extend: [
+            illuminance(),
+            occupancy(), // + OccupiedToUnoccupied
+            identify(),
+            // radar settings (?)
+            // illuminance Threshold
+            // diagnostics
+            // illuminance SensorStatus
+            ota(),
         ],
     },
 ];
