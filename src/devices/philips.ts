@@ -1215,7 +1215,7 @@ const definitions: Definition[] = [
         extend: [philipsLight({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ['LCT024', '440400982841', '440400982842', 'PCM002'],
+        zigbeeModel: ['LCT024', '440400982841', '440400982842', '440400982843', 'PCM002'],
         model: '915005733701',
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
