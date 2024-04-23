@@ -719,7 +719,8 @@ const converters1 = {
                 if (factor != null) {
                     power = (power * factor) * 1000; // kWh to Watt
                 }
-                payload.power = power;
+                const property = postfixWithEndpointName('power', msg, model, meta);
+                payload[property] = power;
             }
 
             if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
@@ -727,12 +728,14 @@ const converters1 = {
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
                     const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    payload.energy = value * factor;
+                    const property = postfixWithEndpointName('energy', msg, model, meta);
+                    payload[property] = value * factor;
                 }
                 if (msg.data.hasOwnProperty('currentSummReceived')) {
                     const data = msg.data['currentSummReceived'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    payload.produced_energy = value * factor;
+                    const property = postfixWithEndpointName('produced_energy', msg, model, meta);
+                    payload[property] = value * factor;
                 }
             }
 
