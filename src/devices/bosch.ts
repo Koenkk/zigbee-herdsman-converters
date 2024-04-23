@@ -1061,10 +1061,10 @@ const definitions: Definition[] = [
         fromZigbee: [
             fz.battery,
             fzLocal.bsd2,
-            tzLocal.broadcast_alarm,
         ],
         toZigbee: [
             tzLocal.bsd2,
+            tzLocal.broadcast_alarm,
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
