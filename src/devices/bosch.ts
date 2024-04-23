@@ -197,7 +197,7 @@ const tzLocal = {
                     1280, // ssIasZone
                     {data: index});
                 // @ts-expect-error
-                await meta.device.constructor.adapter.sendZclFrameToAll(255, broadcastFrame, 1);
+                await meta.device.constructor.adapter.sendZclFrameToAll(255, broadcastFrame, 1, true);
                 return {state: {broadcast_alarm: value}};
             }
         },
