@@ -507,7 +507,7 @@ const definitions: Definition[] = [
                             acPowerDivisor: 10, acPowerMultiplier: 1});
                     }
                     if (endpoint.supportsInputCluster('seMetering')) {
-                        endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+                        endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
                     }
                 }
             }
