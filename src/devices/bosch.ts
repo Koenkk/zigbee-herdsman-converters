@@ -196,7 +196,8 @@ const tzLocal = {
                     'boschSmokeDetectorSiren',
                     1280, // ssIasZone
                     {data: index});
-                // await meta.device.constructor.adapter.sendZclFrameToAll(255, broadcastFrame, 1, 0xFFFF);
+                // @ts-expect-error
+                await meta.device.constructor.adapter.sendZclFrameToAll(255, broadcastFrame, 1);
                 return {state: {broadcast_alarm: value}};
             }
         },
