@@ -787,13 +787,16 @@ const converters1 = {
                 }
             }
             if (msg.data.hasOwnProperty('powerFactor')) {
-                payload.power_factor = precisionRound(msg.data['powerFactor'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactor'] / 100, 2);
             }
             if (msg.data.hasOwnProperty('powerFactorPhB')) {
-                payload.power_factor_phase_b = precisionRound(msg.data['powerFactorPhB'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor_phase_b', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactorPhB'] / 100, 2);
             }
             if (msg.data.hasOwnProperty('powerFactorPhC')) {
-                payload.power_factor_phase_c = precisionRound(msg.data['powerFactorPhC'] / 100, 2);
+                const property = postfixWithEndpointName('power_factor_phase_c', msg, model, meta);
+                payload[property] = precisionRound(msg.data['powerFactorPhC'] / 100, 2);
             }
             return payload;
         },
