@@ -6108,6 +6108,7 @@ const definitions: Definition[] = [
             tuya.exposes.powerFactorWithPhase('a'), tuya.exposes.powerFactorWithPhase('b'), tuya.exposes.powerFactorWithPhase('c'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [132, 'ac_frequency', tuya.valueConverter.raw],
                 [133, 'temperature', tuya.valueConverter.divideBy10],
@@ -7667,6 +7668,7 @@ const definitions: Definition[] = [
             e.numeric('update_frequency', ea.STATE).withUnit('s').withDescription('Update frequency'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [111, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [101, 'power_a', tuya.valueConverter.divideBy10],
@@ -7705,6 +7707,7 @@ const definitions: Definition[] = [
             tuya.exposes.energyProducedWithPhase('a'), tuya.exposes.energyProducedWithPhase('b'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [113, 'ac_frequency', tuya.valueConverter.raw],
                 [108, 'power_a', tuya.valueConverter.raw],
