@@ -714,7 +714,7 @@ const definitions: Definition[] = [
         ],
         extend: [
             deviceEndpoints({endpoints: {'left': 4, 'right': 3, 'left_btn': 22, 'right_btn': 21}}),
-            light({endpointNames: ['left', 'right'], configureReporting: true, levelConfig: {}}),
+            light({endpointNames: ['left', 'right'], configureReporting: true}),
             switchActions('left_btn'), switchActions('right_btn'), indicatorMode('left_btn'),
         ],
     },
@@ -1295,7 +1295,7 @@ const definitions: Definition[] = [
     },
     {
         zigbeeModel: ['2GANG/ESWITCH/2'],
-        model: 'MEG5126-0300/MEG5152-0000',
+        model: 'MEG5126-0300_MEG5152-0000',
         vendor: 'Schneider Electric',
         description: 'Merten MEG5152 switch insert (2fold) with Merten System M push button (2fold)',
         extend: [deviceEndpoints({'endpoints': {'left': 1, 'right': 2, 'left_sw': 21, 'right_sw': 22}}), identify(),
@@ -1303,7 +1303,26 @@ const definitions: Definition[] = [
             commandsOnOff({'endpointNames': ['left_sw', 'right_sw']}),
         ],
     },
-
+    {
+        zigbeeModel: ['1GANG/SWITCH/2'],
+        model: 'MEG5116-0300_MEG5162-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5162 switch insert (2fold) with Merten System M push button (1fold)',
+        extend: [deviceEndpoints({'endpoints': {'left': 1, 'right': 2, 'left_sw': 21}}), identify(),
+            onOff({'powerOnBehavior': false, 'endpointNames': ['left', 'right']}),
+            commandsOnOff({'endpointNames': ['left_sw']}),
+        ],
+    },
+    {
+        zigbeeModel: ['1GANG/ESWITCH/1'],
+        model: 'MEG5116-0300_MEG5151-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5151 switch insert with Merten System M push button (1fold)',
+        extend: [deviceEndpoints({'endpoints': {'switch': 1, 'switch_sw': 21}}), identify(),
+            onOff({'powerOnBehavior': false}),
+            commandsOnOff({'endpointNames': ['switch_sw']}),
+        ],
+    },
 ];
 
 export default definitions;
