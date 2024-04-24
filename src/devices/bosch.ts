@@ -197,6 +197,10 @@ const tzLocal = {
                     1280, // ssIasZone
                     {data: index});
                 // @ts-expect-error
+                await meta.device.triggerBroadcast(
+                    255, 1, BroadcastAddress.SLEEPY, Zcl.Direction.CLIENT_TO_SERVER,
+                    'boschSmokeDetectorSiren', Zcl.Clusters.ssIasZone.ID, {data: index}
+                );
                 await meta.device.constructor.adapter.sendZclFrameToAll(255, broadcastFrame, 1, true);
                 return {state: {broadcast_alarm: value}};
             }
