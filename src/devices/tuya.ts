@@ -8155,8 +8155,8 @@ const definitions: Definition[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
         },
-	},
-	{
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_edl8pz1k', '_TZE204_edl8pz1k']),
         model: 'TS0601_floor_thermostat',
         vendor: 'TuYa',
