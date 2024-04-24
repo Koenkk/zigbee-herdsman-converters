@@ -805,24 +805,24 @@ const definitions: Definition[] = [
         extend: [
             binary({
                 name: 'child_lock',
-                cluster: 0xFC11,
-                attribute: {ID: 0x0000, type: 0x10},
+                cluster: 'sonoffTrvzbCluster',
+                attribute: 'childLock',
                 description: 'Enables/disables physical input on the device',
                 valueOn: ['LOCK', 0x01],
                 valueOff: ['UNLOCK', 0x00],
             }),
             binary({
                 name: 'open_window',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6000, type: 0x10},
+                cluster: 'sonoffTrvzbCluster',
+                attribute: 'openWindow',
                 description: 'Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.',
                 valueOn: ['ON', 0x01],
                 valueOff: ['OFF', 0x00],
             }),
             numeric({
                 name: 'frost_protection_temperature',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6002, type: 0x29},
+                cluster: 'sonoffTrvzbCluster',
+                attribute: 'frostProtectionTemperature',
                 description: 'Minimum temperature at which to automatically turn on the radiator, ' +
                     'if system mode is off, to prevent pipes freezing.',
                 valueMin: 4.0,
@@ -833,46 +833,46 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'idle_steps',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6003, type: 0x21},
+                cluster: 'sonoffTrvzbCluster',
+                attribute: 'idleSteps',
                 description: 'Number of steps used for calibration (no-load steps)',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'closing_steps',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6004, type: 0x21},
+                cluster: 'sonoffTrvzbCluster',
+                attribute: 'closingSteps',
                 description: 'Number of steps it takes to close the valve',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_opening_limit_voltage',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6005, type: 0x21},
+                cluster: 'sonoffTrvzbCluster',
+                attribute: 'valveOpeningLimitVoltage',
                 description: 'Valve opening limit voltage',
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_closing_limit_voltage',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6006, type: 0x21},
+                cluster: 'sonoffTrvzbCluster',
+                attribute: 'valveClosingLimitVoltage',
                 description: 'Valve closing limit voltage',
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_motor_running_voltage',
-                cluster: 0xFC11,
-                attribute: {ID: 0x6007, type: 0x21},
+                cluster: 'sonoffTrvzbCluster',
+                attribute: 'valveMotorRunningVoltage',
                 description: 'Valve motor running voltage',
                 unit: 'mV',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_opening_degree',
-                cluster: 0xFC11,
-                attribute: {ID: 0x600B, type: 0x20},
+                cluster: 'sonoffTrvzbCluster',
+                attribute: 'valveOpeningDegree',
                 description: 'Valve open position (percentage) control. ' +
                     'If the opening degree is set to 100%, the valve is fully open when it is opened. ' +
                     'If the opening degree is set to 0%, the valve is fully closed when it is opened, ' +
@@ -885,8 +885,8 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'valve_closing_degree',
-                cluster: 0xFC11,
-                attribute: {ID: 0x600C, type: 0x20},
+                cluster: 'sonoffTrvzbCluster',
+                attribute: 'valveClosingDegree',
                 description: 'Valve closed position (percentage) control. ' +
                     'If the closing degree is set to 100%, the valve is fully closed when it is closed. ' +
                     'If the closing degree is set to 0%, the valve is fully opened when it is closed, ' +
@@ -909,6 +909,31 @@ const definitions: Definition[] = [
             await reporting.thermostatSystemMode(endpoint);
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007]);
+        },
+        onEvent: async (type, data, device, settings, state) => {
+            const name = 'sonoffTrvzbCluster';
+            if (!device.customClusters[name]) {
+                device.addCustomCluster(name, {
+                    ID: 0xfc11,
+                    manufacturerCode: 0x1286,
+                    attributes: {
+                        childLock: {ID: 0x0000, type: Zcl.DataType.boolean},
+                        tamper: {ID: 0x2000, type: Zcl.DataType.uint8},
+                        illumination: {ID: 0x2001, type: Zcl.DataType.uint8},
+                        openWindow: {ID: 0x6000, type: Zcl.DataType.boolean},
+                        frostProtectionTemperature: {ID: 0x6002, type: Zcl.DataType.int16},
+                        idleSteps: {ID: 0x6003, type: Zcl.DataType.uint16},
+                        closingSteps: {ID: 0x6004, type: Zcl.DataType.uint16},
+                        valveOpeningLimitVoltage: {ID: 0x6005, type: Zcl.DataType.uint16},
+                        valveClosingLimitVoltage: {ID: 0x6006, type: Zcl.DataType.uint16},
+                        valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.uint16},
+                        valveOpeningDegree: {ID: 0x600B, type: Zcl.DataType.uint8},
+                        valveClosingDegree: {ID: 0x600C, type: Zcl.DataType.uint8},
+                    },
+                    commands: {},
+                    commandsResponse: {},
+                });
+            }
         },
     },
     {
