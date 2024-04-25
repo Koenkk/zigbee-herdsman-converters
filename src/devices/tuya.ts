@@ -8060,7 +8060,7 @@ const definitions: Definition[] = [
                     cluster: 'genOnOff',
                     commands: ['commandTuyaAction'],
                     attribute: 'data',
-                    getter: (msg, attr) => msg.data[attr][1],
+                    parse: (msg, attr) => msg.data[attr][1],
                 }),
                 commandsOnOff(),
                 commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),

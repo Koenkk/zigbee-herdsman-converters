@@ -1502,17 +1502,16 @@ export function binary(args: BinaryArgs): ModernExtend {
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-// eslint-disable-next-line
-export type Getter = (msg: Fz.Message, attributeKey: string | number) => any;
+export type Parse = (msg: Fz.Message, attributeKey: string | number) => unknown;
 export interface ActionEnumLookupArgs {
     actionLookup: KeyValue, cluster: string | number, attribute: string | {ID: number, type: number}, endpointNames?: string[],
-    buttonLookup?: KeyValue, extraActions?: string[], commands?: string[], getter?: Getter,
+    buttonLookup?: KeyValue, extraActions?: string[], commands?: string[], parse?: Parse,
 }
 export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const commands = args.commands || ['attributeReport', 'readResponse'];
-    const getter = args.getter;
+    const parse = args.parse;
 
     let actions = Object.keys(lookup).map((a) => args.endpointNames ? args.endpointNames.map((e) => `${a}_${e}`) : [a]).flat();
     // allows direct external input to be used by other extends in the same device
@@ -1524,7 +1523,7 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
         type: commands,
         convert: (model, msg, publish, options, meta) => {
             if (attributeKey in msg.data) {
-                let value = (getter) ? getter(msg, attributeKey) : msg.data[attributeKey];
+                let value = (parse) ? parse(msg, attributeKey) : msg.data[attributeKey];
                 value = getFromLookupByValue(value, lookup);
                 // endpointNames is used when action endpoint names don't overlap with other endpoint names
                 if (args.endpointNames) value = postfixWithEndpointName(value, msg, model, meta);
