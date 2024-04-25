@@ -378,7 +378,7 @@ const tzLocal = {
             const isPosition = (key === 'position');
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
-            const position = invert ? 100 - value : value;0
+            const position = invert ? 100 - value : value;
             await entity.command(
                 'closuresWindowCovering',
                 isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
