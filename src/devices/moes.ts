@@ -364,7 +364,7 @@ const definitions: Definition[] = [
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: (device, options) => {
-            const exposes = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
+            const exposes = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.linkquality()];
             if (device?.manufacturerName !== '') {
                 exposes.push(e.battery(), e.battery_voltage());
             }
