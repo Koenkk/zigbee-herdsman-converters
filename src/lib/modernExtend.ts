@@ -138,18 +138,22 @@ export function setupConfigureForBinding(cluster: string | number, clusterType: 
 // #region General
 
 export function forceDeviceType(args: {type: 'EndDevice' | 'Router'}): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
-        device.type = args.type;
-        device.save();
-    };
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            device.type = args.type;
+            device.save();
+        },
+    ];
     return {configure, isModernExtend: true};
 }
 
 export function forcePowerSource(args: {powerSource: 'Mains (single phase)' | 'Battery'}): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
-        device.powerSource = args.powerSource;
-        device.save();
-    };
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            device.powerSource = args.powerSource;
+            device.save();
+        },
+    ];
     return {configure, isModernExtend: true};
 }
 
@@ -375,22 +379,24 @@ export function onOff(args?: OnOffArgs): ModernExtend {
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
     if (args.ota) result.ota = args.ota;
     if (args.configureReporting) {
-        result.configure = async (device, coordinatorEndpoint) => {
-            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff', min: 'MIN', max: 'MAX', change: 1}]);
-            if (args.powerOnBehavior) {
-                try {
-                    // Don't fail configure if reading this attribute fails, some devices don't support it.
-                    await setupAttributes(device, coordinatorEndpoint, 'genOnOff',
-                        [{attribute: 'startUpOnOff', min: 'MIN', max: 'MAX', change: 1}], false);
-                } catch (e) {
-                    if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
-                        logger.debug('Reading startUpOnOff failed, this features is unsupported', 'zhc:onoff');
-                    } else {
-                        throw e;
+        result.configure = [
+            async (device, coordinatorEndpoint) => {
+                await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff', min: 'MIN', max: 'MAX', change: 1}]);
+                if (args.powerOnBehavior) {
+                    try {
+                        // Don't fail configure if reading this attribute fails, some devices don't support it.
+                        await setupAttributes(device, coordinatorEndpoint, 'genOnOff',
+                            [{attribute: 'startUpOnOff', min: 'MIN', max: 'MAX', change: 1}], false);
+                    } catch (e) {
+                        if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
+                            logger.debug('Reading startUpOnOff failed, this features is unsupported', 'zhc:onoff');
+                        } else {
+                            throw e;
+                        }
                     }
                 }
-            }
-        };
+            },
+        ];
     }
     return result;
 }
@@ -434,7 +440,7 @@ export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = setupConfigureForBinding('genOnOff', 'output', args.endpointNames);
+    if (args.bind) result.configure = [setupConfigureForBinding('genOnOff', 'output', args.endpointNames)];
 
     return result;
 }
@@ -729,35 +735,37 @@ export function light(args?: LightArgs): ModernExtend {
         meta.turnsOffAtBrightness1 = args.turnsOffAtBrightness1;
     }
 
-    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
-        await lightConfigure(device, coordinatorEndpoint, true);
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            await lightConfigure(device, coordinatorEndpoint, true);
 
-        if (args.configureReporting) {
-            await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff', min: 'MIN', max: 'MAX', change: 1}]);
-            await setupAttributes(device, coordinatorEndpoint, 'genLevelCtrl',
-                [{attribute: 'currentLevel', min: '10_SECONDS', max: 'MAX', change: 1}]);
-            if (args.colorTemp) {
-                await setupAttributes(device, coordinatorEndpoint, 'lightingColorCtrl',
-                    [{attribute: 'colorTemperature', min: '10_SECONDS', max: 'MAX', change: 1}]);
-            }
-            if (argsColor) {
-                const attributes: ReportingConfig[] = [];
-                if (argsColor.modes.includes('xy')) {
-                    attributes.push(
-                        {attribute: 'currentX', min: '10_SECONDS', max: 'MAX', change: 1},
-                        {attribute: 'currentY', min: '10_SECONDS', max: 'MAX', change: 1},
-                    );
+            if (args.configureReporting) {
+                await setupAttributes(device, coordinatorEndpoint, 'genOnOff', [{attribute: 'onOff', min: 'MIN', max: 'MAX', change: 1}]);
+                await setupAttributes(device, coordinatorEndpoint, 'genLevelCtrl',
+                    [{attribute: 'currentLevel', min: '10_SECONDS', max: 'MAX', change: 1}]);
+                if (args.colorTemp) {
+                    await setupAttributes(device, coordinatorEndpoint, 'lightingColorCtrl',
+                        [{attribute: 'colorTemperature', min: '10_SECONDS', max: 'MAX', change: 1}]);
                 }
-                if (argsColor.modes.includes('hs')) {
-                    attributes.push(
-                        {attribute: argsColor.enhancedHue ? 'enhancedCurrentHue' : 'currentHue', min: '10_SECONDS', max: 'MAX', change: 1},
-                        {attribute: 'currentSaturation', min: '10_SECONDS', max: 'MAX', change: 1},
-                    );
+                if (argsColor) {
+                    const attributes: ReportingConfig[] = [];
+                    if (argsColor.modes.includes('xy')) {
+                        attributes.push(
+                            {attribute: 'currentX', min: '10_SECONDS', max: 'MAX', change: 1},
+                            {attribute: 'currentY', min: '10_SECONDS', max: 'MAX', change: 1},
+                        );
+                    }
+                    if (argsColor.modes.includes('hs')) {
+                        attributes.push(
+                            {attribute: argsColor.enhancedHue ? 'enhancedCurrentHue' : 'currentHue', min: '10_SECONDS', max: 'MAX', change: 1},
+                            {attribute: 'currentSaturation', min: '10_SECONDS', max: 'MAX', change: 1},
+                        );
+                    }
+                    await setupAttributes(device, coordinatorEndpoint, 'lightingColorCtrl', attributes);
                 }
-                await setupAttributes(device, coordinatorEndpoint, 'lightingColorCtrl', attributes);
             }
-        }
-    };
+        },
+    ];
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, meta, isModernExtend: true};
     if (args.ota) result.ota = args.ota;
@@ -833,7 +841,7 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = setupConfigureForBinding('genLevelCtrl', 'output', args.endpointNames);
+    if (args.bind) result.configure = [setupConfigureForBinding('genLevelCtrl', 'output', args.endpointNames)];
 
     return result;
 }
@@ -907,7 +915,7 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = setupConfigureForBinding('lightingColorCtrl', 'output', args.endpointNames);
+    if (args.bind) result.configure = [setupConfigureForBinding('lightingColorCtrl', 'output', args.endpointNames)];
 
     return result;
 }
@@ -1022,7 +1030,7 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = setupConfigureForBinding('closuresWindowCovering', 'output', args.endpointNames);
+    if (args.bind) result.configure = [setupConfigureForBinding('closuresWindowCovering', 'output', args.endpointNames)];
 
     return result;
 }
@@ -1279,37 +1287,39 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
 
     if (args.configureReporting) {
-        result.configure = async (device, coordinatorEndpoint) => {
-            for (const [cluster, properties] of Object.entries(configureLookup)) {
-                for (const endpoint of getEndpointsWithCluster(device, cluster, 'input')) {
-                    const items: ReportingConfig[] = [];
-                    for (const property of Object.values(properties)) {
-                        // In case multiplier or divisor was provided, use that instead of reading from device.
-                        if (property.forced) {
-                            endpoint.saveClusterAttributeKeyValue(cluster, {
-                                [property.divisor]: property.forced.divisor ?? 1,
-                                [property.multiplier]: property.forced.multiplier ?? 1,
-                            });
-                            endpoint.save();
-                        } else {
-                            await endpoint.read(cluster, [property.divisor, property.multiplier]);
-                        }
+        result.configure = [
+            async (device, coordinatorEndpoint) => {
+                for (const [cluster, properties] of Object.entries(configureLookup)) {
+                    for (const endpoint of getEndpointsWithCluster(device, cluster, 'input')) {
+                        const items: ReportingConfig[] = [];
+                        for (const property of Object.values(properties)) {
+                            // In case multiplier or divisor was provided, use that instead of reading from device.
+                            if (property.forced) {
+                                endpoint.saveClusterAttributeKeyValue(cluster, {
+                                    [property.divisor]: property.forced.divisor ?? 1,
+                                    [property.multiplier]: property.forced.multiplier ?? 1,
+                                });
+                                endpoint.save();
+                            } else {
+                                await endpoint.read(cluster, [property.divisor, property.multiplier]);
+                            }
 
-                        const divisor = endpoint.getClusterAttributeValue(cluster, property.divisor);
-                        assertNumber(divisor, property.divisor);
-                        const multiplier = endpoint.getClusterAttributeValue(cluster, property.multiplier);
-                        assertNumber(multiplier, property.multiplier);
-                        let change: number | [number, number] = property.change * (divisor / multiplier);
-                        // currentSummDelivered data type is uint48, so reportableChange also is uint48
-                        if (property.attribute === 'currentSummDelivered') change = [0, change];
-                        items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
-                    }
-                    if (items.length) {
-                        await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
+                            const divisor = endpoint.getClusterAttributeValue(cluster, property.divisor);
+                            assertNumber(divisor, property.divisor);
+                            const multiplier = endpoint.getClusterAttributeValue(cluster, property.multiplier);
+                            assertNumber(multiplier, property.multiplier);
+                            let change: number | [number, number] = property.change * (divisor / multiplier);
+                            // currentSummDelivered data type is uint48, so reportableChange also is uint48
+                            if (property.attribute === 'currentSummDelivered') change = [0, change];
+                            items.push({attribute: property.attribute, min: '10_SECONDS', max: 'MAX', change});
+                        }
+                        if (items.length) {
+                            await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
+                        }
                     }
                 }
-            }
-        };
+            },
+        ];
     }
 
     return result;
@@ -1364,7 +1374,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
         } : undefined,
     }];
 
-    const configure = setupConfigureForReporting(cluster, attribute, reporting, access);
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -1455,7 +1465,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         } : undefined,
     }];
 
-    const configure = setupConfigureForReporting(cluster, attribute, reporting, access, endpoints);
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access, endpoints)];
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -1497,7 +1507,7 @@ export function binary(args: BinaryArgs): ModernExtend {
         } : undefined,
     }];
 
-    const configure = setupConfigureForReporting(cluster, attribute, reporting, access);
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -1543,47 +1553,51 @@ export interface QuirkAddEndpointClusterArgs {
 export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): ModernExtend {
     const {endpointID, inputClusters, outputClusters} = args;
 
-    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
-        const endpoint = device.getEndpoint(endpointID);
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(endpointID);
 
-        if (endpoint == undefined) {
-            logger.error(`Quirk: cannot add clusters to endpoint ${endpointID}, endpoint does not exist!`, 'zhc:quirkaddendpointcluster');
-            return;
-        }
-
-        inputClusters?.forEach((cluster: number | string) => {
-            const clusterID = isString(cluster) ?
-                Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID :
-                cluster;
-
-            if (!endpoint.inputClusters.includes(clusterID)) {
-                logger.debug(`Quirk: adding input cluster ${clusterID} to endpoint ${endpointID}.`, 'zhc:quirkaddendpointcluster');
-                endpoint.inputClusters.push(clusterID);
+            if (endpoint == undefined) {
+                logger.error(`Quirk: cannot add clusters to endpoint ${endpointID}, endpoint does not exist!`, 'zhc:quirkaddendpointcluster');
+                return;
             }
-        });
 
-        outputClusters?.forEach((cluster: number | string) => {
-            const clusterID = isString(cluster) ?
-                Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID :
-                cluster;
+            inputClusters?.forEach((cluster: number | string) => {
+                const clusterID = isString(cluster) ?
+                    Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID :
+                    cluster;
 
-            if (!endpoint.outputClusters.includes(clusterID)) {
-                logger.debug(`Quirk: adding output cluster ${clusterID} to endpoint ${endpointID}.`, 'zhc:quirkaddendpointcluster');
-                endpoint.outputClusters.push(clusterID);
-            }
-        });
+                if (!endpoint.inputClusters.includes(clusterID)) {
+                    logger.debug(`Quirk: adding input cluster ${clusterID} to endpoint ${endpointID}.`, 'zhc:quirkaddendpointcluster');
+                    endpoint.inputClusters.push(clusterID);
+                }
+            });
 
-        device.save();
-    };
+            outputClusters?.forEach((cluster: number | string) => {
+                const clusterID = isString(cluster) ?
+                    Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID :
+                    cluster;
+
+                if (!endpoint.outputClusters.includes(clusterID)) {
+                    logger.debug(`Quirk: adding output cluster ${clusterID} to endpoint ${endpointID}.`, 'zhc:quirkaddendpointcluster');
+                    endpoint.outputClusters.push(clusterID);
+                }
+            });
+
+            device.save();
+        },
+    ];
 
     return {configure, isModernExtend: true};
 }
 
 export function quirkCheckinInterval(timeout: number | keyof typeof timeLookup): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
-        device.checkinInterval = (typeof timeout == 'number') ? timeout : timeLookup[timeout];
-        device.save();
-    };
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            device.checkinInterval = (typeof timeout == 'number') ? timeout : timeLookup[timeout];
+            device.save();
+        },
+    ];
 
     return {configure, isModernExtend: true};
 }
@@ -1628,7 +1642,7 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
 }
 
 export function bindCluster(args: {cluster: string | number, clusterType: 'input' | 'output', endpointNames?: string[]}): ModernExtend {
-    const configure: Configure = setupConfigureForBinding(args.cluster, args.clusterType, args.endpointNames);
+    const configure: Configure[] = [setupConfigureForBinding(args.cluster, args.clusterType, args.endpointNames)];
     return {configure, isModernExtend: true};
 }
 
