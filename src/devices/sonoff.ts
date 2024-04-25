@@ -805,7 +805,7 @@ const definitions: Definition[] = [
         extend: [
             binary({
                 name: 'child_lock',
-                cluster: 'sonoffTrvzbCluster',
+                cluster: 'customSonoffTrvzb',
                 attribute: 'childLock',
                 description: 'Enables/disables physical input on the device',
                 valueOn: ['LOCK', 0x01],
@@ -813,7 +813,7 @@ const definitions: Definition[] = [
             }),
             binary({
                 name: 'open_window',
-                cluster: 'sonoffTrvzbCluster',
+                cluster: 'customSonoffTrvzb',
                 attribute: 'openWindow',
                 description: 'Automatically turns off the radiator when local temperature drops by more than 1.5°C in 4.5 minutes.',
                 valueOn: ['ON', 0x01],
@@ -821,7 +821,7 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'frost_protection_temperature',
-                cluster: 'sonoffTrvzbCluster',
+                cluster: 'customSonoffTrvzb',
                 attribute: 'frostProtectionTemperature',
                 description: 'Minimum temperature at which to automatically turn on the radiator, ' +
                     'if system mode is off, to prevent pipes freezing.',
@@ -833,21 +833,21 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'idle_steps',
-                cluster: 'sonoffTrvzbCluster',
+                cluster: 'customSonoffTrvzb',
                 attribute: 'idleSteps',
                 description: 'Number of steps used for calibration (no-load steps)',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'closing_steps',
-                cluster: 'sonoffTrvzbCluster',
+                cluster: 'customSonoffTrvzb',
                 attribute: 'closingSteps',
                 description: 'Number of steps it takes to close the valve',
                 access: 'STATE_GET',
             }),
             numeric({
                 name: 'valve_opening_limit_voltage',
-                cluster: 'sonoffTrvzbCluster',
+                cluster: 'customSonoffTrvzb',
                 attribute: 'valveOpeningLimitVoltage',
                 description: 'Valve opening limit voltage',
                 unit: 'mV',
@@ -855,7 +855,7 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'valve_closing_limit_voltage',
-                cluster: 'sonoffTrvzbCluster',
+                cluster: 'customSonoffTrvzb',
                 attribute: 'valveClosingLimitVoltage',
                 description: 'Valve closing limit voltage',
                 unit: 'mV',
@@ -863,7 +863,7 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'valve_motor_running_voltage',
-                cluster: 'sonoffTrvzbCluster',
+                cluster: 'customSonoffTrvzb',
                 attribute: 'valveMotorRunningVoltage',
                 description: 'Valve motor running voltage',
                 unit: 'mV',
@@ -871,7 +871,7 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'valve_opening_degree',
-                cluster: 'sonoffTrvzbCluster',
+                cluster: 'customSonoffTrvzb',
                 attribute: 'valveOpeningDegree',
                 description: 'Valve open position (percentage) control. ' +
                     'If the opening degree is set to 100%, the valve is fully open when it is opened. ' +
@@ -885,7 +885,7 @@ const definitions: Definition[] = [
             }),
             numeric({
                 name: 'valve_closing_degree',
-                cluster: 'sonoffTrvzbCluster',
+                cluster: 'customSonoffTrvzb',
                 attribute: 'valveClosingDegree',
                 description: 'Valve closed position (percentage) control. ' +
                     'If the closing degree is set to 100%, the valve is fully closed when it is closed. ' +
@@ -911,11 +911,10 @@ const definitions: Definition[] = [
             await endpoint.read(0xFC11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007]);
         },
         onEvent: async (type, data, device, settings, state) => {
-            const name = 'sonoffTrvzbCluster';
+            const name = 'customSonoffTrvzb';
             if (!device.customClusters[name]) {
                 device.addCustomCluster(name, {
                     ID: 0xfc11,
-                    manufacturerCode: 0x1286,
                     attributes: {
                         childLock: {ID: 0x0000, type: Zcl.DataType.boolean},
                         tamper: {ID: 0x2000, type: Zcl.DataType.uint8},
