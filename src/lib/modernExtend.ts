@@ -607,7 +607,7 @@ function getOccupancyConfigExpose(
 export function occupancy(args?: OccupancyArgs): ModernExtend {
     args = {reporting: true, reportingConfig: {min: '10_SECONDS', max: '1_MINUTE', change: 0}, ...args};
 
-    const templateExposes: Expose[] = [e.occupancy()];
+    const templateExposes: Expose[] = [e.occupancy().withAccess(ea.STATE_GET)];
     if (args.pirConfig) {
         templateExposes.push(...args.pirConfig.map((attr) => getOccupancyConfigExpose('pir', attr)));
     }
