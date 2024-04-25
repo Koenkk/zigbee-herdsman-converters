@@ -195,7 +195,8 @@ export interface BatteryArgs {
 }
 export function battery(args?: BatteryArgs): ModernExtend {
     args = {
-        percentage: true, voltage: false, lowStatus: false, percentageReporting: true, voltageReporting: false, dontDividePercentage: false, ...args,
+        percentage: true, voltage: false, lowStatus: false, percentageReporting: true, voltageReporting: false, dontDividePercentage: false,
+        percentageReportingConfig: {min: '1_HOUR', max: 'MAX', change: 10}, voltageReportingConfig: {min: '1_HOUR', max: 'MAX', change: 10}, ...args,
     };
 
     const exposes: Expose[] = [];
@@ -291,20 +292,29 @@ export function battery(args?: BatteryArgs): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
 
-    const defaultReporting: ReportingConfigWithoutAttribute = {min: '1_HOUR', max: 'MAX', change: 10};
     if (args.percentageReporting || args.voltageReporting) {
-        result.configure = async (device, coordinatorEndpoint) => {
-            if (args.percentageReporting) {
-                await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
-                    {attribute: 'batteryPercentageRemaining', ...(args.percentageReportingConfig ?? defaultReporting)},
-                ]);
-            }
-            if (args.voltageReporting) {
-                await setupAttributes(device, coordinatorEndpoint, 'genPowerCfg', [
-                    {attribute: 'batteryVoltage', ...(args.voltageReportingConfig ?? defaultReporting)},
-                ]);
-            }
-        };
+        const configure: Configure[] = [];
+        if (args.percentageReporting) {
+            configure.push(
+                setupConfigureForReporting(
+                    'genPowerCfg',
+                    'batteryPercentageRemaining',
+                    args.percentageReportingConfig,
+                    ea.STATE_GET,
+                ),
+            );
+        }
+        if (args.voltageReporting) {
+            configure.push(
+                setupConfigureForReporting(
+                    'genPowerCfg',
+                    'batteryVoltage',
+                    args.voltageReportingConfig,
+                    ea.STATE_GET,
+                ),
+            );
+        }
+        result.configure = configure;
     }
 
     if (args.voltageToPercentage || args.dontDividePercentage) {
