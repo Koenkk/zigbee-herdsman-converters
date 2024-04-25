@@ -179,9 +179,9 @@ export function linkQuality(args?: LinkQualityArgs): ModernExtend {
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
     if (args.reporting) {
-        result.configure = async (device, coordinatorEndpoint) => {
-            setupAttributes(device, coordinatorEndpoint, 'genBasic', [{attribute: args.attribute, ...args.reportingConfig}]);
-        };
+        result.configure = [
+            setupConfigureForReporting('genBasic', args.attribute, args.reportingConfig, ea.GET),
+        ];
     }
 
     return result;
