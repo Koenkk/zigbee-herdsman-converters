@@ -17,7 +17,6 @@ import {
     hasAlreadyProcessedMessage, addActionGroup, isLegacyEnabled,
 } from './utils';
 import {logger} from '../lib/logger';
-import { report } from 'node:process';
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: 'input' | 'output') {
     if (!device.endpoints) {
