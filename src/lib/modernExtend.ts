@@ -961,24 +961,28 @@ export function windowCovering(args: WindowCoveringArgs): ModernExtend {
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
 
     if (args.configureReporting) {
-        result.configure = async (device, coordinatorEndpoint) => {
-            if (args.controls.includes('lift')) {
-                await setupAttributes(
-                    device,
-                    coordinatorEndpoint,
+        const configure: Configure[] = [];
+        if (args.controls.includes('lift')) {
+            configure.push(
+                setupConfigureForReporting(
                     'closuresWindowCovering',
-                    [{attribute: 'currentPositionLiftPercentage', min: '1_SECOND', max: 'MAX', change: 1}],
-                );
-            }
-            if (args.controls.includes('tilt')) {
-                await setupAttributes(
-                    device,
-                    coordinatorEndpoint,
+                    'currentPositionLiftPercentage',
+                    {min: '1_SECOND', max: 'MAX', change: 1},
+                    ea.STATE_GET,
+                ),
+            );
+        }
+        if (args.controls.includes('tilt')) {
+            configure.push(
+                setupConfigureForReporting(
                     'closuresWindowCovering',
-                    [{attribute: 'currentPositionTiltPercentage', min: '1_SECOND', max: 'MAX', change: 1}],
-                );
-            }
-        };
+                    'currentPositionTiltPercentage',
+                    {min: '1_SECOND', max: 'MAX', change: 1},
+                    ea.STATE_GET,
+                ),
+            );
+        }
+        result.configure = configure;
     }
 
     if (args.coverInverted || args.stateSource === 'tilt') {
