@@ -202,26 +202,32 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     }
     if (endpoint.supportsInputCluster('msTemperatureMeasurement')) {
         expose.push(e.temperature().withEndpoint(epName));
-        options['exposed_temperature'] = true;
     }
     if (endpoint.supportsInputCluster('msRelativeHumidity')) {
         expose.push(e.humidity().withEndpoint(epName));
-        options['exposed_humidity'] = true;
     }
     if (endpoint.supportsInputCluster('msPressureMeasurement')) {
         expose.push(e.pressure().withEndpoint(epName));
-        options['exposed_pressure'] = true;
     }
     if (endpoint.supportsInputCluster('msIlluminanceMeasurement')) {
         expose.push(e.illuminance().withEndpoint(epName));
-        options['exposed_illuminance'] = true;
-    }
-    if (endpoint.supportsInputCluster('genPowerCfg')) {
-        deviceOptions['expose_battery'] = true;
     }
     if (endpoint.supportsInputCluster('msCO2')) {
         expose.push(e.co2().withEndpoint(epName));
-        deviceOptions['exposed_co2'] = true;
+    }
+    if (endpoint.supportsInputCluster('pm25Measurement')) {
+        expose.push(e.pm25().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster('haElectricalMeasurement')) {
+        expose.push(e.voltage().withEndpoint(epName));
+        expose.push(e.current().withEndpoint(epName));
+        expose.push(e.power().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster('seMetering')) {
+        expose.push(e.energy().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster('genPowerCfg')) {
+        deviceOptions['expose_battery'] = true;
     }
     if (endpoint.supportsInputCluster('genMultistateInput') || endpoint.supportsOutputCluster('genMultistateInput')) {
         deviceOptions['expose_action'] = true;
@@ -496,10 +502,12 @@ const definitions: Definition[] = [
                 for (const endpoint of device.endpoints) {
                     if (endpoint.supportsInputCluster('haElectricalMeasurement')) {
                         endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {dcCurrentDivisor: 1000, dcCurrentMultiplier: 1,
-                            dcPowerDivisor: 10, dcPowerMultiplier: 1, dcVoltageDivisor: 100, dcVoltageMultiplier: 1});
+                            dcPowerDivisor: 10, dcPowerMultiplier: 1, dcVoltageDivisor: 100, dcVoltageMultiplier: 1,
+                            acVoltageDivisor: 100, acVoltageMultiplier: 1, acCurrentDivisor: 1000, acCurrentMultiplier: 1,
+                            acPowerDivisor: 10, acPowerMultiplier: 1});
                     }
                     if (endpoint.supportsInputCluster('seMetering')) {
-                        endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+                        endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
                     }
                 }
             }

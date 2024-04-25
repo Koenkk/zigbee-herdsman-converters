@@ -478,7 +478,7 @@ const definitions: Definition[] = [
             e.voltage(),
             e.power_outage_memory(),
             e.action(['single_top', 'single_bottom', 'single_both', 'double_top', 'double_bottom', 'double_both'])],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
         },
@@ -600,7 +600,7 @@ const definitions: Definition[] = [
         model: 'QBKG31LM',
         vendor: 'Aqara',
         description: 'Smart wall switch H1 Pro (with neutral, double rocker)',
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -724,7 +724,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_power, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
             lumi.toZigbee.lumi_flip_indicator_light, lumi.toZigbee.lumi_led_disabled_night],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -851,7 +851,7 @@ const definitions: Definition[] = [
                 .withDescription('Operation mode for right button')
                 .withEndpoint('right'),
         ],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_basic, lumi.toZigbee.lumi_power],
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
@@ -1044,7 +1044,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_operation_mode_basic,
             lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_basic],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_power, lumi.toZigbee.lumi_switch_operation_mode_basic],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
         },
@@ -2001,7 +2001,7 @@ const definitions: Definition[] = [
         description: 'Dual relay module T2',
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_power],
         toZigbee: [tz.on_off],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -2607,7 +2607,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_specific],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_power_outage_memory, lumi.toZigbee.lumi_led_disabled_night,
             lumi.toZigbee.lumi_button_switch_mode, lumi.toZigbee.lumi_overload_protection, lumi.toZigbee.lumi_socket_button_lock],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: () => {
             return {'relay': 1, 'usb': 2};
         },
@@ -3170,7 +3170,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         exposes: [
             e.power(), e.energy(), e.voltage(),
             e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
@@ -3202,7 +3202,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         exposes: [
             e.power(), e.energy(), e.voltage(),
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
