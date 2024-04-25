@@ -1683,7 +1683,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
 
         inputClusters?.forEach((cluster: number | string) => {
             const clusterID = isString(cluster) ?
-                Zcl.Utils.getCluster(cluster, device.manufacturerID).ID :
+                Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID :
                 cluster;
 
             if (!endpoint.inputClusters.includes(clusterID)) {
@@ -1694,7 +1694,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
 
         outputClusters?.forEach((cluster: number | string) => {
             const clusterID = isString(cluster) ?
-                Zcl.Utils.getCluster(cluster, device.manufacturerID).ID :
+                Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID :
                 cluster;
 
             if (!endpoint.outputClusters.includes(clusterID)) {
