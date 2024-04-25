@@ -367,7 +367,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    bcmt_cover_position_tilt: {
+    bmct_cover_position_tilt: {
         key: [
             'position',
             'tilt',
