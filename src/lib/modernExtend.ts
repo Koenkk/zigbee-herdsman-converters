@@ -937,10 +937,9 @@ export function lock(args?: LockArgs): ModernExtend {
     const toZigbee = [tz.lock, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume];
     const exposes = [e.lock(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
         e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume()];
-    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
-        await setupAttributes(device, coordinatorEndpoint, 'closuresDoorLock', [
-            {attribute: 'lockState', min: 'MIN', max: '1_HOUR', change: 0}]);
-    };
+    const configure: Configure[] = [
+        setupConfigureForReporting('closuresDoorLock', 'lockState', {min: 'MIN', max: '1_HOUR', change: 0}, ea.STATE_GET),
+    ];
     const meta: DefinitionMeta = {pinCodeCount: args.pinCodeCount};
 
     return {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
