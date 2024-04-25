@@ -25,13 +25,15 @@ function airQuality(): ModernExtend {
 }
 
 function electricityMeterPoll(): ModernExtend {
-    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
-        const endpoint = device.getEndpoint(1);
-        await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
-        await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-        await reporting.readMeteringMultiplierDivisor(endpoint);
-        await reporting.currentSummDelivered(endpoint);
-    };
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+        },
+    ];
 
     const onEvent: OnEvent = async (type, data, device) => {
         // This device doesn't support reporting correctly.
