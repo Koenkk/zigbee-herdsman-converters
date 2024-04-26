@@ -40,6 +40,7 @@ export const timeLookup = {
     '2_MINUTES': 120,
     '1_MINUTE': 60,
     '10_SECONDS': 10,
+    '5_SECONDS': 5,
     '1_SECOND': 1,
     'MIN': 0,
 };
@@ -129,6 +130,27 @@ export function setupConfigureForBinding(cluster: string | number, clusterType: 
             const endpoints = getEndpointsWithCluster(device, cluster, clusterType);
             for (const endpoint of endpoints) {
                 await endpoint.bind(cluster, coordinatorEndpoint);
+            }
+        }
+    };
+    return configure;
+}
+
+export function setupConfigureForReading(
+    cluster: string | number, attributes: (string | number)[], endpointNames?: string[],
+) {
+    const configure: Configure = async (device, coordinatorEndpoint, definition) => {
+        if (endpointNames) {
+            const definitionEndpoints = definition.endpoint(device);
+            const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
+            const endpoints = device.endpoints.filter((e) => endpointIds.includes(e.ID));
+            for (const endpoint of endpoints) {
+                await endpoint.read(cluster, attributes);
+            }
+        } else {
+            const endpoints = getEndpointsWithCluster(device, cluster, 'input');
+            for (const endpoint of endpoints) {
+                await endpoint.read(cluster, attributes);
             }
         }
     };
