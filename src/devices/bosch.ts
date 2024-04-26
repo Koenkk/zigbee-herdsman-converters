@@ -1,5 +1,5 @@
 import {identify, light, onOff, quirkCheckinInterval} from '../lib/modernExtend';
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl, Zspec} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
@@ -187,21 +187,11 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'broadcast_alarm') {
                 const index = utils.getFromLookup(value, broadcastAlarmState);
-                const broadcastFrame = Zcl.ZclFrame.create(
-                    Zcl.FrameType.SPECIFIC,
-                    Zcl.Direction.CLIENT_TO_SERVER,
-                    true,
-                    Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                    71, // zclTransactionSequenceNumber
-                    'boschSmokeDetectorSiren',
-                    1280, // ssIasZone
-                    {data: index});
-                // @ts-expect-error
-                await meta.device.triggerBroadcast(
-                    255, 1, BroadcastAddress.SLEEPY, Zcl.Direction.CLIENT_TO_SERVER,
-                    'boschSmokeDetectorSiren', Zcl.Clusters.ssIasZone.ID, {data: index}
+                await meta.device.zclCommandToAll(
+                    255, 1, Zspec.BroadcastAddress.SLEEPY,
+                    Zcl.Clusters.ssIasZone.ID, 'boschSmokeDetectorSiren',
+                    {data: index}, manufacturerOptions
                 );
-                await meta.device.constructor.adapter.sendZclFrameToAll(255, broadcastFrame, 1, true);
                 return {state: {broadcast_alarm: value}};
             }
         },
