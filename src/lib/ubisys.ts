@@ -118,6 +118,34 @@ export const ubisysModernExtend = {
             commandsResponse: {},
         },
     ),
+    addClusterManuSpecificUbisysDeviceSetup: () => deviceAddCluster(
+        'manuSpecificUbisysDeviceSetup',
+        {
+            ID: 0xfc00,
+            // XXX: once we moved all manuSpecific ones out of zh, we should revisit this
+            // Doesn't use manufacturerCode: https://github.com/Koenkk/zigbee-herdsman-converters/pull/4412
+            attributes: {
+                inputConfigurations: {ID: 0x0000, type: Zcl.DataType.array},
+                inputActions: {ID: 0x0001, type: Zcl.DataType.array},
+            },
+            commands: {},
+            commandsResponse: {},
+        },
+    ),
+    addClusterManuSpecificUbisysDimmerSetup: () => deviceAddCluster(
+        'manuSpecificUbisysDimmerSetup',
+        {
+            ID: 0xfc00,
+            manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+            attributes: {
+                capabilities: {ID: 0x0000, type: Zcl.DataType.bitmap8},
+                status: {ID: 0x0001, type: Zcl.DataType.bitmap8},
+                mode: {ID: 0x0002, type: Zcl.DataType.bitmap8},
+            },
+            commands: {},
+            commandsResponse: {},
+        },
+    ),
     localTemperatureOffset: (args?: Partial<NumericArgs>) => numeric({
         name: 'local_temperature_offset',
         cluster: 'hvacThermostat',
