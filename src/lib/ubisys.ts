@@ -91,6 +91,33 @@ export const ubisysModernExtend = {
             commandsResponse: {},
         },
     ),
+    addClusterClosuresWindowCovering: () => deviceAddCluster(
+        'closuresWindowCovering',
+        {
+            ID: 0x0102,
+            attributes: {
+                // J1(-R)
+                ubisysTurnaroundGuardTime: {ID: 0x1000, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysLiftToTiltTransitionSteps: {ID: 0x1001, type: Zcl.DataType.uint16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysTotalSteps: {ID: 0x1002, type: Zcl.DataType.uint16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysLiftToTiltTransitionSteps2: {ID: 0x1003, type: Zcl.DataType.uint16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysTotalSteps2: {ID: 0x1004, type: Zcl.DataType.uint16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysAdditionalSteps: {ID: 0x1005, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysInactivePowerThreshold: {ID: 0x1006, type: Zcl.DataType.uint16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysStartupSteps: {ID: 0x1007, type: Zcl.DataType.uint16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+            },
+            commands: {},
+            commandsResponse: {},
+        },
+    ),
     localTemperatureOffset: (args?: Partial<NumericArgs>) => numeric({
         name: 'local_temperature_offset',
         cluster: 'hvacThermostat',

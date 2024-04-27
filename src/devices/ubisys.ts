@@ -888,6 +888,9 @@ const definitions: Definition[] = [
                 e.linkquality(),
             ];
         },
+        extend: [
+            ubisysModernExtend.addClusterClosuresWindowCovering(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
