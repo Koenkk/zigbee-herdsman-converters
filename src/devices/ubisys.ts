@@ -333,7 +333,7 @@ const ubisys = {
                             [{
                                 attrId: attributeInputConfigurations.ID,
                                 selector: {},
-                                dataType: Zcl.DataType.array,
+                                dataType: Zcl.DataType.ARRAY,
                                 elementData: {
                                     elementType: 'data8',
                                     elements: value.input_configurations,
@@ -358,7 +358,7 @@ const ubisys = {
                             [{
                                 attrId: attributeInputActions.ID,
                                 selector: {},
-                                dataType: Zcl.DataType.array,
+                                dataType: Zcl.DataType.ARRAY,
                                 elementData: {
                                     elementType: 'octetStr',
                                     elements: value.input_actions,
@@ -561,7 +561,7 @@ const ubisys = {
                             [{
                                 attrId: attributeInputActions.ID,
                                 selector: {},
-                                dataType: Zcl.DataType.array,
+                                dataType: Zcl.DataType.ARRAY,
                                 elementData: {
                                     elementType: 'octetStr',
                                     elements: resultingInputActions,

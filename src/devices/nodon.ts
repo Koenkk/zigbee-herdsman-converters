@@ -1,5 +1,4 @@
 import {Zcl} from 'zigbee-herdsman';
-import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
 import {Definition} from '../lib/types';
 import * as exposes from '../lib/exposes';
 import * as reporting from '../lib/reporting';
@@ -22,7 +21,7 @@ const nodonModernExtend = {
         name: 'calibration_vertical_run_time_up',
         unit: '10 ms',
         cluster: 'closuresWindowCovering',
-        attribute: {ID: 0x0001, type: dataType.uint16},
+        attribute: {ID: 0x0001, type: Zcl.DataType.UINT16},
         valueMin: 0,
         valueMax: 65535,
         scale: 1,
@@ -36,7 +35,7 @@ const nodonModernExtend = {
         name: 'calibration_vertical_run_time_down',
         unit: '10 ms',
         cluster: 'closuresWindowCovering',
-        attribute: {ID: 0x0002, type: dataType.uint16},
+        attribute: {ID: 0x0002, type: Zcl.DataType.UINT16},
         valueMin: 0,
         valueMax: 65535,
         scale: 1,
@@ -50,7 +49,7 @@ const nodonModernExtend = {
         name: 'calibration_rotation_run_time_up',
         unit: 'ms',
         cluster: 'closuresWindowCovering',
-        attribute: {ID: 0x0003, type: dataType.uint16},
+        attribute: {ID: 0x0003, type: Zcl.DataType.UINT16},
         valueMin: 0,
         valueMax: 65535,
         scale: 1,
@@ -64,7 +63,7 @@ const nodonModernExtend = {
         name: 'calibration_rotation_run_time_down',
         unit: 'ms',
         cluster: 'closuresWindowCovering',
-        attribute: {ID: 0x0004, type: dataType.uint16},
+        attribute: {ID: 0x0004, type: Zcl.DataType.UINT16},
         valueMin: 0,
         valueMax: 65535,
         scale: 1,
@@ -149,7 +148,7 @@ const definitions: Definition[] = [
                 name: 'impulse_mode_configuration',
                 unit: 'ms',
                 cluster: 'genOnOff',
-                attribute: {ID: 0x0001, type: dataType.uint16},
+                attribute: {ID: 0x0001, type: Zcl.DataType.UINT16},
                 valueMin: 0,
                 valueMax: 10000,
                 scale: 1,
@@ -172,7 +171,7 @@ const definitions: Definition[] = [
                 name: 'impulse_mode_configuration',
                 unit: 'ms',
                 cluster: 'genOnOff',
-                attribute: {ID: 0x0001, type: dataType.uint16},
+                attribute: {ID: 0x0001, type: Zcl.DataType.UINT16},
                 valueMin: 0,
                 valueMax: 10000,
                 scale: 1,
@@ -258,7 +257,7 @@ const definitions: Definition[] = [
                 name: 'impulse_mode_configuration',
                 unit: 'ms',
                 cluster: 'genOnOff',
-                attribute: {ID: 0x0001, type: dataType.uint16},
+                attribute: {ID: 0x0001, type: Zcl.DataType.UINT16},
                 valueMin: 0,
                 valueMax: 10000,
                 scale: 1,

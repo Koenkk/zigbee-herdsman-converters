@@ -1,5 +1,5 @@
+import {Zcl} from 'zigbee-herdsman';
 import {Definition} from '../lib/types';
-import dataType from 'zigbee-herdsman/dist/zcl/definition/dataType';
 import {
     onOff, battery, iasZoneAlarm, identify, forcePowerSource,
     temperature, humidity, occupancy, illuminance, windowCovering,
@@ -944,7 +944,7 @@ const definitions: Definition[] = [
             humidity(),
             pm25({
                 // IKEA used conflicting date type on a standart attribute
-                attribute: {ID: 0x0000, type: dataType.singlePrec},
+                attribute: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
                 reporting: {min: '1_MINUTE', max: '2_MINUTES', change: 2},
             }),
             ikeaVoc(),
