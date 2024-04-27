@@ -729,54 +729,99 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
         },
         {
             key: ['pir_otu_delay'],
+            convertSet: async (entity, key, value, meta) => {
+                assertNumber(value);
+                await entity.write('msOccupancySensing', {pirOToUDelay: value});
+                return {state: {pir_otu_delay: value}};
+            },
             convertGet: async (entity, key, meta) => {
                 await entity.read('msOccupancySensing', ['pirOToUDelay']);
             },
         },
         {
             key: ['pir_uto_delay'],
+            convertSet: async (entity, key, value, meta) => {
+                assertNumber(value);
+                await entity.write('msOccupancySensing', {pirUToODelay: value});
+                return {state: {pir_uto_delay: value}};
+            },
             convertGet: async (entity, key, meta) => {
                 await entity.read('msOccupancySensing', ['pirUToODelay']);
             },
         },
         {
             key: ['pir_uto_threshold'],
+            convertSet: async (entity, key, value, meta) => {
+                assertNumber(value);
+                await entity.write('msOccupancySensing', {pirUToOThreshold: value});
+                return {state: {pir_uto_threshold: value}};
+            },
             convertGet: async (entity, key, meta) => {
                 await entity.read('msOccupancySensing', ['pirUToOThreshold']);
             },
         },
         {
             key: ['ultrasonic_otu_delay'],
+            convertSet: async (entity, key, value, meta) => {
+                assertNumber(value);
+                await entity.write('msOccupancySensing', {ultrasonicOToUDelay: value});
+                return {state: {ultrasonic_otu_delay: value}};
+            },
             convertGet: async (entity, key, meta) => {
                 await entity.read('msOccupancySensing', ['ultrasonicOToUDelay']);
             },
         },
         {
             key: ['ultrasonic_uto_delay'],
+            convertSet: async (entity, key, value, meta) => {
+                assertNumber(value);
+                await entity.write('msOccupancySensing', {ultrasonicUToODelay: value});
+                return {state: {ultrasonic_uto_delay: value}};
+            },
             convertGet: async (entity, key, meta) => {
                 await entity.read('msOccupancySensing', ['ultrasonicUToODelay']);
             },
         },
         {
             key: ['ultrasonic_uto_threshold'],
+            convertSet: async (entity, key, value, meta) => {
+                assertNumber(value);
+                await entity.write('msOccupancySensing', {ultrasonicUToOThreshold: value});
+                return {state: {ultrasonic_uto_threshold: value}};
+            },
             convertGet: async (entity, key, meta) => {
                 await entity.read('msOccupancySensing', ['ultrasonicUToOThreshold']);
             },
         },
         {
             key: ['contact_otu_delay'],
+            convertSet: async (entity, key, value, meta) => {
+                assertNumber(value);
+                await entity.write('msOccupancySensing', {contactOToUDelay: value});
+                return {state: {contact_otu_delay: value}};
+            },
             convertGet: async (entity, key, meta) => {
                 await entity.read('msOccupancySensing', ['contactOToUDelay']);
             },
         },
         {
             key: ['contact_uto_delay'],
+            convertSet: async (entity, key, value, meta) => {
+                assertNumber(value);
+                await entity.write('msOccupancySensing', {contactUToODelay: value});
+                return {state: {contact_uto_delay: value}};
+            },
             convertGet: async (entity, key, meta) => {
                 await entity.read('msOccupancySensing', ['contactUToODelay']);
             },
         },
         {
             key: ['contact_uto_threshold'],
+            convertSet: async (entity, key, value, meta) => {
+                assertNumber(value);
+                await entity.write('msOccupancySensing', {contactUToOThreshold: value});
+                return {state: {contact_uto_threshold: value}};
+            },
             convertGet: async (entity, key, meta) => {
                 await entity.read('msOccupancySensing', ['contactUToOThreshold']);
             },
