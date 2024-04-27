@@ -53,7 +53,17 @@ const definitions: Definition[] = [
             battery({voltage: true, voltageReporting: true}),
         ],
     },
-    // Sber SBDV-00154 Smart leak sensor (fingerprint unknown)
+    {
+        fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_c8bqthpo'}],
+        model: 'SBDV-00154',
+        vendor: 'Sber',
+        description: 'Smart water leak sensor',
+        extend: [
+            ignoreClusterReport({cluster: 'genBasic'}),
+            iasZoneAlarm({zoneType: 'water_leak', zoneAttributes: ['alarm_1', 'battery_low']}),
+            battery(),
+        ],
+    },
 ];
 
 export default definitions;
