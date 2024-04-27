@@ -3063,7 +3063,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['lumi.switch.acn061'],
         model: 'WS-K01D',
         vendor: 'Aqara',
-        description: 'Smart 20A Switch H1 (single rocker)',
+        description: 'Smart wall switch H1 20A (with neutral, single rocker)',
         extend: [
             lumiZigbeeOTA(),
             lumiPreventReset(),
