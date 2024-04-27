@@ -367,32 +367,6 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    bmct_cover_position_tilt: {
-        key: [
-            'position',
-            'tilt',
-        ],
-        options: [exposes.options.invert_cover()],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value, key);
-            const isPosition = (key === 'position');
-            const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
-                !meta.options.invert_cover : meta.options.invert_cover);
-            const position = invert ? 100 - value : value;
-            await entity.command(
-                'closuresWindowCovering',
-                isPosition ? 'goToLiftPercentage' : 'goToTiltPercentage',
-                isPosition ? {percentageliftvalue: position} : {percentagetiltvalue: position},
-                utils.getOptions(meta.mapped, entity),
-            );
-            // Do not return set value, BCMT-SLZ is already reporting it!
-            return;
-        },
-        convertGet: async (entity, key, meta) => {
-            const isPosition = (key === 'position');
-            await entity.read('closuresWindowCovering', [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']);
-        },
-    } satisfies Tz.Converter,
     bwa1_alarm_on_motion: {
         key: ['alarm_on_motion'],
         convertSet: async (entity, key, value, meta) => {
@@ -1539,10 +1513,13 @@ const definitions: Definition[] = [
         ],
         toZigbee: [
             tz.power_on_behavior,
-            tzLocal.bmct_cover_position_tilt,
+            tz.cover_position_tilt,
             tzLocal.bmct,
         ],
-        meta: {multiEndpoint: true},
+        meta: {
+            multiEndpoint: true,
+            coverPositionTiltDisableReport: false
+        },
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
         },
