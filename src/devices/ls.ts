@@ -11,7 +11,7 @@ const definitions: Definition[] = [
         description: 'Home base',
         fromZigbee: light({colorTemp: {range: [153, 454]}, color: true}).fromZigbee,
         toZigbee: light({colorTemp: {range: [153, 454]}, color: true}).toZigbee,
-        configure: light({colorTemp: {range: [153, 454]}, color: true}).configure,
+        configure: light({colorTemp: {range: [153, 454]}, color: true}).configure[0],
         exposes: (device, options) => {
             if (!device) return [e.light_brightness_colortemp_colorxy([153, 454]), e.linkquality()];
             return [e.linkquality(), ...device.endpoints.filter((ep) => ep.ID !== 242).map((ep) => {
