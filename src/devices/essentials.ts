@@ -2,10 +2,13 @@ import fz from '../converters/fromZigbee';
 import * as exposes from '../lib/exposes';
 import * as ota from '../lib/ota';
 import * as tuya from '../lib/tuya';
-import {Definition, Fz, KeyValue, Tz} from '../lib/types';
+import { Definition, Fz, KeyValue, Tz } from '../lib/types';
+import { logger } from '../lib/logger';
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const NS = 'zhc:essentials'
 
 const essentialsRefresh = {
     key: ['refresh'],
@@ -22,7 +25,7 @@ const essentialsValueConverter = {
     },
     faultCode: {
         from: (value: string, meta: Fz.Meta) => {
-            meta.logger.warn(`zigbee-herdsman-converters:essentialsThermostat: ERROR CODE received: ${JSON.stringify(value)}`);
+            logger.warning(`zigbee-herdsman-converters:essentialsThermostat: ERROR CODE received: ${JSON.stringify(value)}`, NS);
             return value;
         },
     },
@@ -63,7 +66,7 @@ const essentialsValueConverter = {
             output[5] = Math.round(value.away_preset_temperature * 2);
             output[7] = value.away_preset_days & 0xFF;
             output[6] = value.away_preset_days >> 8;
-            meta.logger.debug(JSON.stringify({'send to tuya': output, 'value was': value}));
+            logger.debug(JSON.stringify({ 'send to tuya': output, 'value was': value }), NS);
         },
     },
     day_schedule: (day: string, index: number) => {
@@ -86,7 +89,7 @@ const essentialsValueConverter = {
                         datapoints[`setpoint_${i + 1}_minute`] = (value[timeIdx] % 4) * 15;
                     }
                 }
-                return {[day]: datapoints};
+                return { [day]: datapoints };
             },
             to: (value: KeyValue, meta: Tz.Meta) => {
                 // byte 0 - Day of Week (0~7 = Mon ~ Sun) <- redundant?
@@ -99,8 +102,8 @@ const essentialsValueConverter = {
                 // byte 17 - 9th period Temperature
 
                 const output = new Uint8Array(18); // empty output byte buffer
-                meta.logger.debug(`schedule update received for ${day}: ${JSON.stringify(value)}`);
-                meta.logger.debug(`old schedule for ${day}: ${JSON.stringify(meta.state[day])}`);
+                logger.debug(`schedule update received for ${day}: ${JSON.stringify(value)}`, NS);
+                logger.debug(`old schedule for ${day}: ${JSON.stringify(meta.state[day])}`, NS);
 
                 output[0] = index;
 
@@ -130,7 +133,7 @@ const essentialsValueConverter = {
                             state[minuteProp] as number :
                             0); // no schedule after this point, last temperature for the rest of the day
 
-                    meta.logger.debug(`setpoint_${i + 1} temperature:${temperature} hour:${hour} minute:${minute})`);
+                    logger.debug(`setpoint_${i + 1} temperature:${temperature} hour:${hour} minute:${minute})`, NS);
 
                     const tempIdx = i * 2 + 1;
                     output[tempIdx] = Math.round(temperature * 2);
@@ -140,8 +143,8 @@ const essentialsValueConverter = {
                         let encodedTime = Math.min(maxTime, hour * 4 + Math.floor((minute / 15)));
                         if (previousTime >= encodedTime) { // invalid entry
                             if (previousTime !== maxTime) {
-                                meta.logger.error(
-                                    `setpoint_${i + 1} time earlier than setpoint_${i} time, schedule will be cut off at setpoint_${i}`);
+                                logger.error(
+                                    `setpoint_${i + 1} time earlier than setpoint_${i} time, schedule will be cut off at setpoint_${i}`, NS);
                             }
                             encodedTime = maxTime;
                             finalIndex = Math.min(finalIndex, i - 1);
@@ -158,7 +161,7 @@ const essentialsValueConverter = {
 };
 
 const essentialsThermostat: Definition = {
-    fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_i48qyn9s'}],
+    fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE200_i48qyn9s' }],
     model: 'Essentials Zigbee Radiator Thermostat',
     vendor: 'TuYa',
     description: 'Thermostat radiator valve',
@@ -230,7 +233,7 @@ const essentialsThermostat: Definition = {
     ],
     meta: {
         tuyaDatapoints: [
-            [2, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'heat': tuya.enum(1), 'off': tuya.enum(2)})],
+            [2, 'system_mode', tuya.valueConverterBasic.lookup({ 'auto': tuya.enum(0), 'heat': tuya.enum(1), 'off': tuya.enum(2) })],
             [16, 'current_heating_setpoint', tuya.valueConverterBasic.divideBy(2)],
             [24, 'local_temperature', tuya.valueConverter.divideBy10],
             [30, 'child_lock', tuya.valueConverter.lockUnlock],
@@ -242,7 +245,7 @@ const essentialsThermostat: Definition = {
             [104, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
             [105, 'schedule_override_setpoint', tuya.valueConverter.divideBy10],
             [106, null, null], // TODO rapid heating
-            [107, 'window_open', tuya.valueConverterBasic.lookup({'YES': true, 'NO': false})],
+            [107, 'window_open', tuya.valueConverterBasic.lookup({ 'YES': true, 'NO': false })],
             [108, null, null], // TODO hibernate
             [109, 'monday', essentialsValueConverter.day_schedule('monday', 1)],
             [110, 'tuesday', essentialsValueConverter.day_schedule('tuesday', 2)],
