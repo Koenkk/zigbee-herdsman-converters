@@ -819,6 +819,9 @@ const definitions: Definition[] = [
                 .withDescription('The dimmer\'s reactance discriminator had detected an inductive load.'),
             e.enum('mode_phase_control', ea.ALL, ['automatic', 'forward', 'reverse'])
                 .withDescription('Configures the dimming technique.')],
+        extend: [
+            ubisysModernExtend.addClusterGenLevelCtrl(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -1047,6 +1050,7 @@ const definitions: Definition[] = [
         ],
         extend: [
             ubisysModernExtend.addClusterHvacThermostat(),
+            ubisysModernExtend.addClusterGenLevelCtrl(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             // setup ep 11-20 as on/off switches

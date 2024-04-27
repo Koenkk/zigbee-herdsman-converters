@@ -12,6 +12,7 @@ export const ubisysModernExtend = {
         {
             ID: 0x0201,
             attributes: {
+                // H10
                 ubisysClassBTemperatureOffset: {ID: 0x0000, type: Zcl.DataType.int8,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
                 ubisysReturnFlowTemperatureWeight: {ID: 0x0001, type: Zcl.DataType.int8,
@@ -28,6 +29,7 @@ export const ubisysModernExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
                 ubisysInstalledExtensions: {ID: 0x0007, type: Zcl.DataType.bitmap64,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                // H1
                 ubisysTemperatureOffset: {ID: 0x0010, type: Zcl.DataType.int8,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
                 ubisysDefaultOccupiedHeatingSetpoint: {ID: 0x0011, type: Zcl.DataType.int16,
@@ -43,6 +45,46 @@ export const ubisysModernExtend = {
                 ubisysProportionalShift: {ID: 0x0021, type: Zcl.DataType.int8,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
                 ubisysIntegralFactor: {ID: 0x0022, type: Zcl.DataType.int16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+            },
+            commands: {},
+            commandsResponse: {},
+        },
+    ),
+    addClusterGenLevelCtrl: () => deviceAddCluster(
+        'genLevelCtrl',
+        {
+            ID: 0x0008,
+            attributes: {
+                // D1(-R)
+                ubisysMinimumOnLevel: {ID: 0x0000, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                // H10
+                ubisysValveType: {ID: 0x0001, type: Zcl.DataType.bitmap8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysCyclePeriod: {ID: 0x0002, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysSeason: {ID: 0x0003, type: Zcl.DataType.enum8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysBackupLevel: {ID: 0x0004, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysAlternateBackupLevel: {ID: 0x0005, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysLowerRange: {ID: 0x0006, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysUpperRange: {ID: 0x0007, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysPumpThresholdOn: {ID: 0x0008, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysPumpThresholdOff: {ID: 0x0009, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysHeatingDemandEnableThreshold: {ID: 0x000A, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysHeatingDemandDisableThreshold: {ID: 0x000B, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysCoolingDemandEnableThreshold: {ID: 0x000C, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysCoolingDemandDisableThreshold: {ID: 0x000D, type: Zcl.DataType.uint8,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
             },
             commands: {},
