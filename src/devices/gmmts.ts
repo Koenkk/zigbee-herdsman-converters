@@ -1,4 +1,4 @@
-import {Definition, Fz, KeyValue, Zh} from '../lib/types';
+import {Definition, Fz, Tz, KeyValue, Zh} from '../lib/types';
 /* eslint-disable camelcase */
 /* eslint-disable max-len */
 /* eslint-disable no-multi-spaces */
@@ -24,8 +24,11 @@ const TICMETER_CLUSTER = 'manuSpecificGmmts'; // 0xFF42
 
 const STRING = 'string';
 const NUMBER = 'numeric';
+const NUM_RW = 'read/write numeric';
 const ENUM = 'enum';
 const TIME = 'date';
+
+const DEFAULT_POLL_INTERVAL = 120;
 
 const C = {
     ANY: 'AUTO',
@@ -53,12 +56,12 @@ const mode_contract_enum = ['AUTO', 'BASE', 'HCHP', 'EJP', 'TEMPO', 'PRODUCTEUR'
 
 // prettier-ignore
 const ticmeter_options = [
-    e.numeric(`refresh_rate`, ea.SET).withValueMin(60).withDescription(`Refresh rate in second`).withValueMin(10).withValueMax(3600),
-    e.enum('tic_mode', ea.SET, mode_tic_enum).withDescription('Mode de communication TIC du Linky'),
-    e.enum('contract_type', ea.SET, mode_contract_enum).withDescription('Mode de communication TIC du Linky'),
-    e.enum('linky_elec', ea.SET, mode_elec_enum).withDescription('Mode électrique du Linky'),
-    e.binary('producer', ea.SET, 'ON', 'OFF').withDescription('Mode producteur: affiche les index de production'),
-    e.binary('advanced', ea.SET, 'ON', 'OFF').withDescription('Affiche toutes les données du compteur'),
+    e.numeric(`refresh_rate`, ea.SET).withValueMin(60).withDescription(`Temps d'actualisation des valeurs statiques (celles qui possèdent des boutons refresh). Par défaut: ${DEFAULT_POLL_INTERVAL} s`).withValueMin(60).withValueMax(3600),
+    e.enum('tic_mode', ea.SET, mode_tic_enum).withDescription('Mode de communication TIC du Linky. Par défaut en mode AUTO. À utiliser en cas de problème'),
+    e.enum('contract_type', ea.SET, mode_contract_enum).withDescription('Contrat électrique actuel sur le Linky.Par défaut en mode AUTO. Permets d\'afficher les bonnes entités. À utiliser en cas de problème'),
+    e.enum('linky_elec', ea.SET, mode_elec_enum).withDescription('Mode électrique du Linky. Par défaut en mode AUTO. À utiliser en cas de problème'),
+    e.binary('producer', ea.SET, 'ON', 'OFF').withDescription('Mode producteur: affiche les index de production électrique. Par défaut: OFF'),
+    e.binary('advanced', ea.SET, 'ON', 'OFF').withDescription('Affiche toutes les données du compteur. Pour un usage avancé. Par défaut: OFF'),
 ];
 
 // prettier-ignore
@@ -67,6 +70,7 @@ const ticmeter_data = [
     {name: 'Mode électrique',               desc: 'Mode de électrique du compteur',                      cluster: TICMETER_CLUSTER,   attribute: 'elecMode',                           type: ENUM,   unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, values: mode_elec_enum },
     {name: 'Option tarifaire',              desc: 'Option tarifaire',                                    cluster: TICMETER_CLUSTER,   attribute: 'contractType',                       type: STRING, unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false                         },
     {name: 'Durée de fonctionnement',       desc: 'Durée depuis le dernier redémmarage',                 cluster: TICMETER_CLUSTER,   attribute: 'uptime',                             type: NUMBER, unit: 's',    poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false                         },
+    {name: 'Durée d\'actualisation',        desc: 'Durée entre les actualisations',                      cluster: TICMETER_CLUSTER,   attribute: 'refreshRate',                        type: NUM_RW, unit: 's',    poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false, min: 30, max: 300      },
     {name: 'Identifiant',                   desc: 'Numéro de serie du compteur',                         cluster: METERING_CLUSTER,   attribute: 'meterSerialNumber',                  type: STRING, unit: '',     poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false                         },
     {name: 'Puissance Max contrat',         desc: 'Puissance Max contrat',                               cluster: TICMETER_CLUSTER,   attribute: 'maxContractPower',                   type: NUMBER, unit: 'kVA',  poll: true,   tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false                         },
     {name: 'Index total',                   desc: 'Somme de tous les index',                             cluster: METERING_CLUSTER,   attribute: 'currentSummDelivered',               type: NUMBER, unit: 'Wh',   poll: false,  tic: T.ANY,  contract: C.ANY,   elec: E.ANY,  producer: false                         },
@@ -223,7 +227,7 @@ const fzLocal = {
 
     ticmeter_cluster_fz: {
         cluster: TICMETER_CLUSTER,
-        type: ['attributeReport', 'readResponse'],
+        type: ['attributeReport', 'readResponse', 'commandSet', 'set'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const keys = Object.keys(msg.data);
@@ -240,6 +244,7 @@ const fzLocal = {
                         }
                         break;
                     case NUMBER:
+                    case NUM_RW:
                         if (Array.isArray(msg.data[key])) {
                             value = (msg.data[key][0] << 32) + msg.data[key][1];
                         } else {
@@ -319,6 +324,32 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
+
+function genereateTzLocal() {
+    const tzLocal = [];
+    for (const item of ticmeter_data) {
+        const key = toSnakeCase(item.attribute);
+        const tz : Tz.Converter = {
+            key: [key],
+            convertGet: async (entity, key, meta) => {
+                await entity.read(item.cluster, [item.attribute]);
+            },
+        } satisfies Tz.Converter;
+        if (item.type == NUM_RW) {
+            tz.convertSet = async (entity, key, value: any, meta) => {
+                if (value < 0 || value > 65535) {
+                    throw new Error('Value must be between 0 and 65535');
+                }
+                await entity.write(item.cluster, { [item.attribute]: value }, { manufacturerCode: null });
+            };
+        }
+        tzLocal.push(tz);
+    }
+    return tzLocal;
+}
+
+const tzLocal = genereateTzLocal();
+
 function split_tab(tableau: any, taille: number): string[][] {
     const result: any[][] = [];
     for (let i = 0; i < tableau.length; i += taille) {
@@ -332,8 +363,8 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
     const current_elec = globalStore.getValue(device, 'elec_mode');
     const current_tic = globalStore.getValue(device, 'tic_mode');
     const current_producer = globalStore.getValue(device, 'producer');
-    // logger.info(`TICMeter: Polling: ${current_contract} ${current_elec} ${current_tic} ${current_producer}`);
-    // const start: any = new Date();
+    logger.debug(`TICMeter: Polling: ${current_contract} ${current_elec} ${current_tic} ${current_producer}`, 'TICMeter');
+    const start: any = new Date();
 
     let to_read = [];
     for (const item of ticmeter_data) {
@@ -369,8 +400,8 @@ async function poll(endpoint: Zh.Endpoint, device: Device) {
                 .then((result) => {});
         }
     }
-    // const end: any = new Date();
-    // logger.info(`TICMeter: Polling Duration: ${end - start} ms`);
+    const end: any = new Date();
+    logger.debug(`TICMeter: Polling Duration: ${end - start} ms`, 'TICMeter');
 }
 
 function init_config(device: Device, name: string, value: any) {
@@ -387,7 +418,7 @@ const definitions: Definition[] = [
         vendor: 'GammaTroniques',
         description: 'TICMeter pour Linky',
         fromZigbee: [fz.meter_identification, fzLocal.ticmeter_cluster_fz, fzLocal.ticmeter_ha_electrical_measurement, fzLocal.ticmeter_metering],
-        toZigbee: [],
+        toZigbee: tzLocal,
         exposes: (device, options) => {
             let endpoint: Zh.Endpoint;
             const exposes: any[] = [];
@@ -406,6 +437,8 @@ const definitions: Definition[] = [
             } catch (error) {
                 logger.warning('TICMeter: Exposes: No endpoint', 'TICMeter');
             }
+
+
             if (endpoint != null && endpoint.hasOwnProperty('clusters') && endpoint.clusters[TICMETER_CLUSTER] != undefined) {
                 if (endpoint.clusters[TICMETER_CLUSTER].hasOwnProperty('attributes') && endpoint.clusters[TICMETER_CLUSTER].attributes != undefined) {
                     const attr = endpoint.clusters[TICMETER_CLUSTER].attributes;
@@ -533,18 +566,25 @@ const definitions: Definition[] = [
                 }
 
                 if (contract_ok && elec_ok && tic_ok && producer_ok) {
+                    let access: number = ea.STATE;
+                    if (item.poll) {
+                        access = ea.STATE_GET;
+                    }
                     switch (item.type) {
                     case STRING:
-                        exposes.push(e.text(item.name, ea.STATE).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc));
+                        exposes.push(e.text(item.name, access).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc));
                         break;
                     case NUMBER:
-                        exposes.push(e.numeric(item.name, ea.STATE).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc).withUnit(item.unit));
+                        exposes.push(e.numeric(item.name, access).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc).withUnit(item.unit));
                         break;
                     case ENUM:
-                        exposes.push(e.enum(item.name, ea.STATE, item.values).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc));
+                        exposes.push(e.enum(item.name, access, item.values).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc));
                         break;
                     case TIME:
-                        exposes.push(e.text(item.name, ea.STATE).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc));
+                        exposes.push(e.text(item.name, access).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc));
+                        break;
+                    case NUM_RW:
+                        exposes.push(e.numeric(item.name, ea.ALL).withProperty(toSnakeCase(item.attribute)).withDescription(item.desc).withUnit(item.unit).withValueMin(item.min).withValueMax(item.max));
                         break;
                     }
                 }
@@ -552,11 +592,13 @@ const definitions: Definition[] = [
             logger.info(`TICMeter: Exposes ${exposes.length} attributes`, 'TICMeter');
 
             exposes.push(e.linkquality());
+            // exposes.push(e.numeric('refreshRate', ea.ALL).withDescription('Refresh rate').withUnit('s').withValueMin(30).withValueMax(300));
+
 
             return exposes;
         },
         configure: async (device, coordinatorEndpoint) => {
-            logger.info('TICMeter: Configure', 'TICMeter');
+            logger.debug('TICMeter: Configure', 'TICMeter');
             device.powerSource = 'Battery';
             device.save();
             const endpoint = device.getEndpoint(1);
@@ -565,9 +607,9 @@ const definitions: Definition[] = [
             const contract_type = init_config(device, 'contract_type', 'AUTO');
             const elec_mode = init_config(device, 'elec_mode', 'AUTO');
             const producer = init_config(device, 'producer', false);
-            init_config(device, 'refresh_rate', '60');
-            
-            logger.info(`TICMeter: Configure: ${tic_mode} ${contract_type} ${elec_mode} ${producer}`, 'TICMeter');
+            init_config(device, 'refresh_rate', DEFAULT_POLL_INTERVAL);
+
+            logger.debug(`TICMeter: Configure: ${tic_mode} ${contract_type} ${elec_mode} ${producer}`, 'TICMeter');
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', { acCurrentDivisor: 1, acCurrentMultiplier: 1 });
             endpoint.saveClusterAttributeKeyValue('seMetering', { divisor: 1, multiplier: 1 });
 
@@ -587,7 +629,7 @@ const definitions: Definition[] = [
                 }
             }
 
-            logger.info(`TICMeter: Configure wanted ${wanted.length}`, 'TICMeter');
+            logger.debug(`TICMeter: Configure wanted ${wanted.length}`, 'TICMeter');
 
             endpoint.configuredReportings.forEach(async (r) => {
                 await endpoint.configureReporting(r.cluster.name, reporting.payload(r.attribute.name, r.minimumReportInterval, 65535, r.reportableChange), { manufacturerCode: null });
@@ -607,7 +649,7 @@ const definitions: Definition[] = [
                         ...item.report,
                     };
                 }
-                logger.info(`TICMeter: Configure ${item.name} ${item.cluster} ${item.attribute} ${conf.min} ${conf.max} ${conf.change}`, 'TICMeter');
+                logger.debug(`TICMeter: Configure ${item.name} ${item.cluster} ${item.attribute} ${conf.min} ${conf.max} ${conf.change}`, 'TICMeter');
                 reporting_config.push(endpoint.configureReporting(item.cluster, reporting.payload(item.attribute, conf.min, conf.max, conf.change), { manufacturerCode: null }));
             }
 
@@ -651,7 +693,7 @@ const definitions: Definition[] = [
                 globalStore.clearValue(device, 'interval');
             } else if (!intervalDefined) {
                 // periodic scan for non-reportable attributs
-                const seconds: any = options && options.refresh_rate ? options.refresh_rate : 60;
+                const seconds: any = options && options.refresh_rate ? options.refresh_rate : DEFAULT_POLL_INTERVAL;
                 const interval = setInterval(async () => {
                     try {
                         await poll(endpoint, device);
@@ -668,7 +710,7 @@ const definitions: Definition[] = [
                 }
             } else {
                 if (intervalDefined) {
-                    const seconds: any = options && options.refresh_rate ? options.refresh_rate : 120;
+                    const seconds: any = options && options.refresh_rate ? options.refresh_rate : DEFAULT_POLL_INTERVAL;
                     const defined_seconds = globalStore.getValue(device, 'refresh_rate');
                     if (seconds != defined_seconds) {
                         clearInterval(globalStore.getValue(device, 'interval'));
