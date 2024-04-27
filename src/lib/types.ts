@@ -165,7 +165,7 @@ export interface ModernExtend {
     fromZigbee?: Fz.Converter[],
     toZigbee?: Tz.Converter[],
     exposes?: Expose[],
-    configure?: Configure,
+    configure?: Configure[],
     meta?: DefinitionMeta,
     ota?: DefinitionOta,
     onEvent?: OnEvent,

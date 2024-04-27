@@ -17,7 +17,7 @@ export const ewelinkModernExtend = {
             },
         ];
 
-        const configure: Configure = setupConfigureForBinding('genOnOff', 'output');
+        const configure: Configure[] = [setupConfigureForBinding('genOnOff', 'output')];
 
         return {exposes, fromZigbee, configure, isModernExtend: true};
     },

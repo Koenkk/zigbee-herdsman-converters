@@ -9,7 +9,7 @@ import * as reporting from '../lib/reporting';
 const e = exposes.presets;
 const ea = exposes.access;
 import * as zosung from '../lib/zosung';
-import {onOff, deviceEndpoints, actionEnumLookup} from '../lib/modernExtend';
+import {onOff, deviceEndpoints, actionEnumLookup, battery} from '../lib/modernExtend';
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -382,6 +382,13 @@ const definitions: Definition[] = [
         whiteLabel: [
             tuya.whitelabel('TuYa', 'iH-F8260', 'Universal smart IR remote control', ['_TZ3290_gnl5a6a5xvql7c2a']),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0049', ['_TZ3000_cjfmu5he']),
+        model: 'ZWV-YC',
+        vendor: 'Moes',
+        description: 'Water valve',
+        extend: [battery(), onOff({powerOnBehavior: false})],
     },
     {
         fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_hhiodade'}],

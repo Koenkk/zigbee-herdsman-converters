@@ -68,6 +68,13 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 const definitions: Definition[] = [
     {
+        zigbeeModel: ['HK-SL-DIM-US-A'],
+        model: 'HK-SL-DIM-US-A',
+        vendor: 'Sunricher',
+        description: 'Keypad smart dimmer',
+        extend: [light({configureReporting: true}), electricityMeter()],
+    },
+    {
         zigbeeModel: ['HK-SENSOR-4IN1-A'],
         model: 'HK-SENSOR-4IN1-A',
         vendor: 'Sunricher',
