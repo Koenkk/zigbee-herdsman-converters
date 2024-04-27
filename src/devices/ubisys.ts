@@ -974,6 +974,7 @@ const definitions: Definition[] = [
                 .withWeeklySchedule(['heat']),
         ],
         extend: [
+            ubisysModernExtend.addClusterHvacThermostat(),
             ubisysModernExtend.vacationMode(),
             ubisysModernExtend.localTemperatureOffset(),
             ubisysModernExtend.occupiedHeatingSetpointDefault(),
@@ -1043,6 +1044,9 @@ const definitions: Definition[] = [
             e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6'),
             e.switch().withEndpoint('l7'), e.switch().withEndpoint('l8'),
             e.switch().withEndpoint('l9'), e.switch().withEndpoint('l10'),
+        ],
+        extend: [
+            ubisysModernExtend.addClusterHvacThermostat(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             // setup ep 11-20 as on/off switches

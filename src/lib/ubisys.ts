@@ -1,12 +1,54 @@
 import {Fz, Tz, ModernExtend, Configure} from './types';
 import {presets as e, access as ea} from './exposes';
-import {numeric, NumericArgs, setupConfigureForReporting} from './modernExtend';
+import {numeric, NumericArgs, deviceAddCluster, setupConfigureForReporting} from './modernExtend';
 import {Zcl} from 'zigbee-herdsman';
 import {logger} from './logger';
 
 const NS = 'zhc:ubisys';
 
 export const ubisysModernExtend = {
+    addClusterHvacThermostat: () => deviceAddCluster(
+        'hvacThermostat',
+        {
+            ID: 0x0201,
+            attributes: {
+                ubisysClassBTemperatureOffset: {ID: 0x0000, type: Zcl.DataType.int8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysReturnFlowTemperatureWeight: {ID: 0x0001, type: Zcl.DataType.int8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysRawOutdoorTemperature: {ID: 0x0002, type: Zcl.DataType.struct,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysRawLocalTemperatureA: {ID: 0x0003, type: Zcl.DataType.struct,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysRawLocalTemperatureB: {ID: 0x0004, type: Zcl.DataType.struct,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysRawForwardFlowTemperature: {ID: 0x0005, type: Zcl.DataType.struct,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysRawReturnFlowTemperature: {ID: 0x0006, type: Zcl.DataType.struct,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysInstalledExtensions: {ID: 0x0007, type: Zcl.DataType.bitmap64,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysTemperatureOffset: {ID: 0x0010, type: Zcl.DataType.int8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysDefaultOccupiedHeatingSetpoint: {ID: 0x0011, type: Zcl.DataType.int16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysVacationMode: {ID: 0x0012, type: Zcl.DataType.boolean,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysRemoteTemperature: {ID: 0x0013, type: Zcl.DataType.int16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysRemoteTemperatureValidDuration: {ID: 0x0014, type: Zcl.DataType.uint8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysProportionalGain: {ID: 0x0020, type: Zcl.DataType.int16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysProportionalShift: {ID: 0x0021, type: Zcl.DataType.int8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysIntegralFactor: {ID: 0x0022, type: Zcl.DataType.int16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+            },
+            commands: {},
+            commandsResponse: {},
+        },
+    ),
     localTemperatureOffset: (args?: Partial<NumericArgs>) => numeric({
         name: 'local_temperature_offset',
         cluster: 'hvacThermostat',
