@@ -1518,7 +1518,7 @@ const definitions: Definition[] = [
         ],
         meta: {
             multiEndpoint: true,
-            coverPositionTiltDisableReport: false
+            coverPositionTiltDisableReport: false,
         },
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
