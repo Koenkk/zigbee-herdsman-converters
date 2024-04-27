@@ -156,6 +156,12 @@ export interface DefinitionMeta {
      * @defaultValue true
      */
     supportsHueAndSaturation?: boolean,
+    /**
+     * Do not set `position` or `tilt` to target value on /set. See `toZigbee.cover_position_tilt`
+     *
+     * @defaultValue false
+     */
+    coverPositionTiltDisableReport?: boolean,
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
