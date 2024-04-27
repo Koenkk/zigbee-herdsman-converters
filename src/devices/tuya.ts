@@ -11,7 +11,8 @@ import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
-import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify} from '../lib/modernExtend';
+import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify,
+    actionEnumLookup, commandsOnOff, commandsLevelCtrl} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
 
 const NS = 'zhc:tuya';
@@ -963,56 +964,72 @@ const definitions: Definition[] = [
         model: 'F00MB00-04-1',
         vendor: 'FORIA',
         description: '4 scenes switch',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4'])],
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, 'action', tuya.valueConverter.static('scene_1')],
-                [2, 'action', tuya.valueConverter.static('scene_2')],
-                [3, 'action', tuya.valueConverter.static('scene_3')],
-                [4, 'action', tuya.valueConverter.static('scene_4')],
-            ],
-        },
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.combineActions([
+                tuya.modernExtend.dpAction({dp: 1, lookup: {'scene_1': 0}}),
+                tuya.modernExtend.dpAction({dp: 2, lookup: {'scene_2': 0}}),
+                tuya.modernExtend.dpAction({dp: 3, lookup: {'scene_3': 0}}),
+                tuya.modernExtend.dpAction({dp: 4, lookup: {'scene_4': 0}}),
+            ]),
+            tuya.modernExtend.dpBinary({
+                name: 'vibration',
+                dp: 0x6c, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable vibration',
+            }),
+            tuya.modernExtend.dpBinary({
+                name: 'approach',
+                dp: 0x6b, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable approach detection',
+            }),
+            tuya.modernExtend.dpBinary({
+                name: 'illumination',
+                dp: 0x6a, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable illumination detection',
+            }),
+            tuya.modernExtend.dpBinary({
+                name: 'backlight',
+                dp: 0x69, type: tuya.dataTypes.enum,
+                valueOn: ['ON', 1],
+                valueOff: ['OFF', 0],
+                description: 'Enable backlight',
+            }),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_dhke3p9w']),
         model: 'F00YK04-18-1',
         vendor: 'FORIA',
         description: '18 scenes remote',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6',
-            'scene_7', 'scene_8', 'scene_9', 'scene_10', 'scene_11', 'scene_12', 'scene_13', 'scene_14', 'scene_15', 'scene_16',
-            'scene_17', 'scene_18']),
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.combineActions([
+                tuya.modernExtend.dpAction({dp: 1, lookup: {'scene_1': 0}}),
+                tuya.modernExtend.dpAction({dp: 2, lookup: {'scene_2': 0}}),
+                tuya.modernExtend.dpAction({dp: 3, lookup: {'scene_3': 0}}),
+                tuya.modernExtend.dpAction({dp: 4, lookup: {'scene_4': 0}}),
+                tuya.modernExtend.dpAction({dp: 5, lookup: {'scene_5': 0}}),
+                tuya.modernExtend.dpAction({dp: 6, lookup: {'scene_6': 0}}),
+                tuya.modernExtend.dpAction({dp: 7, lookup: {'scene_7': 0}}),
+                tuya.modernExtend.dpAction({dp: 8, lookup: {'scene_8': 0}}),
+                tuya.modernExtend.dpAction({dp: 9, lookup: {'scene_9': 0}}),
+                tuya.modernExtend.dpAction({dp: 10, lookup: {'scene_10': 0}}),
+                tuya.modernExtend.dpAction({dp: 11, lookup: {'scene_11': 0}}),
+                tuya.modernExtend.dpAction({dp: 12, lookup: {'scene_12': 0}}),
+                tuya.modernExtend.dpAction({dp: 13, lookup: {'scene_13': 0}}),
+                tuya.modernExtend.dpAction({dp: 14, lookup: {'scene_14': 0}}),
+                tuya.modernExtend.dpAction({dp: 15, lookup: {'scene_15': 0}}),
+                tuya.modernExtend.dpAction({dp: 16, lookup: {'scene_16': 0}}),
+                tuya.modernExtend.dpAction({dp: 101, lookup: {'scene_17': 0}}),
+                tuya.modernExtend.dpAction({dp: 102, lookup: {'scene_18': 0}}),
+            ]),
         ],
-
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, 'action', tuya.valueConverter.static('scene_1')],
-                [2, 'action', tuya.valueConverter.static('scene_2')],
-                [3, 'action', tuya.valueConverter.static('scene_3')],
-                [4, 'action', tuya.valueConverter.static('scene_4')],
-                [5, 'action', tuya.valueConverter.static('scene_5')],
-                [6, 'action', tuya.valueConverter.static('scene_6')],
-                [7, 'action', tuya.valueConverter.static('scene_7')],
-                [8, 'action', tuya.valueConverter.static('scene_8')],
-                [9, 'action', tuya.valueConverter.static('scene_9')],
-                [10, 'action', tuya.valueConverter.static('scene_10')],
-                [11, 'action', tuya.valueConverter.static('scene_11')],
-                [12, 'action', tuya.valueConverter.static('scene_12')],
-                [13, 'action', tuya.valueConverter.static('scene_13')],
-                [14, 'action', tuya.valueConverter.static('scene_14')],
-                [15, 'action', tuya.valueConverter.static('scene_15')],
-                [16, 'action', tuya.valueConverter.static('scene_16')],
-                [101, 'action', tuya.valueConverter.static('scene_17')],
-                [102, 'action', tuya.valueConverter.static('scene_18')],
-            ],
-        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
@@ -1777,7 +1794,7 @@ const definitions: Definition[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems', '_TZE200_la2c2uo9', '_TZE200_579lguh2',
             '_TZE200_vucankjx', '_TZE200_4mh6tyyo', '_TZE204_hlx9tnzb', '_TZE204_n9ctkb6j', '_TZE204_9qhuzgo0', '_TZE200_9cxuhakf',
             '_TZE200_a0syesf5', '_TZE200_3p5ydos3', '_TZE200_swaamsoy', '_TZE200_ojzhk75b', '_TZE200_w4cryh2i', '_TZE200_dfxkcots',
-            '_TZE200_9i9dt8is', '_TZE200_ctq0k47x', '_TZE200_ebwgzdqq', '_TZE200_whpb9yts', '_TZE204_vevc4c6g']),
+            '_TZE200_9i9dt8is', '_TZE200_ctq0k47x', '_TZE200_ebwgzdqq', '_TZE200_whpb9yts', '_TZE204_vevc4c6g', '_TZE200_0nauxa0p']),
         model: 'TS0601_dimmer_1',
         vendor: 'TuYa',
         description: '1 gang smart dimmer',
@@ -1813,6 +1830,7 @@ const definitions: Definition[] = [
             tuya.whitelabel('Moes', 'MS-105Z', 'Smart Dimmer module', ['_TZE200_la2c2uo9']),
             tuya.whitelabel('Mercator Ikuü', 'SSWM-DIMZ', 'Switch Mechanism', ['_TZE200_9cxuhakf']),
             tuya.whitelabel('Mercator Ikuü', 'SSWRM-ZB', 'Rotary dimmer mechanism', ['_TZE200_a0syesf5']),
+            tuya.whitelabel('Lonsonho', 'EDM-1ZBB-EU', 'Smart Dimmer Switch', ['_TZE200_0nauxa0p']),
         ],
     },
     {
@@ -3395,7 +3413,7 @@ const definitions: Definition[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_r0jdjrvi']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_r0jdjrvi', '_TZE200_g5xqosu7']),
         model: 'TS0601_cover_8',
         vendor: 'TuYa',
         description: 'Cover motor',
@@ -4035,6 +4053,65 @@ const definitions: Definition[] = [
                 [23, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [101, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
                 [102, 'position', tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE204_rtrmfadk'},
+        ],
+        model: 'TRV601',
+        vendor: 'TuYa',
+        description: 'Thermostatic radiator valve.',
+        onEvent: tuya.onEventSetLocalTime,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.battery(), e.child_lock(), e.max_temperature(), e.min_temperature(),
+            e.position(), e.window_detection(),
+            e.binary('window', ea.STATE, 'OPEN', 'CLOSE').withDescription('Window status closed or open '),
+            e.binary('alarm_switch', ea.STATE, 'ON', 'OFF').withDescription('Thermostat in error state'),
+            e.climate()
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                .withPreset(['auto', 'manual', 'off', 'on'],
+                    'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. ' +
+                    'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
+                    'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
+                    'ON - In this mode, the thermostat stays open ' +
+                    'OFF - In this mode, the thermostat stays closed')
+                .withSystemMode(['auto', 'heat', 'off'], ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            e.enum('mode', ea.STATE_SET, ['comfort', 'eco']).withDescription('Hysteresis - comfort > switches off/on exactly at reached ' +
+                'temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, null, tuya.valueConverter.thermostatSystemModeAndPreset(null)],
+                [1, 'system_mode', tuya.valueConverter.thermostatSystemModeAndPreset('system_mode')],
+                [1, 'preset', tuya.valueConverter.thermostatSystemModeAndPreset('preset')],
+                [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [3, 'local_temperature', tuya.valueConverter.divideBy10],
+                [6, 'running_state', tuya.valueConverterBasic.lookup({'heat': 1, 'idle': 0})],
+                [7, 'window', tuya.valueConverterBasic.lookup({'OPEN': 1, 'CLOSE': 0})],
+                [8, 'window_detection', tuya.valueConverter.onOff],
+                [12, 'child_lock', tuya.valueConverter.lockUnlock],
+                [13, 'battery', tuya.valueConverter.raw],
+                [14, 'alarm_switch', tuya.valueConverter.onOff],
+                [15, 'min_temperature', tuya.valueConverter.divideBy10],
+                [16, 'max_temperature', tuya.valueConverter.divideBy10],
+                [17, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [18, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [19, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [20, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [21, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [22, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [23, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [101, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [108, 'position', tuya.valueConverter.divideBy10],
+                [114, 'mode', tuya.valueConverterBasic.lookup({'comfort': tuya.enum(0), 'eco': tuya.enum(1)})],
             ],
         },
     },
@@ -6308,6 +6385,7 @@ const definitions: Definition[] = [
             tuya.exposes.powerFactorWithPhase('a'), tuya.exposes.powerFactorWithPhase('b'), tuya.exposes.powerFactorWithPhase('c'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [132, 'ac_frequency', tuya.valueConverter.raw],
                 [133, 'temperature', tuya.valueConverter.divideBy10],
@@ -7882,6 +7960,7 @@ const definitions: Definition[] = [
             e.numeric('timestamp_b', ea.STATE).withDescription('Timestamp at power B measure'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [111, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [112, 'voltage', tuya.valueConverter.divideBy10],
@@ -7920,6 +7999,7 @@ const definitions: Definition[] = [
             tuya.exposes.energyProducedWithPhase('a'), tuya.exposes.energyProducedWithPhase('b'),
         ],
         meta: {
+            multiEndpointSkip: ['power_factor', 'power_factor_phase_b', 'power_factor_phase_c', 'energy'],
             tuyaDatapoints: [
                 [113, 'ac_frequency', tuya.valueConverter.raw],
                 [108, 'power_a', tuya.valueConverter.raw],
@@ -8241,21 +8321,21 @@ const definitions: Definition[] = [
         model: 'F00XN00-04-1',
         vendor: 'FORIA',
         description: 'Dimmer 4 scenes',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp,
-            fz.command_step_color_temperature, fz.command_step],
-        toZigbee: [],
-        exposes: [e.battery(), e.battery_voltage(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.command('genGroups', 'miboxerSetZones', {zones: [
-                {zoneNum: 1, groupId: 101},
-                {zoneNum: 2, groupId: 102},
-                {zoneNum: 3, groupId: 103},
-                {zoneNum: 4, groupId: 104},
-            ]});
-            await endpoint.command('genBasic', 'tuyaSetup', {}, {disableDefaultResponse: true});
-        },
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            battery({voltage: true}),
+            tuya.modernExtend.combineActions([
+                actionEnumLookup({
+                    actionLookup: {'scene_1': 1, 'scene_2': 2, 'scene_3': 3, 'scene_4': 4},
+                    cluster: 'genOnOff',
+                    commands: ['commandTuyaAction'],
+                    attribute: 'data',
+                    parse: (msg, attr) => msg.data[attr][1],
+                }),
+                commandsOnOff(),
+                commandsLevelCtrl({commands: ['brightness_move_up', 'brightness_move_down', 'brightness_stop']}),
+            ]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_l6llgoxq']),
@@ -8327,6 +8407,23 @@ const definitions: Definition[] = [
                 [18, 'temperature', tuya.valueConverter.raw],
                 [19, 'humidity', tuya.valueConverter.raw],
             ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_guijtl8k']),
+        model: 'QS-Zigbee-D04',
+        vendor: 'LEDRON',
+        description: '0-10v dimmer',
+        fromZigbee: [fzLocal.TS110E, fz.on_off],
+        toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tz.light_brightness_move],
+        exposes: [
+            e.light_brightness().withMinBrightness().withMaxBrightness(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
         },
     },
     {

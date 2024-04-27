@@ -478,7 +478,7 @@ const definitions: Definition[] = [
             e.voltage(),
             e.power_outage_memory(),
             e.action(['single_top', 'single_bottom', 'single_both', 'double_top', 'double_bottom', 'double_both'])],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
         },
@@ -600,7 +600,7 @@ const definitions: Definition[] = [
         model: 'QBKG31LM',
         vendor: 'Aqara',
         description: 'Smart wall switch H1 Pro (with neutral, double rocker)',
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -724,7 +724,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_power, lumi.toZigbee.lumi_switch_operation_mode_opple, lumi.toZigbee.lumi_switch_power_outage_memory,
             lumi.toZigbee.lumi_flip_indicator_light, lumi.toZigbee.lumi_led_disabled_night],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -851,7 +851,7 @@ const definitions: Definition[] = [
                 .withDescription('Operation mode for right button')
                 .withEndpoint('right'),
         ],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_basic, lumi.toZigbee.lumi_power],
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
@@ -1044,7 +1044,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_operation_mode_basic,
             lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_basic],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_power, lumi.toZigbee.lumi_switch_operation_mode_basic],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
         },
@@ -1205,7 +1205,10 @@ const definitions: Definition[] = [
         model: 'WSDCGQ12LM',
         vendor: 'Aqara',
         description: 'Temperature and humidity sensor T1',
-        whiteLabel: [{vendor: 'Aqara', model: 'TH-S02D'}],
+        whiteLabel: [
+            {vendor: 'Aqara', model: 'TH-S02D'},
+            {vendor: 'Yandex', model: 'YNDX-00523'},
+        ],
         fromZigbee: [lumi.fromZigbee.lumi_specific, fz.temperature, fz.humidity, lumi.fromZigbee.lumi_pressure, fz.battery],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.pressure(), e.device_temperature(), e.battery(), e.battery_voltage(),
@@ -1253,6 +1256,7 @@ const definitions: Definition[] = [
         model: 'RTCGQ12LM',
         vendor: 'Aqara',
         description: 'Motion sensor T1',
+        whiteLabel: [{vendor: 'Yandex', model: 'YNDX-00522'}],
         fromZigbee: [lumi.fromZigbee.lumi_occupancy_illuminance, lumi.fromZigbee.lumi_specific, fz.battery],
         toZigbee: [lumi.toZigbee.lumi_detection_interval],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
@@ -1454,7 +1458,10 @@ const definitions: Definition[] = [
         model: 'SJCGQ12LM',
         vendor: 'Aqara',
         description: 'Water leak sensor T1',
-        whiteLabel: [{vendor: 'Aqara', model: 'WL-S02D'}],
+        whiteLabel: [
+            {vendor: 'Aqara', model: 'WL-S02D'},
+            {vendor: 'Yandex', model: 'YNDX-00521'},
+        ],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ias_water_leak_alarm_1, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
@@ -2001,7 +2008,7 @@ const definitions: Definition[] = [
         description: 'Dual relay module T2',
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_specific, lumi.fromZigbee.lumi_power],
         toZigbee: [tz.on_off],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -2570,7 +2577,10 @@ const definitions: Definition[] = [
         model: 'WXKG13LM',
         vendor: 'Aqara',
         description: 'Wireless mini switch T1',
-        whiteLabel: [{vendor: 'Aqara', model: 'WB-R02D'}],
+        whiteLabel: [
+            {vendor: 'Aqara', model: 'WB-R02D'},
+            {vendor: 'Yandex', model: 'YNDX-00524'},
+        ],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
@@ -2607,7 +2617,7 @@ const definitions: Definition[] = [
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_specific],
         toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_power_outage_memory, lumi.toZigbee.lumi_led_disabled_night,
             lumi.toZigbee.lumi_button_switch_mode, lumi.toZigbee.lumi_overload_protection, lumi.toZigbee.lumi_socket_button_lock],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         endpoint: () => {
             return {'relay': 1, 'usb': 2};
         },
@@ -2625,7 +2635,10 @@ const definitions: Definition[] = [
         model: 'MCCGQ12LM',
         vendor: 'Aqara',
         description: 'Door and window sensor T1',
-        whiteLabel: [{vendor: 'Aqara', model: 'DW-S03D'}],
+        whiteLabel: [
+            {vendor: 'Aqara', model: 'DW-S03D'},
+            {vendor: 'Yandex', model: 'YNDX-00520'},
+        ],
         fromZigbee: [lumi.fromZigbee.lumi_contact, lumi.fromZigbee.lumi_specific, fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
@@ -3050,7 +3063,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['lumi.switch.acn061'],
         model: 'WS-K01D',
         vendor: 'Aqara',
-        description: 'Smart 20A Switch H1 (single rocker)',
+        description: 'Smart wall switch H1 20A (with neutral, single rocker)',
         extend: [
             lumiZigbeeOTA(),
             lumiPreventReset(),
@@ -3170,7 +3183,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         exposes: [
             e.power(), e.energy(), e.voltage(),
             e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
@@ -3202,7 +3215,7 @@ const definitions: Definition[] = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['power', 'energy']},
         exposes: [
             e.power(), e.energy(), e.voltage(),
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),

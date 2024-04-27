@@ -1794,7 +1794,7 @@ const tuyaModernExtend = {
         return {exposes: [exp], toZigbee, fromZigbee, isModernExtend: true};
     },
     tuyaMagicPacket(): ModernExtend {
-        return {configure: configureMagicPacket, isModernExtend: true};
+        return {configure: [configureMagicPacket], isModernExtend: true};
     },
     tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs>): ModernExtend {
         return modernExtend.actionEnumLookup({

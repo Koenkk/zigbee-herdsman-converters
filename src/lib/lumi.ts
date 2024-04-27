@@ -800,10 +800,6 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
             // This is a a complete structure with attributes, like element 0 for state, element 1 for voltage...
             // At this moment we only extract what we are sure, for example, position 0 seems to be always 1 for a
             // occupancy sensor, so we ignore it at this moment
-            if (['MCCGQ01LM'].includes(model.model)) {
-                // @ts-expect-error
-                payload.contact = value[0].elmVal === 0;
-            }
             // @ts-expect-error
             payload.voltage = value[1].elmVal;
             if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
@@ -1730,9 +1726,11 @@ export const lumiModernExtend = {
         // modes:
         // 0 - 'command' mode. keys send commands. useful for binding
         // 1 - 'event' mode. keys send events. useful for handling
-        const configure: Configure = async (device, coordinatorEndpoint, definition) => {
-            await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
-        };
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                await device.getEndpoint(1).write('manuSpecificLumi', {'mode': 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
+            },
+        ];
         return {configure, isModernExtend: true};
     },
     lumiSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs>) => modernExtend.enumLookup({

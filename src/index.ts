@@ -8,7 +8,7 @@ import assert from 'assert';
 import * as ota from './lib/ota';
 import allDefinitions from './devices';
 import * as utils from './lib/utils';
-import {Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue} from './lib/types';
+import {Definition, Fingerprint, Zh, OnEventData, OnEventType, Configure, Expose, Tz, OtaUpdateAvailableResult, KeyValue, OnEvent} from './lib/types';
 import {generateDefinition} from './lib/generateDefinition';
 import {Zcl} from 'zigbee-herdsman';
 import * as logger from './lib/logger';
@@ -101,7 +101,7 @@ function processExtensions(definition: Definition): Definition {
             assert.fail(`'${definition.model}' has legacy extend which is not supported anymore`);
         }
         // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
-        let {extend, toZigbee, fromZigbee, exposes, meta, endpoint, configure: definitionConfigure, onEvent, ota, ...definitionWithoutExtend} = definition;
+        let {extend, toZigbee, fromZigbee, exposes, meta, endpoint, configure: definitionConfigure, onEvent: definitionOnEvent, ota, ...definitionWithoutExtend} = definition;
         if (typeof exposes === 'function') {
             assert.fail(`'${definition.model}' has function exposes which is not allowed`);
         }
@@ -111,6 +111,7 @@ function processExtensions(definition: Definition): Definition {
         fromZigbee = [...fromZigbee ?? []];
 
         const configures: Configure[] = definitionConfigure ? [definitionConfigure] : [];
+        const onEvents: OnEvent[] = definitionOnEvent ? [definitionOnEvent] : [];
 
         for (const ext of extend) {
             if (!ext.isModernExtend) {
@@ -120,7 +121,8 @@ function processExtensions(definition: Definition): Definition {
             if (ext.fromZigbee) fromZigbee.push(...ext.fromZigbee);
             if (ext.exposes) exposes.push(...ext.exposes);
             if (ext.meta) meta = {...ext.meta, ...meta};
-            if (ext.configure) configures.push(ext.configure);
+            if (ext.configure) configures.push(...ext.configure);
+            if (ext.onEvent) onEvents.push(ext.onEvent);
             if (ext.ota) {
                 if (ota && ext.ota !== ota) {
                     assert.fail(`'${definition.model}' has multiple 'ota', this is not allowed`);
@@ -132,12 +134,6 @@ function processExtensions(definition: Definition): Definition {
                     assert.fail(`'${definition.model}' has multiple 'endpoint', this is not allowed`);
                 }
                 endpoint = ext.endpoint;
-            }
-            if (ext.onEvent) {
-                if (onEvent) {
-                    assert.fail(`'${definition.model}' has multiple 'onEvent', this is not allowed`);
-                }
-                onEvent = ext.onEvent;
             }
         }
 
@@ -162,6 +158,14 @@ function processExtensions(definition: Definition): Definition {
             configure = async (device, coordinatorEndpoint, configureDefinition) => {
                 for (const func of configures) {
                     await func(device, coordinatorEndpoint, configureDefinition);
+                }
+            }
+        }
+        let onEvent: OnEvent = null;
+        if (onEvents.length !== 0) {
+            onEvent = async (type, data, device, settings, state) => {
+                for (const func of onEvents) {
+                    await func(type, data, device, settings, state);
                 }
             }
         }
