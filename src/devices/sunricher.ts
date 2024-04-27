@@ -71,7 +71,7 @@ const definitions: Definition[] = [
         zigbeeModel: ['HK-SL-DIM-US-A'],
         model: 'HK-SL-DIM-US-A',
         vendor: 'Sunricher',
-        description: 'Keypad Smart Dimmer',
+        description: 'Keypad smart dimmer',
         extend: [light({configureReporting: true}), electricityMeter()],
     },
     {
