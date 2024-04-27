@@ -10,7 +10,7 @@ import * as globalStore from '../lib/store';
 import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import {KeyValue, Definition, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
+import {KeyValue, Definition, Zh, Tz, Fz, Expose, KeyValueAny, KeyValueString} from '../lib/types';
 import {onOff, quirkCheckinInterval, battery, deviceEndpoints, light, iasZoneAlarm, temperature, humidity, identify} from '../lib/modernExtend';
 import {logger} from '../lib/logger';
 
@@ -24,6 +24,266 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
+const PJ1203A = {
+
+    //
+    // The PJ-1203A is sending quick sequence of messages containing a single datapoint.
+    // A sequence occurs every `update_frequency` seconds (10s by default)
+    //
+    // A typical sequence is composed of two identical groups for channel a and b.
+    //
+    //     102 energy_flow_a
+    //     112 voltage
+    //     113 current_a
+    //     101 power_a
+    //     110 power_factor_a
+    //     111 ac_frequency
+    //     115 power_ab
+    //     ---
+    //     104 energy_flow_b
+    //     112 voltage
+    //     114 current_b
+    //     105 power_b
+    //     121 power_factor_b
+    //     111 ac_frequency
+    //     115 power_ab
+    //
+    // It should be noted that when no current is detected on channel x then
+    // energy_flow_x is not emited and current_x==0, power_x==0 and power_factor_x==100.
+    //
+    // The other datapoints are emitted every few minutes.
+    //
+    // There is a known issue on the _TZE204_81yrt3lo (with appVersion 74, stackVersion 0 and hwVersion 1).
+    // The energy_flow datapoints are (incorrectly) emited during the next update. This is quite problematic
+    // because that means that the direction can be inverted for up to update_frequency seconds.
+    //
+    // The features implemented here are
+    //   - cache the datapoints for each channel and publish them together.
+    //   - (OPTIONAL) solve the issue described above by waiting for the next energy flow datapoint
+    //     before publishing the cached channel data.
+    //   - (OPTIONAL) provide signed power instead of energy flow.
+    //   - detect missing or reordered Zigbee message using the Tuya 'seq' attibute and invalidate
+    //     cached data accordingly.
+    //
+
+    get_private_state: (device: Zh.Device) => {
+        let priv = globalStore.getValue(device, 'private_state');
+        if (priv===undefined) {
+            priv = {
+                // Cached values for both channels
+                'sign_a': null,
+                'sign_b': null,
+                'power_a': null,
+                'power_b': null,
+                'current_a': null,
+                'current_b': null,
+                'power_factor_a': null,
+                'power_factor_b': null,
+                'timestamp_a': null,
+                'timestamp_b': null,
+                // Used to detect missing or misordered messages.
+                'last_seq': -99999,
+                // Do all PJ-1203A increment seq by 256? If not, then this is
+                // the value that will have to be customized.
+                'seq_inc': 256,
+                // Also need to save the last published SIGNED values of
+                // power_a and power_b to recompute power_ab on the fly.
+                'pub_power_a': null,
+                'pub_power_b': null,
+            };
+            globalStore.putValue(device, 'private_state', priv );
+        }
+        return priv;
+    },
+
+    options: {
+        late_energy_flow: (channel: string) => e.binary('late_energy_flow_'+channel, ea.SET, true, false )
+            .withDescription(`Delay channel ${channel.toUpperCase()} publication until the next energy flow update (default false).`),
+        signed_power: (channel: string) => e.binary('signed_power_'+channel, ea.SET, true, false )
+            .withDescription(`Report energy flow direction for channel ${channel.toUpperCase()} using signed power (default false).`),
+    },
+
+    recompute_power_ab: (result: KeyValueAny, priv: KeyValueAny, options: KeyValue) => {
+        let modified = false;
+        if ( 'power_a' in result ) {
+            priv.pub_power_a = result.power_a * ( result.energy_flow_a == 'producing' ? -1 : 1 );
+            modified = true;
+        }
+        if ( 'power_b' in result ) {
+            priv.pub_power_b = result.power_b * ( result.energy_flow_b == 'producing' ? -1 : 1 );
+            modified = true;
+        }
+        if (modified) {
+            if ( priv.pub_power_a!==null && priv.pub_power_b!==null ) {
+                // Cancel and reapply the scaling by 10 to avoid floating-point rounding errors
+                // such as 79.8 - 37.1 = 42.699999999999996
+                result['power_ab'] = Math.round(10*priv.pub_power_a + 10*priv.pub_power_b) / 10;
+            }
+        }
+    },
+
+    flush_all: (result: KeyValueAny, channel: string, priv: KeyValueAny, options: KeyValue) => {
+        const sign = priv['sign_'+channel];
+        const power = priv['power_'+channel];
+        const current = priv['current_'+channel];
+        const powerFactor = priv['power_factor_'+channel];
+        priv['sign_'+channel] = priv['power_'+channel] = priv['current_'+channel] = priv['power_factor_'+channel] = null;
+        // Only publish if the set is complete otherwise discard everything.
+        if ( sign!==null && power!==null && current!==null && powerFactor!==null ) {
+            const signedPowerKey = 'signed_power_'+channel;
+            const signedPower = options.hasOwnProperty(signedPowerKey) ? options[signedPowerKey] : false;
+            if (signedPower) {
+                result['power_'+channel] = sign * power;
+                result['energy_flow_'+channel] = 'sign';
+            } else {
+                result['power_'+channel] = power;
+                result['energy_flow_'+channel] = (sign>0) ? 'consuming' : 'producing';
+            }
+            result['timestamp_'+channel] = priv['timestamp_'+channel];
+            result['current_'+channel] = current;
+            result['power_factor_'+channel] = powerFactor;
+            PJ1203A.recompute_power_ab(result, priv, options);
+            return true;
+        }
+        return false;
+    },
+
+    // When the device does not detect any flow, it stops sending
+    // the energy_flow datapoint (102 and 104) and always set
+    // current_x=0, power_x=0 and power_factor_x=100.
+    //
+    // So if we see a datapoint with current==0 or power==0
+    // then we can safely assume that we are in that zero energy state.
+    //
+    // Also, the publication of a zero energy state is not delayed
+    // when option late_energy_flow_a|b is set.
+    flush_zero: (result: KeyValueAny, channel:string, priv: KeyValueAny, options: KeyValue) => {
+        priv['sign_'+channel] = +1;
+        priv['power_'+channel] = 0;
+        priv['timestamp_'+channel] = new Date().toISOString();
+        priv['current_'+channel] = 0;
+        priv['power_factor_'+channel] = 100;
+        PJ1203A.flush_all(result, channel, priv, options);
+    },
+
+    valueConverters: {
+        energy_flow: (channel: string) => {
+            return {
+                from: (v:number, meta: Fz.Meta, options: KeyValue) => {
+                    const priv = PJ1203A.get_private_state(meta.device);
+                    const result = {};
+                    priv['sign_'+channel] = (v==1) ? -1 : +1;
+                    const lateEnergyFlowKey = 'late_energy_flow_'+channel;
+                    const lateEnergyFlow = options.hasOwnProperty(lateEnergyFlowKey) ? options[lateEnergyFlowKey] : false;
+                    if (lateEnergyFlow) {
+                        PJ1203A.flush_all(result, channel, priv, options);
+                    }
+                    return result;
+                },
+            };
+        },
+
+        power: (channel: string) => {
+            return {
+                from: (v:number, meta: Fz.Meta, options: KeyValue) => {
+                    const priv = PJ1203A.get_private_state(meta.device);
+                    const result = {};
+                    priv['power_'+channel] = v/10;
+                    priv['timestamp_'+channel] = new Date().toISOString();
+                    if (v==0) {
+                        PJ1203A.flush_zero(result, channel, priv, options);
+                        return result;
+                    }
+                    return result;
+                },
+            };
+        },
+
+        current: (channel: string) => {
+            return {
+                from: (v: number, meta: Fz.Meta, options: KeyValue) => {
+                    const priv = PJ1203A.get_private_state(meta.device);
+                    const result = {};
+                    priv['current_'+channel] = v/1000;
+                    if (v==0) {
+                        PJ1203A.flush_zero(result, channel, priv, options);
+                        return result;
+                    }
+                    return result;
+                },
+            };
+        },
+
+        power_factor: (channel: string) => {
+            return {
+                from: (v:number, meta: Fz.Meta, options: KeyValue) => {
+                    const priv = PJ1203A.get_private_state(meta.device);
+                    const result = {};
+                    priv['power_factor_'+channel] = v;
+                    const lateEnergyFlowKey = 'late_energy_flow_'+channel;
+                    const lateEnergyFlow = options.hasOwnProperty(lateEnergyFlowKey) ? options[lateEnergyFlowKey] : false;
+                    if (!lateEnergyFlow) {
+                        PJ1203A.flush_all(result, channel, priv, options);
+                    }
+                    return result;
+                },
+            };
+        },
+
+        // We currently discard the power_ab datapoint
+        // but it is recomputed on the fly to match
+        // the published values of power_a and power_b.
+        power_ab: () => {
+            return {
+                from: (v: number, meta: Fz.Meta, options: KeyValue) => {
+                    return {};
+                },
+            };
+        },
+
+    },
+
+    // 'commandMcuSyncTime' does not contain a 'seq' but the
+    // device is increasing its internal counter.
+    sync_time_increase_seq: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandMcuSyncTime'],
+        convert: (model, msg, publish, options, meta) => {
+            const priv = PJ1203A.get_private_state(meta.device);
+            priv.last_seq += priv.seq_inc;
+        },
+    } satisfies Fz.Converter,
+
+    // A wrapper around tuya.fz.datapoints to invalidate all cached
+    // datapoints when missing or mis-ordered messages are detected.
+    strict_fz_datapoints: {
+        ...tuya.fz.datapoints,
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // Uncomment the next line to test the behavior when random messages are lost
+            // if ( Math.random() < 0.05 ) return;
+            const priv = PJ1203A.get_private_state(meta.device);
+            // Detect missing or re-ordered messages but allow duplicate messages (should we?).
+            const expectedSeq = (priv.last_seq+priv.seq_inc) & 0xFFFF;
+            if ( (msg.data.seq != expectedSeq) && (msg.data.seq != priv.last_seq) ) {
+                logger.debug(`[PJ1203A] Missing or re-ordered message detected: Got seq=${msg.data.seq}, expected ${priv.next_seq}`, NS);
+                // Clear all pending attributes since we cannot insure that the sign matches with other values.
+                priv.sign_a = null;
+                priv.sign_b = null;
+                priv.power_a = null;
+                priv.power_b = null;
+                priv.current_a = null;
+                priv.current_b = null;
+                priv.power_factor_a = null;
+                priv.power_factor_b = null;
+            }
+            priv.last_seq = msg.data.seq;
+            // And finally, process the datapoint using tuya.fz.datapoints
+            Object.assign( result, tuya.fz.datapoints.convert(model, msg, publish, options, meta) );
+            return result;
+        },
+    } satisfies Fz.Converter,
+};
 
 const tzLocal = {
     TS030F_border: {
@@ -7592,33 +7852,48 @@ const definitions: Definition[] = [
         model: 'PJ-1203A',
         vendor: 'TuYa',
         description: 'Bidirectional energy meter with 80A current clamp',
-        fromZigbee: [tuya.fz.datapoints],
+        fromZigbee: [PJ1203A.strict_fz_datapoints, PJ1203A.sync_time_increase_seq],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
+        options: [
+            PJ1203A.options.late_energy_flow('a'),
+            PJ1203A.options.late_energy_flow('b'),
+            PJ1203A.options.signed_power('a'),
+            PJ1203A.options.signed_power('b'),
+        ],
         exposes: [
             e.ac_frequency(), e.voltage(),
-            tuya.exposes.powerWithPhase('a'), tuya.exposes.powerWithPhase('b'), tuya.exposes.powerWithPhase('ab'),
-            tuya.exposes.currentWithPhase('a'), tuya.exposes.currentWithPhase('b'),
-            tuya.exposes.powerFactorWithPhase('a'), tuya.exposes.powerFactorWithPhase('b'),
-            tuya.exposes.energyFlowWithPhase('a'), tuya.exposes.energyFlowWithPhase('b'),
-            tuya.exposes.energyWithPhase('a'), tuya.exposes.energyWithPhase('b'),
-            tuya.exposes.energyProducedWithPhase('a'), tuya.exposes.energyProducedWithPhase('b'),
-            e.numeric('update_frequency', ea.STATE).withUnit('s').withDescription('Update frequency'),
+            tuya.exposes.powerWithChannel('a'), tuya.exposes.powerWithChannel('b'), tuya.exposes.powerWithChannel('ab'),
+            tuya.exposes.currentWithChannel('a'), tuya.exposes.currentWithChannel('b'),
+            tuya.exposes.powerFactorWithChannel('a'), tuya.exposes.powerFactorWithChannel('b'),
+            tuya.exposes.energyFlowWithChannel('a', ['sign']), tuya.exposes.energyFlowWithChannel('b', ['sign']),
+            tuya.exposes.energyWithChannel('a'), tuya.exposes.energyWithChannel('b'),
+            tuya.exposes.energyProducedWithChannel('a'), tuya.exposes.energyProducedWithChannel('b'),
+            e.numeric('update_frequency', ea.STATE_SET).withUnit('s').withDescription('Update frequency')
+                .withValueMin(3)
+                .withValueMax(60)
+                .withPreset('default', 10, 'Default value'),
+            // Timestamp a and b are basically equivalent to last_seen
+            // but they indicate when the unsigned value of power_a and power_b
+            // were received. They can be several seconds in the past if
+            // the publication was delayed because of the late_energy_flow options.
+            e.numeric('timestamp_a', ea.STATE).withDescription('Timestamp at power A measure'),
+            e.numeric('timestamp_b', ea.STATE).withDescription('Timestamp at power B measure'),
         ],
         meta: {
             tuyaDatapoints: [
                 [111, 'ac_frequency', tuya.valueConverter.divideBy100],
-                [101, 'power_a', tuya.valueConverter.divideBy10],
-                [105, 'power_b', tuya.valueConverter.divideBy10],
-                [115, 'power_ab', tuya.valueConverter.divideBy10],
                 [112, 'voltage', tuya.valueConverter.divideBy10],
-                [113, 'current_a', tuya.valueConverter.divideBy1000],
-                [114, 'current_b', tuya.valueConverter.divideBy1000],
-                [110, 'power_factor_a', tuya.valueConverter.raw],
-                [121, 'power_factor_b', tuya.valueConverter.raw],
-                [102, 'energy_flow_a', tuya.valueConverterBasic.lookup({'consuming': 0, 'producing': 1})],
-                [104, 'energy_flow_b', tuya.valueConverterBasic.lookup({'consuming': 0, 'producing': 1})],
+                [101, null, PJ1203A.valueConverters.power('a')], // power_a
+                [105, null, PJ1203A.valueConverters.power('b')], // power_b
+                [113, null, PJ1203A.valueConverters.current('a')], // current_a
+                [114, null, PJ1203A.valueConverters.current('b')], // current_b
+                [110, null, PJ1203A.valueConverters.power_factor('a')], // power_factor_a
+                [121, null, PJ1203A.valueConverters.power_factor('b')], // power_factor_b
+                [102, null, PJ1203A.valueConverters.energy_flow('a')], // energy_flow_a or the sign of power_a
+                [104, null, PJ1203A.valueConverters.energy_flow('b')], // energy_flow_b or the sign of power_b
+                [115, null, PJ1203A.valueConverters.power_ab()],
                 [106, 'energy_a', tuya.valueConverter.divideBy100],
                 [108, 'energy_b', tuya.valueConverter.divideBy100],
                 [107, 'energy_produced_a', tuya.valueConverter.divideBy100],
