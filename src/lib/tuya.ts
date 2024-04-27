@@ -815,7 +815,7 @@ export const valueConverter = {
         return {
             from: (v: string) => {
                 const schedule = [];
-                for (let index = 1; index < 17; index = index + 4) {
+                for (let index = 1; index < 4 * numberOfSchedules + 1; index = index + 4) {
                     schedule.push(
                         String(parseInt(v[index + 0])).padStart(2, '0') + ':' +
                         String(parseInt(v[index + 1])).padStart(2, '0') + '/' +
